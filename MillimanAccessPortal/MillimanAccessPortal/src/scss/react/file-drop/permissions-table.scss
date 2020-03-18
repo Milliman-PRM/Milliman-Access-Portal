@@ -101,6 +101,18 @@
                     color: $green;
                     font-weight: bold;
                 }
+
+                &.disabled {
+                    cursor: default;
+
+                    .table-icon {
+                        color: $grey;
+                    }
+
+                    .action-text {
+                        color: $grey;
+                    }
+                }
             }
 
             td {

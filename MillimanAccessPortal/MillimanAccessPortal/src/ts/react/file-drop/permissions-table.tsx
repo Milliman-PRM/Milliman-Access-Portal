@@ -329,11 +329,15 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       );
     });
     const addUserRow = (
-      <tr className="action-row">
+      <tr className={`action-row${!isReadyToSubmit ? ' disabled' : ''}`}>
         <td><svg className="table-icon"><use xlinkHref="#add-user" /></svg></td>
         <td colSpan={6} className="action-text">
           <span
-            onClick={() => addPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg')})}
+            onClick={() => {
+              if (isReadyToSubmit) {
+                addPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg') });
+              }
+            }}
           >
             Add User
           </span>
@@ -341,11 +345,15 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       </tr>
     );
     const addGroupRow = (
-      <tr className="action-row">
+      <tr className={`action-row${!isReadyToSubmit ? ' disabled' : ''}`}>
         <td><svg className="table-icon"><use xlinkHref="#add-group" /></svg></td>
         <td colSpan={6} className="action-text">
           <span
-            onClick={() => addPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') })}
+            onClick={() => {
+              if (isReadyToSubmit) {
+                addPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') });
+              }
+            }}
           >
             Add Group
           </span>

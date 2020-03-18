@@ -606,13 +606,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       <ActionIcon
         label="Add User"
         icon="add-user"
-        action={() => this.props.addNewPermissionGroup({isSingleGroup: true, tempPGId: generateUniqueId('temp-pg')})}
+        disabled={!permissionGroupChangesReady}
+        action={() => this.props.addNewPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg') })}
       />
     );
     const addGroupButton = (
       <ActionIcon
         label="Add Group"
         icon="add-group"
+        disabled={!permissionGroupChangesReady}
         action={() => this.props.addNewPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') })}
       />
     );
