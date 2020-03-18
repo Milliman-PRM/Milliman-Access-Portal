@@ -21,7 +21,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
     {
         public string Name { get; set; }
         public bool IsPersonalGroup { get; set; }
-        public List<NonUserSftpAccount> AssignedSftpAccounts { get; set; }
+        public List<NonUserSftpAccount> AssignedSftpAccounts { get; set; } = new List<NonUserSftpAccount>();
         public List<Guid> AssignedMapUserIds { get; set; } = new List<Guid>();
         public bool ReadAccess { get; set; }
         public bool WriteAccess { get; set; }
