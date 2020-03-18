@@ -196,7 +196,7 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
-            model.currentFileDropId = fileDropModel.Id;
+            model.CurrentFileDropId = fileDropModel.Id;
 
             return Json(model);
         }
@@ -247,7 +247,7 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
 
             var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
-            model.currentFileDropId = fileDropRecord.Id;
+            model.CurrentFileDropId = fileDropRecord.Id;
 
             return Json(model);
         }
