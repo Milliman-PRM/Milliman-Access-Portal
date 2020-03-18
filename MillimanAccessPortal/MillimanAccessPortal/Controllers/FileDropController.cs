@@ -197,6 +197,7 @@ namespace MillimanAccessPortal.Controllers
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
             model.CurrentFileDropId = fileDropModel.Id;
+            model.PermissionGroups = _fileDropQueries.GetPermissionGroupsModelForFileDrop(fileDropModel.Id, fileDropModel.ClientId);
 
             return Json(model);
         }
