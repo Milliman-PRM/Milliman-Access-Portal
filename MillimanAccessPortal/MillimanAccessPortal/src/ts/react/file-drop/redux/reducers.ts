@@ -250,15 +250,18 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
 /** Reducer for swiching the active File Drop tab */
 const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
   SELECT_FILE_DROP_TAB: (_state, action: Action.SelectFileDropTab) => action.tab,
+  CREATE_FILE_DROP_SUCCEEDED: () => 'permissions',
 });
 
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
+  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) => ({
+    ...action.response.permissionGroups,
+  }),
   FETCH_PERMISSION_GROUPS: () => ({
     ..._.cloneDeep(_initialPermissionGroupsTab),
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    // ...JSON.parse(JSON.stringify(action.response)),
     ..._.cloneDeep(action.response),
   }),
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
@@ -341,15 +344,13 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       },
     },
   }),
-  CREATE_FILE_DROP_SUCCEEDED: () => ({
-    ..._.cloneDeep(_initialPermissionGroupsTab),
-  }),
 });
 
 /** Reducer for setting the edit mode state of the Permission Groups tab */
 const permissionGroupsEditMode = createReducer<boolean>(false, {
   SET_EDIT_MODE_FOR_PERMISSION_GROUPS:
     (_state, action: Action.SetEditModeForPermissionGroups) => action.editModeEnabled,
+  CREATE_FILE_DROP_SUCCEEDED: () => true,
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: () => false,
   SELECT_CLIENT: () => false,
   SELECT_FILE_DROP: () => false,
@@ -549,7 +550,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.fileDrops,
     },
     permissionGroups: {
-      ..._.cloneDeep(_initialPermissionGroupsTab),
+      ...action.response.permissionGroups,
     },
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
