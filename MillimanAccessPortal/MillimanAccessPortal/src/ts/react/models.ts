@@ -317,6 +317,7 @@ export interface FileDropWithStats extends FileDrop {
 export interface FileDropsReturnModel {
   clientCard: FileDropClientWithStats;
   fileDrops: Dict<FileDropWithStats>;
+  permissionGroups: PermissionGroupsReturnModel;
   currentFileDropId?: Guid;
 }
 
