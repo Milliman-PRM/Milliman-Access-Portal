@@ -45,7 +45,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
       const thisPG = permissionGroups[pgId];
       const pgIcon = (thisPG.isPersonalGroup) ? '#user' : '#group';
       return (
-        <>
+        <React.Fragment key={`pg-${thisPG.id}`}>
           <tr
             key={thisPG.id}
             className={
@@ -325,7 +325,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
               <td colSpan={4} />
             </tr>
           }
-        </>
+        </React.Fragment>
       );
     });
     const addUserRow = (
