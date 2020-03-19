@@ -261,6 +261,17 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
   FETCH_PERMISSION_GROUPS: () => ({
     ..._.cloneDeep(_initialPermissionGroupsTab),
   }),
+  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
+    if (state.fileDropId === action.response.currentFileDropId) {
+      return {
+        ..._.cloneDeep(_initialPermissionGroupsTab),
+      };
+    } else {
+      return {
+        ...state,
+      };
+    }
+  },
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ..._.cloneDeep(action.response),
   }),
@@ -395,6 +406,10 @@ const selected = createReducer<State.FileDropSelectedState>(
     CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
+    }),
+    DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
+      ...state,
+      fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
     }),
   },
 );
