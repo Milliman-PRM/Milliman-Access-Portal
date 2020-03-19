@@ -94,6 +94,8 @@ export default function* rootSaga() {
     'CREATE_FILE_DROP_FAILED',
     'DELETE_FILE_DROP_FAILED',
     'UPDATE_FILE_DROP_FAILED',
+    'FETCH_PERMISSION_GROUPS_FAILED',
+    'UPDATE_PERMISSION_GROUPS_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'FETCH_STATUS_REFRESH_FAILED',
   ], ({ message }) => message === 'sessionExpired'
