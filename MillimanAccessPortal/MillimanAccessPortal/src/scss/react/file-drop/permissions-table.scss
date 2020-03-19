@@ -14,6 +14,12 @@
                 width: 2em;
             }
 
+            &.col-name {
+                max-width: 12em;
+                width: 12em;
+                min-width: 8em;
+            }
+
             &.col-permission-download,
             &.col-permission-upload,
             &.col-permission-delete {
