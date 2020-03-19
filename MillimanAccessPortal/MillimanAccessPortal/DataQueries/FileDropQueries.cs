@@ -319,7 +319,7 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = false,
                                 UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName
                             }
-                        : existinguserAccountsToAdd.SingleOrDefault(a => userIdsRequiringNewAccount.Contains(a.ApplicationUserId.Value));
+                        : existinguserAccountsToAdd.SingleOrDefault(a => a.ApplicationUserId.Value == userIdToAdd);
 
                     updatedGroupRecord.SftpAccounts.Add(accountToAdd);
                 }
