@@ -130,7 +130,7 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   }),
   FETCH_PERMISSION_GROUPS_FAILED: (state) => ({
     ...state,
-    permissionsUpdate: false,
+    permissions: false,
   }),
   UPDATE_PERMISSION_GROUPS: (state) => ({
     ...state,
@@ -142,7 +142,7 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   }),
   UPDATE_PERMISSION_GROUPS_FAILED: (state) => ({
     ...state,
-    permissions: false,
+    permissionsUpdate: false,
   }),
   CREATE_FILE_DROP: (state) => ({
     ...state,
