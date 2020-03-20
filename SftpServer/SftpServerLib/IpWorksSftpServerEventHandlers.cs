@@ -58,7 +58,7 @@ namespace SftpServerLib
                 {
                     case int flags when (flags & 0x00000008) == 0x00000008  // SSH_FXF_CREAT (0x00000008)
                                      && (flags & 0x00000002) == 0x00000002: // SSH_FXF_WRITE (0x00000002)
-                        //client wants to create/write a file
+                        // create/write a file
 
                         (AuthorizationResult authResult, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
                         if (authResult == AuthorizationResult.ConnectionNotFound)
@@ -137,7 +137,7 @@ namespace SftpServerLib
                         break;
 
                     default:
-                        evtData.StatusCode = 3;
+                        //evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                         return;
                 }
             }
