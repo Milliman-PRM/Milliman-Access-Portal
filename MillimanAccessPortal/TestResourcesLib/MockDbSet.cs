@@ -236,7 +236,7 @@ namespace TestResourcesLib
 
         public DbSetAsyncEnumerable(Expression expression) : base(expression) { }
 
-        public IAsyncEnumerator<T> IAsyncEnumerable<T>.GetEnumerator()
+        IAsyncEnumerator<T> IAsyncEnumerable<T>.GetEnumerator()
         {
             return new DbSetAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
         }
