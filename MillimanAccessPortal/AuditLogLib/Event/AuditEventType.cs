@@ -1054,7 +1054,7 @@ namespace AuditLogLib.Event
                     : null,
             });
 
-        public static readonly AuditEventType<SftpFileWriteLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileWriteLogModel>(
+        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
             8112, "SFTP File Write Authorized", (model) => new
             {
                 model.FileName,
@@ -1066,8 +1066,32 @@ namespace AuditLogLib.Event
                     : null,
             });
 
+        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileReadAuthorized = new AuditEventType<SftpFileOperationLogModel>(
+            8113, "SFTP File Read Authorized", (model) => new
+            {
+                model.FileName,
+                model.FileDrop,
+                model.FileDropDirectory,
+                SftpAccount = new { model.Account.Id, model.Account.UserName, },
+                MapUser = model.User != null
+                    ? new { model.User.Id, model.User.UserName, }
+                    : null,
+            });
+
+        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileDeleteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
+            8114, "SFTP File Delete Authorized", (model) => new
+            {
+                model.FileName,
+                model.FileDrop,
+                model.FileDropDirectory,
+                SftpAccount = new { model.Account.Id, model.Account.UserName, },
+                MapUser = model.User != null
+                    ? new { model.User.Id, model.User.UserName, }
+                    : null,
+            });
+
         public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(
-            8113, "SFTP File Or Directory Renamed", (model) => new
+            8115, "SFTP File Or Directory Renamed", (model) => new
             {
                 From = model.From,
                 To = model.To,

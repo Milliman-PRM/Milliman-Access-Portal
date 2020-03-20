@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: POCO class for parameters to be passed to the corresponding audit log event
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -9,7 +9,7 @@ using MapDbContextLib.Identity;
 
 namespace AuditLogLib.Models
 {
-    public class SftpFileWriteLogModel
+    public class SftpFileOperationLogModel
     {
         public string FileName { get; set; }
         public FileDropDirectoryLogModel FileDropDirectory { get; set; }
