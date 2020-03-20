@@ -219,6 +219,11 @@ namespace TestResourcesLib
             return _inner.Execute<TResult>(expression);
         }
 
+        public Task<object> ExecuteAsync(Expression expression, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(Execute(expression));
+        }
+
         public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
         {
             return new DbSetAsyncEnumerable<TResult>(expression);
@@ -235,9 +240,19 @@ namespace TestResourcesLib
         public DbSetAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
         public DbSetAsyncEnumerable(Expression expression) : base(expression) { }
 
-        public IAsyncEnumerator<T> GetEnumerator()
+        public IAsyncEnumerator<T> GetAsyncEnumerator()
         {
             return new DbSetAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
+        }
+
+        IAsyncEnumerator<T> IAsyncEnumerable<T>.GetEnumerator()
+        {
+            return GetAsyncEnumerator();
+        }
+
+        IQueryProvider IQueryable.Provider
+        {
+            get { return new DbSetAsyncQueryProvider<T>(this); }
         }
     }
 
@@ -251,6 +266,11 @@ namespace TestResourcesLib
         }
 
         public T Current => _inner.Current;
+
+        T IAsyncEnumerator<T>.Current
+        {
+            get { return Current; }
+        }
 
         public void Dispose()
         {

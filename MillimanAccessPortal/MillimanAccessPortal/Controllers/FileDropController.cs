@@ -335,7 +335,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
-            model.CurrentFileDropId = id;
+            model.CurrentFileDropId = null;
 
             return Json(model);
         }
