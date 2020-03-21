@@ -37,6 +37,19 @@ export interface FileDropFormStateData {
   };
 }
 
+export interface AfterFormModal {
+  entityToSelect?: Guid;
+  entityType:
+  | 'Undo Changes'
+  | 'New File Drop'
+  | 'Delete File Drop'
+  | 'Select Client'
+  | 'Select File Drop'
+  | 'Set File Drop Tab'
+  | 'Set Activity Log Tab'
+  | 'Set Setting Tab';
+}
+
 /** Available File Drop tabs */
 export type AvailableFileDropTabs = 'files' | 'permissions' | 'activityLog' | 'settings';
 
@@ -51,6 +64,7 @@ export interface FileDropPendingState {
   selectedFileDropTab: AvailableFileDropTabs;
   permissionGroupsTab: PermissionGroupsReturnModel;
   permissionGroupsEditMode: boolean;
+  afterFormModal: AfterFormModal;
 }
 
 /** State representing user-selected entities */
@@ -85,6 +99,7 @@ export interface FileDropModals {
   createFileDrop: ModalState;
   deleteFileDrop: ModalState;
   confirmDeleteFileDrop: ModalState;
+  formModified: ModalState;
 }
 
 /** Top-Level File Drop state */

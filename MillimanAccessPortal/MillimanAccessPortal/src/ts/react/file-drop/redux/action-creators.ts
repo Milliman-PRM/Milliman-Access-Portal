@@ -90,6 +90,14 @@ export const setEditModeForPermissionGroups =
 export const addNewPermissionGroup =
   createActionCreator<Action.AddNewPermissionGroup>('ADD_NEW_PERMISSION_GROUP');
 
+/** Open the modified form modal */
+export const openModifiedFormModal =
+  createActionCreator<Action.OpenModifiedFormModal>('OPEN_MODIFIED_FORM_MODAL');
+
+/** Close the modified form modal */
+export const closeModifiedFormModal =
+  createActionCreator<Action.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

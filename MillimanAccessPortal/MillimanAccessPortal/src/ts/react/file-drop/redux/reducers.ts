@@ -522,6 +522,16 @@ const modals = combineReducers({
     'DELETE_FILE_DROP_SUCCEEDED',
     'DELETE_FILE_DROP_FAILED',
   ]),
+  formModified: createModalReducer(['OPEN_MODIFIED_FORM_MODAL'], [
+    'CLOSE_MODIFIED_FORM_MODAL',
+    'DISCARD_PENDING_PERMISSION_GROUP_CHANGES',
+    'SELECT_CLIENT',
+    'SELECT_FILE_DROP',
+    'CREATE_FILE_DROP',
+    'EDIT_FILE_DROP',
+    'DELETE_FILE_DROP',
+    'SELECT_FILE_DROP_TAB',
+  ]),
 });
 
 // ~~~~~~~~~~~~~

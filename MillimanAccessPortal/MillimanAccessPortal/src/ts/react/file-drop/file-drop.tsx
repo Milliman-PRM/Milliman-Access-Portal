@@ -229,6 +229,82 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.formModified.isOpen}
+          onRequestClose={() => this.props.closeModifiedFormModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Discard Changes</h3>
+          <span className="modal-text">Would you like to discard unsaved changes?</span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeModifiedFormModal({})}
+            >
+              Continue Editing
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                const { data, fileDrops } = this.props;
+                const { entityToSelect, entityType } = pending.afterFormModal;
+                this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
+                switch (entityType) {
+                  case 'Select Client':
+                    if (selected.client !== entityToSelect) {
+                      this.props.fetchFileDrops({ clientId: entityToSelect });
+                    }
+                    this.props.selectClient({ id: entityToSelect });
+                    break;
+                  case 'Select File Drop':
+                    if (selected.fileDrop !== entityToSelect && entityToSelect !== null) {
+                      this.props.fetchPermissionGroups({
+                        clientId: selected.client,
+                        fileDropId: entityToSelect,
+                      });
+                    }
+                    this.props.selectFileDrop({ id: entityToSelect });
+                    // TODO: Select the correct tab based on role in File Drop
+                    this.props.selectFileDropTab({ tab: 'permissions' });
+                    break;
+                  case 'Delete File Drop':
+                    const fileDrop = fileDrops.filter((fD) => fD.id === entityToSelect);
+                    if (fileDrop.length === 1) {
+                      // Add a slight pause to make it obvious that you've switched modals
+                      setTimeout(() => this.props.openDeleteFileDropModal({
+                        fileDrop: fileDrops[0],
+                      }), 400);
+                    }
+                    break;
+                  case 'New File Drop':
+                    setTimeout(() =>
+                      this.props.openCreateFileDropModal({ clientId: selected.client }),
+                      400,
+                    );
+                    break;
+                  case 'Undo Changes':
+                    // This action is triggered for every outcome
+                    break;
+                  case 'Set File Drop Tab':
+                    this.props.selectFileDropTab({ tab: 'files' });
+                    break;
+                  case 'Set Activity Log Tab':
+                    this.props.selectFileDropTab({ tab: 'activityLog' });
+                    break;
+                  case 'Set Setting Tab':
+                    this.props.selectFileDropTab({ tab: 'settings' });
+                    break;
+                }
+              }}
+            >
+              Discard
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
