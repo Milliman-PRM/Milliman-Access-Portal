@@ -380,9 +380,16 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var returnModel = await _fileDropQueries.UpdatePermissionGroups(model);
-
-            return Json(returnModel);
+            try
+            {
+                var returnModel = await _fileDropQueries.UpdatePermissionGroups(model);
+                return Json(returnModel);
+            }
+            catch (ApplicationException ex)
+            {
+                Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
         }
     }
 

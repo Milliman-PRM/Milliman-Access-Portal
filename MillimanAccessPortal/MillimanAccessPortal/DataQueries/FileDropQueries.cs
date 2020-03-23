@@ -252,16 +252,32 @@ namespace MillimanAccessPortal.DataQueries
                                                                             .Except(sftpAccountIdsOfUsersRemovedInUpdates)
                                                                             .ToList();
 
-            // model validation
-            if (fileDrop == null ||
-                groupsToRemove.Any(g => g.FileDropId != model.FileDropId) ||
-                groupsToRemove.Count != model.RemovedPermissionGroupIds.Count ||
-                groupsToUpdate.Any(g => g.FileDropId != model.FileDropId) ||
-                groupsToUpdate.Count != model.UpdatedPermissionGroups.Keys.Count ||
-                sftpAccountIdsOfUsersRemovedInUpdates.Count != model.UpdatedPermissionGroups.SelectMany(u => u.Value.UsersRemoved).Count())
+            #region model validation
+            if (fileDrop == null)
             {
-                return null;
+                throw new ApplicationException("The requested FileDrop was not found");
             }
+            if (groupsToRemove.Any(g => g.FileDropId != model.FileDropId))
+            {
+                throw new ApplicationException("A permission group requested for removal is not associated with this file drop");
+            }
+            if (groupsToRemove.Count != model.RemovedPermissionGroupIds.Count)
+            {
+                throw new ApplicationException("One or more permission groups requested for removal was not found");
+            }
+            if (groupsToUpdate.Any(g => g.FileDropId != model.FileDropId))
+            {
+                throw new ApplicationException("A permission group requested for update is not associated with this file drop");
+            }
+            if (groupsToUpdate.Count != model.UpdatedPermissionGroups.Keys.Count)
+            {
+                throw new ApplicationException("One or more permission groups requested for update was not found");
+            }
+            if (sftpAccountIdsOfUsersRemovedInUpdates.Count != model.UpdatedPermissionGroups.SelectMany(u => u.Value.UsersRemoved).Count())
+            {
+                throw new ApplicationException("One or more SFTP accounts requested for removal from permission group(s) was not found");
+            }
+            #endregion
 
             // Handle removed groups.  This unassigns accounts so they can be reassigned by leveraging ON DELETE SET NULL of the FK relationship
             _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
