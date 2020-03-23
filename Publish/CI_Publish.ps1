@@ -113,6 +113,9 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
+$core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
+$core3="C:\Program Files\dotnet\sdk\3.1.102\Sdks"
+$env:MSBuildSDKsPath=$core2
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -197,6 +200,8 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
+$env:MSBuildSDKsPath=$core2
+
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
@@ -245,7 +250,7 @@ Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish --configuration=release /p:Platform=x64
+dotnet publish --configuration=$buildType /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -253,6 +258,24 @@ if ($LASTEXITCODE -ne 0)
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
+
+Set-Location "$rootPath\SftpServer"
+
+$env:MSBuildSDKsPath=$core3
+
+log_statement "Building SFTP Server"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for MAP SFTP Server project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+# Set SDK path back to core 2.2
+$env:MSBuildSDKsPath=$core2
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
