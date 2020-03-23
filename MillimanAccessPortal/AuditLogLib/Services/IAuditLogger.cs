@@ -5,7 +5,9 @@
  */
 
 using AuditLogLib.Event;
-using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 
 namespace AuditLogLib.Services
 {
@@ -14,5 +16,6 @@ namespace AuditLogLib.Services
         void Log(AuditEvent Event);
         void Log(AuditEvent Event, string UserNameArg);
         void Log(AuditEvent Event, string UserNameArg, string SessionIdArg);
+        List<AuditEvent> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> filters);
     }
 }

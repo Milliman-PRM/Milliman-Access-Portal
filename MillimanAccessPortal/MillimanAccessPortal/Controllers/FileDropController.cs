@@ -5,6 +5,7 @@
  */
 
 using AuditLogLib.Event;
+using AuditLogLib;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib;
@@ -37,6 +38,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -383,6 +385,27 @@ namespace MillimanAccessPortal.Controllers
             var returnModel = await _fileDropQueries.UpdatePermissionGroups(model);
 
             return Json(returnModel);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> ActionLog(Guid fileDropId)
+        {
+            var filters = new List<Expression<Func<AuditEvent, bool>>>
+            {
+                { e => e.TimeStampUtc > DateTime.UtcNow - TimeSpan.FromDays(30) },
+                { e => e.EventCode <= 8000 && e.EventCode < 9000 },
+                { e => EF.Functions.ILike(e.EventData, fileDropId.ToString()) },
+            };
+
+            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters);
+
+            return Json(filteredEvents);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFullActionLog()
+        {
+            return Ok();
         }
     }
 

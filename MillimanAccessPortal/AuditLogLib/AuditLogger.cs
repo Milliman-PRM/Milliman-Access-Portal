@@ -9,6 +9,8 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -187,6 +189,27 @@ namespace AuditLogLib
 
                 Thread.Sleep(20);
             }
+        }
+
+        /// <summary>
+        /// Query the AuditEvent table of the context based on query expressions(s) provided by the caller
+        /// </summary>
+        /// <param name="filters"></param>
+        /// <returns></returns>
+        public List<AuditEvent> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> filters)
+        {
+            List<AuditEvent> filteredAuditEvents = new List<AuditEvent>();
+            using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
+            {
+                IQueryable<AuditEvent> query = Db.AuditEvent;
+                foreach (Expression<Func<AuditEvent, bool>> expression in filters)
+                {
+                    query = query.Where(expression);
+                }
+                filteredAuditEvents = query.ToList();
+            }
+
+            return filteredAuditEvents;
         }
     }
 }
