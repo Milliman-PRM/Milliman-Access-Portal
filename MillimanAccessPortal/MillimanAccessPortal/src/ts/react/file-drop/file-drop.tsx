@@ -298,7 +298,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'activityLog':
-                    this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+                    // this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
                   case 'settings':
@@ -669,7 +669,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
                   break;
                 case 'activityLog':
-                  this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+                  // this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                   break;
                 case 'settings':
                   // TODO: Add appropriate call here.
