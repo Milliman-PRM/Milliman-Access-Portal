@@ -174,6 +174,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     deleteFileDrop: false,
   }),
+  FETCH_ACTIVITY_LOG: (state) => ({
+    ...state,
+    activityLog: true,
+  }),
+  FETCH_ACTIVITY_LOG_SUCCEEDED: (state) => ({
+    ...state,
+    activityLog: false,
+  }),
+  FETCH_ACTIVITY_LOG_FAILED: (state) => ({
+    ...state,
+    activityLog: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
