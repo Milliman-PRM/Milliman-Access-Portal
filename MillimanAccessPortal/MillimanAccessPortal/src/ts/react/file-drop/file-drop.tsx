@@ -61,7 +61,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   public render() {
-    const { selected, modals, pending, unassignedEligibleUsers } = this.props;
+    const { selected, modals, pending, unassignedEligibleUsers, activeSelectedClient } = this.props;
     return (
       <>
         <ReduxToastr
@@ -261,15 +261,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectClient({ id: entityToSelect });
                     break;
                   case 'Select File Drop':
-                    if (selected.fileDrop !== entityToSelect && entityToSelect !== null) {
-                      this.props.fetchPermissionGroups({
-                        clientId: selected.client,
-                        fileDropId: entityToSelect,
-                      });
-                    }
                     this.props.selectFileDrop({ id: entityToSelect });
-                    // TODO: Select the correct tab based on role in File Drop
-                    this.props.selectFileDropTab({ tab: 'permissions' });
+                    if (activeSelectedClient.canManageFileDrops) {
+                      this.props.selectFileDropTab({ tab: 'permissions' });
+                      if (selected.fileDrop !== entityToSelect && entityToSelect !== null) {
+                        this.props.fetchPermissionGroups({
+                          clientId: selected.client,
+                          fileDropId: entityToSelect,
+                        });
+                      }
+                    } else {
+                      this.props.selectFileDropTab({ tab: 'settings' });
+                      // TODO: Call the appropriate action for this tab
+                    }
                     break;
                   case 'Delete File Drop':
                     const fileDrop = fileDrops.filter((fD) => fD.id === entityToSelect);
@@ -290,12 +294,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     // This action is triggered for every outcome
                     break;
                   case 'files':
+                    // TODO: Call the appropriate fetch action here
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'activityLog':
+                    this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
                   case 'settings':
+                    // TODO: Call the appropriate fetch action here
                     this.props.selectFileDropTab({ tab: 'settings' });
                     break;
                 }
@@ -493,14 +500,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       },
                     });
                   } else {
-                    if (selected.fileDrop !== entity.id) {
-                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
-                    }
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
+                      if (selected.fileDrop !== entity.id) {
+                        this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
+                      }
                       this.props.selectFileDropTab({ tab: 'permissions' });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
+                      // TODO: Call the appropriate action for this tab
                     }
                   }
                 }}
@@ -624,7 +632,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFileDropManagementPanel() {
-    const { activeSelectedClient, pending, permissionGroupChangesPending } = this.props;
+    const { activeSelectedClient, pending, permissionGroupChangesPending, selected } = this.props;
     const tabList: Array<{
       id: State.AvailableFileDropTabs;
       label: string;
@@ -653,6 +661,20 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 },
               });
             } else {
+              switch (tab) {
+                case 'files':
+                  // TODO: Add appropriate call here.
+                  break;
+                case 'permissions':
+                  this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
+                  break;
+                case 'activityLog':
+                  this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+                  break;
+                case 'settings':
+                  // TODO: Add appropriate call here.
+                  break;
+              }
               this.props.selectFileDropTab({ tab });
             }
           }}
