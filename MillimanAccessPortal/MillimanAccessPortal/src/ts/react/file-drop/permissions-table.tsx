@@ -369,10 +369,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <th className="col-name" rowSpan={2}>Name</th>
             <th className="col-email" rowSpan={2}>Email</th>
             <th className="col-permissions content-center" colSpan={3}>Permissions</th>
-            {
-              !readOnly &&
-              <th className="col-actions content-right" rowSpan={2} />
-            }
+            <th className="col-actions content-right" rowSpan={2} />
           </tr>
           <tr>
             <th className="col-permission-download content-center">Download</th>
