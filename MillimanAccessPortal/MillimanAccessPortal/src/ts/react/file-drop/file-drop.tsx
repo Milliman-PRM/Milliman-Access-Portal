@@ -293,6 +293,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   case 'Undo Changes':
                     // This action is triggered for every outcome
                     break;
+                  case 'Undo Changes and Close Form':
+                    this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
+                    break;
                   case 'files':
                     // TODO: Call the appropriate fetch action here
                     this.props.selectFileDropTab({ tab: 'files' });
@@ -719,11 +722,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             this.props.openModifiedFormModal({
               afterFormModal: {
                 entityToSelect: null,
-                entityType: 'Undo Changes',
+                entityType: 'Undo Changes and Close Form',
               },
             });
           } else {
-            this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
+            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
           }
         }}
       />

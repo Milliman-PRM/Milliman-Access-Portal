@@ -39,6 +39,7 @@ export interface FileDropFormStateData {
 
 export type AfterFormEntityTypes =
   | 'Undo Changes'
+  | 'Undo Changes and Close Form'
   | 'New File Drop'
   | 'Delete File Drop'
   | 'Select Client'
