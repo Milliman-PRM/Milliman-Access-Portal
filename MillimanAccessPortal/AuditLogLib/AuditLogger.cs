@@ -194,18 +194,23 @@ namespace AuditLogLib
         /// <summary>
         /// Query the AuditEvent table of the context based on query expressions(s) provided by the caller
         /// </summary>
-        /// <param name="filters"></param>
+        /// <param name="whereClauses"></param>
         /// <returns></returns>
-        public List<AuditEvent> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> filters)
+        public List<AuditEvent> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> whereClauses, bool orderDescending = true)
         {
             List<AuditEvent> filteredAuditEvents = new List<AuditEvent>();
             using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
             {
                 IQueryable<AuditEvent> query = Db.AuditEvent;
-                foreach (Expression<Func<AuditEvent, bool>> expression in filters)
+                foreach (Expression<Func<AuditEvent, bool>> whereClause in whereClauses)
                 {
-                    query = query.Where(expression);
+                    query = query.Where(whereClause);
                 }
+
+                query = orderDescending
+                    ? query.OrderByDescending(e => e.TimeStampUtc)
+                    : query.OrderBy(e => e.TimeStampUtc);
+
                 filteredAuditEvents = query.ToList();
             }
 
