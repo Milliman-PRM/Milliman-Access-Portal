@@ -78,6 +78,11 @@ const _initialFileDropWithStats: FileDropWithStats = {
   userCount: null,
 };
 
+const _initialAfterFormModal: State.AfterFormModal = {
+  entityType: null,
+  entityToSelect: null,
+};
+
 // ~~~~~~~~~~~~~~~~
 // Pending Reducers
 // ~~~~~~~~~~~~~~~~
@@ -368,6 +373,14 @@ const permissionGroupsEditMode = createReducer<boolean>(false, {
   SELECT_FILE_DROP_TAB: () => false,
 });
 
+const afterFormModal = createReducer<State.AfterFormModal>(_initialAfterFormModal, {
+  OPEN_MODIFIED_FORM_MODAL: (_state, action: Action.OpenModifiedFormModal) => ({
+    entityToSelect: action.afterFormModal.entityToSelect,
+    entityType: action.afterFormModal.entityType,
+  }),
+  CLOSE_MODIFIED_FORM_MODAL: () => _initialAfterFormModal,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -378,6 +391,7 @@ const pending = combineReducers({
   selectedFileDropTab,
   permissionGroupsTab,
   permissionGroupsEditMode,
+  afterFormModal,
 });
 
 // ~~~~~~~~~~~~~~~~

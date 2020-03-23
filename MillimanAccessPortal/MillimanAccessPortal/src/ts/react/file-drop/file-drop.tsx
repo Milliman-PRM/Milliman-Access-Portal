@@ -289,13 +289,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   case 'Undo Changes':
                     // This action is triggered for every outcome
                     break;
-                  case 'Set File Drop Tab':
+                  case 'files':
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
-                  case 'Set Activity Log Tab':
+                  case 'activityLog':
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
-                  case 'Set Setting Tab':
+                  case 'settings':
                     this.props.selectFileDropTab({ tab: 'settings' });
                     break;
                 }
@@ -310,7 +310,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, cardAttributes } = this.props;
+    const { clients, selected, filters, pending, cardAttributes, permissionGroupChangesPending } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -326,10 +326,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                 // TODO: Update this section once all of the necessary actions and data are available
-                 if (false) {
-                   // TODO: Properly implement any modals
-                 } else {
+                if (permissionGroupChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal: {
+                      entityToSelect: entity.id,
+                      entityType: 'Select Client',
+                    },
+                  });
+                } else {
                    if (selected.client !== entity.id) {
                      this.props.fetchFileDrops({ clientId: entity.id });
                    }
@@ -374,14 +378,22 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFileDropPanel() {
-    const { activeSelectedClient, clients, selected, filters, pending, cardAttributes, fileDrops } = this.props;
+    const {
+      activeSelectedClient, selected, filters, pending, cardAttributes,
+      fileDrops, permissionGroupChangesPending,
+    } = this.props;
     const createNewFileDropIcon = (
       <ActionIcon
         label="New File Drop"
         icon="add"
         action={() => {
-          if (false) {
-            // TODO: implement any modals necessary before opening this modal
+          if (permissionGroupChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal: {
+                entityToSelect: selected.client,
+                entityType: 'New File Drop',
+              },
+            });
           } else {
             this.props.selectFileDrop({ id: 'NEW FILE DROP' });
             this.props.openCreateFileDropModal({ clientId: selected.client });
@@ -400,12 +412,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   color={'blue'}
                   tooltip={'Edit File Drop'}
                   onClick={() => {
-                    if (false) {
-                      // TODO: Implement any necessary modals before performing action
-                    } else {
-                      // TODO: Implement this action
-                      this.props.editFileDrop({ fileDrop: entity });
-                    }
+                    this.props.editFileDrop({ fileDrop: entity });
                   }}
                   icon={'edit'}
                 />
@@ -413,8 +420,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   color={'red'}
                   tooltip={'Delete File Drop'}
                   onClick={() => {
-                    if (false) {
-                      // TODO: Implement any necessary modals before performing action
+                    if (permissionGroupChangesPending) {
+                      this.props.openModifiedFormModal({
+                        afterFormModal: {
+                          entityToSelect: entity.id,
+                          entityType: 'Delete File Drop',
+                        },
+                      });
                     } else {
                       this.props.openDeleteFileDropModal({fileDrop: entity});
                     }
@@ -430,17 +442,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   color={'green'}
                   tooltip={'Update File Drop'}
                   onClick={() => {
-                    if (false) {
-                      // TODO: Implement any necessary modals before performing action
-                    } else {
-                      // TODO: Implement this action
-                      this.props.updateFileDrop({
-                        clientId: pending.editFileDrop.clientId,
-                        id: pending.editFileDrop.id,
-                        name: pending.editFileDrop.fileDropName,
-                        description: pending.editFileDrop.fileDropDescription,
-                      });
-                    }
+                    this.props.updateFileDrop({
+                      clientId: pending.editFileDrop.clientId,
+                      id: pending.editFileDrop.id,
+                      name: pending.editFileDrop.fileDropName,
+                      description: pending.editFileDrop.fileDropDescription,
+                    });
                   }}
                   icon={'checkmark'}
                 />
@@ -448,11 +455,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   color={'red'}
                   tooltip={'Cancel Edit'}
                   onClick={() => {
-                    if (false) {
-                      // TODO: Implement any necessary modals before performing action
-                    } else {
-                      this.props.cancelFileDropEdit({});
-                    }
+                    this.props.cancelFileDropEdit({});
                   }}
                   icon={'cancel'}
                 />
@@ -482,8 +485,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 key={key}
                 selected={selected.fileDrop === entity.id}
                 onSelect={() => {
-                  if (false) {
-                    // TODO: Implement necessary modals
+                  if (permissionGroupChangesPending) {
+                    this.props.openModifiedFormModal({
+                      afterFormModal: {
+                        entityToSelect: entity.id,
+                        entityType: 'files',
+                      },
+                    });
                   } else {
                     if (selected.fileDrop !== entity.id) {
                       this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
@@ -566,8 +574,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <div
               className="card-container action-card-container"
               onClick={() => {
-                if (false) {
-                  // TODO Implement any necessary modals
+                if (permissionGroupChangesPending) {
+                  this.props.openModifiedFormModal({
+                    afterFormModal: {
+                      entityToSelect: selected.client,
+                      entityType: 'New File Drop',
+                    },
+                  });
                 } else {
                   this.props.selectFileDrop({ id: 'NEW FILE DROP' });
                   this.props.openCreateFileDropModal({ clientId: selected.client });
@@ -611,7 +624,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFileDropManagementPanel() {
-    const { activeSelectedClient, pending } = this.props;
+    const { activeSelectedClient, pending, permissionGroupChangesPending } = this.props;
     const tabList: Array<{
       id: State.AvailableFileDropTabs;
       label: string;
@@ -631,7 +644,18 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         <TabRow
           tabs={tabList}
           selectedTab={pending.selectedFileDropTab}
-          onTabSelect={(tab: State.AvailableFileDropTabs) => this.props.selectFileDropTab({ tab })}
+          onTabSelect={(tab: State.AvailableFileDropTabs) => {
+            if (permissionGroupChangesPending) {
+              this.props.openModifiedFormModal({
+                afterFormModal: {
+                  entityToSelect: null,
+                  entityType: tab,
+                },
+              });
+            } else {
+              this.props.selectFileDropTab({ tab });
+            }
+          }}
           fullWidth={true}
         />
         {(() => {
@@ -669,11 +693,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         label="Discard Changes"
         icon="cancel"
         action={() => {
-          if (!permissionGroupChangesPending) {
-            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
+          if (permissionGroupChangesPending) {
+            this.props.openModifiedFormModal({
+              afterFormModal: {
+                entityToSelect: null,
+                entityType: 'Undo Changes',
+              },
+            });
           } else {
-            // TODO: Implement a modal to confirm discarding changes
-            alert('Undo changes first');
+            this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
           }
         }}
       />
@@ -735,10 +763,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   type="button"
                   onClick={(event: any) => {
                     event.preventDefault();
-                    this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
+                    this.props.openModifiedFormModal({
+                      afterFormModal: {
+                        entityToSelect: null,
+                        entityType: 'Undo Changes',
+                      },
+                    });
+                    // this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
                   }}
                 >
-                  Undo Changes
+                  Discard Changes
                 </button>
                 <button
                   type="button"

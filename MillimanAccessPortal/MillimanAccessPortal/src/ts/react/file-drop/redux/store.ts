@@ -37,17 +37,17 @@ export interface FileDropFormStateData {
   };
 }
 
-export interface AfterFormModal {
-  entityToSelect?: Guid;
-  entityType:
+export type AfterFormEntityTypes =
   | 'Undo Changes'
   | 'New File Drop'
   | 'Delete File Drop'
   | 'Select Client'
   | 'Select File Drop'
-  | 'Set File Drop Tab'
-  | 'Set Activity Log Tab'
-  | 'Set Setting Tab';
+  | AvailableFileDropTabs;
+
+export interface AfterFormModal {
+  entityToSelect?: Guid;
+  entityType: AfterFormEntityTypes;
 }
 
 /** Available File Drop tabs */
