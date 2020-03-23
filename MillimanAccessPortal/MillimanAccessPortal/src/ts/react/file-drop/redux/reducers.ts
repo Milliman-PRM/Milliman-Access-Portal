@@ -44,6 +44,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   updateFileDrop: false,
   permissions: false,
   permissionsUpdate: false,
+  activityLog: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
