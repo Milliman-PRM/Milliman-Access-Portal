@@ -403,9 +403,19 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> DownloadFullActionLog()
+        public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
         {
-            return Ok();
+            var filters = new List<Expression<Func<AuditEvent, bool>>>
+            {
+                { e => e.EventCode <= 8000 && e.EventCode < 9000 },
+                { e => EF.Functions.ILike(e.EventData, fileDropId.ToString()) },
+            };
+
+            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters, false);
+
+            return Json(filteredEvents);
+            //return PhysicalFile(requestedContentFile.FullPath, "text/csv");
+            //return File(requestedContentFile.FullPath, "text/csv");
         }
     }
 
