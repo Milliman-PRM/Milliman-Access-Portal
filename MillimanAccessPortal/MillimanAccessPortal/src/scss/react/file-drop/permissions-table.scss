@@ -43,7 +43,7 @@
         color: $charcoal;
         padding: 0;
     }
-        
+
     th.content-center, td.content-center {
         text-align: center;
     }
@@ -56,6 +56,10 @@
     .table-icon {
         height: 1.5em;
         width: 1.5em;
+
+        &.required {
+            color: $red;
+        }
     }
 
     td.add-user {
@@ -133,6 +137,25 @@
 
                     .selection-option-label {
                         height: 1em;
+                    }
+                }
+
+                .react-select.required .react-select__control {
+                    border: 2px solid $red;
+                    box-shadow: 1 1 2px $red;
+                    
+                    .react-select__placeholder {
+                        color: rgba($red, .5);
+                        font-weight: bold;
+                    }
+                }
+
+                .group-name-input.required {
+                    border-bottom: 2px solid $red;
+
+                    &::placeholder {
+                        color: rgba($red, .5);
+                        opacity: 1;
                     }
                 }
             }

@@ -227,6 +227,43 @@ export function unassignedEligibleUsers(state: FileDropState) {
   }
 }
 
+/** Return filterd Permission Group data */
+export function permissionGroupEntities(state: FileDropState) {
+  const { text: filterText } = state.filters.permissions;
+  if (filterText) {
+    const { permissionGroups, eligibleUsers, fileDropId } = _.cloneDeep(state.pending.permissionGroupsTab);
+    const permissionGroupIds = Object.keys(permissionGroups);
+    const filteredPermissionGroups: Dict<PermissionGroupModel> = {};
+    permissionGroupIds.forEach((pg) => {
+      if (_.includes(permissionGroups[pg].name.toLowerCase(), filterText.toLowerCase())) {
+        filteredPermissionGroups[pg] = permissionGroups[pg];
+      }
+      permissionGroups[pg].assignedMapUserIds.forEach((user) => {
+        if (
+          _.includes(
+            [eligibleUsers[user].firstName, eligibleUsers[user].lastName].join(' ').toLowerCase(),
+            filterText.toLowerCase(),
+          ) ||
+          _.includes(eligibleUsers[user].userName.toLowerCase(), filterText.toLowerCase())
+        ) {
+          if (!(pg in filteredPermissionGroups)) {
+            filteredPermissionGroups[pg] = permissionGroups[pg];
+            filteredPermissionGroups[pg].assignedMapUserIds = [];
+          }
+          filteredPermissionGroups[pg].assignedMapUserIds.push(user);
+        }
+      });
+    });
+    return {
+      fileDropId,
+      eligibleUsers,
+      permissionGroups: filteredPermissionGroups,
+    };
+  } else {
+    return state.pending.permissionGroupsTab;
+  }
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~

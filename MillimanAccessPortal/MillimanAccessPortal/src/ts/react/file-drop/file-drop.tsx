@@ -10,6 +10,7 @@ import * as State from './redux/store';
 import { generateUniqueId } from '../../generate-unique-identifier';
 import {
   AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
+  PermissionGroupsReturnModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
@@ -35,6 +36,7 @@ interface FileDropProps {
   data: State.FileDropDataState;
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
+  permissionGroups: PermissionGroupsReturnModel;
   selected: State.FileDropSelectedState;
   cardAttributes: State.FileDropCardAttributesState;
   pending: State.FileDropPendingState;
@@ -292,6 +294,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     break;
                   case 'Undo Changes':
                     // This action is triggered for every outcome
+                    break;
+                  case 'Undo Changes and Close Form':
+                    this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
                     break;
                   case 'files':
                     // TODO: Call the appropriate fetch action here
@@ -701,7 +706,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   private renderPermissionsTab() {
     const {
       data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
-      permissionGroupChangesReady,
+      permissionGroupChangesReady, permissionGroups,
     } = this.props;
     const editPermissionGroupsButton = (
       <ActionIcon
@@ -719,11 +724,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             this.props.openModifiedFormModal({
               afterFormModal: {
                 entityToSelect: null,
-                entityType: 'Undo Changes',
+                entityType: 'Undo Changes and Close Form',
               },
             });
           } else {
-            this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
+            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
           }
         }}
       />
@@ -765,7 +770,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             readOnly={false}
           >
             <PermissionsTable
-              permissions={pending.permissionGroupsTab}
+              permissions={permissionGroups}
               readOnly={!pending.permissionGroupsEditMode}
               isReadyToSubmit={permissionGroupChangesReady}
               unassignedEligibleUsers={this.props.unassignedEligibleUsers}
@@ -856,6 +861,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     data,
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
+    permissionGroups: Selector.permissionGroupEntities(state),
     selected,
     cardAttributes,
     pending,

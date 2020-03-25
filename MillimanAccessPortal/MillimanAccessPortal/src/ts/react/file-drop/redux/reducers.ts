@@ -273,29 +273,21 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
-  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) => ({
-    ...action.response.permissionGroups,
-  }),
-  FETCH_PERMISSION_GROUPS: () => ({
-    ..._.cloneDeep(_initialPermissionGroupsTab),
-  }),
+  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) =>
+    _.cloneDeep(action.response.permissionGroups),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) =>
+    _.cloneDeep(action.response),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) =>
+    _.cloneDeep(action.response),
+  OPEN_CREATE_FILE_DROP_MODAL: () => _.cloneDeep(_initialPermissionGroupsTab),
+  FETCH_PERMISSION_GROUPS: () => _.cloneDeep(_initialPermissionGroupsTab),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
     if (state.fileDropId === action.response.currentFileDropId) {
-      return {
-        ..._.cloneDeep(_initialPermissionGroupsTab),
-      };
+      return _.cloneDeep(_initialPermissionGroupsTab);
     } else {
-      return {
-        ...state,
-      };
+      return state;
     }
   },
-  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ..._.cloneDeep(action.response),
-  }),
-  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ..._.cloneDeep(action.response),
-  }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
     permissionGroups: {
@@ -314,9 +306,8 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       permissionGroups,
     };
   },
-  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
-    ...JSON.parse(JSON.stringify(action.originalValues)),
-  }),
+  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) =>
+    _.cloneDeep(action.originalValues),
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
     const { assignedMapUserIds } = state.permissionGroups[action.pgId];
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
@@ -437,6 +428,10 @@ const selected = createReducer<State.FileDropSelectedState>(
     DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
       ...state,
       fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
+    }),
+    OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
+      ...state,
+      fileDrop: null,
     }),
   },
 );
