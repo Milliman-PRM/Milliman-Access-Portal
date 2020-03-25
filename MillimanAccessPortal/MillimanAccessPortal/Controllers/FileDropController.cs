@@ -22,6 +22,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
@@ -390,11 +391,14 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ActionLog(Guid fileDropId)
         {
+            DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
+            string idCompareString = fileDropId.ToString();
+
             var filters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => e.TimeStampUtc > DateTime.UtcNow - TimeSpan.FromDays(30) },
-                { e => e.EventCode <= 8000 && e.EventCode < 9000 },
-                { e => EF.Functions.ILike(e.EventData, fileDropId.ToString()) },
+                { e => e.TimeStampUtc > oldestTimestamp},
+                { e => e.EventCode >= 8000 && e.EventCode < 9000 },
+                { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
             };
 
             List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters);
@@ -405,18 +409,38 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
         {
+            DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
+            string idCompareString = fileDropId.ToString();
+
             var filters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventCode <= 8000 && e.EventCode < 9000 },
-                { e => EF.Functions.ILike(e.EventData, fileDropId.ToString()) },
+                { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
             };
 
             List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters, false);
 
-            return Json(filteredEvents);
-            //return PhysicalFile(requestedContentFile.FullPath, "text/csv");
-            //return File(requestedContentFile.FullPath, "text/csv");
+            string tempFilePath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), $"{Guid.NewGuid()}.csv");
+            await System.IO.File.WriteAllLinesAsync(tempFilePath, filteredEvents.Select(e => $"{e.TimeStampUtc},{e.EventType}"));
+
+            return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.Now.ToString("s")}.csv" };
         }
     }
 
+    /// <summary>
+    /// A modified version of PhysicalFileResult that deletes the file after streaming its contents to the response
+    /// </summary>
+    public class TemporaryPhysicalFileResult : PhysicalFileResult
+    {
+        public TemporaryPhysicalFileResult(string fileName, string contentType)
+                     : base(fileName, contentType) { }
+        public TemporaryPhysicalFileResult(string fileName, MediaTypeHeaderValue contentType)
+                     : base(fileName, contentType) { }
+
+        public override async Task ExecuteResultAsync(ActionContext context)
+        {
+            await base.ExecuteResultAsync(context);
+            File.Delete(FileName);
+        }
+    }
 }
