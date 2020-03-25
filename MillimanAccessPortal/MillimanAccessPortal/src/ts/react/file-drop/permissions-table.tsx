@@ -58,7 +58,17 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
               ].join(' ')
             }
           >
-            <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
+            <td>
+              <svg
+                className={[
+                  'table-icon',
+                  (thisPG.isPersonalGroup && thisPG.assignedMapUserIds.length === 0) ||
+                  (!thisPG.isPersonalGroup && !thisPG.name) ? 'required' : null,
+                ].join(' ')}
+              >
+                <use xlinkHref={pgIcon} />
+              </svg>
+            </td>
             {
               (() => {
                 if (readOnly) {
@@ -97,7 +107,10 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       return (
                         <td colSpan={2}>
                           <Select
-                            className="react-select"
+                            className={[
+                              'react-select',
+                              (!isReadyToSubmit && thisPG.assignedMapUserIds.length === 0) ? 'required' : null,
+                            ].join(' ')}
                             classNamePrefix="react-select"
                             options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                               value: u.id,
@@ -169,7 +182,10 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                       <td colSpan={2}>
                         <input
                           type="text"
-                          className="group-name-input"
+                          className={[
+                            'group-name-input',
+                            !thisPG.name ? 'required' : null,
+                          ].join(' ')}
                           placeholder="Permission Group Name *"
                           autoFocus={thisPG.name.length === 0}
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
@@ -369,10 +385,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <th className="col-name" rowSpan={2}>Name</th>
             <th className="col-email" rowSpan={2}>Email</th>
             <th className="col-permissions content-center" colSpan={3}>Permissions</th>
-            {
-              !readOnly &&
-              <th className="col-actions content-right" rowSpan={2} />
-            }
+            <th className="col-actions content-right" rowSpan={2} />
           </tr>
           <tr>
             <th className="col-permission-download content-center">Download</th>
