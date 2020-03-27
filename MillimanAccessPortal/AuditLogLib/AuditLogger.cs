@@ -4,6 +4,7 @@ using MapCommonLib;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -196,9 +197,9 @@ namespace AuditLogLib
         /// </summary>
         /// <param name="whereClauses"></param>
         /// <returns></returns>
-        public List<AuditEvent> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> whereClauses, bool orderDescending = true)
+        public async Task<List<AuditEvent>> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> whereClauses, bool orderDescending = true)
         {
-            List<AuditEvent> filteredAuditEvents = new List<AuditEvent>();
+            List<AuditEvent> filteredAuditEvents = default;
             using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
             {
                 IQueryable<AuditEvent> query = Db.AuditEvent;
@@ -211,7 +212,7 @@ namespace AuditLogLib
                     ? query.OrderByDescending(e => e.TimeStampUtc)
                     : query.OrderBy(e => e.TimeStampUtc);
 
-                filteredAuditEvents = query.ToList();
+                filteredAuditEvents = await query.ToListAsync();
             }
 
             return filteredAuditEvents;

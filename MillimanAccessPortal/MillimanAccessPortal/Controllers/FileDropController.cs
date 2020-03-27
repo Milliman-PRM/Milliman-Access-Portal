@@ -401,7 +401,7 @@ namespace MillimanAccessPortal.Controllers
                 { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
             };
 
-            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters);
+            List<AuditEvent> filteredEvents = await _auditLogger.GetAuditEvents(filters);
 
             return Json(filteredEvents);
         }
@@ -418,7 +418,7 @@ namespace MillimanAccessPortal.Controllers
                 { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
             };
 
-            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters, false);
+            List<AuditEvent> filteredEvents = await _auditLogger.GetAuditEvents(filters, false);
 
             string tempFilePath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), $"{Guid.NewGuid()}.csv");
             await System.IO.File.WriteAllLinesAsync(tempFilePath, filteredEvents.Select(e => $"{e.TimeStampUtc},{e.EventType}"));
