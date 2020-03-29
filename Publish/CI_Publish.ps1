@@ -98,6 +98,8 @@ log_statement "Building configuration: $buildType"
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
+$acr_url = "filedropci.azurecr.io"
+
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -497,6 +499,22 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+#endregion
+
+#region Create and publish FileDrop docker container
+
+Set-Location $rootpath\SftpServer
+
+docker build -t filedropsftp .
+
+docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
+
+docker tag filedropsftp $acr_url/filedropsftp:v1
+
+docker push $acr_url/filedropsftp:v1
+
+docker rmi $acr_url/filedropsftp:v1
 
 #endregion
 
