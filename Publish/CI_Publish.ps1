@@ -419,7 +419,7 @@ Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destinatio
 Set-Location $webBuildTarget
 
 $webVersion = get-childitem "MillimanAccessPortal.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
-$webVersion = "$webVersion-$branchName"
+$webVersion = "$webVersion-$TrimmedBranch"
 
 octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
 
@@ -439,7 +439,7 @@ log_statement "Packaging publication server"
 Set-Location $serviceBuildTarget
 
 $serviceVersion = get-childitem "ContentPublishingService.exe" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
-$serviceVersion = "$serviceVersion-$branchName"
+$serviceVersion = "$serviceVersion-$TrimmedBranch"
 
 octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
 
@@ -489,7 +489,7 @@ log_statement "Packaging MAP Query Admin"
 Set-Location $queryAppBuildTarget
 
 $queryVersion = get-childitem "MapQueryAdminWeb.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
-$queryVersion = "$queryVersion-$branchName"
+$queryVersion = "$queryVersion-$TrimmedBranch"
 
 octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
 
