@@ -659,7 +659,7 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {
@@ -678,7 +678,7 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {
@@ -700,7 +700,7 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {

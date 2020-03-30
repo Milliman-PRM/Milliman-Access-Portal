@@ -45,31 +45,8 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// Convenience property to automatically translate from the persisted Name to corresponding enumeration
         /// </summary>
-        [NotMapped]
-        public ContentTypeEnum TypeEnum
-        {
-            set
-            {
-                Name = value.ToString();
-            }
-            get
-            {
-                if (Enum.TryParse(Name, true, out ContentTypeEnum result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return (ContentTypeEnum)int.MaxValue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Name should match the enumeration value label
-        /// </summary>
         [Required]
-        public string Name { get; set; }
+        public ContentTypeEnum TypeEnum { get; set; }
 
         [Required]
         public bool CanReduce { get; set; }
@@ -133,7 +110,6 @@ namespace MapDbContextLib.Context
                 }
                 else
                 {
-                    fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
                     fromDb.FileExtensions = type.FileExtensions;
@@ -153,7 +129,7 @@ namespace MapDbContextLib.Context
         {
             if (l != null && r != null)  // Neither one is null
             {
-                return l.Id == r.Id && l.Name == r.Name && l.CanReduce == r.CanReduce && r.DefaultIconName == l.DefaultIconName;
+                return l.Id == r.Id && l.TypeEnum == r.TypeEnum && l.CanReduce == r.CanReduce && r.DefaultIconName == l.DefaultIconName;
             }
             else if (l == null ^ r == null)  // exactly one is null  (^ is logical xor operator)
             {

@@ -65,7 +65,7 @@ namespace MillimanAccessPortal.DataQueries
                 .Select(r => r.RootContentItem)
                 .Distinct()
                 .OrderBy(i => i.ContentName)
-                    .ThenBy(i => i.ContentType.Name)
+                    .ThenBy(i => i.ContentType.TypeEnum)
                 .Select(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -154,8 +154,9 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(i => contentItemIds.Contains(i.Id))
                 .Select(i => i.ContentType)
                 .Distinct()
-                .OrderBy(t => t.Name)
                 .Select(t => new BasicContentType(t))
+                .ToList()
+                .OrderBy(t => t.DisplayName)
                 .ToList();
 
             return contentTypes;

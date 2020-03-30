@@ -22,7 +22,6 @@ using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Rewrite;
-using Microsoft.AspNetCore.Session;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -68,7 +67,7 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            /*
+            /* TODO is this covered?
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new RequireHttpsAttribute());
@@ -311,8 +310,12 @@ namespace MillimanAccessPortal
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
 
-            services.AddMemoryCache();
-            services.AddSession();
+            //services.AddMemoryCache();
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => 
+            {
+                options.Cookie.IsEssential = true;  // TODO This bypasses cookie consent.  Think about GDPR
+            });
 
             services.AddResponseCaching();
 
@@ -339,7 +342,8 @@ namespace MillimanAccessPortal
                              .RequireAuthenticatedUser()
                              .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
-            });
+            })
+            .AddControllersAsServices();
 
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -502,6 +506,8 @@ namespace MillimanAccessPortal
             app.UseAuthentication();
             app.UseAuthorization();
 
+            app.UseSession();
+
             app.UseEndpoints(endpoints => 
             {
                 endpoints.MapControllers();
@@ -511,8 +517,6 @@ namespace MillimanAccessPortal
             //Todo: read this: https://github.com/aspnet/Security/issues/1310
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
-
-            app.UseSession();
 
             // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
@@ -560,37 +564,6 @@ namespace MillimanAccessPortal
                     template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
             });
             */
-
-            MailSender.ConfigureMailSender(new SmtpConfig
-            {
-                SmtpServer = Configuration.GetValue<string>("SmtpServer"),
-                SmtpPort = Configuration.GetValue<int>("SmtpPort"),
-                SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
-                SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
-                SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
-                SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
-            });
-
-            #region Configure Audit Logger connection string
-            string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-
-            // If the database name is defined in the environment, update the connection string
-            if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
-            {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
-                {
-                    Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
-                };
-                auditLogConnectionString = stringBuilder.ConnectionString;
-            }
-
-            AuditLogger.Config = new AuditLoggerConfiguration
-            {
-                AuditLogConnectionString = auditLogConnectionString,
-                ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
-            };
-            #endregion
-
         }
     }
 }

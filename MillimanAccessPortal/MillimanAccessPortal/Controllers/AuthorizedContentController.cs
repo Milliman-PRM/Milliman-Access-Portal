@@ -336,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action, content type is <{selectionGroup.RootContentItem.ContentType.Name}>");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action, content type is <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>");
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
@@ -370,8 +370,8 @@ namespace MillimanAccessPortal.Controllers
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
-                        Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
-                        return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}"));
+                        Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
+                        return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}"));
                 }
 
             }
@@ -665,7 +665,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     // when a content item thumbnail file is specified but the file is not found, return the default image for the ContentType
-                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{rootContentItem.ContentType.DefaultIconName}> for content type <{rootContentItem.ContentType.Name}>, aborting");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{rootContentItem.ContentType.DefaultIconName}> for content type <{rootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
                     return Redirect($"/images/{rootContentItem.ContentType.DefaultIconName}");
                 }
             }
@@ -728,7 +728,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     // when the content item has no thumbnail, return the default image for the ContentType
-                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.Name}>, aborting");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
                     return Redirect($"/images/{PubRequest.RootContentItem.ContentType.DefaultIconName}");
                 }
             }

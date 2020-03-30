@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
 using AuditLogLib.Event;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using Prm.EmailQueue;
 using Serilog;
 using System.Diagnostics;
 using System.Linq;
@@ -69,6 +71,37 @@ namespace MillimanAccessPortal
                 try
                 {
                     await ApplicationDbContext.InitializeAll(serviceProvider);
+
+                    MailSender.ConfigureMailSender(new SmtpConfig
+                    {
+                        SmtpServer = Configuration.GetValue<string>("SmtpServer"),
+                        SmtpPort = Configuration.GetValue<int>("SmtpPort"),
+                        SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
+                        SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
+                        SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
+                        SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
+                    });
+
+                    #region Configure Audit Logger connection string
+                    string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+                    // If the database name is defined in the environment, update the connection string
+                    if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+                    {
+                        Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                        {
+                            Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                        };
+                        auditLogConnectionString = stringBuilder.ConnectionString;
+                    }
+
+                    AuditLogger.Config = new AuditLoggerConfiguration
+                    {
+                        AuditLogConnectionString = auditLogConnectionString,
+                        ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
+                    };
+                    #endregion
+
                 }
                 catch (Exception e)
                 {

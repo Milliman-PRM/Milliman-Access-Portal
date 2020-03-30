@@ -554,7 +554,7 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 { 
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
                 });
             #endregion
 
@@ -735,8 +735,8 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 {
-                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), Name="Qlikview", CanReduce=true },
-                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), Name="PowerBI", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), TypeEnum=ContentTypeEnum.PowerBi, CanReduce=true },
                 });
             #endregion
 
@@ -976,7 +976,7 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
                 {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), Name="Qlikview", CanReduce=true },
+                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
                 });
             #endregion
 
@@ -1180,7 +1180,7 @@ namespace MapTests
             #region Initialize ContentType
             DbContextObject.ContentType.AddRange(new List<ContentType>
             { 
-                new ContentType{ Id = TestUtil.MakeTestGuid(1), Name = "Qlikview", CanReduce = true },
+                new ContentType{ Id = TestUtil.MakeTestGuid(1), TypeEnum = ContentTypeEnum.Qlikview, CanReduce = true },
             });
             #endregion
 

@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
                 : userName;
 
             // 2. If the username's domain is found in a domain list of a scheme
-            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainListContains(userFullDomain));
+            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainList.Contains(userFullDomain));
             if (matchingScheme != null)
             {
                 return matchingScheme;
@@ -313,9 +313,16 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         private void SignInCommon(string userName, string scheme)
         {
-            HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
-            Log.Information($"User {userName} logged in with scheme {scheme}");
-            _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+            try
+            {
+                HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
+                Log.Information($"User {userName} logged in with scheme {scheme}");
+                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+            }
+            catch (Exception ex)
+            {
+                string msg = ex.Message;
+            }
         }
 
         [HttpGet]
