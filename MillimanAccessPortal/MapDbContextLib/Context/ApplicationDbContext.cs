@@ -70,10 +70,10 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
-            builder.ForNpgsqlHasEnum<AuthenticationType>();
-            builder.ForNpgsqlHasEnum<PublicationStatus>();
-            builder.ForNpgsqlHasEnum<ReductionStatusEnum>();
-            builder.ForNpgsqlHasEnum<ContentTypeEnum>();
+            builder.HasPostgresEnum<AuthenticationType>();
+            builder.HasPostgresEnum<PublicationStatus>();
+            builder.HasPostgresEnum<ReductionStatusEnum>();
+            builder.HasPostgresEnum<ContentTypeEnum>();
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
             builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
@@ -148,12 +148,12 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
-                b.ForNpgsqlUseXminAsConcurrencyToken();
+                b.UseXminAsConcurrencyToken();
             });
             builder.Entity<ContentPublicationRequest>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.ForNpgsqlUseXminAsConcurrencyToken();
+                b.UseXminAsConcurrencyToken();
             });
             builder.Entity<FileUpload>(b =>
             {
@@ -194,6 +194,12 @@ namespace MapDbContextLib.Context
                 b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
                 b.HasIndex(x => new { x.DirectoryId, x.FileName }).IsUnique();  // unique because sftp clients can make multiple requests to create the same item
             });
+        }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        {
+            string cxnstr = optionsBuilder.Options.GetExtension<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension>().ConnectionString;
+            optionsBuilder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
         }
 
         public bool ClientExists(Guid id)

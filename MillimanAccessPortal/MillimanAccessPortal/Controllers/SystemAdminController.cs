@@ -1040,12 +1040,12 @@ namespace MillimanAccessPortal.Controllers
                     List<ApplicationUser> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).ToList();
 
 #pragma warning disable EF1000 // Possible SQL injection vulnerability.
-                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
-                    string statement = $"UPDATE \"{mapping.TableName}\" " +
+                    string tableName = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).GetTableName();
+                    string statement = $"UPDATE \"{tableName}\" " +
                                        $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
                                        $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
                     // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
-                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); 
+                    int howManyAffected = await _dbContext.Database.ExecuteSqlRawAsync(statement); 
 #pragma warning restore EF1000 // Possible SQL injection vulnerability.
                     existingRecord.Value = newAgreementText;
                     _dbContext.SaveChanges();

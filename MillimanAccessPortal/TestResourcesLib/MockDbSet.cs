@@ -23,7 +23,7 @@ namespace TestResourcesLib
             Set.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
             Set.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
             Set.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(() => data.GetEnumerator());
-            Set.As<IAsyncEnumerable<T>>().Setup(m => m.GetEnumerator()).Returns(() => new DbSetAsyncEnumerator<T>(data.GetEnumerator()));
+            Set.As<IAsyncEnumerable<T>>().Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>())).Returns(() => new DbSetAsyncEnumerator<T>(data.GetEnumerator()));
 
             // Setup mocked object methods to interact with persisted data
             Set.Setup(d => d.Add(It.IsAny<T>())).Callback<T>((s) => Data.Add(s));
@@ -190,6 +190,7 @@ namespace TestResourcesLib
     }
 
     // Reference: https://msdn.microsoft.com/en-us/library/dn314429.aspx
+    // Reference: https://www.endpoint.com/blog/2019/07/16/mocking-asynchronous-database-calls-net-core
     internal class DbSetAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     {
         private readonly IQueryProvider _inner;
@@ -224,9 +225,9 @@ namespace TestResourcesLib
             return new DbSetAsyncEnumerable<TResult>(expression);
         }
 
-        public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
+        public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
         {
-            return Task.FromResult(Execute<TResult>(expression));
+            return Execute<TResult>(expression);
         }
     }
 
@@ -239,6 +240,18 @@ namespace TestResourcesLib
         {
             return new DbSetAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
         }
+
+        /*
+        IQueryProvider IQueryable.Provider
+        {
+            get { return new DbSetAsyncQueryProvider<T>(this); }
+        }
+        */
+
+        public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
+        {
+            return GetEnumerator();
+        }
     }
 
     internal class DbSetAsyncEnumerator<T> : IAsyncEnumerator<T>
@@ -250,16 +263,23 @@ namespace TestResourcesLib
             _inner = inner;
         }
 
-        public T Current => _inner.Current;
-
         public void Dispose()
         {
             _inner.Dispose();
         }
 
-        public Task<bool> MoveNext(CancellationToken cancellationToken)
+        public T Current => _inner.Current;
+
+        public ValueTask<bool> MoveNextAsync()
         {
-            return Task.FromResult(_inner.MoveNext());
+            return new ValueTask<bool>(_inner.MoveNext());
+        }
+
+        public ValueTask DisposeAsync()
+        {
+            _inner.Dispose();
+            return new ValueTask();
         }
     }
+    
 }

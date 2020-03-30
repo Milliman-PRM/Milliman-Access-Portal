@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace MapQueryAdminWeb
 {
@@ -34,7 +35,8 @@ namespace MapQueryAdminWeb
             });
 
 
-            services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddControllersWithViews();
 
             services.Configure<AuditLoggerConfiguration>(Configuration);
 
@@ -42,7 +44,7 @@ namespace MapQueryAdminWeb
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -58,6 +60,17 @@ namespace MapQueryAdminWeb
             app.UseStaticFiles();
             app.UseCookiePolicy();
 
+            app.UseRouting();
+
+            app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+            });
+
+            /*
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
@@ -65,6 +78,7 @@ namespace MapQueryAdminWeb
                     template: "{controller}/{action}/{id?}",
                     defaults: new { controller = "Query", action = "RunQuery", id = "" });
             });
+            */
 
             #region Configure Audit Logger connection string
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");

@@ -55,7 +55,8 @@ namespace TestResourcesLib
             ReturnMockUserManager.Setup(m => m.GetUsersForClaimAsync(It.IsAny<Claim>())).Returns(async (Claim claim) => await UserStore.Object.GetUsersForClaimAsync(claim, CancellationToken.None));
 
             // General purpose methods
-            ReturnMockUserManager.Setup(m => m.NormalizeKey(It.IsAny<string>())).Returns<string>(k => k.ToUpper());
+            ReturnMockUserManager.Setup(m => m.NormalizeEmail(It.IsAny<string>())).Returns<string>(k => k.ToUpper());
+            ReturnMockUserManager.Setup(m => m.NormalizeName(It.IsAny<string>())).Returns<string>(k => k.ToUpper());
 
             // Password-related methods
             // Return true if the password is not null

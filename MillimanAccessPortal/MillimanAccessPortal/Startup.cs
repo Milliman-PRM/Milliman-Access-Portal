@@ -7,14 +7,12 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
-using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -22,7 +20,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Rewrite;
 using Microsoft.AspNetCore.Session;
@@ -31,6 +28,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
@@ -43,6 +41,7 @@ using MillimanAccessPortal.Utilities;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
 using PowerBiLib;
+using Prm.EmailQueue;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -69,10 +68,12 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            /*
             services.Configure<MvcOptions>(options =>
             {
                 options.Filters.Add(new RequireHttpsAttribute());
             });
+            */
 
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             // Add framework services.
@@ -315,7 +316,9 @@ namespace MillimanAccessPortal
 
             services.AddResponseCaching();
 
-            services.AddMvc(config =>
+            services
+            /*
+            .AddMvc(config =>
             {
                 var policy = new AuthorizationPolicyBuilder()
                              .RequireAuthenticatedUser()
@@ -328,6 +331,14 @@ namespace MillimanAccessPortal
             {
                 opt.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 opt.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+            });
+            */
+            .AddControllersWithViews(options => 
+            {
+                var policy = new AuthorizationPolicyBuilder()
+                             .RequireAuthenticatedUser()
+                             .Build();
+                options.Filters.Add(new AuthorizeFilter(policy));
             });
 
             services.AddApplicationInsightsTelemetry(Configuration);
@@ -403,7 +414,7 @@ namespace MillimanAccessPortal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var rewriteOptions = new RewriteOptions().AddRedirectToHttps();
             app.UseRewriter(rewriteOptions);
@@ -416,6 +427,9 @@ namespace MillimanAccessPortal
 
                 if (env.IsDevelopment())
                 {
+#warning HEY!!!  Figure out a replacement for this obsolete code
+                    // TODO need to address what to do here since this is obsolete
+                    // https://github.com/dotnet/AspNetCore.Docs/issues/13245
                     app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
                     {
                         HotModuleReplacement = true,
@@ -483,7 +497,17 @@ namespace MillimanAccessPortal
                 await next();
             });
 
+            app.UseRouting();
+
             app.UseAuthentication();
+            app.UseAuthorization();
+
+            app.UseEndpoints(endpoints => 
+            {
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                //endpoints.MapRazorPages();
+            });
             //Todo: read this: https://github.com/aspnet/Security/issues/1310
 
             // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
@@ -528,12 +552,14 @@ namespace MillimanAccessPortal
                 await next();
             });
 
+            /*
             app.UseMvc(routes =>
             {
                 routes.MapRoute(
                     name: "default",
                     template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
             });
+            */
 
             MailSender.ConfigureMailSender(new SmtpConfig
             {

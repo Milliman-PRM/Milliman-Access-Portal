@@ -1,4 +1,10 @@
-﻿using AuditLogLib.Event;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Entry point of the MAP server application process
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Event;
 using System;
 using System.Collections.Generic;
 using MapCommonLib;
@@ -7,6 +13,7 @@ using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using Serilog;
@@ -23,7 +30,7 @@ namespace MillimanAccessPortal
 
         public static async Task Main(string[] args)
         {
-            var host = RunTimeBuildWebHost(args);
+            var host = RunTimeBuildHost(args);
 
             using (var scope = host.Services.CreateScope())
             {
@@ -76,15 +83,37 @@ namespace MillimanAccessPortal
         }
 
         /// <summary>
-        /// Renamed implementation of BuildWebHost, forces execution of <see cref="ApplicationDbContextFactory.CreateDbContext"/> 
+        /// Renamed implementation of BuildHost, forces execution of <see cref="ApplicationDbContextFactory.CreateDbContext"/> 
         /// when deploying migrations, rather than running entire Startup configuration.
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHost RunTimeBuildWebHost(string[] args)
+        //public static IWebHost RunTimeBuildWebHost(string[] args)
+        public static IHost RunTimeBuildHost(string[] args)
         {
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
+            var host = Host.CreateDefaultBuilder()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                    })
+                    .UseStartup<Startup>()
+                    .ConfigureAppConfiguration((hostContext, config) => SetApplicationConfiguration(hostContext.HostingEnvironment.EnvironmentName, config))
+                    .ConfigureLogging((hostingContext, config) => config.ClearProviders());  // remove ASP default logger
+                });
+
+            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper) &&
+                Environment.GetEnvironmentVariable("SUPPRESS_MAP_WEBHOST_LOGGING") == null)
+            {
+                // includes highly detailed .NET logging to the Serilog sinks
+                host = host.UseSerilog();
+            }
+
+            return host.Build();
+
+            /*
             var webHost = 
             WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>()
@@ -100,6 +129,7 @@ namespace MillimanAccessPortal
             }
 
             return webHost.Build();
+            */
         }
 
         internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)
