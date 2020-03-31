@@ -1,5 +1,5 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropsReturnModel,
   FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
@@ -336,7 +336,7 @@ export interface FetchActivityLog {
 /** Action called upon successful return of the FetchActivityLog API call */
 export interface FetchActivityLogSucceeded {
   type: 'FETCH_ACTIVITY_LOG_SUCCEEDED';
-  response: any;
+  response: FileDropEvent[];
 }
 /** Action called upon return of an error from the FetchActivityLog API call */
 export interface FetchActivityLogFailed {
