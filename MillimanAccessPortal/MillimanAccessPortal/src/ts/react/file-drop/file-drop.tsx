@@ -22,12 +22,14 @@ import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
 import { ContentPanelForm } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { ActivityLogTable } from './activity-log-table';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -825,7 +827,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters } = this.props;
+    const { filters, data } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -837,7 +839,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            {
+              this.props.pending.async.activityLog &&
+              <ColumnSpinner />
+            }
+            <div>
+              <ActivityLogTable
+                activityLogData={data.activityLogEvents}
+              />
+            </div>
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
