@@ -20,21 +20,22 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
     {
         public static AuthorizedContentViewModel Build(ApplicationDbContext dbContext, ApplicationUser user, HttpContext Context)
         {
-            // npgsql does not support `.Distinct(IEqualityComparer<T>)` so this needs to be submitted to pgsql before deduplicating
-            var allMatchingSelectionGroupRecords = dbContext.UserInSelectionGroup
+            // EF does not support server side `.Distinct(IEqualityComparer<T>)` so deduplication must be done client side, below
+            IEnumerable<SelectionGroup> allMatchingSelectionGroupRecords = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
-                .Where(usg => usg.SelectionGroup.ContentInstanceUrl != null)
+                .Where(usg => !string.IsNullOrWhiteSpace(usg.SelectionGroup.ContentInstanceUrl))  // is active
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
-                .Where(usg => !usg.SelectionGroup.IsInactive)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
+                .Include(usg => usg.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(rc => rc.Client)
+                .Include(usg => usg.SelectionGroup)
+                    .ThenInclude(sg => sg.RootContentItem)
+                        .ThenInclude(rc => rc.ContentType)
                 .Select(usg => usg.SelectionGroup)
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rc => rc.Client)
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rc => rc.ContentType)
-                .ToList();
+                .AsEnumerable();
 
-            // Deduplicate the above result
+            // Deduplicate the above result (client side)
             var distinctSelectionGroups = allMatchingSelectionGroupRecords
                 .Distinct(new IdPropertyComparer<SelectionGroup>())
                 .ToList();
