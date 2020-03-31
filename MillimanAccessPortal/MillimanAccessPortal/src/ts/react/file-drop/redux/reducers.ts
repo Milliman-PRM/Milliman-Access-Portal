@@ -33,6 +33,7 @@ const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
   permissionGroups: null,
+  activityLogEvents: [],
 };
 
 const _initialPendingData: State.FileDropPendingReturnState = {
@@ -630,6 +631,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ..._.cloneDeep(_initialPermissionGroupsTab),
     },
+    activityLogEvents: [],
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
@@ -642,6 +644,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ...action.response,
     },
+  }),
+  FETCH_ACTIVITY_LOG_SUCCEEDED: (state, action: Action.FetchActivityLogSucceeded) => ({
+    ...state,
+    activityLogEvents: action.response,
   }),
 });
 
