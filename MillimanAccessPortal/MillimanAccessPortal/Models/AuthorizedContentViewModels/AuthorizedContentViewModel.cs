@@ -23,7 +23,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
             // EF does not support server side `.Distinct(IEqualityComparer<T>)` so deduplication must be done client side, below
             IEnumerable<SelectionGroup> allMatchingSelectionGroupRecords = dbContext.UserInSelectionGroup
                 .Where(usg => usg.UserId == user.Id)
-                .Where(usg => !string.IsNullOrWhiteSpace(usg.SelectionGroup.ContentInstanceUrl))  // is active
+                .Where(usg => !string.IsNullOrWhiteSpace(usg.SelectionGroup.ContentInstanceUrl))  // only active groups
                 .Where(usg => !usg.SelectionGroup.IsSuspended)
                 .Where(usg => !usg.SelectionGroup.RootContentItem.IsSuspended)
                 .Include(usg => usg.SelectionGroup)
