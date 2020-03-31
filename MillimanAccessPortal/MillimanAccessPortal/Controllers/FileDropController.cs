@@ -138,7 +138,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             string fileDropGlobalRoot = _applicationConfig.GetValue("Storage:FileDropRoot", string.Empty);
-            Client referencedClient = _dbContext.Client.Find(fileDropModel.ClientId);
+            Client referencedClient = await _dbContext.Client.FindAsync(fileDropModel.ClientId);
 
             #region Validation
             if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
@@ -187,7 +187,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.FileDropDirectory.Add(rootDirectoryRecord);
                 Directory.CreateDirectory(fileDropAbsoluteRootFolder);
 
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
@@ -219,9 +219,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDrop fileDropRecord = _dbContext.FileDrop
-                                                .Include(d => d.Client)
-                                                .Single(d => d.Id == fileDropModel.Id);
+            FileDrop fileDropRecord = await _dbContext.FileDrop
+                                                      .Include(d => d.Client)
+                                                      .SingleAsync(d => d.Id == fileDropModel.Id);
             FileDrop oldFileDrop = new FileDrop { Id = fileDropRecord.Id,
                                                   Name = fileDropRecord.Name,
                                                   Description = fileDropRecord.Description,
@@ -246,7 +246,7 @@ namespace MillimanAccessPortal.Controllers
 
             fileDropRecord.Name = fileDropModel.Name;
             fileDropRecord.Description = fileDropModel.Description;
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
 
@@ -282,11 +282,11 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
         {
-            FileDrop fileDrop = _dbContext.FileDrop
-                                          .Include(d => d.Client)
-                                          .Include(d => d.SftpAccounts)
-                                              .ThenInclude(a => a.ApplicationUser)
-                                          .SingleOrDefault(d => d.Id == id);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .Include(d => d.SftpAccounts)
+                                                    .ThenInclude(a => a.ApplicationUser)
+                                                .SingleOrDefaultAsync(d => d.Id == id);
 
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
@@ -316,7 +316,7 @@ namespace MillimanAccessPortal.Controllers
                                                            .ToListAsync();
                 _dbContext.FileDropFile.RemoveRange(files);
                 _dbContext.FileDrop.Remove(fileDrop);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
             }
             catch (Exception ex)

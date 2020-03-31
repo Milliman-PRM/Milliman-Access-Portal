@@ -425,14 +425,14 @@ namespace MillimanAccessPortal.Controllers
                 ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email };
                 ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
 
-                using (var txn = DbContext.Database.BeginTransaction())
+                using (var txn = await DbContext.Database.BeginTransactionAsync())
                 {
                     createUserResult = await _userManager.CreateAsync(newUser);
                     roleGrantResult = await _userManager.AddToRoleAsync(newUser, adminRole.Name);
 
                     if (createUserResult.Succeeded && roleGrantResult.Succeeded)
                     {
-                        txn.Commit();
+                        await txn.CommitAsync();
 
                         Log.Information($"Initial user {model.Email} account created new with password.");
                         _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
@@ -775,7 +775,7 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            using (var Txn = DbContext.Database.BeginTransaction())
+            using (var Txn = await DbContext.Database.BeginTransactionAsync())
             {
                 // Confirm the user's account
                 IdentityResult confirmEmailResult = await _userManager.ConfirmEmailAsync(user, model.Code);
@@ -846,7 +846,7 @@ namespace MillimanAccessPortal.Controllers
                     return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
                 }
 
-                Txn.Commit();
+                await Txn.CommitAsync();
 
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
                 _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
@@ -1066,7 +1066,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: requested user with email {model.Email} not found, current user will not be informed of the issue, aborting");
                 return View("UserMessage", new UserMessageModel(passwordResetErrorMessage));
             }
-            using (var Txn = DbContext.Database.BeginTransaction())
+            using (var Txn = await DbContext.Database.BeginTransactionAsync())
             {
                 IdentityResult result = await _userManager.ResetPasswordAsync(user, model.PasswordResetToken, model.NewPassword);
                 if (result.Succeeded)
@@ -1097,7 +1097,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (unlock.Succeeded && resetFailedCount.Succeeded && addHistoryResult.Succeeded)
                     {
-                        Txn.Commit();
+                        await Txn.CommitAsync();
                         Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: succeeded for user {user.UserName }");
                         _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
                         return View("UserMessage", new UserMessageModel("Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>."));

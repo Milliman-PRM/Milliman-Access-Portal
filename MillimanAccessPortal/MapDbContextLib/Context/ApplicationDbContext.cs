@@ -202,16 +202,6 @@ namespace MapDbContextLib.Context
             optionsBuilder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
         }
 
-        public bool ClientExists(Guid id)
-        {
-            return Client.Any(e => e.Id == id);
-        }
-
-        private bool ProfitCenterExists(Guid id)
-        {
-            return ProfitCenter.Any(pc => pc.Id == id);
-        }
-
         public static async Task InitializeAll(IServiceProvider serviceProvider)
         {
             await Identity.ApplicationRole.SeedRoles(serviceProvider);

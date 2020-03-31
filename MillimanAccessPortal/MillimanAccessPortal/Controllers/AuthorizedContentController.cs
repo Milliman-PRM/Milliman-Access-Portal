@@ -107,12 +107,12 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
+                .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
-                .Include(u => u.User)
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Include(usg => usg.User)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -185,12 +185,12 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
+                .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
-                .Include(u => u.User)
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Include(usg => usg.User)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
 
             if (!userInSelectionGroup.DisclaimerAccepted)
@@ -215,8 +215,8 @@ namespace MillimanAccessPortal.Controllers
 
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = DataContext.UserInSelectionGroup
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefault();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -406,6 +406,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+#warning Is this query ok?
             RootContentItem contentItem = DataContext.ContentPublicationRequest
                                                      .Where(r => r.Id == request)
                                                      .Select(r => r.RootContentItem)
@@ -447,6 +448,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+#warning Is this query ok?
             RootContentItem contentItem = DataContext.SelectionGroup
                                                      .Where(g => g.Id == group)
                                                      .Select(g => g.RootContentItem)

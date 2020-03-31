@@ -196,11 +196,11 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="fileUploadId">The file upload to return</param>
         /// <returns>Json</returns>
         [HttpGet]
-        public IActionResult FinalizeUpload(Guid fileUploadId)
+        public async Task<IActionResult> FinalizeUpload(Guid fileUploadId)
         {
             Log.Verbose($"Entered FileUploadController.FinalizeUpload action for {fileUploadId}");
 
-            var fileUpload = _dbContext.FileUpload.Find(fileUploadId);
+            var fileUpload = await _dbContext.FileUpload.FindAsync(fileUploadId);
 
             return Json(fileUpload);
         }
@@ -211,7 +211,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         /// <returns>Ok or 409</returns>
         [HttpPost]
-        public IActionResult FinalizeUpload([FromBody] ResumableInfo resumableInfo)
+        public async Task<IActionResult> FinalizeUpload([FromBody] ResumableInfo resumableInfo)
         {
             Log.Verbose("Entered FileUploadController.FinalizeUpload action for {@ResumableInfo}", resumableInfo);
 
@@ -220,7 +220,7 @@ namespace MillimanAccessPortal.Controllers
                 ClientFileIdentifier = resumableInfo.UID,
             };
             _dbContext.FileUpload.Add(fileUpload);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             _uploadTaskQueue.QueueUploadFinalization(resumableInfo);
 
