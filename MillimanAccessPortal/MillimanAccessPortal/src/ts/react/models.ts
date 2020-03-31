@@ -369,3 +369,55 @@ export interface AvailableEligibleUsers {
   userName: string;
   sortName: string;
 }
+
+export enum FileDropLogEventEnum {
+  // File Drop Admin Events
+  Created = 8001,
+  Deleted = 8002,
+  Updated = 8003,
+  // SFTP User Events
+  AccountAuthenticated = 8100,
+  DirectoryCreated = 8110,
+  DirectoryRemoved = 8111,
+  FileOrDirectoryRenamed = 8113,
+}
+
+interface BaseFileDropEvent {
+  id: number;
+  timeStampUtc: string;
+  user: string;
+}
+
+interface FileDropEventClient {
+  clientId: Guid;
+  clientName: string;
+}
+
+interface FileDropEventFileDrop {
+  Id: Guid;
+  Name: string;
+  Description: string;
+}
+
+export interface FDEventCreated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.Created;
+  eventDataObject: {
+    Client: FileDropEventClient;
+    FileDrop: FileDropEventFileDrop;
+  };
+}
+
+export interface FDEventUpdated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.Updated;
+  eventDataObject: {
+    Client: FileDropEventClient;
+    NewFileDrop: FileDropEventFileDrop;
+    OldFileDrop: FileDropEventFileDrop;
+  };
+}
+
+// Union of all File Drop Event interfaces
+export type FileDropEvent =
+  | FDEventCreated
+  | FDEventUpdated
+  ;
