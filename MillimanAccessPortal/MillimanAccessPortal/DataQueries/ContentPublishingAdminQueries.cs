@@ -219,11 +219,11 @@ namespace MillimanAccessPortal.DataQueries
             List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
             foreach (var rootContentItem in rootContentItems)
             {
-                var summary = RootContentItemNewSummary.Build(_dbContext, rootContentItem);
+                var summary = await RootContentItemNewSummary.BuildAsync(_dbContext, rootContentItem);
                 model.ContentItems.Add(rootContentItem.Id, summary);
             }
 
-            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
+            model.PublicationQueue = await PublicationQueueDetails.BuildQueueForClientAsync(_dbContext, client);
 
             var publications = _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))

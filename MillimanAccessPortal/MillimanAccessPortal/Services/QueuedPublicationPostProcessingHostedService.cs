@@ -49,7 +49,7 @@ namespace MillimanAccessPortal.Services
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            AdoptOrphanPublications();
+            await AdoptOrphanPublicationsAsync();
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.Services
                         using (var scope = _services.CreateScope())
                         {
                             var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                            ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
+                            ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == kvpWithException.Key);
 
                             thisPubRequest.RequestStatus = PublicationStatus.Error;
 
@@ -86,7 +86,7 @@ namespace MillimanAccessPortal.Services
                             {
                                 reduction.ReductionStatus = ReductionStatusEnum.Error;
                             }
-                            dbContext.SaveChanges();
+                            await dbContext.SaveChangesAsync();
                         }
                     }
                     catch (Exception ex)
@@ -114,10 +114,10 @@ namespace MillimanAccessPortal.Services
 
                 List<PublicationStatus> WaitStatusList = new List<PublicationStatus> { PublicationStatus.Queued, PublicationStatus.Processing };
 
-                ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest
-                                                                    .Include(r => r.RootContentItem)
-                                                                    .ThenInclude(c => c.ContentType)
-                                                                    .SingleOrDefault(r => r.Id == publicationRequestId);
+                ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest
+                                                                          .Include(r => r.RootContentItem)
+                                                                          .ThenInclude(c => c.ContentType)
+                                                                          .SingleOrDefaultAsync(r => r.Id == publicationRequestId);
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
 
@@ -126,7 +126,7 @@ namespace MillimanAccessPortal.Services
                 {
                     Thread.Sleep(2000);
                     dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
-                    thisPubRequest = dbContext.ContentPublicationRequest.Find(thisPubRequest.Id);
+                    thisPubRequest = await dbContext.ContentPublicationRequest.FindAsync(thisPubRequest.Id);
                 }
 
                 // Ensure that the request is ready for post-processing
@@ -137,16 +137,16 @@ namespace MillimanAccessPortal.Services
                     return;
                 }
 
-                ContentTypeEnum thisContentType = dbContext.RootContentItem
-                                                       .Where(i => i.Id == thisPubRequest.RootContentItemId)
-                                                       .Select(i => i.ContentType.TypeEnum)
-                                                       .Single();
+                ContentTypeEnum thisContentType = await dbContext.RootContentItem
+                                                                 .Where(i => i.Id == thisPubRequest.RootContentItemId)
+                                                                 .Select(i => i.ContentType.TypeEnum)
+                                                                 .SingleAsync();
 
                 // Prepare useful lists of reduction tasks for use below
-                List<ContentReductionTask> AllRelatedReductionTasks = dbContext.ContentReductionTask
+                List<ContentReductionTask> AllRelatedReductionTasks = await dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
                     .Include(t => t.SelectionGroup)
-                    .ToList();
+                    .ToListAsync();
                 List<ContentReductionTask> SuccessfulReductionTasks = AllRelatedReductionTasks
                     .Where(t => t.SelectionGroupId.HasValue)
                     .Where(t => !t.SelectionGroup.IsMaster)
@@ -207,7 +207,7 @@ namespace MillimanAccessPortal.Services
                 newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
                 thisPubRequest.OutcomeMetadataObj = newOutcome;
 
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                    thisPubRequest.RootContentItemId.ToString(),
@@ -273,7 +273,7 @@ namespace MillimanAccessPortal.Services
                 // record the path change in thisPubRequest
                 thisPubRequest.LiveReadyFilesObj = newLiveReadyFilesObj;
                 thisPubRequest.LiveReadyAssociatedFilesList = newLiveReadyAssociatedFilesList;
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 // PostProcess the output of successful reduction tasks
                 foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
@@ -288,9 +288,8 @@ namespace MillimanAccessPortal.Services
 
                     // Update reduction task record with revised path
                     relatedTask.ResultFilePath = TargetFilePath;
-                    dbContext.ContentReductionTask.Update(relatedTask);
                 }
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 switch (thisContentType)
                 {
@@ -312,7 +311,7 @@ namespace MillimanAccessPortal.Services
                             contentItemProperties.PreviewReportId = embedProperties.ReportId;
 
                             contentItem.TypeSpecificDetailObject = contentItemProperties;
-                            dbContext.SaveChanges();
+                            await dbContext.SaveChangesAsync();
                         }
                         break;
 
@@ -347,12 +346,11 @@ namespace MillimanAccessPortal.Services
                 newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
                 thisPubRequest.OutcomeMetadataObj = newOutcome;
 
-                dbContext.ContentPublicationRequest.Update(thisPubRequest);
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
             }
         }
 
-        protected void AdoptOrphanPublications()
+        protected async Task AdoptOrphanPublicationsAsync()
         {
             int recoveryLookbackHours = _appConfig.GetValue("TaskRecoveryLookbackHours", 24 * 7);
             DateTime minCreateDateTimeUtc = DateTime.UtcNow - TimeSpan.FromHours(recoveryLookbackHours);
@@ -369,10 +367,10 @@ namespace MillimanAccessPortal.Services
                     PublicationStatus.PostProcessReady,
                 };
 
-                List<ContentPublicationRequest> recentOrphanedRequests = dbContext.ContentPublicationRequest
+                List<ContentPublicationRequest> recentOrphanedRequests = await dbContext.ContentPublicationRequest
                     .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
                     .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToList();
+                    .ToListAsync();
 
                 var latestOrphanedRequests = recentOrphanedRequests
                     .GroupBy(keySelector: r => r.RootContentItemId,
@@ -388,10 +386,10 @@ namespace MillimanAccessPortal.Services
                 string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
                 string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
 
-                List<ContentPublicationRequest> validatingRequests = dbContext.ContentPublicationRequest
+                List<ContentPublicationRequest> validatingRequests = await dbContext.ContentPublicationRequest
                     .Where(r => r.RequestStatus == PublicationStatus.Validating)
                     .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToList();
+                    .ToListAsync();
                 foreach (ContentPublicationRequest request in validatingRequests)
                 {
                     ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);

@@ -62,7 +62,7 @@ namespace MillimanAccessPortal.Services
                 var ApplicationConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
 
                 // First setup a go-live handler for tasks already queued or beyond
-                var reducedTasks = dbContext.ContentReductionTask
+                var reducedTasks = await dbContext.ContentReductionTask
                     .Include(t => t.SelectionGroup)
                         .ThenInclude(g => g.RootContentItem)
                             .ThenInclude(c => c.ContentType)
@@ -71,7 +71,7 @@ namespace MillimanAccessPortal.Services
                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Queued
                              || t.ReductionStatus == ReductionStatusEnum.Reducing
                              || t.ReductionStatus == ReductionStatusEnum.Reduced)
-                    .ToList();
+                    .ToListAsync();
 
                 foreach (ContentReductionTask task in reducedTasks)
                 {
@@ -98,14 +98,14 @@ namespace MillimanAccessPortal.Services
                 }
 
                 // Second, cancel and resubmit reduction requests that don't have queued status yet (probably orphaned while long running operations were incomplete)
-                List< ContentReductionTask> validatingTasks = dbContext.ContentReductionTask
+                List< ContentReductionTask> validatingTasks = await dbContext.ContentReductionTask
                     .Include(t => t.SelectionGroup)
                         .ThenInclude(g => g.RootContentItem)
                             .ThenInclude(c => c.ContentType)
                     .Where(t => t.ContentPublicationRequestId == null)
                     .Where(t => t.CreateDateTimeUtc > minCreateDateTimeUtc)
                     .Where(t => t.ReductionStatus == ReductionStatusEnum.Validating)
-                    .ToList();
+                    .ToListAsync();
 
                 // Because it's difficult to resume from this status, just delete the reduction task and get a new one created
                 // There may be some abandoned files depending on when the application previously terminated
@@ -119,7 +119,7 @@ namespace MillimanAccessPortal.Services
                     }
 
                     dbContext.ContentReductionTask.Remove(task);
-                    dbContext.SaveChanges();
+                    await dbContext.SaveChangesAsync();
 
                     await accessAdminController.UpdateSelectionsAsync(task.SelectionGroupId.Value, 
                                                                       task.SelectionGroup.IsMaster, 

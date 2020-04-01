@@ -126,16 +126,16 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                                         .ToList();
             }
 
-            var hasRequiredRole = DbContext.UserRoleInClient
+            var hasRequiredRole = await DbContext.UserRoleInClient
                 .Where(urc => urc.UserId == CurrentUser.Id)
                 .Where(urc => urc.Role.RoleEnum == ClientRoleRequiredToManage)
                 .Where(urc => urc.ClientId == ClientEntity.Id)
-                .Any();
-            var hasProfitCenterAuthority = DbContext.UserRoleInProfitCenter
+                .AnyAsync();
+            var hasProfitCenterAuthority = await DbContext.UserRoleInProfitCenter
                 .Where(urp => urp.UserId == CurrentUser.Id)
                 .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
                 .Where(urp => urp.ProfitCenterId == ClientEntity.ProfitCenterId)
-                .Any();
+                .AnyAsync();
             CanManage = hasRequiredRole && (!RequireProfitCenterAuthority || hasProfitCenterAuthority);
 
             // Assign the remaining assigned user properties
@@ -204,9 +204,9 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 }
             }
 
-            ContentItems = DbContext.RootContentItem
+            ContentItems = await DbContext.RootContentItem
                                     .Where(rc => rc.ClientId == ClientEntity.Id)
-                                    .ToList();
+                                    .ToListAsync();
         }
     }
 }

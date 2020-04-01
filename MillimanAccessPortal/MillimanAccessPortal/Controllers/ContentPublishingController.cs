@@ -312,7 +312,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
-            RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
+            RootContentItemSummary summary = await RootContentItemSummary.BuildAsync(_dbContext, rootContentItem);
             RootContentItemDetail detail = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             return Json(new { summary, detail });
@@ -422,7 +422,7 @@ namespace MillimanAccessPortal.Controllers
                     .ToEvent(usersInGroup, currentRootContentItem, logClient, ContentDisclaimerResetReason.DisclaimerTextModified));
             }
 
-            RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, currentRootContentItem);
+            RootContentItemSummary summary = await RootContentItemSummary.BuildAsync(_dbContext, currentRootContentItem);
             RootContentItemDetail detail = await _publishingQueries.BuildContentItemDetailModelAsync(currentRootContentItem, Request);
 
             return Json(new { summary, detail });
@@ -849,7 +849,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PreLiveContentValidationSummary ReturnObj = PreLiveContentValidationSummary.Build(_dbContext, RootContentItemId, ApplicationConfig, HttpContext);
+            PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.BuildAsync(_dbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
             Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} action: success, returning summary {ReturnObj.ValidationSummaryId}");
             AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));

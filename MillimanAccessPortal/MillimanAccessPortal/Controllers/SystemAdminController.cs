@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in query)
             {
                 var userInfo = (UserInfo)user;
-                userInfo.QueryRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
+                await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
 
@@ -394,7 +394,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var pc in query)
             {
                 var pcInfo = (ProfitCenterInfo)pc;
-                pcInfo.QueryRelatedEntityCounts(_dbContext);
+                await pcInfo.QueryRelatedEntityCountsAsync(_dbContext);
                 pcInfoList.Add(pcInfo);
             }
 
@@ -485,7 +485,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var item in query)
             {
                 var itemInfo = (RootContentItemInfo)item;
-                itemInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId);
+                await itemInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.UserId);
                 itemInfoList.Add(itemInfo);
             }
 
@@ -537,7 +537,7 @@ namespace MillimanAccessPortal.Controllers
             else if (filter.ClientId.HasValue)
             {
                 var model = (RootContentItemDetailForClient)item;
-                model.QueryRelatedEntities(_dbContext, filter.ClientId.Value);
+                await model.QueryRelatedEntitiesAsync(_dbContext, filter.ClientId.Value);
                 Log.Verbose("In SystemAdminController.RootContentItemDetail action: success");
                 return Json(model);
             }
