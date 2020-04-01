@@ -142,7 +142,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             if (CanManage)
             {
                 // Get all users currently member of any related Client (any descendant of the root client)
-                List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ClientEntity);
+                List<Client> AllRelatedClients = await Queries.GetAllRelatedClientsAsync(ClientEntity);
                 var UsersAssignedToClientFamily = new List<ApplicationUser>();
                 foreach (Client OneClient in AllRelatedClients)
                 {
@@ -172,7 +172,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 // Query user details
                 foreach (UserInfoModel assignedUser in AssignedUsers)
                 {
-                    assignedUser.UserRoles = Queries.GetUserRolesForClient(assignedUser.Id, ClientEntity.Id)
+                    assignedUser.UserRoles = (await Queries.GetUserRolesForClientAsync(assignedUser.Id, ClientEntity.Id))
                         .Where(ur => RolesToManage.Contains(ur.RoleEnum))
                         .ToList();
 
@@ -189,8 +189,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 }
                 foreach (UserInfoModel eligibleUser in EligibleUsers)
                 {
-                    eligibleUser.UserRoles = Queries.GetUserRolesForClient(eligibleUser.Id, ClientEntity.Id)
-                        .ToList();
+                    eligibleUser.UserRoles = await Queries.GetUserRolesForClientAsync(eligibleUser.Id, ClientEntity.Id);
 
                     // any roles that were not found need to be included with IsAssigned=false
                     eligibleUser.UserRoles.AddRange(RolesToManage.Except(eligibleUser.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>

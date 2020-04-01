@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
 
             // Add all appropriate client trees
-            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
+            List<Client> AllRootClients = await Queries.GetAllRootClientsAsync();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
                 //await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);

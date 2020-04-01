@@ -593,7 +593,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
             IdentityResult createResult;
-            (createResult, user) = await _queries.CreateNewAccount(email, email);
+            (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
             if (createResult.Succeeded && user != null)
             {
@@ -708,7 +708,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
                     IdentityResult createResult;
-                    (createResult, user) = await _queries.CreateNewAccount(email, email);
+                    (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
                     if (createResult.Succeeded && user != null)
                     {
@@ -794,7 +794,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
                     IdentityResult createResult;
-                    (createResult, user) = await _queries.CreateNewAccount(email, email);
+                    (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
                     if (createResult.Succeeded && user != null)
                     {

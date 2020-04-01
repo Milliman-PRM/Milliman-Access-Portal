@@ -152,7 +152,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             // Check current user's authorization to manage the requested Client
-            List<Guid> AllRelatedClientsList = Queries.GetAllRelatedClients(ThisClient).Select(c => c.Id).ToList();
+            List<Guid> AllRelatedClientsList = (await Queries.GetAllRelatedClientsAsync(ThisClient)).Select(c => c.Id).ToList();
 
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInAnySuppliedClientRequirement(RoleEnum.Admin, AllRelatedClientsList));
             if (!Result1.Succeeded)
@@ -297,7 +297,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     IdentityResult result;
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
-                    (result, RequestedUser) = await Queries.CreateNewAccount(Model.UserName, Model.Email);
+                    (result, RequestedUser) = await Queries.CreateNewAccountAsync(Model.UserName, Model.Email);
 
                     if (result.Succeeded && RequestedUser != null)
                     {

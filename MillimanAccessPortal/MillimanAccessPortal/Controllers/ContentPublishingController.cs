@@ -125,7 +125,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = _publishingQueries.BuildPublishingPageGlobalModel();
+            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync();
 
             return Json(model);
         }
@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var contentItems = _publishingQueries.BuildRootContentItemsModel(client, currentUser);
+            var contentItems = await _publishingQueries.BuildRootContentItemsModelAsync(client, currentUser);
 
             return Json(contentItems);
         }
@@ -217,7 +217,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             //RootContentItemDetail model = Models.ContentPublishing.RootContentItemDetail.Build(_dbContext, rootContentItem);
-            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
+            RootContentItemDetail model = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             return Json(model);
         }
@@ -313,7 +313,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, rootContentItem);
-            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
+            RootContentItemDetail detail = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             return Json(new { summary, detail });
         }
@@ -423,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             RootContentItemSummary summary = RootContentItemSummary.Build(_dbContext, currentRootContentItem);
-            RootContentItemDetail detail = _publishingQueries.BuildContentItemDetailModel(currentRootContentItem, Request);
+            RootContentItemDetail detail = await _publishingQueries.BuildContentItemDetailModelAsync(currentRootContentItem, Request);
 
             return Json(new { summary, detail });
         }
@@ -471,7 +471,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItemDetail model = _publishingQueries.BuildContentItemDetailModel(rootContentItem, Request);
+            RootContentItemDetail model = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             _dbContext.RootContentItem.Remove(rootContentItem);
             await _dbContext.SaveChangesAsync();
@@ -673,7 +673,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
             }
 
-            var rootContentItemDetail = _publishingQueries.BuildContentItemDetailModel(ContentItem, Request);
+            var rootContentItemDetail = await _publishingQueries.BuildContentItemDetailModelAsync(ContentItem, Request);
             return Json(rootContentItemDetail);
         }
 
@@ -805,7 +805,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
 
-            var rootContentItemStatusList = _publishingQueries.SelectCancelContentPublicationRequest(await _userManager.GetUserAsync(User), rootContentItem, Request);
+            var rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
             return new JsonResult(rootContentItemStatusList);
         }
@@ -815,7 +815,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Status(Guid clientId)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            var publishingStatusModel = _publishingQueries.SelectStatus(user, clientId);
+            var publishingStatusModel = await _publishingQueries.SelectStatusAsync(user, clientId);
 
             return new JsonResult(publishingStatusModel);
         }
