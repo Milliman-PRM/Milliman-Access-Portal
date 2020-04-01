@@ -366,7 +366,7 @@ namespace MillimanAccessPortal.Controllers
             if (fileDrop == null)
             {
                 Log.Warning($"Requested FileDrop Id {model.FileDropId} not found");
-                Response.Headers.Add("Warning", "Failed to complete the request.");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -388,6 +388,11 @@ namespace MillimanAccessPortal.Controllers
             catch (ApplicationException ex)
             {
                 Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            catch (Exception)
+            {
+                Response.Headers.Add("Warning", "Error while processing updates to file drop permissions.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
         }

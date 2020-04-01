@@ -220,211 +220,217 @@ namespace MillimanAccessPortal.DataQueries
 
         internal async Task<PermissionGroupsModel> UpdatePermissionGroups(UpdatePermissionGroupsModel model)
         {
-            FileDrop fileDrop = await _dbContext.FileDrop
-                                                .SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
-
-            List<FileDropUserPermissionGroup> groupsToRemove = await _dbContext.FileDropUserPermissionGroup
-                                                                               .Include(g => g.SftpAccounts)
-                                                                               .Where(fd => model.RemovedPermissionGroupIds.Contains(fd.Id))
-                                                                               .ToListAsync();
-
-            List<FileDropUserPermissionGroup> groupsToUpdate = await _dbContext.FileDropUserPermissionGroup
-                                                                               .Include(g => g.SftpAccounts)
-                                                                               .Where(g => model.UpdatedPermissionGroups.Keys.Contains(g.Id))
-                                                                               .ToListAsync();
-
-            List<Guid> sftpAccountIdsWithExistingAuthorization = await _dbContext.SftpAccount
-                                                                                 .Where(a => a.FileDropUserPermissionGroup.FileDropId == model.FileDropId)
-                                                                                 .Select(a => a.Id)
-                                                                                 .ToListAsync();
-
-            List<ApplicationUser> usersRemovedInUpdates = await _dbContext.ApplicationUser
-                                                                          .Include(u => u.SftpAccounts)
-                                                                          .Where(u => model.UpdatedPermissionGroups.SelectMany(g => g.Value.UsersRemoved).Contains(u.Id))
-                                                                          .ToListAsync();
-
-            List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
-                                                                                    .Select(a => a.Id)
-                                                                                    .ToList();
-
-            List<Guid> sftpAccountIdsWithContinuingAuthorization = sftpAccountIdsWithExistingAuthorization
-                                                                            .Except(groupsToRemove.SelectMany(g => g.SftpAccounts.Select(a => a.Id)))
-                                                                            .Except(sftpAccountIdsOfUsersRemovedInUpdates)
-                                                                            .ToList();
-
-            #region model validation
-            if (fileDrop == null)
+            using (var txn = await _dbContext.Database.BeginTransactionAsync())
             {
-                throw new ApplicationException("The requested FileDrop was not found");
-            }
-            if (groupsToRemove.Any(g => g.FileDropId != model.FileDropId))
-            {
-                throw new ApplicationException("A permission group requested for removal is not associated with this file drop");
-            }
-            if (groupsToRemove.Count != model.RemovedPermissionGroupIds.Count)
-            {
-                throw new ApplicationException("One or more permission groups requested for removal was not found");
-            }
-            if (groupsToUpdate.Any(g => g.FileDropId != model.FileDropId))
-            {
-                throw new ApplicationException("A permission group requested for update is not associated with this file drop");
-            }
-            if (groupsToUpdate.Count != model.UpdatedPermissionGroups.Keys.Count)
-            {
-                throw new ApplicationException("One or more permission groups requested for update was not found");
-            }
-            if (sftpAccountIdsOfUsersRemovedInUpdates.Count != model.UpdatedPermissionGroups.SelectMany(u => u.Value.UsersRemoved).Count())
-            {
-                throw new ApplicationException("One or more SFTP accounts requested for removal from permission group(s) was not found");
-            }
-            #endregion
+                FileDrop fileDrop = await _dbContext.FileDrop
+                                                    .SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
 
-            // Handle removed groups.  This unassigns accounts so they can be reassigned by leveraging ON DELETE SET NULL of the FK relationship
-            _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
-
-            foreach (var updatedGroupRecord in groupsToUpdate)
-            {
-                UpdatedPermissionGroup modelForUpdatedGroup = model.UpdatedPermissionGroups[updatedGroupRecord.Id];
-
-                // Update group properties
-                updatedGroupRecord.Name = modelForUpdatedGroup.Name;
-                updatedGroupRecord.ReadAccess = modelForUpdatedGroup.ReadAccess;
-                updatedGroupRecord.WriteAccess = modelForUpdatedGroup.WriteAccess;
-                updatedGroupRecord.DeleteAccess = modelForUpdatedGroup.DeleteAccess;
-
-                // Unassign accounts of users who are being removed from existing groups
-                List<SftpAccount> userAccountsToRemove = updatedGroupRecord.SftpAccounts
-                                                                 .Where(a => modelForUpdatedGroup.UsersRemoved.Contains(a.ApplicationUserId.Value))
-                                                                 .ToList();
-                foreach (SftpAccount removedAccount in userAccountsToRemove)
+                #region Preliminary validation
+                if (fileDrop == null)
                 {
-                    updatedGroupRecord.SftpAccounts.Remove(removedAccount);
-                    //or removedAccount.FileDropUserPermissionGroupId = null;
+                    throw new ApplicationException("The requested FileDrop was not found");
                 }
+                #endregion
 
-                // Remove non-user accounts
-                List<SftpAccount> nonUserAccountsToRemove = updatedGroupRecord.SftpAccounts
-                                                                 .Where(a => modelForUpdatedGroup.SftpAccountsRemoved.Contains(a.Id))
-                                                                 .ToList();
-                foreach (SftpAccount removedAccount in nonUserAccountsToRemove)
+                List<FileDropUserPermissionGroup> groupsToRemove = await _dbContext.FileDropUserPermissionGroup
+                                                                                   .Include(g => g.SftpAccounts)
+                                                                                   .Where(g => model.RemovedPermissionGroupIds.Contains(g.Id))
+                                                                                   .ToListAsync();
+
+                List<FileDropUserPermissionGroup> groupsToUpdate = await _dbContext.FileDropUserPermissionGroup
+                                                                                   .Include(g => g.SftpAccounts)
+                                                                                   .Where(g => model.UpdatedPermissionGroups.Keys.Contains(g.Id))
+                                                                                   .ToListAsync();
+
+                List<Guid> sftpAccountIdsWithExistingAuthorization = await _dbContext.SftpAccount
+                                                                                     .Where(a => a.FileDropUserPermissionGroup.FileDropId == model.FileDropId)
+                                                                                     .Select(a => a.Id)
+                                                                                     .ToListAsync();
+
+                List<ApplicationUser> usersRemovedInUpdates = await _dbContext.ApplicationUser
+                                                                              .Include(u => u.SftpAccounts)
+                                                                              .Where(u => model.UpdatedPermissionGroups.SelectMany(g => g.Value.UsersRemoved).Contains(u.Id))
+                                                                              .ToListAsync();
+
+                List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
+                                                                                        .Select(a => a.Id)
+                                                                                        .ToList();
+
+                List<Guid> sftpAccountIdsWithContinuingAuthorization = sftpAccountIdsWithExistingAuthorization
+                                                                                .Except(groupsToRemove.SelectMany(g => g.SftpAccounts.Select(a => a.Id)))
+                                                                                .Except(sftpAccountIdsOfUsersRemovedInUpdates)
+                                                                                .ToList();
+
+                #region model validation
+                if (groupsToRemove.Any(g => g.FileDropId != model.FileDropId))
                 {
-                    updatedGroupRecord.SftpAccounts.Remove(removedAccount);
+                    throw new ApplicationException("A permission group requested for removal is not associated with this file drop");
                 }
-            }
-            _dbContext.SaveChanges();
-
-            foreach (var updatedGroupRecord in groupsToUpdate)
-            {
-                List<Guid> userIdList = model.UpdatedPermissionGroups[updatedGroupRecord.Id].UsersAdded;
-
-                List<SftpAccount> existinguserAccountsToAdd = _dbContext.SftpAccount
-                                                            .Where(a => userIdList.Contains(a.ApplicationUserId.Value))
-                                                            .ToList();
-
-                List<Guid> userIdsRequiringNewAccount = userIdList.Except(existinguserAccountsToAdd.Select(a => a.ApplicationUserId.Value)).ToList();
-                List<ApplicationUser> usersRequiringNewAccount = _dbContext.ApplicationUser
-                                                                           .Where(u => userIdsRequiringNewAccount.Contains(u.Id))
-                                                                           .ToList();
-
-                foreach (Guid userIdToAdd in userIdList)
+                if (groupsToRemove.Count != model.RemovedPermissionGroupIds.Count)
                 {
-                    SftpAccount accountToAdd = userIdsRequiringNewAccount.Contains(userIdToAdd)
-                        ? new SftpAccount(model.FileDropId)
+                    throw new ApplicationException("One or more permission groups requested for removal was not found");
+                }
+                if (groupsToUpdate.Any(g => g.FileDropId != model.FileDropId))
+                {
+                    throw new ApplicationException("A permission group requested for update is not associated with this file drop");
+                }
+                if (groupsToUpdate.Count != model.UpdatedPermissionGroups.Keys.Count)
+                {
+                    throw new ApplicationException("One or more permission groups requested for update was not found");
+                }
+                if (sftpAccountIdsOfUsersRemovedInUpdates.Count != model.UpdatedPermissionGroups.SelectMany(u => u.Value.UsersRemoved).Count())
+                {
+                    throw new ApplicationException("One or more SFTP accounts requested for removal from permission group(s) was not found");
+                }
+                #endregion
+
+                // Handle removed groups.  This unassigns accounts so they can be reassigned by leveraging ON DELETE SET NULL of the FK relationship
+                _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
+
+                foreach (var updatedGroupRecord in groupsToUpdate)
+                {
+                    UpdatedPermissionGroup modelForUpdatedGroup = model.UpdatedPermissionGroups[updatedGroupRecord.Id];
+
+                    // Update group properties
+                    updatedGroupRecord.Name = modelForUpdatedGroup.Name;
+                    updatedGroupRecord.ReadAccess = modelForUpdatedGroup.ReadAccess;
+                    updatedGroupRecord.WriteAccess = modelForUpdatedGroup.WriteAccess;
+                    updatedGroupRecord.DeleteAccess = modelForUpdatedGroup.DeleteAccess;
+
+                    // Unassign accounts of users who are being removed from existing groups
+                    List<SftpAccount> userAccountsToRemove = updatedGroupRecord.SftpAccounts
+                                                                     .Where(a => modelForUpdatedGroup.UsersRemoved.Contains(a.ApplicationUserId.Value))
+                                                                     .ToList();
+                    foreach (SftpAccount removedAccount in userAccountsToRemove)
+                    {
+                        updatedGroupRecord.SftpAccounts.Remove(removedAccount);
+                    }
+
+                    // Remove non-user accounts
+                    List<SftpAccount> nonUserAccountsToRemove = updatedGroupRecord.SftpAccounts
+                                                                     .Where(a => modelForUpdatedGroup.SftpAccountsRemoved.Contains(a.Id))
+                                                                     .ToList();
+                    foreach (SftpAccount removedAccount in nonUserAccountsToRemove)
+                    {
+                        updatedGroupRecord.SftpAccounts.Remove(removedAccount);
+                    }
+                }
+                _dbContext.SaveChanges();
+
+                foreach (var updatedGroupRecord in groupsToUpdate)
+                {
+                    List<Guid> userIdList = model.UpdatedPermissionGroups[updatedGroupRecord.Id].UsersAdded;
+
+                    List<SftpAccount> existinguserAccountsToAdd = _dbContext.SftpAccount
+                                                                .Where(a => userIdList.Contains(a.ApplicationUserId.Value))
+                                                                .ToList();
+
+                    List<Guid> userIdsRequiringNewAccount = userIdList.Except(existinguserAccountsToAdd.Select(a => a.ApplicationUserId.Value)).ToList();
+                    List<ApplicationUser> usersRequiringNewAccount = _dbContext.ApplicationUser
+                                                                               .Where(u => userIdsRequiringNewAccount.Contains(u.Id))
+                                                                               .ToList();
+
+                    foreach (Guid userIdToAdd in userIdList)
+                    {
+                        SftpAccount accountToAdd = userIdsRequiringNewAccount.Contains(userIdToAdd)
+                            ? new SftpAccount(model.FileDropId)
                             {
                                 ApplicationUserId = userIdToAdd,
                                 IsSuspended = false,
                                 UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName
                             }
-                        : existinguserAccountsToAdd.SingleOrDefault(a => a.ApplicationUserId.Value == userIdToAdd);
+                            : existinguserAccountsToAdd.SingleOrDefault(a => a.ApplicationUserId.Value == userIdToAdd);
 
-                    updatedGroupRecord.SftpAccounts.Add(accountToAdd);
-                }
-
-                // Handle non-user Sftp accounts added to this group
-                List<Guid> existingNonUserAccountIdsToAdd = model.UpdatedPermissionGroups[updatedGroupRecord.Id]
-                                                                 .SftpAccountsAdded
-                                                                 .Where(a => a.Id.HasValue && a.Id.Value != Guid.Empty)
-                                                                 .Select(a => a.Id.Value)
-                                                                 .ToList();
-                List<SftpAccount> existingNonUserAccountsToAdd = _dbContext.SftpAccount
-                                                                           .Where(a => existingNonUserAccountIdsToAdd.Contains(a.Id))
-                                                                           .ToList();
-
-                foreach (var accountToAdd in model.UpdatedPermissionGroups[updatedGroupRecord.Id].SftpAccountsAdded)
-                {
-                    SftpAccount sftpAccountToAdd = default;
-                    if (accountToAdd.Id.HasValue)
-                    {
-                        sftpAccountToAdd = existingNonUserAccountsToAdd.Single(a => a.Id == accountToAdd.Id.Value);
+                        updatedGroupRecord.SftpAccounts.Add(accountToAdd);
                     }
-                    else
-                    {
-                        sftpAccountToAdd = new SftpAccount(model.FileDropId)
-                        {
-                            IsSuspended = accountToAdd.IsSuspended,
-                            UserName = accountToAdd.AccountName,
-                        };
 
-                    }
-                    updatedGroupRecord.SftpAccounts.Add(sftpAccountToAdd);
-                }
-            }
-            _dbContext.SaveChanges();
-
-            foreach (NewPermissionGroup newGroup in model.NewPermissionGroups)
-            {
-                FileDropUserPermissionGroup newFileDropUserPermissionGroup = new FileDropUserPermissionGroup
-                {
-                    Name = newGroup.Name,
-                    ReadAccess = newGroup.ReadAccess,
-                    WriteAccess = newGroup.WriteAccess,
-                    DeleteAccess = newGroup.DeleteAccess,
-                    FileDropId = model.FileDropId,
-                    IsPersonalGroup = newGroup.IsPersonalGroup,
-                };
-
-                List<SftpAccount> existingSftpAccountsOfGroupUsers = _dbContext.SftpAccount
-                                                                               .Include(a => a.ApplicationUser)
-                                                                               //.Where(a => a.ApplicationUserId.HasValue)
-                                                                               .Where(a => newGroup.AssignedMapUserIds.Contains(a.ApplicationUserId.Value))
-                                                                               .Where(a => a.FileDropId == model.FileDropId)
+                    // Handle non-user Sftp accounts added to this group
+                    List<Guid> existingNonUserAccountIdsToAdd = model.UpdatedPermissionGroups[updatedGroupRecord.Id]
+                                                                     .SftpAccountsAdded
+                                                                     .Where(a => a.Id.HasValue && a.Id.Value != Guid.Empty)
+                                                                     .Select(a => a.Id.Value)
+                                                                     .ToList();
+                    List<SftpAccount> existingNonUserAccountsToAdd = _dbContext.SftpAccount
+                                                                               .Where(a => existingNonUserAccountIdsToAdd.Contains(a.Id))
                                                                                .ToList();
 
-                foreach (Guid userId in newGroup.AssignedMapUserIds)
-                {
-                    SftpAccount userSftpAccount = existingSftpAccountsOfGroupUsers.SingleOrDefault(a => a.ApplicationUserId == userId);
-                    if (userSftpAccount == null)
+                    foreach (var accountToAdd in model.UpdatedPermissionGroups[updatedGroupRecord.Id].SftpAccountsAdded)
                     {
-                        userSftpAccount = new SftpAccount(fileDrop.Id)
+                        SftpAccount sftpAccountToAdd = default;
+                        if (accountToAdd.Id.HasValue)
                         {
-                            ApplicationUserId = userId,
-                            IsSuspended = false,
-                            UserName = _dbContext.ApplicationUser.Find(userId).UserName,
-                        };
+                            sftpAccountToAdd = existingNonUserAccountsToAdd.Single(a => a.Id == accountToAdd.Id.Value);
+                        }
+                        else
+                        {
+                            sftpAccountToAdd = new SftpAccount(model.FileDropId)
+                            {
+                                IsSuspended = accountToAdd.IsSuspended,
+                                UserName = accountToAdd.AccountName,
+                            };
+
+                        }
+                        updatedGroupRecord.SftpAccounts.Add(sftpAccountToAdd);
                     }
-
-                    newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
                 }
+                _dbContext.SaveChanges();
 
-                foreach (NonUserSftpAccount newAccount in newGroup.AssignedSftpAccounts)
+                foreach (NewPermissionGroup newGroup in model.NewPermissionGroups)
                 {
-                    SftpAccount newSftpAccount = new SftpAccount(model.FileDropId)
+                    FileDropUserPermissionGroup newFileDropUserPermissionGroup = new FileDropUserPermissionGroup
                     {
-                        ApplicationUserId = null,
-                        IsSuspended = newAccount.IsSuspended,
-                        UserName = newAccount.AccountName,
+                        Name = newGroup.Name,
+                        ReadAccess = newGroup.ReadAccess,
+                        WriteAccess = newGroup.WriteAccess,
+                        DeleteAccess = newGroup.DeleteAccess,
+                        FileDropId = model.FileDropId,
+                        IsPersonalGroup = newGroup.IsPersonalGroup,
                     };
 
-                    newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
+                    List<SftpAccount> existingSftpAccountsOfGroupUsers = _dbContext.SftpAccount
+                                                                                   .Include(a => a.ApplicationUser)
+                                                                                   //.Where(a => a.ApplicationUserId.HasValue)
+                                                                                   .Where(a => newGroup.AssignedMapUserIds.Contains(a.ApplicationUserId.Value))
+                                                                                   .Where(a => a.FileDropId == model.FileDropId)
+                                                                                   .ToList();
+
+                    foreach (Guid userId in newGroup.AssignedMapUserIds)
+                    {
+                        SftpAccount userSftpAccount = existingSftpAccountsOfGroupUsers.SingleOrDefault(a => a.ApplicationUserId == userId);
+                        if (userSftpAccount == null)
+                        {
+                            userSftpAccount = new SftpAccount(fileDrop.Id)
+                            {
+                                ApplicationUserId = userId,
+                                IsSuspended = false,
+                                UserName = _dbContext.ApplicationUser.Find(userId).UserName,
+                            };
+                        }
+
+                        newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
+                    }
+
+                    foreach (NonUserSftpAccount newAccount in newGroup.AssignedSftpAccounts)
+                    {
+                        SftpAccount newSftpAccount = new SftpAccount(model.FileDropId)
+                        {
+                            ApplicationUserId = null,
+                            IsSuspended = newAccount.IsSuspended,
+                            UserName = newAccount.AccountName,
+                        };
+
+                        newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
+                    }
+
+                    _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
                 }
 
-                _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
+                _dbContext.SaveChanges();
+
+                txn.Commit();
+
+                return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
             }
-
-            _dbContext.SaveChanges();
-
-            return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
         }
-
     }
 }
