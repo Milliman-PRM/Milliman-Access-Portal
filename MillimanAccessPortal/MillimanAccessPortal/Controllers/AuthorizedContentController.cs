@@ -385,13 +385,13 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Display the preview report for the identified publication request
         /// </summary>
-        /// <param name="request">A ContentPublicationRequest Id, used to display pre-approved content</param>
+        /// <param name="requestId">A ContentPublicationRequest Id, used to display pre-approved content</param>
         /// <returns></returns>
-        public async Task<IActionResult> PowerBiPreview(Guid request)
+        public async Task<IActionResult> PowerBiPreview(Guid requestId)
         {
             #region Authorization
             var PubRequest = DataContext.ContentPublicationRequest
-                                        .FirstOrDefault(r => r.Id == request);
+                                        .FirstOrDefault(r => r.Id == requestId);
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
                 User, null, new RoleInRootContentItemRequirement(
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
@@ -406,12 +406,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-#warning Is this query ok?
-            RootContentItem contentItem = DataContext.ContentPublicationRequest
-                                                     .Where(r => r.Id == request)
+            RootContentItem contentItem = await DataContext.ContentPublicationRequest
+                                                     .Include(r => r.RootContentItem)
+                                                        .ThenInclude(c => c.ContentType)
+                                                     .Where(r => r.Id == requestId)
                                                      .Select(r => r.RootContentItem)
-                                                     .Include(i => i.ContentType)
-                                                     .SingleOrDefault();
+                                                     .SingleOrDefaultAsync();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
@@ -448,11 +448,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-#warning Is this query ok?
             RootContentItem contentItem = DataContext.SelectionGroup
+                                                     .Include(g => g.RootContentItem)
+                                                         .ThenInclude(i => i.ContentType)
                                                      .Where(g => g.Id == group)
                                                      .Select(g => g.RootContentItem)
-                                                     .Include(i => i.ContentType)
                                                      .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;

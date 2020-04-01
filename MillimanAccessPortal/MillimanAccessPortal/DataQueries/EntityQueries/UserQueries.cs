@@ -2,10 +2,12 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -14,18 +16,12 @@ namespace MillimanAccessPortal.DataQueries
     /// </summary>
     public class UserQueries
     {
-        private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly UserManager<ApplicationUser> _userManager;
 
         public UserQueries(
-            IAuditLogger auditLogger,
-            ApplicationDbContext dbContext,
-            UserManager<ApplicationUser> userManager)
+            ApplicationDbContext dbContext)
         {
-            _auditLogger = auditLogger;
             _dbContext = dbContext;
-            _userManager = userManager;
         }
 
         /// <summary>
@@ -33,27 +29,29 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clientIds">List of client IDs</param>
         /// <returns>List of users</returns>
-        internal List<BasicUser> SelectUsersWhereEligibleClientIn(List<Guid> clientIds)
+        internal async Task<List<BasicUser>> SelectUsersWhereEligibleClientInAsync(List<Guid> clientIds)
         {
-            return _dbContext.UserRoleInClient
-                .Where(r => clientIds.Contains(r.ClientId))
-                .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
-                .Select(r => r.User)
-                .Distinct()
-                .OrderBy(u => u.LastName)
-                    .ThenBy(u => u.FirstName)
-                        .ThenBy(u => u.UserName)
-                .Select(u => new BasicUser
-                {
-                    Id = u.Id,
-                    IsActivated = u.EmailConfirmed,
-                    IsSuspended = u.IsSuspended,
-                    FirstName = u.FirstName,
-                    LastName = u.LastName,
-                    UserName = u.UserName,
-                    Email = u.Email,
-                })
-                .ToList();
+            var users = await _dbContext.UserRoleInClient
+                                        .Where(rc => clientIds.Contains(rc.ClientId))
+                                        .Where(rc => rc.Role.RoleEnum == RoleEnum.ContentUser)
+                                        .OrderBy(rc => rc.User.LastName)
+                                            .ThenBy(rc => rc.User.FirstName)
+                                                .ThenBy(rc => rc.User.UserName)
+                                        .Select(r => r.User)
+                                        .ToListAsync();
+
+            return users.Distinct(new IdPropertyComparer<ApplicationUser>())
+                        .Select(u => new BasicUser
+                        {
+                            Id = u.Id,
+                            IsActivated = u.EmailConfirmed,
+                            IsSuspended = u.IsSuspended,
+                            FirstName = u.FirstName,
+                            LastName = u.LastName,
+                            UserName = u.UserName,
+                            Email = u.Email,
+                        })
+                        .ToList();
         }
     }
 }

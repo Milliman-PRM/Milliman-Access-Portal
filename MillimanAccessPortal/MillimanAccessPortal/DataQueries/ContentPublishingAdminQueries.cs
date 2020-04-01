@@ -18,7 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -60,7 +60,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
+        internal async Task<Dictionary<Guid, BasicClientWithCardStats>> GetAuthorizedClientsModelAsync(ApplicationUser user)
         {
             List<Client> clientList = _dbContext.UserRoleInClient
                                                 .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
@@ -72,7 +72,7 @@ namespace MillimanAccessPortal.DataQueries
 
             foreach (Client oneClient in clientList)
             {
-                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.ContentPublisher, user.Id));
+                returnList.Add(await _clientQueries.SelectClientWithPublishingCardStatsAsync(oneClient, RoleEnum.ContentPublisher, user.Id));
             }
 
             return returnList.ToDictionary(c => c.Id);

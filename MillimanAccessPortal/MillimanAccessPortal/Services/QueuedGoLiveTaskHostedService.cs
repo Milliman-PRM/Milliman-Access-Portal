@@ -312,7 +312,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     foreach (SelectionGroup Group in reducingSelectionGroups)
                     {
                         Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList
-                            .Intersect(AllRemainingFieldValues).ToArray();
+                            .Intersect(AllRemainingFieldValues).ToList();
                     }
 
                     // 2 Move new files into live file names, removing any existing copies of previous version

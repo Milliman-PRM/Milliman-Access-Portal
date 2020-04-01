@@ -52,6 +52,10 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20200401030702_TryingSomething.cs" />
+    <Compile Remove="Migrations\20200401030702_TryingSomething.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>

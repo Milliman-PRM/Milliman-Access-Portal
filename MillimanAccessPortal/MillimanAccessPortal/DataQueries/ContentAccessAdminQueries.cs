@@ -7,6 +7,7 @@ using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -37,11 +38,11 @@ namespace MillimanAccessPortal.DataQueries
             _publicationQueries = publicationQueries;
             _userQueries = userQueries;
         }
-        internal ContentAccessAdminPageGlobalModel BuildAccessAdminPageGlobalModel()
+        internal async Task<ContentAccessAdminPageGlobalModel> BuildAccessAdminPageGlobalModelAsync()
         {
             return new ContentAccessAdminPageGlobalModel
             {
-                ContentTypes = _contentItemQueries.GetAllContentTypes().ToDictionary(t => t.Id),
+                ContentTypes = (await _contentItemQueries.GetAllContentTypesAsync()).ToDictionary(t => t.Id),
             };
         }
 
@@ -50,13 +51,13 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="user">Current user</param>
         /// <returns>Response model</returns>
-        public ClientsResponseModel GetAuthorizedClientsModel(ApplicationUser user)
+        public async Task<ClientsResponseModel> GetAuthorizedClientsModelAsync(ApplicationUser user)
         {
-            var clients = _clientQueries.SelectClientsWithEligibleUsers(user, RoleEnum.ContentAccessAdmin);
-            var parentClients = _clientQueries.SelectParentClients(clients);
+            var clients = await _clientQueries.SelectClientsWithEligibleUsersAsync(user, RoleEnum.ContentAccessAdmin);
+            var parentClients = await _clientQueries.SelectParentClientsAsync(clients);
             var clientIds = clients.ConvertAll(c => c.Id);
 
-            var users = _userQueries.SelectUsersWhereEligibleClientIn(clientIds);
+            var users = await _userQueries.SelectUsersWhereEligibleClientInAsync(clientIds);
 
             return new ClientsResponseModel
             {
@@ -72,19 +73,19 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user">Current user</param>
         /// <param name="clientId">Selected client</param>
         /// <returns>Response model</returns>
-        public ContentItemsResponseModel SelectContentItems(ApplicationUser user, Guid clientId)
+        public async Task<ContentItemsResponseModel> SelectContentItemsAsync(ApplicationUser user, Guid clientId)
         {
-            var contentItems = _contentItemQueries
-                .SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId);
+            var contentItems = await _contentItemQueries
+                .SelectContentItemsWithCardStatsWhereClientAsync(user, RoleEnum.ContentAccessAdmin, clientId);
             var contentItemIds = contentItems.ConvertAll(i => i.Id);
 
-            var contentTypes = _contentItemQueries.SelectContentTypesContentItemIn(contentItemIds);
-            var publications = _publicationQueries.SelectPublicationsWhereContentItemIn(contentItemIds);
+            var contentTypes = await _contentItemQueries.SelectContentTypesContentItemInAsync(contentItemIds);
+            var publications = await _publicationQueries.SelectPublicationsWhereContentItemInAsync(contentItemIds);
             var publicationIds = publications.ConvertAll(p => p.Id);
 
-            var queueDetails = _publicationQueries.SelectQueueDetailsWherePublicationIn(publicationIds);
+            var queueDetails = await _publicationQueries.SelectQueueDetailsWherePublicationInAsync(publicationIds);
 
-            var clientStats = _clientQueries.SelectClientWithCardStats(clientId);
+            var clientStats = await _clientQueries.SelectClientWithCardStatsAsync(clientId);
 
             return new ContentItemsResponseModel
             {
@@ -101,18 +102,18 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="contentItemId">Selected content item</param>
         /// <returns>Response model</returns>
-        public SelectionGroupsResponseModel SelectSelectionGroups(Guid contentItemId)
+        public async Task<SelectionGroupsResponseModel> SelectSelectionGroupsAsync(Guid contentItemId)
         {
-            var groups = _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsers(contentItemId);
+            var groups = await _selectionGroupQueries.SelectSelectionGroupsWithAssignedUsersAsync(contentItemId);
             var groupIds = groups.ConvertAll(g => g.Id);
 
-            var reductions = _publicationQueries.SelectReductionsWhereSelectionGroupIn(groupIds);
+            var reductions = await _publicationQueries.SelectReductionsWhereSelectionGroupInAsync(groupIds);
             var reductionIds = reductions.ConvertAll(r => r.Id);
 
-            var queueDetails = _publicationQueries.SelectQueueDetailsWhereReductionIn(reductionIds);
+            var queueDetails = await _publicationQueries.SelectQueueDetailsWhereReductionInAsync(reductionIds);
 
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
-            var clientStats = _clientQueries.SelectClientWithCardStats(contentItemStats.ClientId);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithCardStatsAsync(contentItemId);
+            var clientStats = await _clientQueries.SelectClientWithCardStatsAsync(contentItemStats.ClientId);
 
             return new SelectionGroupsResponseModel
             {
@@ -129,12 +130,12 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="selectionGroupId">Selected selection group</param>
         /// <returns>Response model</returns>
-        public SelectionsResponseModel SelectSelections(Guid selectionGroupId)
+        public async Task<SelectionsResponseModel> SelectSelectionsAsync(Guid selectionGroupId)
         {
-            var liveSelections = _selectionGroupQueries.SelectSelectionsWhereSelectionGroup(selectionGroupId);
-            var reductionSelections = _publicationQueries.SelectReductionSelections(selectionGroupId);
-            var fields = _hierarchyQueries.SelectFieldsWhereSelectionGroup(selectionGroupId);
-            var values = _hierarchyQueries.SelectValuesWhereSelectionGroup(selectionGroupId);
+            var liveSelections = await _selectionGroupQueries.SelectSelectionsWhereSelectionGroupAsync(selectionGroupId);
+            var reductionSelections = await _publicationQueries.SelectReductionSelectionsAsync(selectionGroupId);
+            var fields = await _hierarchyQueries.SelectFieldsWhereSelectionGroupAsync(selectionGroupId);
+            var values = await _hierarchyQueries.SelectValuesWhereSelectionGroupAsync(selectionGroupId);
 
             return new SelectionsResponseModel
             {
@@ -153,23 +154,19 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="clientId">Selected client</param>
         /// <param name="contentItemId">Selected content item</param>
         /// <returns>Response model</returns>
-        public StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId, Guid contentItemId)
+        public async Task<StatusResponseModel> SelectStatusAsync(ApplicationUser user, Guid clientId, Guid contentItemId)
         {
-            var contentItemIds = _contentItemQueries
-                .SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+            var contentItemIds = (await _contentItemQueries.SelectContentItemsWithCardStatsWhereClientAsync(user, RoleEnum.ContentAccessAdmin, clientId))
                 .ConvertAll((i) => i.Id);
-            var selectionGroupIds = _selectionGroupQueries
-                .SelectSelectionGroupsWhereContentItem(contentItemId)
+            var selectionGroupIds = (await _selectionGroupQueries.SelectSelectionGroupsWhereContentItemAsync(contentItemId))
                 .ConvertAll((g) => g.Id);
 
-            var publications = _publicationQueries.SelectPublicationsWhereContentItemIn(contentItemIds);
-            var reductions = _publicationQueries.SelectReductionsWhereSelectionGroupIn(selectionGroupIds);
-            var publicationQueue = _publicationQueries
-                .SelectQueueDetailsWherePublicationIn(publications.ConvertAll((p) => p.Id));
-            var reductionQueue = _publicationQueries
-                .SelectQueueDetailsWhereReductionIn(reductions.ConvertAll((r) => r.Id));
-            var liveSelectionsSet = _selectionGroupQueries.SelectSelectionsWhereSelectionGroupIn(selectionGroupIds);
-            var contentItems = _contentItemQueries.SelectContentItemsWithCardStatsWhereClient(user, RoleEnum.ContentAccessAdmin, clientId)
+            var publications = await _publicationQueries.SelectPublicationsWhereContentItemInAsync(contentItemIds);
+            var reductions = await _publicationQueries.SelectReductionsWhereSelectionGroupInAsync(selectionGroupIds);
+            var publicationQueue = await _publicationQueries.SelectQueueDetailsWherePublicationInAsync(publications.ConvertAll((p) => p.Id));
+            var reductionQueue = await _publicationQueries.SelectQueueDetailsWhereReductionInAsync(reductions.ConvertAll((r) => r.Id));
+            var liveSelectionsSet = await _selectionGroupQueries.SelectSelectionsWhereSelectionGroupInAsync(selectionGroupIds);
+            var contentItems = (await _contentItemQueries.SelectContentItemsWithCardStatsWhereClientAsync(user, RoleEnum.ContentAccessAdmin, clientId))
                 .ConvertAll(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -179,7 +176,7 @@ namespace MillimanAccessPortal.DataQueries
                     DoesReduce = i.DoesReduce,
                     Name = i.Name,
                 });
-            var groups = _selectionGroupQueries.SelectSelectionGroupsWhereContentItem(contentItemId);
+            var groups = await _selectionGroupQueries.SelectSelectionGroupsWhereContentItemAsync(contentItemId);
 
             return new StatusResponseModel
             {
@@ -199,12 +196,12 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="contentItemId">Selected content item</param>
         /// <param name="name">Name of the new selection group</param>
         /// <returns>Response model</returns>
-        public CreateGroupResponseModel CreateReducingGroup(Guid contentItemId, string name)
+        public async Task<CreateGroupResponseModel> CreateReducingGroupAsync(Guid contentItemId, string name)
         {
-            var group = _selectionGroupQueries.CreateReducingSelectionGroup(contentItemId, name);
+            var group = await _selectionGroupQueries.CreateReducingSelectionGroupAsync(contentItemId, name);
 
-            var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
+            var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsersAsync(group.Id);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithCardStatsAsync(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -219,12 +216,12 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="contentItemId">Selected content item</param>
         /// <param name="name">Name of the new selection group</param>
         /// <returns>Response model</returns>
-        public CreateGroupResponseModel CreateMasterGroup(Guid contentItemId, string name)
+        public async Task<CreateGroupResponseModel> CreateMasterGroupAsync(Guid contentItemId, string name)
         {
-            var group = _selectionGroupQueries.CreateMasterSelectionGroup(contentItemId, name);
+            var group = await _selectionGroupQueries.CreateMasterSelectionGroupAsync(contentItemId, name);
 
-            var groupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(group.Id);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(contentItemId);
+            var groupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsersAsync(group.Id);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithCardStatsAsync(contentItemId);
 
             return new CreateGroupResponseModel
             {
@@ -240,14 +237,14 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="name">New name for the selection group</param>
         /// <param name="users">New list of users for the selection group</param>
         /// <returns>Response model</returns>
-        public UpdateGroupResponseModel UpdateGroup(Guid selectionGroupId, string name, List<Guid> users)
+        public async Task<UpdateGroupResponseModel> UpdateGroupAsync(Guid selectionGroupId, string name, List<Guid> users)
         {
-            _selectionGroupQueries.UpdateSelectionGroupName(selectionGroupId, name);
+            await _selectionGroupQueries.UpdateSelectionGroupNameAsync(selectionGroupId, name);
 
-            var updatedGroup = _selectionGroupQueries.UpdateSelectionGroupUsers(selectionGroupId, users);
+            var updatedGroup = await _selectionGroupQueries.UpdateSelectionGroupUsersAsync(selectionGroupId, users);
 
-            BasicSelectionGroupWithAssignedUsers selectionGroupWithUsers = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(updatedGroup.Id);
-            BasicContentItemWithCardStats contentItemWithStats = _contentItemQueries.SelectContentItemWithCardStats(updatedGroup.RootContentItemId);
+            BasicSelectionGroupWithAssignedUsers selectionGroupWithUsers = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsersAsync(updatedGroup.Id);
+            BasicContentItemWithCardStats contentItemWithStats = await _contentItemQueries.SelectContentItemWithCardStatsAsync(updatedGroup.RootContentItemId);
 
             return new UpdateGroupResponseModel
             {
@@ -261,10 +258,10 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group to delete</param>
         /// <returns>Response model</returns>
-        public DeleteGroupResponseModel DeleteGroup(Guid selectionGroupId)
+        public async Task<DeleteGroupResponseModel> DeleteGroupAsync(Guid selectionGroupId)
         {
-            var group = _selectionGroupQueries.DeleteSelectionGroup(selectionGroupId);
-            var contentItemStats = _contentItemQueries.SelectContentItemWithCardStats(group.RootContentItemId);
+            var group = await _selectionGroupQueries.DeleteSelectionGroupAsync(selectionGroupId);
+            var contentItemStats = await _contentItemQueries.SelectContentItemWithCardStatsAsync(group.RootContentItemId);
 
             return new DeleteGroupResponseModel
             {
@@ -279,9 +276,9 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="selectionGroupId">Selected selection group</param>
         /// <param name="isSuspended">Suspended status</param>
         /// <returns>Response model</returns>
-        public BasicSelectionGroup SetGroupSuspended(Guid selectionGroupId, bool isSuspended)
+        public async Task<BasicSelectionGroup> SetGroupSuspendedAsync(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _selectionGroupQueries.UpdateSelectionGroupSuspended(selectionGroupId, isSuspended);
+            var group = await _selectionGroupQueries.UpdateSelectionGroupSuspendedAsync(selectionGroupId, isSuspended);
 
             return (BasicSelectionGroup)group;
         }
@@ -293,18 +290,18 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="isMaster">Master status</param>
         /// <param name="selections">List of selections</param>
         /// <returns>Response model</returns>
-        public SingleReductionModel GetUpdateSelectionsModel(Guid selectionGroupId, bool isMaster, List<Guid> selections)
+        public async Task<SingleReductionModel> GetUpdateSelectionsModelAsync(Guid selectionGroupId, bool isMaster, List<Guid> selections)
         {
             // use code in the controller for now
 
-            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(selectionGroupId);
-            var reduction = _publicationQueries
-                .SelectReductionsWhereSelectionGroupIn(new List<Guid> { selectionGroupId }).SingleOrDefault();
-            var reductionQueue = _publicationQueries
-                .SelectQueueDetailsWhereReductionIn(reduction == null
-                    ? new List<Guid> { }
-                    : new List<Guid> { reduction.Id }).SingleOrDefault();
-            var liveSelections = _selectionGroupQueries.SelectSelectionsWhereSelectionGroup(selectionGroupId);
+            var group = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsersAsync(selectionGroupId);
+            var reduction = (await _publicationQueries.SelectReductionsWhereSelectionGroupInAsync(new List<Guid> { selectionGroupId })).SingleOrDefault();
+            var reductionQueue = (await _publicationQueries.SelectQueueDetailsWhereReductionInAsync(
+                                        reduction == null
+                                        ? new List<Guid> { }
+                                        : new List<Guid> { reduction.Id }))
+                                  .SingleOrDefault();
+            var liveSelections = await _selectionGroupQueries.SelectSelectionsWhereSelectionGroupAsync(selectionGroupId);
 
             return new SingleReductionModel
             {
@@ -320,17 +317,17 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="groupId">Selected selection group</param>
         /// <returns>Response model</returns>
-        public SingleReductionModel GetCanceledSingleReductionModel(Guid groupId)
+        public async Task<SingleReductionModel> GetCanceledSingleReductionModelAsync(Guid groupId)
         {
             // use code in the controller for now
 
-            var group = _selectionGroupQueries.SelectSelectionGroupWithAssignedUsers(groupId);
-            var reduction = _publicationQueries.SelectReductionsWhereSelectionGroupIn(new List<Guid> { groupId }).SingleOrDefault();
-            var reductionQueue = _publicationQueries.SelectQueueDetailsWhereReductionIn(
+            var group = await _selectionGroupQueries.SelectSelectionGroupWithAssignedUsersAsync(groupId);
+            var reduction = (await _publicationQueries.SelectReductionsWhereSelectionGroupInAsync(new List<Guid> { groupId })).SingleOrDefault();
+            var reductionQueue = (await _publicationQueries.SelectQueueDetailsWhereReductionInAsync(
                 reduction == null
                 ? new List<Guid> { }
                 : new List<Guid> { reduction.Id }
-                ).SingleOrDefault();
+                )).SingleOrDefault();
 
             return new SingleReductionModel
             {

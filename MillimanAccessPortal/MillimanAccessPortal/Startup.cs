@@ -343,6 +343,11 @@ namespace MillimanAccessPortal
                              .Build();
                 options.Filters.Add(new AuthorizeFilter(policy));
             })
+            .AddNewtonsoftJson(options =>
+            {
+                options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+            })
             .AddControllersAsServices();
 
             services.AddApplicationInsightsTelemetry(Configuration);

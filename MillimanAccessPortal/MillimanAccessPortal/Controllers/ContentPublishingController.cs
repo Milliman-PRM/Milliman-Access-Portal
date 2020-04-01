@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
 
             ClientsResponseModel responseModel = new ClientsResponseModel
             {
-                Clients = _publishingQueries.GetAuthorizedClientsModel(await _userManager.GetUserAsync(User)),
+                Clients = await _publishingQueries.GetAuthorizedClientsModelAsync(await _userManager.GetUserAsync(User)),
             };
 
             return new JsonResult(responseModel);
