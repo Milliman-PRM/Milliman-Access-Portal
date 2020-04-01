@@ -7,3 +7,6 @@
 * **Contact Info**
     * **Name:** _Fill in the name of the initial user_
     * **Phone:** _Fill in their office phone number_
+
+## Tasks to be completed by opener:
+  - [ ] Update Account Managemer <-> Profit Center wiki here: https://indy-github.milliman.com/PRM/Milliman-Access-Portal/wiki/Account-Management
