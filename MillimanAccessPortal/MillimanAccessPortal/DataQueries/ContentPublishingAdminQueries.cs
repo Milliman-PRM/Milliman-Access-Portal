@@ -225,12 +225,15 @@ namespace MillimanAccessPortal.DataQueries
 
             model.PublicationQueue = await PublicationQueueDetails.BuildQueueForClientAsync(_dbContext, client);
 
-            var publications = _dbContext.ContentPublicationRequest
+            var publications = await _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
                                           .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
-                                          .GroupBy(r => r.RootContentItemId,
-                                                   (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
-                                                  );
+                                          .ToListAsync();
+            // Only retain the latest one for each content item
+            publications = publications.GroupBy(r => r.RootContentItemId,
+                                                (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
+                                               )
+                                       .ToList();
 
             // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
             _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
