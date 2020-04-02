@@ -6,7 +6,6 @@
 
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -26,7 +25,9 @@ namespace TestResourcesLib
         public static Mock<AuthenticationService> New(ApplicationDbContext Context)
         {
             IAuthenticationSchemeProvider schemes = MockAuthenticationSchemeProvider.New(Context).Object;
-            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>(schemes, null, null);
+            IAuthenticationHandlerProvider handlers = new AuthenticationHandlerProvider(schemes); // MockAuthenticationHandlerProvider.New(schemes).Object;
+            IClaimsTransformation transform = new NoopClaimsTransformation();
+            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>(schemes, handlers, transform, new AuthenticationOptions { });
 
             // Provide mocked methods required by tests
             ReturnService.Setup(s => s.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>())).ReturnsAsync<HttpContext, string, AuthenticationService, AuthenticateResult>((cxt, scheme) =>
@@ -44,7 +45,7 @@ namespace TestResourcesLib
 
     }
 
-    class MockAuthenticationSchemeProvider
+    public class MockAuthenticationSchemeProvider
     {
         public static Mock<AuthenticationSchemeProvider> New(ApplicationDbContext context)
         {
@@ -77,6 +78,19 @@ namespace TestResourcesLib
 
             return ReturnProvider;
         }
+    }
+
+    /*
+    public class MockAuthenticationHandlerProvider
+    {
+        public static Mock<AuthenticationHandlerProvider> New(IAuthenticationSchemeProvider schemes)
+        {
+            Mock<AuthenticationHandlerProvider> ReturnProvider = new Mock<AuthenticationHandlerProvider>(schemes);
+
+            return ReturnProvider;
+        }
 
     }
+    */
+
 }

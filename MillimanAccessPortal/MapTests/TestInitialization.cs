@@ -249,7 +249,7 @@ namespace MapTests
                 ClientQueriesObj, ContentItemQueriesObj, HierarchyQueriesObj,
                 SelectionGroupQueriesObj, PublicationQueriesObj, UserQueriesObj);
             ConfigurationObject = GenerateConfiguration();
-            MockServiceProvider = GenerateServiceProvider();
+            MockServiceProvider = GenerateServiceProvider(LoggerFactory);
             MockFileSystemTasks = new Mock<FileSystemTasks>();
             MockFileDropQueries = new Mock<FileDropQueries>(DbContextObject, ClientQueriesObj, HierarchyQueriesObj, UserQueriesObj);
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
@@ -263,7 +263,7 @@ namespace MapTests
         /// We don't actually need to test this, since it's framework code, so returning true for every validation should be okay.
         /// </summary>
         /// <returns></returns>
-        private Mock<IServiceProvider> GenerateServiceProvider()
+        private Mock<IServiceProvider> GenerateServiceProvider(ILoggerFactory loggerFactoryArg)
         {
             Mock<IServiceProvider> newServiceProvider = new Mock<IServiceProvider>();
 
@@ -271,7 +271,7 @@ namespace MapTests
 
             #region Default token provider
             Mock<IOptions<DataProtectionTokenProviderOptions>> options = new Mock<IOptions<DataProtectionTokenProviderOptions>>() ;
-            Mock<DataProtectorTokenProvider<ApplicationUser>> newTokenProvider = new Mock<DataProtectorTokenProvider<ApplicationUser>>(provider.Object, options.Object);
+            Mock<DataProtectorTokenProvider<ApplicationUser>> newTokenProvider = new Mock<DataProtectorTokenProvider<ApplicationUser>>(provider.Object, options.Object, loggerFactoryArg.CreateLogger<DataProtectorTokenProvider<ApplicationUser>>());
             // Validate tokens against TestResourcesLib.MockUserManager's static values
             newTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => true));
@@ -282,7 +282,7 @@ namespace MapTests
 
             #region Custom password reset token provider
             Mock<IOptions<PasswordResetSecurityTokenProviderOptions>> resetOptions = new Mock<IOptions<PasswordResetSecurityTokenProviderOptions>>();
-            Mock<PasswordResetSecurityTokenProvider<ApplicationUser>> resetTokenProvider = new Mock<PasswordResetSecurityTokenProvider<ApplicationUser>>(provider.Object, resetOptions.Object);
+            Mock<PasswordResetSecurityTokenProvider<ApplicationUser>> resetTokenProvider = new Mock<PasswordResetSecurityTokenProvider<ApplicationUser>>(provider.Object, resetOptions.Object, loggerFactoryArg.CreateLogger<PasswordResetSecurityTokenProvider<ApplicationUser>>());
             // Validate tokens against TestResourcesLib.MockUserManager's static values
             resetTokenProvider.Setup(m => m.ValidateAsync(It.IsAny<string>(), TestResourcesLib.MockUserManager.GoodToken, It.IsAny<UserManager<ApplicationUser>>(), It.IsAny<ApplicationUser>()))
                 .Returns(Task.Run(() => true));
