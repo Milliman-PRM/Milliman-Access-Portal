@@ -63,7 +63,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static void MonitorPublicationRequestForQueueing(Guid publicationRequestId, 
+        internal static async Task MonitorPublicationRequestForQueueing(Guid publicationRequestId, 
                                                                   string connectionString, 
                                                                   string contentItemRootPath, 
                                                                   string exchangePath, 
@@ -77,18 +77,19 @@ namespace MillimanAccessPortal
             List<Guid> fileIds;
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                var publicationRequest = Db.ContentPublicationRequest.Single(r => r.Id == publicationRequestId);
+                var publicationRequest = await Db.ContentPublicationRequest.SingleAsync(r => r.Id == publicationRequestId);
                 fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).Union(
                           publicationRequest.RequestedAssociatedFileList.Select(f => f.Id))
                           .ToList();
             }
             while (!validationWindowComplete)
             {
+                DateTime queueWhenOlderThanDateTimeUtc = DateTime.UtcNow - TimeSpan.FromSeconds(GlobalFunctions.VirusScanWindowSeconds);
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    validationWindowComplete = Db.FileUpload
-                        .Where(u => fileIds.Contains(u.Id))
-                        .All(u => u.VirusScanWindowComplete);
+                    validationWindowComplete = await Db.FileUpload
+                                                       .Where(u => fileIds.Contains(u.Id))
+                                                       .AllAsync(u => u.CreatedDateTimeUtc < queueWhenOlderThanDateTimeUtc);
                 }
 
                 Thread.Sleep(1000);
@@ -99,7 +100,7 @@ namespace MillimanAccessPortal
 
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                var publicationRequest = Db.ContentPublicationRequest.SingleOrDefault(r => r.Id == publicationRequestId);
+                var publicationRequest = await Db.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == publicationRequestId);
                 var publicationStatus = publicationRequest?.RequestStatus ?? PublicationStatus.Canceled;
                 if (publicationStatus == PublicationStatus.Canceled)
                 {
@@ -107,10 +108,10 @@ namespace MillimanAccessPortal
                 }
 
                 var relatedFiles = publicationRequest.UploadedRelatedFilesObj;
-                var rootContentItem = Db.RootContentItem
+                var rootContentItem = await Db.RootContentItem
                     .Where(i => i.Id == publicationRequest.RootContentItemId)
                     .Include(i => i.ContentType)
-                    .Single();
+                    .SingleAsync();
                 switch (rootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
@@ -127,7 +128,7 @@ namespace MillimanAccessPortal
                         foreach (UploadedRelatedFile UploadedFileRef in relatedFiles)
                         {
                             // move uploaded file(s) to content folder with temporary name(s)
-                            ContentRelatedFile Crf = HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                            ContentRelatedFile Crf = await HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
 
                             if (Crf != null)
                             {
@@ -151,7 +152,7 @@ namespace MillimanAccessPortal
                 foreach (AssociatedFileModel UploadedFileRef in associatedFiles)
                 {
                     // move uploaded file(s) to content folder with temporary name(s)
-                    ContentAssociatedFile Caf = HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                    ContentAssociatedFile Caf = await HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
 
                     if (Caf != null)
                     {
@@ -165,7 +166,7 @@ namespace MillimanAccessPortal
                 // Update the request record with file info and Queued status
                 try
                 {
-                    Db.SaveChanges();
+                    await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
                 catch (DbUpdateConcurrencyException)
@@ -191,16 +192,16 @@ namespace MillimanAccessPortal
         /// <param name="contentItemRootPath"></param>
         /// <param name="contentType"></param>
         /// <returns></returns>
-        private static ContentRelatedFile HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static async Task<ContentRelatedFile> HandleRelatedFile(ApplicationDbContext Db, UploadedRelatedFile RelatedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentRelatedFile ReturnObj = null;
 
-            using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
+            using (IDbContextTransaction Txn = await Db.Database.BeginTransactionAsync())
             {
-                FileUpload FileUploadRecord = Db.FileUpload
+                FileUpload FileUploadRecord = await Db.FileUpload
                     .Where(f => f.Id == RelatedFile.FileUploadId)
                     .Where(f => f.Status == FileUploadStatus.Complete)
-                    .SingleOrDefault();
+                    .SingleOrDefaultAsync();
 
                 #region Validate the file referenced by the FileUpload record
                 // The file must exist
@@ -245,27 +246,27 @@ namespace MillimanAccessPortal
                 };
 
                 // Remove FileUpload record(s) for this file path
-                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToList();
+                List<FileUpload> Uploads = await Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToListAsync();
                 File.Delete(FileUploadRecord.StoragePath);  // delete the file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the record
 
-                Db.SaveChanges();
-                Txn.Commit();
+                await Db.SaveChangesAsync();
+                await Txn.CommitAsync();
             }
 
             return ReturnObj;
         }
 
-        private static ContentAssociatedFile HandleAssociatedFile(ApplicationDbContext Db, AssociatedFileModel uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
+        private static async Task<ContentAssociatedFile> HandleAssociatedFile(ApplicationDbContext Db, AssociatedFileModel uploadedFile, RootContentItem ContentItem, Guid PubRequestId, string contentItemRootPath)
         {
             ContentAssociatedFile ReturnObj = null;
 
-            using (IDbContextTransaction Txn = Db.Database.BeginTransaction())
+            using (IDbContextTransaction Txn = await Db.Database.BeginTransactionAsync())
             {
-                FileUpload fileUploadRecord = Db.FileUpload
-                .Where(f => f.Id == uploadedFile.Id)
-                .Where(f => f.Status == FileUploadStatus.Complete)
-                .SingleOrDefault();
+                FileUpload fileUploadRecord = await Db.FileUpload
+                                                      .Where(f => f.Id == uploadedFile.Id)
+                                                      .Where(f => f.Status == FileUploadStatus.Complete)
+                                                      .SingleOrDefaultAsync();
 
                 string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
                 string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveAssociatedFileName(uploadedFile.Id, PubRequestId, ContentItem.Id, Path.GetExtension(fileUploadRecord.StoragePath));
@@ -287,12 +288,12 @@ namespace MillimanAccessPortal
                 };
 
                 // Remove FileUpload record(s) for this file path
-                List<FileUpload> Uploads = Db.FileUpload.Where(f => f.StoragePath == fileUploadRecord.StoragePath).ToList();
+                List<FileUpload> Uploads = await Db.FileUpload.Where(f => f.StoragePath == fileUploadRecord.StoragePath).ToListAsync();
                 File.Delete(fileUploadRecord.StoragePath);  // delete the uploaded file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the FileUpload record
 
-                Db.SaveChanges();
-                Txn.Commit();
+                await Db.SaveChangesAsync();
+                await Txn.CommitAsync();
             }
 
             return ReturnObj;

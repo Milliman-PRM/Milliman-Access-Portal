@@ -202,12 +202,12 @@ namespace MapDbContextLib.Context
             optionsBuilder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
         }
 
-        public static async Task InitializeAll(IServiceProvider serviceProvider)
+        public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
         {
             await Identity.ApplicationRole.SeedRoles(serviceProvider);
-            Context.ContentType.InitializeContentTypes(serviceProvider);
+            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
-            Context.NameValueConfiguration.InitializeNameValueConfiguration(serviceProvider);
+            await Context.NameValueConfiguration.InitializeNameValueConfigurationAsync(serviceProvider);
         }
     }
 

@@ -4,12 +4,14 @@
  * DEVELOPER NOTES: 
  */
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Context
 {
@@ -63,7 +65,7 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <param name="ServiceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static void InitializeContentTypes(IServiceProvider serviceProvider)
+        internal static async Task InitializeContentTypesAsync(IServiceProvider serviceProvider)
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
@@ -103,7 +105,7 @@ namespace MapDbContextLib.Context
 
             foreach (ContentType type in AllProposedContentTypes)
             {
-                ContentType fromDb = Db.ContentType.SingleOrDefault(t => t.TypeEnum == type.TypeEnum);
+                ContentType fromDb = await Db.ContentType.SingleOrDefaultAsync(t => t.TypeEnum == type.TypeEnum);
                 if (fromDb == null)
                 {
                     Db.ContentType.Add(type);
@@ -115,7 +117,7 @@ namespace MapDbContextLib.Context
                     fromDb.FileExtensions = type.FileExtensions;
                 }
             }
-            Db.SaveChanges();
+            await Db.SaveChangesAsync();
         }
 
         /// <summary>

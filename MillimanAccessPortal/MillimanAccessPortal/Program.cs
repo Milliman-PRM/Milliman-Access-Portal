@@ -70,7 +70,7 @@ namespace MillimanAccessPortal
 
                 try
                 {
-                    await ApplicationDbContext.InitializeAll(serviceProvider);
+                    await ApplicationDbContext.InitializeAllAsync(serviceProvider);
 
                     MailSender.ConfigureMailSender(new SmtpConfig
                     {
