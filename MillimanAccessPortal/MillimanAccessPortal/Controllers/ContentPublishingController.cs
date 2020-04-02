@@ -666,8 +666,8 @@ namespace MillimanAccessPortal.Controllers
                 string rootPath = ApplicationConfig.GetSection("Storage")["ContentItemRootPath"];
                 string exchangePath = ApplicationConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
                 string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                ContentPublishSupport.AddPublicationMonitor(Task.Run(() =>
-                    ContentPublishSupport.MonitorPublicationRequestForQueueing(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue)));
+                ContentPublishSupport.AddPublicationMonitor(
+                    ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request successfully submitted for validation");
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));

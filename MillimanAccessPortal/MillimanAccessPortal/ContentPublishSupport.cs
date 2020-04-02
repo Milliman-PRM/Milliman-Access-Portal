@@ -63,7 +63,7 @@ namespace MillimanAccessPortal
             }
         }
 
-        internal static async Task MonitorPublicationRequestForQueueing(Guid publicationRequestId, 
+        internal static async Task MonitorPublicationRequestForQueueingAsync(Guid publicationRequestId, 
                                                                   string connectionString, 
                                                                   string contentItemRootPath, 
                                                                   string exchangePath, 

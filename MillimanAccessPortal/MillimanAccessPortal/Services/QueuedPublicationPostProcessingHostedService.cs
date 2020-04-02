@@ -392,7 +392,7 @@ namespace MillimanAccessPortal.Services
                     .ToListAsync();
                 foreach (ContentPublicationRequest request in validatingRequests)
                 {
-                    ContentPublishSupport.MonitorPublicationRequestForQueueing(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                    await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
                 }
 
             }
