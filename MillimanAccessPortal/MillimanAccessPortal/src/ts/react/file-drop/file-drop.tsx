@@ -1,3 +1,5 @@
+import '../../../scss/react/file-drop/file-drop.scss';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
@@ -839,6 +841,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
+          <div className="activity-log-table-header">
+            <span className="activity-log-header">ACTIVITY LOG - <strong>LAST 30 DAYS</strong></span>
+            <a
+              href={`./FileDrop/DownloadFullActivityLog?=${data.permissionGroups.fileDropId}`}
+              className="download-button button blue-button"
+              download={true}
+            >
+              Download All
+            </a>
+          </div>
           <ContentPanelForm
             readOnly={false}
           >
