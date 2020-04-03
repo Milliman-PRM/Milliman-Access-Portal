@@ -7,7 +7,10 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
-import { Client, FileDropClientWithStats, FileDropWithStats, PermissionGroupsReturnModel } from '../models';
+import { generateUniqueId } from '../../generate-unique-identifier';
+import {
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
+} from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -39,6 +42,9 @@ interface FileDropProps {
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
   permissionGroupChangesPending: boolean;
+  permissionGroupChangesReady: boolean;
+  pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
+  unassignedEligibleUsers: AvailableEligibleUsers[];
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
@@ -55,7 +61,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   public render() {
-    const { selected, modals, pending } = this.props;
+    const { selected, modals, pending, unassignedEligibleUsers } = this.props;
     return (
       <>
         <ReduxToastr
@@ -404,12 +410,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     // TODO: Implement necessary modals
                   } else {
                     if (selected.fileDrop !== entity.id) {
-                      // this.props.fetchFileDropDetail({ FileDropId: entity.id });
+                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     }
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       this.props.selectFileDropTab({ tab: 'permissions' });
-                      this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
                     }
@@ -572,19 +577,45 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderPermissionsTab() {
-    const { data, filters, pending } = this.props;
+    const {
+      data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
+      permissionGroupChangesReady,
+    } = this.props;
+    const editPermissionGroupsButton = (
+      <ActionIcon
+        label="Edit Permission Groups"
+        icon="edit"
+        action={() => this.props.setEditModeForPermissionGroups({ editModeEnabled: true })}
+      />
+    );
+    const cancelEditPermissionGroupsButton = (
+      <ActionIcon
+        label="Discard Changes"
+        icon="cancel"
+        action={() => {
+          if (!permissionGroupChangesPending) {
+            this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
+          } else {
+            // TODO: Implement a modal to confirm discarding changes
+            alert('Undo changes first');
+          }
+        }}
+      />
+    );
     const addUserButton = (
       <ActionIcon
         label="Add User"
         icon="add-user"
-        action={() => alert('Add User')}
+        disabled={!permissionGroupChangesReady}
+        action={() => this.props.addNewPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg') })}
       />
     );
     const addGroupButton = (
       <ActionIcon
         label="Add Group"
         icon="add-group"
-        action={() => alert('Add Group')}
+        disabled={!permissionGroupChangesReady}
+        action={() => this.props.addNewPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') })}
       />
     );
 
@@ -597,8 +628,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             filterText={filters.permissions.text}
           />
           <PanelSectionToolbarButtons>
-            {addUserButton}
-            {addGroupButton}
+            {!pending.permissionGroupsEditMode && editPermissionGroupsButton}
+            {pending.permissionGroupsEditMode && addUserButton}
+            {pending.permissionGroupsEditMode && addGroupButton}
+            {pending.permissionGroupsEditMode && cancelEditPermissionGroupsButton}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
@@ -607,11 +640,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           >
             <PermissionsTable
               permissions={pending.permissionGroupsTab}
+              readOnly={!pending.permissionGroupsEditMode}
+              isReadyToSubmit={permissionGroupChangesReady}
+              unassignedEligibleUsers={this.props.unassignedEligibleUsers}
+              addPermissionGroup={this.props.addNewPermissionGroup}
               setPermissionValue={this.props.setPermissionGroupPermissionValue}
               removePermissionGroup={this.props.removePermissionGroup}
+              addUserToPermissionGroup={this.props.addUserToPermissionGroup}
+              removeUserFromPermissionGroup={this.props.removeUserFromPermissionGroup}
+              setPermissionGroupNameText={this.props.setPermissionGroupNameText}
             />
             {
-              this.props.permissionGroupChangesPending &&
+              pending.permissionGroupsEditMode &&
+              permissionGroupChangesPending &&
               <div className="button-container">
                 <button
                   className="link-button"
@@ -626,9 +667,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 <button
                   type="button"
                   className="green-button"
+                  disabled={!permissionGroupChangesReady}
                   onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
-                    alert('submit');
+                    this.props.updatePermissionGroups(pendingPermissionGroupsChanges);
                   }}
                 >
                   Save Changes
@@ -689,6 +731,9 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
+    permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
+    pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
+    unassignedEligibleUsers: Selector.unassignedEligibleUsers(state),
   };
 }
 

@@ -317,15 +317,16 @@ export interface FileDropWithStats extends FileDrop {
 export interface FileDropsReturnModel {
   clientCard: FileDropClientWithStats;
   fileDrops: Dict<FileDropWithStats>;
+  permissionGroups: PermissionGroupsReturnModel;
   currentFileDropId?: Guid;
 }
 
 export interface PermissionGroupModel {
-  id: Guid;
+  id?: Guid;
   name: string;
-  isPersonalGroup: boolean;
-  assignedSftpAccountIds: Guid[];
   assignedMapUserIds: Guid[];
+  assignedSftpAccountIds: Guid[];
+  isPersonalGroup: boolean;
   readAccess: boolean;
   writeAccess: boolean;
   deleteAccess: boolean;
@@ -335,7 +336,7 @@ export interface FileDropEligibleUser {
   id: Guid;
   firstName: string;
   lastName: string;
-  username: string;
+  userName: string;
   isFileDropAdmin: boolean;
 }
 
@@ -343,4 +344,28 @@ export interface PermissionGroupsReturnModel {
   fileDropId: Guid;
   eligibleUsers: Dict<FileDropEligibleUser>;
   permissionGroups: Dict<PermissionGroupModel>;
+}
+
+export interface PGChangeModel {
+  id: Guid;
+  name: string;
+  usersAdded: Guid[];
+  usersRemoved: Guid[];
+  readAccess: boolean;
+  writeAccess: boolean;
+  deleteAccess: boolean;
+}
+
+export interface PermissionGroupsChangesModel {
+  fileDropId: Guid;
+  removedPermissionGroupIds: Guid[];
+  newPermissionGroups: PermissionGroupModel[];
+  updatedPermissionGroups: Dict<PGChangeModel>;
+}
+
+export interface AvailableEligibleUsers {
+  id: Guid;
+  name: string;
+  userName: string;
+  sortName: string;
 }

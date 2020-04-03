@@ -15,6 +15,10 @@
             color: darken($charcoal, 15%);
         }
     }
+
+    &.disabled svg.action-icon {
+        color: $grey !important;
+    }
 }
 
 .action-icon-container {

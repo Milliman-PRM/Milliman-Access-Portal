@@ -16,6 +16,7 @@
     display: flex;
     flex-flow: row wrap;
     align-content: flex-start;
+    padding: .25em;
 }
 
 .form-content-container {
@@ -37,7 +38,6 @@
 
 .form-element-container {
     position: relative;
-    margin: .25em .5em .5em;
     opacity: 1;
     width: 100%;
 

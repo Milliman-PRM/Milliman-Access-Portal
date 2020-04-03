@@ -70,6 +70,26 @@ export const removePermissionGroup =
 export const discardPendingPermissionGroupChanges =
   createActionCreator<Action.DiscardPendingPermissionGroupChanges>('DISCARD_PENDING_PERMISSION_GROUP_CHANGES');
 
+/** Add a user to the Permission Group form */
+export const addUserToPermissionGroup =
+  createActionCreator<Action.AddUserToPermissionGroup>('ADD_USER_TO_PERMISSION_GROUP');
+
+/** Remove a user from the Permission Group form */
+export const removeUserFromPermissionGroup =
+  createActionCreator<Action.RemoveUserFromPermissionGroup>('REMOVE_USER_FROM_PERMISSION_GROUP');
+
+/** Update the text of the Permission Group name in the form */
+export const setPermissionGroupNameText =
+  createActionCreator<Action.SetPermissionGroupNameText>('SET_PERMISSION_GROUP_NAME_TEXT');
+
+/** Set edit mode state for Permission Groups tab */
+export const setEditModeForPermissionGroups =
+  createActionCreator<Action.SetEditModeForPermissionGroups>('SET_EDIT_MODE_FOR_PERMISSION_GROUPS');
+
+/** Add a new Permission Group */
+export const addNewPermissionGroup =
+  createActionCreator<Action.AddNewPermissionGroup>('ADD_NEW_PERMISSION_GROUP');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -101,6 +121,10 @@ export const updateFileDrop =
 /** Get the permission group information */
 export const fetchPermissionGroups =
   createRequestActionCreator<Action.FetchPermissionGroups>('FETCH_PERMISSION_GROUPS');
+
+/** Update the permission group information */
+export const updatePermissionGroups =
+  createRequestActionCreator<Action.UpdatePermissionGroups>('UPDATE_PERMISSION_GROUPS');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

@@ -1,4 +1,5 @@
-﻿import '../../../images/icons/add-group.svg';
+﻿import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/add.svg';
 import '../../../images/icons/cancel.svg';
@@ -22,10 +23,12 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' | 'delete' | 'edit'
-    | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' | 'userguide';
+  icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
+    'delete' | 'edit' | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' |
+    'userguide';
   action: () => void;
   inline: boolean;
+  disabled?: boolean;
 }
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
@@ -33,16 +36,18 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     label: null as string,
     action: (): null => null,
     inline: true,
+    disabled: false,
   };
   public render() {
-    return this.props.action && (
+    const { inline, disabled, label, icon, action } = this.props;
+    return action && (
       <div
-        className={`action-icon-container${this.props.inline ? '-inline' : ''} tooltip`}
-        title={this.props.label}
+        className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''} tooltip`}
+        title={label}
         onClick={this.action}
       >
         <svg className="action-icon">
-          <use xlinkHref={`#${this.props.icon}`} />
+          <use xlinkHref={`#${icon}`} />
         </svg>
       </div>
     );
@@ -50,7 +55,9 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
 
   private action = (event: React.MouseEvent<HTMLElement>) => {
     event.stopPropagation();
-    this.props.action();
+    if (!this.props.disabled) {
+      this.props.action();
+    }
   }
 }
 

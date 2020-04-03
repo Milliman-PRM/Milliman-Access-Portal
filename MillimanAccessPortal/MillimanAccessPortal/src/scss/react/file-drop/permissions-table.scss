@@ -25,13 +25,21 @@
                 padding: .25em 0;
                 border-bottom: 1px solid $charcoal;
             }
+
+            &.col-actions {
+                width: 4em;
+            }
         }
     }
 
-    th.content-center,
-    td.content-center {
-        text-align: center;
+    .group-name-input {
+        font-weight: bold;
+        color: $charcoal;
         padding: 0;
+    }
+        
+    th.content-center, td.content-center {
+        text-align: center;
     }
 
     th.content-right,
@@ -44,21 +52,66 @@
         width: 1.5em;
     }
 
+    td.add-user {
+        svg {
+            color: $green;
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
+    td.remove-user {
+
+        svg {
+            color: $red;
+
+            &:hover {
+                color: lighten($red, .5);
+            }
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
     tbody {
 
         tr {
-            
+
             &.last-group-row,
             &.action-row {
                 border-bottom: 1px solid $charcoal;
             }
 
+            &.last-group-row td {
+                padding-bottom: 1.5em;
+            }
+
+            &.first-group-row td {
+                padding-top: 1.5em;
+            }
+
             &.action-row {
                 cursor: pointer;
-                
+
                 .action-text {
                     color: $green;
                     font-weight: bold;
+                }
+
+                &.disabled {
+                    cursor: default;
+
+                    .table-icon {
+                        color: $grey;
+                    }
+
+                    .action-text {
+                        color: $grey;
+                    }
                 }
             }
 

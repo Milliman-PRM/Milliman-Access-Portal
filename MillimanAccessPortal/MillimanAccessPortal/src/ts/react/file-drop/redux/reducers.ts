@@ -29,90 +29,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // Default Objects
 // ~~~~~~~~~~~~~~~
 
-// TODO: Remove this once the calls are hooked up
-const _dummyPermissionGroupsData: PermissionGroupsReturnModel = {
-  eligibleUsers: {
-    'user-1': {
-      id: 'user-1',
-      firstName: 'User',
-      lastName: 'One',
-      username: 'user.1@domain.com',
-      isFileDropAdmin: true,
-    },
-    'user-2': {
-      id: 'user-2',
-      firstName: 'User',
-      lastName: 'Two',
-      username: 'user.2@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-3': {
-      id: 'user-3',
-      firstName: 'User',
-      lastName: 'Three',
-      username: 'user.3@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-4': {
-      id: 'user-4',
-      firstName: 'User',
-      lastName: 'Four',
-      username: 'user.4@domain.com',
-      isFileDropAdmin: false,
-    },
-    'user-5': {
-      id: 'user-5',
-      firstName: 'User',
-      lastName: 'Five',
-      username: 'user.5@domain.com',
-      isFileDropAdmin: false,
-    },
-  },
-  fileDropId: '',
-  permissionGroups: {
-    'pg-1': {
-      id: 'pg-1',
-      name: 'User One',
-      isPersonalGroup: true,
-      assignedMapUserIds: ['user-1'],
-      assignedSftpAccountIds: [],
-      deleteAccess: true,
-      readAccess: true,
-      writeAccess: true,
-    },
-    'pg-4': {
-      id: 'pg-4',
-      name: 'No Users Group',
-      isPersonalGroup: false,
-      assignedMapUserIds: [],
-      assignedSftpAccountIds: [],
-      deleteAccess: true,
-      readAccess: true,
-      writeAccess: true,
-    },
-    'pg-2': {
-      id: 'pg-2',
-      name: 'Permission Group #2',
-      isPersonalGroup: false,
-      assignedMapUserIds: ['user-2', 'user-3'],
-      assignedSftpAccountIds: [],
-      deleteAccess: false,
-      readAccess: true,
-      writeAccess: false,
-    },
-    'pg-3': {
-      id: 'pg-3',
-      name: 'Permission Group #3',
-      isPersonalGroup: false,
-      assignedMapUserIds: ['user-4', 'user-5'],
-      assignedSftpAccountIds: [],
-      deleteAccess: false,
-      readAccess: true,
-      writeAccess: true,
-    },
-  },
-};
-
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
@@ -215,6 +131,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_PERMISSION_GROUPS_FAILED: (state) => ({
     ...state,
     permissions: false,
+  }),
+  UPDATE_PERMISSION_GROUPS: (state) => ({
+    ...state,
+    permissionsUpdate: true,
+  }),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state) => ({
+    ...state,
+    permissionsUpdate: false,
+  }),
+  UPDATE_PERMISSION_GROUPS_FAILED: (state) => ({
+    ...state,
+    permissionsUpdate: false,
   }),
   CREATE_FILE_DROP: (state) => ({
     ...state,
@@ -322,12 +250,34 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
 /** Reducer for swiching the active File Drop tab */
 const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
   SELECT_FILE_DROP_TAB: (_state, action: Action.SelectFileDropTab) => action.tab,
+  CREATE_FILE_DROP_SUCCEEDED: () => 'permissions',
 });
 
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
-  // TODO: Change this reducer to the FetchPermissionGroupsSucceeded action
-  FETCH_PERMISSION_GROUPS: () => JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
+  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) => ({
+    ...action.response.permissionGroups,
+  }),
+  FETCH_PERMISSION_GROUPS: () => ({
+    ..._.cloneDeep(_initialPermissionGroupsTab),
+  }),
+  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
+    if (state.fileDropId === action.response.currentFileDropId) {
+      return {
+        ..._.cloneDeep(_initialPermissionGroupsTab),
+      };
+    } else {
+      return {
+        ...state,
+      };
+    }
+  },
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ..._.cloneDeep(action.response),
+  }),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ..._.cloneDeep(action.response),
+  }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
     permissionGroups: {
@@ -347,9 +297,75 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     };
   },
   DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
-    // Convert to string and then back to json to allow these two sections of state to be independent
     ...JSON.parse(JSON.stringify(action.originalValues)),
   }),
+  ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
+    const { assignedMapUserIds } = state.permissionGroups[action.pgId];
+    if (assignedMapUserIds.indexOf(action.userId) === -1) {
+      assignedMapUserIds.push(action.userId);
+    }
+    return {
+      ...state,
+      permissionGroups: {
+        ...state.permissionGroups,
+        [action.pgId]: {
+          ...state.permissionGroups[action.pgId],
+          assignedMapUserIds,
+        },
+      },
+    };
+  },
+  REMOVE_USER_FROM_PERMISSION_GROUP: (state, action: Action.RemoveUserFromPermissionGroup) => {
+    const { assignedMapUserIds: existingAssignedMapUsers } = state.permissionGroups[action.pgId];
+    const assignedMapUserIds = _.filter(existingAssignedMapUsers, (userId) => userId !== action.userId);
+    return {
+      ...state,
+      permissionGroups: {
+        ...state.permissionGroups,
+        [action.pgId]: {
+          ...state.permissionGroups[action.pgId],
+          assignedMapUserIds,
+        },
+      },
+    };
+  },
+  SET_PERMISSION_GROUP_NAME_TEXT: (state, action: Action.SetPermissionGroupNameText) => ({
+    ...state,
+    permissionGroups: {
+      ...state.permissionGroups,
+      [action.pgId]: {
+        ...state.permissionGroups[action.pgId],
+        name: action.value,
+      },
+    },
+  }),
+  ADD_NEW_PERMISSION_GROUP: (state, action: Action.AddNewPermissionGroup) => ({
+    ...state,
+    permissionGroups: {
+      ...state.permissionGroups,
+      [action.tempPGId]: {
+        id: action.tempPGId,
+        name: '',
+        isPersonalGroup: action.isSingleGroup,
+        assignedMapUserIds: [],
+        assignedSftpAccountIds: [],
+        readAccess: false,
+        writeAccess: false,
+        deleteAccess: false,
+      },
+    },
+  }),
+});
+
+/** Reducer for setting the edit mode state of the Permission Groups tab */
+const permissionGroupsEditMode = createReducer<boolean>(false, {
+  SET_EDIT_MODE_FOR_PERMISSION_GROUPS:
+    (_state, action: Action.SetEditModeForPermissionGroups) => action.editModeEnabled,
+  CREATE_FILE_DROP_SUCCEEDED: () => true,
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: () => false,
+  SELECT_CLIENT: () => false,
+  SELECT_FILE_DROP: () => false,
+  SELECT_FILE_DROP_TAB: () => false,
 });
 
 /** Reducer that combines the pending reducers */
@@ -361,6 +377,7 @@ const pending = combineReducers({
   fileDropToDelete: pendingFileDropToDelete,
   selectedFileDropTab,
   permissionGroupsTab,
+  permissionGroupsEditMode,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -389,6 +406,10 @@ const selected = createReducer<State.FileDropSelectedState>(
     CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
+    }),
+    DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
+      ...state,
+      fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
     }),
   },
 );
@@ -543,7 +564,9 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
-    permissionGroups: null,
+    permissionGroups: {
+      ...action.response.permissionGroups,
+    },
   }),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
     ...state,
@@ -570,16 +593,23 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.fileDrops,
     },
   }),
-  // FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
-  //   ...state,
-  //   permissionGroups: {
-  //     ...action.response,
-  //   },
-  // }),
   FETCH_PERMISSION_GROUPS: (state) => ({
-    // TODO: Remove this reducer (It's hard-coded fake data)
     ...state,
-    permissionGroups: JSON.parse(JSON.stringify(_dummyPermissionGroupsData)),
+    permissionGroups: {
+      ..._.cloneDeep(_initialPermissionGroupsTab),
+    },
+  }),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ...state,
+    permissionGroups: {
+      ...action.response,
+    },
+  }),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
+    ...state,
+    permissionGroups: {
+      ...action.response,
+    },
   }),
 });
 

@@ -1,52 +1,188 @@
 import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/group.svg';
-import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/user.svg';
 
 import '../../../scss/react/file-drop/permissions-table.scss';
 
 import * as React from 'react';
+import Select from 'react-select';
 
-import { Guid, PermissionGroupsReturnModel } from '../models';
+import { generateUniqueId } from '../../generate-unique-identifier';
+import { AvailableEligibleUsers, Guid, PermissionGroupsReturnModel } from '../models';
 import { ActionIcon, ActionIconButtonContainer } from '../shared-components/action-icon';
 import { Checkbox } from '../shared-components/form/checkbox';
 
 interface PermissionsTableProps {
   permissions: PermissionGroupsReturnModel;
+  readOnly: boolean;
+  isReadyToSubmit: boolean;
+  unassignedEligibleUsers: AvailableEligibleUsers[];
+  addPermissionGroup: ({ tempPGId, isSingleGroup }: {
+    tempPGId: string,
+    isSingleGroup: boolean,
+  }) => void;
   setPermissionValue: ({ pgId, permission, value }: {
     pgId: Guid;
     permission: 'readAccess' | 'writeAccess' | 'deleteAccess';
     value: boolean;
   }) => void;
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
+  addUserToPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
+  removeUserFromPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
+  setPermissionGroupNameText: ({ pgId, value }: { pgId: Guid; value: string }) => void;
 }
 
 export class PermissionsTable extends React.Component<PermissionsTableProps> {
 
   public render() {
-    const { setPermissionValue, removePermissionGroup } = this.props;
+    const {
+      setPermissionValue, removePermissionGroup, readOnly, isReadyToSubmit, addUserToPermissionGroup,
+      removeUserFromPermissionGroup, unassignedEligibleUsers, addPermissionGroup, setPermissionGroupNameText,
+    } = this.props;
     const { permissionGroups, eligibleUsers } = this.props.permissions;
     const permissionGroupsMarkup = Object.keys(permissionGroups).map((pgId) => {
       const thisPG = permissionGroups[pgId];
       const pgIcon = (thisPG.isPersonalGroup) ? '#user' : '#group';
       return (
-        <>
+        <React.Fragment key={`pg-${thisPG.id}`}>
           <tr
             key={thisPG.id}
-            className={thisPG.isPersonalGroup || thisPG.assignedMapUserIds.length === 0 ? 'last-group-row' : null}
+            className={
+              [
+                (thisPG.isPersonalGroup
+                  || (thisPG.assignedMapUserIds.length === 0 && readOnly)
+                  ? 'last-group-row'
+                  : null),
+                'first-group-row',
+              ].join(' ')
+            }
           >
             <td><svg className="table-icon"><use xlinkHref={pgIcon} /></svg></td>
             {
-              (thisPG.isPersonalGroup) ?
-                (
-                  <>
-                    <td><strong>{thisPG.name}</strong></td>
-                    <td>{eligibleUsers[thisPG.assignedMapUserIds[0]].username}</td>
-                  </>
-                ) : (
-                  <td colSpan={2}><strong>{thisPG.name}</strong></td>
-                )
+              (() => {
+                if (readOnly) {
+                  if (thisPG.isPersonalGroup) {
+                    return (
+                      <>
+                        <td>
+                          <strong>
+                            {
+                              (thisPG.assignedMapUserIds.length > 0 &&
+                                eligibleUsers[thisPG.assignedMapUserIds[0]].firstName) ?
+                                [
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].firstName,
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].lastName,
+                                ].join(' ') :
+                                '(Inactive)'
+                            }
+                          </strong>
+                        </td>
+                        <td>
+                          {
+                            thisPG.assignedMapUserIds.length > 0 &&
+                            eligibleUsers[thisPG.assignedMapUserIds[0]].userName
+                          }
+                        </td>
+                      </>
+                    );
+                  } else if (!thisPG.isPersonalGroup) {
+                    return (
+                      <td colSpan={2}><strong>{thisPG.name}</strong></td>
+                    );
+                  }
+                } else {
+                  if (thisPG.isPersonalGroup) {
+                    if (thisPG.assignedMapUserIds.length === 0) {
+                      return (
+                        <td colSpan={2}>
+                          <Select
+                            className="react-select"
+                            classNamePrefix="react-select"
+                            options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
+                              value: u.id,
+                              name: u.name.trim() ? u.name : '(Inactivate)',
+                              userName: u.userName,
+                            }))}
+                            styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                            menuPosition="fixed"
+                            menuPortalTarget={document.body}
+                            menuPlacement={'auto'}
+                            formatOptionLabel={(data) => (
+                              <>
+                                <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                                  {data.name}
+                                </div>
+                                <div style={{ fontSize: '0.85em' }}>
+                                  {data.userName}
+                                </div>
+                              </>
+                            )}
+                            filterOption={({ data }, rawInput) => (
+                              (
+                                data.userName &&
+                                data.userName.toLowerCase().match(rawInput.toLowerCase())
+                              ) || (
+                                data.name &&
+                                data.name.toLowerCase().match(rawInput.toLowerCase())
+                              )
+                            )}
+                            onChange={(value, action) => {
+                              if (action.action === 'select-option') {
+                                const singleValue = value as { value: string; };
+                                addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value });
+                              }
+                            }}
+                            controlShouldRenderValue={false}
+                            placeholder="Add user"
+                            autoFocus={false}
+                          />
+                        </td>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <td>
+                            <strong>
+                              {
+                                (thisPG.assignedMapUserIds.length > 0 &&
+                                  eligibleUsers[thisPG.assignedMapUserIds[0]].firstName) ?
+                                  [
+                                    eligibleUsers[thisPG.assignedMapUserIds[0]].firstName,
+                                    eligibleUsers[thisPG.assignedMapUserIds[0]].lastName,
+                                  ].join(' ') :
+                                  '(Inactive)'
+                              }
+                            </strong>
+                          </td>
+                          <td>
+                            {
+                              thisPG.assignedMapUserIds.length > 0 &&
+                              eligibleUsers[thisPG.assignedMapUserIds[0]].userName
+                            }
+                          </td>
+                        </>
+                      );
+                    }
+                  } else if (!thisPG.isPersonalGroup) {
+                    return (
+                      <td colSpan={2}>
+                        <input
+                          type="text"
+                          className="group-name-input"
+                          placeholder="Permission Group Name *"
+                          autoFocus={thisPG.name.length === 0}
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                            setPermissionGroupNameText({ pgId: thisPG.id, value: target.value });
+                          }}
+                          readOnly={false}
+                          value={thisPG.name}
+                        />
+                      </td>
+                    );
+                  }
+                }
+              })()
             }
             <td className="content-center">
               <Checkbox
@@ -54,7 +190,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
-                readOnly={false}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.readAccess}
               />
             </td>
@@ -64,7 +200,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
-                readOnly={false}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.writeAccess}
               />
             </td>
@@ -74,41 +210,23 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                 onChange={(status) =>
                   setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
-                readOnly={false}
+                readOnly={readOnly || !isReadyToSubmit}
                 selected={thisPG.deleteAccess}
               />
             </td>
-            <td className="content-right">
-              {
-                // !thisPG.isPersonalGroup &&
-                // <ActionIconButtonContainer color="blue">
-                //   <ActionIcon
-                //     action={() => alert('expand')}
-                //     icon="expand-card"
-                //     label="Expand Permission Group"
-                //     inline={true}
-                //   />
-                // </ActionIconButtonContainer>
-              }
-              {
-                // <ActionIconButtonContainer color="green">
-                //   <ActionIcon
-                //     action={() => alert('edit')}
-                //     icon="edit"
-                //     label="Edit Permission Group Name"
-                //     inline={true}
-                //   />
-                // </ActionIconButtonContainer>
-              }
-              <ActionIconButtonContainer color="red">
-                <ActionIcon
-                  action={() => removePermissionGroup({ pgId: thisPG.id })}
-                  icon="delete"
-                  label="Delete Permission Group"
-                  inline={true}
-                />
-              </ActionIconButtonContainer>
-            </td>
+            {
+              !readOnly &&
+              <td className="content-right">
+                <ActionIconButtonContainer color="red">
+                  <ActionIcon
+                    action={() => removePermissionGroup({ pgId: thisPG.id })}
+                    icon="delete"
+                    label="Delete Permission Group"
+                    inline={true}
+                  />
+                </ActionIconButtonContainer>
+              </td>
+            }
           </tr>
           {
             !thisPG.isPersonalGroup &&
@@ -117,28 +235,129 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
               return (
                 <tr
                   key={thisUser.id}
-                  className={index === (thisPG.assignedMapUserIds.length - 1) ? 'last-group-row' : null}
+                  className={
+                    readOnly && (index === thisPG.assignedMapUserIds.length - 1)
+                      ? 'last-group-row'
+                      : null
+                  }
                 >
-                  <td><svg className="table-icon"><use xlinkHref="#remove-cirlce" /></svg></td>
-                  <td>{thisUser.firstName + ' ' + thisUser.lastName}</td>
-                  <td colSpan={5}>{thisUser.username}</td>
+                  <td className="remove-user">
+                    {
+                      !readOnly &&
+                      <ActionIcon
+                        action={() => removeUserFromPermissionGroup({ pgId: thisPG.id, userId: thisUser.id })}
+                        icon="remove-circle"
+                        label="Remove user from Permission Group"
+                        inline={true}
+                      />
+                    }
+                  </td>
+                  <td>
+                    {
+                      (thisUser.firstName || thisUser.lastName)
+                        ? [thisUser.firstName, thisUser.lastName].join(' ')
+                        : '(Inactive)'
+                    }
+                  </td>
+                  <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
               );
             })
           }
-        </>
+          {
+            !readOnly &&
+            !thisPG.isPersonalGroup &&
+            <tr className="last-group-row">
+              <td className="add-user">
+                {
+                  !readOnly &&
+                  <ActionIcon
+                    action={() => false}
+                    icon="add-circle"
+                    label="Add user to Permission Group"
+                    inline={true}
+                  />
+                }
+              </td>
+              <td colSpan={2}>
+                <Select
+                  className="react-select"
+                  classNamePrefix="react-select"
+                  options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
+                    value: u.id,
+                    name: u.name.trim() ? u.name : '(Inactivate)',
+                    userName: u.userName,
+                  }))}
+                  styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+                  menuPosition="fixed"
+                  menuPortalTarget={document.body}
+                  menuPlacement={'auto'}
+                  formatOptionLabel={(data) => (
+                    <>
+                      <div style={{ fontSize: '1em', fontWeight: 'bold' }}>
+                        {data.name}
+                      </div>
+                      <div style={{ fontSize: '0.85em' }}>
+                        {data.userName}
+                      </div>
+                    </>
+                  )}
+                  filterOption={({ data }, rawInput) => (
+                    (
+                      data.userName &&
+                      data.userName.toLowerCase().match(rawInput.toLowerCase())
+                    ) || (
+                      data.name &&
+                      data.name.toLowerCase().match(rawInput.toLowerCase())
+                    )
+                  )}
+                  onChange={(value, action) => {
+                    if (action.action === 'select-option') {
+                      const singleValue = value as { value: string; };
+                      addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value });
+                    }
+                  }}
+                  controlShouldRenderValue={false}
+                  placeholder="Add user"
+                  autoFocus={false}
+                />
+              </td>
+              <td colSpan={4} />
+            </tr>
+          }
+        </React.Fragment>
       );
     });
     const addUserRow = (
-      <tr className="action-row" onClick={() => alert('Add User')}>
+      <tr className={`action-row${!isReadyToSubmit ? ' disabled' : ''}`}>
         <td><svg className="table-icon"><use xlinkHref="#add-user" /></svg></td>
-        <td colSpan={6} className="action-text">Add User</td>
+        <td colSpan={6} className="action-text">
+          <span
+            onClick={() => {
+              if (isReadyToSubmit) {
+                addPermissionGroup({ isSingleGroup: true, tempPGId: generateUniqueId('temp-pg') });
+              }
+            }}
+          >
+            Add User
+          </span>
+        </td>
       </tr>
     );
     const addGroupRow = (
-      <tr className="action-row" onClick={() => alert('Add Group')}>
+      <tr className={`action-row${!isReadyToSubmit ? ' disabled' : ''}`}>
         <td><svg className="table-icon"><use xlinkHref="#add-group" /></svg></td>
-        <td colSpan={6} className="action-text">Add Group</td>
+        <td colSpan={6} className="action-text">
+          <span
+            onClick={() => {
+              if (isReadyToSubmit) {
+                addPermissionGroup({ isSingleGroup: false, tempPGId: generateUniqueId('temp-pg') });
+              }
+            }}
+          >
+            Add Group
+          </span>
+        </td>
       </tr>
     );
 
@@ -150,7 +369,10 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             <th className="col-name" rowSpan={2}>Name</th>
             <th className="col-email" rowSpan={2}>Email</th>
             <th className="col-permissions content-center" colSpan={3}>Permissions</th>
-            <th className="col-actions content-right" rowSpan={2}>Actions</th>
+            {
+              !readOnly &&
+              <th className="col-actions content-right" rowSpan={2} />
+            }
           </tr>
           <tr>
             <th className="col-permission-download content-center">Download</th>
@@ -160,8 +382,8 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
         </thead>
         <tbody>
           {permissionGroupsMarkup}
-          {addUserRow}
-          {addGroupRow}
+          {!readOnly && addUserRow}
+          {!readOnly && addGroupRow}
         </tbody>
       </table>
     );

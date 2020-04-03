@@ -1,6 +1,10 @@
 import * as _ from 'lodash';
 
-import { FileDropClientWithStats, FileDropWithStats } from '../../models';
+import {
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
+  PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
+} from '../../models';
+import { Dict } from '../../shared-components/redux/store';
 import { FileDropState } from './store';
 
 // ~~~~~~~~~~
@@ -115,9 +119,59 @@ export function fileDropEntities(state: FileDropState) {
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 /** Return the pending changes to the permissions tab data */
-export function pendingPermissionsData(state: FileDropState) {
-  // TODO: Return the pending changes to permission groups
-  return state.data.permissionGroups;
+export function pendingPermissionGroupsChanges(state: FileDropState): PermissionGroupsChangesModel {
+  if (state.data.permissionGroups && state.pending.permissionGroupsTab) {
+    const { permissionGroups: pgRaw } = state.data.permissionGroups;
+    const { permissionGroups: pgPending } = state.pending.permissionGroupsTab;
+    const fileDropId = state.data.permissionGroups.fileDropId;
+
+    const rawPGIds = Object.keys(pgRaw).sort();
+    const pendingPGIds = Object.keys(pgPending).sort();
+
+    // Removed Permission Groups
+    // const removedPermissionGroups = rawPGIds.filter((pg) => pendingPGIds.indexOf(pg) === -1);
+    const removedPermissionGroupIds = _.difference(rawPGIds, pendingPGIds);
+
+    // Added Permission Groups
+    const newPermissionGroups = _.difference(pendingPGIds, rawPGIds)
+      .map((pg) => ({
+        id: null,
+        name: pgPending[pg].name,
+        isPersonalGroup: pgPending[pg].isPersonalGroup,
+        assignedMapUserIds: pgPending[pg].assignedMapUserIds,
+        assignedSftpAccountIds: pgPending[pg].assignedSftpAccountIds,
+        readAccess: pgPending[pg].readAccess,
+        writeAccess: pgPending[pg].writeAccess,
+        deleteAccess: pgPending[pg].deleteAccess,
+      }));
+
+    // Updated Permission Groups
+    const updatedPermissionGroups: Dict<PGChangeModel> = {};
+    _.intersection(rawPGIds, pendingPGIds)
+      .filter((pg) => !(_.isEqual(pgRaw[pg], pgPending[pg])))
+      .forEach((pg) => {
+        const pendingPG = pgPending[pg];
+        const rawPG = pgRaw[pg];
+        updatedPermissionGroups[pg] = {
+          id: pendingPG.id,
+          name: pendingPG.name,
+          usersAdded: _.difference(pendingPG.assignedMapUserIds, rawPG.assignedMapUserIds),
+          usersRemoved: _.difference(rawPG.assignedMapUserIds, pendingPG.assignedMapUserIds),
+          readAccess: pendingPG.readAccess,
+          writeAccess: pendingPG.writeAccess,
+          deleteAccess: pendingPG.deleteAccess,
+        };
+      });
+
+    return {
+      fileDropId,
+      removedPermissionGroupIds,
+      newPermissionGroups,
+      updatedPermissionGroups,
+    };
+  } else {
+    return null;
+  }
 }
 
 /** Return a boolean value indicating that pending Permission Group changes exist */
@@ -126,10 +180,51 @@ export function permissionGroupChangesPending(state: FileDropState) {
   return data.permissionGroups
     && pending.permissionGroupsTab
     && (
-    Object.keys(data.permissionGroups.permissionGroups).length
-    !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
+      Object.keys(data.permissionGroups.permissionGroups).length
+      !== Object.keys(pending.permissionGroupsTab.permissionGroups).length
       || !_.isEqual(data.permissionGroups.permissionGroups, pending.permissionGroupsTab.permissionGroups)
     );
+}
+
+/** Return a boolean value indicating that the Permission Group changes are ready to be submitted */
+export function permissionGroupChangesReady(state: FileDropState) {
+  const { pending } = state;
+  return _.every(_.toPairs(pending.permissionGroupsTab.permissionGroups),
+      ([_key, value]: [string, PermissionGroupModel]) => {
+        return (value.isPersonalGroup && value.assignedMapUserIds.length === 1) ||
+          (!value.isPersonalGroup && value.name.length > 0);
+      });
+}
+
+/** Return an array of eligible users that have not yet been assigned to a Permission Group */
+export function unassignedEligibleUsers(state: FileDropState) {
+  if (state.data.permissionGroups && state.pending.permissionGroupsTab) {
+    const { eligibleUsers } = state.data.permissionGroups;
+    const { permissionGroups } = state.pending.permissionGroupsTab;
+    const assignedUserIds: Guid[] = [];
+    // Loop through all of the existing Permission Groups and add assigned users to the assignedUserIds array
+    Object.keys(permissionGroups).forEach((pg) => {
+      permissionGroups[pg].assignedMapUserIds.forEach((userId) => assignedUserIds.push(userId));
+    });
+    const availableUsers: AvailableEligibleUsers[] =
+      Object.keys(eligibleUsers)
+        .map((userId) => {
+          return {
+            id: eligibleUsers[userId].id,
+            name: [eligibleUsers[userId].firstName, eligibleUsers[userId].lastName].join(' '),
+            sortName: [eligibleUsers[userId].lastName, eligibleUsers[userId].firstName].join(' '),
+            userName: eligibleUsers[userId].userName,
+          };
+        })
+        .filter((user) => assignedUserIds.indexOf(user.id) === -1)
+        .sort((a, b) => {
+          const aSort = a.sortName.toLowerCase();
+          const bSort = b.sortName.toLowerCase();
+          return aSort.localeCompare(bSort);
+        });
+
+    return availableUsers;
+  }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~

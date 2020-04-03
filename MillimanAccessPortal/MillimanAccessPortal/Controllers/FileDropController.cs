@@ -196,7 +196,8 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
-            model.currentFileDropId = fileDropModel.Id;
+            model.CurrentFileDropId = fileDropModel.Id;
+            model.PermissionGroups = _fileDropQueries.GetPermissionGroupsModelForFileDrop(fileDropModel.Id, fileDropModel.ClientId);
 
             return Json(model);
         }
@@ -247,7 +248,7 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
 
             var model = _fileDropQueries.GetFileDropsModelForClient(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
-            model.currentFileDropId = fileDropRecord.Id;
+            model.CurrentFileDropId = fileDropRecord.Id;
 
             return Json(model);
         }
@@ -306,6 +307,11 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
+                List<FileDropFile> files = await _dbContext.FileDropDirectory
+                                                           .Where(d => d.FileDropId == fileDrop.Id)
+                                                           .SelectMany(d => d.Files)
+                                                           .ToListAsync();
+                _dbContext.FileDropFile.RemoveRange(files);
                 _dbContext.FileDrop.Remove(fileDrop);
                 _dbContext.SaveChanges();
                 _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
@@ -329,6 +335,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             FileDropsModel model = _fileDropQueries.GetFileDropsModelForClient(fileDrop.ClientId, await _userManager.GetUserAsync(User));
+            model.CurrentFileDropId = null;
 
             return Json(model);
         }
@@ -349,6 +356,45 @@ namespace MillimanAccessPortal.Controllers
             var model = _fileDropQueries.GetPermissionGroupsModelForFileDrop(FileDropId, ClientId);
 
             return Json(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFileDropPermissionGroups([FromBody] UpdatePermissionGroupsModel model)
+        {
+            var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
+            if (fileDrop == null)
+            {
+                Log.Warning($"Requested FileDrop Id {model.FileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                var returnModel = await _fileDropQueries.UpdatePermissionGroups(model);
+                return Json(returnModel);
+            }
+            catch (ApplicationException ex)
+            {
+                Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            catch (Exception)
+            {
+                Response.Headers.Add("Warning", "Error while processing updates to file drop permissions.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
         }
     }
 
