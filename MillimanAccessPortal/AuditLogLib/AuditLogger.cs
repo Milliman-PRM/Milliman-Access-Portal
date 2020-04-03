@@ -77,7 +77,7 @@ namespace AuditLogLib
                 if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
                 {
                     WorkerTask = ProcessQueueEventsAsync(Config);
-                    while (WorkerTask.Status != TaskStatus.Running)
+                    while (WorkerTask.Status == TaskStatus.Created)
                     {
                         Thread.Sleep(1);
                     }
