@@ -95,7 +95,7 @@ namespace ContentPublishingServiceTests
                     Assert.All(dbTasks, r => Assert.Equal(ReductionStatusEnum.Queued, r.ReductionStatus));
 
                     var testStart = DateTime.UtcNow;
-                    var monitorTask = jobMonitor.Start(cancelTokenSource.Token);
+                    var monitorTask = jobMonitor.StartAsync(cancelTokenSource.Token);
                     Thread.Sleep(1000);
                     Assert.Equal(TaskStatus.Running, monitorTask.Status);
 

@@ -38,7 +38,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Act
-            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
+            Task MonitorTask = JobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(new TimeSpan(0, 0, 5));
             #endregion
 
@@ -122,7 +122,7 @@ namespace ContentPublishingServiceTests
 
             #region Act
             DateTime TestStart = DateTime.UtcNow;
-            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
+            Task MonitorTask = JobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(1000);
             Assert.Equal(TaskStatus.Running, MonitorTask.Status);
             Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
@@ -233,8 +233,8 @@ namespace ContentPublishingServiceTests
 
             #region Act
             DateTime TestStart = DateTime.UtcNow;
-            Task PublishMonitorTask = PublishJobMonitor.Start(CancelTokenSource.Token);
-            Task ReductionMonitorTask = ReductionJobMonitor.Start(CancelTokenSource.Token);
+            Task PublishMonitorTask = PublishJobMonitor.StartAsync(CancelTokenSource.Token);
+            Task ReductionMonitorTask = ReductionJobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(2000);
             Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
             Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
@@ -304,7 +304,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Act
-            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Task MonitorTask = Task.Run(() => TestMonitor.StartAsync(CancelTokenSource.Token), CancelTokenSource.Token);
             Thread.Sleep(4000);
             try
             {
@@ -353,7 +353,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Act
-            Task MonitorTask = Task.Run(() => TestMonitor.Start(CancelTokenSource.Token), CancelTokenSource.Token);
+            Task MonitorTask = Task.Run(() => TestMonitor.StartAsync(CancelTokenSource.Token), CancelTokenSource.Token);
             Thread.Sleep(8000);
             try
             {

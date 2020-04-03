@@ -28,8 +28,8 @@ namespace ContentPublishingLib.JobMonitors
 
         protected static int JobMonitorInstanceCounter = 0;
 
-        public abstract Task Start(CancellationToken Token);
-        public abstract void JobMonitorThreadMain(CancellationToken Token);
+        public abstract Task StartAsync(CancellationToken Token);
+        public abstract Task JobMonitorThreadMainAsync(CancellationToken Token);
 
         internal abstract string MaxConcurrentRunnersConfigKey { get; }
 
@@ -96,7 +96,7 @@ namespace ContentPublishingLib.JobMonitors
             }
         }
 
-        static protected object _CleanupOnStartLockObj = new object();
-        public virtual void CleanupOnStart() { }
+        static protected SemaphoreSlim _CleanupOnStartSemaphore = new SemaphoreSlim(1, 1);
+        public virtual Task CleanupOnStartAsync() { throw new NotImplementedException(); }
     }
 }

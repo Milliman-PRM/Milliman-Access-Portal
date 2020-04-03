@@ -76,7 +76,7 @@ namespace AuditLogLib
                 InstanceCount++;
                 if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
                 {
-                    WorkerTask = Task.Run(() => ProcessQueueEvents(Config));
+                    WorkerTask = ProcessQueueEventsAsync(Config);
                     while (WorkerTask.Status != TaskStatus.Running)
                     {
                         Thread.Sleep(1);
@@ -144,8 +144,10 @@ namespace AuditLogLib
         /// Worker thread main entry point
         /// </summary>
         /// <param name="Arg">Configuration object</param>
-        private static void ProcessQueueEvents(object Arg)
+        private static async Task ProcessQueueEventsAsync(object Arg)
         {
+            await Task.Yield();
+
             AuditLoggerConfiguration Config = (AuditLoggerConfiguration)Arg;
 
             while (InstanceCount > 0)
@@ -164,7 +166,7 @@ namespace AuditLogLib
                             }
 
                             Db.AuditEvent.AddRange(NewEventsToStore);
-                            Db.SaveChanges();
+                            await Db.SaveChangesAsync();
                         }
                         catch (Exception e)
                         {
@@ -197,7 +199,7 @@ namespace AuditLogLib
         /// </summary>
         /// <param name="whereClauses"></param>
         /// <returns></returns>
-        public async Task<List<AuditEvent>> GetAuditEvents(List<Expression<Func<AuditEvent, bool>>> whereClauses, bool orderDescending = true)
+        public async Task<List<AuditEvent>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> whereClauses, bool orderDescending = true)
         {
             List<AuditEvent> filteredAuditEvents = default;
             using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))

@@ -30,7 +30,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Act
-            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
+            Task MonitorTask = JobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(new TimeSpan(0, 0, 5));
             #endregion
 

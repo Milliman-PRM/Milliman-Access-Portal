@@ -134,7 +134,7 @@ namespace ContentPublishingLib
             foreach (var MonitorKvp in JobMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
-                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
+                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.StartAsync(MonitorInfo.TokenSource.Token);
 
                 Log.Information($"JobMonitor {MonitorKvp.Key} of type {MonitorInfo.Monitor.GetType().Name} started");
             }

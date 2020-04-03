@@ -279,7 +279,7 @@ namespace ContentPublishingServiceTests
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId));  // check before
 
-            Task TaskMonitorTask = ReductionMonitor.Start(CancelTokenSource.Token);
+            Task TaskMonitorTask = ReductionMonitor.StartAsync(CancelTokenSource.Token);
             #endregion
 
             #region Act
