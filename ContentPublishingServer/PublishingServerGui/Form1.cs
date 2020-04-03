@@ -1,18 +1,19 @@
-﻿/*
- * CODE OWNERS: Tom Puckett, 
- * OBJECTIVE: <What and WHY.>
- * DEVELOPER NOTES: <What future developers need to know.>
- */
-
+﻿using ContentPublishingLib;
 using Prm.SerilogCustomization;
 using Serilog;
 using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
 using System.Diagnostics;
+using System.Drawing;
+using System.Linq;
 using System.Reflection;
+using System.Text;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using ContentPublishingLib;
 
-namespace QvReportReductionGui
+namespace PublishingServerGui
 {
     public partial class Form1 : Form
     {
@@ -43,7 +44,7 @@ namespace QvReportReductionGui
             timer1.Start();
         }
 
-        private void ButtonInitiateLoop_Click(object sender, EventArgs e)
+        private void btnStart_Click(object sender, EventArgs e)
         {
             if (Manager == null || !Manager.AnyMonitorThreadRunning)
             {
@@ -52,7 +53,7 @@ namespace QvReportReductionGui
             }
         }
 
-        private void ButtonStop_Click(object sender, EventArgs e)
+        private void btnStop_Click(object sender, EventArgs e)
         {
             StopProcessing();
         }
@@ -68,7 +69,7 @@ namespace QvReportReductionGui
             {
                 Manager.Stop(WaitSec);
 
-                label1.Text = Manager.AllMonitorThreadsRunning.ToString();
+                lblState.Text = Manager.AllMonitorThreadsRunning.ToString();
 
                 if (!Manager.AnyMonitorThreadRunning)
                 {
@@ -79,10 +80,9 @@ namespace QvReportReductionGui
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            label1.Text = (Manager == null) 
-                            ? "Null Manager" 
+            lblState.Text = (Manager == null)
+                            ? "Null Manager"
                             : Manager.AllMonitorThreadsRunning.ToString();
         }
-
     }
 }
