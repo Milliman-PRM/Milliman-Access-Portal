@@ -23,6 +23,10 @@ namespace SftpServerLib
 
         public static ConfigurationRoot ApplicationConfiguration { get; private set; } = null;
 
+        public static T GetConfigValue<T>(string key) => ApplicationConfiguration.GetValue<T>(key);
+        public static T GetConfigValue<T>(string key, T def) => ApplicationConfiguration.GetValue(key, def);
+        public static string GetConnectionString(string key) => ApplicationConfiguration.GetConnectionString(key);
+
         /// <summary>
         /// Sets the connection string to be used when constructing instances of ApplicationDbContext
         /// </summary>
@@ -88,6 +92,8 @@ namespace SftpServerLib
             #endregion
 
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
+
+            MapDbConnectionString = GetConnectionString("DefaultConnection");
         }
 
         /// <summary>
