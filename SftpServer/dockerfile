@@ -1,7 +1,6 @@
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
-WORKDIR /app
 
-COPY SftpServer/bin/Debug/netcoreapp3.1/* .
+COPY SftpServer/bin/Debug/netcoreapp3.1/* /app/
 
 
 ENTRYPOINT ["dotnet", "sftpserver.dll"]
