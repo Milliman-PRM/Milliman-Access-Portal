@@ -20,32 +20,32 @@ namespace MapDbContextLib.Context
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
-        public DbSet<Client> Client { get; set; }
-        public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
-        public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
-        public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
-        public DbSet<SelectionGroup> SelectionGroup { get; set; }
-        public DbSet<RootContentItem> RootContentItem { get; set; }
-        public DbSet<HierarchyField> HierarchyField { get; set; }
-        public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
-        public DbSet<ContentType> ContentType { get; set; }
-        public DbSet<ProfitCenter> ProfitCenter { get; set; }
-        public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
-        public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
-        public DbSet<FileUpload> FileUpload { get; set; }
-        public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
-        public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
+        public virtual DbSet<Client> Client { get; set; }
+        public virtual DbSet<UserRoleInClient> UserRoleInClient { get; set; }
+        public virtual DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
+        public virtual DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
+        public virtual DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
+        public virtual DbSet<SelectionGroup> SelectionGroup { get; set; }
+        public virtual DbSet<RootContentItem> RootContentItem { get; set; }
+        public virtual DbSet<HierarchyField> HierarchyField { get; set; }
+        public virtual DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
+        public virtual DbSet<ContentType> ContentType { get; set; }
+        public virtual DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public virtual DbSet<ContentReductionTask> ContentReductionTask { get; set; }
+        public virtual DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
+        public virtual DbSet<FileUpload> FileUpload { get; set; }
+        public virtual DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
+        public virtual DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
 
-        public DbSet<SftpAccount> SftpAccount { get; set; }
-        public DbSet<FileDrop> FileDrop { get; set; }
-        public DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
-        public DbSet<FileDropDirectory> FileDropDirectory { get; set; }
-        public DbSet<FileDropFile> FileDropFile { get; set; }
+        public virtual DbSet<SftpAccount> SftpAccount { get; set; }
+        public virtual DbSet<FileDrop> FileDrop { get; set; }
+        public virtual DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
+        public virtual DbSet<FileDropDirectory> FileDropDirectory { get; set; }
+        public virtual DbSet<FileDropFile> FileDropFile { get; set; }
 
         // Alteration of Identity entities
-        public DbSet<ApplicationUser> ApplicationUser { get; set; }
-        public DbSet<ApplicationRole> ApplicationRole { get; set; }
+        public virtual DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public virtual DbSet<ApplicationRole> ApplicationRole { get; set; }
 
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }

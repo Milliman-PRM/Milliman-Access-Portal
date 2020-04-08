@@ -20,7 +20,7 @@ namespace TestResourcesLib
     /// <summary>
     /// Support for mocking of a ApplicationDbContext instance
     /// </summary>
-    public static class MockMapDbContext
+    public class MockMapDbContext
     {
         /// <summary>
         /// Creates an instance of mocked ApplicationDbContext. 

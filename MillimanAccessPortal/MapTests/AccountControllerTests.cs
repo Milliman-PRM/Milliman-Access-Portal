@@ -24,14 +24,19 @@ namespace MapTests
     public class AccountControllerTests
     {
         internal TestInitialization TestResources { get; set; }
+        internal TestInitialization2 TestResources2 { get; set; }
 
         /// <summary>
         /// Constructor is called for each test execution
         /// </summary>
         public AccountControllerTests()
         {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Account });
+            //TestResources.GenerateTestData(new DataSelection[] { DataSelection.Account });
+
+            TestResources2 = new TestInitialization2();
+
+            var x = TestResources2.serviceProvider.GetService(typeof(MockableMapDbContext));
+
         }
 
         /// <summary>

@@ -12,7 +12,7 @@ namespace TestResourcesLib
 {
     public class MockRoleStore
     {
-        public static Mock<IRoleStore<ApplicationRole>> NewStore(Mock<ApplicationDbContext> Context)
+        public static Mock<IRoleStore<ApplicationRole>> NewStore(Mock<MockableMapDbContext> Context)
         {
             Mock<IRoleStore<ApplicationRole>> ReturnRoleStore = new Mock<IRoleStore<ApplicationRole>>();
 

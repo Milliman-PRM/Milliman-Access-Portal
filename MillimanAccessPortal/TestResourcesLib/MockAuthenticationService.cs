@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
@@ -24,10 +25,12 @@ namespace TestResourcesLib
     {
         public static Mock<AuthenticationService> New(ApplicationDbContext Context)
         {
-            IAuthenticationSchemeProvider schemes = MockAuthenticationSchemeProvider.New(Context).Object;
+            IOptions<AuthenticationOptions> options = new OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
+
+            IAuthenticationSchemeProvider schemes = new AuthenticationSchemeProvider(options); // MockAuthenticationSchemeProvider.New(Context, options).Object;
             IAuthenticationHandlerProvider handlers = new AuthenticationHandlerProvider(schemes); // MockAuthenticationHandlerProvider.New(schemes).Object;
             IClaimsTransformation transform = new NoopClaimsTransformation();
-            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>(schemes, handlers, transform, new AuthenticationOptions { });
+            Mock<AuthenticationService> ReturnService = new Mock<AuthenticationService>(schemes, handlers, transform, options);
 
             // Provide mocked methods required by tests
             ReturnService.Setup(s => s.AuthenticateAsync(It.IsAny<HttpContext>(), It.IsAny<string>())).ReturnsAsync<HttpContext, string, AuthenticationService, AuthenticateResult>((cxt, scheme) =>
@@ -47,12 +50,11 @@ namespace TestResourcesLib
 
     public class MockAuthenticationSchemeProvider
     {
-        public static Mock<AuthenticationSchemeProvider> New(ApplicationDbContext context)
+        public static Mock<IAuthenticationSchemeProvider> New(ApplicationDbContext context, IOptions<AuthenticationOptions> options)
         {
             List<Microsoft.AspNetCore.Authentication.AuthenticationScheme> Store = new List<Microsoft.AspNetCore.Authentication.AuthenticationScheme>();
 
-            IOptions<AuthenticationOptions> options = new OptionsWrapper<AuthenticationOptions>(new AuthenticationOptions { });
-            Mock<AuthenticationSchemeProvider> ReturnProvider = new Mock<AuthenticationSchemeProvider>(options);
+            Mock<IAuthenticationSchemeProvider> ReturnProvider = new Mock<IAuthenticationSchemeProvider>();
 
             ReturnProvider.Setup(s => s.AddScheme(It.IsAny<Microsoft.AspNetCore.Authentication.AuthenticationScheme>())).Callback<Microsoft.AspNetCore.Authentication.AuthenticationScheme>(scheme => Store.Add(scheme));
             ReturnProvider.Setup(s => s.GetAllSchemesAsync()).ReturnsAsync(Store.AsEnumerable());
@@ -66,10 +68,7 @@ namespace TestResourcesLib
             ReturnProvider.Setup(s => s.GetDefaultSignInSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetDefaultSignOutSchemeAsync()).ReturnsAsync((Microsoft.AspNetCore.Authentication.AuthenticationScheme)null);
             ReturnProvider.Setup(s => s.GetRequestHandlerSchemesAsync()).ReturnsAsync(Store);
-            ReturnProvider.Setup(s => s.GetSchemeAsync(It.IsAny<string>())).ReturnsAsync<string, AuthenticationSchemeProvider, Microsoft.AspNetCore.Authentication.AuthenticationScheme>(name => 
-            {
-                return Store.SingleOrDefault(s => s.Name == name);
-            });
+            ReturnProvider.Setup(s => s.GetSchemeAsync(It.IsAny<string>())).Returns<string>(name => Task.FromResult(Store.SingleOrDefault(s => s.Name == name)));
             ReturnProvider.Setup(s => s.RemoveScheme(It.IsAny<string>())).Callback<string>(name =>
             {
                 var itemToRemove = Store.SingleOrDefault(s => s.Name == name);

@@ -64,7 +64,7 @@ namespace MapTests
     internal class TestInitialization
     {
         #region declarations of managed dependencies
-        public Mock<ApplicationDbContext> MockDbContext { get; set; }
+        public Mock<MockableMapDbContext> MockDbContext { get; set; }
         public ApplicationDbContext DbContextObject { get => MockDbContext.Object; }
 
         public Mock<UserManager<ApplicationUser>> MockUserManager { get; set; }
@@ -227,7 +227,7 @@ namespace MapTests
         /// </summary>
         private void GenerateDependencies()
         {
-            MockDbContext = MockMapDbContext.New();
+            MockDbContext = new Mock<MockableMapDbContext>();
             MockUserManager = TestResourcesLib.MockUserManager.New(MockDbContext);
             MockRoleManager = GenerateRoleManager(MockDbContext);
             MockMessageQueueService = GenerateMessageQueueService();
@@ -255,7 +255,7 @@ namespace MapTests
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
             MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
             AuthenticationSchemeProviderObject = AuthenticationServiceObject.Schemes;
-            MockSignInManager = TestResourcesLib.MockSignInManager.New(UserManagerObject);
+            MockSignInManager = TestResourcesLib.MockSignInManager.New(UserManagerObject, AuthenticationServiceObject, LoggerFactory.CreateLogger<DefaultAuthorizationService>());
         }
 
         /// <summary>
@@ -403,7 +403,7 @@ namespace MapTests
         /// </summary>
         /// <param name="MockDbContextArg"></param>
         /// <returns></returns>
-        private Mock<RoleManager<ApplicationRole>> GenerateRoleManager(Mock<ApplicationDbContext> MockDbContextArg)
+        private Mock<RoleManager<ApplicationRole>> GenerateRoleManager(Mock<MockableMapDbContext> MockDbContextArg)
         {
             Mock<IRoleStore<ApplicationRole>> NewRoleStore = MockRoleStore.NewStore(MockDbContextArg);
             Mock<RoleManager<ApplicationRole>> ReturnMockRoleManager = new Mock<RoleManager<ApplicationRole>>(NewRoleStore.Object, null, null, null, null);

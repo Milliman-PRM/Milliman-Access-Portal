@@ -18,7 +18,7 @@ namespace TestResourcesLib
         public static string GoodToken = "goodToken";
         public static string BadToken = "badToken";
 
-        public static Mock<UserManager<ApplicationUser>> New(Mock<ApplicationDbContext> MockDbContextArg)
+        public static Mock<UserManager<ApplicationUser>> New(Mock<MockableMapDbContext> MockDbContextArg)
         {
             Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> UserStore = MockUserStore.New(MockDbContextArg);
             Mock<UserManager<ApplicationUser>> ReturnMockUserManager = new Mock<UserManager<ApplicationUser>>(UserStore.Object, null, null, null, null, null, null, null, null);

@@ -8,6 +8,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MapDbContextLib.Identity;
 using Moq;
@@ -18,12 +19,15 @@ namespace TestResourcesLib
 {
     public class MockSignInManager
     {
-        public static Mock<SignInManager<ApplicationUser>> New(UserManager<ApplicationUser> userManager)
+        public static Mock<SignInManager<ApplicationUser>> New(UserManager<ApplicationUser> userManager, AuthenticationService authenticationService, ILogger logger)
         {
             var ReturnMockSignInManager = new Mock<SignInManager<ApplicationUser>>(userManager, 
                                                                                    new HttpContextAccessor(), 
-                                                                                   new UserClaimsPrincipalFactory<ApplicationUser>(userManager, new OptionsWrapper<IdentityOptions>(new IdentityOptions())), 
-                                                                                   null, null, null);
+                                                                                   new UserClaimsPrincipalFactory<ApplicationUser>(userManager, new OptionsWrapper<IdentityOptions>(userManager.Options)),
+                                                                                   new OptionsWrapper<IdentityOptions>(userManager.Options),
+                                                                                   logger,
+                                                                                   authenticationService.Schemes,
+                                                                                   new DefaultUserConfirmation<ApplicationUser>());
 
             ReturnMockSignInManager
                 .Setup(m => m.ConfigureExternalAuthenticationProperties(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

@@ -12,13 +12,23 @@ using System.Threading.Tasks;
 
 namespace TestResourcesLib
 {
+    public interface IHasList<T>
+    {
+        public List<T> DataList { get; set; }
+        public IQueryable<T> DataAsQueryable => DataList.AsQueryable();
+    }
+
     public class MockDbSet<T> where T : class
     {
-        public static Mock<DbSet<T>> New(List<T> Data)
+        public static Mock<DbSet<T>> New()
         {
-            var data = Data.AsQueryable();
-
             Mock<DbSet<T>> Set = new Mock<DbSet<T>>();
+
+            //IHasList<T> Data = Set.As<IHasList<T>>().Object;
+            //Set.As<IHasList<T>>().SetupProperty(s => s.DataList, new List<T>());
+            List<T> Data = new List<T>();
+            IQueryable<T> data = Data.AsQueryable();
+
             Set.As<IQueryable<T>>().Setup(m => m.Provider).Returns(new DbSetAsyncQueryProvider<T>(data.Provider));
             Set.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
             Set.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
@@ -32,7 +42,7 @@ namespace TestResourcesLib
             //    Data.Add(s);
             //});
             Set.Setup(d => d.AddRange(It.IsAny<IEnumerable<T>>())).Callback<IEnumerable<T>>((s) => Data.AddRange(s));
-            Set.Setup(d => d.AddRangeAsync(It.IsAny<IEnumerable<T>>(), It.IsAny<CancellationToken>())).Callback<IEnumerable<T>, CancellationToken>((s, ct) =>Data.AddRange(s));
+            Set.Setup(d => d.AddRangeAsync(It.IsAny<IEnumerable<T>>(), It.IsAny<CancellationToken>())).Callback<IEnumerable<T>, CancellationToken>((s, ct) => Data.AddRange(s));
             Set.Setup(d => d.Remove(It.IsAny<T>())).Callback<T>((s) =>
             {
                 int foundIndex = -1;

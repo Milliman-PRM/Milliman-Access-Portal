@@ -16,7 +16,7 @@ namespace TestResourcesLib
     internal class MockUserStore
     {
         //internal static Mock<IUserStore<ApplicationUser>> New(Mock<ApplicationDbContext> Context)
-        internal static Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> New(Mock<ApplicationDbContext> Context)
+        internal static Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> New(Mock<MockableMapDbContext> Context)
         {
             //Mock<IUserStore<ApplicationUser>> NewStore = new Mock<IUserStore<ApplicationUser>>();
             Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>> NewStore = new Mock<UserStore<ApplicationUser, ApplicationRole, ApplicationDbContext, Guid>>(Context.Object, null) {CallBase=true };
