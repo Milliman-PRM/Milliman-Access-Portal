@@ -4,7 +4,7 @@ import {
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
-import { AvailableFileDropTabs } from './store';
+import { AfterFormModal, AvailableFileDropTabs } from './store';
 
 // ~~~~~~~~~~~~
 // Page Actions
@@ -144,6 +144,17 @@ export interface AddNewPermissionGroup {
   type: 'ADD_NEW_PERMISSION_GROUP';
   tempPGId: string;
   isSingleGroup: boolean;
+}
+
+/** Open the modal used to confirm navigation away from a modified form */
+export interface OpenModifiedFormModal {
+  type: 'OPEN_MODIFIED_FORM_MODAL';
+  afterFormModal: AfterFormModal;
+}
+
+/** Close the modal used to confirm navigation away from a modified form */
+export interface CloseModifiedFormModal {
+  type: 'CLOSE_MODIFIED_FORM_MODAL';
 }
 
 /** Set Permission Group  */
@@ -410,6 +421,8 @@ export type FileDropPageActions =
   | SetPermissionGroupNameText
   | SetEditModeForPermissionGroups
   | AddNewPermissionGroup
+  | OpenModifiedFormModal
+  | CloseModifiedFormModal
   ;
 
 /** Actions that schedule another action */
@@ -480,4 +493,5 @@ export type OpenModalAction =
   | OpenCreateFileDropModal
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
+  | OpenModifiedFormModal
   ;

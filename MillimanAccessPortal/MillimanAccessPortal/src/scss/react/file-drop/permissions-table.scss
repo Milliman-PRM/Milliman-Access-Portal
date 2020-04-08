@@ -14,6 +14,12 @@
                 width: 2em;
             }
 
+            &.col-name {
+                max-width: 12em;
+                width: 12em;
+                min-width: 8em;
+            }
+
             &.col-permission-download,
             &.col-permission-upload,
             &.col-permission-delete {
@@ -37,7 +43,7 @@
         color: $charcoal;
         padding: 0;
     }
-        
+
     th.content-center, td.content-center {
         text-align: center;
     }
@@ -50,6 +56,10 @@
     .table-icon {
         height: 1.5em;
         width: 1.5em;
+
+        &.required {
+            color: $red;
+        }
     }
 
     td.add-user {
@@ -83,7 +93,7 @@
 
             &.last-group-row,
             &.action-row {
-                border-bottom: 1px solid $charcoal;
+                border-bottom: 1px solid $grey;
             }
 
             &.last-group-row td {
@@ -116,8 +126,8 @@
             }
 
             td {
-                padding-top: .5em;
-                padding-bottom: .5em;
+                padding-top: .25em;
+                padding-bottom: .25em;
 
                 .selection-option-container {
                     justify-content: center;
@@ -127,6 +137,25 @@
 
                     .selection-option-label {
                         height: 1em;
+                    }
+                }
+
+                .react-select.required .react-select__control {
+                    border: 2px solid $red;
+                    box-shadow: 1 1 2px $red;
+                    
+                    .react-select__placeholder {
+                        color: rgba($red, .5);
+                        font-weight: bold;
+                    }
+                }
+
+                .group-name-input.required {
+                    border-bottom: 2px solid $red;
+
+                    &::placeholder {
+                        color: rgba($red, .5);
+                        opacity: 1;
                     }
                 }
             }

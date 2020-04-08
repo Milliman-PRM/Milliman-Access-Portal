@@ -78,6 +78,11 @@ const _initialFileDropWithStats: FileDropWithStats = {
   userCount: null,
 };
 
+const _initialAfterFormModal: State.AfterFormModal = {
+  entityType: null,
+  entityToSelect: null,
+};
+
 // ~~~~~~~~~~~~~~~~
 // Pending Reducers
 // ~~~~~~~~~~~~~~~~
@@ -255,29 +260,21 @@ const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
 
 /** Reducer for Permission Groups form data */
 const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialPermissionGroupsTab, {
-  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) => ({
-    ...action.response.permissionGroups,
-  }),
-  FETCH_PERMISSION_GROUPS: () => ({
-    ..._.cloneDeep(_initialPermissionGroupsTab),
-  }),
+  CREATE_FILE_DROP_SUCCEEDED: (_state, action: Action.CreateFileDropSucceeded) =>
+    _.cloneDeep(action.response.permissionGroups),
+  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) =>
+    _.cloneDeep(action.response),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) =>
+    _.cloneDeep(action.response),
+  OPEN_CREATE_FILE_DROP_MODAL: () => _.cloneDeep(_initialPermissionGroupsTab),
+  FETCH_PERMISSION_GROUPS: () => _.cloneDeep(_initialPermissionGroupsTab),
   DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
     if (state.fileDropId === action.response.currentFileDropId) {
-      return {
-        ..._.cloneDeep(_initialPermissionGroupsTab),
-      };
+      return _.cloneDeep(_initialPermissionGroupsTab);
     } else {
-      return {
-        ...state,
-      };
+      return state;
     }
   },
-  FETCH_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ..._.cloneDeep(action.response),
-  }),
-  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (_state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ..._.cloneDeep(action.response),
-  }),
   SET_PERMISSION_GROUP_PERMISSION_VALUE: (state, action: Action.SetPermissionGroupPermissionValue) => ({
     ...state,
     permissionGroups: {
@@ -296,9 +293,8 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       permissionGroups,
     };
   },
-  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) => ({
-    ...JSON.parse(JSON.stringify(action.originalValues)),
-  }),
+  DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) =>
+    _.cloneDeep(action.originalValues),
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
     const { assignedMapUserIds } = state.permissionGroups[action.pgId];
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
@@ -368,6 +364,14 @@ const permissionGroupsEditMode = createReducer<boolean>(false, {
   SELECT_FILE_DROP_TAB: () => false,
 });
 
+const afterFormModal = createReducer<State.AfterFormModal>(_initialAfterFormModal, {
+  OPEN_MODIFIED_FORM_MODAL: (_state, action: Action.OpenModifiedFormModal) => ({
+    entityToSelect: action.afterFormModal.entityToSelect,
+    entityType: action.afterFormModal.entityType,
+  }),
+  CLOSE_MODIFIED_FORM_MODAL: () => _initialAfterFormModal,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -378,6 +382,7 @@ const pending = combineReducers({
   selectedFileDropTab,
   permissionGroupsTab,
   permissionGroupsEditMode,
+  afterFormModal,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -410,6 +415,10 @@ const selected = createReducer<State.FileDropSelectedState>(
     DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
       ...state,
       fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
+    }),
+    OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
+      ...state,
+      fileDrop: null,
     }),
   },
 );
@@ -521,6 +530,16 @@ const modals = combineReducers({
     'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL',
     'DELETE_FILE_DROP_SUCCEEDED',
     'DELETE_FILE_DROP_FAILED',
+  ]),
+  formModified: createModalReducer(['OPEN_MODIFIED_FORM_MODAL'], [
+    'CLOSE_MODIFIED_FORM_MODAL',
+    'DISCARD_PENDING_PERMISSION_GROUP_CHANGES',
+    'SELECT_CLIENT',
+    'SELECT_FILE_DROP',
+    'CREATE_FILE_DROP',
+    'EDIT_FILE_DROP',
+    'DELETE_FILE_DROP',
+    'SELECT_FILE_DROP_TAB',
   ]),
 });
 
