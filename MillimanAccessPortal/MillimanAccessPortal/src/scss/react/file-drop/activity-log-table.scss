@@ -2,5 +2,12 @@
 @import "../../map_modules/mixins";
 
 .activity-log-table {
-    width: 100%;
+
+    .event-row {
+        border-bottom: 1px solid $grey;
+
+        td {
+            padding: .5em 0;
+        }
+    }
 }
