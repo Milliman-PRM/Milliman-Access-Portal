@@ -27,5 +27,6 @@ namespace SftpServerLib
     {
         public string Fingerprint { get; set; }
         public string About { get; set; }
+        public int LocalPort { get; set; }
     }
 }

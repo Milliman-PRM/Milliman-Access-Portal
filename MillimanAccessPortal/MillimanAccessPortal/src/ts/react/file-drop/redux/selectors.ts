@@ -237,22 +237,23 @@ export function permissionGroupEntities(state: FileDropState) {
     permissionGroupIds.forEach((pg) => {
       if (_.includes(permissionGroups[pg].name.toLowerCase(), filterText.toLowerCase())) {
         filteredPermissionGroups[pg] = permissionGroups[pg];
-      }
-      permissionGroups[pg].assignedMapUserIds.forEach((user) => {
-        if (
-          _.includes(
-            [eligibleUsers[user].firstName, eligibleUsers[user].lastName].join(' ').toLowerCase(),
-            filterText.toLowerCase(),
-          ) ||
-          _.includes(eligibleUsers[user].userName.toLowerCase(), filterText.toLowerCase())
-        ) {
-          if (!(pg in filteredPermissionGroups)) {
-            filteredPermissionGroups[pg] = permissionGroups[pg];
-            filteredPermissionGroups[pg].assignedMapUserIds = [];
+      } else {
+        permissionGroups[pg].assignedMapUserIds.forEach((user) => {
+          if (
+            _.includes(
+              [eligibleUsers[user].firstName, eligibleUsers[user].lastName].join(' ').toLowerCase(),
+              filterText.toLowerCase(),
+            ) ||
+            _.includes(eligibleUsers[user].userName.toLowerCase(), filterText.toLowerCase())
+          ) {
+            if (!(pg in filteredPermissionGroups)) {
+              filteredPermissionGroups[pg] = permissionGroups[pg];
+              filteredPermissionGroups[pg].assignedMapUserIds = [];
+            }
+            filteredPermissionGroups[pg].assignedMapUserIds.push(user);
           }
-          filteredPermissionGroups[pg].assignedMapUserIds.push(user);
-        }
-      });
+        });
+      }
     });
     return {
       fileDropId,
