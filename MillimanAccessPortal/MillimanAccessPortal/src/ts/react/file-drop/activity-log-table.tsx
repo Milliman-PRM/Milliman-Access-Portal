@@ -52,7 +52,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
   // Render rows by Log Event type
   public renderFileDropCreatedRow(logEvent: FDEventCreated) {
     return (
-      <tr>
+      <tr className="event-row">
         <td/>
         <td>{logEvent.user}</td>
         <td>{this.localizeUtcTimeStamp(logEvent.timeStampUtc)}</td>
@@ -64,7 +64,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
 
   public renderFileDropUpdatedRow(logEvent: FDEventUpdated) {
     return (
-      <tr>
+      <tr className="event-row">
         <td />
         <td>{logEvent.user}</td>
         <td>{this.localizeUtcTimeStamp(logEvent.timeStampUtc)}</td>
