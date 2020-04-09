@@ -116,7 +116,6 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 
-$env:MSBuildSDKsPath="C:\Program Files\dotnet\sdk"
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
