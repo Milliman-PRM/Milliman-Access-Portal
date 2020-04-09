@@ -509,11 +509,11 @@ docker build -t filedropsftp .
 
 docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
 
-docker tag filedropsftp $acr_url/filedropsftp:v1
+docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
-docker push $acr_url/filedropsftp:v1
+docker push $acr_url/filedropsftp:$TrimmedBranch
 
-docker rmi $acr_url/filedropsftp:v1
+docker rmi $acr_url/filedropsftp:$TrimmedBranch
 
 #endregion
 
