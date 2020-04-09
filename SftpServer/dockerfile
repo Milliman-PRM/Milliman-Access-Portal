@@ -3,4 +3,4 @@ FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
 COPY SftpServer/bin/Debug/netcoreapp3.1/* /app/
 
 
-ENTRYPOINT ["dotnet", "sftpserver.dll"]
+ENTRYPOINT ["dotnet", "/app/sftpserver.dll"]
