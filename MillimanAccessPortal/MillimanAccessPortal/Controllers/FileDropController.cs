@@ -390,11 +390,13 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (ApplicationException ex)
             {
+                Log.Error(ex, "ApplicationException thrown from FileDropQueries.UpdatePermissionGroups");
                 Response.Headers.Add("Warning", ex.Message);
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Error(ex, "Exception thrown from FileDropQueries.UpdatePermissionGroups");
                 Response.Headers.Add("Warning", "Error while processing updates to file drop permissions.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
