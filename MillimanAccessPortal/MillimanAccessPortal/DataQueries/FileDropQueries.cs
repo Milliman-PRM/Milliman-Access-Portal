@@ -323,6 +323,7 @@ namespace MillimanAccessPortal.DataQueries
 
                     List<SftpAccount> existinguserAccountsToAdd = _dbContext.SftpAccount
                                                                 .Where(a => userIdList.Contains(a.ApplicationUserId.Value))
+                                                                .Where(a => a.FileDropId == model.FileDropId)
                                                                 .ToList();
 
                     List<Guid> userIdsRequiringNewAccount = userIdList.Except(existinguserAccountsToAdd.Select(a => a.ApplicationUserId.Value)).ToList();
