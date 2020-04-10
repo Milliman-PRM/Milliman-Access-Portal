@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.Extensions.Caching.Memory;
 using Moq;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -103,6 +104,8 @@ namespace TestResourcesLib
         #endregion
         #endregion
 
+        public MockableMapDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
+        {}
 
         public MockableMapDbContext()
         {
@@ -151,12 +154,15 @@ namespace TestResourcesLib
         {}
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {}
+        {
+            optionsBuilder.UseNpgsql("xyz");
+            var opt = optionsBuilder.Options;
+            //optionsBuilder.UseInMemoryDatabase(databaseName: "Products Test");
+        }
 
         /// <summary>
         /// Creates all of the member objects of type Mock<DbSet<...>>. 
         /// </summary>
-        /// <param name="Initialize">A Func that modifies the mocked context to be returned. Optional, you can add data later too</param>
         /// <returns></returns>
         public void HookUpNavigationProperties()
         {

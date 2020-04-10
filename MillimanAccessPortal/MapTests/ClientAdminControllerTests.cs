@@ -17,33 +17,24 @@ namespace MapTests
         internal TestInitialization TestResources { get; set; }
 
         /// <summary>
-        /// Constructor is called for each test execution
-        /// </summary>
-        public ClientAdminControllerTests()
-        {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
-        }
-
-        /// <summary>
         /// Common controller constructor to be used by all tests
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
         public async Task<ClientAdminController> GetControllerForUser(string UserName)
         {
-            ClientAdminController testController = new ClientAdminController(TestResources.DbContextObject,
-                TestResources.AuditLoggerObject,
+            ClientAdminController testController = new ClientAdminController(TestResources.DbContext,
+                TestResources.AuditLogger,
                 TestResources.AuthorizationService,
                 TestResources.MessageQueueServicesObject,
-                TestResources.RoleManagerObject,
-                TestResources.QueriesObj,
-                TestResources.UserManagerObject,
-                TestResources.ConfigurationObject,
+                TestResources.RoleManager,
+                TestResources.StandardQueries,
+                TestResources.UserManager,
+                TestResources.Configuration,
                 null);   // AccountController
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-        testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: (await TestResources.UserManagerObject.FindByNameAsync(UserName)).UserName);
+        testController.ControllerContext = TestResources.GenerateControllerContext(userName: (await TestResources.UserManager.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -79,17 +70,20 @@ namespace MapTests
         [Fact]
         public async Task Index_ErrorWhenUnauthorized()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("test1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("test1");
+                #endregion
 
-            #region Act
-            var view = await controller.Index();
-            #endregion
+                #region Act
+                var view = await controller.Index();
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -98,17 +92,20 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsAView()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.Index();
-            #endregion
+                #region Act
+                var view = await controller.Index();
+                #endregion
 
-            #region Assert
-            Assert.IsType<ViewResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<ViewResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -117,17 +114,20 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ErrorWhenUnauthorized()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("test1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("test1");
+                #endregion
 
-            #region Act
-            var view = await controller.ClientFamilyList();
-            #endregion
+                #region Act
+                var view = await controller.ClientFamilyList();
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -136,18 +136,21 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ReturnsAList()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.ClientFamilyList();
-            #endregion
+                #region Act
+                var view = await controller.ClientFamilyList();
+                #endregion
 
-            #region Assert
-            JsonResult typedResult = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientAdminIndexViewModel>(typedResult.Value);
-            #endregion
+                #region Assert
+                JsonResult typedResult = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientAdminIndexViewModel>(typedResult.Value);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -156,17 +159,20 @@ namespace MapTests
         [Fact]
         public async Task ClientDetail_ErrorWhenNotFound()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(-100));
-            #endregion
+                #region Act
+                var view = await controller.ClientDetail(TestUtil.MakeTestGuid(-100));
+                #endregion
 
-            #region Assert
-            Assert.IsType<NotFoundResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<NotFoundResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -177,17 +183,20 @@ namespace MapTests
         [InlineData("test1", 1)] // Not authorized to perform client admin
         public async Task ClientDetail_ErrorWhenUnauthorized(string userArg, int clientIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                #endregion
 
-            #region Act
-            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
-            #endregion
+                #region Act
+                var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -198,18 +207,21 @@ namespace MapTests
         [InlineData("ClientAdmin1", 2)] // Authorized to a related (parent) client
         public async Task ClientDetail_ReturnsDetails(string userArg, int clientIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                #endregion
 
-            #region Act
-            var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
-            #endregion
+                #region Act
+                var view = await controller.ClientDetail(TestUtil.MakeTestGuid(clientIdArg));
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientDetailViewModel>(result.Value);
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientDetailViewModel>(result.Value);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -221,18 +233,21 @@ namespace MapTests
         [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
         public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
+                #endregion
 
-            #region Act
-            var view = await controller.AssignUserToClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.AssignUserToClient(viewModel);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -243,18 +258,21 @@ namespace MapTests
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
         public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
+                #endregion
 
-            #region Act
-            var view = await controller.AssignUserToClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.AssignUserToClient(viewModel);
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestObjectResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -263,26 +281,29 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_NoActionWhenAssigned()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1) };
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1) };
 
-            // Count users assigned to the client before attempting change
-            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
-            #endregion
+                // Count users assigned to the client before attempting change
+                int preActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
+                #endregion
 
-            #region Act
-            var view = await controller.AssignUserToClient(viewModel);
+                #region Act
+                var view = await controller.AssignUserToClient(viewModel);
 
-            // Capture the number of users assigned to the client after the call to AssignUserToClient
-            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
-            #endregion
+                // Capture the number of users assigned to the client after the call to AssignUserToClient
+                int afterActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientDetailViewModel>(result.Value);
-            Assert.Equal(preActionCount, afterActionCount);
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientDetailViewModel>(result.Value);
+                Assert.Equal(preActionCount, afterActionCount);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -291,19 +312,22 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_ErrorForInvalidEmail()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(1) };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(1) };
+                #endregion
 
-            #region Act
-            var view = await controller.AssignUserToClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.AssignUserToClient(viewModel);
+                #endregion
 
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            #endregion
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -312,26 +336,29 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_Success()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(4) };
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(4) };
 
-            // Before acting on the input data, we need to gather initial data to compare the result to
-            int beforeCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
-            #endregion
+                // Before acting on the input data, we need to gather initial data to compare the result to
+                int beforeCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
+                #endregion
 
-            #region Act
-            var view = await controller.AssignUserToClient(viewModel);
+                #region Act
+                var view = await controller.AssignUserToClient(viewModel);
 
-            // Capture the number of users assigned to the client after the call to AssignUserToClient
-            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
-            #endregion
+                // Capture the number of users assigned to the client after the call to AssignUserToClient
+                int afterActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString()).Count();
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientDetailViewModel>(result.Value);
-            Assert.Equal(beforeCount + 1, afterActionCount);
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientDetailViewModel>(result.Value);
+                Assert.Equal(beforeCount + 1, afterActionCount);
+                #endregion
+            }
         }
 
         [Theory]
@@ -340,30 +367,33 @@ namespace MapTests
         [InlineData(2, "ClientAdmin1")]
         public async Task SetUserRoleInClient_ErrorWhenUnauthorized(int clientId, string userName)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userName);
-            var clientUserModel = new ClientUserAssociationViewModel
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                ClientId = TestUtil.MakeTestGuid(clientId),
-                UserId = TestUtil.MakeTestGuid(1),
-            };
-            var roleModel = new AssignedRoleInfo
-            {
-                RoleEnum = RoleEnum.Admin,
-                IsAssigned = true,
-            };
-            #endregion
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userName);
+                var clientUserModel = new ClientUserAssociationViewModel
+                {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(1),
+                };
+                var roleModel = new AssignedRoleInfo
+                {
+                    RoleEnum = RoleEnum.Admin,
+                    IsAssigned = true,
+                };
+                #endregion
 
-            #region Act
-            int preCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
-            int postCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            #endregion
+                #region Act
+                int preCount = TestResources.DbContext.UserRoleInClient.Count();
+                var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+                int postCount = TestResources.DbContext.UserRoleInClient.Count();
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            Assert.Equal(preCount, postCount);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                Assert.Equal(preCount, postCount);
+                #endregion
+            }
         }
 
         [Theory]
@@ -371,117 +401,126 @@ namespace MapTests
         [InlineData(1, 2)]
         public async Task SetUserRoleInClient_ErrorWhenInvalid(int clientId, int userId)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            var clientUserModel = new ClientUserAssociationViewModel
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                ClientId = TestUtil.MakeTestGuid(clientId),
-                UserId = TestUtil.MakeTestGuid(userId),
-            };
-            var roleModel = new AssignedRoleInfo
-            {
-                RoleEnum = RoleEnum.Admin,
-                IsAssigned = true,
-            };
-            #endregion
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                var clientUserModel = new ClientUserAssociationViewModel
+                {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
+                };
+                var roleModel = new AssignedRoleInfo
+                {
+                    RoleEnum = RoleEnum.Admin,
+                    IsAssigned = true,
+                };
+                #endregion
 
-            #region Act
-            int preCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
-            int postCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            #endregion
+                #region Act
+                int preCount = TestResources.DbContext.UserRoleInClient.Count();
+                var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+                int postCount = TestResources.DbContext.UserRoleInClient.Count();
+                #endregion
 
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            Assert.Equal(preCount, postCount);
-            #endregion
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                Assert.Equal(preCount, postCount);
+                #endregion
+            }
         }
 
         [Theory]
         [InlineData(1, 5, RoleEnum.ContentUser)]
         public async Task SetUserRoleInClient_Success(int clientId, int userId, RoleEnum role)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            var clientUserModel = new ClientUserAssociationViewModel
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                ClientId = TestUtil.MakeTestGuid(clientId),
-                UserId = TestUtil.MakeTestGuid(userId),
-            };
-            var roleModelAdd = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = true,
-            };
-            var roleModelRemove = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = false,
-            };
-            #endregion
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                var clientUserModel = new ClientUserAssociationViewModel
+                {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
+                };
+                var roleModelAdd = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = true,
+                };
+                var roleModelRemove = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = false,
+                };
+                #endregion
 
-            #region Act
-            int preAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
-            int postAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+                #region Act
+                int preAddCount = TestResources.DbContext.UserRoleInClient.Count();
+                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                int postAddCount = TestResources.DbContext.UserRoleInClient.Count();
 
-            int preRemoveCount = postAddCount;
-            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
-            int postRemoveCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            #endregion
+                int preRemoveCount = postAddCount;
+                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                int postRemoveCount = TestResources.DbContext.UserRoleInClient.Count();
+                #endregion
 
-            #region Assert
-            var addResult = Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
-            var removeResult = Assert.IsType<JsonResult>(viewRemove);
-            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
-            Assert.Equal(preAddCount + 1, postAddCount);
-            Assert.Equal(preRemoveCount - 1, postRemoveCount);
-            #endregion
+                #region Assert
+                var addResult = Assert.IsType<JsonResult>(viewAdd);
+                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                var removeResult = Assert.IsType<JsonResult>(viewRemove);
+                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.Equal(preAddCount + 1, postAddCount);
+                Assert.Equal(preRemoveCount - 1, postRemoveCount);
+                #endregion
+            }
         }
 
         [Theory]
         [InlineData(1, 5, RoleEnum.Admin)]
         public async Task SetUserRoleInClient_Success_Pair(int clientId, int userId, RoleEnum role)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            var clientUserModel = new ClientUserAssociationViewModel
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                ClientId = TestUtil.MakeTestGuid(clientId),
-                UserId = TestUtil.MakeTestGuid(userId),
-            };
-            var roleModelAdd = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = true,
-            };
-            var roleModelRemove = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = false,
-            };
-            #endregion
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                var clientUserModel = new ClientUserAssociationViewModel
+                {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
+                };
+                var roleModelAdd = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = true,
+                };
+                var roleModelRemove = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = false,
+                };
+                #endregion
 
-            #region Act
-            int preAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
-            int postAddCount = TestResources.DbContextObject.UserRoleInClient.Count();
+                #region Act
+                int preAddCount = TestResources.DbContext.UserRoleInClient.Count();
+                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                int postAddCount = TestResources.DbContext.UserRoleInClient.Count();
 
-            int preRemoveCount = postAddCount;
-            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
-            int postRemoveCount = TestResources.DbContextObject.UserRoleInClient.Count();
-            #endregion
+                int preRemoveCount = postAddCount;
+                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                int postRemoveCount = TestResources.DbContext.UserRoleInClient.Count();
+                #endregion
 
-            #region Assert
-            var addResult = Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
-            var removeResult = Assert.IsType<JsonResult>(viewRemove);
-            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
-            Assert.Equal(preAddCount + 2, postAddCount);
-            Assert.Equal(preRemoveCount - 2, postRemoveCount);
-            #endregion
+                #region Assert
+                var addResult = Assert.IsType<JsonResult>(viewAdd);
+                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                var removeResult = Assert.IsType<JsonResult>(viewRemove);
+                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.Equal(preAddCount + 2, postAddCount);
+                Assert.Equal(preRemoveCount - 2, postRemoveCount);
+                #endregion
+            }
         }
 
         [Theory]
@@ -489,51 +528,54 @@ namespace MapTests
         [InlineData(1, 5, RoleEnum.ContentPublisher)]
         public async Task SetUserRoleInClient_Success_Content(int clientId, int userId, RoleEnum role)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            var clientUserModel = new ClientUserAssociationViewModel
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                ClientId = TestUtil.MakeTestGuid(clientId),
-                UserId = TestUtil.MakeTestGuid(userId),
-            };
-            var roleModelAdd = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = true,
-            };
-            var roleModelRemove = new AssignedRoleInfo
-            {
-                RoleEnum = role,
-                IsAssigned = false,
-            };
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                var clientUserModel = new ClientUserAssociationViewModel
+                {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
+                };
+                var roleModelAdd = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = true,
+                };
+                var roleModelRemove = new AssignedRoleInfo
+                {
+                    RoleEnum = role,
+                    IsAssigned = false,
+                };
 
-            int relatedRootContentItemCount = TestResources.DbContextObject.RootContentItem.Count(i => i.ClientId == TestUtil.MakeTestGuid(clientId));
-            #endregion
+                int relatedRootContentItemCount = TestResources.DbContext.RootContentItem.Count(i => i.ClientId == TestUtil.MakeTestGuid(clientId));
+                #endregion
 
-            #region Act
-            int preAddCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
-            int preAddCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
-            var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
-            int postAddCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
-            int postAddCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
+                #region Act
+                int preAddCount_Client = TestResources.DbContext.UserRoleInClient.Count();
+                int preAddCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
+                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                int postAddCount_Client = TestResources.DbContext.UserRoleInClient.Count();
+                int postAddCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
 
-            int preRemoveCount_Client = postAddCount_Client;
-            int preRemoveCount_Content = postAddCount_Content;
-            var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
-            int postRemoveCount_Client = TestResources.DbContextObject.UserRoleInClient.Count();
-            int postRemoveCount_Content = TestResources.DbContextObject.UserRoleInRootContentItem.Count();
-            #endregion
+                int preRemoveCount_Client = postAddCount_Client;
+                int preRemoveCount_Content = postAddCount_Content;
+                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                int postRemoveCount_Client = TestResources.DbContext.UserRoleInClient.Count();
+                int postRemoveCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
+                #endregion
 
-            #region Assert
-            var addResult = Assert.IsType<JsonResult>(viewAdd);
-            Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
-            var removeResult = Assert.IsType<JsonResult>(viewRemove);
-            Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
-            Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
-            Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
-            Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);
-            Assert.Equal(preRemoveCount_Content - relatedRootContentItemCount, postRemoveCount_Content);
-            #endregion
+                #region Assert
+                var addResult = Assert.IsType<JsonResult>(viewAdd);
+                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                var removeResult = Assert.IsType<JsonResult>(viewRemove);
+                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
+                Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
+                Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);
+                Assert.Equal(preRemoveCount_Content - relatedRootContentItemCount, postRemoveCount_Content);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -544,18 +586,21 @@ namespace MapTests
         [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client
         public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
+                #endregion
 
-            #region Act
-            var view = await controller.RemoveUserFromClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.RemoveUserFromClient(viewModel);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -566,18 +611,21 @@ namespace MapTests
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
         public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
+                #endregion
 
-            #region Act
-            var view = await controller.RemoveUserFromClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.RemoveUserFromClient(viewModel);
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestObjectResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -588,32 +636,35 @@ namespace MapTests
         [Fact]
         public async Task RemoveUserFromClient_Success()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(2) };
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(2) };
 
-            int preActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
-            #endregion
+                int preActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
+                #endregion
 
-            #region Act
-            var view = await controller.RemoveUserFromClient(viewModel);
-            #endregion
+                #region Act
+                var view = await controller.RemoveUserFromClient(viewModel);
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientDetailViewModel>(result.Value);
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientDetailViewModel>(result.Value);
 
-            // Capture the number of users assigned to the client after the call to RemoveUserFromClient
-            int afterActionCount = TestResources.DbContextObject.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
-            Assert.Equal(preActionCount - 1, afterActionCount);
+                // Capture the number of users assigned to the client after the call to RemoveUserFromClient
+                int afterActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
+                Assert.Equal(preActionCount - 1, afterActionCount);
 
-            // Ensure that the user no longer has roles on the client they were removed from
-            int userRoleCountInClient = 
-                    TestResources.DbContextObject.UserRoleInClient.Where(ur => 
-                        ur.ClientId == viewModel.ClientId && 
-                        ur.UserId == viewModel.UserId).Count();
-            Assert.Equal(0, userRoleCountInClient);
-            #endregion
+                // Ensure that the user no longer has roles on the client they were removed from
+                int userRoleCountInClient =
+                        TestResources.DbContext.UserRoleInClient.Where(ur =>
+                            ur.ClientId == viewModel.ClientId &&
+                            ur.UserId == viewModel.UserId).Count();
+                Assert.Equal(0, userRoleCountInClient);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -622,19 +673,22 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenParentIdIsClientId()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            testClient.ParentClientId = testClient.Id;
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Act
+                testClient.ParentClientId = testClient.Id;
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestObjectResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -643,19 +697,22 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenModelStateInvalid()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            controller.ModelState.AddModelError("BadModel", "This is a forced bad model.");
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Act
+                controller.ModelState.AddModelError("BadModel", "This is a forced bad model.");
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -668,20 +725,23 @@ namespace MapTests
         [InlineData("ClientAdmin1", 3, 1)]// Request new child client; user is admin of profit center but not parent client
         public async Task SaveNewClient_ErrorWhenNotAuthorized(string userArg, int? parentClientIdArg, int profitCenterIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser(userArg);
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(userArg);
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            testClient.ParentClientId = parentClientIdArg.HasValue ? TestUtil.MakeTestGuid(parentClientIdArg.Value) : (Guid?)null;
-            testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Act
+                testClient.ParentClientId = parentClientIdArg.HasValue ? TestUtil.MakeTestGuid(parentClientIdArg.Value) : (Guid?)null;
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -694,28 +754,31 @@ namespace MapTests
         [InlineData(null, new string[] { "@test.com" })] // invalid email address format (no user before @)
         public async Task SaveNewClient_ErrorWhenEmailInvalid(string[] domainListArg, string[] emailListArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
-
-            #region Act
-            testClient.ParentClientId = null;
-            if (domainListArg != null)
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                testClient.AcceptedEmailDomainList = domainListArg.ToList();
-            }
-            if (emailListArg != null)
-            {
-                testClient.AcceptedEmailAddressExceptionList = emailListArg.ToList();
-            }
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            #endregion
+                #region Act
+                testClient.ParentClientId = null;
+                if (domainListArg != null)
+                {
+                    testClient.AcceptedEmailDomainList = domainListArg.ToList();
+                }
+                if (emailListArg != null)
+                {
+                    testClient.AcceptedEmailAddressExceptionList = emailListArg.ToList();
+                }
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
+
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -724,21 +787,24 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenDomainLimitExceeded()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            testClient.ParentClientId = null;
-            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                testClient.ParentClientId = null;
+                testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+                #endregion
 
-            #region Act
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Act
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
 
-            #region Assert
-            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, result.StatusCode);
-            #endregion
+                #region Assert
+                StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, result.StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -747,27 +813,30 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_Success()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
 
-            int beforeCount = TestResources.DbContextObject.Client.Count();
-            int expectedAfterCount = beforeCount + 1;
-            #endregion
+                int beforeCount = TestResources.DbContext.Client.Count();
+                int expectedAfterCount = beforeCount + 1;
+                #endregion
 
-            #region Act
-            testClient.ParentClientId = null;
-            testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
-            var view = await controller.SaveNewClient(testClient);
-            #endregion
+                #region Act
+                testClient.ParentClientId = null;
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
-            int afterCount = TestResources.DbContextObject.Client.Count();
-            Assert.Equal<int>(expectedAfterCount, afterCount);
-            #endregion
+                int afterCount = TestResources.DbContext.Client.Count();
+                Assert.Equal<int>(expectedAfterCount, afterCount);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -779,20 +848,23 @@ namespace MapTests
         [InlineData(424242,1)]// Attempt to edit a non-existent client
         public async Task EditClient_ErrorWhenInvalidRequest(int clientIdArg, int parentClientIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            testClient.ParentClientId = TestUtil.MakeTestGuid(parentClientIdArg);
-            testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
-            var view = await controller.EditClient(testClient);
-            #endregion
+                #region Act
+                testClient.ParentClientId = TestUtil.MakeTestGuid(parentClientIdArg);
+                testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
+                var view = await controller.EditClient(testClient);
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestObjectResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestObjectResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -804,29 +876,32 @@ namespace MapTests
         [InlineData(5, 2)] // User is not an admin on the new profit center
         public async Task EditClient_ErrorWhenUnauthorized(int clientIdArg, int profitCenterIdArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            /*
-             * Requirements/Assumptions for the test client:
-             *       The test user must be a client admin
-             *       The parent client must not be null
-             *       The parent client specified must be the current parent of the test client
-             */
-            testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
-            // Ensure we're passing the current parent client, whatever it is
-            testClient.ParentClientId = TestResources.DbContextObject.Client.Single(c => c.Id == TestUtil.MakeTestGuid(clientIdArg)).ParentClientId;
-            testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       The parent client specified must be the current parent of the test client
+                 */
+                testClient.Id = TestUtil.MakeTestGuid(clientIdArg);
+                // Ensure we're passing the current parent client, whatever it is
+                testClient.ParentClientId = TestResources.DbContext.Client.Single(c => c.Id == TestUtil.MakeTestGuid(clientIdArg)).ParentClientId;
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(profitCenterIdArg);
 
-            var view = await controller.EditClient(testClient);
-            #endregion
+                var view = await controller.EditClient(testClient);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -835,23 +910,26 @@ namespace MapTests
         [Fact]
         public async Task EditClient_ErrorWhenDomainLimitExceeded()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
-            testClient.Id = TestUtil.MakeTestGuid(1);
-            testClient.ParentClientId = TestResources.DbContextObject.Client.Find(testClient.Id).ParentClientId;
-            testClient.ProfitCenterId = TestResources.DbContextObject.Client.Find(testClient.Id).ProfitCenterId;
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
+                testClient.Id = TestUtil.MakeTestGuid(1);
+                testClient.ParentClientId = TestResources.DbContext.Client.Find(testClient.Id).ParentClientId;
+                testClient.ProfitCenterId = TestResources.DbContext.Client.Find(testClient.Id).ProfitCenterId;
+                #endregion
 
-            #region Act
-            var view = await controller.EditClient(testClient);
-            #endregion
+                #region Act
+                var view = await controller.EditClient(testClient);
+                #endregion
 
-            #region Assert
-            StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, result.StatusCode);
-            #endregion
+                #region Assert
+                StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, result.StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -860,27 +938,30 @@ namespace MapTests
         [Fact]
         public async Task EditClient_UnauthorizedWhenChangingParentClient()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            /*
-             * Requirements/Assumptions for the test client:
-             *       The test user must be a client admin
-             *       The parent client must not be null
-             *       The parent client specified must be changed from the client's current parent
-             */
-            testClient.Id = TestUtil.MakeTestGuid(6);
-            testClient.ParentClientId = TestUtil.MakeTestGuid(2); // Original value was 1
-            
-            var view = await controller.EditClient(testClient);
-            #endregion
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       The parent client specified must be changed from the client's current parent
+                 */
+                testClient.Id = TestUtil.MakeTestGuid(6);
+                testClient.ParentClientId = TestUtil.MakeTestGuid(2); // Original value was 1
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(view);
-            #endregion
+                var view = await controller.EditClient(testClient);
+                #endregion
+
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -897,45 +978,48 @@ namespace MapTests
         [InlineData(null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
         public async Task EditClient_ErrorWhenInvalid(string clientNameArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
-
-            #region Act
-            /*
-             * Requirements/Assumptions for the test client:
-             *       The test user must be a client admin
-             *       The parent client must not be null
-             *       The parent client specified must be the current parent of the test client
-             */
-            testClient.Id = TestUtil.MakeTestGuid(6);
-            testClient.ParentClientId = TestUtil.MakeTestGuid(1);
-
-            #region Manipulate data for test scenarios
-            if (!String.IsNullOrEmpty(clientNameArg))
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
-                testClient.Name = clientNameArg;
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
+
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       The parent client specified must be the current parent of the test client
+                 */
+                testClient.Id = TestUtil.MakeTestGuid(6);
+                testClient.ParentClientId = TestUtil.MakeTestGuid(1);
+
+                #region Manipulate data for test scenarios
+                if (!String.IsNullOrEmpty(clientNameArg))
+                {
+                    testClient.Name = clientNameArg;
+                }
+
+                if (domainWhitelistArg != null)
+                {
+                    testClient.AcceptedEmailDomainList = domainWhitelistArg.ToList();
+                }
+
+                if (addressWhitelistArg != null)
+                {
+                    testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg.ToList();
+                }
+                #endregion
+
+                var view = await controller.EditClient(testClient);
+                #endregion
+
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                #endregion
             }
-
-            if (domainWhitelistArg != null)
-            {
-                testClient.AcceptedEmailDomainList = domainWhitelistArg.ToList();
-            }
-
-            if (addressWhitelistArg != null)
-            {
-                testClient.AcceptedEmailAddressExceptionList = addressWhitelistArg.ToList();
-            }
-            #endregion 
-
-            var view = await controller.EditClient(testClient);
-            #endregion
-
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            #endregion
         }
 
         /// <summary>
@@ -944,59 +1028,62 @@ namespace MapTests
         [Fact]
         public async Task EditClient_Success()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            Client testClient = GetValidClient();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
 
-            #region Act
-            /*
-             * Requirements/Assumptions for the test client:
-             *       The test user must be a client admin
-             *       The parent client must not be null
-             *       The parent client specified must be the current parent of the test client
-             */
-            testClient.Id = TestUtil.MakeTestGuid(6);
-            testClient.ParentClientId = TestUtil.MakeTestGuid(1);
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       The parent client specified must be the current parent of the test client
+                 */
+                testClient.Id = TestUtil.MakeTestGuid(6);
+                testClient.ParentClientId = TestUtil.MakeTestGuid(1);
 
-            // Change some data that can be validated after the edit
-            #region Manipulate model data
-            testClient.Name = "Edit Client Name";
-            testClient.ClientCode = "Edit client code";
-            testClient.ContactName = "Edit contact name";
-            testClient.ContactEmail = "edit@example.com";
-            testClient.ContactPhone = "0987654321";
-            testClient.ContactTitle = "Edit contact title";
-            testClient.ConsultantEmail = "editconsultant@example2.com";
-            testClient.ConsultantName = "Edit consultant name";
-            testClient.ConsultantOffice = "Edit consultant office";
-            testClient.AcceptedEmailAddressExceptionList = new List<string> { "edit1@example.com,edit2@example.com", "edit3@example.com" };
-            testClient.AcceptedEmailDomainList = new List<string> { "editexample.com", "example2.com" };
-            #endregion 
+                // Change some data that can be validated after the edit
+                #region Manipulate model data
+                testClient.Name = "Edit Client Name";
+                testClient.ClientCode = "Edit client code";
+                testClient.ContactName = "Edit contact name";
+                testClient.ContactEmail = "edit@example.com";
+                testClient.ContactPhone = "0987654321";
+                testClient.ContactTitle = "Edit contact title";
+                testClient.ConsultantEmail = "editconsultant@example2.com";
+                testClient.ConsultantName = "Edit consultant name";
+                testClient.ConsultantOffice = "Edit consultant office";
+                testClient.AcceptedEmailAddressExceptionList = new List<string> { "edit1@example.com,edit2@example.com", "edit3@example.com" };
+                testClient.AcceptedEmailDomainList = new List<string> { "editexample.com", "example2.com" };
+                #endregion
 
-            var view = await controller.EditClient(testClient);
-            #endregion
+                var view = await controller.EditClient(testClient);
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
-            #region Check that all updated data now matches
-            Client resultClient = TestResources.DbContextObject.Client.Single(c => c.Id == testClient.Id);
+                #region Check that all updated data now matches
+                Client resultClient = TestResources.DbContext.Client.Single(c => c.Id == testClient.Id);
 
-            Assert.Equal(testClient.Name, resultClient.Name);
-            Assert.Equal(testClient.ClientCode, resultClient.ClientCode);
-            Assert.Equal(testClient.ContactName, resultClient.ContactName);
-            Assert.Equal(testClient.ContactEmail, resultClient.ContactEmail);
-            Assert.Equal(testClient.ContactPhone, resultClient.ContactPhone);
-            Assert.Equal(testClient.ContactTitle, resultClient.ContactTitle);
-            Assert.Equal(testClient.ConsultantEmail, resultClient.ConsultantEmail);
-            Assert.Equal(testClient.ConsultantName, resultClient.ConsultantName);
-            Assert.Equal(testClient.ConsultantOffice, resultClient.ConsultantOffice);
-            Assert.Equal(testClient.AcceptedEmailAddressExceptionList, resultClient.AcceptedEmailAddressExceptionList);
-            Assert.Equal(testClient.AcceptedEmailDomainList, resultClient.AcceptedEmailDomainList);
-            #endregion
-            #endregion
+                Assert.Equal(testClient.Name, resultClient.Name);
+                Assert.Equal(testClient.ClientCode, resultClient.ClientCode);
+                Assert.Equal(testClient.ContactName, resultClient.ContactName);
+                Assert.Equal(testClient.ContactEmail, resultClient.ContactEmail);
+                Assert.Equal(testClient.ContactPhone, resultClient.ContactPhone);
+                Assert.Equal(testClient.ContactTitle, resultClient.ContactTitle);
+                Assert.Equal(testClient.ConsultantEmail, resultClient.ConsultantEmail);
+                Assert.Equal(testClient.ConsultantName, resultClient.ConsultantName);
+                Assert.Equal(testClient.ConsultantOffice, resultClient.ConsultantOffice);
+                Assert.Equal(testClient.AcceptedEmailAddressExceptionList, resultClient.AcceptedEmailAddressExceptionList);
+                Assert.Equal(testClient.AcceptedEmailDomainList, resultClient.AcceptedEmailDomainList);
+                #endregion
+                #endregion
+            }
         }
 
         /// <summary>
@@ -1005,17 +1092,20 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientNotFound()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242));
-            #endregion
+                #region Act
+                var view = await controller.DeleteClient(TestUtil.MakeTestGuid(424242));
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestResult>(view);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -1024,19 +1114,22 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientHasChildren()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7));
-            #endregion
+                #region Act
+                var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7));
+                #endregion
 
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            #endregion
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -1045,19 +1138,22 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientHasRootContentItems()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
+                #endregion
 
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8));
-            #endregion
+                #region Act
+                var view = await controller.DeleteClient(TestUtil.MakeTestGuid(8));
+                #endregion
 
-            #region Assert
-            Assert.IsType<StatusCodeResult>(view);
-            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
-            #endregion
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -1066,27 +1162,30 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_Success()
         {
-            #region Arrange
-            ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
-            ApplicationUser AppUser = await TestResources.UserManagerObject.FindByNameAsync("ClientAdmin1");
+            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
 
-            int clientPreCount = TestResources.DbContextObject.Client.Count();
-            int claimsPreCount = TestResources.DbContextObject.UserClaims.Count();
-            #endregion
+                int clientPreCount = TestResources.DbContext.Client.Count();
+                int claimsPreCount = TestResources.DbContext.UserClaims.Count();
+                #endregion
 
-            #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6));
-            #endregion
+                #region Act
+                var view = await controller.DeleteClient(TestUtil.MakeTestGuid(6));
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
 
-            int clientPostCount = TestResources.DbContextObject.Client.Count();
-            int claimsPostCount = TestResources.DbContextObject.UserClaims.Count();
-            Assert.Equal<int>((clientPreCount - 1), clientPostCount);
-            Assert.Equal<int>((claimsPreCount - 1), claimsPostCount);
-            #endregion
+                int clientPostCount = TestResources.DbContext.Client.Count();
+                int claimsPostCount = TestResources.DbContext.UserClaims.Count();
+                Assert.Equal<int>((clientPreCount - 1), clientPostCount);
+                Assert.Equal<int>((claimsPreCount - 1), claimsPostCount);
+                #endregion
+            }
         }
 
     }
