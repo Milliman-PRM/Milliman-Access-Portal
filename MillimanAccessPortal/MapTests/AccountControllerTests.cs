@@ -92,7 +92,8 @@ namespace MapTests
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user2");
-                string TestCode = MockUserManager.GoodToken;
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user2");
+                string TestCode = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
                 string TestUserId = TestUtil.MakeTestGuid(2).ToString();
                 #endregion
 
@@ -275,7 +276,8 @@ namespace MapTests
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
                 string TestEmail = "user1@example.com";
-                string TestToken = MockUserManager.GoodToken;
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
+                string TestToken = await TestResources.UserManager.GeneratePasswordResetTokenAsync(user);
                 #endregion
 
                 #region Act
@@ -302,7 +304,7 @@ namespace MapTests
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
                 string TestEmail = "user1@example.com";
-                string TestToken = MockUserManager.BadToken;
+                string TestToken = "IncorrectToken";
                 #endregion
 
                 #region Act
@@ -672,7 +674,7 @@ namespace MapTests
 
                 #region Assert
                 Assert.IsType<JsonResult>(view);
-                Assert.Equal(NewPassword + "xyz", UserRecord.PasswordHash);
+                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, NewPassword));
                 #endregion
             }
         }
@@ -807,13 +809,13 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var view = await controller.UpdateAccount(model);
+                var result = await controller.UpdateAccount(model);
                 var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
                 #endregion
 
                 #region Assert
-                Assert.IsType<BadRequestResult>(view);
-                Assert.Equal(CurrentPassword + "xyz", UserRecord.PasswordHash);
+                Assert.IsType<BadRequestResult>(result);
+                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, CurrentPassword));
                 #endregion
             }
         }

@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.Authentication.WsFederation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -23,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
@@ -43,6 +45,16 @@ using TestResourcesLib;
 
 namespace MapTests
 {
+    internal enum DataSelection
+    {
+        // Important: Keep this enum synchronized with Dictionary DataGenFunctionDict in the constructor
+        Basic,
+        Reduction,
+        Account,
+        SystemAdmin,
+        FileDrop,
+    }
+
     internal class TestInitialization : IDisposable
     {
         Guid _TestId;
@@ -99,7 +111,7 @@ namespace MapTests
 
             returnVal.Configuration = returnVal.GenerateConfiguration();
 
-            returnVal.ConfigureServices();
+            returnVal.ConfigureInjectedServices();
 
             returnVal.ServiceScopeFactory = returnVal.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
             returnVal.Scope = returnVal.ServiceScopeFactory.CreateScope();
@@ -120,7 +132,7 @@ namespace MapTests
             Scope.Dispose();
         }
 
-        private void ConfigureServices()
+        private void ConfigureInjectedServices()
         {
             string tokenProviderName = "MAPResetToken";
 
@@ -171,6 +183,22 @@ namespace MapTests
                 options.Tokens.PasswordResetTokenProvider = tokenProviderName;
             });
 
+            services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
+
+            services.AddControllersWithViews(options =>
+                {
+                    var policy = new AuthorizationPolicyBuilder()
+                                    .RequireAuthenticatedUser()
+                                    .Build();
+                    options.Filters.Add(new AuthorizeFilter(policy));
+                })
+                .AddNewtonsoftJson(options =>
+                {
+                    options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                    options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+                })
+                .AddControllersAsServices();
+
             // Configure custom security token provider
             services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
             {
@@ -182,6 +210,11 @@ namespace MapTests
             {
                 options.TokenLifespan = TimeSpan.FromDays(7);
             });
+
+            services.Configure<QlikviewConfig>(Configuration);
+            services.Configure<PowerBiConfig>(Configuration);
+            //services.Configure<AuditLoggerConfiguration>(Configuration);
+            //services.Configure<SmtpConfig>(Configuration);
 
             services.AddScoped<IConfiguration>(p => GenerateConfiguration());
 
@@ -229,7 +262,7 @@ namespace MapTests
             AuthorizationService = Scope.ServiceProvider.GetService<IAuthorizationService>();
             Configuration = Scope.ServiceProvider.GetService<IConfiguration>();
             ScopedServiceProvider = Scope.ServiceProvider;
-            AuthenticationService = Scope.ServiceProvider.GetService<AuthenticationService>();
+            AuthenticationService = Scope.ServiceProvider.GetService<IAuthenticationService>();
             AuthenticationSchemeProvider = ScopedServiceProvider.GetService<IAuthenticationSchemeProvider>();
             StandardQueries = ScopedServiceProvider.GetService<StandardQueries>();
             ContentAccessAdminQueries = ScopedServiceProvider.GetService<ContentAccessAdminQueries>();
@@ -244,6 +277,8 @@ namespace MapTests
             PublicationQueries = ScopedServiceProvider.GetService<PublicationQueries>();
             UserQueries = ScopedServiceProvider.GetService<UserQueries>();
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
+            QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
+            PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();
             #endregion
 
             #region Transient registered services
@@ -328,6 +363,17 @@ namespace MapTests
 
         private async Task GenerateTestData(DataSelection dataSelection)
         {
+            /// The following does 4 things using the same code as MAP production application
+            /// 1. Seed the db with all roles using the enumeration in class ApplicationRole
+            /// 2. Seed the db with all content Types using the enumeration in class ContentType
+            /// 3. Seed the db with the default authentication scheme
+            /// 4. Seed the db with name/value configuration as in 
+            await ApplicationDbContext.InitializeAllAsync(ScopedServiceProvider);
+            await DbContext.ApplicationRole.LoadAsync();
+            await DbContext.ContentType.LoadAsync();
+            await DbContext.AuthenticationScheme.LoadAsync();
+            await DbContext.NameValueConfiguration.LoadAsync();
+
             switch (dataSelection)
             {
                 case DataSelection.Account:
@@ -359,13 +405,16 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", NormalizedEmail = "test3@example2.com".ToUpper(), PhoneNumber = "3171234567" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", NormalizedEmail = "user5@example.com".ToUpper(), PhoneNumber = "1234567890" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", NormalizedEmail = "user6@example.com".ToUpper(), PhoneNumber = "1234567890" });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             #region Initialize ContentType
+            /*
             DbContext.ContentType.AddRange(new List<ContentType>
                 {
                     new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
                 });
+            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -379,7 +428,7 @@ namespace MapTests
             #region Initialize UserRoleInProfitCenter
             DbContext.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
             {
-                new UserRoleInProfitCenter { Id=TestUtil.MakeTestGuid(1), ProfitCenterId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(1) }
+                new UserRoleInProfitCenter { Id=TestUtil.MakeTestGuid(1), ProfitCenterId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3), RoleId = DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id }
             });
             #endregion
 
@@ -408,43 +457,41 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
                     {
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(1) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(7), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(3) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(5) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(6) },
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(2), UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
-                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.UserCreator).Id, UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(3) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(5) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(6) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.UserCreator).Id, UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
                     });
             #endregion
 
             #region Initialize UserClaims
-            DbContext.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
-                {
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(4).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=3, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(5).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=4, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=5, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(5).ToString(), UserId=TestUtil.MakeTestGuid(2) },
-                    new IdentityUserClaim<Guid>{ Id=6, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(6).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=7, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(7).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=8, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(3) },
-                    new IdentityUserClaim<Guid>{ Id=9, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(5) },
-                    new IdentityUserClaim<Guid>{ Id=10, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(8).ToString(), UserId=TestUtil.MakeTestGuid(6) },
-                    new IdentityUserClaim<Guid>{ Id=11, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(5) },
-                });
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(4).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(5).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("test1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("test2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(5).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(6).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(7).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user6"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            DbContext.UserClaims.Load();
             #endregion
             #endregion
 
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
                 {
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1),
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id,
                         ContentFilesList = new List<ContentRelatedFile>{
                             new ContentRelatedFile {
                                 FileOriginalName = "filename",
@@ -452,10 +499,10 @@ namespace MapTests
                             },
                         },
                     },
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(2), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                    new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(2), ContentName="RootContent 2", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                 });
             #endregion
 
@@ -494,22 +541,23 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoles
+            /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 { 
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
                 });
+            */
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContext.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(6), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(6), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             #endregion
 
@@ -522,14 +570,17 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3", Email = "user3@example.com" });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             #region Initialize ContentType
+            /*
             DbContext.ContentType.AddRange(new List<ContentType>
                 {
                     new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
                     new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), TypeEnum=ContentTypeEnum.PowerBi, CanReduce=true },
                 });
+            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -558,29 +609,27 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2) },
             });
             #endregion
 
             #region Initialize UserClaims
-            DbContext.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
-                {
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(2) },
-                });
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            DbContext.ApplicationUser.Load();
             #endregion
             #endregion
 
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), DoesReduce=true },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview) },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview) },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id, DoesReduce=true },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
             });
             #endregion
 
@@ -622,23 +671,24 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoles
+            /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
                 });
+            */
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContext.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
             });
             #endregion
 
@@ -690,6 +740,7 @@ namespace MapTests
             #region authentication schemes
             DbContext.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
             {
+                /*
                 new MapDbContextLib.Context.AuthenticationScheme  // AuthenticationType.Default
                 {
                     Id = TestUtil.MakeTestGuid(1),
@@ -698,6 +749,7 @@ namespace MapTests
                     Type = AuthenticationType.Default,
                     SchemePropertiesObj = null
                 },
+                */
                 new MapDbContextLib.Context.AuthenticationScheme  // "prmtest", AuthenticationType.WsFederation
                 {
                     Id =TestUtil.MakeTestGuid(2),
@@ -729,11 +781,12 @@ namespace MapTests
             #region Initialize Users
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com", NormalizedEmail = "USER1@EXAMPLE.COM", NormalizedUserName = "USER1" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com", NormalizedEmail = "USER2@EXAMPLE.COM", NormalizedUserName = "USER2", EmailConfirmed = true });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", NormalizedEmail = "USER3@EXAMPLE.COM", NormalizedUserName = "USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed = true, AuthenticationSchemeId = TestUtil.MakeTestGuid(1) });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", NormalizedEmail = "USER4@EXAMPLE.COM", NormalizedUserName = "USER4-CONFIRMED-WSSCHEME", EmailConfirmed = true, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5-notconfirmed-wsscheme", Email = "user5@example.com", NormalizedEmail = "USER5@EXAMPLE.COM", NormalizedUserName = "USER5-NOTCONFIRMED-WSSCHEME", EmailConfirmed = false, AuthenticationSchemeId = TestUtil.MakeTestGuid(2) });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", NormalizedEmail = "USER3@EXAMPLE.COM", NormalizedUserName = "USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s=>s.Type==AuthenticationType.Default).Id });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", NormalizedEmail = "USER4@EXAMPLE.COM", NormalizedUserName = "USER4-CONFIRMED-WSSCHEME", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Type == AuthenticationType.WsFederation).Id });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5-notconfirmed-wsscheme", Email = "user5@example.com", NormalizedEmail = "USER5@EXAMPLE.COM", NormalizedUserName = "USER5-NOTCONFIRMED-WSSCHEME", EmailConfirmed = false, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Type == AuthenticationType.WsFederation).Id });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6-confirmed@domainmatch.local", Email = "user6@example.com", NormalizedEmail = "USER6@EXAMPLE.COM", NormalizedUserName = "USER6-CONFIRMED@DOMAINMATCH.LOCAL", EmailConfirmed = false });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "user7-confirmed@domainnomatch.local", Email = "user7@example.com", NormalizedEmail = "USER7@EXAMPLE.COM", NormalizedUserName = "USER7-CONFIRMED@DOMAINNOMATCH.LOCAL", EmailConfirmed = false });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             DbContext.SaveChanges();
@@ -744,13 +797,16 @@ namespace MapTests
             #region Initialize Users
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com" });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             #region Initialize ContentType
+            /*
             DbContext.ContentType.AddRange(new List<ContentType>
                 {
                     new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
                 });
+            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -779,28 +835,26 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1) },
-                //new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                //new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2) },
             });
             #endregion
 
             #region Initialize UserClaims
-            DbContext.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
-                {
-                    new IdentityUserClaim<Guid>{ Id=1, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserClaim<Guid>{ Id=2, ClaimType=ClaimNames.ClientMembership.ToString(), ClaimValue=TestUtil.MakeTestGuid(1).ToString(), UserId=TestUtil.MakeTestGuid(2) },
-                });
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            DbContext.ApplicationUser.Load();
             #endregion
             #endregion
 
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=TestUtil.MakeTestGuid(1) },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
             });
             #endregion
 
@@ -842,22 +896,23 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoles
+            /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
                 {
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
                 });
+            */
             #endregion
 
             #region Initialize UserRoleInRootContentItem
             DbContext.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=TestUtil.MakeTestGuid(3), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=TestUtil.MakeTestGuid(4), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=TestUtil.MakeTestGuid(5), UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             #endregion
 
@@ -891,6 +946,7 @@ namespace MapTests
             #region authentication schemes
             DbContext.AuthenticationScheme.AddRange(new List<MapDbContextLib.Context.AuthenticationScheme>
             {
+                /*
                 new MapDbContextLib.Context.AuthenticationScheme  // AuthenticationType.Default
                 {
                     Id = TestUtil.MakeTestGuid(1),
@@ -899,6 +955,7 @@ namespace MapTests
                     Type = AuthenticationType.Default,
                     SchemePropertiesObj = null
                 },
+                */
                 new MapDbContextLib.Context.AuthenticationScheme  // "prmtest", AuthenticationType.WsFederation
                 {
                     Id =TestUtil.MakeTestGuid(2),
@@ -932,13 +989,16 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "sysAdmin2", Email = "sysAdmin2@site.domain" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(11), UserName = "sysUser1", Email = "sysUser1@site.domain" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(12), UserName = "sysUser2", Email = "sysUser2@site.domain" });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             #region Initialize ContentType
+            /*
             DbContext.ContentType.AddRange(new List<ContentType>
             {
                 new ContentType{ Id = TestUtil.MakeTestGuid(1), TypeEnum = ContentTypeEnum.Qlikview, CanReduce = true },
             });
+            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -952,8 +1012,8 @@ namespace MapTests
             #region Initialize UserRoleInProfitCenter
             DbContext.UserRoleInProfitCenter.AddRange(new List<UserRoleInProfitCenter>
             {
-                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(1) },
-                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(2), RoleId = TestUtil.MakeTestGuid(1) }
+                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1), RoleId = DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id },
+                new UserRoleInProfitCenter { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(2), RoleId = DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id },
             });
             #endregion
 
@@ -976,25 +1036,23 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(1), UserId =  TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), RoleId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(11) },
+                new UserRoleInClient { Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), RoleId = DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId =  TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), RoleId = DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId = TestUtil.MakeTestGuid(11) },
             });
             #endregion
 
             #region Initialize UserClaims
-            DbContext.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
-            {
-                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(1) },
-                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(11) },
-            });
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("sysAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("sysUser1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            DbContext.ApplicationUser.Load();
             #endregion
             #endregion 
 
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = TestUtil.MakeTestGuid(1) },
-                new RootContentItem{ Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = TestUtil.MakeTestGuid(1) },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
             });
             #endregion
 
@@ -1015,11 +1073,12 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoles
+            /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
             });
+            */
             #endregion
 
             #region Initialize UserRoleInRootContentItem
@@ -1056,6 +1115,7 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@site.domain" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "user7", Email = "user7@site.domain" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(8), UserName = "user8", Email = "user8@site.domain" });
+            DbContext.ApplicationUser.Load();
             #endregion
 
             #region Initialize ProfitCenters
@@ -1079,56 +1139,53 @@ namespace MapTests
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
                 // user1 admin only on parent only
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(1) },
                 // user2 user only on parent only
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(2) },
                 // user3 admin only on child only
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(3) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(3) },
                 // user4 user only on child only
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(4) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(4) },
                 // user5 admin only on parent and child
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(5) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(5) },
                 // user6 user only on parent and child
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(6) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(8), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(6) },
                 // user7 user and admin on both parent and child
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(7) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(6), UserId=TestUtil.MakeTestGuid(7) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(7) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(2), RoleId=TestUtil.MakeTestGuid(7), UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(9), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropAdmin).Id, UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(7) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.FileDropUser).Id, UserId=TestUtil.MakeTestGuid(7) },
             });
             #endregion
 
             #region Initialize UserClaims
-            DbContext.UserClaims.AddRange(new List<IdentityUserClaim<Guid>>
-            {
-                // all users members of all clients
-                // Client 1
-                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(1) },
-                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(2) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(3) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(1).ToString(), UserId = TestUtil.MakeTestGuid(4) },
-                // Client 2
-                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(1) },
-                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(2) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(3) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(2).ToString(), UserId = TestUtil.MakeTestGuid(4) },
-                // Client 3
-                new IdentityUserClaim<Guid>{ Id = 1, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(1) },
-                new IdentityUserClaim<Guid>{ Id = 2, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(2) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(3) },
-                new IdentityUserClaim<Guid>{ Id = 3, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = TestUtil.MakeTestGuid(3).ToString(), UserId = TestUtil.MakeTestGuid(4) },
-});
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user3"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user4"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(2).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(2).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user3"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(2).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user4"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(2).ToString()));
+
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(3).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user2"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(3).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user3"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(3).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user4"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(3).ToString()));
+            DbContext.ApplicationUser.Load();
             #endregion
             #endregion 
 
             #region Initialize UserRoles
+            /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
-                    //new IdentityUserRole<Guid> { RoleId=((long) RoleEnum.Admin), UserId=TestUtil.MakeTestGuid(1) },
-                    new IdentityUserRole<Guid> { RoleId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
             });
+            */
             #endregion
 
             #region Initialize FileDrops

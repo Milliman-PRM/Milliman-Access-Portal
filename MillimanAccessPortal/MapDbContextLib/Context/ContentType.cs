@@ -20,15 +20,15 @@ namespace MapDbContextLib.Context
         [Display(Name = "Unknown")]
         Unknown = 0,
         [Display(Name = "QlikView")]
-        Qlikview,
+        Qlikview = 1,
         [Display(Name = "HTML")]
-        Html,
+        Html = 2,
         [Display(Name = "PDF")]
-        Pdf,
+        Pdf = 3,
         [Display(Name = "File Download")]
-        FileDownload,
+        FileDownload = 4,
         [Display(Name = "Power BI")]
-        PowerBi,
+        PowerBi = 5,
     }
 
     public static class EnumExtensions
@@ -65,7 +65,7 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <param name="ServiceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static async Task InitializeContentTypesAsync(IServiceProvider serviceProvider)
+        public static async Task InitializeContentTypesAsync(IServiceProvider serviceProvider)
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {

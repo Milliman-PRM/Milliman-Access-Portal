@@ -14,27 +14,25 @@ namespace MapTests
 {
     public class ClientAdminControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
-
         /// <summary>
         /// Common controller constructor to be used by all tests
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public async Task<ClientAdminController> GetControllerForUser(string UserName)
+        private async Task<ClientAdminController> GetControllerForUser(TestInitialization testResources, string UserName = null)
         {
-            ClientAdminController testController = new ClientAdminController(TestResources.DbContext,
-                TestResources.AuditLogger,
-                TestResources.AuthorizationService,
-                TestResources.MessageQueueServicesObject,
-                TestResources.RoleManager,
-                TestResources.StandardQueries,
-                TestResources.UserManager,
-                TestResources.Configuration,
+            ClientAdminController testController = new ClientAdminController(testResources.DbContext,
+                testResources.AuditLogger,
+                testResources.AuthorizationService,
+                testResources.MessageQueueServicesObject,
+                testResources.RoleManager,
+                testResources.StandardQueries,
+                testResources.UserManager,
+                testResources.Configuration,
                 null);   // AccountController
 
         // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-        testController.ControllerContext = TestResources.GenerateControllerContext(userName: (await TestResources.UserManager.FindByNameAsync(UserName)).UserName);
+        testController.ControllerContext = testResources.GenerateControllerContext(userName: (await testResources.UserManager.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -73,7 +71,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("test1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "test1");
                 #endregion
 
                 #region Act
@@ -95,7 +93,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 #endregion
 
                 #region Act
@@ -117,7 +115,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("test1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "test1");
                 #endregion
 
                 #region Act
@@ -139,7 +137,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 #endregion
 
                 #region Act
@@ -162,7 +160,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 #endregion
 
                 #region Act
@@ -186,7 +184,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 #endregion
 
                 #region Act
@@ -210,7 +208,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 #endregion
 
                 #region Act
@@ -236,7 +234,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
                 #endregion
 
@@ -261,7 +259,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
                 #endregion
 
@@ -284,7 +282,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(1), UserId = TestUtil.MakeTestGuid(1) };
 
                 // Count users assigned to the client before attempting change
@@ -315,7 +313,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(1) };
                 #endregion
 
@@ -339,7 +337,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(4) };
 
                 // Before acting on the input data, we need to gather initial data to compare the result to
@@ -370,7 +368,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userName);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userName);
                 var clientUserModel = new ClientUserAssociationViewModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
@@ -404,7 +402,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 var clientUserModel = new ClientUserAssociationViewModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
@@ -438,7 +436,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 var clientUserModel = new ClientUserAssociationViewModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
@@ -484,7 +482,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 var clientUserModel = new ClientUserAssociationViewModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
@@ -531,7 +529,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 var clientUserModel = new ClientUserAssociationViewModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
@@ -589,7 +587,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
                 #endregion
 
@@ -614,7 +612,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(clientIdArg), UserId = TestUtil.MakeTestGuid(userIdArg) };
                 #endregion
 
@@ -630,7 +628,6 @@ namespace MapTests
 
         /// <summary>
         /// Validate that a user is removed from a client when a request is made by an authorized user for a valid user & client
-        /// 
         /// Checks to make sure claims & roles are both removed
         /// </summary>
         [Fact]
@@ -639,7 +636,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ClientUserAssociationViewModel viewModel = new ClientUserAssociationViewModel { ClientId = TestUtil.MakeTestGuid(5), UserId = TestUtil.MakeTestGuid(2) };
 
                 int preActionCount = TestResources.DbContext.UserClaims.Where(c => c.ClaimValue == viewModel.ClientId.ToString() && c.UserId == viewModel.UserId).Count();
@@ -676,7 +673,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -700,7 +697,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -728,7 +725,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser(userArg);
+                ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -757,7 +754,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -790,7 +787,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 testClient.ParentClientId = null;
                 testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
@@ -816,7 +813,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
 
                 int beforeCount = TestResources.DbContext.Client.Count();
@@ -851,7 +848,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -879,7 +876,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -913,7 +910,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 testClient.AcceptedEmailDomainList = new List<string> { "test1.com", "test2.com", "test3.com", "test4.com" };
                 testClient.Id = TestUtil.MakeTestGuid(1);
@@ -941,7 +938,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -981,7 +978,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -1031,7 +1028,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 Client testClient = GetValidClient();
                 #endregion
 
@@ -1095,7 +1092,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 #endregion
 
                 #region Act
@@ -1117,7 +1114,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
                 #endregion
 
@@ -1141,7 +1138,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
                 #endregion
 
@@ -1165,7 +1162,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
             {
                 #region Arrange
-                ClientAdminController controller = await GetControllerForUser("ClientAdmin1");
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
                 ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
 
                 int clientPreCount = TestResources.DbContext.Client.Count();

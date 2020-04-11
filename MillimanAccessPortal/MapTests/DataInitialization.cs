@@ -48,16 +48,6 @@ namespace MapTests
     /// <summary>
     /// Signals which data initialization methods should be run
     /// </summary>
-    internal enum DataSelection
-    {
-        // Important: Keep this enum synchronized with Dictionary DataGenFunctionDict in the constructor
-        Basic,
-        Reduction,
-        Account,
-        SystemAdmin,
-        FileDrop,
-    }
-
     /// <summary>
     /// Methods to support common test initialization tasks
     /// </summary>
