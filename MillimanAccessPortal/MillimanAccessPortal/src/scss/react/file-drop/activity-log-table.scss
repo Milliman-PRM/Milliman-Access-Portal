@@ -4,10 +4,38 @@
 .activity-log-table {
 
     .event-row {
-        border-bottom: 1px solid $grey;
+        border-top: 1px solid $grey;
 
         td {
-            padding: .5em 0;
+            padding-top: 1em;
+            padding: 1.5em 0 .5em;
         }
+
+        &:first-child {
+            margin-top: 0;
+            border-top: none;
+        }
+    }
+
+    .event-details {
+        color: $dark-grey;
+        font-size: .9em;
+        font-style: italic;
+
+        & + .event-details {
+            padding-bottom: 1.5em;
+        }
+
+        td {
+            padding-left: 3em;
+
+            strong {
+                font-style: initial;
+            }
+        }
+    }
+
+    .spacer {
+        height: 1em;
     }
 }
