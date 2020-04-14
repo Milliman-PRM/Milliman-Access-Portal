@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.SharedModels;
 using MillimanAccessPortal.Services;
 using System;
 using System.Collections.Generic;
@@ -21,8 +22,16 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class AccountControllerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public AccountControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
+
         /// <summary>
         /// Common controller constructor to be used by all tests
         /// </summary>
@@ -56,7 +65,7 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountGETReturnsEnableFormWhenNotEnabled()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -88,7 +97,7 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountGETReturnsLoginWhenEnabled()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user2");
@@ -112,16 +121,15 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountGETReturnsMessageWhenTokenIsInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
-                string TestCode = MockUserManager.BadToken;
                 string TestUserId = TestUtil.MakeTestGuid(1).ToString();
                 #endregion
 
                 #region Act
-                var view = await controller.EnableAccount(TestUserId, TestCode);
+                var view = await controller.EnableAccount(TestUserId, "BadToken!!!!!!!!!!!!!");
                 #endregion
 
                 #region Assert
@@ -135,7 +143,7 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountPOSTUpdatesUserWhenTokenIsValid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -181,11 +189,10 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountPOSTReturnsMessageWhenTokenIsInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
-                string NewToken = MockUserManager.BadToken;
                 string NewPass = "TestPassword";
                 string NewEmployer = "Milliman";
                 string FirstName = "MyFirstName";
@@ -194,7 +201,7 @@ namespace MapTests
                 EnableAccountViewModel model = new EnableAccountViewModel
                 {
                     Id = TestUtil.MakeTestGuid(1),
-                    Code = NewToken,
+                    Code = "BadToken!!!!!!!!!!!!",
                     NewPassword = NewPass,
                     ConfirmNewPassword = NewPass,
                     Employer = NewEmployer,
@@ -219,7 +226,7 @@ namespace MapTests
         [Fact]
         public async Task ForgotPasswordPOSTReturnsMessageWhenNotActivated()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -243,7 +250,7 @@ namespace MapTests
         [Fact]
         public async Task ForgotPasswordPOSTReturnsConfirmationWhenActivated()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user2");
@@ -271,7 +278,7 @@ namespace MapTests
         [Fact]
         public async Task ResetPasswordGETReturnsFormWhenTokenIsValid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -299,7 +306,7 @@ namespace MapTests
         [Fact]
         public async Task ResetPasswordGETReturnsMessageWhenTokenIsInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -321,16 +328,17 @@ namespace MapTests
         [Fact]
         public async Task ResetPasswordPOSTReturnsRightFormWhenTokenIsValid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
+                ApplicationUser user1 = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
                 ResetPasswordViewModel model = new ResetPasswordViewModel
                 {
                     Email = "user1@example.com",
-                    PasswordResetToken = MockUserManager.GoodToken,
-                    NewPassword = "Password123",
-                    ConfirmNewPassword = "Password123",
+                    PasswordResetToken = await TestResources.UserManager.GeneratePasswordResetTokenAsync(user1),
+                    NewPassword = "Password123$",
+                    ConfirmNewPassword = "Password123$",
                 };
                 #endregion
 
@@ -339,9 +347,10 @@ namespace MapTests
                 #endregion
 
                 #region Assert
-                Assert.IsType<ViewResult>(view);
-                var viewAsViewResult = view as ViewResult;
+                var viewAsViewResult = Assert.IsType<ViewResult>(view);
                 Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                var viewModel = Assert.IsType<UserMessageModel>(viewAsViewResult.Model);
+                Assert.Contains("Your password has been reset", viewModel.PrimaryMessages[0]);
                 #endregion
             }
         }
@@ -349,14 +358,14 @@ namespace MapTests
         [Fact]
         public async Task ResetPasswordPOSTReturnsMessageWhenTokenIsInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
                 ResetPasswordViewModel model = new ResetPasswordViewModel
                 {
                     Email = "user1@example.com",
-                    PasswordResetToken = MockUserManager.BadToken,
+                    PasswordResetToken = "BadToken!!!!!!!!!!!!!",
                     NewPassword = "Password123",
                     ConfirmNewPassword = "Password123",
                 };
@@ -380,7 +389,7 @@ namespace MapTests
         [Fact]
         public async Task PasswordInRecentDaysNotAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -410,7 +419,7 @@ namespace MapTests
         [Fact]
         public async Task PasswordNotInRecentDaysAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -439,7 +448,7 @@ namespace MapTests
         [Fact]
         public async Task PasswordInRecentNumberNotAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -472,7 +481,7 @@ namespace MapTests
         [Fact]
         public async Task PasswordNotInRecentNumberAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -508,7 +517,7 @@ namespace MapTests
         [InlineData("Passw0rd!2")]
         public async Task PasswordEverInHistoryNotAllowed(string inputPassword)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -537,7 +546,7 @@ namespace MapTests
         [Fact]
         public async Task EmailInPasswordNotAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -562,7 +571,7 @@ namespace MapTests
         [Fact]
         public async Task CommonWordInPasswordNotAllowed()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -583,7 +592,7 @@ namespace MapTests
         [Fact]
         public async Task AccountSettingsGETWorks()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -604,7 +613,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAccountPOSTWorksForUserInformation()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -645,7 +654,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAccountPOSTWorksForPasswordChange()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -682,7 +691,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAccountPOSTFailsForWrongCurrentPassword()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
@@ -724,7 +733,7 @@ namespace MapTests
         [InlineData("user7-confirmed@domainnomatch.local", true)]
         public async Task IsLocalAccount(string userName, bool isLocalTruth)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources);
@@ -752,7 +761,7 @@ namespace MapTests
         [InlineData("user7-confirmed@domainnomatch.local", typeof(RedirectToActionResult), "Login")]
         public async Task RemoteAuthenticateReturnsCorrectResult(string userName, Type expectedType, string expectedString)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources);
@@ -786,7 +795,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAccountPOSTFailsForWrongMismatchedPassword()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Account))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");

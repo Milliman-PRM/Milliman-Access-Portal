@@ -46,7 +46,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         {
             IsPublishing = await dbContext.ContentPublicationRequest
                 .Where(pr => pr.RootContentItemId == Id)
-                .Where(pr => pr.RequestStatus.IsActive())
+                .Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus))
                 .AnyAsync();
 
             // query for selection groups and users in selection groups, then assign to a dictionary

@@ -13,6 +13,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="DataInitialization.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="appsettings.CI.json" />
   </ItemGroup>
 

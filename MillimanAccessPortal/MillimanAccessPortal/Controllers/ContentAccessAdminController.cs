@@ -240,7 +240,7 @@ namespace MillimanAccessPortal.Controllers
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
                                                               .Where(r => r.RootContentItemId == contentItem.Id)
-                                                              .Where(r => r.RequestStatus.IsActive())
+                                                              .Where(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus))
                                                               .AnyAsync();
             if (blockedByPendingPublication)
             {
@@ -414,7 +414,7 @@ namespace MillimanAccessPortal.Controllers
             // reject this request if the related RootContentItem has a pending publication request
             bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
                                                               .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
-                                                              .AnyAsync(r => r.RequestStatus.IsActive());
+                                                              .AnyAsync(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus));
             if (blockedByPendingPublication)
             {
                 Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting for selection group {selectionGroup.Id} because an active publication request exists for related content itme {selectionGroup.RootContentItemId}");
@@ -524,14 +524,14 @@ namespace MillimanAccessPortal.Controllers
 
             ContentReductionTask liveTask = await DbContext.ContentReductionTask
                                                            .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
-                                                           .Where(t => t.MasterContentHierarchyObj != null)
+                                                           .Where(t => t.MasterContentHierarchy != null)
                                                            .FirstOrDefaultAsync(t => t.ReductionStatus == ReductionStatusEnum.Live);
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
             bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
                                                               .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
-                                                              .AnyAsync(pr => pr.RequestStatus.IsActive());
+                                                              .AnyAsync(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus));
             if (blockedByPendingPublication)
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked by pending publication, aborting");
@@ -620,7 +620,7 @@ namespace MillimanAccessPortal.Controllers
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
-                Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile.FullPath} for the content item {selectionGroup.RootContentItemId} is not found");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }

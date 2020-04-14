@@ -57,7 +57,7 @@ namespace MapTests
 
     internal class TestInitialization : IDisposable
     {
-        Guid _TestId;
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
 
         public IServiceProvider ServiceProvider { get; private set; } = default;
         public IServiceScope Scope { get; private set; } = default;
@@ -103,13 +103,13 @@ namespace MapTests
 
         private TestInitialization() { }
 
-        public static async Task<TestInitialization> Create(Guid TestId, DataSelection dataSelection)
+        public static async Task<TestInitialization> Create(DatabaseLifetimeFixture dbLifeTimeFixture, DataSelection dataSelection)
         {
             TestInitialization returnVal = new TestInitialization();
 
-            returnVal._TestId = TestId;
+            returnVal._dbLifeTimeFixture = dbLifeTimeFixture;
 
-            returnVal.Configuration = returnVal.GenerateConfiguration();
+            returnVal.Configuration = GenerateConfiguration();
 
             returnVal.ConfigureInjectedServices();
 
@@ -118,8 +118,9 @@ namespace MapTests
 
             returnVal.InitializeInjectedServices();
 
-            returnVal.DbContext.Database.EnsureCreated();
+            //returnVal.DbContext.Database.EnsureCreated();
 
+            returnVal.ClearAllData();
             await returnVal.GenerateTestData(dataSelection);
 
             return returnVal;
@@ -127,7 +128,7 @@ namespace MapTests
 
         public void Dispose()
         {
-            DbContext.Database.EnsureDeleted();
+            //ClearAllData();
 
             Scope.Dispose();
         }
@@ -140,8 +141,7 @@ namespace MapTests
 
             services.AddDbContext<ApplicationDbContext>(builder =>
             {
-                //builder.UseNpgsql("xyz");
-                builder.UseNpgsql($"Server=localhost;Database={_TestId};User Id=postgres;Password=postgres;");
+                builder.UseNpgsql(_dbLifeTimeFixture.ConnectionString);
             });
 
             services.AddDataProtection();
@@ -216,7 +216,7 @@ namespace MapTests
             //services.Configure<AuditLoggerConfiguration>(Configuration);
             //services.Configure<SmtpConfig>(Configuration);
 
-            services.AddScoped<IConfiguration>(p => GenerateConfiguration());
+            services.AddScoped<IConfiguration>(p => this.Configuration);
 
             //services.AddScoped<ApplicationDbContext, MockableMapDbContext>();
             services.AddScoped<StandardQueries>();
@@ -399,12 +399,12 @@ namespace MapTests
         private async Task GenerateBasicTestData()
         {
             #region Initialize Users
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "test1", Email = "test1@example.com", Employer = "example", FirstName = "FN1", LastName = "LN1", NormalizedEmail = "test@example.com".ToUpper(), PhoneNumber = "3171234567" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "test2", Email = "test2@example.com", Employer = "example", FirstName = "FN2", LastName = "LN2", NormalizedEmail = "test2@example.com".ToUpper(), PhoneNumber = "3171234567" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "ClientAdmin1", Email = "clientadmin1@example2.com", Employer = "example", FirstName = "Client", LastName = "Admin1", NormalizedEmail = "clientadmin1@example2.com".ToUpper(), PhoneNumber = "3171234567" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", NormalizedEmail = "test3@example2.com".ToUpper(), PhoneNumber = "3171234567" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", NormalizedEmail = "user5@example.com".ToUpper(), PhoneNumber = "1234567890" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", NormalizedEmail = "user6@example.com".ToUpper(), PhoneNumber = "1234567890" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "test1", Email = "test1@example.com", Employer = "example", FirstName = "FN1", LastName = "LN1", PhoneNumber = "3171234567" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "test2", Email = "test2@example.com", Employer = "example", FirstName = "FN2", LastName = "LN2", PhoneNumber = "3171234567" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "ClientAdmin1", Email = "clientadmin1@example2.com", Employer = "example", FirstName = "Client", LastName = "Admin1", PhoneNumber = "3171234567" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", PhoneNumber = "3171234567" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", PhoneNumber = "1234567890" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", PhoneNumber = "1234567890" });
             DbContext.ApplicationUser.Load();
             #endregion
 
@@ -728,7 +728,7 @@ namespace MapTests
             #region Initialize FileUpload
             DbContext.FileUpload.AddRange(new List<FileUpload>
             {
-                new FileUpload { Id=TestUtil.MakeTestGuid(1) },
+                new FileUpload { Id=TestUtil.MakeTestGuid(1), ClientFileIdentifier="", Status = FileUploadStatus.InProgress, InitiatedDateTimeUtc = DateTime.UtcNow },
             });
             #endregion
 
@@ -779,13 +779,13 @@ namespace MapTests
             #endregion
 
             #region Initialize Users
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com", NormalizedEmail = "USER1@EXAMPLE.COM", NormalizedUserName = "USER1" });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com", NormalizedEmail = "USER2@EXAMPLE.COM", NormalizedUserName = "USER2", EmailConfirmed = true });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", NormalizedEmail = "USER3@EXAMPLE.COM", NormalizedUserName = "USER3-CONFIRMED-DEFAULTSCHEME", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s=>s.Type==AuthenticationType.Default).Id });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", NormalizedEmail = "USER4@EXAMPLE.COM", NormalizedUserName = "USER4-CONFIRMED-WSSCHEME", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Type == AuthenticationType.WsFederation).Id });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5-notconfirmed-wsscheme", Email = "user5@example.com", NormalizedEmail = "USER5@EXAMPLE.COM", NormalizedUserName = "USER5-NOTCONFIRMED-WSSCHEME", EmailConfirmed = false, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Type == AuthenticationType.WsFederation).Id });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6-confirmed@domainmatch.local", Email = "user6@example.com", NormalizedEmail = "USER6@EXAMPLE.COM", NormalizedUserName = "USER6-CONFIRMED@DOMAINMATCH.LOCAL", EmailConfirmed = false });
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "user7-confirmed@domainnomatch.local", Email = "user7@example.com", NormalizedEmail = "USER7@EXAMPLE.COM", NormalizedUserName = "USER7-CONFIRMED@DOMAINNOMATCH.LOCAL", EmailConfirmed = false });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com", EmailConfirmed = true });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s=>s.Type==AuthenticationType.Default).Id });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Name == "prmtest").Id });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5-notconfirmed-wsscheme", Email = "user5@example.com", EmailConfirmed = false, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Name == "domainmatch").Id });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6-confirmed@domainmatch.local", Email = "user6@example.com", EmailConfirmed = false });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "user7-confirmed@domainnomatch.local", Email = "user7@example.com", EmailConfirmed = false });
             DbContext.ApplicationUser.Load();
             #endregion
 
@@ -1004,8 +1004,8 @@ namespace MapTests
             #region Initialize ProfitCenters
             DbContext.ProfitCenter.AddRange(new List<ProfitCenter>
             {
-                new ProfitCenter { Id = TestUtil.MakeTestGuid(1), },
-                new ProfitCenter { Id = TestUtil.MakeTestGuid(2), },
+                new ProfitCenter { Id = TestUtil.MakeTestGuid(1), Name = "Profit Center 1" },
+                new ProfitCenter { Id = TestUtil.MakeTestGuid(2), Name = "Profit Center 2" },
             });
             #endregion
 
@@ -1020,8 +1020,8 @@ namespace MapTests
             #region Initialize Clients
             DbContext.Client.AddRange(new List<Client>
             {
-                new Client { Id = TestUtil.MakeTestGuid(1), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
-                new Client { Id = TestUtil.MakeTestGuid(2), ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
+                new Client { Id = TestUtil.MakeTestGuid(1), Name="Client 1", ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, AcceptedEmailDomainList = new List<string>{"abc.com", "def.com"} },
+                new Client { Id = TestUtil.MakeTestGuid(2), Name="Client 2", ProfitCenterId = TestUtil.MakeTestGuid(1), ParentClientId = null, },
             });
             #endregion
 
@@ -1044,15 +1044,15 @@ namespace MapTests
             #region Initialize UserClaims
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("sysAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("sysUser1"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
-            DbContext.ApplicationUser.Load();
+            DbContext.UserClaims.Load();
             #endregion
             #endregion 
 
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id = TestUtil.MakeTestGuid(1), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
-                new RootContentItem{ Id = TestUtil.MakeTestGuid(2), ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(1), ContentName = "Root Content 1", ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id = TestUtil.MakeTestGuid(2), ContentName = "Root Content 2", ClientId = TestUtil.MakeTestGuid(1), ContentTypeId = DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
             });
             #endregion
 
@@ -1073,10 +1073,12 @@ namespace MapTests
             #endregion
 
             #region Initialize UserRoles
+            await UserManager.AddToRoleAsync(DbContext.ApplicationUser.Find(TestUtil.MakeTestGuid(1)), "Admin");
+            DbContext.UserRoles.Load();
             /*
             DbContext.UserRoles.AddRange(new List<IdentityUserRole<Guid>>
             { 
-                    new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new IdentityUserRole<Guid> { RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(1) },
             });
             */
             #endregion
@@ -1090,14 +1092,14 @@ namespace MapTests
             #region Initialize ContentPublicationRequest
             DbContext.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
-                new ContentPublicationRequest { Id = TestUtil.MakeTestGuid(1), RootContentItemId = TestUtil.MakeTestGuid(1), RequestStatus = PublicationStatus.Processing }
+                new ContentPublicationRequest { Id = TestUtil.MakeTestGuid(1), RootContentItemId = TestUtil.MakeTestGuid(1), RequestStatus = PublicationStatus.Processing, ApplicationUser = DbContext.ApplicationUser.Single(u => u.UserName == "sysAdmin1") }
             });
             #endregion
 
             #region Initialize ContentReductionTask
             DbContext.ContentReductionTask.AddRange(new List<ContentReductionTask>
             {
-                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing, SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>() }
+                new ContentReductionTask { Id = TestUtil.MakeTestGuid(1), SelectionGroupId = TestUtil.MakeTestGuid(1), ReductionStatus = ReductionStatusEnum.Reducing, SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(), MasterFilePath = "", ApplicationUser = DbContext.ApplicationUser.Single(u => u.UserName == "sysAdmin1") }
             });
             #endregion
 
@@ -1218,15 +1220,48 @@ namespace MapTests
             #region Initialize SftpAccount
             DbContext.SftpAccount.AddRange(new List<SftpAccount>
                 {
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1) },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2) },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3) },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4) },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5) },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6) },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "SFTP user 1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "SFTP user 2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "SFTP user 3" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "SFTP user 4" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "SFTP user 5" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "SFTP user 6" },
                 });
             #endregion
 
+            DbContext.SaveChanges();
+        }
+
+        private void ClearAllData()
+        {
+            DbContext.RoleClaims.RemoveRange(DbContext.RoleClaims);
+            DbContext.ApplicationRole.RemoveRange(DbContext.ApplicationRole);
+            DbContext.UserClaims.RemoveRange(DbContext.UserClaims);
+            DbContext.UserLogins.RemoveRange(DbContext.UserLogins);
+            DbContext.UserRoles.RemoveRange(DbContext.UserRoles);
+            DbContext.UserTokens.RemoveRange(DbContext.UserTokens);
+            DbContext.ApplicationUser.RemoveRange(DbContext.ApplicationUser);
+            DbContext.AuthenticationScheme.RemoveRange(DbContext.AuthenticationScheme);
+            DbContext.Client.RemoveRange(DbContext.Client);
+            DbContext.ContentPublicationRequest.RemoveRange(DbContext.ContentPublicationRequest);
+            DbContext.ContentReductionTask.RemoveRange(DbContext.ContentReductionTask);
+            DbContext.ContentType.RemoveRange(DbContext.ContentType);
+            DbContext.FileDrop.RemoveRange(DbContext.FileDrop);
+            DbContext.FileDropDirectory.RemoveRange(DbContext.FileDropDirectory);
+            DbContext.FileDropFile.RemoveRange(DbContext.FileDropFile);
+            DbContext.FileDropUserPermissionGroup.RemoveRange(DbContext.FileDropUserPermissionGroup);
+            DbContext.FileUpload.RemoveRange(DbContext.FileUpload);
+            DbContext.HierarchyField.RemoveRange(DbContext.HierarchyField);
+            DbContext.HierarchyFieldValue.RemoveRange(DbContext.HierarchyFieldValue);
+            DbContext.NameValueConfiguration.RemoveRange(DbContext.NameValueConfiguration);
+            DbContext.ProfitCenter.RemoveRange(DbContext.ProfitCenter);
+            DbContext.RootContentItem.RemoveRange(DbContext.RootContentItem);
+            DbContext.SelectionGroup.RemoveRange(DbContext.SelectionGroup);
+            DbContext.SftpAccount.RemoveRange(DbContext.SftpAccount);
+            DbContext.UserInSelectionGroup.RemoveRange(DbContext.UserInSelectionGroup);
+            DbContext.UserRoleInClient.RemoveRange(DbContext.UserRoleInClient);
+            DbContext.UserRoleInProfitCenter.RemoveRange(DbContext.UserRoleInProfitCenter);
+            DbContext.UserRoleInRootContentItem.RemoveRange(DbContext.UserRoleInRootContentItem);
             DbContext.SaveChanges();
         }
 
@@ -1276,14 +1311,18 @@ namespace MapTests
             }
         }
 
-        private IConfiguration GenerateConfiguration()
+        public static IConfiguration GenerateConfiguration()
         {
             var configurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
             configurationBuilder.AddJsonFile("appsettings.json", true);
             configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
-            configurationBuilder.AddUserSecrets<TestInitialization>();
+
+            if (string.IsNullOrEmpty(environmentName) || environmentName.Equals("Development", StringComparison.InvariantCultureIgnoreCase))
+            {
+                configurationBuilder.AddUserSecrets<TestInitialization>();
+            }
 
             return configurationBuilder.Build();
         }

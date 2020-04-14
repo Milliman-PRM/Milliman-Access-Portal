@@ -12,8 +12,16 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class ClientAdminControllerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public ClientAdminControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
+
         /// <summary>
         /// Common controller constructor to be used by all tests
         /// </summary>
@@ -68,7 +76,7 @@ namespace MapTests
         [Fact]
         public async Task Index_ErrorWhenUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "test1");
@@ -90,7 +98,7 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsAView()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -112,7 +120,7 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ErrorWhenUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "test1");
@@ -134,7 +142,7 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ReturnsAList()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -157,7 +165,7 @@ namespace MapTests
         [Fact]
         public async Task ClientDetail_ErrorWhenNotFound()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -181,7 +189,7 @@ namespace MapTests
         [InlineData("test1", 1)] // Not authorized to perform client admin
         public async Task ClientDetail_ErrorWhenUnauthorized(string userArg, int clientIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -205,7 +213,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 2)] // Authorized to a related (parent) client
         public async Task ClientDetail_ReturnsDetails(string userArg, int clientIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -231,7 +239,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 4, 1)] // User is admin on the requested client but isn't admin on the requested client's profit center
         public async Task AssignUserToClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -256,7 +264,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
         public async Task AssignUserToClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -279,7 +287,7 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_NoActionWhenAssigned()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -310,7 +318,7 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_ErrorForInvalidEmail()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -334,7 +342,7 @@ namespace MapTests
         [Fact]
         public async Task AssignUserToClient_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -365,7 +373,7 @@ namespace MapTests
         [InlineData(2, "ClientAdmin1")]
         public async Task SetUserRoleInClient_ErrorWhenUnauthorized(int clientId, string userName)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userName);
@@ -399,7 +407,7 @@ namespace MapTests
         [InlineData(1, 2)]
         public async Task SetUserRoleInClient_ErrorWhenInvalid(int clientId, int userId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -433,7 +441,7 @@ namespace MapTests
         [InlineData(1, 5, RoleEnum.ContentUser)]
         public async Task SetUserRoleInClient_Success(int clientId, int userId, RoleEnum role)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -479,7 +487,7 @@ namespace MapTests
         [InlineData(1, 5, RoleEnum.Admin)]
         public async Task SetUserRoleInClient_Success_Pair(int clientId, int userId, RoleEnum role)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -526,7 +534,7 @@ namespace MapTests
         [InlineData(1, 5, RoleEnum.ContentPublisher)]
         public async Task SetUserRoleInClient_Success_Content(int clientId, int userId, RoleEnum role)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -584,7 +592,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 3, 1)] // User isn't admin on the requested client
         public async Task RemoveUserFromClient_ErrorWhenUnauthorized(string userArg, int clientIdArg, int userIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -609,7 +617,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 1, -1)] // Client exists, but user does not (User is authorized to specified client & its profit center)
         public async Task RemoveUserFromClient_ErrorWhenNotFound(string userArg, int clientIdArg, int userIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -633,7 +641,7 @@ namespace MapTests
         [Fact]
         public async Task RemoveUserFromClient_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -670,7 +678,7 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenParentIdIsClientId()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -694,7 +702,7 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenModelStateInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -722,7 +730,7 @@ namespace MapTests
         [InlineData("ClientAdmin1", 3, 1)]// Request new child client; user is admin of profit center but not parent client
         public async Task SaveNewClient_ErrorWhenNotAuthorized(string userArg, int? parentClientIdArg, int profitCenterIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userArg);
@@ -751,7 +759,7 @@ namespace MapTests
         [InlineData(null, new string[] { "@test.com" })] // invalid email address format (no user before @)
         public async Task SaveNewClient_ErrorWhenEmailInvalid(string[] domainListArg, string[] emailListArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -784,7 +792,7 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_ErrorWhenDomainLimitExceeded()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -810,7 +818,7 @@ namespace MapTests
         [Fact]
         public async Task SaveNewClient_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -845,7 +853,7 @@ namespace MapTests
         [InlineData(424242,1)]// Attempt to edit a non-existent client
         public async Task EditClient_ErrorWhenInvalidRequest(int clientIdArg, int parentClientIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -873,7 +881,7 @@ namespace MapTests
         [InlineData(5, 2)] // User is not an admin on the new profit center
         public async Task EditClient_ErrorWhenUnauthorized(int clientIdArg, int profitCenterIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -907,7 +915,7 @@ namespace MapTests
         [Fact]
         public async Task EditClient_ErrorWhenDomainLimitExceeded()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -935,7 +943,7 @@ namespace MapTests
         [Fact]
         public async Task EditClient_UnauthorizedWhenChangingParentClient()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -975,7 +983,7 @@ namespace MapTests
         [InlineData(null, null, new string[] { "@test.com" })] // Email address whitelist invalid (no user)
         public async Task EditClient_ErrorWhenInvalid(string clientNameArg, string[] domainWhitelistArg, string[] addressWhitelistArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -1025,7 +1033,7 @@ namespace MapTests
         [Fact]
         public async Task EditClient_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -1089,7 +1097,7 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientNotFound()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -1111,7 +1119,7 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientHasChildren()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -1135,7 +1143,7 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_ErrorWhenClientHasRootContentItems()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
@@ -1159,7 +1167,7 @@ namespace MapTests
         [Fact]
         public async Task DeleteClient_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");

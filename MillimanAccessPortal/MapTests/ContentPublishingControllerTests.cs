@@ -22,14 +22,20 @@ using Newtonsoft.Json.Linq;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class ContentPublishingControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public ContentPublishingControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentPublishingController</returns>
-        public async Task<ContentPublishingController> GetControllerForUser(string Username)
+        private async Task<ContentPublishingController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             var testController = new ContentPublishingController(
                 TestResources.AuditLogger,
@@ -62,10 +68,10 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsView()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -84,12 +90,12 @@ namespace MapTests
         [InlineData(1, 1, false)]
         public async Task CreateRootContentItem_ErrorInvalid(int clientIdArg, int contentTypeIdArg, bool useContentName)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
                 Guid clientId = TestUtil.MakeTestGuid(clientIdArg);
                 Guid contentTypeId = TestUtil.MakeTestGuid(contentTypeIdArg);
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 var validRootContentItem = new RootContentItem
                 {
                     ClientId = clientId,
@@ -122,11 +128,11 @@ namespace MapTests
         [InlineData("user1", 2)]  // User has no role in the client
         public async Task CreateRootContentItem_ErrorUnauthorized(String userName, int clientIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
                 Guid clientId = TestUtil.MakeTestGuid(clientIdArg);
-                ContentPublishingController controller = await GetControllerForUser(userName);
+                ContentPublishingController controller = await GetControllerForUser(TestResources, userName);
                 var validRootContentItem = new RootContentItem
                 {
                     ClientId = clientId,
@@ -153,14 +159,14 @@ namespace MapTests
         [Fact]
         public async Task CreateRootContentItem_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 var validRootContentItem = new RootContentItem
                 {
                     ClientId = TestUtil.MakeTestGuid(1),
-                    ContentTypeId = TestUtil.MakeTestGuid(1),
+                    ContentTypeId = TestResources.DbContext.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.Qlikview).Id,
                     ContentName = "CreateRootContentItem_ReturnsJson",
                     DoesReduce = false,
                 };
@@ -185,14 +191,14 @@ namespace MapTests
         [Fact]
         public async Task CreateRootContentItem_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 var validRootContentItem = new RootContentItem
                 {
                     ClientId = TestUtil.MakeTestGuid(1),
-                    ContentTypeId = TestUtil.MakeTestGuid(1),
+                    ContentTypeId = TestResources.DbContext.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.Qlikview).Id,
                     ContentName = "CreateRootContentItem_Success",
                     DoesReduce = false,
                 };
@@ -215,10 +221,10 @@ namespace MapTests
         [InlineData(999)]
         public async Task DeleteRootContentItem_ErrorInvalid(int rootContentItemIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 #endregion
 
@@ -242,10 +248,10 @@ namespace MapTests
         [InlineData("user1", 2)]  // User has no role in the client
         public async Task DeleteRootContentItem_ErrorUnauthorized(String userName, int rootContentItemIdArg)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser(userName);
+                ContentPublishingController controller = await GetControllerForUser(TestResources, userName);
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 #endregion
 
@@ -266,11 +272,11 @@ namespace MapTests
         [Fact]
         public async Task DeleteRootContentItem_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
 
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 #endregion
 
@@ -288,10 +294,10 @@ namespace MapTests
         [Fact]
         public async Task DeleteRootContentItem_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 #endregion
 
@@ -310,10 +316,10 @@ namespace MapTests
         [Fact]
         public async Task Publish_UnauthorizedUser()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user3");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
                 PublishRequest RequestArg = new PublishRequest();
                 #endregion
 
@@ -331,11 +337,11 @@ namespace MapTests
         [Fact]
         public async Task Publish_MissingFileUploadRecord()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 PublishRequest RequestArg = new PublishRequest
                 {
                     RootContentItemId = TestUtil.MakeTestGuid(3),
@@ -367,10 +373,10 @@ namespace MapTests
         public async Task Publish_PreviousPublishingPending(PublicationStatus ExistingRequestStatus)
         {
             // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 PublishRequest RequestArg = new PublishRequest
                 {
                     RootContentItemId = TestUtil.MakeTestGuid(3),
@@ -386,6 +392,7 @@ namespace MapTests
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles> { },
                     CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0),
                 });
+                TestResources.DbContext.SaveChanges();
                 #endregion
 
                 #region Act
@@ -404,11 +411,11 @@ namespace MapTests
         [InlineData(ReductionStatusEnum.Reducing)]
         public async Task Publish_PreviousReductionPending(ReductionStatusEnum ExistingTaskStatus)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 PublishRequest RequestArg = new PublishRequest
                 {
                     RootContentItemId = TestUtil.MakeTestGuid(3),
@@ -422,7 +429,9 @@ namespace MapTests
                     ApplicationUserId = TestUtil.MakeTestGuid(1),
                     ReductionStatus = ExistingTaskStatus,
                     CreateDateTimeUtc = DateTime.UtcNow,
+                    MasterFilePath = "",
                 });
+                TestResources.DbContext.SaveChanges();
                 #endregion
 
                 #region Act
@@ -439,10 +448,10 @@ namespace MapTests
         [Fact]
         public async Task GoLive_UnauthorizedUser()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user3");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
                 var goLiveViewModel = new GoLiveViewModel
                 {
                     RootContentItemId = TestUtil.MakeTestGuid(1),
@@ -465,10 +474,10 @@ namespace MapTests
         [Fact]
         public async Task GoLive_InvalidRequestStatus()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 // Create a new publicationrequest record with blocking status
                 TestResources.DbContext.ContentPublicationRequest.Add(new ContentPublicationRequest
                 {
@@ -502,10 +511,10 @@ namespace MapTests
         [Fact]
         public async Task Reject_Unauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user3");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
                 var goLiveViewModel = new GoLiveViewModel
                 {
                     RootContentItemId = TestUtil.MakeTestGuid(1),
@@ -530,10 +539,10 @@ namespace MapTests
         [InlineData(3, 3, PublicationStatus.Processing, "user1", "The specified publication request is not currently processed.")]
         public async Task Reject_BadRequest(int rootContentItemId, int pubRequestId, PublicationStatus initialPubRequestStatus, string UserName, string ExpectedHeaderString)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser(UserName);
+                ContentPublishingController controller = await GetControllerForUser(TestResources, UserName);
                 ContentPublicationRequest pubRequest = TestResources.DbContext.ContentPublicationRequest.SingleOrDefault(r => r.RootContentItemId == TestUtil.MakeTestGuid(rootContentItemId));
                 if (pubRequest != null)
                 {
@@ -563,10 +572,10 @@ namespace MapTests
         [Fact]
         public async Task UpdateRootContentItem_Unauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user3");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
                 RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(1));
                 RootContentItem updateModel = new RootContentItem
                 {
@@ -594,10 +603,10 @@ namespace MapTests
         [Fact]
         public async Task UpdateRootContentItem_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(3));
                 RootContentItem updateModel = new RootContentItem
                 {
@@ -627,10 +636,10 @@ namespace MapTests
         [Fact]
         public async Task UpdateRootContentItem_TypeSpecificProperties_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentPublishingController controller = await GetControllerForUser("user1");
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
                 RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(4));
                 PowerBiContentItemProperties props = new PowerBiContentItemProperties
                 {

@@ -19,14 +19,20 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class ContentAccessAdminControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public ContentAccessAdminControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<ContentAccessAdminController> GetControllerForUser(string Username)
+        private async Task<ContentAccessAdminController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             ContentAccessAdminController testController = new ContentAccessAdminController(
                 TestResources.AuditLogger,
@@ -55,10 +61,10 @@ namespace MapTests
         [Fact]
         public async Task Index_ErrorUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user2");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user2");
                 #endregion
 
                 #region Act
@@ -74,10 +80,10 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsView()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -93,10 +99,10 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ErrorUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user2");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user2");
                 #endregion
 
                 #region Act
@@ -112,10 +118,10 @@ namespace MapTests
         [Fact]
         public async Task ClientFamilyList_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -132,10 +138,10 @@ namespace MapTests
         [Fact]
         public async Task RootContentItems_ErrorInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -151,10 +157,10 @@ namespace MapTests
         [Fact]
         public async Task RootContentItems_ErrorUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user2");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user2");
                 #endregion
 
                 #region Act
@@ -170,10 +176,10 @@ namespace MapTests
         [Fact]
         public async Task RootContentItems_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -191,10 +197,10 @@ namespace MapTests
         [InlineData(999)]
         public async Task SelectionGroups_ErrorInvalid(int RootContentItemId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -212,10 +218,10 @@ namespace MapTests
         [InlineData("user1", 2)]  // User has no role in the root content item
         public async Task SelectionGroups_ErrorUnauthorized(String UserName, int RootContentItemId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 #endregion
 
                 #region Act
@@ -231,10 +237,10 @@ namespace MapTests
         [Fact]
         public async Task SelectionGroups_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -252,10 +258,10 @@ namespace MapTests
         [InlineData(999)]
         public async Task CreateSelectionGroup_ErrorInvalid(int RootContentItemId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -280,10 +286,10 @@ namespace MapTests
         [InlineData("user1", 2)]  // User has no role in the root content item
         public async Task CreateSelectionGroup_ErrorUnauthorized(String UserName, int RootContentItemId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 #endregion
 
                 #region Act
@@ -306,10 +312,10 @@ namespace MapTests
         [Fact]
         public async Task CreateSelectionGroup_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -330,10 +336,10 @@ namespace MapTests
         [Fact]
         public async Task CreateSelectionGroup_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -358,10 +364,10 @@ namespace MapTests
         [InlineData(2, 2)]    // user ID already belongs to another selection group for this root content item
         public async Task UpdateSelectionGroup_ErrorInvalid(int SelectionGroupId, int UserId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(UserId),
@@ -394,10 +400,10 @@ namespace MapTests
         [InlineData("user1", 3)]    // User has no role in the root content item
         public async Task UpdateSelectionGroup_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -426,10 +432,10 @@ namespace MapTests
         [Fact]
         public async Task UpdateSelectionGroup_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -455,10 +461,10 @@ namespace MapTests
         [Fact]
         public async Task UpdateSelectionGroup_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -487,10 +493,10 @@ namespace MapTests
         [Theory]
         public async Task DeleteSelectionGroup_ErrorInvalid(int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -521,10 +527,10 @@ namespace MapTests
         [InlineData("user1", 3)]  // User has no role in the root content item
         public async Task DeleteSelectionGroup_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 #endregion
 
                 #region Act
@@ -551,10 +557,10 @@ namespace MapTests
         [Fact]
         public async Task DeleteSelectionGroup_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -574,10 +580,10 @@ namespace MapTests
         [Fact]
         public async Task DeleteSelectionGroup_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -601,10 +607,10 @@ namespace MapTests
         [InlineData(999)]
         public async Task Selections_ErrorInvalid(int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -622,10 +628,10 @@ namespace MapTests
         [InlineData("user1", 3)]  // User has no role in the root content item
         public async Task Selections_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 #endregion
 
                 #region Act
@@ -641,10 +647,10 @@ namespace MapTests
         [Fact]
         public async Task Selections_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 #endregion
 
                 #region Act
@@ -669,11 +675,11 @@ namespace MapTests
         [InlineData(  1,    2, new ReductionStatusEnum[] { ReductionStatusEnum.Reduced   })]  // "
         public async Task SingleReduction_ErrorInvalid(int SelectionGroupIdArg, int? HierarchyFieldValueIdArg, ReductionStatusEnum[] Tasks)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
                 Guid SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupIdArg);
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 var Selections = HierarchyFieldValueIdArg.HasValue
                     ? new Guid[]
                     {
@@ -719,10 +725,10 @@ namespace MapTests
         [InlineData("user1", 3)]  // User has no role in the root content item
         public async Task SingleReduction_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 var Selections = new Guid[]
                 {
                 TestUtil.MakeTestGuid(2),
@@ -766,10 +772,10 @@ namespace MapTests
         [InlineData(1,    1, new ReductionStatusEnum[] { ReductionStatusEnum.Queued    })]  // The queued task is part of a publication request
         public async Task CancelReduction_ErrorInvalid(int SelectionGroupId, int? ContentPublicationRequestId, ReductionStatusEnum[] Tasks)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 foreach (var Status in Tasks)
                 {
                     TestResources.DbContext.ContentReductionTask.Add(new ContentReductionTask
@@ -806,10 +812,10 @@ namespace MapTests
         [InlineData("user1", 3)]  // User has no role in the root content item
         public async Task CancelReduction_ErrorUnauthorized(String UserName, int SelectionGroupId)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser(UserName);
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, UserName);
                 TestResources.DbContext.ContentReductionTask.Add(new ContentReductionTask
                 {
                     ReductionStatus = ReductionStatusEnum.Queued,
@@ -840,10 +846,10 @@ namespace MapTests
         [Fact]
         public async Task CancelReduction_ReturnsJson()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 TestResources.DbContext.ContentReductionTask.Add(new ContentReductionTask
                 {
                     ReductionStatus = ReductionStatusEnum.Queued,
@@ -851,7 +857,10 @@ namespace MapTests
                     SelectionGroupId = TestUtil.MakeTestGuid(1),
                     ApplicationUserId = TestUtil.MakeTestGuid(1),
                     SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
+                    MasterFilePath = "",
+                    CreateDateTimeUtc = DateTime.MinValue,
                 });
+                TestResources.DbContext.SaveChanges();
                 #endregion
 
                 #region Act
@@ -874,10 +883,10 @@ namespace MapTests
         [InlineData(1, 1, new ReductionStatusEnum[] { ReductionStatusEnum.Canceled, ReductionStatusEnum.Queued })]  // Multiple tasks exist, and at least one is queued
         public async Task CancelReduction_Success(int SelectionGroupId, int UserId, ReductionStatusEnum[] Tasks)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Reduction))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
-                ContentAccessAdminController controller = await GetControllerForUser("user1");
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 int i = 10;
                 foreach (var Status in Tasks)
                 {
@@ -889,8 +898,11 @@ namespace MapTests
                         SelectionGroupId = TestUtil.MakeTestGuid(SelectionGroupId),
                         ApplicationUserId = TestUtil.MakeTestGuid(UserId),
                         SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
+                        MasterFilePath = "",
+                        CreateDateTimeUtc = DateTime.MinValue,
                     });
                 }
+                TestResources.DbContext.SaveChanges();
                 #endregion
 
                 #region Act

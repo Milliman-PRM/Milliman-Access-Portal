@@ -42,7 +42,7 @@ namespace MillimanAccessPortal.DataQueries
                                                      .ToListAsync())  // force the first query to execute
                                                      .Union(
                                                          _dbContext.ApplicationUser
-                                                                   .Where(u => u.UserName.Equals(user.UserName, StringComparison.InvariantCultureIgnoreCase))
+                                                                   .Where(u => EF.Functions.ILike(u.UserName, user.UserName))
                                                                    .SelectMany(u => u.SftpAccounts
                                                                                      .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                                                      .Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),

@@ -22,9 +22,17 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class SystemAdminControllerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
         internal TestInitialization TestResources { get; set; }
+
+        public SystemAdminControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
@@ -72,7 +80,7 @@ namespace MapTests
         [Fact]
         public async Task Index_ErrorUnauthorized()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysUser1");
@@ -91,7 +99,7 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsView()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -112,7 +120,7 @@ namespace MapTests
         [Fact]
         public async Task Users_Success_FilterNone()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -136,7 +144,7 @@ namespace MapTests
         [InlineData(2, 0)]
         public async Task Users_Success_FilterClient(int clientId, int expectedUsers)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -162,7 +170,7 @@ namespace MapTests
         [InlineData(2, 0)]
         public async Task Users_Success_FilterProfitCenter(int profitCenterId, int expectedUsers)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -189,7 +197,7 @@ namespace MapTests
         [InlineData(-1)]
         public async Task UserDetail_Invalid(int? userId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -213,7 +221,7 @@ namespace MapTests
         [InlineData(1)]
         public async Task UserDetail_Success_FilterNone(int userId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -237,7 +245,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task UserDetail_Success_FilterClient(int userId, int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -262,7 +270,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task UserDetail_Success_FilterProfitCenter(int userId, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -289,7 +297,7 @@ namespace MapTests
         [Fact]
         public async Task Clients_Success_FilterNone()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -313,7 +321,7 @@ namespace MapTests
         [InlineData(2, 0)]
         public async Task Clients_Success_FilterUser(int userId, int expectedClients)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -339,7 +347,7 @@ namespace MapTests
         [InlineData(2, 0)]
         public async Task Clients_Success_FilterProfitCenter(int profitCenterId, int expectedClients)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -366,7 +374,7 @@ namespace MapTests
         [InlineData(-1)]
         public async Task ClientDetail_Invalid(int? clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -390,7 +398,7 @@ namespace MapTests
         [InlineData(1)]
         public async Task ClientDetail_Success_FilterNone(int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -414,7 +422,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task ClientDetail_Success_FilterUser(int clientId, int userId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -439,7 +447,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task ClientDetail_Success_FilterProfitCenter(int clientId, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -466,7 +474,7 @@ namespace MapTests
         [Fact]
         public async Task ProfitCenters_Success_FilterNone()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -491,7 +499,7 @@ namespace MapTests
         [InlineData(-1)]
         public async Task ProfitCenterDetail_Invalid(int? profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -515,7 +523,7 @@ namespace MapTests
         [InlineData(1)]
         public async Task ProfitCenterDetail_Success_FilterNone(int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -543,7 +551,7 @@ namespace MapTests
         [InlineData(11, 1)]
         public async Task RootContentItems_Success_FilterUser(int userId, int expectedRootContentItems)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -570,7 +578,7 @@ namespace MapTests
         [InlineData(2, 0)]
         public async Task RootContentItems_Success_FilterClient(int clientId, int expectedRootContentItems)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -597,7 +605,7 @@ namespace MapTests
         [InlineData(-1)]
         public async Task RootContentItemDetail_Invalid(int? rootContentItemId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -621,7 +629,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task RootContentItemDetail_Success_FilterUser(int rootContentItemId, int userId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -646,7 +654,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task RootContentItemDetail_Success_FilterRootContentItem(int rootContentItemId, int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -676,7 +684,7 @@ namespace MapTests
         [InlineData("sysAdmin1@site.domain")]
         public async Task CreateUser_Invalid(string email)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -722,7 +730,7 @@ namespace MapTests
         [InlineData("", null, null, null, null, null)]
         public async Task CreateProfitCenter_Success(string name, string code, string office, string contact, string email, string phone)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -755,7 +763,7 @@ namespace MapTests
         [InlineData("sysUser1@site.domain", 99)]
         public async Task AddUserToClient_Invalid(string email, int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -780,7 +788,7 @@ namespace MapTests
         // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
         public async Task AddUserToClient_Success(string email, int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -803,7 +811,7 @@ namespace MapTests
         [InlineData("sysUser1@site.domain", 1)]
         public async Task AddUserToClient_NoOp(string email, int clientId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -827,7 +835,7 @@ namespace MapTests
         [InlineData("sysUser1@site.domain", 99)]
         public async Task AddUserToProfitCenter_Invalid(string email, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -852,7 +860,7 @@ namespace MapTests
         // [InlineData("sysUser3@site.domain", 1)]  // Disabled until mail sender is testable.
         public async Task AddUserToProfitCenter_Success(string email, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -875,7 +883,7 @@ namespace MapTests
         [InlineData("sysAdmin1@site.domain", 1)]
         public async Task AddUserToProfitCenter_NoOp(string email, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -897,7 +905,7 @@ namespace MapTests
         [Fact]
         public async Task AddNewAuthenticationScheme_Success()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -927,7 +935,7 @@ namespace MapTests
         [Fact]
         public async Task AddNewAuthenticationScheme_FailsOnAddingSameName()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -968,7 +976,7 @@ namespace MapTests
         [Fact]
         public async Task AddNewAuthenticationScheme_FailsOnDefaultSchemeType()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -999,7 +1007,7 @@ namespace MapTests
         [InlineData(-1, "Name")]
         public async Task UpdateProfitCenter_Invalid(int profitCenterId, string profitCenterName)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1028,7 +1036,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateProfitCenter_Success()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1056,7 +1064,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAuthenticationScheme_Success()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1112,7 +1120,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAuthenticationScheme_FailOnDefaultScheme()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1139,7 +1147,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAuthenticationScheme_FailOnNonExistingSchemeName()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1173,7 +1181,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateAuthenticationScheme_FailOnSchemeTypeMismatch()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1210,7 +1218,7 @@ namespace MapTests
         [Fact]
         public async Task UpdateClient_ErrorWhenDomainLimitExceeded()
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 SystemAdminController controller = await GetControllerForUser("sysAdmin1");
@@ -1246,7 +1254,7 @@ namespace MapTests
         [InlineData(1)]  // Cannot delete if there are referencing clients
         public async Task DeleteProfitCenter_Invalid(int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1270,7 +1278,7 @@ namespace MapTests
         [InlineData(2)]
         public async Task DeleteProfitCenter_Success(int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1294,7 +1302,7 @@ namespace MapTests
         [InlineData(1, -1)]
         public async Task RemoveUserFromProfitCenter_Invalid(int userId, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1318,7 +1326,7 @@ namespace MapTests
         [InlineData(1, 1)]
         public async Task RemoveUserFromProfitCenter_Success(int userId, int profitCenterId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1342,16 +1350,16 @@ namespace MapTests
         [InlineData(2)]
         public async Task CancelPublication_Invalid(int rootContentItemId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
                 #endregion
 
                 #region Act
-                var preCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+                var preCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus)).Count();
                 var json = await controller.CancelPublication(TestUtil.MakeTestGuid(rootContentItemId));
-                var postCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+                var postCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus)).Count();
                 #endregion
 
                 #region Assert
@@ -1366,16 +1374,16 @@ namespace MapTests
         [InlineData(1)]
         public async Task CancelPublication_Success(int rootContentItemId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
                 #endregion
 
                 #region Act
-                var preCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+                var preCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus)).Count();
                 var json = await controller.CancelPublication(TestUtil.MakeTestGuid(rootContentItemId));
-                var postCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => pr.RequestStatus.IsActive()).Count();
+                var postCount = TestResources.DbContext.ContentPublicationRequest.Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus)).Count();
                 #endregion
 
                 #region Assert
@@ -1390,16 +1398,16 @@ namespace MapTests
         [InlineData(2)]
         public async Task CancelReduction_Invalid(int selectionGroupId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
                 #endregion
 
                 #region Act
-                var preCount = TestResources.DbContext.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+                var preCount = TestResources.DbContext.ContentReductionTask.Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus)).Count();
                 var json = await controller.CancelReduction(TestUtil.MakeTestGuid(selectionGroupId));
-                var postCount = TestResources.DbContext.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+                var postCount = TestResources.DbContext.ContentReductionTask.Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus)).Count();
                 #endregion
 
                 #region Assert
@@ -1414,16 +1422,16 @@ namespace MapTests
         [InlineData(1)]
         public async Task CancelReduction_Success(int selectionGroupId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
                 #endregion
 
                 #region Act
-                var preCount = TestResources.DbContext.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+                var preCount = TestResources.DbContext.ContentReductionTask.Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus)).Count();
                 var json = await controller.CancelReduction(TestUtil.MakeTestGuid(selectionGroupId));
-                var postCount = TestResources.DbContext.ContentReductionTask.Where(rt => rt.ReductionStatus.IsActive()).Count();
+                var postCount = TestResources.DbContext.ContentReductionTask.Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus)).Count();
                 #endregion
 
                 #region Assert
@@ -1441,7 +1449,7 @@ namespace MapTests
         [InlineData(2, RoleEnum.UserCreator)]
         public async Task SystemRole_Invalid(int userId, RoleEnum role)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1461,7 +1469,7 @@ namespace MapTests
         [InlineData(2, RoleEnum.Admin, false)]
         public async Task SystemRole_Success(int userId, RoleEnum role, bool expectedValue)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1486,7 +1494,7 @@ namespace MapTests
         [InlineData(1)]  // Cannot suspend self
         public async Task UserSuspension_Invalid(int userId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1506,7 +1514,7 @@ namespace MapTests
         [InlineData(2, false)]
         public async Task UserSuspension_Success(int userId, bool expectedValue)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1532,7 +1540,7 @@ namespace MapTests
         [InlineData(1, 1, RoleEnum.UserCreator)]
         public async Task UserClientRoles_Invalid(int userId, int clientId, RoleEnum role)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1555,7 +1563,7 @@ namespace MapTests
         [InlineData(1, 1, RoleEnum.ContentUser, false)]
         public async Task UserClientRoles_Success(int userId, int clientId, RoleEnum role, bool expectedValue)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1579,7 +1587,7 @@ namespace MapTests
         [InlineData(-1)]
         public async Task ContentSuspension_Invalid(int rootContentItemId)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");
@@ -1599,7 +1607,7 @@ namespace MapTests
         [InlineData(1, false)]
         public async Task ContentSuspension_Success(int rootContentItemId, bool expectedValue)
         {
-            using (TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.SystemAdmin))
+            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
             {
                 #region Arrange
                 var controller = await GetControllerForUser("sysAdmin1");

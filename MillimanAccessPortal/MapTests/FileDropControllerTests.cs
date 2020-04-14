@@ -17,14 +17,20 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class FileDropControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public FileDropControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<FileDropController> GetControllerForUser(string Username)
+        private async Task<FileDropController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             var testController = new FileDropController(
                 TestResources.AuditLogger,
@@ -52,10 +58,10 @@ namespace MapTests
         [Fact]
         public async Task Clients_NotAuthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user8");
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
                 #endregion
 
                 #region Act
@@ -78,10 +84,10 @@ namespace MapTests
         [InlineData("user7")]
         public async Task Clients_Authorized(string userName)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser(userName);
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
                 #endregion
 
                 #region Act
@@ -112,10 +118,10 @@ namespace MapTests
         [InlineData("user7", 1, 1, 0)] // 1-both, 2-both
         public async Task Clients_CorrectResponse(string userName, int numClient1, int numClient2, int numClient3)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser(userName);
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
                 #endregion
 
                 #region Act
@@ -137,10 +143,10 @@ namespace MapTests
         [InlineData("user2")] // user only
         public async Task Create_Unauthorized(string userName)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser(userName);
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
                 FileDrop model = new FileDrop
                 {
                     ClientId = TestUtil.MakeTestGuid(1),
@@ -162,10 +168,10 @@ namespace MapTests
         [Fact]
         public async Task Create_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user1");
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
                 FileDrop model = new FileDrop
                 {
                     ClientId = TestUtil.MakeTestGuid(1),
@@ -197,10 +203,10 @@ namespace MapTests
         [Fact]
         public async Task Delete_Unauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user8");
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
                 Guid fileDropIdToDelete = TestUtil.MakeTestGuid(3);
                 bool ExistsAtStart = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
                 #endregion
@@ -218,10 +224,10 @@ namespace MapTests
         [Fact]
         public async Task Delete_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user1");
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
                 Guid fileDropIdToDelete = TestUtil.MakeTestGuid(1);
                 bool ExistsAtStart = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
                 #endregion
@@ -237,7 +243,7 @@ namespace MapTests
                 bool ExistsAtEnd = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
                 Assert.True(ExistsAtStart);
                 Assert.False(ExistsAtEnd);
-                Assert.Null(returnModel.CurrentFileDropId);
+                Assert.Equal(fileDropIdToDelete, returnModel.CurrentFileDropId);
                 #endregion
             }
         }
@@ -247,10 +253,10 @@ namespace MapTests
         [InlineData("user2")] // user only
         public async Task Update_Unauthorized(string userName)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser(userName);
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
                 FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
                 FileDrop newFileDrop = new FileDrop
                 {
@@ -278,10 +284,10 @@ namespace MapTests
         [Fact]
         public async Task Update_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user1");
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
                 FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
                 FileDrop newFileDrop = new FileDrop
                 {
@@ -316,10 +322,10 @@ namespace MapTests
         [Fact]
         public async Task PermissionGroups_Success()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user1");
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
                 FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
                 #endregion
 
@@ -346,10 +352,10 @@ namespace MapTests
         [Fact]
         public async Task PermissionGroups_Unauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.FileDrop))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
                 #region Arrange
-                FileDropController controller = await GetControllerForUser("user8");
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
                 FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
                 #endregion
 

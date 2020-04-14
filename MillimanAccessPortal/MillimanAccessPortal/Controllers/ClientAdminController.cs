@@ -529,7 +529,9 @@ namespace MillimanAccessPortal.Controllers
                     }
                     if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
                     {
-                        foreach (var rootContentItem in DbContext.RootContentItem.Where(i => i.ClientId == ClientUserModel.ClientId).ToList())
+                        foreach (var rootContentItem in await DbContext.RootContentItem
+                                                                       .Where(i => i.ClientId == ClientUserModel.ClientId)
+                                                                       .ToListAsync())
                         {
                             var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
                                                                           .Where(r => r.UserId == RequestedUser.Id)

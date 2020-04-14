@@ -158,7 +158,7 @@ namespace MillimanAccessPortal.Controllers
             query = query.OrderBy(user => user.LastName).ThenBy(user => user.FirstName);
 
             var userInfoList = new List<UserInfo>();
-            foreach (var user in query)
+            foreach (var user in await query.ToListAsync())
             {
                 var userInfo = (UserInfo)user;
                 await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
@@ -391,7 +391,7 @@ namespace MillimanAccessPortal.Controllers
             query = query.OrderBy(pc => pc.Name);
 
             var pcInfoList = new List<ProfitCenterInfo>();
-            foreach (var pc in query)
+            foreach (var pc in await query.ToListAsync())
             {
                 var pcInfo = (ProfitCenterInfo)pc;
                 await pcInfo.QueryRelatedEntityCountsAsync(_dbContext);
@@ -482,7 +482,7 @@ namespace MillimanAccessPortal.Controllers
                          .ThenBy(item => item.ContentType);
 
             var itemInfoList = new List<RootContentItemInfo>();
-            foreach (var item in query)
+            foreach (var item in await query.ToListAsync())
             {
                 var itemInfo = (RootContentItemInfo)item;
                 await itemInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.UserId);

@@ -86,7 +86,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             else
             {
                 // count all clients and root content items related to the user
-                ClientCount =await  dbContext.UserClaims
+                ClientCount = await  dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == Id)
                     .CountAsync();

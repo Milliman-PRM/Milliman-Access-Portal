@@ -19,8 +19,16 @@ using MapCommonLib;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class AuthorizedContentControllerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public AuthorizedContentControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
+
         /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
         /// </summary>
@@ -28,7 +36,7 @@ namespace MapTests
         [Fact]
         public async Task Index_ReturnsAViewResult()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // initialize dependencies
@@ -68,7 +76,7 @@ namespace MapTests
         [Fact]
         public async Task Content_DeduplicatesAssignedSelectionGroups()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 AuthorizedContentController sut = new AuthorizedContentController(
@@ -110,7 +118,7 @@ namespace MapTests
         [Fact]
         public async Task WebHostedContent_ErrorWhenNotAuthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 // Attempt to load the content view for unauthorized content
                 #region Arrange
@@ -153,7 +161,7 @@ namespace MapTests
         [Fact]
         public async Task WebHostedContent_DisplaysWhenAuthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -216,7 +224,7 @@ namespace MapTests
         [Fact]
         public async Task WebHostedContent_DisplaysMessageWhenChecksumIsInvalid()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -270,7 +278,7 @@ namespace MapTests
         [Fact]
         public async Task WebHostedContent_RedirectToContentWrapperWhenNotReferredTherefrom()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -328,7 +336,7 @@ namespace MapTests
         [Fact]
         public async Task ThumbnailErrorForInvalidSelectionGroup()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -367,7 +375,7 @@ namespace MapTests
         [Fact]
         public async Task WebHostedContentUnauthorized()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -409,7 +417,7 @@ namespace MapTests
         [InlineData("ReleaseNotes")]
         public async Task RelatedPdfSuccess(string purpose)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -468,7 +476,7 @@ namespace MapTests
         [Fact]
         public async Task RelatedPdfInvalidChecksum()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -525,7 +533,7 @@ namespace MapTests
         [Fact]
         public async Task RelatedPdfInvalidSelectionGroup()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)
@@ -582,7 +590,7 @@ namespace MapTests
         [Fact]
         public async Task RelatedPdfUnauthorizedSelectionGroup()
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
                 // Create the system under test (sut)

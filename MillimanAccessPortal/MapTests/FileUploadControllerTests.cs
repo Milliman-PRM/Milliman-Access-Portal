@@ -15,14 +15,20 @@ using TestResourcesLib;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
     public class FileUploadControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+
+        public FileUploadControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+        }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<FileUploadController> GetControllerForUser(string Username)
+        private async Task<FileUploadController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             var testController = new FileUploadController(
                 TestResources.AuditLogger,
@@ -67,10 +73,10 @@ namespace MapTests
         [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 2)]
         public async Task ChunkStatus_NotFound(string fileName, string checksum, ulong size, uint chunkNumber)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                FileUploadController controller = await GetControllerForUser("test1");
+                FileUploadController controller = await GetControllerForUser(TestResources, "test1");
                 var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
                 #endregion
 
@@ -89,10 +95,10 @@ namespace MapTests
         [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
         public async Task ChunkStatus_Ok(string fileName, string checksum, ulong size, uint chunkNumber)
         {
-            using (var TestResources = await TestInitialization.Create(Guid.NewGuid(), DataSelection.Basic))
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                FileUploadController controller = await GetControllerForUser("test1");
+                FileUploadController controller = await GetControllerForUser(TestResources, "test1");
                 var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
                 #endregion
 
