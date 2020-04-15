@@ -14,9 +14,14 @@
 
   <ItemGroup>
     <None Remove="AzureKeyVault.AzureCI.json" />
+    <None Remove="AzureKeyVault.Internal.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="AzureKeyVault.Internal.json">
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="AzureKeyVault.AzureCI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
