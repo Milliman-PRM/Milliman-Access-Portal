@@ -123,6 +123,7 @@ namespace MillimanAccessPortal
                     case "AZURECI":
                     case "PRODUCTION":
                     case "STAGING":
+                    case "INTERNAL":
                         config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
 
                         var builtConfig = config.Build();

@@ -33,6 +33,7 @@ namespace ContentPublishingLib
                 case "AZURECI":
                 case "PRODUCTION":
                 case "STAGING":
+                case "INTERNAL":
                     // get (environment dependent) settings from Azure key vault if any exist
                     IConfigurationRoot vaultConfig = new ConfigurationBuilder()
                         .AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
