@@ -1,0 +1,5 @@
+﻿{
+  "AzureVaultName": "https://map-internal-vault.vault.azure.net/",
+  "AzureClientID": "a2ead335-d985-42af-b7c0-24eea62e9e40",
+  "AzureCertificateThumbprint": "A24705D23EFA09EE60D4FD09F35DDCB8BB044C49"
+}
