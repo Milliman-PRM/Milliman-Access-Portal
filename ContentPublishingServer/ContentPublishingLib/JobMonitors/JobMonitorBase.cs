@@ -4,21 +4,26 @@
  * DEVELOPER NOTES: 
  */
 
+using AuditLogLib.Services;
 using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Diagnostics;
-using Moq;
 using MapDbContextLib.Context;
 
 namespace ContentPublishingLib.JobMonitors
 {
     public abstract class JobMonitorBase
     {
-        protected JobMonitorBase()
+        protected JobMonitorBase(IAuditLogger testAuditLogger)
         {
             JobMonitorInstanceCounter++;
+
+            if (testAuditLogger != null)
+            {
+                TestAuditLogger = testAuditLogger;
+            }
         }
 
         ~JobMonitorBase()
@@ -26,29 +31,14 @@ namespace ContentPublishingLib.JobMonitors
             JobMonitorInstanceCounter--;
         }
 
+        protected IAuditLogger TestAuditLogger { get; set; } = null;
+
         protected static int JobMonitorInstanceCounter = 0;
 
         public abstract Task StartAsync(CancellationToken Token);
         public abstract Task JobMonitorThreadMainAsync(CancellationToken Token);
 
         internal abstract string MaxConcurrentRunnersConfigKey { get; }
-
-        /// <summary>
-        /// Can be provided by test code to initializate data in a mocked ApplicationDbContext
-        /// </summary>
-        private Mock<ApplicationDbContext> _MockContext = null;
-        public Mock<ApplicationDbContext> MockContext
-        {
-            protected get
-            {
-                return _MockContext;
-            }
-            set
-            {
-                AssertTesting();
-                _MockContext = value;
-            }
-        }
 
         protected TimeSpan StopWaitTimeSeconds
         {

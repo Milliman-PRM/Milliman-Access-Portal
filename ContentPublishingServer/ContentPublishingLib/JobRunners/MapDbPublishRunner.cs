@@ -47,27 +47,13 @@ namespace ContentPublishingLib.JobRunners
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
-        internal string ConnectionString
+        public string ConnectionString
         {
             set
             {
                 DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
                 ContextBuilder.UseNpgsql(value);
                 ContextOptions = ContextBuilder.Options;
-            }
-        }
-
-        private Mock<ApplicationDbContext> _MockContext = null;
-        public Mock<ApplicationDbContext> MockContext
-        {
-            protected get
-            {
-                return _MockContext;
-            }
-            set
-            {
-                AssertTesting();
-                _MockContext = value;
             }
         }
 
@@ -81,17 +67,6 @@ namespace ContentPublishingLib.JobRunners
             {
                 throw new ApplicationException($"Configured Storage:ContentItemRootPath folder <{_ContentItemRootPath}> does not exist");
             }
-        }
-
-        /// <summary>
-        /// Gets an appropriate ApplicationDbContext object, depending on whether a Mocked context is assigned (test run)
-        /// </summary>
-        /// <returns></returns>
-        protected ApplicationDbContext GetDbContext()
-        {
-            return MockContext != null
-                 ? MockContext.Object
-                 : new ApplicationDbContext(ContextOptions);
         }
 
         /// <summary>
@@ -126,7 +101,7 @@ namespace ContentPublishingLib.JobRunners
                 // Wait for any/all related reduction tasks to complete
                 for ( ; PendingTaskCount > 0; PendingTaskCount = await CountPendingReductionTasks())
                 {
-                    using (ApplicationDbContext Db = GetDbContext())
+                    using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                     {
                         var cancelableTasks = await Db.ContentReductionTask
                                                       .Include(t => t.SelectionGroup)
@@ -159,7 +134,7 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 List<ContentReductionTask> AllRelatedReductionTasks = null;
-                using (ApplicationDbContext Db = GetDbContext())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     AllRelatedReductionTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == JobDetail.JobId).ToListAsync();
                 }
@@ -231,7 +206,7 @@ namespace ContentPublishingLib.JobRunners
             }
             finally
             {
-                using (ApplicationDbContext Db = GetDbContext())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     foreach (ContentReductionTask RelatedTask in await Db.ContentReductionTask
                                                                          .Where(t => t.ContentPublicationRequestId == JobDetail.JobId)
@@ -274,7 +249,7 @@ namespace ContentPublishingLib.JobRunners
 
         private async Task<int> CountPendingReductionTasks()
         {
-            using (ApplicationDbContext Db = GetDbContext())
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 PublicationStatus RequestStatus = await Db.ContentPublicationRequest
                                                           .Where(r => r.Id == JobDetail.JobId)
@@ -303,7 +278,7 @@ namespace ContentPublishingLib.JobRunners
         /// <returns></returns>
         private async Task<bool> CancelReductionTasks(IEnumerable<Guid> TaskIdsToCancel, string userMessage)
         {
-            using (ApplicationDbContext Db = GetDbContext())
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 try
                 {
@@ -331,6 +306,7 @@ namespace ContentPublishingLib.JobRunners
                 }
                 catch (Exception ex)
                 {
+                    string msg = ex.Message;
                     return false;
                 }
             }
@@ -344,7 +320,7 @@ namespace ContentPublishingLib.JobRunners
         private async Task QueueReductionActivityAsync(ContentRelatedFile contentRelatedFile)
         {
             // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
-            using (ApplicationDbContext Db = GetDbContext())
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 // if there are no selection groups for this content, create a master group
                 if (!await Db.SelectionGroup.AnyAsync(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
@@ -354,12 +330,8 @@ namespace ContentPublishingLib.JobRunners
                         RootContentItemId = JobDetail.Request.RootContentId,
                         GroupName = "Master Content Access",
                         IsMaster = true,
+                        Id = Guid.NewGuid(),
                     };
-                    // for Mocked DbSet (unit testing) there is no default expression for Id 
-                    if (MockContext != null)  
-                    {
-                        NewMasterSelectionGroup.Id = Guid.NewGuid();
-                    }
                     Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     await Db.SaveChangesAsync();
                 }
@@ -384,7 +356,7 @@ namespace ContentPublishingLib.JobRunners
                 };
 
                 // Queue hierarchy extraction task and wait for completion
-                using (ApplicationDbContext Db = GetDbContext())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     Db.ContentReductionTask.Add(MasterHierarchyTask);
                     await Db.SaveChangesAsync();
@@ -411,7 +383,7 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 var extractedFieldNames = new HashSet<string>(MasterHierarchyTask.MasterContentHierarchyObj.Fields.Select(f => f.FieldName));
-                using (ApplicationDbContext Db = GetDbContext())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     var liveHierarchyFieldNames = new HashSet<string>(await Db.HierarchyField.Where(f => f.RootContentItemId == JobDetail.Request.RootContentId).Select(f => f.FieldName).ToListAsync());
                     if (liveHierarchyFieldNames.Any() && !extractedFieldNames.SetEquals(liveHierarchyFieldNames))
@@ -420,7 +392,7 @@ namespace ContentPublishingLib.JobRunners
                     }
                 }
 
-                using (ApplicationDbContext Db = GetDbContext())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     foreach (SelectionGroup SelGrp in await Db.SelectionGroup
                                                               .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
@@ -455,7 +427,7 @@ namespace ContentPublishingLib.JobRunners
                         else
                         {
                             NewTask.TaskAction = TaskActionEnum.ReductionOnly;
-                            NewTask.SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, SelGrp.Id);
+                            NewTask.SelectionCriteriaObj = await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(Db, SelGrp.Id);
                             if (NewTask.SelectionCriteriaObj.Fields.Any(f => f.Values.Any(v => v.SelectionStatus)))
                             {
                                 NewTask.ReductionStatus = ReductionStatusEnum.Queued;

@@ -741,7 +741,7 @@ namespace MillimanAccessPortal.Controllers
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,
                         ContentPublicationRequest = null,
-                        SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
+                        SelectionCriteriaObj = await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(DbContext, selectionGroupId, selections),
                         ReductionStatus = ReductionStatusEnum.Validating,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         TaskAction = TaskActionEnum.HierarchyAndReduction,

@@ -4,6 +4,14 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using ContentPublishingLib;
+using ContentPublishingLib.JobMonitors;
+using TestResourcesLib;
+using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,27 +19,36 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
-using ContentPublishingLib.JobMonitors;
-using TestResourcesLib;
-using MapCommonLib.ContentTypeSpecific;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
-using Moq;
 
 // Turn off all parallelization for the entire assembly
 [assembly: CollectionBehavior(DisableTestParallelization = true)]
 namespace ContentPublishingServiceTests
 {
-    public class MapDbPublishJobMonitorTests : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    public class MapDbPublishJobMonitorTests : IDisposable
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
+
+        public MapDbPublishJobMonitorTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+        }
+
+        public void Dispose()
+        {
+        }
+
         [Fact]
         public async Task CorrectRequestStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications, TestResources.AuditLogger)
             {
-                MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -43,7 +60,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert
-            Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
+            Assert.Contains<TaskStatus>(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation } );
             #endregion
 
             #region Act again
@@ -90,10 +107,8 @@ namespace ContentPublishingServiceTests
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
             DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
             {
                 new ContentRelatedFile
@@ -110,11 +125,12 @@ namespace ContentPublishingServiceTests
                 }
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
+            TestResources.DbContext.SaveChanges();
 
-            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
+            MapDbPublishJobMonitor JobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications, TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -124,7 +140,7 @@ namespace ContentPublishingServiceTests
             DateTime TestStart = DateTime.UtcNow;
             Task MonitorTask = JobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(1000);
-            Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+            Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation } );
             Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
 
             while ((DbRequest.RequestStatus == PublicationStatus.Queued ||
@@ -132,16 +148,19 @@ namespace ContentPublishingServiceTests
                    DateTime.UtcNow - TestStart < new TimeSpan(0,1,0))
             {
                 Thread.Sleep(500);
+                TestResources.DbContext.Entry(DbRequest).State = EntityState.Detached;
+                DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
             }
             #endregion
 
             #region Assert
             try
             {
-                Assert.Equal(TaskStatus.Running, MonitorTask.Status);
+                Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
+                //Assert.Equal(TaskStatus.Running, MonitorTask.Status);
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(0, MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
+                Assert.Equal(0, TestResources.DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
             }
             finally
             {
@@ -181,10 +200,8 @@ namespace ContentPublishingServiceTests
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
             {
                 new ReductionRelatedFiles
@@ -215,17 +232,19 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
-            var QueueMutex = new Mutex(false);
+            TestResources.DbContext.SaveChanges();
 
-            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            var queueSemaphore = new SemaphoreSlim(1, 1);
+
+            MapDbPublishJobMonitor PublishJobMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications, TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = QueueMutex,
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = queueSemaphore,
             };
-            MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor
+            MapDbReductionJobMonitor ReductionJobMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = QueueMutex,
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = queueSemaphore,
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -236,26 +255,37 @@ namespace ContentPublishingServiceTests
             Task PublishMonitorTask = PublishJobMonitor.StartAsync(CancelTokenSource.Token);
             Task ReductionMonitorTask = ReductionJobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(2000);
-            Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
-            Assert.Equal(PublicationStatus.Queued, DbRequest.RequestStatus);
+            //Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
+            Assert.Contains(PublishMonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
+
+            TestResources.DbContext.Entry(DbRequest).State = EntityState.Detached;
+            DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
+            Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
+
             Thread.Sleep(35000);
+
+            TestResources.DbContext.Entry(DbRequest).State = EntityState.Detached;
+            DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             Assert.Equal(PublicationStatus.Processing, DbRequest.RequestStatus);
 
             while (DbRequest.RequestStatus == PublicationStatus.Processing &&
                    DateTime.UtcNow - TestStart < new TimeSpan(0, 10, 0))
             {
                 Thread.Sleep(500);
+                TestResources.DbContext.Entry(DbRequest).State = EntityState.Detached;
+                DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(4));
             }
             #endregion
 
             #region Assert
-            var Tasks = MockContext.Object.ContentReductionTask
+            var Tasks = TestResources.DbContext.ContentReductionTask
                                           .Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(4)
                                                    && t.ReductionStatus == ReductionStatusEnum.Reduced)
                                           .ToList();
             try
             {
-                Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
+                //Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
+                Assert.Contains(PublishMonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
                 Assert.Equal(3, Tasks.Count);
@@ -282,22 +312,21 @@ namespace ContentPublishingServiceTests
             Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the reduction task to be tested
-            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
 
             // Modify the publishing request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
             DbRequest.RequestStatus = PublicationStatus.Queued;
             DbRequest.CreateDateTimeUtc = DateTime.UtcNow;
+            TestResources.DbContext.SaveChanges();
 
-            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications, TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -331,22 +360,22 @@ namespace ContentPublishingServiceTests
             Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the reduction task to be tested
-            ContentReductionTask DbTask = MockContext.Object.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.CreateDateTimeUtc = DateTime.UtcNow;
 
             // Modify the publishing request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
             DbRequest.RequestStatus = PublicationStatus.Queued;
             DbRequest.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
 
-            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
+            TestResources.DbContext.SaveChanges();
+
+            MapDbPublishJobMonitor TestMonitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications, TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -361,6 +390,9 @@ namespace ContentPublishingServiceTests
                 await MonitorTask;
             }
             catch { }
+
+            TestResources.DbContext.Entry(DbRequest).State = EntityState.Detached;
+            DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
             #endregion
 
             #region Assert

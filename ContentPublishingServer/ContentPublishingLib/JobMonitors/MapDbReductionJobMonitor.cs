@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib.Services;
 using Serilog;
 using System;
 using System.Threading;
@@ -25,6 +26,10 @@ namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbReductionJobMonitor : JobMonitorBase
     {
+        public MapDbReductionJobMonitor(IAuditLogger testAuditLogger = null)
+            :base(testAuditLogger)
+        {}
+
         internal class ReductionJobTrackingItem
         {
             internal Task<ReductionJobDetail> task;
@@ -34,11 +39,9 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
-        public Mutex QueueMutex { private get; set; }
+        public SemaphoreSlim QueueSemaphore { private get; set; }
 
         public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
-
-        private bool IsTestMode { get { return MockContext != null; } }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
@@ -58,7 +61,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
-        internal string ConnectionString
+        public string ConnectionString
         {
             set
             {
@@ -75,7 +78,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns></returns>
         public async override Task StartAsync(CancellationToken Token)
         {
-            if (ContextOptions == null && !IsTestMode)
+            if (ContextOptions == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -97,9 +100,7 @@ namespace ContentPublishingLib.JobMonitors
             while (!Token.IsCancellationRequested)
             {
                 // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
-                using (ApplicationDbContext Db = IsTestMode
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     List<Guid> AllActiveReductionTaskIdList = ActiveReductionRunnerItems.Select(i => i.dbTask.Id).ToList();
 
@@ -123,7 +124,7 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    if (QueueSemaphore.Wait(MapDbPublishQueueServicedEventTimeout))
                     {
                         List<ContentReductionTask> Responses = await GetReadyTasksAsync(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
@@ -145,9 +146,9 @@ namespace ContentPublishingLib.JobMonitors
                                     {
                                         JobDetail = (ReductionJobDetail)DbTask,
                                     };
-                                    if (IsTestMode)
+                                    if (TestAuditLogger != null)
                                     {
-                                        Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                                        Runner.SetTestAuditLogger(TestAuditLogger);
                                     }
 
                                     NewTask = Runner.Execute(cancelSource.Token);
@@ -165,12 +166,12 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        QueueMutex.ReleaseMutex();
+                        QueueSemaphore.Release();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else
                     {
-                        // Mutex was not acquired
+                        // Semaphore was not acquired
                     }
 
                     Thread.Sleep(1000);
@@ -214,6 +215,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Query the database for tasks to be run
         /// </summary>
+        /// <remarks>This method cannot be async because it is called from code that owns a Mutex, which is bound to the thread</remarks>
         /// <param name="ReturnNoMoreThan">The maximum number of records to return</param>
         /// <returns></returns>
         internal async Task<List<ContentReductionTask>> GetReadyTasksAsync(int ReturnNoMoreThan)
@@ -223,9 +225,7 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = IsTestMode
-                                             ? MockContext.Object
-                                             : new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
             {
                 try
@@ -242,7 +242,7 @@ namespace ContentPublishingLib.JobMonitors
                     }
 
                     List<ContentReductionTask> TopItems = await Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                                                       .Where(t => t.CreateDateTimeUtc < EarliestPublicationRequestTimestamp)
+                                                                                       .Where(t => t.CreateDateTimeUtc <= EarliestPublicationRequestTimestamp)
                                                                                        .Include(t => t.SelectionGroup)
                                                                                            .ThenInclude(sg => sg.RootContentItem)
                                                                                                .ThenInclude(rc => rc.ContentType)
@@ -289,9 +289,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = IsTestMode
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
                 {
                     ContentReductionTask DbTask = await Db.ContentReductionTask.FindAsync(JobDetail.TaskId);
@@ -415,9 +413,7 @@ namespace ContentPublishingLib.JobMonitors
 
             try
             {
-                using (ApplicationDbContext Db = IsTestMode
-                                                 ? MockContext.Object
-                                                 : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     List<ContentReductionTask> inProgressReductionTasks = await Db.ContentReductionTask
                                                                                   .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)

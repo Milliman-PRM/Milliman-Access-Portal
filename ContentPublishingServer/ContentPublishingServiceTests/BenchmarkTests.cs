@@ -1,28 +1,35 @@
-﻿using System;
+﻿using ContentPublishingLib;
+using ContentPublishingLib.JobMonitors;
+using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
-using ContentPublishingLib.JobMonitors;
 using TestResourcesLib;
-using MapCommonLib.ContentTypeSpecific;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
-using Moq;
+using Xunit;
 using Xunit.Abstractions;
 using ContentPublishingLib.JobRunners;
 
 namespace ContentPublishingServiceTests
 {
-    public class Benchmarks : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    public class BenchmarkTests
     {
         private readonly ITestOutputHelper _output;
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
 
-        public Benchmarks(ITestOutputHelper output)
+        public BenchmarkTests(ITestOutputHelper output, DatabaseLifetimeFixture dbLifeTimeFixture)
         {
             _output = output;
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
         }
 
         [Fact(Skip = "Local only")]
@@ -32,9 +39,8 @@ namespace ContentPublishingServiceTests
             const int TOTAL_TASKS = 100;
             const int MINUTES_PER_TASK = 3;
 
-            var mockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-            var smallDbTask = mockContext.Object.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
-            var largeDbTask = mockContext.Object.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(5));
+            var smallDbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            var largeDbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(5));
 
             // Use a fact with nested for loops instead of a theory
             // This guarantees the order in which these serial tests run and gathers output into one test
@@ -73,12 +79,12 @@ namespace ContentPublishingServiceTests
                         SelectionCriteriaObj = dbTask.SelectionCriteriaObj,
                     });
                 }
-                mockContext.Object.ContentReductionTask.AddRange(dbTasks);
-                MockDbSet<ContentReductionTask>.AssignNavigationProperty(mockContext.Object.ContentReductionTask, "SelectionGroupId", mockContext.Object.SelectionGroup);
+                TestResources.DbContext.ContentReductionTask.AddRange(dbTasks);
+                TestResources.DbContext.SaveChanges();
 
-                var jobMonitor = new MapDbReductionJobMonitor
+                var jobMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
                 {
-                    MockContext = mockContext,
+                    ConnectionString = _dbLifeTimeFixture.ConnectionString,
                     MaxConcurrentRunners = maxConcurrentTasks,
                 };
 

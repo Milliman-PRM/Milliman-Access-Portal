@@ -210,7 +210,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                         var liveSelections = task.SelectionGroup.IsMaster
                             ? null
-                            : ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value);
+                            : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(Db, task.SelectionGroupId.Value);
                         var pendingSelections = task.SelectionGroup.IsMaster
                             ? null
                             : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);

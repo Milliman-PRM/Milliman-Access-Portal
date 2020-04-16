@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using ContentPublishingLib;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,16 +16,27 @@ using Moq;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbReductionJobMonitorTests : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    public class MapDbReductionJobMonitorTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
+
+        public MapDbReductionJobMonitorTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+        }
+
         [Fact]
         public async Task CorrectTaskStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
+            MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
             {
-                MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
@@ -35,7 +48,7 @@ namespace ContentPublishingServiceTests
             #endregion
 
             #region Assert
-            Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
+            Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
             #endregion
 
             #region Act again

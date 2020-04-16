@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
+using AuditLogLib.Services;
 using Serilog;
 using System;
 using System.Linq;
@@ -17,7 +19,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
-using TestResourcesLib;
+//using TestResourcesLib;
 using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobMonitors
@@ -34,7 +36,8 @@ namespace ContentPublishingLib.JobMonitors
         /// ctor, requires a type specifier to instantiate this class
         /// </summary>
         /// <param name="Type"></param>
-        public MapDbPublishJobMonitor(MapDbPublishJobMonitorType Type)
+        public MapDbPublishJobMonitor(MapDbPublishJobMonitorType Type, IAuditLogger testAuditLogger = null)
+            :base(testAuditLogger)
         {
             JobMonitorType = Type;
         }
@@ -50,9 +53,8 @@ namespace ContentPublishingLib.JobMonitors
 
         private MapDbPublishJobMonitorType JobMonitorType { get; set; }
 
-        public Mutex QueueMutex { private get; set; }
-
-        private bool IsTestMode { get { return MockContext != null; } }
+        //public Mutex QueueMutex { private get; set; }
+        public SemaphoreSlim QueueSemaphore { private get; set; }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<PublishJobTrackingItem> ActivePublicationRunnerItems = new List<PublishJobTrackingItem>();
@@ -80,7 +82,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
-        internal string ConnectionString
+        public string ConnectionString
         {
             set
             {
@@ -103,7 +105,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <returns>The Task in which this instance's JobMonitorThreadMain method is running</returns>
         public async override Task StartAsync(CancellationToken Token)
         {
-            if (ContextOptions == null && !IsTestMode)
+            if (ContextOptions == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
@@ -132,8 +134,10 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
+                    //if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
+                    if (QueueSemaphore.Wait(new TimeSpan(0, 0, 20)))
                     {
+                        // Can't await async code here because the Mutex is owned by the current thread
                         List<ContentPublicationRequest> Responses = await GetReadyRequestsAsync(MaxConcurrentRunners - ActivePublicationRunnerItems.Count);
 
                         foreach (ContentPublicationRequest DbRequest in Responses)
@@ -141,7 +145,8 @@ namespace ContentPublishingLib.JobMonitors
                             LaunchPublishRunnerForRequest(DbRequest);
                         }
 
-                        QueueMutex.ReleaseMutex();
+                        //QueueMutex.ReleaseMutex();
+                        QueueSemaphore.Release();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else
@@ -200,9 +205,7 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentPublicationRequest>();
             }
 
-            using (ApplicationDbContext Db = IsTestMode
-                                             ? MockContext.Object
-                                             : new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
             {
                 try
@@ -270,9 +273,7 @@ namespace ContentPublishingLib.JobMonitors
         private void LaunchPublishRunnerForRequest(ContentPublicationRequest DbRequest, bool SkipReductionTaskQueueing = false)
         {
             #region Validation
-            using (ApplicationDbContext Db = IsTestMode
-                                             ? MockContext.Object
-                                             : new ApplicationDbContext(ContextOptions))
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 var requestInEfCache = Db.ContentPublicationRequest.Find(DbRequest.Id);
                 if (requestInEfCache == null)
@@ -284,9 +285,8 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     string msg = $"LaunchPublishRunnerForRequest() called for publication request {DbRequest.Id} with unexpected status {ContentPublicationRequest.PublicationStatusString[requestInEfCache.RequestStatus]} while attempting LaunchPublishRunnerForRequest()";
                     Log.Information(msg);
-                    Db.ContentPublicationRequest.Update(DbRequest);
-                    DbRequest.StatusMessage = msg;
-                    DbRequest.RequestStatus = PublicationStatus.Error;
+                    requestInEfCache.StatusMessage = msg;
+                    requestInEfCache.RequestStatus = PublicationStatus.Error;
                     Db.SaveChanges();
                     return;
                 }
@@ -300,16 +300,11 @@ namespace ContentPublishingLib.JobMonitors
             MapDbPublishRunner Runner = new MapDbPublishRunner
             {
                 JobDetail = PublishJobDetail.New(DbRequest, SkipReductionTaskQueueing),
+                ConnectionString = ConnectionString,
             };
-
-            if (IsTestMode)
+            if (TestAuditLogger != null)
             {
-                Runner.MockContext = MockContext;
-                Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
-            }
-            else
-            {
-                Runner.ConnectionString = ConnectionString;
+                Runner.SetTestAuditLogger(TestAuditLogger);
             }
 
             NewTask = Runner.Execute(cancelSource.Token);
@@ -336,9 +331,7 @@ namespace ContentPublishingLib.JobMonitors
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = IsTestMode
-                                                 ? MockContext.Object
-                                                 : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
                 {
                     ContentPublicationRequest DbRequest = await Db.ContentPublicationRequest.FindAsync(JobDetail.JobId);
@@ -433,9 +426,7 @@ namespace ContentPublishingLib.JobMonitors
 
             try
             {
-                using (ApplicationDbContext Db = IsTestMode
-                                                 ? MockContext.Object
-                                                 : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     List<ContentPublicationRequest> inProgressPublicationRequests = default;
 
