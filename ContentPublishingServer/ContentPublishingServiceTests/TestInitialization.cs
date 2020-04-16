@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: <What and WHY.>
+ * OBJECTIVE: Reusable initialization features for all tests
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -9,12 +9,9 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using TestResourcesLib;
 
 namespace ContentPublishingServiceTests

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using ContentPublishingLib;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +12,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Security.Cryptography.X509Certificates;
 using Xunit;
 
 namespace ContentPublishingServiceTests
@@ -87,9 +88,28 @@ namespace ContentPublishingServiceTests
             {
                 configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
 
-                if (!string.IsNullOrEmpty(environmentName) && environmentName.Equals("Development", StringComparison.InvariantCultureIgnoreCase))
+                switch (environmentName)
                 {
-                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    case string name when name.Equals("Development", StringComparison.InvariantCultureIgnoreCase):
+                        configurationBuilder.AddUserSecrets<ProcessManager>();
+                        break;
+
+                    case string name when name.Equals("CI", StringComparison.InvariantCultureIgnoreCase):
+                        IConfigurationRoot keyVaultAccessConfig = new ConfigurationBuilder().AddJsonFile($"AzureKeyVault.{environmentName}.json", true).Build();
+
+                        var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                        store.Open(OpenFlags.ReadOnly);
+                        var cert = store.Certificates.Find(X509FindType.FindByThumbprint, keyVaultAccessConfig["AzureCertificateThumbprint"], false);
+
+                        if (cert.OfType<X509Certificate2>().Count() == 1)
+                        {
+                            configurationBuilder.AddAzureKeyVault(keyVaultAccessConfig["AzureVaultName"], keyVaultAccessConfig["AzureClientID"], cert.OfType<X509Certificate2>().Single());
+                        }
+                        else
+                        {
+                            throw new ApplicationException($"Found {cert.OfType<X509Certificate2>().Count()} certificate(s) to access Azure Key Vault for environment {environmentName}, expected 1");
+                        }
+                        break;
                 }
             }
 
