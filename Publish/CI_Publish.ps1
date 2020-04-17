@@ -244,6 +244,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+$env:MSBuildSDKsPath=$core2
 Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
@@ -257,6 +258,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
+$env:MSBuildSDKsPath=$core3
 Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
