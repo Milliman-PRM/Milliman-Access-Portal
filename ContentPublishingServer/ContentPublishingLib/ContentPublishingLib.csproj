@@ -5,7 +5,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
     <Version>1.8.1</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
@@ -43,21 +42,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="AzureKeyVault.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AzureKeyVault.AzureCI.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="AzureKeyVault.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="contentPublicationLibSettings.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="contentPublicationLibSettings.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="contentPublicationLibSettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

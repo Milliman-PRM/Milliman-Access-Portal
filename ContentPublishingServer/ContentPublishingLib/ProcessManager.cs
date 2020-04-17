@@ -154,10 +154,7 @@ namespace ContentPublishingLib
 
             if (WaitSec < 0)
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
-                {
-                    WaitSec = 3 * 60;
-                }
+                WaitSec = Configuration.ApplicationConfiguration.GetValue("StopWaitTimeSeconds", 3 * 60);
             }
             TimeSpan MaxWaitTime = TimeSpan.FromSeconds(WaitSec);
 
@@ -200,7 +197,7 @@ namespace ContentPublishingLib
         {
             get
             {
-                return JobMonitorDict.Values.All(v => v.AwaitableTask.Status == TaskStatus.Running);
+                return JobMonitorDict.Values.All(v => v.AwaitableTask != null && !v.AwaitableTask.IsCompleted);
             }
         }
 
@@ -211,7 +208,7 @@ namespace ContentPublishingLib
         {
             get
             {
-                return JobMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
+                return JobMonitorDict.Values.Any(v => v.AwaitableTask != null && !v.AwaitableTask.IsCompleted);
             }
         }
 
