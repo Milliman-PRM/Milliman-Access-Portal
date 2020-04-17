@@ -1319,9 +1319,29 @@ namespace MapTests
             configurationBuilder.AddJsonFile("appsettings.json", true);
             configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
 
-            if (string.IsNullOrEmpty(environmentName) || environmentName.Equals("Development", StringComparison.InvariantCultureIgnoreCase))
+            // Determine location to fetch the configuration
+            switch (environmentName)
             {
-                configurationBuilder.AddUserSecrets<TestInitialization>();
+                case "CI":
+                case "Production": // Get configuration from Azure Key Vault for Production
+                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
+
+                    var built = configurationBuilder.Build();
+                    configurationBuilder = new ConfigurationBuilder();
+
+                    var store = new X509Store(StoreLocation.LocalMachine);
+                    store.Open(OpenFlags.ReadOnly);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+
+                    configurationBuilder.AddAzureKeyVault(
+                        built["AzureVaultName"],
+                        built["AzureClientID"],
+                        cert.OfType<X509Certificate2>().Single());
+                    break;
+
+                default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
+                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    break;
             }
 
             return configurationBuilder.Build();
