@@ -428,7 +428,7 @@ namespace MillimanAccessPortal.Controllers
 
             var filters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => e.EventCode <= 8000 && e.EventCode < 9000 },
+                { e => e.EventCode >= 8000 && e.EventCode < 9000 },
                 { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
             };
 
