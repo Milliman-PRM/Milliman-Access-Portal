@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib;
+using AuditLogLib.Event;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -25,17 +27,20 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ClientQueries _clientQueries;
         private readonly HierarchyQueries _hierarchyQueries;
         private readonly UserQueries _userQueries;
+        private readonly AuditLogger _auditLog;
 
         public FileDropQueries(
             ApplicationDbContext dbContextArg,
             ClientQueries clientQueries,
             HierarchyQueries hierarchyQueries,
-            UserQueries userQueries)
+            UserQueries userQueries,
+            AuditLogger auditLog)
         {
             _dbContext = dbContextArg;
             _clientQueries = clientQueries;
             _hierarchyQueries = hierarchyQueries;
             _userQueries = userQueries;
+            _auditLog = auditLog;
         }
 
         /// <summary>
@@ -220,9 +225,13 @@ namespace MillimanAccessPortal.DataQueries
 
         internal async Task<PermissionGroupsModel> UpdatePermissionGroups(UpdatePermissionGroupsModel model)
         {
+            // audit logs to record after the database transaction succeeds
+            List<Action> auditLogActions = new List<Action>();
+
             using (var txn = await _dbContext.Database.BeginTransactionAsync())
             {
                 FileDrop fileDrop = await _dbContext.FileDrop
+                                                    .Include(d => d.Client)
                                                     .SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
 
                 #region Preliminary validation
@@ -285,7 +294,11 @@ namespace MillimanAccessPortal.DataQueries
                 #endregion
 
                 // Handle removed groups.  This unassigns accounts so they can be reassigned by leveraging ON DELETE SET NULL of the FK relationship
-                _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
+                foreach (var groupToRemove in groupsToRemove)
+                {
+                    _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
+                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, groupToRemove, fileDrop.Client.Id, fileDrop.Client.Name)));
+                }
 
                 foreach (var updatedGroupRecord in groupsToUpdate)
                 {
@@ -333,14 +346,21 @@ namespace MillimanAccessPortal.DataQueries
 
                     foreach (Guid userIdToAdd in userIdList)
                     {
-                        SftpAccount accountToAdd = userIdsRequiringNewAccount.Contains(userIdToAdd)
-                            ? new SftpAccount(model.FileDropId)
+                        SftpAccount accountToAdd;
+                        if (userIdsRequiringNewAccount.Contains(userIdToAdd))
+                        {
+                            accountToAdd = new SftpAccount(model.FileDropId)
                             {
                                 ApplicationUserId = userIdToAdd,
                                 IsSuspended = false,
                                 UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName
-                            }
-                            : existinguserAccountsToAdd.SingleOrDefault(a => a.ApplicationUserId.Value == userIdToAdd);
+                            };
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(accountToAdd, fileDrop)));                            
+                        }
+                        else
+                        {
+                            accountToAdd = existinguserAccountsToAdd.SingleOrDefault(a => a.ApplicationUserId.Value == userIdToAdd);
+                        }
 
                         updatedGroupRecord.SftpAccounts.Add(accountToAdd);
                     }
@@ -369,7 +389,7 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = accountToAdd.IsSuspended,
                                 UserName = accountToAdd.AccountName,
                             };
-
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(sftpAccountToAdd, fileDrop)));
                         }
                         updatedGroupRecord.SftpAccounts.Add(sftpAccountToAdd);
                     }
@@ -406,6 +426,7 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = false,
                                 UserName = _dbContext.ApplicationUser.Find(userId).UserName,
                             };
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop)));
                         }
 
                         newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
@@ -419,16 +440,22 @@ namespace MillimanAccessPortal.DataQueries
                             IsSuspended = newAccount.IsSuspended,
                             UserName = newAccount.AccountName,
                         };
-
                         newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(newSftpAccount, fileDrop)));
                     }
 
                     _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
+                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupCreated.ToEvent(fileDrop, newFileDropUserPermissionGroup, fileDrop.Client.Id, fileDrop.Client.Name)));
                 }
 
                 _dbContext.SaveChanges();
 
                 txn.Commit();
+
+                foreach (var logAction in auditLogActions)
+                {
+                    logAction();
+                }
 
                 return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
             }
