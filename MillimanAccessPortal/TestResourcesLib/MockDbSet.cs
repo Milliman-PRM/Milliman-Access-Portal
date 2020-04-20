@@ -244,11 +244,17 @@ namespace TestResourcesLib
     internal class DbSetAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
     {
         public DbSetAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable) { }
+
         public DbSetAsyncEnumerable(Expression expression) : base(expression) { }
 
-        public IAsyncEnumerator<T> GetEnumerator()
+        IAsyncEnumerator<T> IAsyncEnumerable<T>.GetEnumerator()
         {
             return new DbSetAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
+        }
+
+        IQueryProvider IQueryable.Provider
+        {
+            get { return new DbSetAsyncQueryProvider<T>(this); }
         }
 
         /*

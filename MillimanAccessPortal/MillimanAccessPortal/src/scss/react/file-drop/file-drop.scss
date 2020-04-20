@@ -1,0 +1,47 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.admin-panel-content-container {
+    display: flex;
+    flex-flow: column nowrap;
+
+
+    .activity-log-table-header {
+        flex: 0 0 auto;
+    }
+    
+    form {
+        flex: 1 1 auto;
+        display: flex;
+        flex-flow: column nowrap;
+    }
+}
+
+.activity-log-table-header {
+    display: flex;
+    flex-flow: row nowrap;
+    padding: .25em .25em 0;
+    align-items: flex-end;
+
+    .activity-log-header {
+        flex: 1;
+    }
+
+    .download-button {
+        flex: 0 0 auto;
+        padding: .25em !important;
+        font-weight: 100 !important;
+    }
+}
+
+table {
+    width: 100%;
+
+    thead {
+        border-bottom: 2px solid $charcoal;
+
+        tr th {
+            padding-bottom: .5em;
+        }
+    }
+}

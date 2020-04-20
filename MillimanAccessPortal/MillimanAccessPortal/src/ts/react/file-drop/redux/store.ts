@@ -3,7 +3,9 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
-import { FileDropClientWithStats, FileDropWithStats, Guid, PermissionGroupsReturnModel } from '../../models';
+import {
+  FileDropClientWithStats, FileDropEvent, FileDropWithStats, Guid, PermissionGroupsReturnModel,
+} from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
@@ -80,6 +82,7 @@ export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
   permissionGroups: PermissionGroupsReturnModel;
+  activityLogEvents: FileDropEvent[];
 }
 
 /** State representing entity Card attribute collections */

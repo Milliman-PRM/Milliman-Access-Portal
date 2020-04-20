@@ -2,40 +2,31 @@
 @import "../../map_modules/mixins";
 
 .permission-group-table {
-    width: 100%;
 
-    thead {
-        border-bottom: 2px solid $charcoal;
+    &.col-group-user-icon {
+        width: 2em;
+    }
 
-        tr th {
-            padding-bottom: .5em;
+    &.col-name {
+        max-width: 12em;
+        width: 12em;
+        min-width: 8em;
+    }
 
-            &.col-group-user-icon {
-                width: 2em;
-            }
+    &.col-permission-download,
+    &.col-permission-upload,
+    &.col-permission-delete {
+        width: 6em;
+        padding: .25em 0;
+    }
 
-            &.col-name {
-                max-width: 12em;
-                width: 12em;
-                min-width: 8em;
-            }
+    &.col-permissions {
+        padding: .25em 0;
+        border-bottom: 1px solid $charcoal;
+    }
 
-            &.col-permission-download,
-            &.col-permission-upload,
-            &.col-permission-delete {
-                width: 6em;
-                padding: .25em 0;
-            }
-
-            &.col-permissions {
-                padding: .25em 0;
-                border-bottom: 1px solid $charcoal;
-            }
-
-            &.col-actions {
-                width: 4em;
-            }
-        }
+    &.col-actions {
+        width: 4em;
     }
 
     .group-name-input {

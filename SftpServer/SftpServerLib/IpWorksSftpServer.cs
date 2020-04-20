@@ -32,7 +32,7 @@ namespace SftpServerLib
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
             AuditLogger.Config = new AuditLoggerConfiguration
             {
-                AuditLogConnectionString = GlobalResources.ApplicationConfiguration.GetConnectionString("AuditLogConnectionString"),
+                AuditLogConnectionString = GlobalResources.GetConnectionString("AuditLogConnectionString"),
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
 
@@ -41,7 +41,7 @@ namespace SftpServerLib
             _maintenanceTimer = new System.Timers.Timer
             {
                 //Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 15_000),
-                Interval = GlobalResources.ApplicationConfiguration.GetValue<double>("SftpMaintenanceIntervalMs", 500),
+                Interval = GlobalResources.GetConfigValue<double>("SftpMaintenanceIntervalMs", 500),
                 AutoReset = true,
                 Enabled = true,
             };
@@ -50,13 +50,11 @@ namespace SftpServerLib
         
         public override void Start(byte[] keyBytes)
         {
-            // TODO get the certificate (private key) from configuration instead
-
             Certificate certificate = new Certificate(keyBytes);
             EstablishServerInstance(certificate);
 
             _sftpServer.Listening = true;
-            Log.Information("SFTP server listening");
+            Log.Information($"SFTP server listening on port {_sftpServer.LocalPort}");
         }
 
         public override void Stop()
@@ -88,6 +86,7 @@ namespace SftpServerLib
             {
                 Fingerprint = _sftpServer.SSHCert.Fingerprint,
                 About = _sftpServer.About,
+                LocalPort = _sftpServer.LocalPort,
             };
         }
 
@@ -95,7 +94,7 @@ namespace SftpServerLib
         {
             _sftpServer = new Sftpserver
             {
-                RootDirectory = GlobalResources.ApplicationConfiguration.GetValue<string>("FileDropRoot"),
+                RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
                 RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,"
             };
