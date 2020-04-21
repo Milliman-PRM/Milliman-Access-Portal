@@ -282,6 +282,8 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
         {
+            List<Action> pendingAuditLogActions = new List<Action>();
+
             FileDrop fileDrop = _dbContext.FileDrop
                                           .Include(d => d.Client)
                                           .Include(d => d.SftpAccounts)
@@ -310,20 +312,48 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                List<FileDropFile> files = await _dbContext.FileDropDirectory
-                                                           .Where(d => d.FileDropId == fileDrop.Id)
-                                                           .SelectMany(d => d.Files)
-                                                           .ToListAsync();
-                _dbContext.FileDropFile.RemoveRange(files);
+                foreach (SftpAccount account in _dbContext.SftpAccount
+                                                          .Include(a => a.ApplicationUser)
+                                                          .Include(a => a.FileDropUserPermissionGroup)
+                                                          .Where(a => a.FileDropId == fileDrop.Id))
+                {
+                    if (account.FileDropUserPermissionGroup != null)
+                    {
+                        var rememberGroupInstance = account.FileDropUserPermissionGroup;
+                        pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(account, rememberGroupInstance, fileDrop)));
+                    }
+                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.SftpAccountDeleted.ToEvent(account, fileDrop)));
+                }
+
+                foreach (FileDropUserPermissionGroup group in _dbContext.FileDropUserPermissionGroup
+                                                                        .Where(g => g.FileDropId == fileDrop.Id))
+                {
+                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, group)));
+                }
+
+                foreach (FileDropFile file in _dbContext.FileDropDirectory
+                                                        .Where(d => d.FileDropId == fileDrop.Id)
+                                                        .SelectMany(d => d.Files))
+                {
+                    _dbContext.FileDropFile.RemoveRange(file);
+                    // Audit log file removal?
+                }
+
                 _dbContext.FileDrop.Remove(fileDrop);
+                pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts)));
+
                 _dbContext.SaveChanges();
-                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to complete the request");
                 Response.Headers.Add("Warning", "Failed to complete the request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            foreach (var logAction in pendingAuditLogActions)
+            {
+                logAction();
             }
 
             string fullRootPath = default;
