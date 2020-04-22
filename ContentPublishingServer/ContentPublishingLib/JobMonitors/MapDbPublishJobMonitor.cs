@@ -4,7 +4,6 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using AuditLogLib;
 using AuditLogLib.Services;
 using Serilog;
 using System;
@@ -19,8 +18,6 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
-//using TestResourcesLib;
-using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -196,7 +193,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Query the database for tasks to be run
         /// </summary>
-        /// <param name="ReturnNoMoreThan">The maximum number of records to return</param>
+        /// <param name="ReturnNoMoreThan">The maximum number of records to return. If <1, an empty list is returned.</param>
         /// <returns></returns>
         internal async Task<List<ContentPublicationRequest>> GetReadyRequestsAsync(int ReturnNoMoreThan)
         {

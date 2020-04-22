@@ -17,10 +17,6 @@ using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
-using Newtonsoft.Json;
-using TestResourcesLib;
-using Moq;
-using MapCommonLib;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -215,8 +211,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Query the database for tasks to be run
         /// </summary>
-        /// <remarks>This method cannot be async because it is called from code that owns a Mutex, which is bound to the thread</remarks>
-        /// <param name="ReturnNoMoreThan">The maximum number of records to return</param>
+        /// <param name="ReturnNoMoreThan">The maximum number of records to return. If <1, returns an empty list.</param>
         /// <returns></returns>
         internal async Task<List<ContentReductionTask>> GetReadyTasksAsync(int ReturnNoMoreThan)
         {

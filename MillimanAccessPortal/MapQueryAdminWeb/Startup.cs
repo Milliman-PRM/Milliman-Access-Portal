@@ -34,8 +34,6 @@ namespace MapQueryAdminWeb
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-
-            //services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddControllersWithViews();
 
             services.Configure<AuditLoggerConfiguration>(Configuration);
@@ -69,16 +67,6 @@ namespace MapQueryAdminWeb
             {
                 endpoints.MapControllers();
             });
-
-            /*
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "Default",
-                    template: "{controller}/{action}/{id?}",
-                    defaults: new { controller = "Query", action = "RunQuery", id = "" });
-            });
-            */
 
             #region Configure Audit Logger connection string
             string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");

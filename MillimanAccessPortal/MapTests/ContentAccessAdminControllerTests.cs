@@ -340,20 +340,24 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                CreateGroupRequestModel requestModel = new CreateGroupRequestModel
+                {
+                    ContentItemId = TestUtil.MakeTestGuid(1),
+                    Name = "GroupName",
+                };
                 #endregion
 
                 #region Act
                 int preCount = TestResources.DbContext.SelectionGroup.Count();
-                var view = await controller.CreateGroup(new CreateGroupRequestModel
-                {
-                    ContentItemId = TestUtil.MakeTestGuid(1),
-                    Name = "GroupName",
-                });
+                var result = await controller.CreateGroup(requestModel);
                 int postCount = TestResources.DbContext.SelectionGroup.Count();
                 #endregion
 
                 #region Assert
+                var jsonResult = Assert.IsType<JsonResult>(result);
                 Assert.Equal(preCount + 1, postCount);
+                var responseModel = Assert.IsType<CreateGroupResponseModel>(jsonResult.Value);
+                Assert.Equal(requestModel.Name, responseModel.Group.Name);
                 #endregion
             }
         }
@@ -489,24 +493,33 @@ namespace MapTests
             }
         }
 
-        /*
-        [Theory]
-        public async Task DeleteSelectionGroup_ErrorInvalid(int SelectionGroupId)
+        [Fact]
+        public async Task DeleteSelectionGroup_BlockedByPendingPublication()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                ContentPublicationRequest newPubRequest = new ContentPublicationRequest
+                {
+                    Id = TestUtil.MakeTestGuid(100),
+                    RootContentItemId = TestUtil.MakeTestGuid(1),
+                    RequestStatus = PublicationStatus.Queued,
+                    ApplicationUserId = TestUtil.MakeTestGuid(1),
+                };
+                TestResources.DbContext.ContentPublicationRequest.Add(newPubRequest);
+                TestResources.DbContext.SaveChanges();
+                var deleteRequestModel = new DeleteGroupRequestModel
+                {
+                    GroupId = TestUtil.MakeTestGuid(1),
+                };
                 #endregion
 
                 #region Act
                 int groupsPreCount = TestResources.DbContext.SelectionGroup.Count();
                 int userPreCount = TestResources.DbContext.UserInSelectionGroup.Count();
 
-                var view = await controller.DeleteGroup(new DeleteGroupRequestModel
-                {
-                    GroupId = TestUtil.MakeTestGuid(SelectionGroupId),
-                });
+                var view = await controller.DeleteGroup(deleteRequestModel);
 
                 int groupsPostCount = TestResources.DbContext.SelectionGroup.Count();
                 int userPostCount = TestResources.DbContext.UserInSelectionGroup.Count();
@@ -520,7 +533,48 @@ namespace MapTests
                 #endregion
             }
         }
-        */
+
+        [Fact]
+        public async Task DeleteSelectionGroup_BlockedByPendingReduction()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                ContentReductionTask newReductionTask = new ContentReductionTask
+                {
+                    Id = TestUtil.MakeTestGuid(100),
+                    SelectionGroupId = TestUtil.MakeTestGuid(1),
+                    ReductionStatus = ReductionStatusEnum.Queued,
+                    MasterFilePath = "",
+                    ApplicationUserId = TestUtil.MakeTestGuid(1),
+                };
+                TestResources.DbContext.ContentReductionTask.Add(newReductionTask);
+                TestResources.DbContext.SaveChanges();
+                var deleteRequestModel = new DeleteGroupRequestModel
+                {
+                    GroupId = TestUtil.MakeTestGuid(1),
+                };
+                #endregion
+
+                #region Act
+                int groupsPreCount = TestResources.DbContext.SelectionGroup.Count();
+                int userPreCount = TestResources.DbContext.UserInSelectionGroup.Count();
+
+                var view = await controller.DeleteGroup(deleteRequestModel);
+
+                int groupsPostCount = TestResources.DbContext.SelectionGroup.Count();
+                int userPostCount = TestResources.DbContext.UserInSelectionGroup.Count();
+                #endregion
+
+                #region Assert
+                Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+                Assert.Equal(groupsPreCount, groupsPostCount);
+                Assert.Equal(userPreCount, userPostCount);
+                #endregion
+            }
+        }
 
         [Theory]
         [InlineData("user2", 1)]  // User is not content access admin

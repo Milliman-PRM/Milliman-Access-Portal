@@ -320,10 +320,7 @@ namespace MapTests
                 #endregion
 
                 #region Assert
-                // Test that a ViewResult was returned instead of a RedirectResult
                 RedirectResult redirectResult = Assert.IsType<RedirectResult>(result);
-
-                // Test that the Message view was returned
                 Assert.Contains("/ContentWrapper", redirectResult.Url);
                 #endregion
             }

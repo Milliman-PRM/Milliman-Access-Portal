@@ -67,13 +67,6 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            /* TODO is this covered?
-            services.Configure<MvcOptions>(options =>
-            {
-                options.Filters.Add(new RequireHttpsAttribute());
-            });
-            */
-
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -320,22 +313,6 @@ namespace MillimanAccessPortal
             services.AddResponseCaching();
 
             services
-            /*
-            .AddMvc(config =>
-            {
-                var policy = new AuthorizationPolicyBuilder()
-                             .RequireAuthenticatedUser()
-                             .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
-            })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-            .AddControllersAsServices()
-            .AddJsonOptions(opt =>
-            {
-                opt.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-                opt.SerializerSettings.NullValueHandling = NullValueHandling.Include;
-            });
-            */
             .AddControllersWithViews(options => 
             {
                 var policy = new AuthorizationPolicyBuilder()
@@ -560,15 +537,6 @@ namespace MillimanAccessPortal
             {
                 await next();
             });
-
-            /*
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
-            });
-            */
         }
     }
 }
