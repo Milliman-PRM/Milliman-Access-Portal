@@ -470,7 +470,7 @@ namespace MillimanAccessPortal.DataQueries
                     logAction();
                 }
 
-                return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
+                return await GetPermissionGroupsModelForFileDropAsync(model.FileDropId, fileDrop.ClientId);
             }
         }
     }
