@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
+using Microsoft.Extensions.Configuration.AzureKeyVault;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -1316,42 +1317,52 @@ namespace MapTests
 
         public static IConfiguration GenerateConfiguration()
         {
-            var configurationBuilder = new ConfigurationBuilder();
+            var appConfigurationBuilder = new ConfigurationBuilder();
             string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
-            configurationBuilder.AddJsonFile("appsettings.json", true);
-            configurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
+            appConfigurationBuilder.AddJsonFile("appsettings.json", true);
+            appConfigurationBuilder.AddJsonFile($"appsettings.{environmentName}.json", true);
 
             // Determine location to fetch the configuration
             switch (environmentName)
             {
                 case "CI":
                 case "Production": // Get configuration from Azure Key Vault for Production
-                    configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
-
-                    var built = configurationBuilder.Build();
-                    configurationBuilder = new ConfigurationBuilder();
+                    var keyVaultConfig = new ConfigurationBuilder()
+                        .AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false)
+                        .Build();
 
                     var store = new X509Store(StoreLocation.LocalMachine);
                     store.Open(OpenFlags.ReadOnly);
-                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, built["AzureCertificateThumbprint"], false);
+                    var cert = store.Certificates.Find(X509FindType.FindByThumbprint, keyVaultConfig["AzureCertificateThumbprint"], false);
 
-                    configurationBuilder.AddAzureKeyVault(
-                        built["AzureVaultName"],
-                        built["AzureClientID"],
+                    appConfigurationBuilder.AddAzureKeyVault(
+                        keyVaultConfig["AzureVaultName"],
+                        keyVaultConfig["AzureClientID"],
                         cert.OfType<X509Certificate2>().Single());
                     break;
 
                 default: // Get connection string from user secrets in Development (ASPNETCORE_ENVIRONMENT is not set during local unit tests)
-                    configurationBuilder.AddUserSecrets<TestInitialization>();
+                    appConfigurationBuilder.AddUserSecrets<TestInitialization>();
                     break;
             }
 
-            IConfiguration returnVal = configurationBuilder.Build();
+            IConfiguration returnVal = appConfigurationBuilder.Build();
 
-            Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>");
+            // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
+            //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
+            //{
+            //    DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
+            //}
+
+            return returnVal;
+        }
+
+        private static void DumpConfigurationDetails(string environmentName, IConfigurationBuilder appConfigurationBuilder, IConfiguration config)
+        {
+            Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
             int keyCounter = 0;
-            var allSources = configurationBuilder.Sources.ToList();
+            var allSources = appConfigurationBuilder.Sources.ToList();
             foreach (var oneSource in allSources)
             {
                 switch (oneSource)
@@ -1359,7 +1370,7 @@ namespace MapTests
                     case var s when s is ChainedConfigurationSource:
                         {
                             ChainedConfigurationSource source = s as ChainedConfigurationSource;
-                            var provider = source.Build(configurationBuilder);
+                            var provider = source.Build(appConfigurationBuilder);
                             Log.Information($"ChainedConfigurationSource source with ...");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
@@ -1372,7 +1383,7 @@ namespace MapTests
                     case var s when s is JsonConfigurationSource:
                         {
                             JsonConfigurationSource source = s as JsonConfigurationSource;
-                            IConfigurationProvider provider = source.Build(configurationBuilder);
+                            IConfigurationProvider provider = source.Build(appConfigurationBuilder);
                             provider.Load();
                             Log.Information($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
                             foreach (var key in provider.GetAllChildKeyNames())
@@ -1383,18 +1394,27 @@ namespace MapTests
                         }
                         break;
 
+                    // AzureKeyVaultConfigurationSource class is inaccessible due to class declaration as `internal`, so source details can't be dumped here
+
                     default:
-                        Log.Information($"HEY PAY ATTENTION and write some more code !!!!!!!!   Unsupported (for logging purposes) configuration source of type {oneSource.GetType().Name}");
+                        {
+                            IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
+                            provider.Load();
+                            Log.Information($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
+                            foreach (var key in provider.GetAllChildKeyNames())
+                            {
+                                provider.TryGet(key, out string val);
+                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                            }
+                        }
                         break;
                 }
             }
 
-            foreach (var kvp in returnVal.AsEnumerable())
+            foreach (var kvp in config.AsEnumerable())
             {
                 Log.Information($"    From combined providers/sources, config Key <{kvp.Key}>: Value <{kvp.Value}>");
             }
-
-            return returnVal;
         }
 
         public void Test()
