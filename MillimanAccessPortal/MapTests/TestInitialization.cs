@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.Extensions.Options;
@@ -1348,11 +1349,49 @@ namespace MapTests
 
             IConfiguration returnVal = configurationBuilder.Build();
 
-            // temporary
             Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>");
+            int keyCounter = 0;
+            var allSources = configurationBuilder.Sources.ToList();
+            foreach (var oneSource in allSources)
+            {
+                switch (oneSource)
+                {
+                    case var s when s is ChainedConfigurationSource:
+                        {
+                            ChainedConfigurationSource source = s as ChainedConfigurationSource;
+                            var provider = source.Build(configurationBuilder);
+                            Log.Information($"ChainedConfigurationSource source with ...");
+                            foreach (var key in provider.GetAllChildKeyNames())
+                            {
+                                provider.TryGet(key, out string val);
+                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                            }
+                        }
+                        break;
+
+                    case var s when s is JsonConfigurationSource:
+                        {
+                            JsonConfigurationSource source = s as JsonConfigurationSource;
+                            IConfigurationProvider provider = source.Build(configurationBuilder);
+                            provider.Load();
+                            Log.Information($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
+                            foreach (var key in provider.GetAllChildKeyNames())
+                            {
+                                provider.TryGet(key, out string val);
+                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                            }
+                        }
+                        break;
+
+                    default:
+                        Log.Information($"HEY PAY ATTENTION and write some more code !!!!!!!!   Unsupported (for logging purposes) configuration source of type {oneSource.GetType().Name}");
+                        break;
+                }
+            }
+
             foreach (var kvp in returnVal.AsEnumerable())
             {
-                Log.Information($"    Config Key <{kvp.Key}>: Value <{kvp.Value}>");
+                Log.Information($"    From combined providers/sources, config Key <{kvp.Key}>: Value <{kvp.Value}>");
             }
 
             return returnVal;
@@ -1375,6 +1414,39 @@ namespace MapTests
 
             Debug.Assert(roleCount != default);
             Debug.Assert(userManager != default);
+        }
+    }
+}
+
+namespace Microsoft.Extensions.Configuration
+{
+    public static class ConfigurationProviderExtensions
+    {
+        public static HashSet<string> GetAllChildKeyNames(this IConfigurationProvider provider, string parentKey = null)
+        {
+            HashSet<string> resultKeys = new HashSet<string>();
+
+            var uniqueChildKeys = provider.GetChildKeys(Enumerable.Empty<string>(), parentKey).ToHashSet();
+            foreach (var key in uniqueChildKeys)
+            {
+                string foundChildKey = 
+                    parentKey != null
+                    ? parentKey + ":" + key
+                    : key;
+
+                var children = GetAllChildKeyNames(provider, foundChildKey);
+
+                if (!children.Any())
+                {
+                    resultKeys.Add(foundChildKey);
+                }
+                else
+                {
+                    resultKeys = resultKeys.Concat(children).ToHashSet();
+                }
+            }
+
+            return resultKeys;
         }
     }
 }
