@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,6 +31,11 @@ namespace MapTests
 
         public DatabaseLifetimeFixture()
         {
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Console()
+                .WriteTo.Debug()
+                .CreateLogger();
+
             #region Get configuration and set instance properties
             IConfiguration Config = TestInitialization.GenerateConfiguration();
 

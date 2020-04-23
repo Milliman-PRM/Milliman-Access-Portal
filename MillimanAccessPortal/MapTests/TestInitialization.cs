@@ -33,6 +33,7 @@ using Moq;
 using Newtonsoft.Json;
 using PowerBiLib;
 using QlikviewLib;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -1345,7 +1346,16 @@ namespace MapTests
                     break;
             }
 
-            return configurationBuilder.Build();
+            IConfiguration returnVal = configurationBuilder.Build();
+
+            // temporary
+            Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>");
+            foreach (var kvp in returnVal.AsEnumerable())
+            {
+                Log.Information($"    Config Key <{kvp.Key}>: Value <{kvp.Value}>");
+            }
+
+            return returnVal;
         }
 
         public void Test()
