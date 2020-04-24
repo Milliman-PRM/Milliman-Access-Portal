@@ -319,7 +319,16 @@ namespace MillimanAccessPortal.DataQueries
                         updatedGroupRecord.WriteAccess != modelForUpdatedGroup.WriteAccess ||
                         updatedGroupRecord.DeleteAccess != modelForUpdatedGroup.DeleteAccess)
                     {
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(updatedGroupRecord, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
+                        var previousGroup = new FileDropUserPermissionGroup
+                        {
+                            Id = updatedGroupRecord.Id,
+                            IsPersonalGroup = updatedGroupRecord.IsPersonalGroup,
+                            Name = updatedGroupRecord.Name,
+                            ReadAccess = updatedGroupRecord.ReadAccess,
+                            WriteAccess = updatedGroupRecord.WriteAccess,
+                            DeleteAccess = updatedGroupRecord.DeleteAccess,
+                        };
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(previousGroup, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
                         updatedGroupRecord.Name = modelForUpdatedGroup.Name;
                         updatedGroupRecord.ReadAccess = modelForUpdatedGroup.ReadAccess;
                         updatedGroupRecord.WriteAccess = modelForUpdatedGroup.WriteAccess;
