@@ -5,9 +5,10 @@
  */
 
 using AuditLogLib.Event;
-using AuditLogLib;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using CsvHelper;
+using CsvHelper.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -37,6 +38,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
@@ -436,16 +438,17 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> ActionLog(Guid fileDropId)
         {
             DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
-            string idCompareString = fileDropId.ToString();
+            string idCompareString = $"%{fileDropId}%";
 
             var filters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.TimeStampUtc > oldestTimestamp},
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
-                { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
+                // TODO When PostgreSQL 12 is deployed create a computed field as text so the EventData string search can be done server side
+                { e => EF.Functions.ILike(e.EventData.ToString(), idCompareString) },
             };
 
-            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters);
+            List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(filters, _dbContext);
 
             return Json(filteredEvents);
         }
@@ -453,21 +456,27 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
         {
-            DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
-            string idCompareString = fileDropId.ToString();
+
+            string idCompareString = $"%{fileDropId}%";
 
             var filters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
-                { e => EF.Functions.ILike(e.EventData.ToString(), $"%{idCompareString}%") },
+                // TODO When PostgreSQL 12 is deployed create a computed field as text so the EventData string search can be done server side
+                { e => EF.Functions.ILike(e.EventData.ToString(), idCompareString) },
             };
 
-            List<AuditEvent> filteredEvents = _auditLogger.GetAuditEvents(filters, false);
+            List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(filters, _dbContext, false);
 
             string tempFilePath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), $"{Guid.NewGuid()}.csv");
-            await System.IO.File.WriteAllLinesAsync(tempFilePath, filteredEvents.Select(e => $"{e.TimeStampUtc},{e.EventType}"));
+            using (var stream = new StreamWriter(tempFilePath))
+            using (var csv = new CsvWriter(stream, new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true } ))
+            {
+                csv.Configuration.RegisterClassMap<ActivityEventCsvMap>();
+                csv.WriteRecords(filteredEvents);
+            }
 
-            return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.Now.ToString("s")}.csv" };
+            return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.UtcNow:s}.csv" };
         }
     }
 
