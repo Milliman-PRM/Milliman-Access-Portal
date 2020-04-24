@@ -1028,18 +1028,18 @@ namespace AuditLogLib.Event
                 PermissionGroup = new
                 {
                     permissionGroup.Id,
-                    permissionGroup.Name,
+                    permissionGroup.IsPersonalGroup,
                 },
                 PreviousProperties = new 
                 {
-                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.Name,
                     permissionGroup.ReadAccess,
                     permissionGroup.WriteAccess,
                     permissionGroup.DeleteAccess,
                 },
                 UpdatedProperties = new 
                 {
-                    updatedGroup.IsPersonalGroup,
+                    updatedGroup.Name,
                     updatedGroup.ReadAccess,
                     updatedGroup.WriteAccess,
                     updatedGroup.DeleteAccess,
