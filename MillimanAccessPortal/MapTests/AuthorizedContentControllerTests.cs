@@ -9,6 +9,7 @@ using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Primitives;
 using Xunit;
 using MillimanAccessPortal.Controllers;
@@ -186,8 +187,8 @@ namespace MapTests
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
-                string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
-                string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+                string TestFileSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", FileName);
+                string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -250,8 +251,8 @@ namespace MapTests
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
-                string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
-                string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+                string TestFileSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", FileName);
+                string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -304,8 +305,8 @@ namespace MapTests
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
-                string TestFileSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", FileName);
-                string TestFileTargetPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", TestUtil.MakeTestGuid(1).ToString(), FileName);
+                string TestFileSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", FileName);
+                string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -434,8 +435,8 @@ namespace MapTests
                 // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
                 sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
-                string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
-                string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
+                string UserGuideSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+                string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), purpose + ".pdf");
                 File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -493,8 +494,8 @@ namespace MapTests
                 // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
                 sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
                 string purpose = "UserGuide";
-                string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
-                string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
+                string UserGuideSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+                string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), purpose + ".pdf");
                 File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -551,8 +552,8 @@ namespace MapTests
                 sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
                 string purpose = "UserGuide";
-                string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
-                string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
+                string UserGuideSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+                string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), purpose + ".pdf");
                 File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
@@ -608,8 +609,8 @@ namespace MapTests
                 sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
 
                 string purpose = "UserGuide";
-                string UserGuideSourcePath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
-                string UserGuideTestPath = Path.Combine(@"\\indy-syn01.milliman.com\prm_test\ContentRoot", purpose + ".pdf");
+                string UserGuideSourcePath = Path.Combine(@"\\indy-srv-02.milliman.com\prm_test\Sample Data", "IHopeSo.pdf");
+                string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("ContentItemRootPath"), purpose + ".pdf");
                 File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
