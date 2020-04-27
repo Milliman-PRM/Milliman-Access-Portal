@@ -125,6 +125,40 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     );
   }
 
+  public renderEventRow(logEvent: FileDropEvent) {
+    return (
+      <tr className="event-row">
+        <td />
+        <td><strong>{logEvent.eventType}</strong></td>
+        <td>
+          <strong>{logEvent.fullName}</strong><br />
+          <span className="username">{logEvent.userName}</span>
+        </td>
+        <td>
+          {
+            this.localizeUtcTimeStamp(logEvent.timeStampUtc)
+          }
+        </td>
+      </tr>
+    );
+  }
+
+  public renderEventDetailRow(eventDetail: JSX.Element) {
+    return (
+      <tr className="event-details">
+        <td colSpan={4}>
+          {eventDetail}
+        </td>
+      </tr>
+    );
+  }
+
+  public renderSpacer() {
+    return (
+      <tr className="spacer" />
+    );
+  }
+
   public localizeUtcTimeStamp(timeStamp: string) {
     return (
       <span title={moment(timeStamp).local().format('MM/DD/YYYY h:mm:ss A')}>
