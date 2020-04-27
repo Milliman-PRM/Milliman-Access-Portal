@@ -38,7 +38,7 @@ namespace ContentPublishingServiceTests
             #region Arrange
             ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
 
-            string ExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("MapPublishingServerExchangePath"), DbTask.Id.ToString());
+            string ExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), DbTask.Id.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName("MasterContent", ".qvw", DbTask.SelectionGroup.RootContentItemId);
 
             Directory.CreateDirectory(ExchangeFolder);

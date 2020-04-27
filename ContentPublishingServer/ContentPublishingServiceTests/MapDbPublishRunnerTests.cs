@@ -47,7 +47,7 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(1);
 
-            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
@@ -131,7 +131,7 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(2);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
 
-            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
@@ -218,8 +218,8 @@ namespace ContentPublishingServiceTests
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
             Guid RequestGuid = Guid.NewGuid();
 
-            string ProposedRequestExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("MapPublishingServerExchangePath"), RequestGuid.ToString());
-            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
+            string ProposedRequestExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), RequestGuid.ToString());
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
