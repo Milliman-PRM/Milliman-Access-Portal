@@ -469,8 +469,28 @@ namespace MillimanAccessPortal.Controllers
             List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(filters, _dbContext, false);
 
             string tempFilePath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), $"{Guid.NewGuid()}.csv");
+            
+            var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
+
+            #region Example: How to disable default quoting/escaping of serialized json.  Excel likes the default but it isn't real json
+            bool doDefaultQuoting = true;
+            if (!doDefaultQuoting)
+            {
+                writerConfig.ShouldQuote = (value, context) =>
+                {
+                    var index = context.Record.Count;
+                    var name = ((PropertyInfo)context.WriterConfiguration.Maps.Find<ActivityEventModel>().MemberMaps[index].Data.Member).Name;
+                    if (name == "EventData")
+                    {
+                        return false;
+                    }
+                    return ConfigurationFunctions.ShouldQuote(value, context);
+                };
+            }
+            #endregion
+
             using (var stream = new StreamWriter(tempFilePath))
-            using (var csv = new CsvWriter(stream, new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true } ))
+            using (var csv = new CsvWriter(stream, writerConfig ))
             {
                 csv.Configuration.RegisterClassMap<ActivityEventCsvMap>();
                 csv.WriteRecords(filteredEvents);
@@ -478,6 +498,7 @@ namespace MillimanAccessPortal.Controllers
 
             return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.UtcNow:s}.csv" };
         }
+
     }
 
     /// <summary>

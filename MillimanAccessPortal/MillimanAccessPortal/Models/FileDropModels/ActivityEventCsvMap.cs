@@ -6,6 +6,7 @@
 
 using AuditLogLib.Models;
 using CsvHelper.Configuration;
+using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Models.FileDropModels
 {
@@ -18,7 +19,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
             Map(m => m.EventType).Index(2).Name("EventType");
             Map(m => m.UserName).Index(3).Name("UserName");
             Map(m => m.FullName).Index(4).Name("FullName");
-            Map(m => m.EventData).Index(5).Name("EventData");
+            Map(m => m.EventData).Index(5).Name("EventData").ConvertUsing(o => JsonConvert.SerializeObject(o.EventData, Formatting.None));
         }
     }
 }
