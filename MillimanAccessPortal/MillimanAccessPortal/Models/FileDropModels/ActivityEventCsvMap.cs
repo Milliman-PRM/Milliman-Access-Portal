@@ -14,10 +14,11 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public ActivityEventCsvMap()
         {
             Map(m => m.TimeStampUtc).Index(0).Name("TimeStamp(Utc)");
-            Map(m => m.EventType).Index(1).Name("EventType");
-            Map(m => m.UserName).Index(2).Name("UserName");
-            Map(m => m.FullName).Index(3).Name("FullName");
-            Map(m => m.EventData).Index(4).Name("EventData");
+            Map(m => m.EventCode).Index(1).Name("EventCode");
+            Map(m => m.EventType).Index(2).Name("EventType");
+            Map(m => m.UserName).Index(3).Name("UserName");
+            Map(m => m.FullName).Index(4).Name("FullName");
+            Map(m => m.EventData).Index(5).Name("EventData");
         }
     }
 }

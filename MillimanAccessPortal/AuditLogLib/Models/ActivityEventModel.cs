@@ -21,7 +21,7 @@ namespace AuditLogLib.Models
 
         public string FullName { get; set; }
 
-        public string EventData { get; set; }
+        public object EventData { get; set; }
 
         public static ActivityEventModel Generate(AuditEvent evt, Names names)
         {
@@ -32,7 +32,7 @@ namespace AuditLogLib.Models
                 EventType = evt.EventType,
                 UserName = evt.User,
                 FullName = $"{names.FirstName} {names.LastName}",
-                EventData = evt.EventData,
+                EventData = evt.EventDataObject,
             };
         }
 
