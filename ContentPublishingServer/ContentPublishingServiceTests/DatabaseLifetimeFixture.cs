@@ -13,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using TestResourcesLib;
 using Xunit;
 
 namespace ContentPublishingServiceTests
@@ -114,7 +115,15 @@ namespace ContentPublishingServiceTests
                     break;
             }
 
-            return configurationBuilder.Build();
+            IConfiguration returnVal = configurationBuilder.Build();
+
+            // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
+            //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
+            {
+                ConfigurationDumper.DumpConfigurationDetails(environmentName, configurationBuilder, returnVal);
+            }
+
+            return returnVal;
         }
 
         public void Dispose()

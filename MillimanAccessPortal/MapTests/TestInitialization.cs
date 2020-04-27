@@ -1352,69 +1352,10 @@ namespace MapTests
             // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
             //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
             //{
-            //    DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
+            //    ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
             //}
 
             return returnVal;
-        }
-
-        private static void DumpConfigurationDetails(string environmentName, IConfigurationBuilder appConfigurationBuilder, IConfiguration config)
-        {
-            Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
-            int keyCounter = 0;
-            var allSources = appConfigurationBuilder.Sources.ToList();
-            foreach (var oneSource in allSources)
-            {
-                switch (oneSource)
-                {
-                    case var s when s is ChainedConfigurationSource:
-                        {
-                            ChainedConfigurationSource source = s as ChainedConfigurationSource;
-                            var provider = source.Build(appConfigurationBuilder);
-                            Log.Information($"ChainedConfigurationSource source with ...");
-                            foreach (var key in provider.GetAllChildKeyNames())
-                            {
-                                provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
-                            }
-                        }
-                        break;
-
-                    case var s when s is JsonConfigurationSource:
-                        {
-                            JsonConfigurationSource source = s as JsonConfigurationSource;
-                            IConfigurationProvider provider = source.Build(appConfigurationBuilder);
-                            provider.Load();
-                            Log.Information($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
-                            foreach (var key in provider.GetAllChildKeyNames())
-                            {
-                                provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
-                            }
-                        }
-                        break;
-
-                    // AzureKeyVaultConfigurationSource class is inaccessible due to class declaration as `internal`, so source details can't be dumped here
-
-                    default:
-                        {
-                            IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
-                            provider.Load();
-                            Log.Information($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
-                            foreach (var key in provider.GetAllChildKeyNames())
-                            {
-                                provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
-                            }
-                        }
-                        break;
-                }
-            }
-
-            foreach (var kvp in config.AsEnumerable())
-            {
-                Log.Information($"    From combined providers/sources, config Key <{kvp.Key}>: Value <{kvp.Value}>");
-            }
         }
 
         public void Test()
@@ -1434,39 +1375,6 @@ namespace MapTests
 
             Debug.Assert(roleCount != default);
             Debug.Assert(userManager != default);
-        }
-    }
-}
-
-namespace Microsoft.Extensions.Configuration
-{
-    public static class ConfigurationProviderExtensions
-    {
-        public static HashSet<string> GetAllChildKeyNames(this IConfigurationProvider provider, string parentKey = null)
-        {
-            HashSet<string> resultKeys = new HashSet<string>();
-
-            var uniqueChildKeys = provider.GetChildKeys(Enumerable.Empty<string>(), parentKey).ToHashSet();
-            foreach (var key in uniqueChildKeys)
-            {
-                string foundChildKey = 
-                    parentKey != null
-                    ? parentKey + ":" + key
-                    : key;
-
-                var children = GetAllChildKeyNames(provider, foundChildKey);
-
-                if (!children.Any())
-                {
-                    resultKeys.Add(foundChildKey);
-                }
-                else
-                {
-                    resultKeys = resultKeys.Concat(children).ToHashSet();
-                }
-            }
-
-            return resultKeys;
         }
     }
 }
