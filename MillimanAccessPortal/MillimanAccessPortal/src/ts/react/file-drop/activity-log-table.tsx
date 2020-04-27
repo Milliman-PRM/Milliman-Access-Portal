@@ -9,7 +9,9 @@ import * as moment from 'moment';
 import * as React from 'react';
 
 import {
-  FDEventCreated, FDEventUpdated, FileDropEvent, FileDropLogEventEnum,
+  FDEventAccountAddedToPG, FDEventAccountCreated, FDEventAccountRemovedFromPG, FDEventFDCreated,
+  FDEventFDUpdated, FDEventPGCreated, FDEventPGDeleted, FDEventPGUpdated, FileDropEvent,
+  FileDropLogEventEnum,
 } from '../models';
 
 interface ActivityLogTableProps {
@@ -34,12 +36,50 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
         {
           this.props.activityLogData.map((logE) => {
             switch (logE.eventCode) {
-              case FileDropLogEventEnum.Created:
+              case FileDropLogEventEnum.FDCreated:
                 return this.renderFileDropCreatedRow(logE);
                 break;
-              case FileDropLogEventEnum.Updated:
+              case FileDropLogEventEnum.FDUpdated:
                 return this.renderFileDropUpdatedRow(logE);
                 break;
+              case FileDropLogEventEnum.PGCreated:
+                return this.renderPermissionGroupCreatedRow(logE);
+                break;
+              case FileDropLogEventEnum.PGDeleted:
+                return this.renderPermissionGroupDeletedRow(logE);
+                break;
+              case FileDropLogEventEnum.PGUpdated:
+                return this.renderPermissionGroupUpdatedRow(logE);
+                break;
+              case FileDropLogEventEnum.AccountCreated:
+                return this.renderAccountCreatedRow(logE);
+                break;
+              case FileDropLogEventEnum.AccountAddedToPG:
+                return this.renderAccountAddedToPGRow(logE);
+                break;
+              case FileDropLogEventEnum.AccountRemovedFromPG:
+                return this.renderAccountRemovedFromPGRow(logE);
+                break;
+              case FileDropLogEventEnum.DirectoryCreated:
+                return null;
+                break;
+              case FileDropLogEventEnum.DirectoryRemoved:
+                return null;
+                break;
+              case FileDropLogEventEnum.FileOrDirectoryRenamed:
+                return null;
+                break;
+              case FileDropLogEventEnum.FileWriteAuthorized:
+                return null;
+                break;
+              case FileDropLogEventEnum.FileReadAuthorized:
+                return null;
+                break;
+              case FileDropLogEventEnum.FileDeleteAuthorized:
+                return null;
+                break;
+              default:
+                return null;
             }
           })
         }
@@ -49,77 +89,182 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
   }
 
   // Render rows by Log Event type
-  public renderFileDropCreatedRow(logEvent: FDEventCreated) {
-    const { FileDrop } = logEvent.eventDataObject;
+  public renderFileDropCreatedRow(logEvent: FDEventFDCreated) {
+    const { FileDrop } = logEvent.eventData;
     const details = [];
-    details.push((
-      <tr className="event-details">
-        <td colSpan={4}>
-          File Drop name: <strong>{FileDrop.Name}</strong>
-        </td>
-      </tr>
-    ));
+
+    details.push(this.renderEventDetailRow(<>File Drop name: <strong>{FileDrop.Name}</strong></>));
     if (FileDrop.Description) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop description: <strong>{FileDrop.Description}</strong>
-          </td>
-        </tr>
-      ));
+      details.push(this.renderEventDetailRow(<>File Drop description: <strong>{FileDrop.Description}</strong></>));
     }
-    details.push((
-      <tr className="spacer" />
-    ));
+    details.push(this.renderSpacer());
+
     return (
       <>
-        <tr className="event-row">
-          <td/>
-          <td><strong>File Drop created</strong></td>
-          <td>{logEvent.user}</td>
-          <td>{this.localizeUtcTimeStamp(logEvent.timeStampUtc)}</td>
-        </tr>
+        {this.renderEventRow(logEvent)}
         {details}
       </>
     );
   }
 
-  public renderFileDropUpdatedRow(logEvent: FDEventUpdated) {
-    const { OldFileDrop, NewFileDrop } = logEvent.eventDataObject;
+  public renderFileDropUpdatedRow(logEvent: FDEventFDUpdated) {
+    const { OldFileDrop, NewFileDrop } = logEvent.eventData;
     const details = [];
+
     if (OldFileDrop.Name !== NewFileDrop.Name) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop name changed to <strong>{NewFileDrop.Name}</strong>
-          </td>
-        </tr>
-      ));
+      details.push(this.renderEventDetailRow(<>File Drop name changed to <strong>{NewFileDrop.Name}</strong></>));
     }
     if (OldFileDrop.Description !== NewFileDrop.Description) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop description changed to <strong>{NewFileDrop.Description}</strong>
-          </td>
-        </tr>
-      ));
+      details.push(
+        this.renderEventDetailRow(<>File Drop description changed to <strong>{NewFileDrop.Description}</strong></>),
+      );
     }
-    details.push((
-      <tr className="spacer" />
-    ));
+    details.push(this.renderSpacer());
+
     return (
       <>
-        <tr className="event-row">
-          <td />
-          <td><strong>File Drop updated</strong></td>
-          <td>{logEvent.user}</td>
-          <td>
-              {
-                this.localizeUtcTimeStamp(logEvent.timeStampUtc)
-              }
-          </td>
-        </tr>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderPermissionGroupCreatedRow(logEvent: FDEventPGCreated) {
+    const { PermissionGroup } = logEvent.eventData;
+    const details = [];
+
+    if (PermissionGroup.IsPersonalGroup) {
+      details.push(this.renderEventDetailRow(<>User: <strong>{PermissionGroup.Name}</strong></>));
+    } else {
+      details.push(this.renderEventDetailRow(<>Permission Group name: <strong>{PermissionGroup.Name}</strong></>));
+    }
+    if (PermissionGroup.ReadAccess) {
+      details.push(this.renderEventDetailRow(<>Read Access Granted</>));
+    }
+    if (PermissionGroup.WriteAccess) {
+      details.push(this.renderEventDetailRow(<>Write Access Granted</>));
+    }
+    if (PermissionGroup.DeleteAccess) {
+      details.push(this.renderEventDetailRow(<>Delete Access Granted</>));
+    }
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderPermissionGroupDeletedRow(logEvent: FDEventPGDeleted) {
+    const { PermissionGroup } = logEvent.eventData;
+    const details = [];
+
+    if (PermissionGroup.IsPersonalGroup) {
+      details.push(this.renderEventDetailRow(<><strong>{PermissionGroup.Name}</strong> personal group deleted</>));
+    } else {
+      details.push(this.renderEventDetailRow(<>Permission Group <strong>{PermissionGroup.Name}</strong> deleted</>));
+    }
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderPermissionGroupUpdatedRow(logEvent: FDEventPGUpdated) {
+    const { PermissionGroup, PreviousProperties, UpdatedProperties } = logEvent.eventData;
+    const details = [];
+
+    if (!PermissionGroup.IsPersonalGroup && UpdatedProperties.Name !== PreviousProperties.Name) {
+      details.push(
+        this.renderEventDetailRow(
+          <>
+            <strong>{PreviousProperties.Name}</strong> renamed to <strong>{UpdatedProperties.Name}</strong>
+          </>,
+        ),
+      );
+    }
+    if (UpdatedProperties.ReadAccess && !PreviousProperties.ReadAccess) {
+      details.push(this.renderEventDetailRow(<>Read Access Granted</>));
+    }
+    if (UpdatedProperties.WriteAccess && !PreviousProperties.WriteAccess) {
+      details.push(this.renderEventDetailRow(<>Write Access Granted</>));
+    }
+    if (UpdatedProperties.DeleteAccess && !PreviousProperties.DeleteAccess) {
+      details.push(this.renderEventDetailRow(<>Delete Access Granted</>));
+    }
+    if (!UpdatedProperties.ReadAccess && PreviousProperties.ReadAccess) {
+      details.push(this.renderEventDetailRow(<>Read Access Revoked</>));
+    }
+    if (!UpdatedProperties.WriteAccess && PreviousProperties.WriteAccess) {
+      details.push(this.renderEventDetailRow(<>Write Access Revoked</>));
+    }
+    if (!UpdatedProperties.DeleteAccess && PreviousProperties.DeleteAccess) {
+      details.push(this.renderEventDetailRow(<>Delete Access Revoked</>));
+    }
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderAccountCreatedRow(logEvent: FDEventAccountCreated) {
+    const { MapUser } = logEvent.eventData;
+    const details = [];
+
+    details.push(this.renderEventDetailRow(<>SFTP Account Created for <strong>{MapUser.UserName}</strong></>));
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderAccountAddedToPGRow(logEvent: FDEventAccountAddedToPG) {
+    const { MapUser, PermissionGroup } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <><strong>{MapUser.UserName}</strong> assigned to Permission Group <strong>{PermissionGroup.Name}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderAccountRemovedFromPGRow(logEvent: FDEventAccountRemovedFromPG) {
+    const { MapUser, PermissionGroup } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <><strong>{MapUser.UserName}</strong> removed from Permission Group <strong>{PermissionGroup.Name}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
         {details}
       </>
     );
