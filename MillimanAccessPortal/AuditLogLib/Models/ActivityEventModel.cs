@@ -13,6 +13,8 @@ namespace AuditLogLib.Models
     {
         public DateTime TimeStampUtc { get; set; }
 
+        public int EventCode { get; set; }
+
         public string EventType { get; set; }
 
         public string UserName { get; set; }
@@ -26,6 +28,7 @@ namespace AuditLogLib.Models
             return new ActivityEventModel
             {
                 TimeStampUtc = evt.TimeStampUtc,
+                EventCode = evt.EventCode,
                 EventType = evt.EventType,
                 UserName = evt.User,
                 FullName = $"{names.FirstName} {names.LastName}",
