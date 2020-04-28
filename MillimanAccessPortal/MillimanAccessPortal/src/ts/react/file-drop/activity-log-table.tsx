@@ -9,8 +9,21 @@ import * as moment from 'moment';
 import * as React from 'react';
 
 import {
-  FDEventAccountAddedToPG, FDEventAccountCreated, FDEventAccountRemovedFromPG, FDEventFDCreated,
-  FDEventFDUpdated, FDEventPGCreated, FDEventPGDeleted, FDEventPGUpdated, FileDropEvent,
+  FDEventAccountAddedToPG,
+  FDEventAccountCreated,
+  FDEventAccountRemovedFromPG,
+  FDEventDirectoryCreated,
+  FDEventDirectoryRemoved,
+  FDEventFDCreated,
+  FDEventFDUpdated,
+  FDEventFileDeleteAuthorized,
+  FDEventFileOrDirectoryRenamed,
+  FDEventFileReadAuthorized,
+  FDEventFileWriteAuthorized,
+  FDEventPGCreated,
+  FDEventPGDeleted,
+  FDEventPGUpdated,
+  FileDropEvent,
   FileDropLogEventEnum,
 } from '../models';
 
@@ -61,22 +74,22 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
                 return this.renderAccountRemovedFromPGRow(logE);
                 break;
               case FileDropLogEventEnum.DirectoryCreated:
-                return null;
+                return this.renderDirectoryCreatedRow(logE);
                 break;
               case FileDropLogEventEnum.DirectoryRemoved:
-                return null;
+                return this.renderDirectoryRemovedRow(logE);
                 break;
               case FileDropLogEventEnum.FileOrDirectoryRenamed:
-                return null;
+                return this.renderFileOrDirectoryRenamedRow(logE);
                 break;
               case FileDropLogEventEnum.FileWriteAuthorized:
-                return null;
+                return this.renderFileWriteAuthorizedRow(logE);
                 break;
               case FileDropLogEventEnum.FileReadAuthorized:
-                return null;
+                return this.renderFileReadAuthorizedRow(logE);
                 break;
               case FileDropLogEventEnum.FileDeleteAuthorized:
-                return null;
+                return this.renderFileDeleteAuthorizedRow(logE);
                 break;
               default:
                 return null;
@@ -258,6 +271,120 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     details.push(
       this.renderEventDetailRow(
         <><strong>{MapUser.UserName}</strong> removed from Permission Group <strong>{PermissionGroup.Name}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderDirectoryCreatedRow(logEvent: FDEventDirectoryCreated) {
+    const { FileDropDirectory } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>Directory created: <strong>{FileDropDirectory.CanonicalFileDropPath}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderDirectoryRemovedRow(logEvent: FDEventDirectoryRemoved) {
+    const { FileDropDirectory } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>Directory removed: <strong>{FileDropDirectory.CanonicalFileDropPath}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderFileOrDirectoryRenamedRow(logEvent: FDEventFileOrDirectoryRenamed) {
+    const { Type, From, To } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>{Type} rename: <strong>{From} &gt; {To}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderFileWriteAuthorizedRow(logEvent: FDEventFileWriteAuthorized) {
+    const { FileDropDirectory, FileName } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>File <strong>{FileName}</strong> written to <strong>{FileDropDirectory}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderFileReadAuthorizedRow(logEvent: FDEventFileReadAuthorized) {
+    const { FileDropDirectory, FileName } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>File <strong>{FileName}</strong> downloaded from <strong>{FileDropDirectory}</strong></>,
+      ),
+    );
+    details.push(this.renderSpacer());
+
+    return (
+      <>
+        {this.renderEventRow(logEvent)}
+        {details}
+      </>
+    );
+  }
+
+  public renderFileDeleteAuthorizedRow(logEvent: FDEventFileDeleteAuthorized) {
+    const { FileDropDirectory, FileName } = logEvent.eventData;
+    const details = [];
+
+    details.push(
+      this.renderEventDetailRow(
+        <>File <strong>{FileName}</strong> deleted from <strong>{FileDropDirectory}</strong></>,
       ),
     );
     details.push(this.renderSpacer());
