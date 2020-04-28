@@ -119,9 +119,9 @@ namespace ContentPublishingServiceTests
 
             // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
             //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
-            {
-                ConfigurationDumper.DumpConfigurationDetails(environmentName, configurationBuilder, returnVal);
-            }
+            //{
+            //    ConfigurationDumper.DumpConfigurationDetails(environmentName, configurationBuilder, returnVal);
+            //}
 
             return returnVal;
         }
