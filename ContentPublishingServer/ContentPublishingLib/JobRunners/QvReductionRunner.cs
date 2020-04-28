@@ -43,13 +43,14 @@ namespace ContentPublishingLib.JobRunners
                 QdsServiceInfo = services[0];
 
                 // Qv can have 0 or more configured source document folders, need to find the right one. 
-                var GetDocFolderTask = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
-                foreach (DocumentFolder DocFolder in GetDocFolderTask)
+                var serverDocFolders = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+                foreach (DocumentFolder DocFolder in serverDocFolders)
                 {
                     // eliminate any trailing slash issue
                     if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
                     {
                         SourceDocFolder = DocFolder;
+                        return;  // Returns from this Task, not the method
                     }
                 }
 
@@ -58,6 +59,10 @@ namespace ContentPublishingLib.JobRunners
             while (!initTask.IsCompleted)
             {
                 Thread.Sleep(10);
+            }
+            if (initTask.IsFaulted)
+            {
+                Log.Error(initTask.Exception, "Exception thrown during QvReductionRunner constructor");
             }
         }
 
