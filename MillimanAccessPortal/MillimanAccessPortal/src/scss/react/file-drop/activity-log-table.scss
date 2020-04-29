@@ -8,7 +8,7 @@
 
         td {
             padding-top: 1em;
-            padding: .5em 0;
+            padding: .5em;
         }
 
 
@@ -19,29 +19,10 @@
 
         .username {
             font-size: .8em;
-            font-style: italic;
         }
     }
 
     .event-details {
-        color: $dark-grey;
         font-size: .9em;
-        font-style: italic;
-
-        & + .event-details {
-            padding-bottom: 1.5em;
-        }
-
-        td {
-            padding-left: 3em;
-
-            strong {
-                font-style: initial;
-            }
-        }
-    }
-
-    .spacer {
-        height: 1em;
     }
 }
