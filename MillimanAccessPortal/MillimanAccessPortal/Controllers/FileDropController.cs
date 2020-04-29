@@ -441,7 +441,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> FileDropAccountSettings(Guid fileDropId)
+        public async Task<IActionResult> AccountSettings(Guid fileDropId)
         {
             Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync())?.ClientId ?? Guid.Empty;
             ApplicationUser user = await _userManager.GetUserAsync(User);
@@ -465,10 +465,51 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = await _fileDropQueries.GetAccountSettingsModelAsync(fileDropId, user);
+            SftpAccountSettingsModel model = await _fileDropQueries.GetAccountSettingsModelAsync(fileDropId, user);
 
             return Json(model);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateSftpAccountCredentials(Guid sftpAccountId)
+        {
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Include(a => a.ApplicationUser)
+                                                  .SingleOrDefaultAsync(a => a.Id == sftpAccountId);
+
+            #region Validation
+            if (account.ApplicationUser?.UserName != User.Identity.Name)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The account with requested Id {sftpAccountId} is not for the current user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "The requested account is not yours.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            if (account.IsSuspended)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The account with requested Id {sftpAccountId} is suspended. The user may not update credentials.");
+                Response.Headers.Add("Warning", "Your account is suspended. You may not update account credentials.");
+                return Unauthorized();
+            }
+            #endregion
+
+            string newPassword = Guid.NewGuid().ToString();
+
+            var returnModel = new SftpAccountCredentialModel
+            {
+                UserName = account.UserName,
+                Password = newPassword,
+            };
+
+            account.Password = newPassword;
+            await _dbContext.SaveChangesAsync();
+
+            return Json(returnModel);
+        }
+
     }
 
     /// <summary>
