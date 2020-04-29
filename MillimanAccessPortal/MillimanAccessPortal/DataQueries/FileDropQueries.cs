@@ -7,11 +7,14 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
+using nsoftware.IPWorksSSH;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
@@ -25,17 +28,20 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ClientQueries _clientQueries;
         private readonly HierarchyQueries _hierarchyQueries;
         private readonly UserQueries _userQueries;
+        private readonly IConfiguration _appConfig;
 
         public FileDropQueries(
             ApplicationDbContext dbContextArg,
             ClientQueries clientQueries,
             HierarchyQueries hierarchyQueries,
-            UserQueries userQueries)
+            UserQueries userQueries,
+            IConfiguration configuration)
         {
             _dbContext = dbContextArg;
             _clientQueries = clientQueries;
             _hierarchyQueries = hierarchyQueries;
             _userQueries = userQueries;
+            _appConfig = configuration;
         }
 
         /// <summary>
@@ -432,6 +438,39 @@ namespace MillimanAccessPortal.DataQueries
 
                 return GetPermissionGroupsModelForFileDrop(model.FileDropId, fileDrop.ClientId);
             }
+        }
+
+        internal async Task<SftpAccountSettingsModel> GetAccountSettingsModelAsync(Guid fileDropId, ApplicationUser user)
+        {
+            var userSftpAccount = await _dbContext.SftpAccount
+                                                  .Where(a => a.FileDropUserPermissionGroup.FileDropId == fileDropId)
+                                                  .SingleOrDefaultAsync(a => a.ApplicationUserId == user.Id);
+
+            string privateKeyString = _appConfig.GetValue<string>("SftpServerPrivateKey");
+            byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
+            Certificate certificate = new Certificate(privateKeyBytes);
+
+            var returnModel = new SftpAccountSettingsModel
+                    {
+                        SftpHost = _appConfig.GetValue<string>("SftpServerHost"),
+                        SftpPort = _appConfig.GetValue("SftpServerPort", SftpAccountSettingsModel.DefaultPort),
+                        Fingerprint = certificate.Fingerprint,
+                    };
+
+            if (userSftpAccount != null)
+            {
+                int sftpPasswordExpirationDays = _appConfig.GetValue("SftpPasswordExpirationDays", 60);
+
+                returnModel.SftpUserName = userSftpAccount.UserName;
+                returnModel.UserHasPassword = !string.IsNullOrWhiteSpace(userSftpAccount.PasswordHash);
+                returnModel.IsSuspended = userSftpAccount.IsSuspended;
+                returnModel.IsPasswordExpired = userSftpAccount.PasswordResetDateTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(sftpPasswordExpirationDays);
+            }
+
+            // TODO var notifications = <some query>
+            // TODO populate the notifications part of the model
+
+            return returnModel;
         }
     }
 }

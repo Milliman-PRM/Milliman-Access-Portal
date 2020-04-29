@@ -439,6 +439,36 @@ namespace MillimanAccessPortal.Controllers
 
             return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.Now.ToString("s")}.csv" };
         }
+
+        [HttpGet]
+        public async Task<IActionResult> FileDropAccountSettings(Guid fileDropId)
+        {
+            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync())?.ClientId ?? Guid.Empty;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+
+            #region Validation
+            if (clientId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var model = await _fileDropQueries.GetAccountSettingsModelAsync(fileDropId, user);
+
+            return Json(model);
+        }
     }
 
     /// <summary>
