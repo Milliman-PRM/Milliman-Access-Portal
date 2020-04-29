@@ -472,11 +472,12 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateSftpAccountCredentials(Guid sftpAccountId)
+        public async Task<IActionResult> GenerateSftpAccountCredentials(Guid fileDropId)
         {
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .SingleOrDefaultAsync(a => a.Id == sftpAccountId);
+                                                  .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))
+                                                  .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Validation
             if (account.ApplicationUser?.UserName != User.Identity.Name)
