@@ -57,10 +57,10 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
                   </span>
                 </td>
                 <td>
-                  <strong>{logEvent.fullName}</strong><br />
+                  {logEvent.fullName}<br />
                   <span className="username">{logEvent.userName}</span>
                 </td>
-                <td><strong>{logEvent.eventType}</strong></td>
+                <td>{logEvent.eventType}</td>
                 <td>
                   {
                     ((logE: FileDropEvent) => {

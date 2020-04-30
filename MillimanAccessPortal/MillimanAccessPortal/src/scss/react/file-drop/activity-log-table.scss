@@ -8,7 +8,8 @@
 
         td {
             padding-top: 1em;
-            padding: .5em;
+            padding: .75em;
+            font-size: .875rem;
         }
 
 
@@ -18,11 +19,8 @@
         }
 
         .username {
-            font-size: .8em;
+            font-size: .95em;
+            opacity: .85;
         }
-    }
-
-    .event-details {
-        font-size: .9em;
     }
 }

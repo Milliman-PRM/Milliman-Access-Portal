@@ -843,7 +843,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <div className="activity-log-table-header">
-            <span className="activity-log-header">ACTIVITY LOG - <strong>LAST 30 DAYS</strong></span>
+            <span className="activity-log-header">Activity Log - <strong>Last 30 Days</strong></span>
             <a
               href={`./FileDrop/DownloadFullActivityLog?=${data.permissionGroups.fileDropId}`}
               className="download-button button blue-button"
