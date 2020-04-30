@@ -314,12 +314,16 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
       assignedMapUserIds.push(action.userId);
     }
+    const pgName = (state.permissionGroups[action.pgId].isPersonalGroup && action.userName)
+      ? action.userName
+      : state.permissionGroups[action.pgId].name;
     return {
       ...state,
       permissionGroups: {
         ...state.permissionGroups,
         [action.pgId]: {
           ...state.permissionGroups[action.pgId],
+          name: pgName,
           assignedMapUserIds,
         },
       },
