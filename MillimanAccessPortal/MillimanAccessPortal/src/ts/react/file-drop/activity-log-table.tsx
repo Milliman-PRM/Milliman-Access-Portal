@@ -224,7 +224,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     const { MapUser } = logEvent.eventData;
     const details = [];
 
-    details.push(this.renderEventDetail(<>SFTP Account Created for <strong>{MapUser.UserName}</strong></>));
+    details.push(this.renderEventDetail(<>SFTP account created for <strong>{MapUser.UserName}</strong></>));
 
     return details;
   }
