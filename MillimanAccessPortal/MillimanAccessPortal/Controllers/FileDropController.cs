@@ -41,6 +41,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -482,7 +483,7 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (account.ApplicationUser?.UserName != User.Identity.Name)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The account with requested Id {sftpAccountId} is not for the current user {User.Identity.Name}");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} An sftp account does not exist for the current user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "The requested account is not yours.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -491,13 +492,17 @@ namespace MillimanAccessPortal.Controllers
             #region Authorization
             if (account.IsSuspended)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The account with requested Id {sftpAccountId} is suspended. The user may not update credentials.");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update credentials.");
                 Response.Headers.Add("Warning", "Your account is suspended. You may not update account credentials.");
                 return Unauthorized();
             }
             #endregion
 
-            string newPassword = Guid.NewGuid().ToString();
+            // Generate a password
+            byte[] randomBytes = new byte[128 / 8];
+            new RNGCryptoServiceProvider().GetBytes(randomBytes);
+            //string newPassword = randomBytes.Aggregate(string.Empty, (pwd, b) => pwd += b.ToString("X2"));
+            string newPassword = Convert.ToBase64String(randomBytes);
 
             var returnModel = new SftpAccountCredentialModel
             {
