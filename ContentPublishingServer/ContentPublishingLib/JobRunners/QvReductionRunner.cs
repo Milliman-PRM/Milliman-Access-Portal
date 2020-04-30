@@ -427,6 +427,10 @@ namespace ContentPublishingLib.JobRunners
 
                 #region temporary diagnostic code
                 string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
+                string parent = Path.GetDirectoryName(folder);
+                Log.Error($"Folder {SourceDocFolder.General.Path} exists ? {Directory.Exists(SourceDocFolder.General.Path)}");
+                Log.Error($"Folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
+                Log.Error($"Folder {parent} exists ? {Directory.Exists(parent)}");
                 Log.Error($"Folder {folder} exists ? {Directory.Exists(folder)}");
                 foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
                 {
