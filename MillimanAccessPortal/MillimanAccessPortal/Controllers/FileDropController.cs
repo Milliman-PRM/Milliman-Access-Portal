@@ -501,7 +501,6 @@ namespace MillimanAccessPortal.Controllers
             // Generate a password
             byte[] randomBytes = new byte[128 / 8];
             new RNGCryptoServiceProvider().GetBytes(randomBytes);
-            //string newPassword = randomBytes.Aggregate(string.Empty, (pwd, b) => pwd += b.ToString("X2"));
             string newPassword = Convert.ToBase64String(randomBytes);
 
             var returnModel = new SftpAccountCredentialModel
