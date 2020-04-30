@@ -30,7 +30,7 @@ Param(
     [Parameter(Mandatory=$true)]
     [string]$targetFolder,
     [Parameter(Mandatory=$true)]
-    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [ValidateSet("AzureCI","CI","Production","Staging","Development","Internal")]
     [string]$environmentName,
     [string]$branchName
 )
