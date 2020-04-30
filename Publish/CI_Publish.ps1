@@ -131,6 +131,14 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
+
+# Required inputs to get-keyvaultsecret function
+$azTenantId = $env:azTenantId
+$azSubscriptionId = $env:azSubscriptionId
+$azClientId = $env:azClientId
+$azClientSecret = $env:AzClientSecret
+$azVaultName = $env:azVaultName
+
 mkdir -p ${rootPath}\_test_results
 #endregion
 
@@ -506,15 +514,41 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\SftpServer
 
+$acr_url = get-keyvaultsecret `
+    -tenantId $azTenantId `
+    -subscriptionId $azSubscriptionId `
+    -ClientId $azClientId `
+    -ClientSecret $azClientSecret `
+    -VaultName $azVaultName `
+    -SecretName "acrurl"
+
+$acr_username = get-keyvaultsecret `
+    -tenantId $azTenantId `
+    -subscriptionId $azSubscriptionId `
+    -ClientId $azClientId `
+    -ClientSecret $azClientSecret `
+    -VaultName $azVaultName `
+    -SecretName "acruser"
+
+$acr_password = get-keyvaultsecret `
+    -tenantId $azTenantId `
+    -subscriptionId $azSubscriptionId `
+    -ClientId $azClientId `
+    -ClientSecret $azClientSecret `
+    -VaultName $azVaultName `
+    -SecretName "acrpass"
+
 docker build -t filedropsftp .
 
 docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
 
-docker tag filedropsftp $acr_url/filedropsftp:v1
+docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
-docker push $acr_url/filedropsftp:v1
+docker push $acr_url/filedropsftp:$TrimmedBranch
 
-docker rmi $acr_url/filedropsftp:v1
+docker rmi $acr_url/filedropsftp:$TrimmedBranch
+
+#trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
 
 #endregion
 
