@@ -40,6 +40,8 @@ namespace ContentPublishingServiceTests
                 .MinimumLevel.Information()
                 .CreateLogger();
 
+            Log.Information($"Running as user {Environment.UserDomainName}\\{Environment.UserName}");
+
             Configuration = GenerateConfiguration();
 
             #region Get configuration and set instance properties

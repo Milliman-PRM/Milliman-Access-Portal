@@ -425,6 +425,15 @@ namespace ContentPublishingLib.JobRunners
                 string errMsg = $"Failed to extract content reduction hierarchy, error converting file {ReductionSchemeFilePath} to json output{Environment.NewLine}{e.Message}";
                 Log.Error(e, errMsg);
 
+                #region temporary diagnostic code
+                string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
+                Log.Error($"Folder {folder} exists ? {Directory.Exists(folder)}");
+                foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
+                {
+                    Log.Error($"    Folder contains {entry}");
+                }
+                #endregion
+
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     ProblemDetail = errMsg,
