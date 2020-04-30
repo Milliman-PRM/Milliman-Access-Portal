@@ -155,7 +155,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     const details = [];
 
     if (PermissionGroup.IsPersonalGroup) {
-      details.push(this.renderEventDetail(<>User: <strong>{PermissionGroup.Name}</strong></>));
+      details.push(this.renderEventDetail(<>Personal Permission Group for <strong>{PermissionGroup.Name}</strong></>));
     } else {
       details.push(this.renderEventDetail(<>Permission Group name: <strong>{PermissionGroup.Name}</strong></>));
     }
