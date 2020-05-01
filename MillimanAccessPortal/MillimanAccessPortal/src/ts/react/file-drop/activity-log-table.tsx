@@ -155,18 +155,18 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     const details = [];
 
     if (PermissionGroup.IsPersonalGroup) {
-      details.push(this.renderEventDetail(<>Personal Permission Group for <strong>{PermissionGroup.Name}</strong></>));
+      details.push(this.renderEventDetail(<>Personal permission group for <strong>{PermissionGroup.Name}</strong></>));
     } else {
-      details.push(this.renderEventDetail(<>Permission Group name: <strong>{PermissionGroup.Name}</strong></>));
+      details.push(this.renderEventDetail(<>Permission group name: <strong>{PermissionGroup.Name}</strong></>));
     }
     if (PermissionGroup.ReadAccess) {
-      details.push(this.renderEventDetail(<>Read Access Granted</>));
+      details.push(this.renderEventDetail(<>Read access granted</>));
     }
     if (PermissionGroup.WriteAccess) {
-      details.push(this.renderEventDetail(<>Write Access Granted</>));
+      details.push(this.renderEventDetail(<>Write access granted</>));
     }
     if (PermissionGroup.DeleteAccess) {
-      details.push(this.renderEventDetail(<>Delete Access Granted</>));
+      details.push(this.renderEventDetail(<>Delete access granted</>));
     }
 
     return details;
@@ -179,7 +179,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
     if (PermissionGroup.IsPersonalGroup) {
       details.push(this.renderEventDetail(<><strong>{PermissionGroup.Name}</strong> personal group deleted</>));
     } else {
-      details.push(this.renderEventDetail(<>Permission Group <strong>{PermissionGroup.Name}</strong> deleted</>));
+      details.push(this.renderEventDetail(<>Permission group <strong>{PermissionGroup.Name}</strong> deleted</>));
     }
 
     return details;
@@ -199,22 +199,22 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
       );
     }
     if (UpdatedProperties.ReadAccess && !PreviousProperties.ReadAccess) {
-      details.push(this.renderEventDetail(<>Read Access Granted</>));
+      details.push(this.renderEventDetail(<>Read access granted</>));
     }
     if (UpdatedProperties.WriteAccess && !PreviousProperties.WriteAccess) {
-      details.push(this.renderEventDetail(<>Write Access Granted</>));
+      details.push(this.renderEventDetail(<>Write access granted</>));
     }
     if (UpdatedProperties.DeleteAccess && !PreviousProperties.DeleteAccess) {
-      details.push(this.renderEventDetail(<>Delete Access Granted</>));
+      details.push(this.renderEventDetail(<>Delete access granted</>));
     }
     if (!UpdatedProperties.ReadAccess && PreviousProperties.ReadAccess) {
-      details.push(this.renderEventDetail(<>Read Access Revoked</>));
+      details.push(this.renderEventDetail(<>Read access revoked</>));
     }
     if (!UpdatedProperties.WriteAccess && PreviousProperties.WriteAccess) {
-      details.push(this.renderEventDetail(<>Write Access Revoked</>));
+      details.push(this.renderEventDetail(<>Write access revoked</>));
     }
     if (!UpdatedProperties.DeleteAccess && PreviousProperties.DeleteAccess) {
-      details.push(this.renderEventDetail(<>Delete Access Revoked</>));
+      details.push(this.renderEventDetail(<>Delete access revoked</>));
     }
 
     return details;
@@ -235,7 +235,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
 
     details.push(
       this.renderEventDetail(
-        <><strong>{MapUser.UserName}</strong> assigned to Permission Group <strong>{PermissionGroup.Name}</strong></>,
+        <><strong>{MapUser.UserName}</strong> assigned to permission group <strong>{PermissionGroup.Name}</strong></>,
       ),
     );
 
@@ -248,7 +248,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
 
     details.push(
       this.renderEventDetail(
-        <><strong>{MapUser.UserName}</strong> removed from Permission Group <strong>{PermissionGroup.Name}</strong></>,
+        <><strong>{MapUser.UserName}</strong> removed from permission group <strong>{PermissionGroup.Name}</strong></>,
       ),
     );
 
