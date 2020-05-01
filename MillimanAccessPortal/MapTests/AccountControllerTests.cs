@@ -23,6 +23,7 @@ using Xunit;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class AccountControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

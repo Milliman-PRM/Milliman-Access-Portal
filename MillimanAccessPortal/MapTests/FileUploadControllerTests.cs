@@ -16,6 +16,7 @@ using TestResourcesLib;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class FileUploadControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

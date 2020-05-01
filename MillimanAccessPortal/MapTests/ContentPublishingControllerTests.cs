@@ -23,6 +23,7 @@ using Newtonsoft.Json.Linq;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class ContentPublishingControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

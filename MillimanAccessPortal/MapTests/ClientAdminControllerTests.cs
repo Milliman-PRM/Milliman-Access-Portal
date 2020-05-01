@@ -1,4 +1,10 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Unit tests for Client admin controller actions
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -13,6 +19,7 @@ using Xunit;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class ClientAdminControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

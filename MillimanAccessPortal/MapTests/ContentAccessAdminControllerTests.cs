@@ -20,6 +20,7 @@ using MillimanAccessPortal.Models.ContentAccessAdmin;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class ContentAccessAdminControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

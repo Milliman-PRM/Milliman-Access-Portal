@@ -18,6 +18,7 @@ using Xunit;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class FileDropControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

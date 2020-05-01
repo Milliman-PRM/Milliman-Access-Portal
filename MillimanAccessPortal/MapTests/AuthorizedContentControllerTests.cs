@@ -21,6 +21,7 @@ using MapCommonLib;
 namespace MapTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class AuthorizedContentControllerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;
