@@ -8,9 +8,9 @@ using Serilog;
 using System.Reflection;
 using Xunit.Sdk;
 
-namespace ContentPublishingServiceTests
+namespace TestResourcesLib
 {
-    internal class LogTestBeginEndAttribute : BeforeAfterTestAttribute
+    public class LogTestBeginEndAttribute : BeforeAfterTestAttribute
     {
         public override void Before(MethodInfo methodUnderTest)
         {

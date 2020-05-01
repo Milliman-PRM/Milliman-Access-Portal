@@ -334,7 +334,6 @@ namespace ContentPublishingServiceTests
             // Valid reducible task
             DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(1),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -372,7 +371,6 @@ namespace ContentPublishingServiceTests
             // Invalid field value
             DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(2),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -427,7 +425,6 @@ namespace ContentPublishingServiceTests
             // One Valid, one invalid field value
             DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(3),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -465,7 +462,6 @@ namespace ContentPublishingServiceTests
             // Invalid field name
             DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(4),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
@@ -4352,7 +4348,6 @@ namespace ContentPublishingServiceTests
 
             DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(5),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
                 MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",

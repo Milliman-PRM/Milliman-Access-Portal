@@ -11,7 +11,6 @@ using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.Extensions.Configuration;
-using Serilog;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -20,7 +19,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace ContentPublishingServiceTests
 {

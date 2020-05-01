@@ -8,16 +8,15 @@ using ContentPublishingLib;
 using ContentPublishingLib.JobRunners;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Serilog;
-using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace ContentPublishingServiceTests
 {
@@ -39,7 +38,13 @@ namespace ContentPublishingServiceTests
         public async Task SuccessfulHierarchyOnly()
         {
             #region Arrange
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
 
             string ExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), DbTask.Id.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName("MasterContent", ".qvw", DbTask.SelectionGroup.RootContentItemId);
@@ -109,7 +114,13 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             // Modify the task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(4));
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                   && f.Values.Exists(v => v.Value == "Invalid value")))
+                .Single();
+
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             TestResources.DbContext.SaveChanges();
 
@@ -159,7 +170,13 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             // Modify the task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(2));
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                   && f.Values.Exists(v => v.Value == "Invalid selection value")))
+                .Single();
+
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             TestResources.DbContext.SaveChanges();
 
@@ -205,8 +222,14 @@ namespace ContentPublishingServiceTests
         public async Task OneValidOneInvalidSelectionValue()
         {
             #region Arrange
-            // Modify the task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
+            // Query for the task to be used in this test
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                                   .AsEnumerable()
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Count == 2)
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Exists(v => v.Value == "Invalid selection value")))
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                                   .Single();
+
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             TestResources.DbContext.SaveChanges();
 
@@ -226,7 +249,7 @@ namespace ContentPublishingServiceTests
             var TaskRequest = JobDetail.Request;
 
             TestResources.DbContext.Entry(DbTask).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
-            DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
+            DbTask = TestResources.DbContext.ContentReductionTask.Find(DbTask.Id);
             #endregion
 
             #region Assert
@@ -266,7 +289,14 @@ namespace ContentPublishingServiceTests
         {
             #region Arrange
             // Modify the task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
+
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.MasterFilePath = Path.ChangeExtension(DbTask.MasterFilePath, "xyz");
             TestResources.DbContext.SaveChanges();

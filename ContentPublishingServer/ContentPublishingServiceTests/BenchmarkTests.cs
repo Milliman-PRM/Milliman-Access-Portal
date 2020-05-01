@@ -40,8 +40,23 @@ namespace ContentPublishingServiceTests
             const int TOTAL_TASKS = 100;
             const int MINUTES_PER_TASK = 3;
 
-            var smallDbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
-            var largeDbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(5));
+            var smallDbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
+            var largeDbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 3)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Population" 
+                                                                   && f.Values.Count == 1))
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Practice"
+                                                                   && f.Values.Count == 108))
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Provider"
+                                                                   && f.Values.Count == 658))
+                .Single();
 
             // Use a fact with nested for loops instead of a theory
             // This guarantees the order in which these serial tests run and gathers output into one test
