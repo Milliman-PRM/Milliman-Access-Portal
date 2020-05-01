@@ -17,6 +17,7 @@ using Moq;
 namespace ContentPublishingServiceTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class MapDbReductionJobMonitorTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

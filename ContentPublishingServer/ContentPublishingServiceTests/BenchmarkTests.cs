@@ -18,6 +18,7 @@ using ContentPublishingLib.JobRunners;
 namespace ContentPublishingServiceTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class BenchmarkTests
     {
         private readonly ITestOutputHelper _output;

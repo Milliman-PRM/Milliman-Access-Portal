@@ -9,6 +9,7 @@ using ContentPublishingLib.JobRunners;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using System;
 using System.IO;
 using System.Linq;
@@ -16,10 +17,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace ContentPublishingServiceTests
 {
     [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class QvReductionRunnerTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;

@@ -428,31 +428,43 @@ namespace ContentPublishingLib.JobRunners
 
                 #region temporary diagnostic code
                 string share = Path.GetPathRoot(ReductionSchemeFilePath);
+                string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
+                string parent = Path.GetDirectoryName(folder);
+
+                Log.Information($"Checking the share <{share}>:");
                 if (Directory.Exists(share))
                 {
-                    Log.Information($"For the share <{share}>:");
                     LogAcl(share);
                 }
+                else
+                {
+                    Log.Information($"Share <{share}> not found");
+                }
 
-                string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
+                Log.Information($"Checking parent folder <{parent}>:");
+                if (Directory.Exists(parent))
+                {
+                    LogAcl(parent);
+                }
+                else
+                {
+                    Log.Information($"  Parent folder <{parent}> not found");
+                }
+
+                Log.Information($"Checking target folder <{folder}>:");
                 if (Directory.Exists(folder))
                 {
-                    Log.Information($"For the target folder <{folder}>:");
                     LogAcl(folder);
 
                     foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
                     {
-                        Log.Error($"    Target Folder contains {entry}");
+                        Log.Error($"  Target Folder contains {entry}");
                     }
                 }
-
-                string parent = Path.GetDirectoryName(folder);
-                if (Directory.Exists(parent))
+                else
                 {
-                    Log.Information($"For the parent folder <{parent}>:");
-                    LogAcl(parent);
+                    Log.Information($"  Target folder <{folder}> not found");
                 }
-
                 #endregion
 
                 object DetailObj = new {

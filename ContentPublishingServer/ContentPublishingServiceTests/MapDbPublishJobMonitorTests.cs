@@ -25,7 +25,8 @@ using Xunit;
 namespace ContentPublishingServiceTests
 {
     [Collection("DatabaseLifetime collection")]
-    public class MapDbPublishJobMonitorTests : IDisposable
+    [LogTestBeginEnd]
+    public class MapDbPublishJobMonitorTests
     {
         DatabaseLifetimeFixture _dbLifeTimeFixture;
         TestInitialization TestResources;
@@ -35,10 +36,6 @@ namespace ContentPublishingServiceTests
             _dbLifeTimeFixture = dbLifeTimeFixture;
             TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
             Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
-        }
-
-        public void Dispose()
-        {
         }
 
         [Fact]

@@ -40,9 +40,9 @@ namespace ContentPublishingServiceTests
                 .MinimumLevel.Information()
                 .CreateLogger();
 
-            Log.Information($"Running as user {Environment.UserDomainName} \\ {Environment.UserName.Reverse()}");
-            Log.Information($"or {Environment.UserDomainName} \\ {Environment.GetEnvironmentVariable("Username", EnvironmentVariableTarget.Machine).Reverse()}");
-            Log.Information($"or {System.Security.Principal.WindowsIdentity.GetCurrent().Name.Reverse()}");
+            Log.Information($"Running as user {Environment.UserDomainName} \\ {new string(Environment.UserName.Reverse().ToArray())}");
+            Log.Information($"or {Environment.UserDomainName} \\ {new string(Environment.GetEnvironmentVariable("Username", EnvironmentVariableTarget.Machine).Reverse().ToArray())}");
+            Log.Information($"or {new string(System.Security.Principal.WindowsIdentity.GetCurrent().Name.Reverse().ToArray())}");
 
             Configuration = GenerateConfiguration();
 
