@@ -14,12 +14,12 @@ namespace TestResourcesLib
     {
         public override void Before(MethodInfo methodUnderTest)
         {
-            Log.Information($"Starting test {methodUnderTest.Name}");
+            Log.Information($"Starting test {methodUnderTest.DeclaringType}.{methodUnderTest.Name}");
         }
 
         public override void After(MethodInfo methodUnderTest)
         {
-            Log.Information($"Ending test {methodUnderTest.Name}");
+            Log.Information($"Ending test {methodUnderTest.DeclaringType}.{methodUnderTest.Name}");
         }
     }
 }

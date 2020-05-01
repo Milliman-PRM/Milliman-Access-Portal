@@ -153,11 +153,19 @@ namespace ContentPublishingServiceTests
             #region Assert
             try
             {
+                int remainTaskCount = TestResources.DbContext.ContentReductionTask
+                    .AsEnumerable()
+                    .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                    .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                       && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                       && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                    .Count();
+
                 Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
                 //Assert.Equal(TaskStatus.Running, MonitorTask.Status);
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(0, TestResources.DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
+                Assert.Equal(0, remainTaskCount);
             }
             finally
             {
@@ -306,11 +314,17 @@ namespace ContentPublishingServiceTests
         public async Task PublicationWaitsForEarlierStampedReduction()
         {
             #region Arrange
-            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                            .AsEnumerable()
+                            .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                            .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                               && f.Values.Exists(v => v.Value == "Invalid selection value")))
+                            .Single();
+            
+            Guid ReductionTaskOfThisTest = DbTask.Id;
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
             // Modify the reduction task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.CreateDateTimeUtc = DateTime.UtcNow - new TimeSpan(0, 1, 0);
 
@@ -354,11 +368,17 @@ namespace ContentPublishingServiceTests
         public async Task PublicationStartsProcessingBeforeLaterStampedReduction()
         {
             #region Arrange
-            Guid ReductionTaskOfThisTest = TestUtil.MakeTestGuid(2);
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                            .AsEnumerable()
+                            .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                            .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                               && f.Values.Exists(v => v.Value == "Invalid selection value")))
+                            .Single();
+
+            Guid ReductionTaskOfThisTest = DbTask.Id;
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
 
             // Modify the reduction task to be tested
-            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask.Single(t => t.Id == ReductionTaskOfThisTest);
             DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.CreateDateTimeUtc = DateTime.UtcNow;
 
