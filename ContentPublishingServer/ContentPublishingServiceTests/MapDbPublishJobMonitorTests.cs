@@ -153,19 +153,11 @@ namespace ContentPublishingServiceTests
             #region Assert
             try
             {
-                int remainTaskCount = TestResources.DbContext.ContentReductionTask
-                    .AsEnumerable()
-                    .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
-                    .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
-                                                                       && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
-                                                                       && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
-                    .Count();
-
                 Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
                 //Assert.Equal(TaskStatus.Running, MonitorTask.Status);
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
-                Assert.Equal(0, remainTaskCount);
+                Assert.Equal(0, TestResources.DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == TestUtil.MakeTestGuid(1)).Count());
             }
             finally
             {
