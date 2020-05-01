@@ -1017,7 +1017,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop> PermissionGroupUpdated = new AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop>(
-            8013, "Permission Group Updated", (permissionGroup, updatedGroup, fileDrop) => new
+            8013, "File Drop Permission Group Updated", (permissionGroup, updatedGroup, fileDrop) => new
             {
                 FileDrop = new
                 {
