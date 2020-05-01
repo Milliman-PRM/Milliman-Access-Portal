@@ -439,6 +439,11 @@ namespace ContentPublishingLib.JobRunners
                 {
                     Log.Information($"For the target folder <{folder}>:");
                     LogAcl(folder);
+
+                    foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
+                    {
+                        Log.Error($"    Target Folder contains {entry}");
+                    }
                 }
 
                 string parent = Path.GetDirectoryName(folder);
@@ -448,10 +453,6 @@ namespace ContentPublishingLib.JobRunners
                     LogAcl(parent);
                 }
 
-                foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
-                {
-                    Log.Error($"    Target Folder contains {entry}");
-                }
                 #endregion
 
                 object DetailObj = new {
