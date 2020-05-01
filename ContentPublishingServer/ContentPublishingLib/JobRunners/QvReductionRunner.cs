@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -426,15 +427,30 @@ namespace ContentPublishingLib.JobRunners
                 Log.Error(e, errMsg);
 
                 #region temporary diagnostic code
+                string share = Path.GetPathRoot(ReductionSchemeFilePath);
+                if (Directory.Exists(share))
+                {
+                    Log.Information($"For the share <{share}>:");
+                    LogAcl(share);
+                }
+
                 string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
+                if (Directory.Exists(folder))
+                {
+                    Log.Information($"For the target folder <{folder}>:");
+                    LogAcl(folder);
+                }
+
                 string parent = Path.GetDirectoryName(folder);
-                Log.Error($"Folder {SourceDocFolder.General.Path} exists ? {Directory.Exists(SourceDocFolder.General.Path)}");
-                Log.Error($"Folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
-                Log.Error($"Folder {parent} exists ? {Directory.Exists(parent)}");
-                Log.Error($"Folder {folder} exists ? {Directory.Exists(folder)}");
+                if (Directory.Exists(parent))
+                {
+                    Log.Information($"For the parent folder <{parent}>:");
+                    LogAcl(parent);
+                }
+
                 foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
                 {
-                    Log.Error($"    Folder contains {entry}");
+                    Log.Error($"    Target Folder contains {entry}");
                 }
                 #endregion
 
@@ -920,5 +936,24 @@ namespace ContentPublishingLib.JobRunners
                 }
             }
         }
+
+        private void LogAcl(string path)
+        {
+            FileSecurity acl = new FileInfo(path).GetAccessControl();
+            AuthorizationRuleCollection securityIdentifierRules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+            AuthorizationRuleCollection ntAccountRules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+
+            Log.Information($"  SecurityIdentifier ACL rules:");
+            foreach (FileSystemAccessRule rule in securityIdentifierRules)
+            {
+                Log.Information($"    {rule.AccessControlType} {rule.FileSystemRights},   IsInherited: {rule.IsInherited}");
+            }
+            Log.Information($"  NTAccount ACL rules:");
+            foreach (FileSystemAccessRule rule in ntAccountRules)
+            {
+                Log.Information($"    {rule.AccessControlType} {rule.FileSystemRights},   IsInherited: {rule.IsInherited}");
+            }
+        }
+
     }
 }
