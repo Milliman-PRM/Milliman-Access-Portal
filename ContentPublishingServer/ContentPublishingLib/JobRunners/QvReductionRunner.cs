@@ -356,11 +356,15 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
+            /* Delete this log */
+            Log.Information($"At start of ExtractReductionHierarchy, folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
             ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
 
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true(); LET MAP_Reduction=true();");
+            /* Delete this log */
+            Log.Information($"After writing AncillaryScriptFile, folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
 
             // Create Qlikview publisher (QDS) task
             DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
@@ -377,7 +381,11 @@ namespace ContentPublishingLib.JobRunners
                 // Clean up
                 try
                 {
+                    /* Delete this log */
+                    Log.Information($"Before deleting AncillaryScriptFilePath, folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
                     FileSystemUtil.DeleteFileWithRetry(AncillaryScriptFilePath);
+                    /* Delete this log */
+                    Log.Information($"After deleting AncillaryScriptFilePath, folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
                 }
                 catch { }
             }
@@ -387,6 +395,8 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
+                /* Delete this log */
+                Log.Information($"Before reading reduction.scheme.csv, folder {Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative)} exists ? {Directory.Exists(Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative))}");
                 foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
                 {
                     // First line is csv header
