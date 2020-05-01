@@ -22,5 +22,12 @@
             font-size: .95em;
             opacity: .85;
         }
+
+        .name-max-width {
+            max-width: 150px;
+            width: auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 }

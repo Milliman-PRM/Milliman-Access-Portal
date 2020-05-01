@@ -56,9 +56,19 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
                     }
                   </span>
                 </td>
-                <td>
-                  {logEvent.fullName}<br />
-                  <span className="username">{logEvent.userName}</span>
+                <td className="name-max-width">
+                  <span
+                    title={logEvent.fullName}
+                  >
+                    {logEvent.fullName}
+                  </span>
+                  <br />
+                  <span
+                    className="username"
+                    title={logEvent.userName}
+                  >
+                    {logEvent.userName}
+                  </span>
                 </td>
                 <td>{logEvent.eventType}</td>
                 <td>
