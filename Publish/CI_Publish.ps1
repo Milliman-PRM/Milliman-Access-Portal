@@ -138,6 +138,7 @@ $azSubscriptionId = $env:azSubscriptionId
 $azClientId = $env:azClientId
 $azClientSecret = $env:AzClientSecret
 $azVaultName = $env:azVaultName
+$thumbprint = 'F83D279246FC2EA3910B44EE199C4D1EB24C029F' # thumbprint of certificate used to authenticate as Service Principal
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -514,27 +515,17 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\SftpServer
 
+Connect-AzAccount -CertificateThumbprint $thumbprint -ApplicationId $azClientId -TenantId $azTenantId -ServicePrincipal
+
 $acr_url = get-azkeyvaultsecret `
-    -tenantId $azTenantId `
-    -subscriptionId $azSubscriptionId `
-    -ClientId $azClientId `
-    -ClientSecret $azClientSecret `
     -VaultName $azVaultName `
     -SecretName "acrurl"
 
 $acr_username = get-azkeyvaultsecret `
-    -tenantId $azTenantId `
-    -subscriptionId $azSubscriptionId `
-    -ClientId $azClientId `
-    -ClientSecret $azClientSecret `
     -VaultName $azVaultName `
     -SecretName "acruser"
 
 $acr_password = get-azkeyvaultsecret `
-    -tenantId $azTenantId `
-    -subscriptionId $azSubscriptionId `
-    -ClientId $azClientId `
-    -ClientSecret $azClientSecret `
     -VaultName $azVaultName `
     -SecretName "acrpass"
 
