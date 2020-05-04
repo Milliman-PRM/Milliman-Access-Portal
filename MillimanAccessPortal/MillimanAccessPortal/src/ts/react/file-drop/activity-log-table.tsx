@@ -49,10 +49,10 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
           {
             this.props.activityLogData.map((logEvent) => (
               <tr className="event-row" key={`${logEvent.timeStampUtc}`}>
-                <td>
+                <td className="date-width">
                   <span title={moment(logEvent.timeStampUtc).local().format('MM/DD/YYYY h:mm:ss A')}>
                     {
-                      moment(logEvent.timeStampUtc).local().format('M/D/YY \nh:mm A')
+                      moment(logEvent.timeStampUtc).local().format('M/D/YY \nh:mmA')
                     }
                   </span>
                 </td>
