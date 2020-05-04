@@ -342,6 +342,7 @@ namespace ContentPublishingServiceTests
             {
                 CancelTokenSource.Cancel();
                 await MonitorTask;
+                Thread.Sleep(2000);
             }
             catch { }
             #endregion
@@ -397,6 +398,7 @@ namespace ContentPublishingServiceTests
             {
                 CancelTokenSource.Cancel();
                 await MonitorTask;
+                Thread.Sleep(2000);
             }
             catch { }
 

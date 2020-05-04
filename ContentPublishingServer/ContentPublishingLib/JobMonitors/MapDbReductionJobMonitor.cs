@@ -100,7 +100,7 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     List<Guid> AllActiveReductionTaskIdList = ActiveReductionRunnerItems.Select(i => i.dbTask.Id).ToList();
 
-                    List<Guid> CanceledTaskIdList =await Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
+                    List<Guid> CanceledTaskIdList = await Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
                                                                                 .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
                                                                                 .Select(t => t.Id)
                                                                                 .ToListAsync();

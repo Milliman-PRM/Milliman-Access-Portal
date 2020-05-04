@@ -297,6 +297,7 @@ namespace ContentPublishingServiceTests
             PublishJobDetail JobDetail = await RequestRunnerTask;
 
             CancelTokenSource.Cancel();  // End the MapDbReductionJobMonitor
+            Thread.Sleep(2000);
 
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
