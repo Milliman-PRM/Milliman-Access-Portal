@@ -132,7 +132,7 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
 
-# Required inputs to get-keyvaultsecret function
+# Required inputs to get-azkeyvaultsecret function
 $azTenantId = $env:azTenantId
 $azSubscriptionId = $env:azSubscriptionId
 $azClientId = $env:azClientId
@@ -514,7 +514,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\SftpServer
 
-$acr_url = get-keyvaultsecret `
+$acr_url = get-azkeyvaultsecret `
     -tenantId $azTenantId `
     -subscriptionId $azSubscriptionId `
     -ClientId $azClientId `
@@ -522,7 +522,7 @@ $acr_url = get-keyvaultsecret `
     -VaultName $azVaultName `
     -SecretName "acrurl"
 
-$acr_username = get-keyvaultsecret `
+$acr_username = get-azkeyvaultsecret `
     -tenantId $azTenantId `
     -subscriptionId $azSubscriptionId `
     -ClientId $azClientId `
@@ -530,7 +530,7 @@ $acr_username = get-keyvaultsecret `
     -VaultName $azVaultName `
     -SecretName "acruser"
 
-$acr_password = get-keyvaultsecret `
+$acr_password = get-azkeyvaultsecret `
     -tenantId $azTenantId `
     -subscriptionId $azSubscriptionId `
     -ClientId $azClientId `
