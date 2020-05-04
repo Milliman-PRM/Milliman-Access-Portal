@@ -321,9 +321,9 @@ namespace ContentPublishingLib.JobRunners
                 // remove pre-existing task folder of same name, normally won't exist but maybe in development environment
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
-                    Log.Information($"Reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
+                    Log.Information($"QvReductionRunner.PreTaskSetup(), reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
-                    Log.Information($"Reduction Task working directory {WorkingFolderAbsolute} deleted");
+                    Log.Information($"QvReductionRunner.PreTaskSetup(), reduction Task working directory {WorkingFolderAbsolute} deleted");
                 }
 
                 // Make sure the requested master content file exists
@@ -334,6 +334,7 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 Directory.CreateDirectory(WorkingFolderAbsolute);
+                Log.Information($"QvReductionRunner.PreTaskSetup(), reduction Task working directory {WorkingFolderAbsolute} created");
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
                 // Set this.MasterDocumentNode, which is used elsewhere in this class
@@ -348,7 +349,7 @@ namespace ContentPublishingLib.JobRunners
             if (MasterDocumentNode == null)
             {
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
-                throw new ApplicationException($"Failed to obtain DocumentNode object from Qlikview Publisher for master content file {MasterFileName} in relative folder {WorkingFolderRelative}");
+                throw new ApplicationException($"QvReductionRunner.PreTaskSetup() failed to obtain DocumentNode object from Qlikview Publisher for master content file {MasterFileName} in relative folder {WorkingFolderRelative}");
             }
             return true;
         }
@@ -360,15 +361,14 @@ namespace ContentPublishingLib.JobRunners
         {
             /* Delete this log */
             string WorkingFolderPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            Log.Information($"At start of ExtractReductionHierarchy, folder {WorkingFolderPath} exists ? {Directory.Exists(WorkingFolderPath)}");
+            if (!Directory.Exists(WorkingFolderPath)) Log.Information($"At start of ExtractReductionHierarchy, folder {WorkingFolderPath} not found");
             
             ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
 
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true(); LET MAP_Reduction=true();");
-            /* Delete this log */
-            Log.Information($"After writing AncillaryScriptFile, folder {WorkingFolderPath} exists ? {Directory.Exists(WorkingFolderPath)}");
+            /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"After writing AncillaryScriptFile, folder {WorkingFolderPath} not found");
 
             // Create Qlikview publisher (QDS) task
             DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
@@ -385,13 +385,11 @@ namespace ContentPublishingLib.JobRunners
                 // Clean up
                 try
                 {
-                    /* Delete this log */
-                    Log.Information($"Before deleting AncillaryScriptFilePath, folder {WorkingFolderPath} exists ? {Directory.Exists(WorkingFolderPath)}");
+                    /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"Before deleting AncillaryScriptFilePath, folder {WorkingFolderPath} not found");
 
                     FileSystemUtil.DeleteFileWithRetry(AncillaryScriptFilePath);
-                    
-                    /* Delete this log */
-                    Log.Information($"After deleting AncillaryScriptFilePath, folder {WorkingFolderPath} exists ? {Directory.Exists(WorkingFolderPath)}");
+
+                    /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"After deleting AncillaryScriptFilePath, folder {WorkingFolderPath} not found");
                 }
                 catch { }
             }
@@ -401,8 +399,7 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                /* Delete this log */
-                Log.Information($"Before reading reduction.scheme.csv, folder {WorkingFolderPath} exists ? {Directory.Exists(WorkingFolderPath)}");
+                /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"Before reading reduction.scheme.csv, folder {WorkingFolderPath} not found");
                 foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
                 {
                     // First line is csv header
@@ -514,7 +511,7 @@ namespace ContentPublishingLib.JobRunners
                 }
             }
 
-            Log.Information($"Reduction Task {JobDetail.TaskId} completed ExtractReductionHierarchy");
+            Log.Information($"QvReductionRunner.ExtractReductionHierarchy, reduction Task {JobDetail.TaskId} completed ExtractReductionHierarchy");
 
             return ResultHierarchy;
         }
@@ -606,12 +603,12 @@ namespace ContentPublishingLib.JobRunners
                 try
                 {
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
-                    Log.Information($"In QvReductionRunner.Cleanup(), reduction task working folder {WorkingFolderAbsolute} deleted");
+                    Log.Information($"QvReductionRunner.Cleanup(), reduction task working folder {WorkingFolderAbsolute} deleted");
                 }
                 catch (System.Exception e)  // Do not let this throw upward
                 {
                     // It's an error, but the reduction task has completed by now so just log this and continue.
-                    Log.Error(e, $"In QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
+                    Log.Error(e, $"QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
                 }
             }
 
@@ -848,7 +845,7 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException("After saving task, QmsClient.FindTaskAsync exception", ex);
             }
             Guid TaskIdGuid = TInfo.ID;
-            Log.Information($"In QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} saved, and task info retrieved, after {DateTime.Now - SaveStartTime}");
+            Log.Information($"QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} saved, and task info retrieved, after {DateTime.Now - SaveStartTime}");
 
             try
             {
@@ -882,13 +879,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskStartRetryCount-- > 0)
                         {
-                            Log.Information(ex, "Retrying after exception while polling for task status after RunTaskAsync");
+                            Log.Information(ex, "QvReductionRunner.RunQdsTask() Retrying after exception while polling for task status after RunTaskAsync");
                             continue;
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while trying to start task", ex);
                     }
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
-                Log.Information($"In QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} started running after {DateTime.Now - RunStartTime}");
+                Log.Information($"QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
@@ -911,13 +908,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskFinishRetryCount-- > 0)
                         {
-                            Log.Information(ex, "Retrying after exception while polling for task status while task is running");
+                            Log.Information(ex, "QvReductionRunner.RunQdsTask() Retrying after exception while polling for task status while task is running");
                             continue;
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while waiting for task to finish", ex);
                     }
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-                Log.Information($"In QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} finished running after {DateTime.Now - RunningStartTime}");
+                Log.Information($"QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} finished running after {DateTime.Now - RunningStartTime}");
 
                 switch (Status.General.Status)
                 {
@@ -958,7 +955,7 @@ namespace ContentPublishingLib.JobRunners
                     try
                     {
                         await _newQdsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
-                        Log.Information($"In QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} deleted");
+                        Log.Information($"QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} deleted");
                     }
                     catch (System.Exception ex)
                     {

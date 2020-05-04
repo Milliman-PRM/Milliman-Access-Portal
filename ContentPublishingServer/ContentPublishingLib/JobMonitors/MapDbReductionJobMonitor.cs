@@ -148,7 +148,7 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Runner.Execute(cancelSource.Token);
-                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for ContentReductionTask {DbTask.Id}");
                                     break;
 
                                 default:
@@ -401,7 +401,7 @@ namespace ContentPublishingLib.JobMonitors
             bool acquired = await _CleanupOnStartSemaphore.WaitAsync(TimeSpan.FromSeconds(60));
             if (!acquired)
             {
-                string msg = $"MapDbReductionJobMonitor failed to acquire semaphore in CleanupOnStart()";
+                string msg = $"MapDbReductionJobMonitor.CleanupOnStart(), failed to acquire semaphore";
                 Log.Error(msg);
                 throw new TimeoutException(msg);
             }
@@ -414,7 +414,7 @@ namespace ContentPublishingLib.JobMonitors
                                                                                   .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
                                                                                   .Where(t => t.ContentPublicationRequestId == null)
                                                                                   .ToListAsync();
-                    Log.Information($"CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+                    Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
 
                     foreach (ContentReductionTask task in inProgressReductionTasks)
                     {
@@ -428,14 +428,14 @@ namespace ContentPublishingLib.JobMonitors
                             task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
                             task.ReductionStatus = ReductionStatusEnum.Error;
 
-                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
+                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
                         }
                         else
                         {
                             task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
                             task.ReductionStatus = ReductionStatusEnum.Queued;
 
-                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
+                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
                         }
                         await Db.SaveChangesAsync();
                     }

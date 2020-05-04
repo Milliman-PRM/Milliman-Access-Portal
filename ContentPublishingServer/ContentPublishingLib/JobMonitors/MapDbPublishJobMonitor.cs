@@ -416,7 +416,7 @@ namespace ContentPublishingLib.JobMonitors
             bool acquired = await _CleanupOnStartSemaphore.WaitAsync(TimeSpan.FromSeconds(60));
             if (!acquired)
             {
-                string msg = $"MapDbPublishJobMonitor({JobMonitorType}) failed to acquire semaphore in CleanupOnStart()";
+                string msg = $"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart(), failed to acquire semaphore in CleanupOnStart()";
                 Log.Error(msg);
                 throw new TimeoutException(msg);
             }
@@ -448,7 +448,7 @@ namespace ContentPublishingLib.JobMonitors
                             throw new NotSupportedException($"CleanupOnStart tried to run but unsupported JobMonitorType {JobMonitorType}");  // can only happen if the enum gets a new value; in that case we must handle it here
                     }
 
-                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType}, found {inProgressPublicationRequests.Count} publication requests in progress");
+                    Log.Information($"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart(), found {inProgressPublicationRequests.Count} publication requests in progress");
 
                     foreach (var request in inProgressPublicationRequests)
                     {
@@ -459,7 +459,7 @@ namespace ContentPublishingLib.JobMonitors
 
                         if (nextRetry > maxRetries)
                         {
-                            Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} has exceeded the max retry limit, setting Error status");
+                            Log.Information($"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart(), publication request {request.Id} has exceeded the max retry limit, setting Error status");
                             request.StatusMessage = $"This publication request has exceeded the retry limit of {maxRetries}";
                             request.RequestStatus = PublicationStatus.Error;
                         }
@@ -471,7 +471,7 @@ namespace ContentPublishingLib.JobMonitors
                                     request.StatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
                                     request.RequestStatus = PublicationStatus.Queued;
 
-                                    Log.Information($"CleanupOnStart(), job monitor type {JobMonitorType.ToString()}, publication request {request.Id} will be retried, setting Queued status");
+                                    Log.Information($"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart(), publication request {request.Id} will be retried, setting Queued status");
                                     break;
 
                                 case MapDbPublishJobMonitorType.ReducingPublications:
@@ -485,7 +485,7 @@ namespace ContentPublishingLib.JobMonitors
                                         var allRelatedTasks = await Db.ContentReductionTask.Where(t => t.ContentPublicationRequestId == request.Id).ToListAsync();
                                         allRelatedTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Canceled);
 
-                                        Log.Information($"CleanupOnStart() is re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
+                                        Log.Information($"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart() re-queueing publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}, because the master hierarchy has not been extracted");
                                     }
                                     else
                                     {
@@ -498,7 +498,7 @@ namespace ContentPublishingLib.JobMonitors
                                             foreach (ContentReductionTask task in relatedInProgressReductionTasks)
                                             {
                                                 task.ReductionStatus = ReductionStatusEnum.Queued;
-                                                Log.Information($"CleanupOnStart() is re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
+                                                Log.Information($"MapDbPublishJobMonitor({JobMonitorType}).CleanupOnStart() re-queueing reduction task {task.Id} for publication request {request.Id}, in job monitor type {JobMonitorType.ToString()}");
                                             }
                                         }
 
