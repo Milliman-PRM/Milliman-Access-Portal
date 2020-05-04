@@ -129,7 +129,7 @@ $queryAppBuildTarget = "$rootPath\MillimanAccessPortal\MapQueryAdminWeb\bin\$bui
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
-$runTests = $env:RunTests -ne "False"
+$runTests = $False #$env:RunTests -ne "False"
 
 
 # Required inputs to get-azkeyvaultsecret function
