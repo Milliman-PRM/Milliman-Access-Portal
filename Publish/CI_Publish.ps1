@@ -515,7 +515,10 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\SftpServer
 
-Connect-AzAccount -CertificateThumbprint $thumbprint -ApplicationId $azClientId -TenantId $azTenantId -ServicePrincipal
+$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
+$pscredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
+$acct = Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId
+Select-AzSubscription "$azSubscriptionId"
 
 $acr_url = get-azkeyvaultsecret `
     -VaultName $azVaultName `
