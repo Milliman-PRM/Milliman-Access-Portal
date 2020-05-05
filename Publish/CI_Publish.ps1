@@ -19,6 +19,7 @@
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
 
+import-module az.accounts, az.keyvault
 
 Param(
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
