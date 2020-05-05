@@ -19,8 +19,6 @@
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
 
-import-module az.accounts, az.keyvault
-
 Param(
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$deployEnvironment="AzureCI",
@@ -28,6 +26,7 @@ Param(
     [string]$testEnvironment="CI"
 )
 
+import-module az.accounts, az.keyvault
 
 function log_statement {
     Param([string]$statement)
