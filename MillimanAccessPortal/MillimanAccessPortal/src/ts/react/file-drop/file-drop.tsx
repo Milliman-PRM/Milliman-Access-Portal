@@ -11,7 +11,7 @@ import * as State from './redux/store';
 
 import { generateUniqueId } from '../../generate-unique-identifier';
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropEvent, FileDropWithStats, PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -41,6 +41,7 @@ interface FileDropProps {
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
   permissionGroups: PermissionGroupsReturnModel;
+  activityLog: FileDropEvent[];
   selected: State.FileDropSelectedState;
   cardAttributes: State.FileDropCardAttributesState;
   pending: State.FileDropPendingState;
@@ -829,7 +830,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters, data } = this.props;
+    const { filters, activityLog, data } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -842,7 +843,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <div className="activity-log-table-header">
-            <span className="activity-log-header">ACTIVITY LOG - <strong>LAST 30 DAYS</strong></span>
+            <span className="activity-log-header">Activity Log - <strong>Last 30 Days</strong></span>
             <a
               href={`./FileDrop/DownloadFullActivityLog?=${data.permissionGroups.fileDropId}`}
               className="download-button button blue-button"
@@ -860,7 +861,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             }
             <div>
               <ActivityLogTable
-                activityLogData={data.activityLogEvents}
+                activityLogData={activityLog}
               />
             </div>
           </ContentPanelForm>
@@ -888,6 +889,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
     permissionGroups: Selector.permissionGroupEntities(state),
+    activityLog: Selector.activityLogEntities(state),
     selected,
     cardAttributes,
     pending,

@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib.Models;
 using System;
 using System.Collections.Generic;
 
@@ -47,6 +48,18 @@ namespace MillimanAccessPortal.Models.FileDropModels
         /// For accounts not associated with MAP users
         /// </summary>
         public List<Guid> SftpAccountsRemoved { get; set; } = new List<Guid>();
+
+        public static explicit operator FileDropPermissionGroupLogModel(UpdatedPermissionGroup source)
+        {
+            return new FileDropPermissionGroupLogModel
+            {
+                Id = source.Id,
+                Name = source.Name,
+                ReadAccess = source.ReadAccess,
+                WriteAccess = source.WriteAccess,
+                DeleteAccess = source.DeleteAccess,
+            };
+        }
     }
 
     public class NonUserSftpAccount

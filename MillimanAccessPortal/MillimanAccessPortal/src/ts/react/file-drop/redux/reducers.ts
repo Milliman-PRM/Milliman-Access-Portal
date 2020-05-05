@@ -5,10 +5,10 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropWithStats, Guid, PermissionGroupsReturnModel } from '../../models';
+import { FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
-import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
+import { Dict, ModalState } from '../../shared-components/redux/store';
 
 // ~~~~~~~~~~~~~~~~~
 // Utility Functions
@@ -314,12 +314,16 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
       assignedMapUserIds.push(action.userId);
     }
+    const pgName = (state.permissionGroups[action.pgId].isPersonalGroup && action.userName)
+      ? action.userName
+      : state.permissionGroups[action.pgId].name;
     return {
       ...state,
       permissionGroups: {
         ...state.permissionGroups,
         [action.pgId]: {
           ...state.permissionGroups[action.pgId],
+          name: pgName,
           assignedMapUserIds,
         },
       },
