@@ -544,7 +544,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> AccountSettings(Guid fileDropId)
         {
-            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync())?.ClientId ?? Guid.Empty;
+            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
             ApplicationUser user = await _userManager.GetUserAsync(User);
 
             #region Validation
