@@ -5,7 +5,7 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
+import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, ModalState } from '../../shared-components/redux/store';
@@ -28,13 +28,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // ~~~~~~~~~~~~~~~
 // Default Objects
 // ~~~~~~~~~~~~~~~
-
-const _initialData: State.FileDropDataState = {
-  clients: {},
-  fileDrops: {},
-  permissionGroups: null,
-  activityLogEvents: [],
-};
 
 const _initialPendingData: State.FileDropPendingReturnState = {
   globalData: false,
@@ -83,6 +76,25 @@ const _initialFileDropWithStats: FileDropWithStats = {
 const _initialAfterFormModal: State.AfterFormModal = {
   entityType: null,
   entityToSelect: null,
+};
+
+const _initialFileDropSettings: FileDropSettings = {
+  fingerprint: '',
+  isPasswordExpired: true,
+  isSuspended: true,
+  notifications: [],
+  sftpHost: '',
+  sftpPort: '',
+  sftpUserName: '',
+  userHasPassword: false,
+};
+
+const _initialData: State.FileDropDataState = {
+  clients: {},
+  fileDrops: {},
+  permissionGroups: null,
+  activityLogEvents: [],
+  fileDropSettings: _initialFileDropSettings,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -567,7 +579,7 @@ const modals = combineReducers({
 
 /** Reducer for the data state object */
 const data = createReducer<State.FileDropDataState>(_initialData, {
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state, _action: Action.FetchGlobalDataSucceeded) => ({
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
     ...state,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: Action.FetchClientsSucceeded) => ({
@@ -576,6 +588,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.clients,
     },
     permissionGroups: null,
+    fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
     ...state,
@@ -589,6 +602,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.fileDrops,
     },
     permissionGroups: null,
+    fileDropSettings: _initialFileDropSettings,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
@@ -636,6 +650,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ..._.cloneDeep(_initialPermissionGroupsTab),
     },
     activityLogEvents: [],
+    fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
@@ -652,6 +667,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   FETCH_ACTIVITY_LOG_SUCCEEDED: (state, action: Action.FetchActivityLogSucceeded) => ({
     ...state,
     activityLogEvents: action.response,
+  }),
+  FETCH_SETTINGS_SUCCEEDED: (state, action: Action.FetchSettingsSucceeded) => ({
+    ...state,
+    fileDropSettings: action.response,
   }),
 });
 
