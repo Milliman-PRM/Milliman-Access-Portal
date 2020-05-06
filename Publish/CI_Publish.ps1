@@ -517,8 +517,8 @@ Set-Location $rootpath\SftpServer
 
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $pscredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-$acct = Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId
-Select-AzSubscription "$azSubscriptionId"
+Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId -Subscription $azSubscriptionId
+
 
 $acr_url = get-azkeyvaultsecret `
     -VaultName $azVaultName `
