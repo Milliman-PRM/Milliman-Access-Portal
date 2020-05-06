@@ -625,3 +625,14 @@ export type FileDropEvent =
   | FDEventFileDeleteAuthorized
   | FDEventFileOrDirectoryRenamed
   ;
+
+export interface FileDropSettings {
+  fingerprint: string;
+  isPasswordExpired: boolean;
+  isSuspended: boolean;
+  notifications: string[];
+  sftpHost: string;
+  sftpPort: string;
+  sftpUserName: string;
+  userHasPassword: boolean;
+}
