@@ -55,9 +55,8 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
                     {logEvent.userName}
                   </span>
                 </td>
-                <td>{logEvent.eventType}</td>
-                <td>{logEvent.description}
-                </td>
+                <td className="action-text">{logEvent.eventType}</td>
+                <td>{logEvent.description}</td>
               </tr>
             ))
           }
