@@ -138,6 +138,10 @@ export const updatePermissionGroups =
 export const fetchActivityLog =
   createRequestActionCreator<Action.FetchActivityLog>('FETCH_ACTIVITY_LOG');
 
+/** Get the Activity Log information */
+export const fetchSettings =
+  createRequestActionCreator<Action.FetchSettings>('FETCH_SETTINGS');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~

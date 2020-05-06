@@ -345,6 +345,27 @@ export interface FetchActivityLogFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   File Drop settings for the requesting user
+ */
+export interface FetchSettings {
+  type: 'FETCH_SETTINGS';
+  request: {
+    fileDropId: Guid;
+  };
+}
+/** Action called upon successful return of the FetchSettings API call */
+export interface FetchSettingsSucceeded {
+  type: 'FETCH_SETTINGS_SUCCEEDED';
+  response: FileDropEvent[];
+}
+/** Action called upon return of an error from the FetchSettings API call */
+export interface FetchSettingsFailed {
+  type: 'FETCH_SETTINGS_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -466,6 +487,7 @@ export type FileDropRequestActions =
   | FetchSessionCheck
   | UpdatePermissionGroups
   | FetchActivityLog
+  | FetchSettings
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -481,6 +503,7 @@ export type FileDropSuccessResponseActions =
   | FetchSessionCheckSucceeded
   | UpdatePermissionGroupsSucceeded
   | FetchActivityLogSucceeded
+  | FetchSettingsSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -496,6 +519,7 @@ export type FileDropErrorActions =
   | FetchSessionCheckFailed
   | UpdatePermissionGroupsFailed
   | FetchActivityLogFailed
+  | FetchSettingsFailed
   ;
 
 /** Actions that set filter text */
