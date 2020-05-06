@@ -321,9 +321,8 @@ namespace ContentPublishingLib.JobRunners
                 // remove pre-existing task folder of same name, normally won't exist but maybe in development environment
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
-                    Log.Information($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
+                    Log.Warning($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
-                    Log.Information($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} deleted");
                 }
 
                 // Make sure the requested master content file exists
@@ -358,16 +357,11 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         private async Task<ExtractedHierarchy> ExtractReductionHierarchy(DocumentNode DocumentNodeArg)
         {
-            /* Delete this log */
-            string WorkingFolderPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            if (!Directory.Exists(WorkingFolderPath)) Log.Information($"At start of ExtractReductionHierarchy, folder {WorkingFolderPath} not found");
-            
             ExtractedHierarchy ResultHierarchy = new ExtractedHierarchy();
 
             // Create ancillary script
             string AncillaryScriptFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, "ancillary_script.txt");
             File.WriteAllText(AncillaryScriptFilePath, "LET DataExtraction=true(); LET MAP_Reduction=true();");
-            /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"After writing AncillaryScriptFile, folder {WorkingFolderPath} not found");
 
             // Create Qlikview publisher (QDS) task
             DocumentTask HierarchyTask = CreateHierarchyExtractionQdsTask(DocumentNodeArg);
@@ -384,11 +378,7 @@ namespace ContentPublishingLib.JobRunners
                 // Clean up
                 try
                 {
-                    /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"Before deleting AncillaryScriptFilePath, folder {WorkingFolderPath} not found");
-
                     FileSystemUtil.DeleteFileWithRetry(AncillaryScriptFilePath);
-
-                    /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"After deleting AncillaryScriptFilePath, folder {WorkingFolderPath} not found");
                 }
                 catch { }
             }
@@ -398,7 +388,6 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                /* Delete this log */ if (!Directory.Exists(WorkingFolderPath)) Log.Information($"Before reading reduction.scheme.csv, folder {WorkingFolderPath} not found");
                 foreach (string Line in File.ReadLines(ReductionSchemeFilePath))
                 {
                     // First line is csv header
@@ -437,47 +426,6 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.HierarchyExtractionFailed;
                 string errMsg = $"Failed to extract content reduction hierarchy, error converting file {ReductionSchemeFilePath} to json output{Environment.NewLine}{e.Message}";
                 Log.Error(e, errMsg);
-
-                #region temporary diagnostic code
-                string share = Path.GetPathRoot(ReductionSchemeFilePath);
-                string folder = Path.GetDirectoryName(ReductionSchemeFilePath);
-                string parent = Path.GetDirectoryName(folder);
-
-                Log.Information($"Checking the share <{share}>:");
-                if (Directory.Exists(share))
-                {
-                    LogAcl(share);
-                }
-                else
-                {
-                    Log.Information($"Share <{share}> not found");
-                }
-
-                Log.Information($"Checking parent folder <{parent}>:");
-                if (Directory.Exists(parent))
-                {
-                    LogAcl(parent);
-                }
-                else
-                {
-                    Log.Information($"  Parent folder <{parent}> not found");
-                }
-
-                Log.Information($"Checking target folder <{folder}>:");
-                if (Directory.Exists(folder))
-                {
-                    LogAcl(folder);
-
-                    foreach (var entry in Directory.EnumerateFileSystemEntries(folder))
-                    {
-                        Log.Error($"  Target Folder contains {entry}");
-                    }
-                }
-                else
-                {
-                    Log.Information($"  Target folder <{folder}> not found");
-                }
-                #endregion
 
                 object DetailObj = new {
                     ReductionJobId = JobDetail.TaskId.ToString(),
@@ -640,7 +588,7 @@ namespace ContentPublishingLib.JobRunners
             if (DocNode == null)
             {
                 // Don't throw here, caller can decide what to do
-                Log.Error($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}");
+                Log.Error($"QvReductionRunner.GetSourceDocumentNode() did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}");
             }
 
             return DocNode;
