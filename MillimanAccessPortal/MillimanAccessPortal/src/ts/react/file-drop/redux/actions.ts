@@ -1,5 +1,5 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropsReturnModel,
   FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
@@ -358,7 +358,7 @@ export interface FetchSettings {
 /** Action called upon successful return of the FetchSettings API call */
 export interface FetchSettingsSucceeded {
   type: 'FETCH_SETTINGS_SUCCEEDED';
-  response: FileDropEvent[];
+  response: FileDropSettings;
 }
 /** Action called upon return of an error from the FetchSettings API call */
 export interface FetchSettingsFailed {
