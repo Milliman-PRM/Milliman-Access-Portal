@@ -312,7 +312,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
                   case 'settings':
-                    // TODO: Call the appropriate fetch action here
+                    this.props.fetchSettings({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'settings' });
                     break;
                 }
@@ -682,7 +682,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                   break;
                 case 'settings':
-                  // TODO: Add appropriate call here.
+                  this.props.fetchSettings({ fileDropId: selected.fileDrop });
                   break;
               }
               this.props.selectFileDropTab({ tab });
