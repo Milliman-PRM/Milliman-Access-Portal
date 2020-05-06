@@ -297,7 +297,6 @@ namespace ContentPublishingServiceTests
             PublishJobDetail JobDetail = await RequestRunnerTask;
 
             CancelTokenSource.Cancel();  // End the MapDbReductionJobMonitor
-            Thread.Sleep(2000);
 
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
@@ -325,6 +324,11 @@ namespace ContentPublishingServiceTests
             finally
             {
                 Directory.Delete(ProposedRequestExchangeFolder, true);
+                try
+                {
+                    await TaskMonitorTask;
+                }
+                catch {}
             }
             #endregion
         }

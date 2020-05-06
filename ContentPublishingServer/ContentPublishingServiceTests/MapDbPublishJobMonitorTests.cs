@@ -80,7 +80,7 @@ namespace ContentPublishingServiceTests
         }
 
         [Fact]
-        public void CorrectResultsAfterSuccessfulRunDoesReduceFalse()
+        public async Task CorrectResultsAfterSuccessfulRunDoesReduceFalse()
         {
             #region arrange
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
@@ -161,6 +161,13 @@ namespace ContentPublishingServiceTests
             }
             finally
             {
+                CancelTokenSource.Cancel();
+                try
+                {
+                    await MonitorTask;
+                }
+                catch { }
+
                 Directory.Delete(ProposedRequestExchangeFolder, true);
             }
             #endregion
@@ -293,6 +300,13 @@ namespace ContentPublishingServiceTests
             }
             finally
             {
+                CancelTokenSource.Cancel();
+                try
+                {
+                    Task.WaitAll(PublishMonitorTask, ReductionMonitorTask);
+                }
+                catch { }
+
                 Directory.Delete(ProposedRequestExchangeFolder, true);
             }
             #endregion
@@ -342,7 +356,6 @@ namespace ContentPublishingServiceTests
             {
                 CancelTokenSource.Cancel();
                 await MonitorTask;
-                Thread.Sleep(2000);
             }
             catch { }
             #endregion
@@ -398,7 +411,6 @@ namespace ContentPublishingServiceTests
             {
                 CancelTokenSource.Cancel();
                 await MonitorTask;
-                Thread.Sleep(2000);
             }
             catch { }
 

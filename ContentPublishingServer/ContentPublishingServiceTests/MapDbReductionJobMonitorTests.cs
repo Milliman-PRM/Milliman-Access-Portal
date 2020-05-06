@@ -62,7 +62,6 @@ namespace ContentPublishingServiceTests
             catch (OperationCanceledException)  // This is thrown when a task is cancelled
             {}
             DateTime CancelEndTime = DateTime.UtcNow;
-            Thread.Sleep(2000);
             #endregion
 
             #region Assert again
