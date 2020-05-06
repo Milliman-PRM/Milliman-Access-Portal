@@ -96,11 +96,11 @@ namespace ContentPublishingServiceTests
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to content folder
-            File.Copy(@"\\indy-qlikview\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-qlikview\testing\Sample Data\IHopeSo.pdf",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "IHopeSo.pdf"),
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
@@ -193,14 +193,14 @@ namespace ContentPublishingServiceTests
             Directory.CreateDirectory(ContentFolder);
             
             // Copy master content to exchange and content folders
-            File.Copy(@"\\indy-qlikview\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ProposedRequestExchangeFolder, MasterContentFileName),
                       true);
-            File.Copy(@"\\indy-qlikview\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-qlikview\testing\Sample Data\IHopeSo.pdf",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "IHopeSo.pdf"),
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 

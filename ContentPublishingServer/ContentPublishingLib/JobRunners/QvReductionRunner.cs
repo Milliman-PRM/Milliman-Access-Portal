@@ -458,7 +458,7 @@ namespace ContentPublishingLib.JobRunners
                 }
             }
 
-            Log.Information($"QvReductionRunner.ExtractReductionHierarchy, reduction Task {JobDetail.TaskId} completed ExtractReductionHierarchy");
+            Log.Information($"QvReductionRunner.ExtractReductionHierarchy(), reduction Task {JobDetail.TaskId} completed ExtractReductionHierarchy");
 
             return ResultHierarchy;
         }
@@ -518,7 +518,7 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException(Msg);
             }
 
-            Log.Information($"Reduction Task {JobDetail.TaskId} completed CreateReducedContent");
+            Log.Information($"QvReductionRunner.CreateReducedContent() reduction Task {JobDetail.TaskId} completed CreateReducedContent");
         }
 
         /// <summary>
@@ -536,7 +536,7 @@ namespace ContentPublishingLib.JobRunners
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            Log.Information($"Reduction Task {JobDetail.TaskId} completed DistributeReducedContent");
+            Log.Information($"QvReductionRunner.DistributeReducedContent() reduction Task {JobDetail.TaskId} completed DistributeReducedContent");
         }
 
         /// <summary>
