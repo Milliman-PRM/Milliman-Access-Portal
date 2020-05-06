@@ -25,7 +25,7 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
         <thead>
           <tr>
             <th className="col-date">Date</th>
-            <th className="col-author">Author</th>
+            <th className="col-author">Performed by</th>
             <th className="col-action">Action</th>
             <th className="col-description">Description</th>
           </tr>
