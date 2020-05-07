@@ -87,8 +87,11 @@ namespace AuditLogLib.Models
 
                     case 8011:  // File Drop Permission Group Created
                         descriptionString += permissionGroupModel.IsPersonalGroup
-                                             ? $"Personal permission group created for \"{permissionGroupModel.Name}\""
-                                             : $"Permission group name is \"{permissionGroupModel.Name}\"";
+                                             ? $"Personal permission group created for \"{permissionGroupModel.Name}\". "
+                                             : $"Permission group name is \"{permissionGroupModel.Name}\". ";
+                        descriptionString += (permissionGroupModel.ReadAccess ? "Read access granted. " : "") +
+                                             (permissionGroupModel.WriteAccess ? "Write access granted. " : "") +
+                                             (permissionGroupModel.DeleteAccess ? "Delete access granted. " : "");
                         return descriptionString;
 
                     case 8012:  // File Drop Permission Group Deleted
