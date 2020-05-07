@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using Newtonsoft.Json.Linq;
+using Serilog;
 using System;
 using System.Dynamic;
 
@@ -40,6 +41,7 @@ namespace AuditLogLib.Models
 
         private static string GenerateDescription(AuditEvent evt)
         {
+            const string errorDescription = "An error occurred while generating this event description.";
             string descriptionString = string.Empty;
 
             object eventData = evt.EventDataObject;
@@ -48,130 +50,135 @@ namespace AuditLogLib.Models
             FileDropLogModel fileDropModel = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "FileDrop");
             FileDropPermissionGroupLogModel permissionGroupModel = GetNamedPropertyOfSpecifiedType<FileDropPermissionGroupLogModel>(eventData, "PermissionGroup");
             FileDropDirectoryLogModel FileDropDirectoryModel = GetNamedPropertyOfSpecifiedType<FileDropDirectoryLogModel>(eventData, "FileDropDirectory");
-            dynamic clientModel = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "Client");
             dynamic mapUser = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "MapUser");
 
-            switch (evt.EventCode)
+            try
             {
-                case 8001:  // File Drop Created
-                    descriptionString = $"File drop name is \"{fileDropModel?.Name}\"";
-                    if (!string.IsNullOrEmpty(fileDropModel?.Description))
-                    {
-                        descriptionString += $" and description is \"{fileDropModel.Description}\"";
-                    }
-                    return descriptionString;
+                switch (evt.EventCode)
+                {
+                    case 8001:  // File Drop Created
+                        descriptionString = $"File drop name is \"{fileDropModel?.Name}\"";
+                        if (!string.IsNullOrEmpty(fileDropModel?.Description))
+                        {
+                            descriptionString += $" and description is \"{fileDropModel.Description}\"";
+                        }
+                        return descriptionString;
+    
+                    case 8002:  // File Drop Deleted
+                        descriptionString = $"File drop name is \"{fileDropModel?.Name}\"";
+                        if (!string.IsNullOrEmpty(fileDropModel?.Description))
+                        {
+                            descriptionString += $" and description is \"{fileDropModel.Description}\"";
+                        }
+                        return descriptionString;
 
-                case 8002:  // File Drop Deleted
-                    descriptionString = $"File drop name is \"{fileDropModel?.Name}\"";
-                    if (!string.IsNullOrEmpty(fileDropModel?.Description))
-                    {
-                        descriptionString += $" and description is \"{fileDropModel.Description}\"";
-                    }
-                    return descriptionString;
+                    case 8003:  // File Drop Updated
+                        FileDropLogModel oldfileDrop = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "OldFileDrop");
+                        FileDropLogModel newfileDrop = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "NewFileDrop");
+                        if (oldfileDrop.Name != newfileDrop.Name)
+                        {
+                            descriptionString += $"File drop name changed from \"{oldfileDrop.Name}\" to \"{newfileDrop.Name}\". ";
+                        }
+                        if (oldfileDrop.Description != newfileDrop.Description)
+                        {
+                            descriptionString += $"File drop description changed from \"{oldfileDrop.Description}\" to \"{newfileDrop.Description}\".";
+                        }
+                        return descriptionString;
 
-                case 8003:  // File Drop Updated
-                    FileDropLogModel oldfileDrop = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "OldFileDrop");
-                    FileDropLogModel newfileDrop = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "NewFileDrop");
-                    if (oldfileDrop.Name != newfileDrop.Name)
-                    {
-                        descriptionString += $"File drop name changed from \"{oldfileDrop.Name}\" to \"{newfileDrop.Name}\". ";
-                    }
-                    if (oldfileDrop.Description != newfileDrop.Description)
-                    {
-                        descriptionString += $"File drop description changed from \"{oldfileDrop.Description}\" to \"{newfileDrop.Description}\".";
-                    }
-                    return descriptionString;
+                    case 8011:  // File Drop Permission Group Created
+                        descriptionString += permissionGroupModel.IsPersonalGroup
+                                             ? $"Personal permission group created for \"{permissionGroupModel.Name}\""
+                                             : $"Permission group name is \"{permissionGroupModel.Name}\"";
+                        return descriptionString;
 
-                case 8011:  // File Drop Permission Group Created
-                    descriptionString += permissionGroupModel.IsPersonalGroup
-                                         ? $"Personal permission group created for \"{permissionGroupModel.Name}\""
-                                         : $"Permission group name is \"{permissionGroupModel.Name}\"";
-                    return descriptionString;
+                    case 8012:  // File Drop Permission Group Deleted
+                        descriptionString = permissionGroupModel.IsPersonalGroup
+                                            ? $"Personal permission group \"{permissionGroupModel.Name}\" deleted"
+                                            : $"Permission group \"{permissionGroupModel.Name}\" deleted";
+                        return descriptionString;
 
-                case 8012:  // File Drop Permission Group Deleted
-                    descriptionString = permissionGroupModel.IsPersonalGroup
-                                        ? $"Personal permission group \"{permissionGroupModel.Name}\" deleted"
-                                        : $"Permission group \"{permissionGroupModel.Name}\" deleted";
-                    return descriptionString;
+                    case 8013:  // Permission Group Updated
+                        dynamic oldSettings = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "PreviousProperties");
+                        dynamic newSettings = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "UpdatedProperties");
+                        if (newSettings.Name != oldSettings.Name)
+                        {
+                            descriptionString += $"Name changed from \"{oldSettings.Name}\" to \"{newSettings.Name}\". ";
+                        }
 
-                case 8013:  // Permission Group Updated
-                    dynamic oldSettings = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "PreviousProperties");
-                    dynamic newSettings = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "UpdatedProperties");
-                    if (newSettings.Name != oldSettings.Name)
-                    {
-                        descriptionString += $"Name changed from \"{oldSettings.Name}\" to \"{newSettings.Name}\". ";
-                    }
+                        if (newSettings.ReadAccess && !oldSettings.ReadAccess)
+                        {
+                            descriptionString += $"Read access granted. ";
+                        }
+                        if (newSettings.WriteAccess && !oldSettings.WriteAccess)
+                        {
+                            descriptionString += $"Write access granted. ";
+                        }
+                        if (newSettings.DeleteAccess && !oldSettings.DeleteAccess)
+                        {
+                            descriptionString += $"Delete access granted. ";
+                        }
 
-                    if (newSettings.ReadAccess && !oldSettings.ReadAccess)
-                    {
-                        descriptionString += $"Read access granted. ";
-                    }
-                    if (newSettings.WriteAccess && !oldSettings.WriteAccess)
-                    {
-                        descriptionString += $"Write access granted. ";
-                    }
-                    if (newSettings.DeleteAccess && !oldSettings.DeleteAccess)
-                    {
-                        descriptionString += $"Delete access granted. ";
-                    }
+                        if (!newSettings.ReadAccess && oldSettings.ReadAccess)
+                        {
+                            descriptionString += $"Read access revoked. ";
+                        }
+                        if (!newSettings.WriteAccess && oldSettings.WriteAccess)
+                        {
+                            descriptionString += $"Write access revoked. ";
+                        }
+                        if (!newSettings.DeleteAccess && oldSettings.DeleteAccess)
+                        {
+                            descriptionString += $"Delete access revoked. ";
+                        }
+                        return descriptionString;
 
-                    if (!newSettings.ReadAccess && oldSettings.ReadAccess)
-                    {
-                        descriptionString += $"Read access revoked. ";
-                    }
-                    if (!newSettings.WriteAccess && oldSettings.WriteAccess)
-                    {
-                        descriptionString += $"Write access revoked. ";
-                    }
-                    if (!newSettings.DeleteAccess && oldSettings.DeleteAccess)
-                    {
-                        descriptionString += $"Delete access revoked. ";
-                    }
-                    return descriptionString;
+                    case 8100:  // SFTP Account Created
+                        descriptionString += $"SFTP account created for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
 
-                case 8100:  // SFTP Account Created
-                    descriptionString += $"SFTP account created for MAP user \"{mapUser?.UserName}\". ";
-                    return descriptionString;
+                    case 8101:  // SFTP Account Deleted
+                        descriptionString += $"SFTP account deleted for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
 
-                case 8101:  // SFTP Account Deleted
-                    descriptionString += $"SFTP account deleted for MAP user \"{mapUser?.UserName}\". ";
-                    return descriptionString;
+                    case 8102:  // Account Added To Permission Group
+                        descriptionString += $"\"{mapUser?.UserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
+                        return descriptionString;
 
-                case 8102:  // Account Added To Permission Group
-                    descriptionString += $"\"{mapUser?.UserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
-                    return descriptionString;
+                    case 8103:  // Account Removed From Permission Group
+                        descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
+                        return descriptionString;
 
-                case 8103:  // Account Removed From Permission Group
-                    descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
-                    return descriptionString;
+                    case 8110:  // SFTP Directory Created
+                        descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        return descriptionString;
 
-                case 8110:  // SFTP Directory Created
-                    descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
-                    return descriptionString;
+                    case 8111:  // SFTP Directory Removed
+                        descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        return descriptionString;
 
-                case 8111:  // SFTP Directory Removed
-                    descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
-                    return descriptionString;
+                    case 8112:  // SFTP File Write Authorized
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" written to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        return descriptionString;
 
-                case 8112:  // SFTP File Write Authorized
-                    descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" written to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
-                    return descriptionString;
+                    case 8113:  // SFTP File Read Authorized
+                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        return descriptionString;
 
-                case 8113:  // SFTP File Read Authorized
-                    descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
-                    return descriptionString;
+                    case 8114:  // SFTP File Delete Authorized
+                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" deleted from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        return descriptionString;
 
-                case 8114:  // SFTP File Delete Authorized
-                    descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" deleted from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
-                    return descriptionString;
-
-                case 8115:  // SFTP File Or Directory Renamed
-                    descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")}\" renamed to \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")}\"";
-                    return descriptionString;
-
-                default:
-                    return descriptionString;
+                    case 8115:  // SFTP File Or Directory Renamed
+                        descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")}\" renamed to \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")}\"";
+                        return descriptionString;
+                }
             }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error while generating FileDrop activity log event description string");
+            }
+
+            return errorDescription;
         }
 
         /// <summary>
