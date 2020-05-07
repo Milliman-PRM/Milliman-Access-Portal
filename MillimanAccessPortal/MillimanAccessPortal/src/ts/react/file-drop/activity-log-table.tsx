@@ -9,7 +9,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 
 import {
-  FDEventCreated, FDEventUpdated, FileDropEvent, FileDropLogEventEnum,
+  FileDropEvent,
 } from '../models';
 
 interface ActivityLogTableProps {
@@ -24,114 +24,52 @@ export class ActivityLogTable extends React.Component<ActivityLogTableProps> {
       <table className="activity-log-table">
         <thead>
           <tr>
-            <th className="col-group-action-icon" />
-            <th className="col-action">Action</th>
-            <th className="col-name">Name</th>
             <th className="col-date">Date</th>
+            <th className="col-author">Performed by</th>
+            <th className="col-action">Action</th>
+            <th className="col-description">Description</th>
           </tr>
         </thead>
         <tbody>
-        {
-          this.props.activityLogData.map((logE) => {
-            switch (logE.eventCode) {
-              case FileDropLogEventEnum.Created:
-                return this.renderFileDropCreatedRow(logE);
-                break;
-              case FileDropLogEventEnum.Updated:
-                return this.renderFileDropUpdatedRow(logE);
-                break;
-            }
-          })
-        }
+          {
+            this.props.activityLogData.map((logEvent) => (
+              <tr className="event-row" key={`${logEvent.timeStampUtc}`}>
+                <td className="date-width">
+                  <span title={moment(logEvent.timeStampUtc).local().format('MM/DD/YYYY h:mm:ss A')}>
+                    {
+                      moment(logEvent.timeStampUtc).local().format('M/D/YY \nh:mmA')
+                    }
+                  </span>
+                </td>
+                <td className="name-max-width">
+                  <span
+                    title={logEvent.fullName}
+                  >
+                    {logEvent.fullName}
+                  </span>
+                  <br />
+                  <span
+                    className="username"
+                    title={logEvent.userName}
+                  >
+                    {logEvent.userName}
+                  </span>
+                </td>
+                <td className="action-text">{logEvent.eventType}</td>
+                <td>{logEvent.description}</td>
+              </tr>
+            ))
+          }
         </tbody>
       </table>
     );
   }
 
-  // Render rows by Log Event type
-  public renderFileDropCreatedRow(logEvent: FDEventCreated) {
-    const { FileDrop } = logEvent.eventDataObject;
-    const details = [];
-    details.push((
-      <tr className="event-details">
-        <td colSpan={4}>
-          File Drop name: <strong>{FileDrop.Name}</strong>
-        </td>
-      </tr>
-    ));
-    if (FileDrop.Description) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop description: <strong>{FileDrop.Description}</strong>
-          </td>
-        </tr>
-      ));
-    }
-    details.push((
-      <tr className="spacer" />
-    ));
+  public renderEventDetail(eventDetail: JSX.Element) {
     return (
-      <>
-        <tr className="event-row">
-          <td/>
-          <td><strong>File Drop created</strong></td>
-          <td>{logEvent.user}</td>
-          <td>{this.localizeUtcTimeStamp(logEvent.timeStampUtc)}</td>
-        </tr>
-        {details}
-      </>
-    );
-  }
-
-  public renderFileDropUpdatedRow(logEvent: FDEventUpdated) {
-    const { OldFileDrop, NewFileDrop } = logEvent.eventDataObject;
-    const details = [];
-    if (OldFileDrop.Name !== NewFileDrop.Name) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop name changed to <strong>{NewFileDrop.Name}</strong>
-          </td>
-        </tr>
-      ));
-    }
-    if (OldFileDrop.Description !== NewFileDrop.Description) {
-      details.push((
-        <tr className="event-details">
-          <td colSpan={4}>
-            File Drop description changed to <strong>{NewFileDrop.Description}</strong>
-          </td>
-        </tr>
-      ));
-    }
-    details.push((
-      <tr className="spacer" />
-    ));
-    return (
-      <>
-        <tr className="event-row">
-          <td />
-          <td><strong>File Drop updated</strong></td>
-          <td>{logEvent.user}</td>
-          <td>
-              {
-                this.localizeUtcTimeStamp(logEvent.timeStampUtc)
-              }
-          </td>
-        </tr>
-        {details}
-      </>
-    );
-  }
-
-  public localizeUtcTimeStamp(timeStamp: string) {
-    return (
-      <span title={moment(timeStamp).local().format('MM/DD/YYYY h:mm:ss A')}>
-        {
-          moment(timeStamp).local().format('M/D/YY h:mm A')
-        }
-      </span>
+      <div className="event-details">
+        {eventDetail}
+      </div>
     );
   }
 }

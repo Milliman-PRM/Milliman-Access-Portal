@@ -249,11 +249,12 @@ namespace MillimanAccessPortal.DataQueries
                                                                                      .Where(a => a.FileDropUserPermissionGroup.FileDropId == model.FileDropId)
                                                                                      .Select(a => a.Id)
                                                                                      .ToListAsync();
-
+                
+                Guid[] userIdsRemovedInUpdatedGroups = model.UpdatedPermissionGroups.SelectMany(g => g.Value.UsersRemoved).ToArray();
                 List<ApplicationUser> usersRemovedInUpdates = await _dbContext.ApplicationUser
                                                                               .Include(u => u.SftpAccounts)
                                                                                   .ThenInclude(a => a.ApplicationUser)
-                                                                              .Where(u => model.UpdatedPermissionGroups.SelectMany(g => g.Value.UsersRemoved).Contains(u.Id))
+                                                                              .Where(u => userIdsRemovedInUpdatedGroups.Contains(u.Id))
                                                                               .ToListAsync();
 
                 List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
@@ -309,7 +310,16 @@ namespace MillimanAccessPortal.DataQueries
                         updatedGroupRecord.WriteAccess != modelForUpdatedGroup.WriteAccess ||
                         updatedGroupRecord.DeleteAccess != modelForUpdatedGroup.DeleteAccess)
                     {
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(updatedGroupRecord, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
+                        var previousGroup = new FileDropUserPermissionGroup
+                        {
+                            Id = updatedGroupRecord.Id,
+                            IsPersonalGroup = updatedGroupRecord.IsPersonalGroup,
+                            Name = updatedGroupRecord.Name,
+                            ReadAccess = updatedGroupRecord.ReadAccess,
+                            WriteAccess = updatedGroupRecord.WriteAccess,
+                            DeleteAccess = updatedGroupRecord.DeleteAccess,
+                        };
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(previousGroup, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
                         updatedGroupRecord.Name = modelForUpdatedGroup.Name;
                         updatedGroupRecord.ReadAccess = modelForUpdatedGroup.ReadAccess;
                         updatedGroupRecord.WriteAccess = modelForUpdatedGroup.WriteAccess;

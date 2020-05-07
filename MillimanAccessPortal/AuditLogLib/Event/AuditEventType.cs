@@ -958,8 +958,8 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
                 Client = new
                 {
-                    clientId,
-                    clientName,
+                    Id = clientId,
+                    Name = clientName,
                 },
             });
 
@@ -970,7 +970,11 @@ namespace AuditLogLib.Event
             8002, "File Drop Deleted", (fileDrop, client, sftpAccounts) => new
             {
                 FileDrop = (FileDropLogModel)fileDrop,
-                Client = new { client.Id, client.Name, },
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
                 AffectedSftpAccounts = sftpAccounts.Select(a => new
                     { 
                         SftpAccount = new { a.Id, a.UserName },
@@ -986,8 +990,8 @@ namespace AuditLogLib.Event
                 NewFileDrop = (FileDropLogModel)newFileDrop,
                 Client = new
                 {
-                    clientId,
-                    clientName,
+                    Id = clientId,
+                    Name = clientName,
                 },
             });
 
@@ -999,8 +1003,8 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
                 Client = new
                 {
-                    clientId,
-                    clientName,
+                    Id = clientId,
+                    Name = clientName,
                 },
             });
 
@@ -1017,29 +1021,24 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop> PermissionGroupUpdated = new AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop>(
-            8013, "Permission Group Updated", (permissionGroup, updatedGroup, fileDrop) => new
+            8013, "File Drop Permission Group Updated", (permissionGroup, updatedGroup, fileDrop) => new
             {
-                FileDrop = new
-                {
-                    fileDrop.Id,
-                    fileDrop.Name,
-                    fileDrop.RootPath,
-                },
+                FileDrop = (FileDropLogModel)fileDrop,
                 PermissionGroup = new
                 {
                     permissionGroup.Id,
-                    permissionGroup.Name,
+                    permissionGroup.IsPersonalGroup,
                 },
                 PreviousProperties = new 
                 {
-                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.Name,
                     permissionGroup.ReadAccess,
                     permissionGroup.WriteAccess,
                     permissionGroup.DeleteAccess,
                 },
                 UpdatedProperties = new 
                 {
-                    updatedGroup.IsPersonalGroup,
+                    updatedGroup.Name,
                     updatedGroup.ReadAccess,
                     updatedGroup.WriteAccess,
                     updatedGroup.DeleteAccess,
@@ -1053,12 +1052,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCreated = new AuditEventType<SftpAccount, FileDrop>(
             8100, "SFTP Account Created", (account, fileDrop) => new
             {
-                FileDrop = new 
-                {
-                    fileDrop.Id,
-                    fileDrop.Name,
-                    fileDrop.RootPath,
-                },
+                FileDrop = (FileDropLogModel)fileDrop,
                 SftpAccount = new
                 {
                     account.Id,
@@ -1071,12 +1065,7 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountDeleted = new AuditEventType<SftpAccount, FileDrop>(
             8101, "SFTP Account Deleted", (account, fileDrop) => new
             {
-                FileDrop = new
-                {
-                    fileDrop.Id,
-                    fileDrop.Name,
-                    fileDrop.RootPath,
-                },
+                FileDrop = (FileDropLogModel)fileDrop,
                 SftpAccount = new
                 {
                     account.Id,
@@ -1107,12 +1096,7 @@ namespace AuditLogLib.Event
                     permissionGroup.WriteAccess,
                     permissionGroup.DeleteAccess,
                 },
-                FileDrop = new
-                {
-                    fileDrop.Id,
-                    fileDrop.Name,
-                    fileDrop.RootPath,
-                },
+                FileDrop = (FileDropLogModel)fileDrop,
             });
 
         public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> AccountRemovedFromPermissionGroup = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
@@ -1135,12 +1119,7 @@ namespace AuditLogLib.Event
                     permissionGroup.WriteAccess,
                     permissionGroup.DeleteAccess,
                 },
-                FileDrop = new
-                {
-                    fileDrop.Id,
-                    fileDrop.Name,
-                    fileDrop.RootPath,
-                },
+                FileDrop = (FileDropLogModel)fileDrop,
             });
 
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
@@ -1216,10 +1195,10 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(
             8115, "SFTP File Or Directory Renamed", (model) => new
             {
-                From = model.From,
-                To = model.To,
+                model.From,
+                model.To,
                 Type = model.IsDirectory ? "Directory" : "File",
-                FileDrop = model.FileDrop,
+                model.FileDrop,
                 SftpAccount = new { model.Account.Id, model.Account.UserName, },
                 MapUser = model.User != null
                     ? new { model.User.Id, model.User.UserName, }

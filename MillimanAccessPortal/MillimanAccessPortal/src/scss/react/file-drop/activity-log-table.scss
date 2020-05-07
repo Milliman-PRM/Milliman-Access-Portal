@@ -8,34 +8,41 @@
 
         td {
             padding-top: 1em;
-            padding: 1.5em 0 .5em;
+            padding: .75em;
+            font-size: .875rem;
         }
+
 
         &:first-child {
             margin-top: 0;
             border-top: none;
         }
-    }
 
-    .event-details {
-        color: $dark-grey;
-        font-size: .9em;
-        font-style: italic;
-
-        & + .event-details {
-            padding-bottom: 1.5em;
+        .username {
+            font-size: .95em;
+            opacity: .85;
         }
 
-        td {
-            padding-left: 3em;
+        .date-width {
+            width: 84px;
+        }
 
-            strong {
-                font-style: initial;
+        .name-max-width {
+            max-width: 150px;
+            width: auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @mixin sentence-case() {
+            text-transform: lowercase;
+            &:first-letter {
+                text-transform: uppercase;
             }
         }
-    }
 
-    .spacer {
-        height: 1em;
+        .action-text {
+            @include sentence-case();
+        }
     }
 }

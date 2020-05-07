@@ -117,6 +117,7 @@ export interface AddUserToPermissionGroup {
   type: 'ADD_USER_TO_PERMISSION_GROUP';
   pgId: Guid;
   userId: Guid;
+  userName?: string;
 }
 
 /** Remove user from Permission Group */
