@@ -534,7 +534,7 @@ $acr_password = get-azkeyvaultsecret `
 
 docker build -t filedropsftp .
 
-docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
+docker login $acr_url -u $acr_username -p $acr_password
 
 docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
