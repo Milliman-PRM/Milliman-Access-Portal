@@ -235,7 +235,7 @@ namespace ContentPublishingLib.JobRunners
                         {
                             JobDetail.Result.ReductionTaskFailList.Add(TaskOutcome);
                         }
-                        Log.Debug($"From MapDbPublishRunner, recording OutcomeMetadata of related reduction task {RelatedTask.Id}");
+                        Log.Debug($"MapDbPublishRunner.Execute(), recording OutcomeMetadata of related reduction task {RelatedTask.Id}");
                     }
                 }
 
@@ -299,7 +299,7 @@ namespace ContentPublishingLib.JobRunners
                                 ? taskToCancel.SelectionGroup.GroupName 
                                 : default,
                         };
-                        Log.Information($"Canceling reduction task {id} programatically in MapDbPublishRunner");
+                        Log.Information($"MapDbPublishRunner.CancelReductionTasks(), canceling reduction task {id} programatically in MapDbPublishRunner");
                     };
                     await Db.SaveChangesAsync();
                     return true;

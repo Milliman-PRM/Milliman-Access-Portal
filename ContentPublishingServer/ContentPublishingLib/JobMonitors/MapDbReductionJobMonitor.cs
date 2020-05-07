@@ -148,11 +148,11 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Runner.Execute(cancelSource.Token);
-                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for ContentReductionTask {DbTask.Id}");
+                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain() executing TaskAction {DbTask.TaskAction.ToString()} for ContentReductionTask {DbTask.Id}");
                                     break;
 
                                 default:
-                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain, task record discovered for unsupported content type {type.ToString()}");
+                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain(), task record discovered for unsupported content type {type.ToString()}");
                                     break;
                             }
 
@@ -174,7 +174,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
             }
 
-            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActiveReductionRunnerItems.Count != 0)
             {
@@ -183,7 +183,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -193,19 +193,19 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActiveReductionRunnerItems.Count == 0)
                     {
-                        Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain all reduction runners terminated successfully");
+                        Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() all reduction runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain returning");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() returning");
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    Log.Information($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                    Log.Information($"MapDbReductionJobMonitor.GetReadyTasksAsync(), failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                     throw;
                 }
             }
@@ -276,8 +276,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.TaskId == Guid.Empty)
             {
-                string Msg = $"MapDbReductionJobMonitor.UpdateTask unusable argument";
-                Log.Information(Msg);
+                Log.Error($"MapDbReductionJobMonitor.UpdateTask() unusable JobDetail argument");
                 return false;
             }
 
@@ -388,7 +387,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to update task in database");
+                Log.Error(e, "MapDbReductionJobMonitor.UpdateTaskAsync(), Failed to update task in database");
                 return false;
             }
         }

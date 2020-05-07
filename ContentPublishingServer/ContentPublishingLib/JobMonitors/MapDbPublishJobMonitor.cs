@@ -257,7 +257,7 @@ namespace ContentPublishingLib.JobMonitors
                 }
                 catch (Exception e)
                 {
-                    Log.Information(GlobalFunctions.LoggableExceptionString(e, $"Failed to query MAP database for available tasks:"));
+                    Log.Information(e, $"Failed to query MAP database for available tasks:");
                     return new List<ContentPublicationRequest>();
                 }
             }
@@ -275,12 +275,12 @@ namespace ContentPublishingLib.JobMonitors
                 var requestInEfCache = Db.ContentPublicationRequest.Find(DbRequest.Id);
                 if (requestInEfCache == null)
                 {
-                    Log.Error($"LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
+                    Log.Error($"PublishJobMonitor({JobMonitorType}).LaunchPublishRunnerForRequest() could not find a ContentPublicationRequest with Id {DbRequest.Id}");
                     return;
                 }
                 if (requestInEfCache.RequestStatus != PublicationStatus.Processing)
                 {
-                    string msg = $"LaunchPublishRunnerForRequest() called for publication request {DbRequest.Id} with unexpected status {ContentPublicationRequest.PublicationStatusString[requestInEfCache.RequestStatus]} while attempting LaunchPublishRunnerForRequest()";
+                    string msg = $"PublishJobMonitor({JobMonitorType}).LaunchPublishRunnerForRequest() called for publication request {DbRequest.Id} with unexpected status {ContentPublicationRequest.PublicationStatusString[requestInEfCache.RequestStatus]} while attempting LaunchPublishRunnerForRequest()";
                     Log.Information(msg);
                     requestInEfCache.StatusMessage = msg;
                     requestInEfCache.RequestStatus = PublicationStatus.Error;
@@ -321,7 +321,7 @@ namespace ContentPublishingLib.JobMonitors
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.JobId == Guid.Empty)
             {
-                Log.Information("MapDbPublishJobMonitor.UpdateRequest unusable argument");
+                Log.Information("PublishJobMonitor({JobMonitorType}).UpdateRequest unusable JobDetail argument");
                 return false;
             }
 
@@ -374,7 +374,7 @@ namespace ContentPublishingLib.JobMonitors
                             };
                             break;
                         default:
-                            Log.Information("Unsupported job result status in MapDbPublishJobMonitor.UpdateTask().");
+                            Log.Information($"PublishJobMonitor({JobMonitorType}).UpdateRequestAsync, unsupported job result status {JobDetail.Status}");
                             return false;
                     }
 
@@ -400,7 +400,7 @@ namespace ContentPublishingLib.JobMonitors
             }
             catch (Exception e)
             {
-                Log.Information(GlobalFunctions.LoggableExceptionString(e, "Failed to update ContentPublishRequest in database:", true, true));
+                Log.Error(e, "Failed to update ContentPublishRequest in database:");
                 return false;
             }
         }

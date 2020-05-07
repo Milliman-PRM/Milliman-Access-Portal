@@ -550,7 +550,6 @@ namespace ContentPublishingLib.JobRunners
                 try
                 {
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
-                    Log.Information($"QvReductionRunner.Cleanup(), reduction task working folder {WorkingFolderAbsolute} deleted");
                 }
                 catch (System.Exception e)  // Do not let this throw upward
                 {
@@ -559,7 +558,7 @@ namespace ContentPublishingLib.JobRunners
                 }
             }
 
-            Log.Information($"Reduction Task {JobDetail.TaskId} completed Cleanup");
+            Log.Information($"QvReductionRunner.Cleanup(), reduction Task {JobDetail.TaskId} completed Cleanup");
 
             return true;
         }
