@@ -27,8 +27,9 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
-import { ContentPanelForm } from '../shared-components/form/form-elements';
+import { ContentPanelForm, FormSection } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
 import { ActivityLogTable } from './activity-log-table';
@@ -872,10 +873,57 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderSettingsTab() {
+    const { fileDrop } = this.props.selected;
+    const { fileDrops } = this.props;
+    const { fileDropSettings } = this.props.data;
     return (
       <>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            {
+              this.props.pending.async.settings &&
+              <ColumnSpinner />
+            }
+            {
+              !this.props.pending.async.settings &&
+              <>
+                <FormSection title="SFTP Connection Information">
+                  <table>
+                    <tbody>
+                      <tr>
+                        <td><strong>File Drop:</strong></td>
+                        <td>{fileDrops.filter((x) => x.id === fileDrop)[0].name}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Host:</strong></td>
+                        <td>{fileDropSettings.sftpHost}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Port:</strong></td>
+                        <td>{fileDropSettings.sftpPort}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Fingerprint (MD5):</strong></td>
+                        <td>{fileDropSettings.fingerprint}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </FormSection>
+                <FormSection title="SFTP Credentials">
+                  <span><strong>Username:</strong> {fileDropSettings.sftpUserName}</span>
+                </ FormSection>
+                <FormSection title="Notification Settings">
+                  <Toggle
+                    label="Upload"
+                    checked={true}
+                    onClick={() => false}
+                  />
+                </ FormSection>
+              </>
+            }
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
