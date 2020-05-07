@@ -653,7 +653,7 @@ namespace SftpServerLib
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
-                                                .SingleOrDefault(a => a.UserName == evtData.User);
+                                                .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
 
                     if (userAccount == null)
                     {
