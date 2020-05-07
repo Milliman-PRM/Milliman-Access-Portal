@@ -39,6 +39,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissions: false,
   permissionsUpdate: false,
   activityLog: false,
+  settings: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -198,6 +199,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_ACTIVITY_LOG_FAILED: (state) => ({
     ...state,
     activityLog: false,
+  }),
+  FETCH_SETTINGS: (state) => ({
+    ...state,
+    settings: true,
+  }),
+  FETCH_SETTINGS_SUCCEEDED: (state) => ({
+    ...state,
+    settings: false,
+  }),
+  FETCH_SETTINGS_FAILED: (state) => ({
+    ...state,
+    settings: false,
   }),
 });
 
