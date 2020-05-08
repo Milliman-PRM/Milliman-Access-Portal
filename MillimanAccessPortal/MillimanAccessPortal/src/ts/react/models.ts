@@ -279,13 +279,15 @@ export interface ReductionWithQueueDetails extends ContentReductionTask {
   taskStatusName: string;
 }
 
-export function isPublicationRequest(request: ContentPublicationRequest | ContentReductionTask)
-    : request is ContentPublicationRequest {
+export function isPublicationRequest(
+  request: ContentPublicationRequest | ContentReductionTask,
+): request is ContentPublicationRequest {
   return request && (request as ContentPublicationRequest).rootContentItemId !== undefined;
 }
 
-export function isReductionTask(request: ContentPublicationRequest | ContentReductionTask)
-    : request is ContentReductionTask {
+export function isReductionTask(
+  request: ContentPublicationRequest | ContentReductionTask,
+): request is ContentReductionTask {
   return request && (request as ContentReductionTask).selectionGroupId !== undefined;
 }
 
@@ -372,52 +374,265 @@ export interface AvailableEligibleUsers {
 
 export enum FileDropLogEventEnum {
   // File Drop Admin Events
-  Created = 8001,
-  Deleted = 8002,
-  Updated = 8003,
+  FDCreated = 8001,
+  FDDeleted = 8002,
+  FDUpdated = 8003,
+  // Permission Group Events
+  PGCreated = 8011,
+  PGDeleted = 8012,
+  PGUpdated = 8013,
+  // Account Events
+  AccountCreated = 8100,
+  AccountDeleted = 8101,
+  AccountAddedToPG = 8102,
+  AccountRemovedFromPG = 8103,
   // SFTP User Events
-  AccountAuthenticated = 8100,
   DirectoryCreated = 8110,
   DirectoryRemoved = 8111,
-  FileOrDirectoryRenamed = 8113,
+  FileWriteAuthorized = 8112,
+  FileReadAuthorized = 8113,
+  FileDeleteAuthorized = 8114,
+  FileOrDirectoryRenamed = 8115,
 }
 
 interface BaseFileDropEvent {
   id: number;
   timeStampUtc: string;
-  user: string;
+  eventType: string;
+  userName: string;
+  fullName: string;
 }
 
-interface FileDropEventClient {
+interface FileDropEventObjectClient {
   clientId: Guid;
   clientName: string;
 }
 
-interface FileDropEventFileDrop {
+interface FileDropEventObjectFileDrop {
   Id: Guid;
   Name: string;
   Description: string;
 }
 
-export interface FDEventCreated extends BaseFileDropEvent {
-  eventCode: FileDropLogEventEnum.Created;
-  eventDataObject: {
-    Client: FileDropEventClient;
-    FileDrop: FileDropEventFileDrop;
+interface BaseFileDropEventObjectPermissionGroup {
+  Id: Guid;
+  IsPersonalGroup: boolean;
+}
+
+interface FileDropEventObjectPermissionGroupProps {
+  Name: string;
+  ReadAccess: boolean;
+  WriteAccess: boolean;
+  DeleteAccess: boolean;
+}
+
+type FileDropEventObjectPermissionGroup =
+  BaseFileDropEventObjectPermissionGroup & FileDropEventObjectPermissionGroupProps;
+
+interface FileDropEventObjectSftpUser {
+  Id: Guid;
+  UserName: string;
+}
+
+interface FileDropEventObjectMapUser {
+  Id: Guid;
+  UserName: string;
+}
+
+interface FileDropEventObjectDirectory {
+  Id: Guid;
+  CanonicalFileDropPath: string;
+  Description: string;
+}
+
+export interface FDEventFDCreated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FDCreated;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    FileDrop: FileDropEventObjectFileDrop;
   };
 }
 
-export interface FDEventUpdated extends BaseFileDropEvent {
-  eventCode: FileDropLogEventEnum.Updated;
-  eventDataObject: {
-    Client: FileDropEventClient;
-    NewFileDrop: FileDropEventFileDrop;
-    OldFileDrop: FileDropEventFileDrop;
+export interface FDEventFDDeleted extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FDDeleted;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    FileDrop: FileDropEventObjectFileDrop;
+    AffectedSftpAccounts: Array<{
+      SftpAccount: FileDropEventObjectSftpUser;
+      MapUser?: FileDropEventObjectMapUser;
+    }>;
+  };
+}
+
+export interface FDEventFDUpdated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FDUpdated;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    NewFileDrop: FileDropEventObjectFileDrop;
+    OldFileDrop: FileDropEventObjectFileDrop;
+  };
+}
+
+export interface FDEventPGCreated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.PGCreated;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    FileDrop: FileDropEventObjectFileDrop;
+    PermissionGroup: FileDropEventObjectPermissionGroup;
+  };
+}
+
+export interface FDEventPGDeleted extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.PGDeleted;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    FileDrop: FileDropEventObjectFileDrop;
+    PermissionGroup: FileDropEventObjectPermissionGroup;
+  };
+}
+
+export interface FDEventPGUpdated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.PGUpdated;
+  eventData: {
+    Client: FileDropEventObjectClient;
+    FileDrop: FileDropEventObjectFileDrop;
+    PermissionGroup: BaseFileDropEventObjectPermissionGroup;
+    PreviousProperties: FileDropEventObjectPermissionGroupProps;
+    UpdatedProperties: FileDropEventObjectPermissionGroupProps;
+  };
+}
+
+export interface FDEventAccountCreated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.AccountCreated;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+  };
+}
+
+export interface FDEventAccountDeleted extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.AccountDeleted;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+  };
+}
+export interface FDEventAccountAddedToPG extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.AccountAddedToPG;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    PermissionGroup: FileDropEventObjectPermissionGroup;
+  };
+}
+
+export interface FDEventAccountRemovedFromPG extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.AccountRemovedFromPG;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    PermissionGroup: FileDropEventObjectPermissionGroup;
+  };
+}
+
+export interface FDEventDirectoryCreated extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.DirectoryCreated;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    FileDropDirectory: FileDropEventObjectDirectory;
+  };
+}
+
+export interface FDEventDirectoryRemoved extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.DirectoryRemoved;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    FileDropDirectory: FileDropEventObjectDirectory;
+    // TODO: Implement DeletedInventory?
+  };
+}
+
+export interface FDEventFileWriteAuthorized extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FileWriteAuthorized;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    FileDropDirectory: FileDropEventObjectDirectory;
+    FileName: string;
+  };
+}
+
+export interface FDEventFileReadAuthorized extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FileReadAuthorized;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    FileDropDirectory: FileDropEventObjectDirectory;
+    FileName: string;
+  };
+}
+
+export interface FDEventFileDeleteAuthorized extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FileDeleteAuthorized;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    FileDropDirectory: FileDropEventObjectDirectory;
+    FileName: string;
+  };
+}
+
+export interface FDEventFileOrDirectoryRenamed extends BaseFileDropEvent {
+  eventCode: FileDropLogEventEnum.FileOrDirectoryRenamed;
+  eventData: {
+    FileDrop: FileDropEventObjectFileDrop;
+    SftpAccount: FileDropEventObjectSftpUser;
+    MapUser?: FileDropEventObjectMapUser;
+    Type: 'Directory' | 'File';
+    From: string;
+    To: string;
   };
 }
 
 // Union of all File Drop Event interfaces
 export type FileDropEvent =
-  | FDEventCreated
-  | FDEventUpdated
+  | FDEventFDCreated
+  | FDEventFDDeleted
+  | FDEventFDUpdated
+  | FDEventPGCreated
+  | FDEventPGDeleted
+  | FDEventPGUpdated
+  | FDEventAccountCreated
+  | FDEventAccountDeleted
+  | FDEventAccountAddedToPG
+  | FDEventAccountRemovedFromPG
+  | FDEventDirectoryCreated
+  | FDEventDirectoryRemoved
+  | FDEventFileWriteAuthorized
+  | FDEventFileReadAuthorized
+  | FDEventFileDeleteAuthorized
+  | FDEventFileOrDirectoryRenamed
   ;
+
+export interface FileDropSettings {
+  fingerprint: string;
+  isPasswordExpired: boolean;
+  isSuspended: boolean;
+  notifications: string[];
+  sftpHost: string;
+  sftpPort: string;
+  sftpUserName: string;
+  userHasPassword: boolean;
+}

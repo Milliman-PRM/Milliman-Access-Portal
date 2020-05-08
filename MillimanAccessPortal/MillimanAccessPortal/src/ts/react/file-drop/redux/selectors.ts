@@ -1,4 +1,5 @@
 import * as _ from 'lodash';
+import * as moment from 'moment';
 
 import {
   AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
@@ -262,6 +263,33 @@ export function permissionGroupEntities(state: FileDropState) {
     };
   } else {
     return state.pending.permissionGroupsTab;
+  }
+}
+
+// ~~~~~~~~~~~~~~~~~~~~~~
+// Activity Log Selectors
+// ~~~~~~~~~~~~~~~~~~~~~~
+
+/** Return filterd Activity Log data */
+export function activityLogEntities(state: FileDropState) {
+  const { selectedFileDropTab } = state.pending;
+  const { text: filterText } = state.filters.activityLog;
+  const { activityLogEvents } = state.data;
+  if (selectedFileDropTab === 'activityLog') {
+    if (filterText) {
+      const filterTextLower = filterText.toLowerCase();
+      const filteredActivityLogEvents = activityLogEvents.filter((event) =>
+        _.includes(event.fullName.toLowerCase(), filterTextLower)
+        || _.includes(event.userName.toLowerCase(), filterTextLower)
+        || _.includes(event.eventType.toLowerCase(), filterTextLower)
+        || _.includes(JSON.stringify(event.eventData).toLowerCase(), filterTextLower)
+        || _.includes(moment(event.timeStampUtc).local().format('M/D/YY h:mm A').toLowerCase(), filterTextLower));
+      return filteredActivityLogEvents;
+    } else {
+      return activityLogEvents;
+    }
+  } else {
+    return null;
   }
 }
 

@@ -53,6 +53,10 @@ export const fetchActivityLog =
   createJsonRequestor<FileDropAction.FetchActivityLog, FileDropAction.FetchActivityLogSucceeded>
     ('GET', '/FileDrop/ActionLog');
 
+export const fetchSettings =
+  createJsonRequestor<FileDropAction.FetchSettings, FileDropAction.FetchSettingsSucceeded>
+    ('GET', '/FileDrop/AccountSettings');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

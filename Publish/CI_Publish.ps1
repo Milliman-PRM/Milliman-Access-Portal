@@ -453,7 +453,8 @@ if ($LASTEXITCODE -ne 0) {
 #region Package MAP User Stats Loader for nuget
 log_statement "Packaging MAP User Stats Loader"
 
-Set-Location "$rootPath\User Stats\MAPStatsLoader\bin\x64\release\netcoreapp2.1\publish"
+Set-Location "$rootPath\User Stats\MAPStatsLoader\"
+Set-Location (Get-ChildItem -Directory "publish" -Recurse | Select-Object -First 1)
 
 octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
 
