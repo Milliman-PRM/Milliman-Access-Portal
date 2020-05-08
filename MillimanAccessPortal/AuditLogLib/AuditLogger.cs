@@ -197,9 +197,9 @@ namespace AuditLogLib
         /// </summary>
         /// <param name="whereClauses"></param>
         /// <param name="db"></param>
-        /// <param name="orderDescending"></param>
+        /// <param name="orderIsDescending"></param>
         /// <returns></returns>
-        public async Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> whereClauses, ApplicationDbContext db, bool orderDescending = true)
+        public async Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> whereClauses, ApplicationDbContext db, bool orderIsDescending)
         {
             List<AuditEvent> filteredAuditEvents = new List<AuditEvent>();
             using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
@@ -210,7 +210,7 @@ namespace AuditLogLib
                     query = query.Where(whereClause);
                 }
 
-                query = orderDescending
+                query = orderIsDescending
                     ? query.OrderByDescending(e => e.TimeStampUtc)
                     : query.OrderBy(e => e.TimeStampUtc);
 

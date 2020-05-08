@@ -74,7 +74,7 @@ namespace ContentPublishingServiceTests
                     },
                 });
             MockDbSet<RootContentItem>.AssignNavigationProperty(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
-            Directory.CreateDirectory(@"\\indy-syn01\prm_test\ContentRoot");
+            Directory.CreateDirectory(@"\\indy-qlikview.milliman.com\testing\ContentRoot");
             #endregion
 
             #region Initialize HierarchyField
@@ -292,7 +292,7 @@ namespace ContentPublishingServiceTests
                 Id = TestUtil.MakeTestGuid(1),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -329,7 +329,7 @@ namespace ContentPublishingServiceTests
                 Id = TestUtil.MakeTestGuid(2),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -383,7 +383,7 @@ namespace ContentPublishingServiceTests
                 Id = TestUtil.MakeTestGuid(3),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -420,7 +420,7 @@ namespace ContentPublishingServiceTests
                 Id = TestUtil.MakeTestGuid(4),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -4308,7 +4308,7 @@ namespace ContentPublishingServiceTests
                 Id = TestUtil.MakeTestGuid(5),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-syn01\prm_test\Sample Data\Test1\Care_Coordinator_Report.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "0756809FC22CB3429D9960611E68AE8131691AB0",
                 ReductionStatus = ReductionStatusEnum.Unspecified,

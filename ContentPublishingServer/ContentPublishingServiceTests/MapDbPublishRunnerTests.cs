@@ -36,18 +36,18 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(1);
 
-            string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
+            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to content folder
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
@@ -120,18 +120,18 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(2);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
 
-            string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
+            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to content folder
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
@@ -208,8 +208,8 @@ namespace ContentPublishingServiceTests
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
             Guid RequestGuid = Guid.NewGuid();
 
-            string ProposedRequestExchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{RequestGuid}\";
-            string ContentFolder = $@"\\indy-syn01\prm_test\ContentRoot\{ContentItemIdOfThisTest}";
+            string ProposedRequestExchangeFolder = $@"\\indy-qlikview.milliman.com\testing\MapPublishingServerExchange\{RequestGuid}\";
+            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
@@ -217,14 +217,14 @@ namespace ContentPublishingServiceTests
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to exchange and content folders
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
                       Path.Combine(ProposedRequestExchangeFolder, MasterContentFileName),
                       true);
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-syn01\prm_test\Sample Data\IHopeSo.pdf",
+            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 

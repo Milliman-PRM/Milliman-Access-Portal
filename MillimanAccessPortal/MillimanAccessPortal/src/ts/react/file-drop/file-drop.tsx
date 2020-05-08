@@ -1,5 +1,6 @@
 import '../../../scss/react/file-drop/file-drop.scss';
 
+import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
@@ -32,7 +33,6 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
-import { ActivityLogTable } from './activity-log-table';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -862,9 +862,47 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <ColumnSpinner />
             }
             <div>
-              <ActivityLogTable
-                activityLogData={activityLog}
-              />
+              <table className="activity-log-table">
+                <thead>
+                  <tr>
+                    <th className="col-date">Date</th>
+                    <th className="col-author">Performed by</th>
+                    <th className="col-action">Action</th>
+                    <th className="col-description">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    activityLog.map((logEvent) => (
+                      <tr className="event-row" key={`${logEvent.timeStampUtc}`}>
+                        <td className="date-width">
+                          <span title={moment(logEvent.timeStampUtc).local().format('MM/DD/YYYY h:mm:ss A')}>
+                            {
+                              moment(logEvent.timeStampUtc).local().format('M/D/YY \nh:mmA')
+                            }
+                          </span>
+                        </td>
+                        <td className="name-max-width">
+                          <span
+                            title={logEvent.fullName}
+                          >
+                            {logEvent.fullName}
+                          </span>
+                          <br />
+                          <span
+                            className="username"
+                            title={logEvent.userName}
+                          >
+                            {logEvent.userName}
+                          </span>
+                        </td>
+                        <td className="action-text">{logEvent.eventType}</td>
+                        <td>{logEvent.description}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
             </div>
           </ContentPanelForm>
         </ContentPanelSectionContent>

@@ -228,7 +228,7 @@ namespace MillimanAccessPortal.DataQueries
             };
 
             return returnModel;
-        }new    
+        }
 
         internal async Task<PermissionGroupsModel> UpdatePermissionGroups(UpdatePermissionGroupsModel model)
         {

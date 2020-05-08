@@ -49,7 +49,7 @@ namespace ContentPublishingServiceTests
                     var dbTask = (taskNo % 2 == 0) ? smallDbTask : largeDbTask;
                     var taskGuid = Guid.NewGuid();
 
-                    string exchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{taskGuid}\";
+                    string exchangeFolder = $@"\\indy-qlikview.milliman.com\testing\MapPublishingServerExchange\{taskGuid}\";
                     string masterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                         "MasterContent", $".{taskNo}.qvw", dbTask.SelectionGroup.RootContentItemId);
                     string masterContentFilePath = Path.Combine(exchangeFolder, masterContentFileName);
