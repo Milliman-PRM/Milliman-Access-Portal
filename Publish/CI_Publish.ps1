@@ -517,24 +517,26 @@ Set-Location $rootpath\SftpServer
 
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $pscredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-$acct = Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId
-Select-AzSubscription "$azSubscriptionId"
+Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
-$acr_url = get-azkeyvaultsecret `
-    -VaultName $azVaultName `
-    -SecretName "acrurl"
 
-$acr_username = get-azkeyvaultsecret `
+$acr_url = (get-azkeyvaultsecret `
     -VaultName $azVaultName `
-    -SecretName "acruser"
+    -SecretName "acrurl").SecretValueText
 
-$acr_password = get-azkeyvaultsecret `
+
+$acr_username = (get-azkeyvaultsecret `
     -VaultName $azVaultName `
-    -SecretName "acrpass"
+    -SecretName "acruser").SecretValueText
+
+$acr_password = (get-azkeyvaultsecret `
+    -VaultName $azVaultName `
+    -SecretName "acrpass").SecretValueText
+
 
 docker build -t filedropsftp .
 
-docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
+docker login $acr_url -u $acr_username -p $acr_password
 
 docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
