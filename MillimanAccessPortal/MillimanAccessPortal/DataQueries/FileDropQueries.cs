@@ -526,8 +526,11 @@ namespace MillimanAccessPortal.DataQueries
                 returnModel.IsPasswordExpired = userSftpAccount.PasswordResetDateTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(sftpPasswordExpirationDays);
             }
 
-            // TODO var notifications = <some query>
-            // TODO populate the notifications part of the model
+            // TODO populate the notifications part of the model based on a query and remove the following
+            foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
+            {
+                returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = true, IsEnabled = false });
+            }
 
             return returnModel;
         }
