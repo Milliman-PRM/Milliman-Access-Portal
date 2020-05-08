@@ -1,0 +1,5 @@
+{
+  "AzureVaultName": "https://something.vault.azure.net/",
+  "AzureClientID": "some guid",
+  "AzureCertificateThumbprint": "some hex string"
+}
