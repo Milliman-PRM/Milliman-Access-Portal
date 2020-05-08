@@ -520,17 +520,19 @@ $pscredential = New-Object System.Management.Automation.PSCredential($azClientId
 Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
 
-$acr_url = get-azkeyvaultsecret `
+$acr_url = (get-azkeyvaultsecret `
     -VaultName $azVaultName `
-    -SecretName "acrurl"
+    -SecretName "acrurl").SecretValueText
 
-$acr_username = get-azkeyvaultsecret `
-    -VaultName $azVaultName `
-    -SecretName "acruser"
 
-$acr_password = get-azkeyvaultsecret `
+$acr_username = (get-azkeyvaultsecret `
     -VaultName $azVaultName `
-    -SecretName "acrpass"
+    -SecretName "acruser").SecretValueText
+
+$acr_password = (get-azkeyvaultsecret `
+    -VaultName $azVaultName `
+    -SecretName "acrpass").SecretValueText
+
 
 docker build -t filedropsftp .
 
