@@ -251,7 +251,7 @@ namespace MapTests
             ConfigurationObject = GenerateConfiguration();
             MockServiceProvider = GenerateServiceProvider();
             MockFileSystemTasks = new Mock<FileSystemTasks>();
-            MockFileDropQueries = new Mock<FileDropQueries>(DbContextObject, ClientQueriesObj, HierarchyQueriesObj, UserQueriesObj, AuditLoggerObject);
+            MockFileDropQueries = new Mock<FileDropQueries>(DbContextObject, ClientQueriesObj, HierarchyQueriesObj, UserQueriesObj, ConfigurationObject, AuditLoggerObject);
             MockPublicationPostProcessingQueue = new Mock<IPublicationPostProcessingTaskQueue>();
             MockAuthenticationService = TestResourcesLib.MockAuthenticationService.New(DbContextObject);
             AuthenticationSchemeProviderObject = AuthenticationServiceObject.Schemes;
