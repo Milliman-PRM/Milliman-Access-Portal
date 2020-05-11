@@ -387,7 +387,7 @@ namespace MillimanAccessPortal.DataQueries
                             {
                                 ApplicationUser = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd),
                                 IsSuspended = false,
-                                UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName
+                                UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName /*+ fileDrop.ShortHash*/  // TODO Add this
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(accountToAdd, fileDrop)));                            
                         }
@@ -422,7 +422,7 @@ namespace MillimanAccessPortal.DataQueries
                             sftpAccountToAdd = new SftpAccount(model.FileDropId)
                             {
                                 IsSuspended = accountToAdd.IsSuspended,
-                                UserName = accountToAdd.AccountName,
+                                UserName = accountToAdd.AccountName /*+ fileDrop.ShortHash*/,  // TODO Add this
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(sftpAccountToAdd, fileDrop)));
                         }
@@ -461,7 +461,7 @@ namespace MillimanAccessPortal.DataQueries
                             {
                                 ApplicationUserId = userId,
                                 IsSuspended = false,
-                                UserName = _dbContext.ApplicationUser.Find(userId).UserName,
+                                UserName = _dbContext.ApplicationUser.Find(userId).UserName /*+ fileDrop.ShortHash*/,  // TODO Add this
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop)));
                         }
@@ -476,7 +476,7 @@ namespace MillimanAccessPortal.DataQueries
                         {
                             ApplicationUserId = null,
                             IsSuspended = newAccount.IsSuspended,
-                            UserName = newAccount.AccountName,
+                            UserName = newAccount.AccountName /*+ fileDrop.ShortHash*/,  // TODO Add this
                         };
                         newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
                         auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(newSftpAccount, fileDrop)));

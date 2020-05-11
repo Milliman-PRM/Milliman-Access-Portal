@@ -176,6 +176,24 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 fileDropModel.RootPath = Guid.NewGuid().ToString();
+
+                string fileDropHash = string.Empty;
+                int counter = 0;
+                do
+                {
+                    byte[] randomBytes = new byte[24 / 8];
+                    new RNGCryptoServiceProvider().GetBytes(randomBytes);
+                    fileDropHash = Convert.ToBase64String(randomBytes);
+                    if (++counter >= 10)
+                    {
+                        Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} failed to generate unique FileDrop hash after {counter} tries");
+                        Response.Headers.Add("Warning", "A processing error occurred.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                }
+                while (_dbContext.FileDrop.Any(d => false/*d.ShortHash == fileDropHash*/));  // TODO enable the expression when the new migration is done
+                // TODO fileDropModel.ShortHash = fileDropHash;
+
                 string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
 
                 FileDropDirectory rootDirectoryRecord = new FileDropDirectory
@@ -575,19 +593,32 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GenerateSftpAccountCredentials([FromBody] Guid fileDropId)
         {
+            #region Preliminary validation
+            if (!ModelState.IsValid || fileDropId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} Invalid request, no bound value for input parameter fileDropId");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
                                                   .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
-            #region Validation
-            if (account.ApplicationUser?.UserName != User.Identity.Name)
+            if (account == null)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} An sftp account does not exist for the current user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "The requested account is not yours.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+                account = new SftpAccount(fileDropId)
+                {
+                    ApplicationUserId = mapUser.Id,
+                    UserName = User.Identity.Name /*+ fileDrop.ShortHash*/,  // TODO Add the shorthash when that migration is available
+                };
+                _dbContext.SftpAccount.Add(account);
+                await _dbContext.SaveChangesAsync();
             }
-            #endregion
 
             #region Authorization
             if (account.IsSuspended)
@@ -598,8 +629,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // Generate a password
-            byte[] randomBytes = new byte[128 / 8];
+            // 144 bits yields same base64 encoded length (24) as 128 bits (no padding characters) with 16 more random bits
+            byte[] randomBytes = new byte[144 / 8];
             new RNGCryptoServiceProvider().GetBytes(randomBytes);
             string newPassword = Convert.ToBase64String(randomBytes);
 
