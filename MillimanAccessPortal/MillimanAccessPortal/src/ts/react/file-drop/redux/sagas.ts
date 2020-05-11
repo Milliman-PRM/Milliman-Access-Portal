@@ -53,6 +53,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('UPDATE_PERMISSION_GROUPS', API.updatePermissionGroups);
   yield takeLatestRequest('FETCH_ACTIVITY_LOG', API.fetchActivityLog);
   yield takeLatestRequest('FETCH_SETTINGS', API.fetchSettings);
+  yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
@@ -102,6 +103,7 @@ export default function* rootSaga() {
     'FETCH_STATUS_REFRESH_FAILED',
     'FETCH_ACTIVITY_LOG_FAILED',
     'FETCH_SETTINGS_FAILED',
+    'GENERATE_NEW_SFTP_PASSWORD_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

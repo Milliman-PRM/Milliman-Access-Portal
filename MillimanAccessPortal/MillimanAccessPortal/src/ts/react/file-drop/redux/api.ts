@@ -57,6 +57,10 @@ export const fetchSettings =
   createJsonRequestor<FileDropAction.FetchSettings, FileDropAction.FetchSettingsSucceeded>
     ('GET', '/FileDrop/AccountSettings');
 
+export const generateNewSftpPassword =
+  createJsonRequestor<FileDropAction.GenerateNewSftpPassword, FileDropAction.GenerateNewSftpPasswordSucceeded>
+    ('POST', '/FileDrop/GenerateSftpAccountCredentials');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

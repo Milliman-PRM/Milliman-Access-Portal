@@ -685,6 +685,20 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: action.response,
   }),
+  GENERATE_NEW_SFTP_PASSWORD: (state) => ({
+    ...state,
+    fileDropSettings: {
+      ...state.fileDropSettings,
+      fileDropPassword: null,
+    },
+  }),
+  GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED: (state, action: Action.GenerateNewSftpPasswordSucceeded) => ({
+    ...state,
+    fileDropSettings: {
+      ...state.fileDropSettings,
+      fileDropPassword: action.response,
+    },
+  }),
 });
 
 // ~~~~~~~~~~~~~~~~

@@ -366,6 +366,28 @@ export interface FetchSettingsFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Generate a new SFTP password for the requesting user
+ */
+export interface GenerateNewSftpPassword {
+  type: 'GENERATE_NEW_SFTP_PASSWORD';
+  request: Guid;  // File Drop ID
+}
+/** Action called upon successful return of the GenerateNewSftpPassword API call */
+export interface GenerateNewSftpPasswordSucceeded {
+  type: 'GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED';
+  response: {
+    userName: string;
+    password: string;
+  };
+}
+/** Action called upon return of an error from the GenerateNewSftpPassword API call */
+export interface GenerateNewSftpPasswordFailed {
+  type: 'GENERATE_NEW_SFTP_PASSWORD_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -488,6 +510,7 @@ export type FileDropRequestActions =
   | UpdatePermissionGroups
   | FetchActivityLog
   | FetchSettings
+  | GenerateNewSftpPassword
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -504,6 +527,7 @@ export type FileDropSuccessResponseActions =
   | UpdatePermissionGroupsSucceeded
   | FetchActivityLogSucceeded
   | FetchSettingsSucceeded
+  | GenerateNewSftpPasswordSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -520,6 +544,7 @@ export type FileDropErrorActions =
   | UpdatePermissionGroupsFailed
   | FetchActivityLogFailed
   | FetchSettingsFailed
+  | GenerateNewSftpPasswordFailed
   ;
 
 /** Actions that set filter text */

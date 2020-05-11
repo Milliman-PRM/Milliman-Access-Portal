@@ -597,4 +597,8 @@ export interface FileDropSettings {
   sftpPort: string;
   sftpUserName: string;
   userHasPassword: boolean;
+  fileDropPassword?: {
+    userName: string;
+    password: string;
+  };
 }

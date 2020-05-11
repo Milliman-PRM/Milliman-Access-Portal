@@ -951,6 +951,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 </FormSection>
                 <FormSection title="SFTP Credentials">
                   <span><strong>Username:</strong> {fileDropSettings.sftpUserName}</span>
+                  {
+                    fileDropSettings.userHasPassword && <span>has password</span>
+                  }
+                  <button
+                    onClick={(event: React.MouseEvent) => {
+                      event.preventDefault();
+                      this.props.generateNewSftpPassword(fileDrop);
+                    }}
+                  >
+                    Generate {fileDropSettings.userHasPassword ? 'New' : ''} Password
+                  </button>
                 </ FormSection>
                 <FormSection title="Notification Settings">
                   <Toggle

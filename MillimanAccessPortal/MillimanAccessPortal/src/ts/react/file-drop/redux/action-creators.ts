@@ -142,6 +142,10 @@ export const fetchActivityLog =
 export const fetchSettings =
   createRequestActionCreator<Action.FetchSettings>('FETCH_SETTINGS');
 
+/** Generate a new secure SFTP password */
+export const generateNewSftpPassword =
+  createRequestActionCreator<Action.GenerateNewSftpPassword>('GENERATE_NEW_SFTP_PASSWORD');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~

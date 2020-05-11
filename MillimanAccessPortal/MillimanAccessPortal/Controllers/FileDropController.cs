@@ -573,7 +573,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateSftpAccountCredentials(Guid fileDropId)
+        public async Task<IActionResult> GenerateSftpAccountCredentials([FromBody] Guid fileDropId)
         {
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
