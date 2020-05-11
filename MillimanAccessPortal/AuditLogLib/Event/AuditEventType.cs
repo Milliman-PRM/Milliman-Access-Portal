@@ -1122,6 +1122,36 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 
+        public enum SftpAuthenticationFailReason
+        {
+            [Display(Description = "The requested SFTP account name was not found")]
+            UserNotFound,
+
+            [Display(Description = "The requested SFTP account name is suspended")]
+            AccountSuspended,
+
+            [Display(Description = "The requested SFTP account has an expired password")]
+            PasswordExpired,
+
+            [Display(Description = "The requested SFTP account credentials are invalid")]
+            AuthenticationFailed,
+        }
+
+        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason>(
+            8104, "Sftp Authentication Failed", (account, reason) => new
+            {
+                Account = new
+                {
+                    account?.Id,
+                    account?.UserName,
+                    account?.IsSuspended,
+                    PasswordResetDateTimeUtc = account != null 
+                                             ? account.PasswordResetDateTimeUtc.ToString("u") 
+                                             : null,
+                },
+                Reason = reason.GetDisplayDescriptionString(),
+            });
+
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
             8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
             {

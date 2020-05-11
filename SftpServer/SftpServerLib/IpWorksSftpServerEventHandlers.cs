@@ -659,21 +659,24 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
-                        // TODO is an audit log called for here?
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound));
                         return;
                     }
 
-                    if (!userAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)))
+                    if (!userAccount.IsSuspended)
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended));
+                        return;
+                    }
+
+                    int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
+                    if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc < TimeSpan.FromDays(sftpPasswordExpirationDays))
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");
-                        return;
-                    }
-
-                    if (userAccount.ApplicationUserId.HasValue && (!userAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60)) || userAccount.ApplicationUser.IsSuspended))
-                    {
-                        evtData.Accept = false;
-                        Log.Information($"SftpConnection request denied.  The MAP user <{userAccount.ApplicationUser.UserName}> associated with this SFTP account has an expired password or is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired));
                         return;
                     }
 
@@ -707,6 +710,11 @@ namespace SftpServerLib
                                             ", write: " + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
                                             ", delete: " + userAccount.FileDropUserPermissionGroup.DeleteAccess.ToString()
                                         : "no permission group assigned"));
+                    }
+                    else
+                    {
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed));
+                        Log.Information($"Sftp acount <{userAccount.UserName}> authentication failed for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }
             }
