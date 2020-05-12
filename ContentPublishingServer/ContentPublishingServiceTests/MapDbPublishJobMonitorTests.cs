@@ -288,7 +288,6 @@ namespace ContentPublishingServiceTests
                                           .ToList();
             try
             {
-                //Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
                 Assert.Contains(PublishMonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);

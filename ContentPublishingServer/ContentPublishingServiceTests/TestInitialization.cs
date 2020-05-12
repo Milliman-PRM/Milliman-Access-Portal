@@ -336,7 +336,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -373,7 +373,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -427,7 +427,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -464,7 +464,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -4350,7 +4350,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",
+                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "0756809FC22CB3429D9960611E68AE8131691AB0",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
