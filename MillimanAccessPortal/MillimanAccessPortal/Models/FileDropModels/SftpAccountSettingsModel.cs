@@ -27,7 +27,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
 
     public enum FileDropNotificationType
     {
-        FileWritten,
+        FileWritten = 0,
     }
 
     public class NotificationModel

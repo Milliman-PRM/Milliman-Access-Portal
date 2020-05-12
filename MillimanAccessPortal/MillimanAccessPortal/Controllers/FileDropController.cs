@@ -602,15 +602,15 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))
+                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" /*+ $"-{ fileDrop.ShortHash}"*/, a.ApplicationUser.UserName))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             if (account == null)
             {
-                FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
                 account = new SftpAccount(fileDropId)
                 {
                     ApplicationUserId = mapUser.Id,
@@ -644,6 +644,49 @@ namespace MillimanAccessPortal.Controllers
             await _dbContext.SaveChangesAsync();
 
             return Json(returnModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAccountSettings([FromBody] UpdateAccountSettingsModel boundModel)
+        {
+            #region Preliminary validation
+            if (!ModelState.IsValid || boundModel.FileDropId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName}, invalid request");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
+            ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Include(a => a.ApplicationUser)
+                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" /*+ $"-{ fileDrop.ShortHash}"*/, a.ApplicationUser.UserName))
+                                                  .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
+
+            if (account == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName}, account not found");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Authorization
+            if (account.IsSuspended)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update account settings.");
+                Response.Headers.Add("Warning", "Your account is suspended. You may not update account settings.");
+                return Unauthorized();
+            }
+            #endregion
+
+            // TODO actually update the settings
+
+            SftpAccountSettingsModel model = await _fileDropQueries.GetAccountSettingsModelAsync(boundModel.FileDropId, mapUser);
+
+            return Json(model);
         }
     }
 
