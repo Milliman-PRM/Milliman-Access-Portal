@@ -1,30 +1,27 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
     public class UserFullModel
     {
-        public Guid Id;
+        public Guid Id { get; set; }
 
-        public bool IsActivated;
+        public bool IsActivated { get; set; }
 
-        public bool IsSuspended;
+        public bool IsSuspended { get; set; }
 
-        public string FirstName;
+        public string FirstName { get; set; }
 
-        public string LastName;
+        public string LastName { get; set; }
 
-        public string UserName;
+        public string UserName { get; set; }
 
-        public string Email;
+        public string Email { get; set; }
 
-        public string Phone;
+        public string Phone { get; set; }
 
-        public string Employer;
+        public string Employer { get; set; }
 
-        public bool IsLocal;
+        public bool IsLocal { get; set; }
     }
 }

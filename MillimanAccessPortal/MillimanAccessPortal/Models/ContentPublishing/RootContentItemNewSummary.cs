@@ -11,6 +11,7 @@ using MillimanAccessPortal.Models.AccountViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -25,19 +26,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public string Name { get; set; }
         public int SelectionGroupCount { get; set; }
 
-        internal static RootContentItemNewSummary Build(ApplicationDbContext dbContext, RootContentItem rootContentItem)
+        internal static async Task<RootContentItemNewSummary> BuildAsync(ApplicationDbContext dbContext, RootContentItem rootContentItem)
         {
             var model = new RootContentItemNewSummary
             {
                 Id = rootContentItem.Id,
                 Name = rootContentItem.ContentName,
                 ContentTypeId = rootContentItem.ContentTypeId,
-                SelectionGroupCount = dbContext.SelectionGroup.Count(sg => sg.RootContentItemId == rootContentItem.Id),
-                AssignedUserCount = dbContext.UserInSelectionGroup
+                SelectionGroupCount = await dbContext.SelectionGroup.CountAsync(sg => sg.RootContentItemId == rootContentItem.Id),
+                AssignedUserCount = await dbContext.UserInSelectionGroup
                                              .Where(usg => usg.SelectionGroup.RootContentItemId == rootContentItem.Id)
                                              .Select(usg => usg.UserId)
                                              .Distinct()
-                                             .Count(),
+                                             .CountAsync(),
                 IsSuspended = rootContentItem.IsSuspended,
                 ClientId = rootContentItem.ClientId,
                 DoesReduce = rootContentItem.DoesReduce,

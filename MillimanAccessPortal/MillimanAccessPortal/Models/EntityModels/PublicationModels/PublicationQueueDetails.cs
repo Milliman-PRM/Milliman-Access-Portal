@@ -5,9 +5,11 @@
  */
 
 using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
 {
@@ -33,13 +35,13 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
         /// </summary>
         public int ReductionsTotal { get; set; }
 
-        public static Dictionary<Guid, PublicationQueueDetails> BuildQueueForClient(ApplicationDbContext dbContext, Client client)
+        public static async Task<Dictionary<Guid, PublicationQueueDetails>> BuildQueueForClientAsync(ApplicationDbContext dbContext, Client client)
         {
             Dictionary<Guid, PublicationQueueDetails> returnDict = new Dictionary<Guid, PublicationQueueDetails>();
 
-            var requests = dbContext.ContentPublicationRequest.Where(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus))
+            var requests = await dbContext.ContentPublicationRequest.Where(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus))
                                                               .OrderByDescending(r => r.CreateDateTimeUtc)
-                                                              .ToList();
+                                                              .ToListAsync();
 
             requests.Aggregate(seed: 0, func: (int i, ContentPublicationRequest r) =>
             {

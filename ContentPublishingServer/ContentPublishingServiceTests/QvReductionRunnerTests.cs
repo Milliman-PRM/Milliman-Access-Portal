@@ -4,49 +4,68 @@
  * DEVELOPER NOTES: Depends on an actual Qlikview Publisher to perform content reduction. 
  */
 
-using System;
+using ContentPublishingLib;
+using ContentPublishingLib.JobRunners;
+using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
-using MapCommonLib.ContentTypeSpecific;
-using MapDbContextLib.Context;
-using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
+using Xunit;
 
 namespace ContentPublishingServiceTests
 {
-    public class QvReductionRunnerTests : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
+    public class QvReductionRunnerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
+
+        public QvReductionRunnerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
+        }
+
         [Fact]
         public async Task SuccessfulHierarchyOnly()
         {
             #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
-            Guid TaskGuid = Guid.NewGuid();
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
 
-            string ExchangeFolder = $@"\\indy-qlikview.milliman.com\testing\MapPublishingServerExchange\{TaskGuid}\";
+            string ExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), DbTask.Id.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName("MasterContent", ".qvw", DbTask.SelectionGroup.RootContentItemId);
 
             Directory.CreateDirectory(ExchangeFolder);
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ExchangeFolder, MasterContentFileName),
                       true);
 
             // Modify the task to be tested
-            DbTask.Id = TaskGuid;
-            DbTask.TaskAction = MapDbContextLib.Context.TaskActionEnum.HierarchyOnly;
+            DbTask.TaskAction = TaskActionEnum.HierarchyOnly;
             DbTask.MasterFilePath = Path.Combine(ExchangeFolder, MasterContentFileName);
             DbTask.MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B";
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            TestResources.DbContext.SaveChanges();
 
             QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
@@ -94,17 +113,22 @@ namespace ContentPublishingServiceTests
         public async Task InvalidSelectionFieldName()
         {
             #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
-
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(4));
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                   && f.Values.Exists(v => v.Value == "Invalid value")))
+                .Single();
+
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            TestResources.DbContext.SaveChanges();
 
             QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
@@ -145,17 +169,22 @@ namespace ContentPublishingServiceTests
         public async Task InvalidSelectionValue()
         {
             #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
-
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(2));
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 1
+                                                                   && f.Values.Exists(v => v.Value == "Invalid selection value")))
+                .Single();
+
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            TestResources.DbContext.SaveChanges();
 
             QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
@@ -193,17 +222,22 @@ namespace ContentPublishingServiceTests
         public async Task OneValidOneInvalidSelectionValue()
         {
             #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
+            // Query for the task to be used in this test
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                                   .AsEnumerable()
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Count == 2)
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Exists(v => v.Value == "Invalid selection value")))
+                                   .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                                   .Single();
 
-            // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(3));
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
+            TestResources.DbContext.SaveChanges();
 
             QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
@@ -213,6 +247,9 @@ namespace ContentPublishingServiceTests
             ReductionJobDetail JobDetail = await MonitorTask;
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
+
+            TestResources.DbContext.Entry(DbTask).State = Microsoft.EntityFrameworkCore.EntityState.Detached;
+            DbTask = TestResources.DbContext.ContentReductionTask.Find(DbTask.Id);
             #endregion
 
             #region Assert
@@ -241,7 +278,10 @@ namespace ContentPublishingServiceTests
             Assert.Single(TaskResult.ReducedContentHierarchy.Fields[1].FieldValues);
             Assert.Equal(7, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.Equal($@"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId.Value, DbTask.SelectionGroup.RootContentItemId, ".qvw")}" ,TaskResult.ReducedContentFilePath);
+            Assert.Equal(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), 
+                                      "Test1",
+                                      @$"{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId.Value, DbTask.SelectionGroup.RootContentItemId, ".qvw")}"), 
+                         TaskResult.ReducedContentFilePath);
             Assert.Equal(40, TaskResult.ReducedContentFileChecksum.Length);
             Assert.True(File.Exists(TaskResult.ReducedContentFilePath));
             #endregion
@@ -251,18 +291,24 @@ namespace ContentPublishingServiceTests
         public async Task MasterFileMissing()
         {
             #region Arrange
-            ApplicationDbContext MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus).Object;
-
             // Modify the task to be tested
-            ContentReductionTask DbTask = MockContext.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
-            DbTask.ReductionStatus = MapDbContextLib.Context.ReductionStatusEnum.Queued;
+            ContentReductionTask DbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
+
+            DbTask.ReductionStatus = ReductionStatusEnum.Queued;
             DbTask.MasterFilePath = Path.ChangeExtension(DbTask.MasterFilePath, "xyz");
+            TestResources.DbContext.SaveChanges();
 
             QvReductionRunner TestRunner = new QvReductionRunner
             {
                 JobDetail = (ReductionJobDetail)DbTask,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion

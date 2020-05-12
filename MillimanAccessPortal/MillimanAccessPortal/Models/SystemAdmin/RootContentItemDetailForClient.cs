@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -41,25 +42,25 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntities(ApplicationDbContext dbContext, Guid clientId)
+        public async Task QueryRelatedEntitiesAsync(ApplicationDbContext dbContext, Guid clientId)
         {
-            IsPublishing = dbContext.ContentPublicationRequest
+            IsPublishing = await dbContext.ContentPublicationRequest
                 .Where(pr => pr.RootContentItemId == Id)
-                .Where(pr => pr.RequestStatus.IsActive())
-                .Any();
+                .Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus))
+                .AnyAsync();
 
             // query for selection groups and users in selection groups, then assign to a dictionary
-            var selectionGroups = dbContext.SelectionGroup
+            var selectionGroups = await dbContext.SelectionGroup
                 .Where(g => g.RootContentItemId == Id)
                 .Where(g => g.RootContentItem.ClientId == clientId)
                 .OrderBy(g => g.GroupName)
-                .ToList();
+                .ToListAsync();
 
             var selectionGroupIds = selectionGroups.Select(g => g.Id).ToList();
-            var usersInSelectionGroups = dbContext.UserInSelectionGroup
+            var usersInSelectionGroups = await dbContext.UserInSelectionGroup
                 .Where(g => selectionGroupIds.Contains(g.SelectionGroupId))
                 .Include(g => g.User)
-                .ToList();
+                .ToListAsync();
 
             var selectionGroupUsersDictionary = selectionGroups.ToDictionary(
                 g => g.Id,
@@ -73,11 +74,11 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 var group = selectionGroups.Single(g => g.Id == groupId);
                 if (!selectionGroupList.Sections.Any(s => s.Name == group.GroupName))
                 {
-                    var reductionTasks = dbContext.ContentReductionTask
+                    var reductionTasks = await dbContext.ContentReductionTask
                         .Where(rt => rt.SelectionGroupId == group.Id)
                         .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                         .Include(rt => rt.ContentPublicationRequest)
-                        .ToList();
+                        .ToListAsync();
                     selectionGroupList.Sections.Add(new NestedListSection
                     {
                         Name = group.GroupName,

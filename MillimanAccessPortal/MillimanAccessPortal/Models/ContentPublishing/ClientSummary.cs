@@ -8,6 +8,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,7 +27,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public long EligibleUserCount { get; set; }
         public long RootContentItemCount { get; set; }
         
-        public static ClientSummary Build(ApplicationDbContext dbContext, UserManager<ApplicationUser> userManager, ApplicationUser currentUser, Client client, RoleEnum roleInClient)
+        public static async Task<ClientSummary> BuildAsync(ApplicationDbContext dbContext, ApplicationUser currentUser, Client client, RoleEnum roleInClient)
         {
             var clientDetail = new ClientSummary
             {
@@ -36,25 +37,25 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 Code = client.ClientCode,
             };
 
-            clientDetail.CanManage = dbContext.UserRoleInClient
+            clientDetail.CanManage = await dbContext.UserRoleInClient
                 .Where(urc => urc.UserId == currentUser.Id)
                 .Where(urc => urc.Role.RoleEnum == roleInClient)
                 .Where(urc => urc.ClientId == clientDetail.Id)
-                .Any();
+                .AnyAsync();
 
             // Don't provide more information than necessary
             if (!clientDetail.CanManage) return clientDetail;
 
-            clientDetail.EligibleUserCount = dbContext.UserRoleInClient
+            clientDetail.EligibleUserCount = await dbContext.UserRoleInClient
                 .Where(urc => urc.Role.RoleEnum == RoleEnum.ContentUser)
                 .Where(urc => urc.ClientId == clientDetail.Id)
                 .Select(urc => urc.Id)
                 .Distinct()
-                .Count();
+                .CountAsync();
 
-            clientDetail.RootContentItemCount = dbContext.RootContentItem
+            clientDetail.RootContentItemCount = await dbContext.RootContentItem
                 .Where(rci => rci.ClientId == clientDetail.Id)
-                .Count();
+                .CountAsync();
 
             return clientDetail;
         }
