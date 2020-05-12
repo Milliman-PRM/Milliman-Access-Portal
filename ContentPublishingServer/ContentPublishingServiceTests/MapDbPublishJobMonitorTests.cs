@@ -34,8 +34,8 @@ namespace ContentPublishingServiceTests
         public MapDbPublishJobMonitorTests(DatabaseLifetimeFixture dbLifeTimeFixture)
         {
             _dbLifeTimeFixture = dbLifeTimeFixture;
-            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
             Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
         }
 
         [Fact]
