@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appsettings.CI.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="AzureKeyVault.CI.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

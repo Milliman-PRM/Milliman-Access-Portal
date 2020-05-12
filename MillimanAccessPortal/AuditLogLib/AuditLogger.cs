@@ -1,14 +1,17 @@
 ﻿using AuditLogLib.Event;
+using AuditLogLib.Models;
 using AuditLogLib.Services;
 using MapCommonLib;
 using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Logging;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
+using System.Linq.Expressions;
+using MapDbContextLib.Context;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -187,6 +190,44 @@ namespace AuditLogLib
 
                 Thread.Sleep(20);
             }
+        }
+
+        /// <summary>
+        /// Query the AuditEvent table of the context based on query expressions(s) provided by the caller
+        /// </summary>
+        /// <param name="whereClauses"></param>
+        /// <param name="db"></param>
+        /// <param name="orderIsDescending"></param>
+        /// <returns></returns>
+        public async Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> whereClauses, ApplicationDbContext db, bool orderIsDescending)
+        {
+            List<AuditEvent> filteredAuditEvents = new List<AuditEvent>();
+            using (AuditLogDbContext Db = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
+            {
+                IQueryable<AuditEvent> query = Db.AuditEvent;
+                foreach (Expression<Func<AuditEvent, bool>> whereClause in whereClauses)
+                {
+                    query = query.Where(whereClause);
+                }
+
+                query = orderIsDescending
+                    ? query.OrderByDescending(e => e.TimeStampUtc)
+                    : query.OrderBy(e => e.TimeStampUtc);
+
+                filteredAuditEvents = await query.ToListAsync();
+            }
+
+            // Find the first/last names for all event usernames in the event list
+            IEnumerable<string> allUserNames = filteredAuditEvents.Select(e => e.User);
+            IDictionary<string, ActivityEventModel.Names> eventNamesDict = await db.ApplicationUser
+                                                                                   .Where(u => allUserNames.Contains(u.UserName, StringComparer.InvariantCultureIgnoreCase))
+                                                                                   .Select(u => new ActivityEventModel.Names { UserName = u.UserName, LastName = u.LastName, FirstName = u.FirstName })
+                                                                                   .ToDictionaryAsync(u => u.UserName);
+
+            return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, eventNamesDict.ContainsKey(e.User) 
+                                                                                  ? eventNamesDict[e.User] 
+                                                                                  : ActivityEventModel.Names.Empty))
+                                      .ToList();
         }
     }
 }

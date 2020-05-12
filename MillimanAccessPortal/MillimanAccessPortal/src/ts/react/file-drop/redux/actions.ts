@@ -1,5 +1,5 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropsReturnModel,
   FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
@@ -117,6 +117,7 @@ export interface AddUserToPermissionGroup {
   type: 'ADD_USER_TO_PERMISSION_GROUP';
   pgId: Guid;
   userId: Guid;
+  userName?: string;
 }
 
 /** Remove user from Permission Group */
@@ -323,6 +324,27 @@ export interface UpdatePermissionGroupsFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   File Drop events for the last 30 days
+ */
+export interface FetchActivityLog {
+  type: 'FETCH_ACTIVITY_LOG';
+  request: {
+    fileDropId: Guid;
+  };
+}
+/** Action called upon successful return of the FetchActivityLog API call */
+export interface FetchActivityLogSucceeded {
+  type: 'FETCH_ACTIVITY_LOG_SUCCEEDED';
+  response: FileDropEvent[];
+}
+/** Action called upon return of an error from the FetchActivityLog API call */
+export interface FetchActivityLogFailed {
+  type: 'FETCH_ACTIVITY_LOG_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -443,6 +465,7 @@ export type FileDropRequestActions =
   | FetchStatusRefresh
   | FetchSessionCheck
   | UpdatePermissionGroups
+  | FetchActivityLog
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -457,6 +480,7 @@ export type FileDropSuccessResponseActions =
   | FetchStatusRefreshSucceeded
   | FetchSessionCheckSucceeded
   | UpdatePermissionGroupsSucceeded
+  | FetchActivityLogSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -471,6 +495,7 @@ export type FileDropErrorActions =
   | FetchStatusRefreshFailed
   | FetchSessionCheckFailed
   | UpdatePermissionGroupsFailed
+  | FetchActivityLogFailed
   ;
 
 /** Actions that set filter text */

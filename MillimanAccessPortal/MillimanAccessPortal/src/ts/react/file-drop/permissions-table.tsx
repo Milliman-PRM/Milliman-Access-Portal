@@ -28,7 +28,7 @@ interface PermissionsTableProps {
     value: boolean;
   }) => void;
   removePermissionGroup: ({ pgId }: { pgId: Guid }) => void;
-  addUserToPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
+  addUserToPermissionGroup: ({ pgId, userId, userName }: { pgId: Guid; userId: Guid; userName?: string }) => void;
   removeUserFromPermissionGroup: ({ pgId, userId }: { pgId: Guid; userId: Guid }) => void;
   setPermissionGroupNameText: ({ pgId, value }: { pgId: Guid; value: string }) => void;
 }
@@ -143,7 +143,9 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                             onChange={(value, action) => {
                               if (action.action === 'select-option') {
                                 const singleValue = value as { value: string; };
-                                addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value });
+                                const userName = this.props.unassignedEligibleUsers.filter((user) =>
+                                  user.id === singleValue.value)[0].userName;
+                                addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value, userName });
                               }
                             }}
                             controlShouldRenderValue={false}
@@ -329,7 +331,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   )}
                   onChange={(value, action) => {
                     if (action.action === 'select-option') {
-                      const singleValue = value as { value: string; };
+                      const singleValue = value as { value: string };
                       addUserToPermissionGroup({ pgId: thisPG.id, userId: singleValue.value });
                     }
                   }}

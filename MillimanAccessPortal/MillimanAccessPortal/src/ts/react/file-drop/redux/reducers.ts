@@ -5,10 +5,10 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropWithStats, Guid, PermissionGroupsReturnModel } from '../../models';
+import { FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
-import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
+import { Dict, ModalState } from '../../shared-components/redux/store';
 
 // ~~~~~~~~~~~~~~~~~
 // Utility Functions
@@ -33,6 +33,7 @@ const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
   permissionGroups: null,
+  activityLogEvents: [],
 };
 
 const _initialPendingData: State.FileDropPendingReturnState = {
@@ -44,6 +45,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   updateFileDrop: false,
   permissions: false,
   permissionsUpdate: false,
+  activityLog: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -173,6 +175,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     deleteFileDrop: false,
   }),
+  FETCH_ACTIVITY_LOG: (state) => ({
+    ...state,
+    activityLog: true,
+  }),
+  FETCH_ACTIVITY_LOG_SUCCEEDED: (state) => ({
+    ...state,
+    activityLog: false,
+  }),
+  FETCH_ACTIVITY_LOG_FAILED: (state) => ({
+    ...state,
+    activityLog: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -300,12 +314,16 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
       assignedMapUserIds.push(action.userId);
     }
+    const pgName = (state.permissionGroups[action.pgId].isPersonalGroup && action.userName)
+      ? action.userName
+      : state.permissionGroups[action.pgId].name;
     return {
       ...state,
       permissionGroups: {
         ...state.permissionGroups,
         [action.pgId]: {
           ...state.permissionGroups[action.pgId],
+          name: pgName,
           assignedMapUserIds,
         },
       },
@@ -617,6 +635,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ..._.cloneDeep(_initialPermissionGroupsTab),
     },
+    activityLogEvents: [],
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
@@ -629,6 +648,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ...action.response,
     },
+  }),
+  FETCH_ACTIVITY_LOG_SUCCEEDED: (state, action: Action.FetchActivityLogSucceeded) => ({
+    ...state,
+    activityLogEvents: action.response,
   }),
 });
 

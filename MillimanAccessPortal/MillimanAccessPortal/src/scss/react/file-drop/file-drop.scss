@@ -1,0 +1,96 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.admin-panel-content-container {
+    display: flex;
+    flex-flow: column nowrap;
+
+
+    .activity-log-table-header {
+        flex: 0 0 auto;
+    }
+    
+    form {
+        flex: 1 1 auto;
+        display: flex;
+        flex-flow: column nowrap;
+    }
+}
+
+.activity-log-table-header {
+    display: flex;
+    flex-flow: row nowrap;
+    padding: .25em .25em 0;
+    align-items: flex-end;
+
+    .activity-log-header {
+        flex: 1;
+    }
+
+    .download-button {
+        flex: 0 0 auto;
+        padding: .5em 1em !important;
+        font-weight: 400 !important;
+        letter-spacing: .03em;
+        font-size: .875em;
+    }
+}
+
+table {
+    width: 100%;
+
+    thead {
+        border-bottom: 2px solid $charcoal;
+
+        tr th {
+            padding-bottom: .5em;
+        }
+    }
+}
+
+.activity-log-table {
+
+    .event-row {
+        border-top: 1px solid $grey;
+
+        td {
+            padding-top: 1em;
+            padding: .75em;
+            font-size: .875rem;
+        }
+
+
+        &:first-child {
+            margin-top: 0;
+            border-top: none;
+        }
+
+        .username {
+            font-size: .95em;
+            opacity: .85;
+        }
+
+        .date-width {
+            width: 84px;
+        }
+
+        .name-max-width {
+            max-width: 150px;
+            width: auto;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @mixin sentence-case() {
+            text-transform: lowercase;
+
+            &:first-letter {
+                text-transform: uppercase;
+            }
+        }
+
+        .action-text {
+            @include sentence-case();
+        }
+    }
+}

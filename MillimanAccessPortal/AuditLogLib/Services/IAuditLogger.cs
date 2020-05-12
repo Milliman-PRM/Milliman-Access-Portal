@@ -5,6 +5,11 @@
  */
 
 using AuditLogLib.Event;
+using AuditLogLib.Models;
+using MapDbContextLib.Context;
+using System;
+using System.Collections.Generic;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 
 namespace AuditLogLib.Services
@@ -14,5 +19,6 @@ namespace AuditLogLib.Services
         void Log(AuditEvent Event);
         void Log(AuditEvent Event, string UserNameArg);
         void Log(AuditEvent Event, string UserNameArg, string SessionIdArg);
+        Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> filters, ApplicationDbContext db, bool orderDescending);
     }
 }

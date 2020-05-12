@@ -7,6 +7,8 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using CsvHelper;
+using CsvHelper.Configuration;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -21,6 +23,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
+using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Binders;
 using MillimanAccessPortal.DataQueries;
@@ -35,8 +38,10 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -279,6 +284,8 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
         {
+            List<Action> pendingAuditLogActions = new List<Action>();
+
             FileDrop fileDrop = _dbContext.FileDrop
                                           .Include(d => d.Client)
                                           .Include(d => d.SftpAccounts)
@@ -307,20 +314,48 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                List<FileDropFile> files = await _dbContext.FileDropDirectory
-                                                           .Where(d => d.FileDropId == fileDrop.Id)
-                                                           .SelectMany(d => d.Files)
-                                                           .ToListAsync();
-                _dbContext.FileDropFile.RemoveRange(files);
+                foreach (SftpAccount account in _dbContext.SftpAccount
+                                                          .Include(a => a.ApplicationUser)
+                                                          .Include(a => a.FileDropUserPermissionGroup)
+                                                          .Where(a => a.FileDropId == fileDrop.Id))
+                {
+                    if (account.FileDropUserPermissionGroup != null)
+                    {
+                        var rememberGroupInstance = account.FileDropUserPermissionGroup;
+                        pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(account, rememberGroupInstance, fileDrop)));
+                    }
+                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.SftpAccountDeleted.ToEvent(account, fileDrop)));
+                }
+
+                foreach (FileDropUserPermissionGroup group in _dbContext.FileDropUserPermissionGroup
+                                                                        .Where(g => g.FileDropId == fileDrop.Id))
+                {
+                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, group)));
+                }
+
+                foreach (FileDropFile file in _dbContext.FileDropDirectory
+                                                        .Where(d => d.FileDropId == fileDrop.Id)
+                                                        .SelectMany(d => d.Files))
+                {
+                    _dbContext.FileDropFile.RemoveRange(file);
+                    // Audit log file removal?
+                }
+
                 _dbContext.FileDrop.Remove(fileDrop);
+                pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts)));
+
                 _dbContext.SaveChanges();
-                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to complete the request");
                 Response.Headers.Add("Warning", "Failed to complete the request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            foreach (var logAction in pendingAuditLogActions)
+            {
+                logAction();
             }
 
             string fullRootPath = default;
@@ -365,7 +400,7 @@ namespace MillimanAccessPortal.Controllers
             var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
             if (fileDrop == null)
             {
-                Log.Warning($"Requested FileDrop Id {model.FileDropId} not found");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} requested FileDrop Id {model.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -387,15 +422,140 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (ApplicationException ex)
             {
+                Log.Error(ex, "ApplicationException thrown from FileDropQueries.UpdatePermissionGroups");
                 Response.Headers.Add("Warning", ex.Message);
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Error(ex, "Exception thrown from FileDropQueries.UpdatePermissionGroups");
                 Response.Headers.Add("Warning", "Error while processing updates to file drop permissions.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
         }
+
+        [HttpGet]
+        public async Task<IActionResult> ActionLog(Guid fileDropId)
+        {
+            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+
+            #region Validation
+            if (clientId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
+            string idCompareString = $"%{fileDropId}%";
+
+            var filters = new List<Expression<Func<AuditEvent, bool>>>
+            {
+                { e => e.TimeStampUtc > oldestTimestamp},
+                { e => e.EventCode >= 8000 && e.EventCode < 9000 },
+                // TODO When PostgreSQL 12 is deployed create a computed field as text so the EventData string search can be done server side
+                { e => EF.Functions.ILike(e.EventData.ToString(), idCompareString) },
+            };
+
+            List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(filters, _dbContext, true);
+
+            return Json(filteredEvents);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
+        {
+            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+
+            #region Validation
+            if (clientId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            string idCompareString = $"%{fileDropId}%";
+
+            var filters = new List<Expression<Func<AuditEvent, bool>>>
+            {
+                { e => e.EventCode >= 8000 && e.EventCode < 9000 },
+                // TODO When PostgreSQL 12 is deployed create a computed field as text so the EventData string search can be done server side
+                { e => EF.Functions.ILike(e.EventData.ToString(), idCompareString) },
+            };
+
+            List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(filters, _dbContext, true);
+
+            string tempFilePath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), $"{Guid.NewGuid()}.csv");
+            
+            var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
+
+            #region Example: How to disable default quoting/escaping of serialized json.  Excel likes the default but it isn't real json
+            bool doDefaultQuoting = true;
+            if (!doDefaultQuoting)
+            {
+                writerConfig.ShouldQuote = (value, context) =>
+                {
+                    var index = context.Record.Count;
+                    var name = ((PropertyInfo)context.WriterConfiguration.Maps.Find<ActivityEventModel>().MemberMaps[index].Data.Member).Name;
+                    if (name == "EventData")
+                    {
+                        return false;
+                    }
+                    return ConfigurationFunctions.ShouldQuote(value, context);
+                };
+            }
+            #endregion
+
+            using (var stream = new StreamWriter(tempFilePath))
+            using (var csv = new CsvWriter(stream, writerConfig ))
+            {
+                csv.Configuration.RegisterClassMap<ActivityEventCsvMap>();
+                csv.WriteRecords(filteredEvents);
+            }
+
+            return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.UtcNow:s}.csv" };
+        }
+
     }
 
+    /// <summary>
+    /// A modified version of PhysicalFileResult that deletes the file after streaming its contents to the response
+    /// </summary>
+    public class TemporaryPhysicalFileResult : PhysicalFileResult
+    {
+        public TemporaryPhysicalFileResult(string fileName, string contentType)
+                     : base(fileName, contentType) { }
+        public TemporaryPhysicalFileResult(string fileName, MediaTypeHeaderValue contentType)
+                     : base(fileName, contentType) { }
+
+        public override async Task ExecuteResultAsync(ActionContext context)
+        {
+            await base.ExecuteResultAsync(context);
+            File.Delete(FileName);
+        }
+    }
 }
