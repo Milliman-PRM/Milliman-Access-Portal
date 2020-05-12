@@ -538,6 +538,8 @@ docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t f
 
 docker login $acr_url -u $acr_username -p $acr_password
 
+docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp .
+
 docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
 docker push $acr_url/filedropsftp:$TrimmedBranch

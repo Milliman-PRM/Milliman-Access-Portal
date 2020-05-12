@@ -6,4 +6,3 @@ ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 COPY SftpServer/bin/Debug/netcoreapp3.1/* /app/
 
 ENTRYPOINT ["dotnet", "/app/SftpServer.dll"]
-
