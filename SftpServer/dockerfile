@@ -1,7 +1,9 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1-alpine
+FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
+
+ARG ASPNETCORE_ENVIRONMENT=CI
+ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
 COPY SftpServer/bin/Debug/netcoreapp3.1/* /app/
 
-WORKDIR /app
+ENTRYPOINT ["dotnet", "/app/SftpServer.dll"]
 
-ENTRYPOINT ["dotnet", "sftpserver.dll"]

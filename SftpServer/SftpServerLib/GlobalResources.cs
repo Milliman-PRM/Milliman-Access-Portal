@@ -48,9 +48,7 @@ namespace SftpServerLib
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
 
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
-                .AddJsonFile("SftpServerLibSettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"SftpServerLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             #region Add additional environment specific configuration sources
