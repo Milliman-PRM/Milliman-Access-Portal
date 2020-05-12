@@ -137,7 +137,8 @@ $azTenantId = $env:azTenantId
 $azSubscriptionId = $env:azSubscriptionId
 $azClientId = $env:azClientId
 $azClientSecret = $env:AzClientSecret
-$azVaultName = $env:azVaultName
+$azVaultNameFD = $env:azVaultNameFD
+$azVaultNameMAP = $env:azVaultNameMAP
 $thumbprint = 'F83D279246FC2EA3910B44EE199C4D1EB24C029F' # thumbprint of certificate used to authenticate as Service Principal
 
 mkdir -p ${rootPath}\_test_results
@@ -517,24 +518,25 @@ Set-Location $rootpath\SftpServer
 
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $pscredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-$acct = Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId
-Select-AzSubscription "$azSubscriptionId"
+Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
-$acr_url = get-azkeyvaultsecret `
-    -VaultName $azVaultName `
-    -SecretName "acrurl"
+# Get Secrets from the FileDrop Key Vault
+$acr_url = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrurl").SecretValueText
 
-$acr_username = get-azkeyvaultsecret `
-    -VaultName $azVaultName `
-    -SecretName "acruser"
+$acr_username = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acruser").SecretValueText
 
-$acr_password = get-azkeyvaultsecret `
-    -VaultName $azVaultName `
-    -SecretName "acrpass"
+$acr_password = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrpass").SecretValueText
 
-docker build -t filedropsftp .
 
-docker login $acr_url -u $ENV:acr_username -p $ENV:acr_password
+docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp .
+
+docker login $acr_url -u $acr_username -p $acr_password
 
 docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
 
