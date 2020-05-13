@@ -17,41 +17,40 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class FileDropControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
 
-        /// <summary>Initializes test resources.</summary>
-        /// <remarks>This constructor is called before each test.</remarks>
-        public FileDropControllerTests()
+        public FileDropControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
         {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.FileDrop });
+            _dbLifeTimeFixture = dbLifeTimeFixture;
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<FileDropController> GetControllerForUser(string Username)
+        private async Task<FileDropController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             var testController = new FileDropController(
-                TestResources.AuditLoggerObject,
+                TestResources.AuditLogger,
                 TestResources.AuthorizationService,
-                TestResources.MockDbContext.Object,
-                TestResources.FileDropQueriesObject,
-                TestResources.FileSystemTasksObject,
-                TestResources.UserManagerObject,
-                TestResources.ConfigurationObject);
+                TestResources.DbContext,
+                TestResources.FileDropQueries,
+                TestResources.FileSystemTasks,
+                TestResources.UserManager,
+                TestResources.Configuration);
 
             try
             {
-                Username = (await TestResources.UserManagerObject.FindByNameAsync(Username)).UserName;
+                Username = (await TestResources.UserManager.FindByNameAsync(Username)).UserName;
             }
             catch (NullReferenceException)
             {
                 throw new ArgumentException($"Username '{Username}' is not present in the test database.");
             }
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(Username);
+            testController.ControllerContext = TestResources.GenerateControllerContext(Username);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -60,17 +59,20 @@ namespace MapTests
         [Fact]
         public async Task Clients_NotAuthorized()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user8");
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                #endregion
 
-            #region Act
-            var response = await controller.Clients();
-            #endregion
+                #region Act
+                var response = await controller.Clients();
+                #endregion
 
-            #region Assert
-            var result = Assert.IsType<UnauthorizedResult>(response);
-            #endregion
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(response);
+                #endregion
+            }
         }
 
         [Theory]
@@ -83,17 +85,20 @@ namespace MapTests
         [InlineData("user7")]
         public async Task Clients_Authorized(string userName)
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser(userName);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                #endregion
 
-            #region Act
-            var response = await controller.Clients();
-            #endregion
+                #region Act
+                var response = await controller.Clients();
+                #endregion
 
-            #region Assert
-            Assert.IsNotType<UnauthorizedResult>(response);
-            #endregion
+                #region Assert
+                Assert.IsNotType<UnauthorizedResult>(response);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -114,21 +119,24 @@ namespace MapTests
         [InlineData("user7", 1, 1, 0)] // 1-both, 2-both
         public async Task Clients_CorrectResponse(string userName, int numClient1, int numClient2, int numClient3)
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser(userName);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                #endregion
 
-            #region Act
-            var response = await controller.Clients();
-            #endregion
+                #region Act
+                var response = await controller.Clients();
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(response);
-            ClientsModel model = Assert.IsType<ClientsModel>(result.Value);
-            Assert.Equal(numClient1, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(1)).Count());
-            Assert.Equal(numClient2, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(2)).Count());
-            Assert.Equal(numClient3, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(3)).Count());
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(response);
+                ClientsModel model = Assert.IsType<ClientsModel>(result.Value);
+                Assert.Equal(numClient1, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(1)).Count());
+                Assert.Equal(numClient2, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(2)).Count());
+                Assert.Equal(numClient3, model.Clients.Values.Where(c => c.Id == TestUtil.MakeTestGuid(3)).Count());
+                #endregion
+            }
         }
 
         [Theory]
@@ -136,97 +144,109 @@ namespace MapTests
         [InlineData("user2")] // user only
         public async Task Create_Unauthorized(string userName)
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser(userName);
-            FileDrop model = new FileDrop
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
-                ClientId = TestUtil.MakeTestGuid(1),
-                Name = "Test FileDrop",
-                Description = null,
-            };
-            #endregion
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                FileDrop model = new FileDrop
+                {
+                    ClientId = TestUtil.MakeTestGuid(1),
+                    Name = "Test FileDrop",
+                    Description = null,
+                };
+                #endregion
 
-            #region Act
-            var result = await controller.CreateFileDrop(model);
-            #endregion
+                #region Act
+                var result = await controller.CreateFileDrop(model);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(result);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task Create_Success()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user1");
-            FileDrop model = new FileDrop
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
-                ClientId = TestUtil.MakeTestGuid(1),
-                Name = "Test FileDrop",
-                Description = null,
-            };
-            #endregion
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
+                FileDrop model = new FileDrop
+                {
+                    ClientId = TestUtil.MakeTestGuid(1),
+                    Name = "Test FileDrop",
+                    Description = null,
+                };
+                #endregion
 
-            #region Act
-            var result = await controller.CreateFileDrop(model);
-            #endregion
+                #region Act
+                var result = await controller.CreateFileDrop(model);
+                #endregion
 
-            #region Assert
-            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
-            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
-            Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
+                #region Assert
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+                Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
 
-            FileDropCardModel insertedFileDrop = returnModel.FileDrops.Single(d => d.Value.Name == model.Name).Value;
+                FileDropCardModel insertedFileDrop = returnModel.FileDrops.Single(d => d.Value.Name == model.Name).Value;
 
-            Assert.Equal(model.Description, insertedFileDrop.Description);
-            Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
-            Assert.Equal(model.ClientId, insertedFileDrop.ClientId);
-            Assert.NotNull(returnModel.CurrentFileDropId);
-            Assert.Equal(insertedFileDrop.Id, returnModel.CurrentFileDropId);
-            #endregion
+                Assert.Equal(model.Description, insertedFileDrop.Description);
+                Assert.Equal(model.ClientId, returnModel.ClientCard.Id);
+                Assert.Equal(model.ClientId, insertedFileDrop.ClientId);
+                Assert.NotNull(returnModel.CurrentFileDropId);
+                Assert.Equal(insertedFileDrop.Id, returnModel.CurrentFileDropId);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task Delete_Unauthorized()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user8");
-            Guid fileDropIdToDelete = TestUtil.MakeTestGuid(3);
-            bool ExistsAtStart = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                Guid fileDropIdToDelete = TestUtil.MakeTestGuid(3);
+                bool ExistsAtStart = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+                #endregion
 
-            #region Act
-            var result = await controller.DeleteFileDrop(fileDropIdToDelete);
-            #endregion
+                #region Act
+                var result = await controller.DeleteFileDrop(fileDropIdToDelete);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(result);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task Delete_Success()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user1");
-            Guid fileDropIdToDelete = TestUtil.MakeTestGuid(1);
-            bool ExistsAtStart = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
+                Guid fileDropIdToDelete = TestUtil.MakeTestGuid(1);
+                bool ExistsAtStart = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+                #endregion
 
-            #region Act
-            var result = await controller.DeleteFileDrop(fileDropIdToDelete);
-            #endregion
+                #region Act
+                var result = await controller.DeleteFileDrop(fileDropIdToDelete);
+                #endregion
 
-            #region Assert
-            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
-            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
-            Assert.Empty(returnModel.FileDrops.Where(d => d.Key == fileDropIdToDelete));
-            bool ExistsAtEnd = TestResources.DbContextObject.FileDrop.Any(d => d.Id == fileDropIdToDelete);
-            Assert.True(ExistsAtStart);
-            Assert.False(ExistsAtEnd);
-            Assert.Null(returnModel.CurrentFileDropId);
-            #endregion
+                #region Assert
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+                Assert.Empty(returnModel.FileDrops.Where(d => d.Key == fileDropIdToDelete));
+                bool ExistsAtEnd = TestResources.DbContext.FileDrop.Any(d => d.Id == fileDropIdToDelete);
+                Assert.True(ExistsAtStart);
+                Assert.False(ExistsAtEnd);
+                Assert.Equal(fileDropIdToDelete, returnModel.CurrentFileDropId);
+                #endregion
+            }
         }
 
         [Theory]
@@ -234,108 +254,120 @@ namespace MapTests
         [InlineData("user2")] // user only
         public async Task Update_Unauthorized(string userName)
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser(userName);
-            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
-            FileDrop newFileDrop = new FileDrop
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
-                Id = fileDrop.Id,
-                Name = "This name is modified",
-                Description = "This description is modified",
-                RootPath = fileDrop.RootPath,
-                IsSuspended = fileDrop.IsSuspended,
-                SftpAccounts = fileDrop.SftpAccounts,
-                ClientId = fileDrop.ClientId,
-                Client = fileDrop.Client,
-            };
-            #endregion
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+                FileDrop newFileDrop = new FileDrop
+                {
+                    Id = fileDrop.Id,
+                    Name = "This name is modified",
+                    Description = "This description is modified",
+                    RootPath = fileDrop.RootPath,
+                    IsSuspended = fileDrop.IsSuspended,
+                    SftpAccounts = fileDrop.SftpAccounts,
+                    ClientId = fileDrop.ClientId,
+                    Client = fileDrop.Client,
+                };
+                #endregion
 
-            #region Act
-            var result = await controller.UpdateFileDrop(newFileDrop);
-            #endregion
+                #region Act
+                var result = await controller.UpdateFileDrop(newFileDrop);
+                #endregion
 
-            #region Assert
-            Assert.IsType<UnauthorizedResult>(result);
-            #endregion
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(result);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task Update_Success()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user1");
-            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
-            FileDrop newFileDrop = new FileDrop
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
             {
-                Id = fileDrop.Id,
-                Name = "This name is modified",
-                Description = "This description is modified",
-                RootPath = fileDrop.RootPath,
-                IsSuspended = fileDrop.IsSuspended,
-                SftpAccounts = fileDrop.SftpAccounts,
-                ClientId = fileDrop.ClientId,
-                Client = fileDrop.Client,
-            };
-            #endregion
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
+                FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+                FileDrop newFileDrop = new FileDrop
+                {
+                    Id = fileDrop.Id,
+                    Name = "This name is modified",
+                    Description = "This description is modified",
+                    RootPath = fileDrop.RootPath,
+                    IsSuspended = fileDrop.IsSuspended,
+                    SftpAccounts = fileDrop.SftpAccounts,
+                    ClientId = fileDrop.ClientId,
+                    Client = fileDrop.Client,
+                };
+                #endregion
 
-            #region Act
-            var result = await controller.UpdateFileDrop(newFileDrop);
-            #endregion
+                #region Act
+                var result = await controller.UpdateFileDrop(newFileDrop);
+                #endregion
 
-            #region Assert
-            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
-            FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
-            Assert.Equal("This name is modified", returnModel.FileDrops[fileDrop.Id].Name);
-            Assert.Equal("This description is modified", returnModel.FileDrops[fileDrop.Id].Description);
-            Assert.Equal(TestUtil.MakeTestGuid(1), returnModel.ClientCard.Id);
-            Assert.Equal(1, returnModel.ClientCard.FileDropCount);
-            Assert.NotNull(returnModel.CurrentFileDropId);
-            Assert.Equal(newFileDrop.Id, returnModel.CurrentFileDropId);
-            #endregion
+                #region Assert
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                FileDropsModel returnModel = Assert.IsType<FileDropsModel>(jsonResult.Value);
+                Assert.Equal("This name is modified", returnModel.FileDrops[fileDrop.Id].Name);
+                Assert.Equal("This description is modified", returnModel.FileDrops[fileDrop.Id].Description);
+                Assert.Equal(TestUtil.MakeTestGuid(1), returnModel.ClientCard.Id);
+                Assert.Equal(1, returnModel.ClientCard.FileDropCount);
+                Assert.NotNull(returnModel.CurrentFileDropId);
+                Assert.Equal(newFileDrop.Id, returnModel.CurrentFileDropId);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task PermissionGroups_Success()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user1");
-            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user1");
+                FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+                #endregion
 
-            #region Act
-            var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
-            #endregion
+                #region Act
+                var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
+                #endregion
 
-            #region Assert
-            JsonResult jsonResult = Assert.IsType<JsonResult>(result);
-            PermissionGroupsModel returnModel = Assert.IsType<PermissionGroupsModel>(jsonResult.Value);
-            Assert.Equal(fileDrop.Id, returnModel.FileDropId);
-            Assert.Equal(3, returnModel.EligibleUsers.Count);
-            Assert.Contains(TestUtil.MakeTestGuid(2), returnModel.EligibleUsers.Keys);
-            Assert.Contains(TestUtil.MakeTestGuid(6), returnModel.EligibleUsers.Keys);
-            Assert.Contains(TestUtil.MakeTestGuid(7), returnModel.EligibleUsers.Keys);
-            Assert.Equal(3, returnModel.PermissionGroups.Count);
-            Assert.Contains(TestUtil.MakeTestGuid(1), returnModel.PermissionGroups.Keys);
-            Assert.Contains(TestUtil.MakeTestGuid(3), returnModel.PermissionGroups.Keys);
-            Assert.Contains(TestUtil.MakeTestGuid(5), returnModel.PermissionGroups.Keys);
-            #endregion
+                #region Assert
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                PermissionGroupsModel returnModel = Assert.IsType<PermissionGroupsModel>(jsonResult.Value);
+                Assert.Equal(fileDrop.Id, returnModel.FileDropId);
+                Assert.Equal(3, returnModel.EligibleUsers.Count);
+                Assert.Contains(TestUtil.MakeTestGuid(2), returnModel.EligibleUsers.Keys);
+                Assert.Contains(TestUtil.MakeTestGuid(6), returnModel.EligibleUsers.Keys);
+                Assert.Contains(TestUtil.MakeTestGuid(7), returnModel.EligibleUsers.Keys);
+                Assert.Equal(3, returnModel.PermissionGroups.Count);
+                Assert.Contains(TestUtil.MakeTestGuid(1), returnModel.PermissionGroups.Keys);
+                Assert.Contains(TestUtil.MakeTestGuid(3), returnModel.PermissionGroups.Keys);
+                Assert.Contains(TestUtil.MakeTestGuid(5), returnModel.PermissionGroups.Keys);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task PermissionGroups_Unauthorized()
         {
-            #region Arrange
-            FileDropController controller = await GetControllerForUser("user8");
-            FileDrop fileDrop = TestResources.DbContextObject.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                FileDrop fileDrop = TestResources.DbContext.FileDrop.Single(d => d.Id == TestUtil.MakeTestGuid(1));
+                #endregion
 
-            #region Act
-            var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
-            #endregion
+                #region Act
+                var result = await controller.PermissionGroups(fileDrop.Id, fileDrop.ClientId);
+                #endregion
 
-            #region Assert
-            UnauthorizedResult jsonResult = Assert.IsType<UnauthorizedResult>(result);
-            #endregion
+                #region Assert
+                UnauthorizedResult jsonResult = Assert.IsType<UnauthorizedResult>(result);
+                #endregion
+            }
         }
     }
 }

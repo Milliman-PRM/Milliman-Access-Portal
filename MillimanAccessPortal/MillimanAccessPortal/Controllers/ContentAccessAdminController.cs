@@ -100,7 +100,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentAccessAdminPageGlobalModel model = _accessAdminQueries.BuildAccessAdminPageGlobalModel();
+            ContentAccessAdminPageGlobalModel model = await _accessAdminQueries.BuildAccessAdminPageGlobalModelAsync();
 
             return Json(model);
         }
@@ -122,7 +122,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await UserManager.GetUserAsync(User);
-            var clients = _accessAdminQueries.GetAuthorizedClientsModel(currentUser);
+            var clients = await _accessAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
             return Json(clients);
         }
@@ -145,7 +145,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var currentUser = await UserManager.GetUserAsync(User);
-            var contentItems = _accessAdminQueries.SelectContentItems(currentUser, clientId);
+            var contentItems = await _accessAdminQueries.SelectContentItemsAsync(currentUser, clientId);
 
             return Json(contentItems);
         }
@@ -167,7 +167,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = _accessAdminQueries.SelectSelectionGroups(contentItemId);
+            var selectionGroups = await _accessAdminQueries.SelectSelectionGroupsAsync(contentItemId);
 
             return Json(selectionGroups);
         }
@@ -179,10 +179,10 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> Selections([EmitBeforeAfterLog] Guid groupId)
         {
-            Guid contentItemId = DbContext.SelectionGroup
-                .Where(g => g.Id == groupId)
-                .Select(g => g.RootContentItemId)
-                .SingleOrDefault();
+            Guid contentItemId = await DbContext.SelectionGroup
+                                                .Where(g => g.Id == groupId)
+                                                .Select(g => g.RootContentItemId)
+                                                .SingleOrDefaultAsync();
 
             #region Authorization
             var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = _accessAdminQueries.SelectSelections(groupId);
+            var selections = await _accessAdminQueries.SelectSelectionsAsync(groupId);
 
             return Json(selections);
         }
@@ -206,11 +206,10 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="contentItemId">Content item to whom reductions should belong</param>
         [HttpGet]
         [PreventAuthRefresh]
-        public async Task<IActionResult> Status(
-            [EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
+        public async Task<IActionResult> Status([EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
             var currentUser = await UserManager.GetUserAsync(User);
-            var status = _accessAdminQueries.SelectStatus(currentUser, clientId, contentItemId);
+            var status = await _accessAdminQueries.SelectStatusAsync(currentUser, clientId, contentItemId);
 
             return Json(status);
         }
@@ -222,11 +221,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateGroup([FromBody] CreateGroupRequestModel model)
         {
-            var contentItem = DbContext.RootContentItem
-                .Where(i => i.Id == model.ContentItemId)
-                .Include(i => i.Client)
-                .Include(i => i.ContentType)
-                .SingleOrDefault();
+            var contentItem = await DbContext.RootContentItem
+                                             .Include(i => i.Client)
+                                             .Include(i => i.ContentType)
+                                             .SingleOrDefaultAsync(i => i.Id == model.ContentItemId);
 
             #region Authorization
             var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, model.ContentItemId));
@@ -240,10 +238,10 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == contentItem.Id)
-                .Where(r => r.RequestStatus.IsActive())
-                .Any();
+            bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
+                                                              .Where(r => r.RootContentItemId == contentItem.Id)
+                                                              .Where(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus))
+                                                              .AnyAsync();
             if (blockedByPendingPublication)
             {
                 Response.Headers.Add("Warning",
@@ -265,13 +263,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var selectionGroups = contentItem.DoesReduce
-                ? _accessAdminQueries.CreateReducingGroup(model.ContentItemId, model.Name)
-                : _accessAdminQueries.CreateMasterGroup(model.ContentItemId, model.Name);
+                ? await _accessAdminQueries.CreateReducingGroupAsync(model.ContentItemId, model.Name)
+                : await _accessAdminQueries.CreateMasterGroupAsync(model.ContentItemId, model.Name);
 
             return Json(selectionGroups);
         }
 
         private static object updateGroupLockObj = new object();
+        private static SemaphoreSlim updateGroupSemaphore = new SemaphoreSlim(1, 1);
         /// <summary>
         /// POST an update to a selection group
         /// </summary>
@@ -279,12 +278,12 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateGroup([FromBody] UpdateGroupRequestModel model)
         {
-            (Guid contentItemId, Guid clientId) = DbContext.SelectionGroup
-                .Where(g => g.Id == model.GroupId)
-                .Select(g => g.RootContentItem)
-                .ToList()
-                .ConvertAll(r => (r.Id, r.ClientId))
-                .SingleOrDefault();
+            (Guid contentItemId, Guid clientId) = (await DbContext.SelectionGroup
+                                                                  .Where(g => g.Id == model.GroupId)
+                                                                  .Select(g => g.RootContentItem)
+                                                                  .ToListAsync())
+                                                .ConvertAll(r => (r.Id, r.ClientId))
+                                                .SingleOrDefault();
 
             #region Authorization
             var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
@@ -296,45 +295,55 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            lock (updateGroupLockObj)
+            UpdateGroupResponseModel responseModel = default;
+
+            bool semaphoreAcquired = await updateGroupSemaphore.WaitAsync(TimeSpan.FromSeconds(15));
+            if (semaphoreAcquired)
             {
-                #region Validation
-                int accountsExistCount = DbContext.ApplicationUser.Count(u => model.Users.Contains(u.Id));
-                if (accountsExistCount < model.Users.Count)
+                try
                 {
-                    Response.Headers.Add("Warning", "One or more requested users do not exist in the system.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
+                    #region Validation
+                    int accountsExistCount = DbContext.ApplicationUser.Count(u => model.Users.Contains(u.Id));
+                    if (accountsExistCount < model.Users.Count)
+                    {
+                        Response.Headers.Add("Warning", "One or more requested users do not exist in the system.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
 
-                int hasClientContentRoleCount = DbContext.UserRoleInClient
-                    .Where(r => model.Users.Contains(r.UserId))
-                    .Where(r => r.ClientId == clientId)
-                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
-                    .Count();
-                if (hasClientContentRoleCount < model.Users.Count)
+                    int hasClientContentRoleCount = DbContext.UserRoleInClient
+                        .Where(r => model.Users.Contains(r.UserId))
+                        .Where(r => r.ClientId == clientId)
+                        .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                        .Count();
+                    if (hasClientContentRoleCount < model.Users.Count)
+                    {
+                        Response.Headers.Add("Warning",
+                            "One or more requested users do not have permission to view content of this client.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+
+                    bool anyAlreadyInAnotherGroup = DbContext.UserInSelectionGroup
+                        .Where(u => model.Users.Contains(u.UserId))
+                        .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
+                        .Where(u => u.SelectionGroupId != model.GroupId)
+                        .Any();
+                    if (anyAlreadyInAnotherGroup)
+                    {
+                        Response.Headers.Add("Warning",
+                            "One or more requested users are curently in a different selection group for the same content.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    #endregion
+
+                    responseModel = await _accessAdminQueries.UpdateGroupAsync(model.GroupId, model.Name, model.Users);
+                }
+                finally
                 {
-                    Response.Headers.Add("Warning",
-                        "One or more requested users do not have permission to view content of this client.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    updateGroupSemaphore.Release();
                 }
-
-                bool anyAlreadyInAnotherGroup = DbContext.UserInSelectionGroup
-                    .Where(u => model.Users.Contains(u.UserId))
-                    .Where(u => u.SelectionGroup.RootContentItemId == contentItemId)
-                    .Where(u => u.SelectionGroupId != model.GroupId)
-                    .Any();
-                if (anyAlreadyInAnotherGroup)
-                {
-                    Response.Headers.Add("Warning",
-                        "One or more requested users are curently in a different selection group for the same content.");
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
-                }
-                #endregion
-
-                var group = _accessAdminQueries.UpdateGroup(model.GroupId, model.Name, model.Users);
-
-                return Json(group);
             }
+
+            return Json(responseModel);
         }
 
         /// <summary>
@@ -344,7 +353,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuspendGroup([FromBody] SuspendGroupRequestModel model)
         {
-            SelectionGroup sg = DbContext.SelectionGroup.SingleOrDefault(g => g.Id == model.GroupId);
+            SelectionGroup sg = await DbContext.SelectionGroup.SingleOrDefaultAsync(g => g.Id == model.GroupId);
             if (sg == null)
             {
                 Response.Headers.Add("Warning", "The requested selection group was not found.");
@@ -363,7 +372,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var group = _accessAdminQueries.SetGroupSuspended(model.GroupId, model.IsSuspended);
+            var group = await _accessAdminQueries.SetGroupSuspendedAsync(model.GroupId, model.IsSuspended);
 
             return Json(group);
         }
@@ -375,10 +384,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteGroup([FromBody] DeleteGroupRequestModel model)
         {
-            var selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(rci => rci.ContentType)
-                .SingleOrDefault(sg => sg.Id == model.GroupId);
+            var selectionGroup = await DbContext.SelectionGroup
+                                                .Include(sg => sg.RootContentItem)
+                                                    .ThenInclude(rci => rci.ContentType)
+                                                .SingleOrDefaultAsync(sg => sg.Id == model.GroupId);
 
             #region Authorization
             var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup?.RootContentItemId));
@@ -392,9 +401,9 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the SelectionGroup has a pending reduction
-            bool blockedByPendingReduction = DbContext.ContentReductionTask
-                .Where(r => r.SelectionGroupId == selectionGroup.Id)
-                .Any(r => ReductionStatusExtensions.activeStatusList.Contains(r.ReductionStatus));
+            bool blockedByPendingReduction = await DbContext.ContentReductionTask
+                                                            .Where(r => r.SelectionGroupId == selectionGroup.Id)
+                                                            .AnyAsync(r => ReductionStatusExtensions.activeStatusList.Contains(r.ReductionStatus));
             if (blockedByPendingReduction)
             {
                 Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting because a pending reduction exists for this selection group {selectionGroup.Id}");
@@ -403,9 +412,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // reject this request if the related RootContentItem has a pending publication request
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
-                .Any(r => r.RequestStatus.IsActive());
+            bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
+                                                              .Where(r => r.RootContentItemId == selectionGroup.RootContentItemId)
+                                                              .AnyAsync(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus));
             if (blockedByPendingPublication)
             {
                 Log.Information($"Action {ControllerContext.ActionDescriptor.DisplayName} aborting for selection group {selectionGroup.Id} because an active publication request exists for related content itme {selectionGroup.RootContentItemId}");
@@ -414,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroupModel = _accessAdminQueries.DeleteGroup(model.GroupId);
+            var selectionGroupModel = await _accessAdminQueries.DeleteGroupAsync(model.GroupId);
 
             #region file cleanup
             // ContentType specific handling after successful transaction
@@ -480,19 +489,18 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CancelReduction([FromBody] CancelReductionRequestModel model)
         {
-            return await CancelReduction(model.GroupId);
+            return await CancelReductionAsync(model.GroupId);
         }
 
         [NonAction]
         internal async Task<IActionResult> UpdateSelectionsAsync(Guid selectionGroupId, bool isMaster, IEnumerable<Guid> selections)
         {
-            var selectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(c => c.ContentType)
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(c => c.Client)
-                .Where(sg => sg.Id == selectionGroupId)
-                .SingleOrDefault();
+            var selectionGroup = await DbContext.SelectionGroup
+                                                .Include(sg => sg.RootContentItem)
+                                                    .ThenInclude(c => c.ContentType)
+                                                .Include(sg => sg.RootContentItem)
+                                                    .ThenInclude(c => c.Client)
+                                                .SingleOrDefaultAsync(sg => sg.Id == selectionGroupId);
 
             #region Preliminary validation
             if (selectionGroup == null)
@@ -514,16 +522,16 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ContentReductionTask liveTask = DbContext.ContentReductionTask
-                                                     .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
-                                                     .Where(t => t.MasterContentHierarchyObj != null)
-                                                     .FirstOrDefault(t => t.ReductionStatus == ReductionStatusEnum.Live);
+            ContentReductionTask liveTask = await DbContext.ContentReductionTask
+                                                           .Where(t => t.SelectionGroup.RootContentItemId == selectionGroup.RootContentItemId)
+                                                           .Where(t => t.MasterContentHierarchy != null)
+                                                           .FirstOrDefaultAsync(t => t.ReductionStatus == ReductionStatusEnum.Live);
 
             #region Validation
             // reject this request if the RootContentItem has a pending publication request
-            bool blockedByPendingPublication = DbContext.ContentPublicationRequest
-                .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
-                .Any(pr => pr.RequestStatus.IsActive());
+            bool blockedByPendingPublication = await DbContext.ContentPublicationRequest
+                                                              .Where(pr => pr.RootContentItemId == selectionGroup.RootContentItem.Id)
+                                                              .AnyAsync(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus));
             if (blockedByPendingPublication)
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked by pending publication, aborting");
@@ -539,12 +547,12 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // There should always be 1 live publication but this query is designed to tolerate error conditions
-            var currentLivePublication = DbContext.ContentPublicationRequest
-                .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
-                .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
-                .OrderBy(request => request.CreateDateTimeUtc)
-                .Take(1)
-                .SingleOrDefault();
+            var currentLivePublication = await DbContext.ContentPublicationRequest
+                                                        .Where(request => request.RootContentItemId == selectionGroup.RootContentItemId)
+                                                        .Where(request => request.RequestStatus == PublicationStatus.Confirmed)
+                                                        .OrderBy(request => request.CreateDateTimeUtc)
+                                                        .Take(1)
+                                                        .SingleOrDefaultAsync();
             if (currentLivePublication == null)
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: invoked for selection group {selectionGroupId} with non-live content item {selectionGroup.RootContentItemId}, aborting");
@@ -557,7 +565,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(task => task.SelectionGroupId == selectionGroup.Id)
                 .Where(task => task.CreateDateTimeUtc > currentLivePublication.CreateDateTimeUtc)
                 .Where(task => ReductionStatusExtensions.activeStatusList.Contains(task.ReductionStatus));
-            if (pendingReductions.Any())
+            if (await pendingReductions.AnyAsync())
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: selection group {selectionGroupId} blocked due to pending reduction (id {string.Join(",", pendingReductions.Select(t => t.Id))}), aborting");
                 Response.Headers.Add("Warning", "An unresolved publication or selection change prevents this action.");
@@ -584,10 +592,10 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 // The requested selections must be valid for the content item
-                int validSelectionCount = DbContext.HierarchyFieldValue
-                                                   .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
-                                                   .Where(hfv => selections.Contains(hfv.Id))
-                                                   .Count();
+                int validSelectionCount = await DbContext.HierarchyFieldValue
+                                                         .Where(hfv => hfv.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
+                                                         .Where(hfv => selections.Contains(hfv.Id))
+                                                         .CountAsync();
                 if (validSelectionCount < selections.Count())
                 {
                     Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} using invalid selection value(s), aborting");
@@ -612,7 +620,7 @@ namespace MillimanAccessPortal.Controllers
             if (LiveMasterFile == null 
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
-                Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile.FullPath} for the content item {selectionGroup.RootContentItemId} is not found");
+                Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -624,15 +632,15 @@ namespace MillimanAccessPortal.Controllers
             if (isMaster)
             {
                 selectionGroup.IsMaster = true;
-                selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
+                selectionGroup.SelectedHierarchyFieldValueList = new List<Guid>();
                 selectionGroup.SetContentUrl(Path.GetFileName(LiveMasterFile.FullPath));
 
                 // Reset disclaimer acceptance
-                var usersInGroup = DbContext.UserInSelectionGroup
-                                            .Include(usg => usg.User)
-                                            .Include(usg => usg.SelectionGroup)
-                                            .Where(u => u.SelectionGroupId == selectionGroupId)
-                                            .ToList();
+                var usersInGroup = await DbContext.UserInSelectionGroup
+                                                  .Include(usg => usg.User)
+                                                  .Include(usg => usg.SelectionGroup)
+                                                  .Where(u => u.SelectionGroupId == selectionGroupId)
+                                                  .ToListAsync();
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
 
                 DateTime taskTime = DateTime.UtcNow;
@@ -664,13 +672,13 @@ namespace MillimanAccessPortal.Controllers
                 });
 
                 // set live reduction to replaced
-                var liveReductionTasks = DbContext.ContentReductionTask
-                    .Where(t => t.SelectionGroupId == selectionGroup.Id)
-                    .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
-                    .ToList();
+                var liveReductionTasks = await DbContext.ContentReductionTask
+                                                        .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                                                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                                                        .ToListAsync();
                 liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
 
-                DbContext.SaveChanges();
+                await DbContext.SaveChangesAsync();
 
                 AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
@@ -702,17 +710,17 @@ namespace MillimanAccessPortal.Controllers
 
                     // Update selection group fields
                     selectionGroup.IsMaster = false;
-                    selectionGroup.SelectedHierarchyFieldValueList = new Guid[0];
+                    selectionGroup.SelectedHierarchyFieldValueList = new List<Guid>();
                     selectionGroup.ContentInstanceUrl = null;
 
                     // set live reduction to replaced
-                    var liveReductionTasks = DbContext.ContentReductionTask
-                        .Where(t => t.SelectionGroupId == selectionGroup.Id)
-                        .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
-                        .ToList();
+                    var liveReductionTasks = await DbContext.ContentReductionTask
+                                                            .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                                                            .Where(t => t.ReductionStatus == ReductionStatusEnum.Live)
+                                                            .ToListAsync();
                     liveReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Replaced);
 
-                    DbContext.SaveChanges();
+                    await DbContext.SaveChangesAsync();
 
                     Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} with no selections, cannot be processed, aborting");
                 }
@@ -733,13 +741,13 @@ namespace MillimanAccessPortal.Controllers
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,
                         ContentPublicationRequest = null,
-                        SelectionCriteriaObj = ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(DbContext, selectionGroupId, selections),
+                        SelectionCriteriaObj = await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(DbContext, selectionGroupId, selections),
                         ReductionStatus = ReductionStatusEnum.Validating,
                         CreateDateTimeUtc = DateTime.UtcNow,
                         TaskAction = TaskActionEnum.HierarchyAndReduction,
                     };
                     DbContext.ContentReductionTask.Add(contentReductionTask);
-                    DbContext.SaveChanges();
+                    await DbContext.SaveChangesAsync();
 
                     string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
 
@@ -769,7 +777,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            var model = _accessAdminQueries.GetUpdateSelectionsModel(selectionGroupId, isMaster, selections.ToList());
+            var model = await _accessAdminQueries.GetUpdateSelectionsModelAsync(selectionGroupId, isMaster, selections.ToList());
 
             Log.Debug($"ContentAccessAdminController.UpdateSelections: succeeded for selection group {selectionGroupId}");
 
@@ -777,13 +785,12 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private async Task<IActionResult> CancelReduction(Guid SelectionGroupId)
+        private async Task<IActionResult> CancelReductionAsync(Guid SelectionGroupId)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup
-                .Include(sg => sg.RootContentItem)
-                    .ThenInclude(c => c.Client)
-                .Where(sg => sg.Id == SelectionGroupId)
-                .SingleOrDefault();
+            SelectionGroup SelectionGroup = await DbContext.SelectionGroup
+                                                           .Include(sg => sg.RootContentItem)
+                                                               .ThenInclude(c => c.Client)
+                                                           .SingleOrDefaultAsync(sg => sg.Id == SelectionGroupId);
 
             #region Preliminary validation
             if (SelectionGroup == null)
@@ -807,10 +814,10 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             var CancelableTasks = DbContext.ContentReductionTask
-                .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
-                .Where(crt => ReductionStatusExtensions.cancelableStatusList.Contains(crt.ReductionStatus))
-                .Where(crt => crt.ContentPublicationRequestId == null);
-            if (CancelableTasks.Count() == 0)
+                                           .Where(crt => crt.SelectionGroupId == SelectionGroup.Id)
+                                           .Where(crt => ReductionStatusExtensions.cancelableStatusList.Contains(crt.ReductionStatus))
+                                           .Where(crt => crt.ContentPublicationRequestId == null);
+            if (await CancelableTasks.CountAsync() == 0)
             {
                 Log.Warning($"In ContentAccessAdminController.CancelReduction: no cancelable tasks for requested selection group {SelectionGroupId}, aborting");
                 Response.Headers.Add("Warning", "There are no cancelable tasks for this content item.");
@@ -825,7 +832,7 @@ namespace MillimanAccessPortal.Controllers
                 Task.ReductionStatus = ReductionStatusEnum.Canceled;
                 UpdatedTasks.Add(Task);
             }
-            DbContext.SaveChanges();
+            await DbContext.SaveChangesAsync();
 
             Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
@@ -833,7 +840,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
             }
 
-            var model = _accessAdminQueries.GetCanceledSingleReductionModel(SelectionGroupId);
+            var model = await _accessAdminQueries.GetCanceledSingleReductionModelAsync(SelectionGroupId);
 
             return Json(model);
         }

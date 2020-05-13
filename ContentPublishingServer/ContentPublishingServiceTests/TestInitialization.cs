@@ -1,31 +1,82 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Reusable initialization features for all tests
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib.Services;
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.IO;
 using System.Collections.Generic;
-using System.Linq;
-using Moq;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
 using TestResourcesLib;
-using Newtonsoft.Json;
 
 namespace ContentPublishingServiceTests
 {
-    class InitializeTests
+    internal class TestInitialization
     {
-        public static Mock<ApplicationDbContext> InitializeWithUnspecifiedStatus(Mock<ApplicationDbContext> Db)
+        internal ApplicationDbContext DbContext { get; set; }
+        internal IAuditLogger AuditLogger { get; set; }
+        private ConfigurationRoot _configuration { get; set; }
+
+        public TestInitialization(string connectionString, ConfigurationRoot configuration)
         {
-            #region Initialize ContentType
-            Db.Object.ContentType.Add(new ContentType
+            DbContext = CreateDbContext(connectionString);
+            _configuration = configuration;
+
+            AuditLogger = MockAuditLogger.New().Object;
+
+            ClearAllData();
+            InitializeWithUnspecifiedStatus();
+        }
+
+        private void InitializeWithUnspecifiedStatus()
+        {
+            #region Initialize ApplicationUser
+            DbContext.ApplicationUser.Add(new ApplicationUser
             {
                 Id = TestUtil.MakeTestGuid(1),
-                Name = "Qlikview",
+                UserName = "user1",
+            });
+            #endregion
+
+            #region Initialize ContentType
+            DbContext.ContentType.Add(new ContentType
+            {
+                Id = TestUtil.MakeTestGuid(1),
+                FileExtensions = new List<string> { "qvw" },
                 CanReduce = true,
                 TypeEnum = ContentTypeEnum.Qlikview,
+                DefaultIconName = "QlikView_Icon.png",
+            });
+            #endregion
+
+            #region Initialize ProfitCenter
+            DbContext.ProfitCenter.Add(new ProfitCenter
+            {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Name = "ProfitCenter 1",
+            });
+            #endregion
+
+            #region Initialize Client
+            DbContext.Client.Add(new Client
+            {
+                Id = TestUtil.MakeTestGuid(1),
+                Name = "Client 1",
+                AcceptedEmailDomainList = new List<string>(),
+                AcceptedEmailAddressExceptionList = new List<string>(),
+                DomainListCountLimit = 3,
+                ProfitCenterId = TestUtil.MakeTestGuid(1),
             });
             #endregion
 
             #region Initialize RootContentItem
-            Db.Object.RootContentItem.AddRange(
+            DbContext.RootContentItem.AddRange(
                 new List<RootContentItem>
                 {
                     new RootContentItem
@@ -73,12 +124,10 @@ namespace ContentPublishingServiceTests
                         Description = "For use with multiple SelectionGroup",
                     },
                 });
-            MockDbSet<RootContentItem>.AssignNavigationProperty(Db.Object.RootContentItem, "ContentTypeId", Db.Object.ContentType);
-            Directory.CreateDirectory(@"\\indy-qlikview.milliman.com\testing\ContentRoot");
             #endregion
 
             #region Initialize HierarchyField
-            Db.Object.HierarchyField.AddRange(
+            DbContext.HierarchyField.AddRange(
                 new List<HierarchyField>
                 {
                     // RootContentItem 3
@@ -91,11 +140,10 @@ namespace ContentPublishingServiceTests
                     new HierarchyField { Id = TestUtil.MakeTestGuid(5), RootContentItemId = TestUtil.MakeTestGuid(4), StructureType = FieldStructureType.Flat, FieldName = "Assigned Provider Clinic (Hier)", FieldDisplayName = "Assigned Provider Clinic (Hier)", },
                     new HierarchyField { Id = TestUtil.MakeTestGuid(6), RootContentItemId = TestUtil.MakeTestGuid(4), StructureType = FieldStructureType.Flat, FieldName = "Assigned Provider (Hier)", FieldDisplayName = "Assigned Provider (Hier)", },
                 });
-            MockDbSet<HierarchyField>.AssignNavigationProperty(Db.Object.HierarchyField, "RootContentItemId", Db.Object.RootContentItem);
             #endregion
 
             #region Initialize HierarchyFieldValue
-            Db.Object.HierarchyFieldValue.AddRange(
+            DbContext.HierarchyFieldValue.AddRange(
                 new List<HierarchyFieldValue>
                 {
                     // RootContentItem 3
@@ -225,34 +273,34 @@ namespace ContentPublishingServiceTests
                     new HierarchyFieldValue { Id = TestUtil.MakeTestGuid(122), HierarchyFieldId = TestUtil.MakeTestGuid(6), Value = "Assigned Provider (Hier) 4199", },
                     new HierarchyFieldValue { Id = TestUtil.MakeTestGuid(123), HierarchyFieldId = TestUtil.MakeTestGuid(6), Value = "Assigned Provider (Hier) 0093", },
                     new HierarchyFieldValue { Id = TestUtil.MakeTestGuid(124), HierarchyFieldId = TestUtil.MakeTestGuid(6), Value = "Assigned Provider (Hier) 4137", },
-
                 });
-            MockDbSet<HierarchyFieldValue>.AssignNavigationProperty(Db.Object.HierarchyFieldValue, "HierarchyFieldId", Db.Object.HierarchyField);
             #endregion
 
             #region Initialize SelectionGroup
-            Db.Object.SelectionGroup.AddRange(new List<SelectionGroup>
+            DbContext.SelectionGroup.AddRange(new List<SelectionGroup>
             {
                 new SelectionGroup
                 {
                     Id = TestUtil.MakeTestGuid(1),
+                    GroupName = "Group 1",
                     RootContentItemId = TestUtil.MakeTestGuid(1),
                     IsMaster = true,
                 },
                 new SelectionGroup
                 {
                     Id = TestUtil.MakeTestGuid(2),
+                    GroupName = "Group 2",
                     RootContentItemId = TestUtil.MakeTestGuid(4),
-                    SelectedHierarchyFieldValueList = new Guid[] {TestUtil.MakeTestGuid(13), TestUtil.MakeTestGuid(16), },  // "Assigned Provider Clinic (Hier) 0434" and "Assigned Provider Clinic (Hier) 0871"
+                    SelectedHierarchyFieldValueList = new List<Guid> {TestUtil.MakeTestGuid(13), TestUtil.MakeTestGuid(16), },  // "Assigned Provider Clinic (Hier) 0434" and "Assigned Provider Clinic (Hier) 0871"
                 },
                 new SelectionGroup
                 {
                     Id = TestUtil.MakeTestGuid(3),
+                    GroupName = "Group 3",
                     RootContentItemId = TestUtil.MakeTestGuid(4),
-                    SelectedHierarchyFieldValueList = new Guid[] { TestUtil.MakeTestGuid(12), TestUtil.MakeTestGuid(14), },  // "Assigned Provider Clinic (Hier) 7252" and "Assigned Provider Clinic (Hier) 7291"
+                    SelectedHierarchyFieldValueList = new List<Guid> { TestUtil.MakeTestGuid(12), TestUtil.MakeTestGuid(14), },  // "Assigned Provider Clinic (Hier) 7252" and "Assigned Provider Clinic (Hier) 7291"
                 },
             });
-            MockDbSet<SelectionGroup>.AssignNavigationProperty<RootContentItem>(Db.Object.SelectionGroup, "RootContentItemId", Db.Object.RootContentItem);
             #endregion
 
             #region Initialize ContentReductionTask
@@ -286,17 +334,17 @@ namespace ContentPublishingServiceTests
                     }
                 }
             };
-            // Valid reducable task
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            // Valid reducible task
+            DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(1),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine( _configuration.GetValue<string>("Storage:SampleData"), "Test1", @"CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
                 SelectionCriteriaObj = ValidSelectionsObject,
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -324,16 +372,16 @@ namespace ContentPublishingServiceTests
                 }
             };
             // Invalid field value
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(2),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine( _configuration.GetValue<string>("Storage:SampleData"), "Test1", @"CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
                 SelectionCriteriaObj = InvalidFieldValueObject,
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> OneValidAndOneInvalidFieldValueObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -378,16 +426,16 @@ namespace ContentPublishingServiceTests
                 }
             };
             // One Valid, one invalid field value
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(3),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
                 SelectionCriteriaObj = OneValidAndOneInvalidFieldValueObject,
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
             });
 
             ContentReductionHierarchy<ReductionFieldValueSelection> InvalidFieldNameObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
@@ -415,19 +463,17 @@ namespace ContentPublishingServiceTests
                 }
             };
             // Invalid field name
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(4),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
                 SelectionCriteriaObj = InvalidFieldNameObject,
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
             });
-
-            MockDbSet<ContentReductionTask>.AssignNavigationProperty<SelectionGroup>(Db.Object.ContentReductionTask, "SelectionGroupId", Db.Object.SelectionGroup);
 
             var veryLongValidSelectionsObject = new ContentReductionHierarchy<ReductionFieldValueSelection>
             {
@@ -4303,24 +4349,23 @@ namespace ContentPublishingServiceTests
                 },
             };
 
-            Db.Object.ContentReductionTask.Add(new ContentReductionTask
+            DbContext.ContentReductionTask.Add(new ContentReductionTask
             {
-                Id = TestUtil.MakeTestGuid(5),
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview.milliman.com\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "Care_Coordinator_Report.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "0756809FC22CB3429D9960611E68AE8131691AB0",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
                 SelectionCriteriaObj = veryLongValidSelectionsObject,
+                ApplicationUserId = TestUtil.MakeTestGuid(1),
             });
-
 
             #endregion
 
             #region Initialize ContentPublicationRequest
             // Valid request
-            Db.Object.ContentPublicationRequest.Add(
+            DbContext.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {
                     Id = TestUtil.MakeTestGuid(1),
@@ -4332,7 +4377,7 @@ namespace ContentPublishingServiceTests
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 });
 
-            Db.Object.ContentPublicationRequest.Add(
+            DbContext.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {
                     Id = TestUtil.MakeTestGuid(2),
@@ -4344,7 +4389,7 @@ namespace ContentPublishingServiceTests
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 });
 
-            Db.Object.ContentPublicationRequest.Add(
+            DbContext.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {
                     Id = TestUtil.MakeTestGuid(3),
@@ -4356,7 +4401,7 @@ namespace ContentPublishingServiceTests
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 });
 
-            Db.Object.ContentPublicationRequest.Add(
+            DbContext.ContentPublicationRequest.Add(
                 new ContentPublicationRequest
                 {
                     Id = TestUtil.MakeTestGuid(4),
@@ -4367,12 +4412,50 @@ namespace ContentPublishingServiceTests
                     ReductionRelatedFilesObj = new List<ReductionRelatedFiles>(),
                     LiveReadyFilesObj = new List<ContentRelatedFile>(),
                 });
-
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "RootContentItemId", Db.Object.RootContentItem);
-            MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(Db.Object.ContentPublicationRequest, "ApplicationUserId", Db.Object.ApplicationUser);
             #endregion
 
-            return Db;
+            DbContext.SaveChanges();
+        }
+
+        private void ClearAllData()
+        {
+            DbContext.RoleClaims.RemoveRange(DbContext.RoleClaims);
+            DbContext.ApplicationRole.RemoveRange(DbContext.ApplicationRole);
+            DbContext.UserClaims.RemoveRange(DbContext.UserClaims);
+            DbContext.UserLogins.RemoveRange(DbContext.UserLogins);
+            DbContext.UserRoles.RemoveRange(DbContext.UserRoles);
+            DbContext.UserTokens.RemoveRange(DbContext.UserTokens);
+            DbContext.ApplicationUser.RemoveRange(DbContext.ApplicationUser);
+            DbContext.AuthenticationScheme.RemoveRange(DbContext.AuthenticationScheme);
+            DbContext.Client.RemoveRange(DbContext.Client);
+            DbContext.ContentPublicationRequest.RemoveRange(DbContext.ContentPublicationRequest);
+            DbContext.ContentReductionTask.RemoveRange(DbContext.ContentReductionTask);
+            DbContext.ContentType.RemoveRange(DbContext.ContentType);
+            DbContext.FileDrop.RemoveRange(DbContext.FileDrop);
+            DbContext.FileDropDirectory.RemoveRange(DbContext.FileDropDirectory);
+            DbContext.FileDropFile.RemoveRange(DbContext.FileDropFile);
+            DbContext.FileDropUserPermissionGroup.RemoveRange(DbContext.FileDropUserPermissionGroup);
+            DbContext.FileUpload.RemoveRange(DbContext.FileUpload);
+            DbContext.HierarchyField.RemoveRange(DbContext.HierarchyField);
+            DbContext.HierarchyFieldValue.RemoveRange(DbContext.HierarchyFieldValue);
+            DbContext.NameValueConfiguration.RemoveRange(DbContext.NameValueConfiguration);
+            DbContext.ProfitCenter.RemoveRange(DbContext.ProfitCenter);
+            DbContext.RootContentItem.RemoveRange(DbContext.RootContentItem);
+            DbContext.SelectionGroup.RemoveRange(DbContext.SelectionGroup);
+            DbContext.SftpAccount.RemoveRange(DbContext.SftpAccount);
+            DbContext.UserInSelectionGroup.RemoveRange(DbContext.UserInSelectionGroup);
+            DbContext.UserRoleInClient.RemoveRange(DbContext.UserRoleInClient);
+            DbContext.UserRoleInProfitCenter.RemoveRange(DbContext.UserRoleInProfitCenter);
+            DbContext.UserRoleInRootContentItem.RemoveRange(DbContext.UserRoleInRootContentItem);
+            DbContext.SaveChanges();
+        }
+
+        internal ApplicationDbContext CreateDbContext(string connectionString)
+        {
+            var dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>()
+                                    .UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6))
+                                    .Options;
+            return new ApplicationDbContext(dbOptions);
         }
     }
 }

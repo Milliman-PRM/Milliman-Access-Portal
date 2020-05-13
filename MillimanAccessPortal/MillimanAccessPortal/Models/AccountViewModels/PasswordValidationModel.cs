@@ -7,8 +7,8 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 {
     public class PasswordValidationModel
     {
-        public bool Valid;
+        public bool Valid { get; set; }
 
-        public List<string> Messages;
+        public List<string> Messages { get; set; }
     }
 }

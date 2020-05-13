@@ -107,12 +107,12 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
+                .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
-                .Include(u => u.User)
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Include(usg => usg.User)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -185,12 +185,12 @@ namespace MillimanAccessPortal.Controllers
         {
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
-                .Include(u => u.SelectionGroup)
+                .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
-                .Include(u => u.User)
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Include(usg => usg.User)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
 
             if (!userInSelectionGroup.DisclaimerAccepted)
@@ -215,8 +215,8 @@ namespace MillimanAccessPortal.Controllers
 
             var user = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = DataContext.UserInSelectionGroup
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroupId == selectionGroupId)
+                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefault();
             var selectionGroup = DataContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
@@ -336,7 +336,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Instantiate the right content handler class
                 ContentTypeSpecificApiBase ContentSpecificHandler = null;
-                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action, content type is <{selectionGroup.RootContentItem.ContentType.Name}>");
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action, content type is <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>");
                 switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                 {   // Never break out of this switch without a valid ContentSpecificHandler object
                     case ContentTypeEnum.Qlikview:
@@ -370,8 +370,8 @@ namespace MillimanAccessPortal.Controllers
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     default:
-                        Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.Name}>, aborting");
-                        return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.Name}"));
+                        Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
+                        return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}"));
                 }
 
             }
@@ -385,13 +385,13 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Display the preview report for the identified publication request
         /// </summary>
-        /// <param name="request">A ContentPublicationRequest Id, used to display pre-approved content</param>
+        /// <param name="requestId">A ContentPublicationRequest Id, used to display pre-approved content</param>
         /// <returns></returns>
-        public async Task<IActionResult> PowerBiPreview(Guid request)
+        public async Task<IActionResult> PowerBiPreview(Guid requestId)
         {
             #region Authorization
             var PubRequest = DataContext.ContentPublicationRequest
-                                        .FirstOrDefault(r => r.Id == request);
+                                        .FirstOrDefault(r => r.Id == requestId);
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
                 User, null, new RoleInRootContentItemRequirement(
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
@@ -406,11 +406,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItem contentItem = DataContext.ContentPublicationRequest
-                                                     .Where(r => r.Id == request)
+            RootContentItem contentItem = await DataContext.ContentPublicationRequest
+                                                     .Include(r => r.RootContentItem)
+                                                        .ThenInclude(c => c.ContentType)
+                                                     .Where(r => r.Id == requestId)
                                                      .Select(r => r.RootContentItem)
-                                                     .Include(i => i.ContentType)
-                                                     .SingleOrDefault();
+                                                     .SingleOrDefaultAsync();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
@@ -448,9 +449,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             RootContentItem contentItem = DataContext.SelectionGroup
+                                                     .Include(g => g.RootContentItem)
+                                                         .ThenInclude(i => i.ContentType)
                                                      .Where(g => g.Id == group)
                                                      .Select(g => g.RootContentItem)
-                                                     .Include(i => i.ContentType)
                                                      .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
@@ -665,7 +667,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     // when a content item thumbnail file is specified but the file is not found, return the default image for the ContentType
-                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{rootContentItem.ContentType.DefaultIconName}> for content type <{rootContentItem.ContentType.Name}>, aborting");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{rootContentItem.ContentType.DefaultIconName}> for content type <{rootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
                     return Redirect($"/images/{rootContentItem.ContentType.DefaultIconName}");
                 }
             }
@@ -728,7 +730,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     // when the content item has no thumbnail, return the default image for the ContentType
-                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.Name}>, aborting");
+                    Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: specified image file <{contentRelatedThumbnail.FullPath}> not found, using default icon <{PubRequest.RootContentItem.ContentType.DefaultIconName}> for content type <{PubRequest.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
                     return Redirect($"/images/{PubRequest.RootContentItem.ContentType.DefaultIconName}");
                 }
             }

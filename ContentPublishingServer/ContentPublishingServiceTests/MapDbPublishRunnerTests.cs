@@ -4,26 +4,38 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using ContentPublishingLib;
+using ContentPublishingLib.JobMonitors;
+using ContentPublishingLib.JobRunners;
+using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using MapDbContextLib.Context;
-using ContentPublishingLib.JobMonitors;
-using ContentPublishingLib.JobRunners;
 using TestResourcesLib;
-using MapCommonLib.ContentTypeSpecific;
-using MapDbContextLib.Models;
-using Moq;
-using Newtonsoft.Json;
 using Xunit;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbPublishRunnerTests : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
+    public class MapDbPublishRunnerTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
+
+        public MapDbPublishRunnerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
+        }
+
         /// <summary>
         /// Tests that a pub request for a content item with DoesReduce == false and 1 
         /// master selection group, succeeds and creates no reduction related artifacts
@@ -36,25 +48,23 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(1);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(1);
 
-            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to content folder
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "IHopeSo.pdf"),
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the task to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == TestUtil.MakeTestGuid(1));
             DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
             {
                 new ContentRelatedFile
@@ -72,15 +82,17 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
+            TestResources.DbContext.SaveChanges();
+
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
                 JobDetail = PublishJobDetail.New(DbRequest),
-                MockContext = MockContext,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);           
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)));  // check before
+            Assert.Equal(1, TestResources.DbContext.SelectionGroup.Count(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)));  // check before
             #endregion
 
             #region Act
@@ -102,9 +114,9 @@ namespace ContentPublishingServiceTests
             Assert.Equal(string.Empty, TaskResult.StatusMessage);
             Assert.NotNull(TaskResult.ResultingRelatedFiles);
             Assert.Empty(TaskResult.ResultingRelatedFiles);
-            Assert.Equal(1, MockContext.Object.SelectionGroup.Count(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)));  // check after
-            Assert.True(MockContext.Object.SelectionGroup.Single(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)).IsMaster);
-            Assert.Empty(MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id));
+            Assert.Equal(1, TestResources.DbContext.SelectionGroup.Count(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)));  // check after
+            Assert.True(TestResources.DbContext.SelectionGroup.Single(g => g.RootContentItemId == TestUtil.MakeTestGuid(1)).IsMaster);
+            Assert.Empty(TestResources.DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id));
             #endregion
         }
 
@@ -120,25 +132,24 @@ namespace ContentPublishingServiceTests
             Guid ContentItemIdOfThisTest = TestUtil.MakeTestGuid(2);
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(2);
 
-            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to content folder
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "IHopeSo.pdf"),
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
 
             // Modify the task to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
             DbRequest.LiveReadyFilesObj = new List<ContentRelatedFile>
             {
                 new ContentRelatedFile
@@ -165,13 +176,13 @@ namespace ContentPublishingServiceTests
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
                 JobDetail = PublishJobDetail.New(DbRequest),
-                MockContext = MockContext,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-            Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId));  // check before
+            Assert.Empty(TestResources.DbContext.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId));  // check before
             #endregion
 
             #region Act
@@ -179,7 +190,7 @@ namespace ContentPublishingServiceTests
             PublishJobDetail JobDetail = await MonitorTask;
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
-            List<SelectionGroup> AllSelGroups = MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId).ToList();
+            List<SelectionGroup> AllSelGroups = TestResources.DbContext.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId).ToList();
             #endregion
 
             #region Assert
@@ -196,7 +207,7 @@ namespace ContentPublishingServiceTests
             Assert.Empty(TaskResult.ResultingRelatedFiles);
             Assert.Single(AllSelGroups);
             Assert.True(AllSelGroups.Single().IsMaster);
-            Assert.Empty(MockContext.Object.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id));
+            Assert.Empty(TestResources.DbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == DbRequest.Id));
             #endregion
         }
 
@@ -208,8 +219,8 @@ namespace ContentPublishingServiceTests
             Guid PubRequestIdOfThisTest = TestUtil.MakeTestGuid(3);
             Guid RequestGuid = Guid.NewGuid();
 
-            string ProposedRequestExchangeFolder = $@"\\indy-qlikview.milliman.com\testing\MapPublishingServerExchange\{RequestGuid}\";
-            string ContentFolder = $@"\\indy-qlikview.milliman.com\testing\ContentRoot\{ContentItemIdOfThisTest}";
+            string ProposedRequestExchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), RequestGuid.ToString());
+            string ContentFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:ContentItemRootPath"), ContentItemIdOfThisTest.ToString());
             string MasterContentFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("MasterContent", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".qvw");
             string UserGuideFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName("UserGuide", PubRequestIdOfThisTest, ContentItemIdOfThisTest, ".pdf");
 
@@ -217,21 +228,19 @@ namespace ContentPublishingServiceTests
             Directory.CreateDirectory(ContentFolder);
 
             // Copy master content to exchange and content folders
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ProposedRequestExchangeFolder, MasterContentFileName),
                       true);
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\CCR_0273ZDM_New_Reduction_Script.qvw",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "CCR_0273ZDM_New_Reduction_Script.qvw"),
                       Path.Combine(ContentFolder, MasterContentFileName),
                       true);
             // Copy related file to content folder
-            File.Copy(@"\\indy-qlikview.milliman.com\testing\Sample Data\IHopeSo.pdf",
+            File.Copy(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), "IHopeSo.pdf"),
                       Path.Combine(ContentFolder, UserGuideFileName),
                       true);
 
-            Mock<ApplicationDbContext> MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-
             // Modify the request to be tested
-            ContentPublicationRequest DbRequest = MockContext.Object.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
+            ContentPublicationRequest DbRequest = TestResources.DbContext.ContentPublicationRequest.Single(t => t.Id == PubRequestIdOfThisTest);
             DbRequest.ReductionRelatedFilesObj = new List<ReductionRelatedFiles>
             {
                 new ReductionRelatedFiles
@@ -262,24 +271,25 @@ namespace ContentPublishingServiceTests
             };
             DbRequest.RequestStatus = PublicationStatus.Queued;
 
+            TestResources.DbContext.SaveChanges();
 
             MapDbPublishRunner TestRunner = new MapDbPublishRunner
             {
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
                 JobDetail = PublishJobDetail.New(DbRequest),
-                MockContext = MockContext,
             };
-            TestRunner.SetTestAuditLogger(MockAuditLogger.New().Object);
+            TestRunner.SetTestAuditLogger(TestResources.AuditLogger);
 
-            MapDbReductionJobMonitor ReductionMonitor = new MapDbReductionJobMonitor
+            MapDbReductionJobMonitor ReductionMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
             {
-                MockContext = MockContext,
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
-            Assert.Empty(MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId));  // check before
+            Assert.Empty(TestResources.DbContext.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId));  // check before
 
-            Task TaskMonitorTask = ReductionMonitor.Start(CancelTokenSource.Token);
+            Task TaskMonitorTask = ReductionMonitor.StartAsync(CancelTokenSource.Token);
             #endregion
 
             #region Act
@@ -290,7 +300,7 @@ namespace ContentPublishingServiceTests
 
             var TaskResult = JobDetail.Result;
             var TaskRequest = JobDetail.Request;
-            List<SelectionGroup> AllSelGroups = MockContext.Object.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId).ToList();
+            List<SelectionGroup> AllSelGroups = TestResources.DbContext.SelectionGroup.Where(g => g.RootContentItemId == DbRequest.RootContentItemId).ToList();
             #endregion
 
             #region Assert
@@ -314,6 +324,11 @@ namespace ContentPublishingServiceTests
             finally
             {
                 Directory.Delete(ProposedRequestExchangeFolder, true);
+                try
+                {
+                    await TaskMonitorTask;
+                }
+                catch {}
             }
             #endregion
         }

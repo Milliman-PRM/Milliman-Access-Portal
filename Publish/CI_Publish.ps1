@@ -114,8 +114,8 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
-$core3="C:\Program Files\dotnet\sdk\3.1.102\Sdks"
-$env:MSBuildSDKsPath=$core2
+$core3="C:\Program Files\dotnet\sdk\3.1.201\Sdks"
+$env:MSBuildSDKsPath=$core3
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -200,8 +200,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
-$env:MSBuildSDKsPath=$core2
-
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
@@ -246,6 +244,7 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+$env:MSBuildSDKsPath=$core2
 Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
@@ -259,9 +258,8 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-Set-Location "$rootPath\SftpServer"
-
 $env:MSBuildSDKsPath=$core3
+Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
@@ -273,9 +271,6 @@ if ($LASTEXITCODE -ne 0)
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
-
-# Set SDK path back to core 2.2
-$env:MSBuildSDKsPath=$core2
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
@@ -416,7 +411,7 @@ Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destinatio
 
 Set-Location $webBuildTarget
 
-$webVersion = get-childitem "MillimanAccessPortal.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$webVersion = get-childitem "MillimanAccessPortal.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $webVersion = "$webVersion-$branchName"
 
 octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
@@ -436,7 +431,7 @@ log_statement "Packaging publication server"
 
 Set-Location $serviceBuildTarget
 
-$serviceVersion = get-childitem "ContentPublishingService.exe" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$serviceVersion = get-childitem "ContentPublishingService.exe" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
 $serviceVersion = "$serviceVersion-$branchName"
 
 octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
@@ -487,7 +482,7 @@ log_statement "Packaging MAP Query Admin"
 
 Set-Location $queryAppBuildTarget
 
-$queryVersion = get-childitem "MapQueryAdminWeb.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$queryVersion = get-childitem "MapQueryAdminWeb.dll" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
 $queryVersion = "$queryVersion-$branchName"
 
 octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
