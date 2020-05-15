@@ -405,7 +405,7 @@ namespace SftpServerLib
 
             IpWorksSftpServer._connections[evtData.ConnectionId] = newConnection;
 
-            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now.ToString("u")}");
+            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now:u}");
         }
 
         //[Description("Fires when a client needs to get file information.")]
@@ -663,7 +663,7 @@ namespace SftpServerLib
                         return;
                     }
 
-                    if (!userAccount.IsSuspended)
+                    if (userAccount.IsSuspended)
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> is suspended");
@@ -672,7 +672,7 @@ namespace SftpServerLib
                     }
 
                     int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
-                    if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc < TimeSpan.FromDays(sftpPasswordExpirationDays))
+                    if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc > TimeSpan.FromDays(sftpPasswordExpirationDays))
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");

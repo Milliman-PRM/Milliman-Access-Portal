@@ -1145,9 +1145,7 @@ namespace AuditLogLib.Event
                     account?.Id,
                     account?.UserName,
                     account?.IsSuspended,
-                    PasswordResetDateTimeUtc = account != null 
-                                             ? account.PasswordResetDateTimeUtc.ToString("u") 
-                                             : null,
+                    PasswordResetDateTimeUtc = account?.PasswordResetDateTimeUtc.ToString("u"),
                 },
                 Reason = reason.GetDisplayDescriptionString(),
             });
