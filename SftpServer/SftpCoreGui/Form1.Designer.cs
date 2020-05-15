@@ -49,7 +49,7 @@
             this.btnStartStop.TabIndex = 0;
             this.btnStartStop.Text = "Start";
             this.btnStartStop.UseVisualStyleBackColor = true;
-            this.btnStartStop.Click += new System.EventHandler(this.btnStartStop_Click);
+            this.btnStartStop.Click += new System.EventHandler(this.BtnStartStop_Click);
             // 
             // groupBox1
             // 
@@ -81,7 +81,7 @@
             this.buttonStorePassword.TabIndex = 2;
             this.buttonStorePassword.Text = "Store Password";
             this.buttonStorePassword.UseVisualStyleBackColor = true;
-            this.buttonStorePassword.Click += new System.EventHandler(this.buttonStorePassword_Click);
+            this.buttonStorePassword.Click += new System.EventHandler(this.ButtonStorePassword_Click);
             // 
             // label2
             // 
@@ -100,7 +100,7 @@
             this.buttonVerifyPassword.TabIndex = 2;
             this.buttonVerifyPassword.Text = "Verify Password";
             this.buttonVerifyPassword.UseVisualStyleBackColor = true;
-            this.buttonVerifyPassword.Click += new System.EventHandler(this.buttonVerifyPassword_Click);
+            this.buttonVerifyPassword.Click += new System.EventHandler(this.ButtonVerifyPassword_Click);
             // 
             // label1
             // 
@@ -134,7 +134,7 @@
             this.buttonReportServerState.TabIndex = 3;
             this.buttonReportServerState.Text = "Report SSH Key Fingerprint";
             this.buttonReportServerState.UseVisualStyleBackColor = true;
-            this.buttonReportServerState.Click += new System.EventHandler(this.buttonReportReportServerState_Click);
+            this.buttonReportServerState.Click += new System.EventHandler(this.ButtonReportReportServerState_Click);
             // 
             // Form1
             // 
