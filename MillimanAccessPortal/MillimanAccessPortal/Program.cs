@@ -124,9 +124,10 @@ namespace MillimanAccessPortal
         //public static IWebHost RunTimeBuildWebHost(string[] args)
         public static IHost RunTimeBuildHost(string[] args)
         {
-            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
+                                  ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
-            var host = Host.CreateDefaultBuilder()
+            var hostBuilder = Host.CreateDefaultBuilder()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.ConfigureKestrel(serverOptions =>
@@ -137,32 +138,15 @@ namespace MillimanAccessPortal
                     .ConfigureLogging((hostingContext, config) => config.ClearProviders());  // remove ASP default logger
                 });
 
-            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper) &&
+            if (new List<string> { "Development", "Staging" }.Contains(EnvironmentName, StringComparer.InvariantCultureIgnoreCase) &&
                 Environment.GetEnvironmentVariable("SUPPRESS_MAP_WEBHOST_LOGGING") == null)
             {
                 // includes highly detailed .NET logging to the Serilog sinks
-                host = host.UseSerilog();
+                hostBuilder = hostBuilder.UseSerilog();
             }
 
-            return host.Build();
-
-            /*
-            var webHost = 
-            WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .ConfigureAppConfiguration((hostContext, config) => SetApplicationConfiguration(hostContext.HostingEnvironment.EnvironmentName, config))
-            .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove ASP default logger
-            ;
-
-            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper) &&
-                Environment.GetEnvironmentVariable("SUPPRESS_MAP_WEBHOST_LOGGING") == null)
-            {
-                // includes highly detailed .NET logging to the Serilog sinks
-                webHost = webHost.UseSerilog();
-            }
-
-            return webHost.Build();
-            */
+            var host = hostBuilder.Build();
+            return host;
         }
 
         internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)
