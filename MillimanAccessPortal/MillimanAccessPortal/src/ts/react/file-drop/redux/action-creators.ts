@@ -146,6 +146,10 @@ export const fetchSettings =
 export const generateNewSftpPassword =
   createRequestActionCreator<Action.GenerateNewSftpPassword>('GENERATE_NEW_SFTP_PASSWORD');
 
+/** Set a File Drop notification setting */
+export const setFileDropNotificationSetting =
+  createRequestActionCreator<Action.SetFileDropNotificationSetting>('SET_FILE_DROP_NOTIFICATION_SETTING');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~

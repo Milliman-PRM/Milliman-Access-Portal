@@ -12,7 +12,12 @@ import * as State from './redux/store';
 
 import { generateUniqueId } from '../../generate-unique-identifier';
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropEvent, FileDropWithStats, PermissionGroupsChangesModel,
+  AvailableEligibleUsers,
+  FileDropClientWithStats,
+  FileDropEvent,
+  FileDropNotificationTypeEnum,
+  FileDropWithStats,
+  PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -935,6 +940,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         <td>{fileDrops.filter((x) => x.id === fileDrop)[0].name}</td>
                       </tr>
                       <tr>
+                        <td><strong>Protocol:</strong></td>
+                        <td>SFTP - SSH File Transfer Protocol</td>
+                      </tr>
+                      <tr>
                         <td><strong>Host:</strong></td>
                         <td>{fileDropSettings.sftpHost}</td>
                       </tr>
@@ -966,8 +975,20 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 <FormSection title="Notification Settings">
                   <Toggle
                     label="Upload"
-                    checked={true}
-                    onClick={() => false}
+                    checked={
+                      fileDropSettings.notifications.filter((x) =>
+                        x.notificationType === FileDropNotificationTypeEnum.FileWritten,
+                      )[0].isEnabled
+                    }
+                    onClick={() => this.props.setFileDropNotificationSetting({
+                      fileDropId: fileDrop,
+                      notifications: [{
+                        notificationType: FileDropNotificationTypeEnum.FileWritten,
+                        isEnabled: !fileDropSettings.notifications.filter((x) =>
+                          x.notificationType === FileDropNotificationTypeEnum.FileWritten,
+                        )[0].isEnabled,
+                      }],
+                    })}
                   />
                 </ FormSection>
               </>

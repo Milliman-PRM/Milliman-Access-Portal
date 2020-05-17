@@ -592,7 +592,11 @@ export interface FileDropSettings {
   fingerprint: string;
   isPasswordExpired: boolean;
   isSuspended: boolean;
-  notifications: string[];
+  notifications: Array<{
+    notificationType: FileDropNotificationTypeEnum;
+    isEnabled: boolean;
+    canModify: boolean;
+  }>;
   sftpHost: string;
   sftpPort: string;
   sftpUserName: string;
@@ -601,4 +605,8 @@ export interface FileDropSettings {
     userName: string;
     password: string;
   };
+}
+
+export enum FileDropNotificationTypeEnum {
+  FileWritten = 0,
 }

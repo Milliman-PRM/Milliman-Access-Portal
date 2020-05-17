@@ -1,6 +1,7 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropsReturnModel,
-  FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropNotificationTypeEnum,
+  FileDropSettings, FileDropsReturnModel, FileDropWithStats, Guid,
+  PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -388,6 +389,31 @@ export interface GenerateNewSftpPasswordFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Set the specified File Drop notification setting
+ */
+export interface SetFileDropNotificationSetting {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING';
+  request: {
+    fileDropId: Guid;
+    notifications: {
+      notificationType: FileDropNotificationTypeEnum;
+      isEnabled: boolean;
+    }[];
+  };
+}
+/** Action called upon successful return of the SetFileDropNotificationSetting API call */
+export interface SetFileDropNotificationSettingSucceeded {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING_SUCCEEDED';
+  response: FileDropSettings;
+}
+/** Action called upon return of an error from the SetFileDropNotificationSetting API call */
+export interface SetFileDropNotificationSettingFailed {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -511,6 +537,7 @@ export type FileDropRequestActions =
   | FetchActivityLog
   | FetchSettings
   | GenerateNewSftpPassword
+  | SetFileDropNotificationSetting
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -528,6 +555,7 @@ export type FileDropSuccessResponseActions =
   | FetchActivityLogSucceeded
   | FetchSettingsSucceeded
   | GenerateNewSftpPasswordSucceeded
+  | SetFileDropNotificationSettingSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -545,6 +573,7 @@ export type FileDropErrorActions =
   | FetchActivityLogFailed
   | FetchSettingsFailed
   | GenerateNewSftpPasswordFailed
+  | SetFileDropNotificationSettingFailed
   ;
 
 /** Actions that set filter text */

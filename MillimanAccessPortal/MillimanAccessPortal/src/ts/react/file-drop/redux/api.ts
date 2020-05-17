@@ -61,6 +61,11 @@ export const generateNewSftpPassword =
   createJsonRequestor<FileDropAction.GenerateNewSftpPassword, FileDropAction.GenerateNewSftpPasswordSucceeded>
     ('POST', '/FileDrop/GenerateSftpAccountCredentials');
 
+export const setFileDropNotificationSetting =
+  createJsonRequestor<
+    FileDropAction.SetFileDropNotificationSetting, FileDropAction.SetFileDropNotificationSettingSucceeded
+  >('POST', '/FileDrop/UpdateAccountSettings');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~
