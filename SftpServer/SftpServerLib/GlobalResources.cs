@@ -63,7 +63,7 @@ namespace SftpServerLib
                         .AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
                         .Build();
 
-                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, vaultConfig["AzureCertificateThumbprint"], false);
 
@@ -83,7 +83,7 @@ namespace SftpServerLib
                     CfgBuilder.AddUserSecrets(Assembly.GetEntryAssembly());
                     break;
 
-                default: // Unsupported environment name	
+                default: // Unsupported environment name
                     throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Configuration.cs");
 
             }
