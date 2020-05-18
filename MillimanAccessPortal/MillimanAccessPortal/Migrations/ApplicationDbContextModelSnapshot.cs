@@ -19,6 +19,7 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder
                 .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
                 .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
+                .HasAnnotation("Npgsql:Enum:file_drop_notification_type", "file_write,file_read,file_delete")
                 .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
                 .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,warning,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")

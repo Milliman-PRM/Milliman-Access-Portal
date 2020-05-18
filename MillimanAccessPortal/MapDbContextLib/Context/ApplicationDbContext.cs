@@ -56,6 +56,7 @@ namespace MapDbContextLib.Context
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<FileDropNotificationType>();
         }
             
 
@@ -74,6 +75,7 @@ namespace MapDbContextLib.Context
             builder.HasPostgresEnum<PublicationStatus>();
             builder.HasPostgresEnum<ReductionStatusEnum>();
             builder.HasPostgresEnum<ContentTypeEnum>();
+            builder.HasPostgresEnum<FileDropNotificationType>();
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
             builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
