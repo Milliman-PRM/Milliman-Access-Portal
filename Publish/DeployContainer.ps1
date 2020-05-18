@@ -36,7 +36,6 @@ $params = @{
     MemoryInGB                          = 1.5
     IpAddressType                       = "Public"
     Port                                = 22
-    Command                             = "echo `"Copy certificate here`""
     EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
