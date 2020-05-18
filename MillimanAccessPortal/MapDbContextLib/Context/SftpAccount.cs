@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System;
@@ -34,6 +35,9 @@ namespace MapDbContextLib.Context
 
         [Required]
         public bool IsSuspended { get; set; } = false;
+
+        [Column(TypeName = "jsonb")]
+        public HashSet<FileDropUserNotificationModel> NotificationSubscriptions { get; set; } = new HashSet<FileDropUserNotificationModel>(new FileDropUserNotificationModelSameEventComparer());
 
         [ForeignKey("ApplicationUser")]
         public Guid? ApplicationUserId { get; set; }

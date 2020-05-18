@@ -9,6 +9,7 @@ using AuditLogLib.Event;
 using AuditLogLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.DataQueries.EntityQueries;
@@ -387,7 +388,7 @@ namespace MillimanAccessPortal.DataQueries
                             {
                                 ApplicationUser = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd),
                                 IsSuspended = false,
-                                UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName /*+ fileDrop.ShortHash*/  // TODO Add this
+                                UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName + $"-{fileDrop.ShortHash}",
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(accountToAdd, fileDrop)));                            
                         }
@@ -422,7 +423,7 @@ namespace MillimanAccessPortal.DataQueries
                             sftpAccountToAdd = new SftpAccount(model.FileDropId)
                             {
                                 IsSuspended = accountToAdd.IsSuspended,
-                                UserName = accountToAdd.AccountName /*+ fileDrop.ShortHash*/,  // TODO Add this
+                                UserName = accountToAdd.AccountName + $"-{fileDrop.ShortHash}",
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(sftpAccountToAdd, fileDrop)));
                         }
@@ -461,7 +462,7 @@ namespace MillimanAccessPortal.DataQueries
                             {
                                 ApplicationUserId = userId,
                                 IsSuspended = false,
-                                UserName = (await _dbContext.ApplicationUser.FindAsync(userId)).UserName /*+ fileDrop.ShortHash*/,  // TODO Add this
+                                UserName = (await _dbContext.ApplicationUser.FindAsync(userId)).UserName + $"-{fileDrop.ShortHash}",
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop)));
                         }
@@ -476,7 +477,7 @@ namespace MillimanAccessPortal.DataQueries
                         {
                             ApplicationUserId = null,
                             IsSuspended = newAccount.IsSuspended,
-                            UserName = newAccount.AccountName /*+ fileDrop.ShortHash*/,  // TODO Add this
+                            UserName = newAccount.AccountName + $"-{fileDrop.ShortHash}",
                         };
                         newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
                         auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(newSftpAccount, fileDrop)));
@@ -502,6 +503,7 @@ namespace MillimanAccessPortal.DataQueries
         internal async Task<SftpAccountSettingsModel> GetAccountSettingsModelAsync(Guid fileDropId, ApplicationUser user)
         {
             var userSftpAccount = await _dbContext.SftpAccount
+                                                  .Include(a => a.FileDropUserPermissionGroup)
                                                   .Where(a => a.FileDropUserPermissionGroup.FileDropId == fileDropId)
                                                   .SingleOrDefaultAsync(a => a.ApplicationUserId == user.Id);
 
@@ -524,12 +526,16 @@ namespace MillimanAccessPortal.DataQueries
                 returnModel.UserHasPassword = !string.IsNullOrWhiteSpace(userSftpAccount.PasswordHash);
                 returnModel.IsSuspended = userSftpAccount.IsSuspended;
                 returnModel.IsPasswordExpired = userSftpAccount.PasswordResetDateTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(sftpPasswordExpirationDays);
-            }
 
-            // TODO populate the notifications part of the model based on a query and remove the following
-            foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
-            {
-                returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = true, IsEnabled = false });
+                foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
+                {
+                    var dbSetting = userSftpAccount.NotificationSubscriptions.SingleOrDefault(n => n.NotificationType == type);
+                    bool canModify = (type == FileDropNotificationType.FileWrite && userSftpAccount.FileDropUserPermissionGroup.WriteAccess) ||
+                                     (type == FileDropNotificationType.FileRead && userSftpAccount.FileDropUserPermissionGroup.ReadAccess) ||
+                                     (type == FileDropNotificationType.FileDelete && userSftpAccount.FileDropUserPermissionGroup.DeleteAccess);
+
+                    returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = canModify, IsEnabled = dbSetting?.IsEnabled ?? false });
+                }
             }
 
             return returnModel;

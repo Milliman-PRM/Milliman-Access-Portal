@@ -4,10 +4,9 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.FileDropModels
 {
@@ -15,13 +14,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
     {
         public Guid FileDropId { get; set; }
 
-        public List<UpdateNotificationModel> Notifications { get; set; }
-    }
-
-    public class UpdateNotificationModel
-    {
-        public FileDropNotificationType NotificationType { get; set; }
-        public bool IsEnabled { get; set; } = false;
+        public List<FileDropUserNotificationModel> Notifications { get; set; }
     }
 
 }

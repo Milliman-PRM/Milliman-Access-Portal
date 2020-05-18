@@ -168,6 +168,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasIndex(x => x.RootPath).IsUnique();
+                b.HasIndex(x => x.ShortHash).IsUnique();
             });
             builder.Entity<FileDropUserPermissionGroup>(b =>
             {

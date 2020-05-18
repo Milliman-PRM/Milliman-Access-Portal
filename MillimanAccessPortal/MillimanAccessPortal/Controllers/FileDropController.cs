@@ -144,7 +144,7 @@ namespace MillimanAccessPortal.Controllers
             Client referencedClient = await _dbContext.Client.FindAsync(fileDropModel.ClientId);
 
             #region Validation
-            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && !new[] { nameof(FileDrop.RootPath), nameof(FileDrop.ShortHash) }.Contains(v.Key)  ))  // RootPath & ShortHash can/should be invalid here
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
@@ -177,22 +177,24 @@ namespace MillimanAccessPortal.Controllers
             {
                 fileDropModel.RootPath = Guid.NewGuid().ToString();
 
-                string fileDropHash = string.Empty;
-                int counter = 0;
+                string propsedShortHash = string.Empty;
+                int loopCounter = 0;
                 do
                 {
-                    byte[] randomBytes = new byte[24 / 8];
-                    new RNGCryptoServiceProvider().GetBytes(randomBytes);
-                    fileDropHash = Convert.ToBase64String(randomBytes);
-                    if (++counter >= 10)
+                    if (loopCounter > 10)  // Try at most 10 times
                     {
-                        Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} failed to generate unique FileDrop hash after {counter} tries");
+                        Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} failed to generate unique FileDrop hash after {loopCounter} tries");
                         Response.Headers.Add("Warning", "A processing error occurred.");
                         return StatusCode(StatusCodes.Status422UnprocessableEntity);
                     }
+                    loopCounter++;
+
+                    byte[] randomBytes = new byte[24 / 8];
+                    new RNGCryptoServiceProvider().GetBytes(randomBytes);
+                    propsedShortHash = Convert.ToBase64String(randomBytes);
                 }
-                while (_dbContext.FileDrop.Any(d => false/*d.ShortHash == fileDropHash*/));  // TODO enable the expression when the new migration is done
-                // TODO fileDropModel.ShortHash = fileDropHash;
+                while (_dbContext.FileDrop.Any(d => d.ShortHash == propsedShortHash)); // Hash must be unique in the db
+                fileDropModel.ShortHash = propsedShortHash;
 
                 string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
 
@@ -614,7 +616,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" /*+ $"-{ fileDrop.ShortHash}"*/, a.ApplicationUser.UserName))
+                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" + $"-{ fileDrop.ShortHash}", a.ApplicationUser.UserName))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             if (account == null)
@@ -622,7 +624,7 @@ namespace MillimanAccessPortal.Controllers
                 account = new SftpAccount(fileDropId)
                 {
                     ApplicationUserId = mapUser.Id,
-                    UserName = User.Identity.Name /*+ fileDrop.ShortHash*/,  // TODO Add the shorthash when that migration is available
+                    UserName = User.Identity.Name + $"-{fileDrop.ShortHash}",
                 };
                 _dbContext.SftpAccount.Add(account);
                 await _dbContext.SaveChangesAsync();
@@ -670,8 +672,7 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" /*+ $"-{ fileDrop.ShortHash}"*/, a.ApplicationUser.UserName))
+                                                  .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))  // Does not find non-user accounts (future feature)
                                                   .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
 
             if (account == null)
@@ -690,7 +691,16 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // TODO actually update the settings
+            #region update the settings
+            var accountNotifications = new HashSet<FileDropUserNotificationModel>(account.NotificationSubscriptions, new FileDropUserNotificationModelSameEventComparer());
+            foreach (var notificationSetting in boundModel.Notifications)
+            {
+                accountNotifications.Remove(notificationSetting);
+                accountNotifications.Add(notificationSetting);
+            }
+            account.NotificationSubscriptions = accountNotifications;
+            await _dbContext.SaveChangesAsync();
+            #endregion
 
             SftpAccountSettingsModel model = await _fileDropQueries.GetAccountSettingsModelAsync(boundModel.FileDropId, mapUser);
 
