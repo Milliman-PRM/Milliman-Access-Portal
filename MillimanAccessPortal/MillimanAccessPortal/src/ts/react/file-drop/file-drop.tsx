@@ -919,6 +919,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const { fileDrop } = this.props.selected;
     const { fileDrops } = this.props;
     const { fileDropSettings } = this.props.data;
+    const uploadNotification = fileDropSettings && fileDropSettings.notifications
+      ? fileDropSettings.notifications.filter((x) =>
+        x.notificationType === FileDropNotificationTypeEnum.FileWritten,
+      )[0] || null
+      : null;
     return (
       <>
         <ContentPanelSectionContent>
@@ -972,25 +977,23 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     Generate {fileDropSettings.userHasPassword ? 'New' : ''} Password
                   </button>
                 </ FormSection>
-                <FormSection title="Notification Settings">
-                  <Toggle
-                    label="Upload"
-                    checked={
-                      fileDropSettings.notifications.filter((x) =>
-                        x.notificationType === FileDropNotificationTypeEnum.FileWritten,
-                      )[0].isEnabled
-                    }
-                    onClick={() => this.props.setFileDropNotificationSetting({
-                      fileDropId: fileDrop,
-                      notifications: [{
-                        notificationType: FileDropNotificationTypeEnum.FileWritten,
-                        isEnabled: !fileDropSettings.notifications.filter((x) =>
-                          x.notificationType === FileDropNotificationTypeEnum.FileWritten,
-                        )[0].isEnabled,
-                      }],
-                    })}
-                  />
-                </ FormSection>
+                {
+                  uploadNotification &&
+                  <FormSection title="Notification Settings">
+                    <Toggle
+                      label="Upload"
+                      checked={uploadNotification.isEnabled}
+                      readOnly={!uploadNotification.canModify}
+                      onClick={() => this.props.setFileDropNotificationSetting({
+                        fileDropId: fileDrop,
+                        notifications: [{
+                          notificationType: FileDropNotificationTypeEnum.FileWritten,
+                          isEnabled: !uploadNotification.isEnabled,
+                        }],
+                      })}
+                    />
+                  </ FormSection>
+                }
               </>
             }
           </ContentPanelForm>
