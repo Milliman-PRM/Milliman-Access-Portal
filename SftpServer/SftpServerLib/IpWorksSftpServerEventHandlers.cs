@@ -36,7 +36,64 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to delete a file.")]
         internal static void OnFileRemove(object sender, SftpserverFileRemoveEventArgs evtData)
         {
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRemove.htm
+
             Log.Information(GenerateEventArgsLogMessage("FileRemove", evtData));
+
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
+
+            if (result == AuthorizationResult.ConnectionNotFound)
+            {
+                Log.Warning("OnFileRemove: Connection not found, eventdata: {@evtData}", evtData);
+                evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
+                return;
+            }
+
+            connection.LastActivityUtc = DateTime.UtcNow;
+
+            if (result == AuthorizationResult.NotAuthorized)
+            {
+                Log.Warning("OnFileRemove: Permission denied, eventdata: {@evtData}", evtData);
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
+
+            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            {
+                string requestedFileName = Path.GetFileName(evtData.Path);
+                string requestedDirectoryCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
+                string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+                FileDropFile fileRecord = db.FileDropFile
+                                            .Include(f => f.Directory)
+                                            .Where(f => EF.Functions.ILike(requestedDirectoryCanonicalPath, f.Directory.CanonicalFileDropPath))
+                                            .Where(f => f.Directory.FileDropId == connection.FileDropId)
+                                            .SingleOrDefault(f => EF.Functions.ILike(requestedFileName, f.FileName));
+
+                if (evtData.BeforeExec)
+                {
+                    if (fileRecord == null || !File.Exists(requestedAbsolutePath))
+                    {
+                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found (database or file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
+                        return;
+                    }
+                }
+                else
+                {
+                    db.FileDropFile.Remove(fileRecord);
+                    db.SaveChanges();
+
+                    new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
+                                                                                 (FileDropDirectoryLogModel)fileRecord.Directory,
+                                                                                      new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                                                                                      connection.Account,
+                                                                                      connection.MapUser));
+                    Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                }
+
+
+            }
         }
 
         //[Description("Fires when a client wants to read from an open file.")]
@@ -145,6 +202,8 @@ namespace SftpServerLib
                                 CreatedByAccountId = connection.Account.Id,
                             });
                             db.SaveChanges();
+
+                            // TODO Process user notifications here for FileWrite event
 
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
                                 new SftpFileOperationLogModel

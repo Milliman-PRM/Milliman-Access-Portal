@@ -1233,6 +1233,20 @@ namespace AuditLogLib.Event
                     : null,
             });
 
+        public static readonly AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpFileRemoved = new AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8116, "SFTP File Removed", (fileDropFileModel, fileDropDirectoryModel, fileDropModel, sftpAccount, mapUser) => new
+            {
+                File = fileDropFileModel,
+                Directory = fileDropDirectoryModel,
+                FileDrop = fileDropModel,
+                SftpAccount = sftpAccount != null
+                    ? new { sftpAccount.Id, sftpAccount.UserName, }
+                    : null,
+                MapUser = mapUser != null
+                    ? new { mapUser.Id, mapUser.UserName, }
+                    : null,
+            });
+
         #endregion
         #endregion
 
