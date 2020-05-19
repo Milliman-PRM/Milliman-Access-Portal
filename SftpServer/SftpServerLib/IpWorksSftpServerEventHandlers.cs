@@ -81,15 +81,22 @@ namespace SftpServerLib
                 }
                 else
                 {
-                    db.FileDropFile.Remove(fileRecord);
-                    db.SaveChanges();
+                    if (evtData.StatusCode == 0)
+                    {
+                        db.FileDropFile.Remove(fileRecord);
+                        db.SaveChanges();
 
-                    new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
-                                                                                 (FileDropDirectoryLogModel)fileRecord.Directory,
-                                                                                      new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                                                                                      connection.Account,
-                                                                                      connection.MapUser));
-                    Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
+                                                                                     (FileDropDirectoryLogModel)fileRecord.Directory,
+                                                                                          new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                                                                                          connection.Account,
+                                                                                          connection.MapUser));
+                        Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                    }
+                    else
+                    {
+                        Log.Error($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} failed to be removed, event status {evtData.StatusCode}, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                    }
                 }
 
 
