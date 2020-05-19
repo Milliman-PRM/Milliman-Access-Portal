@@ -616,7 +616,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}" + $"-{ fileDrop.ShortHash}", a.ApplicationUser.UserName))
+                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             if (account == null)
@@ -624,7 +624,7 @@ namespace MillimanAccessPortal.Controllers
                 account = new SftpAccount(fileDropId)
                 {
                     ApplicationUserId = mapUser.Id,
-                    UserName = User.Identity.Name + $"-{fileDrop.ShortHash}",
+                    UserName = $"{User.Identity.Name}-{fileDrop.ShortHash}",
                 };
                 _dbContext.SftpAccount.Add(account);
                 await _dbContext.SaveChangesAsync();
@@ -644,7 +644,7 @@ namespace MillimanAccessPortal.Controllers
             new RNGCryptoServiceProvider().GetBytes(randomBytes);
             string newPassword = Convert.ToBase64String(randomBytes);
 
-            var returnModel = new SftpAccountCredentialModel
+            SftpAccountCredentialModel returnModel = new SftpAccountCredentialModel
             {
                 UserName = account.UserName,
                 Password = newPassword,
