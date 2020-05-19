@@ -533,7 +533,7 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
-$FDImageName = $acr_url/filedropsftp:$TrimmedBranch
+$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = $SPCredential = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
