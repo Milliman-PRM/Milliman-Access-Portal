@@ -17,13 +17,21 @@ Param(
     [Parameter()]
     [string]$FDFileName="filedropsftpshare",
     [Parameter()]
-    [PSCredential]$FDFileCred
+    [PSCredential]$FDFileCred,
+    [Parameter()]
+    [string]$azCertPass,
+    [Parameter()]
+    [string]$thumbprint
 )
 
 $FDLocation = "eastus2"
 $FDFileName = "filedropsftpshare"
 
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
+
+Remove-AzContainerGroup `
+      -ResourceGroupName $FDRG `
+      -Name $FDConName
 
 $params = @{
     ResourceGroupName                   = $FDRG
@@ -36,6 +44,7 @@ $params = @{
     MemoryInGB                          = 1.5
     IpAddressType                       = "Public"
     Port                                = 22
+    Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint"
     EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred

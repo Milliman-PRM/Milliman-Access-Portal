@@ -139,7 +139,9 @@ $azClientId = $env:azClientId
 $azClientSecret = $env:AzClientSecret
 $azVaultNameFD = $env:azVaultNameFD
 $azVaultNameMAP = $env:azVaultNameMAP
-$thumbprint = 'F83D279246FC2EA3910B44EE199C4D1EB24C029F' # thumbprint of certificate used to authenticate as Service Principal
+$thumbprint = "79B4D2A1849EECB7C433B7B5D28CFC600414DC38" # thumbprint of certificate used to authenticate as Service Principal
+$azCertPass = $env:azCertPass
+$azFilesharePass = $env:azFilesharePass
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -514,8 +516,8 @@ if ($LASTEXITCODE -ne 0) {
 Set-Location $rootpath\SftpServer
 
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
-$pscredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-Connect-AzAccount -ServicePrincipal -Credential $pscredential -Tenant $azTenantId -Subscription $azSubscriptionId
+$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
+Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
 
 # Get Secrets from the FileDrop Key Vault
@@ -531,17 +533,36 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
+$FDImageName = $acr_url/filedropsftp:$TrimmedBranch
+
+$acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
+$FDACRCred = $SPCredential = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
+
+$azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
+$FDFileCred = $SPCredential = New-Object System.Management.Automation.PSCredential("filedropsftpstor", $acr_password_secure)
+
 docker login $acr_url -u $acr_username -p $acr_password
 
 docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp .
 
-docker tag filedropsftp $acr_url/filedropsftp:$TrimmedBranch
+docker tag filedropsftp $FDImageName
 
-docker push $acr_url/filedropsftp:$TrimmedBranch
+docker push $FDImageName
 
-docker rmi $acr_url/filedropsftp:$TrimmedBranch
+docker rmi $FDImageName
 
 #trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
+
+& .\DeployContainer.ps1 `
+    -azTenantId $azTenantId `
+    -SPCredential $SPCredential `
+    -azSubscriptionId $azSubscriptionId `
+    -FDImageName $FDImageName `
+    -FDACRCred $FDACRCred `
+    -FDFileName "filedropsftpshare" `
+    -FDFileCred $FDFileCred `
+    -azCertPass $azCertPass `
+    -thumbprint $thumbprint
 
 #endregion
 
