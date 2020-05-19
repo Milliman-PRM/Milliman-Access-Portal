@@ -1,4 +1,5 @@
 ﻿using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using MillimanAccessPortal.Controllers;
@@ -34,9 +35,9 @@ public class QueuedUploadTaskHostedService : BackgroundService
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 var uploadHelper = scope.ServiceProvider.GetRequiredService<IUploadHelper>();
 
-                var fileUpload = dbContext.FileUpload
+                var fileUpload = await dbContext.FileUpload
                     .OrderByDescending(f => f.InitiatedDateTimeUtc)
-                    .First(f => f.ClientFileIdentifier == resumableInfo.UID);
+                    .FirstAsync(f => f.ClientFileIdentifier == resumableInfo.UID);
 
                 try
                 {

@@ -49,6 +49,10 @@ export const updatePermissionGroups =
   createJsonRequestor<FileDropAction.UpdatePermissionGroups, FileDropAction.UpdatePermissionGroupsSucceeded>
     ('POST', '/FileDrop/UpdateFileDropPermissionGroups');
 
+export const fetchActivityLog =
+  createJsonRequestor<FileDropAction.FetchActivityLog, FileDropAction.FetchActivityLogSucceeded>
+    ('GET', '/FileDrop/ActionLog');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

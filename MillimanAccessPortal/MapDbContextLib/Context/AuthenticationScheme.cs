@@ -73,11 +73,6 @@ namespace MapDbContextLib.Context
         //[Column(TypeName = "citext[]")]  TODO Use this to replace use of below method DomainListContains() when the EF provider starts to support this field type in a collection
         public List<string> DomainList { get; set; } = new List<string>();
 
-        public bool DomainListContains(string testDomain)
-        {
-            return DomainList.Any(d => EF.Functions.ILike(d, testDomain));
-        }
-
         public AuthenticationScheme DeepCopy()
         {
             return new AuthenticationScheme

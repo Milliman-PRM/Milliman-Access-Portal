@@ -1,10 +1,12 @@
 ﻿using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.ClientModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -30,18 +32,18 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="id">Client ID</param>
         /// <returns>Client</returns>
-        private BasicClient FindClient(Guid id)
+        private async Task<BasicClient> FindClientAsync(Guid id)
         {
-            return _dbContext.Client
-                .Where(c => c.Id == id)
-                .Select(c => new BasicClient
-                {
-                    Id = c.Id,
-                    ParentId = c.ParentClientId,
-                    Name = c.Name,
-                    Code = c.ClientCode,
-                })
-                .SingleOrDefault();
+            return await _dbContext.Client
+                                   .Where(c => c.Id == id)
+                                   .Select(c => new BasicClient
+                                   {
+                                       Id = c.Id,
+                                       ParentId = c.ParentClientId,
+                                       Name = c.Name,
+                                       Code = c.ClientCode,
+                                   })
+                                   .SingleOrDefaultAsync();
         }
 
         /// <summary>
@@ -50,21 +52,20 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user">User</param>
         /// <param name="role">Role</param>
         /// <returns>Clients where User has Role</returns>
-        private List<BasicClient> SelectClientWhereRole(ApplicationUser user, RoleEnum role)
+        private async Task<List<BasicClient>> SelectClientWhereRoleAsync(ApplicationUser user, RoleEnum role)
         {
-            return _dbContext.UserRoleInClient
+            return await _dbContext.UserRoleInClient
                 .Where(r => r.User.Id == user.Id)
                 .Where(r => r.Role.RoleEnum == role)
-                .Select(r => r.Client)
-                .OrderBy(c => c.Name)
-                .Select(c => new BasicClient
+                .OrderBy(r => r.Client.Name)
+                .Select(r => new BasicClient
                 {
-                    Id = c.Id,
-                    ParentId = c.ParentClientId,
-                    Name = c.Name,
-                    Code = c.ClientCode,
+                    Id = r.Client.Id,
+                    ParentId = r.Client.ParentClientId,
+                    Name = r.Client.Name,
+                    Code = r.Client.ClientCode,
                 })
-                .ToList();
+                .ToListAsync();
         }
 
         /// <summary>
@@ -73,7 +74,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clients">List of clients for which to retrieve parents</param>
         /// <returns>List of parent clients</returns>
-        private List<BasicClient> SelectParents(List<BasicClientWithEligibleUsers> clients)
+        private async Task<List<BasicClient>> SelectParentsAsync(List<BasicClientWithEligibleUsers> clients)
         {
             var clientIds = clients.Select(c => c.Id).ToList();
             var parentIds = clients
@@ -82,17 +83,17 @@ namespace MillimanAccessPortal.DataQueries
                 .Where(id => !clientIds.Contains(id))
                 .ToList();
 
-            return _dbContext.Client
-                .Where(c => parentIds.Contains(c.Id))
-                .OrderBy(c => c.Name)
-                .Select(c => new BasicClient
-                {
-                    Id = c.Id,
-                    ParentId = c.ParentClientId,
-                    Name = c.Name,
-                    Code = c.ClientCode,
-                })
-                .ToList();
+            return await _dbContext.Client
+                                   .Where(c => parentIds.Contains(c.Id))
+                                   .OrderBy(c => c.Name)
+                                   .Select(c => new BasicClient
+                                   {
+                                       Id = c.Id,
+                                       ParentId = c.ParentClientId,
+                                       Name = c.Name,
+                                       Code = c.ClientCode,
+                                   })
+                                   .ToListAsync();
         }
 
         /// <summary>
@@ -102,7 +103,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="role"></param>
         /// <param name="userId"></param>
         /// <returns></returns>
-        private List<BasicClientWithCardStats> AddCardStats(List<BasicClient> clients, RoleEnum? role = null, Guid? userId = null)
+        private async Task<List<BasicClientWithCardStats>> AddCardStatsAsync(List<BasicClient> clients, RoleEnum? role = null, Guid? userId = null)
         {
             var clientsWith = new List<BasicClientWithCardStats> { };
             foreach (var client in clients)
@@ -117,14 +118,15 @@ namespace MillimanAccessPortal.DataQueries
 
                 if (role.HasValue && userId.HasValue)
                 {
-                    clientWith.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id && r.Role.RoleEnum == role.Value && r.UserId == userId.Value);
+                    clientWith.CanManage = await _dbContext.UserRoleInClient.AnyAsync(r => r.ClientId == client.Id 
+                                                                                        && r.Role.RoleEnum == role.Value 
+                                                                                        && r.UserId == userId.Value);
                 }
-                clientWith.ContentItemCount = _dbContext.RootContentItem
-                    .Count(i => i.ClientId == client.Id);
-                clientWith.UserCount = _dbContext.UserRoleInClient
+                clientWith.ContentItemCount = await _dbContext.RootContentItem.CountAsync(i => i.ClientId == client.Id);
+                clientWith.UserCount = await _dbContext.UserRoleInClient
                     .Where(r => r.ClientId == client.Id)
                     .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
-                    .Count();
+                    .CountAsync();
 
                 clientsWith.Add(clientWith);
             }
@@ -136,7 +138,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clients">List of clients</param>
         /// <returns>List of clients with card stats and eligble users</returns>
-        private List<BasicClientWithEligibleUsers> WithEligibleUsers(List<BasicClientWithCardStats> clients)
+        private async Task<List<BasicClientWithEligibleUsers>> WithEligibleUsersAsync(List<BasicClientWithCardStats> clients)
         {
             var clientsWith = new List<BasicClientWithEligibleUsers> { };
             foreach (var client in clients)
@@ -151,11 +153,11 @@ namespace MillimanAccessPortal.DataQueries
                     UserCount = client.UserCount,
                 };
 
-                clientWith.EligibleUsers = _dbContext.UserRoleInClient
+                clientWith.EligibleUsers = await _dbContext.UserRoleInClient
                     .Where(r => r.ClientId == client.Id)
                     .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
                     .Select(r => r.UserId)
-                    .ToList();
+                    .ToListAsync();
 
                 clientsWith.Add(clientWith);
             }
@@ -169,16 +171,16 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user">User</param>
         /// <param name="role">Role</param>
         /// <returns>List of clients</returns>
-        internal List<BasicClientWithEligibleUsers> SelectClientsWithEligibleUsers(ApplicationUser user, RoleEnum role)
+        internal async Task<List<BasicClientWithEligibleUsers>> SelectClientsWithEligibleUsersAsync(ApplicationUser user, RoleEnum role)
         {
             if (user == null)
             {
                 return new List<BasicClientWithEligibleUsers> { };
             }
 
-            var clients = SelectClientWhereRole(user, role);
-            var clientsWithStats = AddCardStats(clients);
-            var clientsWithEligibleUsers = WithEligibleUsers(clientsWithStats);
+            var clients = await SelectClientWhereRoleAsync(user, role);
+            var clientsWithStats = await AddCardStatsAsync(clients);
+            var clientsWithEligibleUsers = await WithEligibleUsersAsync(clientsWithStats);
 
             return clientsWithEligibleUsers;
         }
@@ -188,15 +190,15 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="children">Clients whose parents to retrieve</param>
         /// <returns>List of parent clients</returns>
-        internal List<BasicClientWithCardStats> SelectParentClients(List<BasicClientWithEligibleUsers> children)
+        internal async Task<List<BasicClientWithCardStats>> SelectParentClientsAsync(List<BasicClientWithEligibleUsers> children)
         {
             if (children == null)
             {
                 return new List<BasicClientWithCardStats> { };
             }
 
-            var clients = SelectParents(children);
-            var clientsWithStats = AddCardStats(clients);
+            var clients = await SelectParentsAsync(children);
+            var clientsWithStats = await AddCardStatsAsync(clients);
 
             return clientsWithStats;
         }
@@ -206,11 +208,11 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>Client with card stats</returns>
-        internal BasicClientWithCardStats SelectClientWithCardStats(Guid clientId, RoleEnum? role = null, Guid? userId = null)
+        internal async Task<BasicClientWithCardStats> SelectClientWithCardStatsAsync(Guid clientId, RoleEnum? role = null, Guid? userId = null)
         {
-            var client = FindClient(clientId);
-            var clientWithStats = AddCardStats(new List<BasicClient> { client }, role, userId)
-                .SingleOrDefault();
+            var client = await FindClientAsync(clientId);
+            var clientWithStats = (await AddCardStatsAsync(new List<BasicClient> { client }, role, userId))
+                                    .SingleOrDefault();
 
             return clientWithStats;
         }
@@ -220,25 +222,25 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>Client with card stats</returns>
-        internal BasicClientWithCardStats SelectClientWithPublishingCardStats(Client client, RoleEnum? role = null, Guid? userId = null)
+        internal async Task<BasicClientWithCardStats> SelectClientWithPublishingCardStatsAsync(Client client, RoleEnum? role = null, Guid? userId = null)
         {
             var clientWithStats = (BasicClientWithCardStats)client;
 
             if (role.HasValue && userId.HasValue)
             {
-                clientWithStats.CanManage = _dbContext.UserRoleInClient.Any(r => r.ClientId == client.Id &&
-                                                                                 r.Role.RoleEnum == role.Value &&
-                                                                                 r.UserId == userId.Value);
+                clientWithStats.CanManage = await _dbContext.UserRoleInClient.AnyAsync(r => r.ClientId == client.Id
+                                                                                         && r.Role.RoleEnum == role.Value
+                                                                                         && r.UserId == userId.Value);
             }
 
-            clientWithStats.ContentItemCount = _dbContext.RootContentItem.Count(i => i.ClientId == client.Id);
+            clientWithStats.ContentItemCount = await _dbContext.RootContentItem.CountAsync(i => i.ClientId == client.Id);
 
             // In publishing admin view client users include everyone who is assigned to a selection group of any content in the client
-            clientWithStats.UserCount = _dbContext.UserInSelectionGroup
-                                                  .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
-                                                  .Select(r => r.UserId)
-                                                  .Distinct()
-                                                  .Count();
+            clientWithStats.UserCount = await _dbContext.UserInSelectionGroup
+                                                        .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                                        .Select(r => r.UserId)
+                                                        .Distinct()
+                                                        .CountAsync();
 
             return clientWithStats;
         }

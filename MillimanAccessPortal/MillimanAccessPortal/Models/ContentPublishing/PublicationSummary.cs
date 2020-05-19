@@ -7,9 +7,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
@@ -45,7 +47,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
     public static class PublicationSummaryExtensions
     {
-        public static PublicationSummary ToSummaryWithQueueInformation(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
+        public static async Task<PublicationSummary> ToSummaryWithQueueInformationAsync(this ContentPublicationRequest publicationRequest, ApplicationDbContext dbContext)
         {
             if (publicationRequest == null)
             {
@@ -56,24 +58,24 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publicationRequest.RequestStatus))
             {
-                var precedingPublicationRequestCount = dbContext.ContentPublicationRequest
+                var precedingPublicationRequestCount = await dbContext.ContentPublicationRequest
                     .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)
                     .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
-                    .Count();
+                    .CountAsync();
                 publicationSummary.QueuePosition = precedingPublicationRequestCount;
             }
             else if (publicationRequest?.RequestStatus.IsActive() ?? false)
             {
-                var relatedReductionTaskCount = dbContext.ContentReductionTask
+                var relatedReductionTaskCount = await dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
                     .Where(t => t.SelectionGroup != null)
-                    .Count();
-                var completedReductionTaskCount = dbContext.ContentReductionTask
+                    .CountAsync();
+                var completedReductionTaskCount = await dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
                     .Where(t => t.SelectionGroup != null)
                     .Where(t => t.ReductionStatus != ReductionStatusEnum.Queued)
                     .Where(t => t.ReductionStatus != ReductionStatusEnum.Reducing)
-                    .Count();
+                    .CountAsync();
                 publicationSummary.QueuePosition = completedReductionTaskCount;
                 publicationSummary.QueueTotal = relatedReductionTaskCount;
             }

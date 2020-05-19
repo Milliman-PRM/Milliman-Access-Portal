@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using ContentPublishingLib;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,28 +16,40 @@ using Moq;
 
 namespace ContentPublishingServiceTests
 {
-    public class MapDbReductionJobMonitorTests : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
+    public class MapDbReductionJobMonitorTests
     {
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
+
+        public MapDbReductionJobMonitorTests(DatabaseLifetimeFixture dbLifeTimeFixture)
+        {
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
+        }
+
         [Fact]
         public async Task CorrectTaskStatusAfterCancelWhileIdle()
         {
             #region arrange
-            MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor
+            MapDbReductionJobMonitor JobMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
             {
-                MockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus),
-                QueueMutex = new Mutex(false),
+                ConnectionString = _dbLifeTimeFixture.ConnectionString,
+                QueueSemaphore = new SemaphoreSlim(1, 1),
             };
 
             CancellationTokenSource CancelTokenSource = new CancellationTokenSource();
             #endregion
 
             #region Act
-            Task MonitorTask = JobMonitor.Start(CancelTokenSource.Token);
+            Task MonitorTask = JobMonitor.StartAsync(CancelTokenSource.Token);
             Thread.Sleep(new TimeSpan(0, 0, 5));
             #endregion
 
             #region Assert
-            Assert.Equal<TaskStatus>(TaskStatus.Running, MonitorTask.Status);
+            Assert.Contains(MonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
             #endregion
 
             #region Act again
@@ -46,8 +60,7 @@ namespace ContentPublishingServiceTests
                 await MonitorTask;  // await rethrows anything that is thrown from the task
             }
             catch (OperationCanceledException)  // This is thrown when a task is cancelled
-            {
-            }
+            {}
             DateTime CancelEndTime = DateTime.UtcNow;
             #endregion
 

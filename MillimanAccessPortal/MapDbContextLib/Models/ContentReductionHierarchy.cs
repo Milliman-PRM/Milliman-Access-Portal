@@ -11,6 +11,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Models
 {
@@ -84,12 +85,12 @@ namespace MapDbContextLib.Models
         /// <param name="SelectionGroupId">The selection group whose selections are to be gathered</param>
         /// <param name="Selections">Any changes to the current selections to effect in the returned hierarchy</param>
         /// <returns>ContentReductionHierarchy</returns>
-        public static ContentReductionHierarchy<ReductionFieldValueSelection> GetFieldSelectionsForSelectionGroup(ApplicationDbContext DbContext, Guid SelectionGroupId, IEnumerable<Guid> Selections = null)
+        public static async Task<ContentReductionHierarchy<ReductionFieldValueSelection>> GetFieldSelectionsForSelectionGroupAsync(ApplicationDbContext DbContext, Guid SelectionGroupId, IEnumerable<Guid> Selections = null)
         {
-            SelectionGroup SelectionGroup = DbContext.SelectionGroup
+            SelectionGroup SelectionGroup = await DbContext.SelectionGroup
                 .Include(sg => sg.RootContentItem)
                     .ThenInclude(rci => rci.ContentType)
-                .SingleOrDefault(sg => sg.Id == SelectionGroupId);
+                .SingleOrDefaultAsync(sg => sg.Id == SelectionGroupId);
             if (SelectionGroup == null)
             {
                 return null;
@@ -103,9 +104,10 @@ namespace MapDbContextLib.Models
                 RootContentItemId = SelectionGroup.RootContentItemId,
             };
 
-            var RelatedHierarchyFields = DbContext.HierarchyField
+            var RelatedHierarchyFields = await DbContext.HierarchyField
                 .Where(hf => hf.RootContentItemId == SelectionGroup.RootContentItemId)
-                .OrderBy(hf => hf.FieldDisplayName);
+                .OrderBy(hf => hf.FieldDisplayName)
+                .ToListAsync();
             foreach (var HierarchyField in RelatedHierarchyFields)
             {
                 var HierarchyFieldValues = DbContext.HierarchyFieldValue

@@ -1,28 +1,36 @@
-﻿using System;
+﻿using ContentPublishingLib;
+using ContentPublishingLib.JobMonitors;
+using MapCommonLib.ContentTypeSpecific;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Xunit;
-using ContentPublishingLib.JobMonitors;
 using TestResourcesLib;
-using MapCommonLib.ContentTypeSpecific;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
-using Moq;
+using Xunit;
 using Xunit.Abstractions;
 using ContentPublishingLib.JobRunners;
 
 namespace ContentPublishingServiceTests
 {
-    public class Benchmarks : ContentPublishingServiceTestBase
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
+    public class BenchmarkTests
     {
         private readonly ITestOutputHelper _output;
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
+        TestInitialization TestResources;
 
-        public Benchmarks(ITestOutputHelper output)
+        public BenchmarkTests(ITestOutputHelper output, DatabaseLifetimeFixture dbLifeTimeFixture)
         {
             _output = output;
+            _dbLifeTimeFixture = dbLifeTimeFixture;
+            Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
         }
 
         [Fact(Skip = "Local only")]
@@ -32,9 +40,23 @@ namespace ContentPublishingServiceTests
             const int TOTAL_TASKS = 100;
             const int MINUTES_PER_TASK = 3;
 
-            var mockContext = MockMapDbContext.New(InitializeTests.InitializeWithUnspecifiedStatus);
-            var smallDbTask = mockContext.Object.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(1));
-            var largeDbTask = mockContext.Object.ContentReductionTask.Single(t => t.Id == TestUtil.MakeTestGuid(5));
+            var smallDbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 1)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.Values.Count == 2
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 0434")
+                                                                   && f.Values.Exists(v => v.Value == "Assigned Provider Clinic (Hier) 4025")))
+                .Single();
+            var largeDbTask = TestResources.DbContext.ContentReductionTask
+                .AsEnumerable()
+                .Where(t => t.SelectionCriteriaObj.Fields.Count == 3)
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Population" 
+                                                                   && f.Values.Count == 1))
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Practice"
+                                                                   && f.Values.Count == 108))
+                .Where(t => t.SelectionCriteriaObj.Fields.Exists(f => f.FieldName == "Provider"
+                                                                   && f.Values.Count == 658))
+                .Single();
 
             // Use a fact with nested for loops instead of a theory
             // This guarantees the order in which these serial tests run and gathers output into one test
@@ -49,7 +71,7 @@ namespace ContentPublishingServiceTests
                     var dbTask = (taskNo % 2 == 0) ? smallDbTask : largeDbTask;
                     var taskGuid = Guid.NewGuid();
 
-                    string exchangeFolder = $@"\\indy-syn01\prm_test\MapPublishingServerExchange\{taskGuid}\";
+                    string exchangeFolder = Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:MapPublishingServerExchangePath"), taskGuid.ToString());
                     string masterContentFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
                         "MasterContent", $".{taskNo}.qvw", dbTask.SelectionGroup.RootContentItemId);
                     string masterContentFilePath = Path.Combine(exchangeFolder, masterContentFileName);
@@ -73,12 +95,12 @@ namespace ContentPublishingServiceTests
                         SelectionCriteriaObj = dbTask.SelectionCriteriaObj,
                     });
                 }
-                mockContext.Object.ContentReductionTask.AddRange(dbTasks);
-                MockDbSet<ContentReductionTask>.AssignNavigationProperty(mockContext.Object.ContentReductionTask, "SelectionGroupId", mockContext.Object.SelectionGroup);
+                TestResources.DbContext.ContentReductionTask.AddRange(dbTasks);
+                TestResources.DbContext.SaveChanges();
 
-                var jobMonitor = new MapDbReductionJobMonitor
+                var jobMonitor = new MapDbReductionJobMonitor(TestResources.AuditLogger)
                 {
-                    MockContext = mockContext,
+                    ConnectionString = _dbLifeTimeFixture.ConnectionString,
                     MaxConcurrentRunners = maxConcurrentTasks,
                 };
 
@@ -95,7 +117,7 @@ namespace ContentPublishingServiceTests
                     Assert.All(dbTasks, r => Assert.Equal(ReductionStatusEnum.Queued, r.ReductionStatus));
 
                     var testStart = DateTime.UtcNow;
-                    var monitorTask = jobMonitor.Start(cancelTokenSource.Token);
+                    var monitorTask = jobMonitor.StartAsync(cancelTokenSource.Token);
                     Thread.Sleep(1000);
                     Assert.Equal(TaskStatus.Running, monitorTask.Status);
 

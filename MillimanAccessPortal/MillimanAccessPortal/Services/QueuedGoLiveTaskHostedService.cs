@@ -66,7 +66,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     using (var scope = Services.CreateScope())
                     {
                         var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                        ContentPublicationRequest thisPubRequest = dbContext.ContentPublicationRequest.SingleOrDefault(r => r.Id == kvpWithException.Key);
+                        ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == kvpWithException.Key);
 
                         thisPubRequest.RequestStatus = PublicationStatus.Error;
                         thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
@@ -74,7 +74,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         {
                             reduction.ReductionStatus = ReductionStatusEnum.Error;
                         }
-                        dbContext.SaveChanges();
+                        await dbContext.SaveChangesAsync();
                     }
                 }
                 catch (Exception ex)
@@ -103,7 +103,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             var publicationRequest = goLiveViewModel == null
                 ? null
-                : dbContext.ContentPublicationRequest
+                : await dbContext.ContentPublicationRequest
                     .Include(r => r.RootContentItem)
                         .ThenInclude(c => c.ContentType)
                     .Include(r => r.RootContentItem)
@@ -111,7 +111,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     .Include(r => r.ApplicationUser)
                     .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
                     .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
-                    .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Confirming);
+                    .SingleOrDefaultAsync(r => r.RequestStatus == PublicationStatus.Confirming);
 
             #region Validation
             if (publicationRequest?.RootContentItem == null || publicationRequest?.ApplicationUser == null)
@@ -138,13 +138,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
             bool ReductionIsInvolved = MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce;
 
-            var relatedReductionTasks = dbContext.ContentReductionTask
+            var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
                     .ThenInclude(g => g.RootContentItem)
                         .ThenInclude(c => c.ContentType)
                 .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
                 .Where(t => t.SelectionGroup != null)
-                .ToList();
+                .ToListAsync();
 
             if (ReductionIsInvolved)
             {
@@ -216,7 +216,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             try
             {
-                using (IDbContextTransaction Txn = dbContext.Database.BeginTransaction())
+                using (IDbContextTransaction Txn = await dbContext.Database.BeginTransactionAsync())
                 {
                     //1 Update db:
                     //1.1  ContentPublicationRequest.Status
@@ -300,19 +300,19 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             dbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
                         }
                     }
-                    dbContext.SaveChanges();
+                    await dbContext.SaveChangesAsync();
 
                     //1.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
-                    List<Guid> AllRemainingFieldValues = dbContext.HierarchyFieldValue
+                    List<Guid> AllRemainingFieldValues = await dbContext.HierarchyFieldValue
                         .Where(v => v.HierarchyField.RootContentItemId == publicationRequest.RootContentItemId)
                         .Select(v => v.Id)
-                        .ToList();
+                        .ToListAsync();
                     var reducingSelectionGroups = dbContext.SelectionGroup
                         .Where(g => g.RootContentItemId == publicationRequest.RootContentItemId && !g.IsMaster);
                     foreach (SelectionGroup Group in reducingSelectionGroups)
                     {
                         Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList
-                            .Intersect(AllRemainingFieldValues).ToArray();
+                            .Intersect(AllRemainingFieldValues).ToList();
                     }
 
                     // 2 Move new files into live file names, removing any existing copies of previous version
@@ -584,16 +584,16 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     List<UserInSelectionGroup> usersInGroup = null;
                     if (MasterContentUploaded)
                     {
-                        usersInGroup = dbContext.UserInSelectionGroup
-                                                .Include(usg => usg.User)
-                                                .Include(usg => usg.SelectionGroup)
-                                                .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
-                                                .ToList();
+                        usersInGroup = await dbContext.UserInSelectionGroup
+                                                      .Include(usg => usg.User)
+                                                      .Include(usg => usg.SelectionGroup)
+                                                      .Where(u => u.SelectionGroup.RootContentItemId == publicationRequest.RootContentItemId)
+                                                      .ToListAsync();
                         usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
                     }
 
-                    dbContext.SaveChanges();
-                    Txn.Commit();
+                    await dbContext.SaveChangesAsync();
+                    await Txn.CommitAsync();
 
                     if (MasterContentUploaded)
                     {
@@ -607,12 +607,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 string msg = ex.Message;
                 // reset publication status to Processed so the user can retry the preview and go-live
                 dbContext.Entry(publicationRequest).State = EntityState.Detached;  // force update from db on next query
-                publicationRequest = dbContext.ContentPublicationRequest
+                publicationRequest = await dbContext.ContentPublicationRequest
                         .Where(r => r.Id == goLiveViewModel.PublicationRequestId)
                         .Where(r => r.RootContentItemId == goLiveViewModel.RootContentItemId)
-                        .Single();
+                        .SingleAsync();
                 publicationRequest.RequestStatus = PublicationStatus.Processed;
-                dbContext.SaveChanges();
+                await dbContext.SaveChangesAsync();
 
                 foreach (var recoverAction in failureRecoveryActionList)
                 {

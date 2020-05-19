@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Models;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.IO;
@@ -32,7 +33,7 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// This can't be a foreign key due to use of collection type
         /// </summary>
-        public Guid[] SelectedHierarchyFieldValueList { get; set; }
+        public List<Guid> SelectedHierarchyFieldValueList { get; set; }
 
         [Required]
         public bool IsMaster { get; set; }

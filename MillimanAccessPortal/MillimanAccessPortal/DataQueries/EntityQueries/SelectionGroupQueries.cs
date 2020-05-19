@@ -15,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
@@ -39,23 +40,22 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// Find a selection group by ID 
         /// </summary>
         /// <param name="id">Selection group ID</param>
-        /// <returns>Selection group</returns>
-        private BasicSelectionGroup FindSelectionGroup(Guid id)
+        /// <returns>A model of the matching SelectionGroup</returns>
+        private async Task<BasicSelectionGroup> FindSelectionGroupAsync(Guid id)
         {
-            var selectionGroup = _dbContext.SelectionGroup
-                .Where(g => g.Id == id)
-                .Select(g => new BasicSelectionGroup
-                {
-                    Id = g.Id,
-                    RootContentItemId = g.RootContentItemId,
-                    IsSuspended = g.IsSuspended,
-                    IsInactive = g.IsInactive,
-                    IsMaster = g.IsMaster,
-                    Name = g.GroupName,
-                })
-                .SingleOrDefault();
+            var selectionGroup = await _dbContext.SelectionGroup.SingleOrDefaultAsync(g => g.Id == id);
 
-            return selectionGroup;
+            var selectionGroupModel = new BasicSelectionGroup
+                {
+                    Id = selectionGroup.Id,
+                    RootContentItemId = selectionGroup.RootContentItemId,
+                    IsSuspended = selectionGroup.IsSuspended,
+                    IsInactive = string.IsNullOrWhiteSpace(selectionGroup.ContentInstanceUrl),
+                    IsMaster = selectionGroup.IsMaster,
+                    Name = selectionGroup.GroupName,
+                };
+
+            return selectionGroupModel;
         }
 
         /// <summary>
@@ -63,7 +63,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="group">BasicSelectionGroup instance from which the return object is built</param>
         /// <returns>Selection group model instance including assigned users</returns>
-        private BasicSelectionGroupWithAssignedUsers WithAssignedUsers(BasicSelectionGroup group)
+        private async Task<BasicSelectionGroupWithAssignedUsers> WithAssignedUsersAsync(BasicSelectionGroup group)
         {
             BasicSelectionGroupWithAssignedUsers groupWith = new BasicSelectionGroupWithAssignedUsers
             {
@@ -73,11 +73,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 IsInactive = group.IsInactive,
                 IsMaster = group.IsMaster,
                 Name = group.Name,
-                AssignedUsers = _dbContext.UserInSelectionGroup
-                                          .Where(u => u.SelectionGroupId == group.Id)
-                                          .Select(u => u.UserId)
-                                          .Distinct()
-                                          .ToList(),
+                AssignedUsers = (await _dbContext.UserInSelectionGroup
+                                                .Where(u => u.SelectionGroupId == group.Id)
+                                                .Select(u => u.UserId)
+                                                .ToListAsync())
+                                        .Distinct()
+                                        .ToList(),
             };
 
             return groupWith;
@@ -88,7 +89,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="group">List of selection groups</param>
         /// <returns>List of selection groups with assigned users</returns>
-        private List<BasicSelectionGroupWithAssignedUsers> WithAssignedUsers(List<BasicSelectionGroup> groups)
+        private async Task<List<BasicSelectionGroupWithAssignedUsers>> WithAssignedUsersAsync(List<BasicSelectionGroup> groups)
         {
             var groupsWith = new List<BasicSelectionGroupWithAssignedUsers> { };
             foreach (var group in groups)
@@ -103,11 +104,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     Name = group.Name,
                 };
 
-                groupWith.AssignedUsers = _dbContext.UserInSelectionGroup
-                    .Where(u => u.SelectionGroupId == group.Id)
-                    .Select(u => u.UserId)
-                    .Distinct()
-                    .ToList();
+                groupWith.AssignedUsers = await _dbContext.UserInSelectionGroup
+                                                          .Where(u => u.SelectionGroupId == group.Id)
+                                                          .Select(u => u.UserId)
+                                                          .Distinct()
+                                                          .ToListAsync();
 
                 groupsWith.Add(groupWith);
             }
@@ -120,9 +121,9 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
         /// <returns>List of selection groups</returns>
-        internal List<BasicSelectionGroup> SelectSelectionGroupsWhereContentItem(Guid contentItemId)
+        internal async Task<List<BasicSelectionGroup>> SelectSelectionGroupsWhereContentItemAsync(Guid contentItemId)
         {
-            var selectionGroups = _dbContext.SelectionGroup
+            var selectionGroups = await _dbContext.SelectionGroup
                 .Where(g => g.RootContentItemId == contentItemId)
                 .OrderBy(g => g.GroupName)
                 .Select(g => new BasicSelectionGroup
@@ -130,11 +131,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     Id = g.Id,
                     RootContentItemId = g.RootContentItemId,
                     IsSuspended = g.IsSuspended,
-                    IsInactive = g.IsInactive,
+                    IsInactive = string.IsNullOrWhiteSpace(g.ContentInstanceUrl),
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
                 })
-                .ToList();
+                .ToListAsync();
 
             return selectionGroups;
         }
@@ -144,10 +145,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
         /// <returns>List of selection groups with assigned users</returns>
-        internal List<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupsWithAssignedUsers(Guid contentItemId)
+        internal async Task<List<BasicSelectionGroupWithAssignedUsers>> SelectSelectionGroupsWithAssignedUsersAsync(Guid contentItemId)
         {
-            var selectionGroups = SelectSelectionGroupsWhereContentItem(contentItemId);
-            var selectionGroupsWithAssignedUsers = WithAssignedUsers(selectionGroups);
+            var selectionGroups = await SelectSelectionGroupsWhereContentItemAsync(contentItemId);
+            var selectionGroupsWithAssignedUsers = await WithAssignedUsersAsync(selectionGroups);
 
             return selectionGroupsWithAssignedUsers;
         }
@@ -157,10 +158,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of selection groups with assigned users</returns>
-        internal BasicSelectionGroupWithAssignedUsers SelectSelectionGroupWithAssignedUsers(Guid selectionGroupId)
+        internal async Task<BasicSelectionGroupWithAssignedUsers> SelectSelectionGroupWithAssignedUsersAsync(Guid selectionGroupId)
         {
-            var selectionGroup = FindSelectionGroup(selectionGroupId);
-            var selectionGroupsWithAssignedUser = WithAssignedUsers(selectionGroup);
+            var selectionGroup = await FindSelectionGroupAsync(selectionGroupId);
+            var selectionGroupsWithAssignedUser = await WithAssignedUsersAsync(selectionGroup);
 
             return selectionGroupsWithAssignedUser;
         }
@@ -170,14 +171,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of selections</returns>
-        internal List<Guid> SelectSelectionsWhereSelectionGroup(Guid selectionGroupId)
+        internal async Task<List<Guid>> SelectSelectionsWhereSelectionGroupAsync(Guid selectionGroupId)
         {
-            var selections = _dbContext.SelectionGroup
-                .Where(g => g.Id == selectionGroupId)
-                .Select(g => g.SelectedHierarchyFieldValueList)
-                .SingleOrDefault();
+            var selections = await _dbContext.SelectionGroup
+                                             .Where(g => g.Id == selectionGroupId)
+                                             .Select(g => g.SelectedHierarchyFieldValueList)
+                                             .SingleOrDefaultAsync();
 
-            return selections?.ToList();
+            return selections ?? new List<Guid>();
         }
 
         /// <summary>
@@ -185,11 +186,11 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupIds">List of selection group IDs</param>
         /// <returns>Dictionary of selection lists</returns>
-        internal Dictionary<Guid, List<Guid>> SelectSelectionsWhereSelectionGroupIn(List<Guid> selectionGroupIds)
+        internal async Task<Dictionary<Guid, List<Guid>>> SelectSelectionsWhereSelectionGroupInAsync(List<Guid> selectionGroupIds)
         {
-            var selectionsDict = _dbContext.SelectionGroup
+            var selectionsDict = await _dbContext.SelectionGroup
                 .Where(g => selectionGroupIds.Contains(g.Id))
-                .ToDictionary(g => g.Id, g => g.SelectedHierarchyFieldValueList?.ToList());
+                .ToDictionaryAsync(g => g.Id, g => g.SelectedHierarchyFieldValueList?.ToList());
 
             return selectionsDict;
         }
@@ -200,19 +201,19 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <param name="contentItemId">Content item ID under which the new selection group will be created</param>
         /// <param name="name">Name of the new selection group</param>
         /// <returns>New selection group</returns>
-        internal SelectionGroup CreateReducingSelectionGroup(Guid contentItemId, string name)
+        internal async Task<SelectionGroup> CreateReducingSelectionGroupAsync(Guid contentItemId, string name)
         {
             var group = new SelectionGroup
             {
                 RootContentItemId = contentItemId,
                 GroupName = name,
                 ContentInstanceUrl = null,
-                SelectedHierarchyFieldValueList = new Guid[] { },
+                SelectedHierarchyFieldValueList = new List<Guid>(),
                 IsMaster = false,
             };
             _dbContext.SelectionGroup.Add(group);
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
             
             _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client)); ;
 
@@ -225,12 +226,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <param name="contentItemId">Content item ID under which the new selection group will be created</param>
         /// <param name="name">Name of the new selection group</param>
         /// <returns>New selection group</returns>
-        internal SelectionGroup CreateMasterSelectionGroup(Guid contentItemId, string name)
+        internal async Task<SelectionGroup> CreateMasterSelectionGroupAsync(Guid contentItemId, string name)
         {
-            var contentItem = _dbContext.RootContentItem
-                                        .Include(c => c.ContentType)
-                                        .Include(c => c.Client)
-                                        .Single(t => t.Id == contentItemId);
+            var contentItem = await _dbContext.RootContentItem
+                                              .Include(c => c.ContentType)
+                                              .Include(c => c.Client)
+                                              .SingleAsync(t => t.Id == contentItemId);
 
             string contentFileName = default;
             if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
@@ -249,13 +250,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             {
                 RootContentItem = contentItem,
                 GroupName = name,
-                SelectedHierarchyFieldValueList = new Guid[] { },
+                SelectedHierarchyFieldValueList = new List<Guid>(),
                 IsMaster = true,
             };
             group.SetContentUrl(contentFileName);
 
             _dbContext.SelectionGroup.Add(group);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
 
@@ -268,14 +269,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <param name="name">Selection group name</param>
         /// <returns>Selection group</returns>
-        internal SelectionGroup UpdateSelectionGroupName(Guid selectionGroupId, string name)
+        internal async Task<SelectionGroup> UpdateSelectionGroupNameAsync(Guid selectionGroupId, string name)
         {
-            var group = _dbContext.SelectionGroup.Find(selectionGroupId);
+            var group = await _dbContext.SelectionGroup.FindAsync(selectionGroupId);
 
             if (group.GroupName != name)
             {
                 group.GroupName = name;
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
             }
 
             return group;
@@ -287,21 +288,21 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <param name="newListOfUserIds">Selection group users</param>
         /// <returns>Selection group</returns>
-        internal SelectionGroup UpdateSelectionGroupUsers(Guid selectionGroupId, List<Guid> newListOfUserIds)
+        internal async Task<SelectionGroup> UpdateSelectionGroupUsersAsync(Guid selectionGroupId, List<Guid> newListOfUserIds)
         {
-            var requestedGroup = _dbContext.SelectionGroup
+            var requestedGroup = await _dbContext.SelectionGroup
                 .Include(g => g.RootContentItem)
                     .ThenInclude(c => c.Client)
-                .SingleOrDefault(g => g.Id == selectionGroupId);
+                .SingleOrDefaultAsync(g => g.Id == selectionGroupId);
 
-            List<ApplicationUser> allCurrentUsers = _dbContext.UserInSelectionGroup
+            List<ApplicationUser> allCurrentUsers = await _dbContext.UserInSelectionGroup
                 .Where(uisg => uisg.SelectionGroupId == selectionGroupId)
                 .Select(uisg => uisg.User)
-                .ToList();
+                .ToListAsync();
 
-            List<ApplicationUser> updatedUserList = _dbContext.ApplicationUser
+            List<ApplicationUser> updatedUserList = await _dbContext.ApplicationUser
                 .Where(u => newListOfUserIds.Contains(u.Id))
-                .ToList();
+                .ToListAsync();
 
             List<ApplicationUser> usersToRemove = allCurrentUsers.Except(updatedUserList).ToList();
 
@@ -310,21 +311,21 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .ToList();
             _dbContext.UserInSelectionGroup.AddRange(recordsToAdd);
 
-            List<UserInSelectionGroup> recordsToRemove = _dbContext.UserInSelectionGroup
+            List<UserInSelectionGroup> recordsToRemove = await _dbContext.UserInSelectionGroup
                 .Include(usg => usg.User)
                 .Include(usg => usg.SelectionGroup)
                 .Where(usg => usersToRemove.Select(u => u.Id).Contains(usg.UserId))
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
-                .ToList();
+                .ToListAsync();
             _dbContext.UserInSelectionGroup.RemoveRange(recordsToRemove);
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             // audit logging
             _dbContext.AttachRange(recordsToAdd);
             foreach (var userInGroup in recordsToAdd)
             {
-                _dbContext.Entry(userInGroup)?.Reference(uig => uig.User)?.Load();  // Load `User` navigation property into EF cache for this context
+                await _dbContext.Entry(userInGroup)?.Reference(uig => uig.User)?.LoadAsync();  // Load `User` navigation property into EF cache for this context
                 _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup.User));
             }
             foreach (var userInGroup in usersToRemove.Distinct(new IdPropertyComparer<ApplicationUser>()))
@@ -346,14 +347,14 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <param name="isSuspended">Suspended status</param>
         /// <returns>Selection group</returns>
-        internal SelectionGroup UpdateSelectionGroupSuspended(Guid selectionGroupId, bool isSuspended)
+        internal async Task<SelectionGroup> UpdateSelectionGroupSuspendedAsync(Guid selectionGroupId, bool isSuspended)
         {
-            var group = _dbContext.SelectionGroup
-                                  .Include(sg => sg.RootContentItem)
-                                      .ThenInclude(ci => ci.Client)
-                                  .Single(sg => sg.Id == selectionGroupId);
+            var group = await _dbContext.SelectionGroup
+                                        .Include(sg => sg.RootContentItem)
+                                            .ThenInclude(ci => ci.Client)
+                                        .SingleAsync(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended));
 
@@ -365,17 +366,17 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>Deleted selection group</returns>
-        internal SelectionGroup DeleteSelectionGroup(Guid selectionGroupId)
+        internal async Task<SelectionGroup> DeleteSelectionGroupAsync(Guid selectionGroupId)
         {
-            var group = _dbContext.SelectionGroup
-                .Include(g => g.RootContentItem)
-                    .ThenInclude(c => c.Client)
-                .SingleOrDefault(g => g.Id == selectionGroupId);
+            var group = await _dbContext.SelectionGroup
+                                        .Include(g => g.RootContentItem)
+                                            .ThenInclude(c => c.Client)
+                                        .SingleOrDefaultAsync(g => g.Id == selectionGroupId);
 
             if (group != null)
             {
                 _dbContext.SelectionGroup.Remove(group);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
             }
 

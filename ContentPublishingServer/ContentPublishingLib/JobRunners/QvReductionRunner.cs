@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Security.AccessControl;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -43,13 +44,14 @@ namespace ContentPublishingLib.JobRunners
                 QdsServiceInfo = services[0];
 
                 // Qv can have 0 or more configured source document folders, need to find the right one. 
-                var GetDocFolderTask = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
-                foreach (DocumentFolder DocFolder in GetDocFolderTask)
+                var serverDocFolders = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
+                foreach (DocumentFolder DocFolder in serverDocFolders)
                 {
                     // eliminate any trailing slash issue
                     if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
                     {
                         SourceDocFolder = DocFolder;
+                        return;  // Returns from this Task, not the method
                     }
                 }
 
@@ -58,6 +60,10 @@ namespace ContentPublishingLib.JobRunners
             while (!initTask.IsCompleted)
             {
                 Thread.Sleep(10);
+            }
+            if (initTask.IsFaulted)
+            {
+                Log.Error(initTask.Exception, "Exception thrown during QvReductionRunner constructor");
             }
         }
 
@@ -114,7 +120,7 @@ namespace ContentPublishingLib.JobRunners
                     ValidateThisInstance();
                     _CancellationToken.ThrowIfCancellationRequested();
 
-                    await PreTaskSetup();
+                    await PreTaskSetupAsync();
                     _CancellationToken.ThrowIfCancellationRequested();
 
                     #region Extract master content hierarchy
@@ -304,7 +310,7 @@ namespace ContentPublishingLib.JobRunners
         /// <summary>
         /// Sets up the starting conditions that are unique to this specific task
         /// </summary>
-        private async Task<bool> PreTaskSetup()
+        private async Task PreTaskSetupAsync()
         {
             WorkingFolderRelative = JobDetail.TaskId.ToString();  // Folder is named for the reduction task guid
             string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
@@ -315,6 +321,7 @@ namespace ContentPublishingLib.JobRunners
                 // remove pre-existing task folder of same name, normally won't exist but maybe in development environment
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
+                    Log.Warning($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
                     FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
                 }
 
@@ -326,6 +333,7 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 Directory.CreateDirectory(WorkingFolderAbsolute);
+                Log.Information($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} created");
                 File.Copy(JobDetail.Request.MasterFilePath, MasterFileDestinationPath);
 
                 // Set this.MasterDocumentNode, which is used elsewhere in this class
@@ -333,16 +341,15 @@ namespace ContentPublishingLib.JobRunners
             }
             catch (System.Exception e)
             {
-                Log.Information(e, $"QvReductionRunner.PreTaskSetup() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}");
+                Log.Information(e, $"QvReductionRunner.PreTaskSetupAsync() failed to create folder {WorkingFolderAbsolute} or copy master file {JobDetail.Request.MasterFilePath} to {MasterFileDestinationPath}");
                 throw;
             }
 
             if (MasterDocumentNode == null)
             {
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.BadRequest;
-                throw new ApplicationException($"Failed to obtain DocumentNode object from Qlikview Publisher for master content file {MasterFileName} in relative folder {WorkingFolderRelative}");
+                throw new ApplicationException($"QvReductionRunner.PreTaskSetupAsync() failed to obtain DocumentNode object from Qlikview Publisher for master content file {MasterFileName} in relative folder {WorkingFolderRelative}");
             }
-            return true;
         }
 
         /// <summary>
@@ -364,7 +371,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 string AbsoluteDocPath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, DocumentNodeArg.Name);
                 int FileSizeHectoMillionBytes = (int)(new FileInfo(AbsoluteDocPath).Length / 1E8 );
-                await RunQdsTask(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
+                await RunQdsTaskAsync(HierarchyTask, Math.Max(FileSizeHectoMillionBytes, 5));  // Allow 1 minute per 1E8 Bytes, at least 5 minutes
             }
             finally
             {
@@ -451,7 +458,7 @@ namespace ContentPublishingLib.JobRunners
                 }
             }
 
-            Log.Information($"Task {JobDetail.TaskId.ToString()} completed ExtractReductionHierarchy");
+            Log.Information($"QvReductionRunner.ExtractReductionHierarchy(), reduction Task {JobDetail.TaskId} completed ExtractReductionHierarchy");
 
             return ResultHierarchy;
         }
@@ -500,7 +507,7 @@ namespace ContentPublishingLib.JobRunners
             DocumentTask ReductionTask = CreateReductionQdsTask(JobDetail.Request.SelectionCriteria);
 
             // Run Qlikview publisher (QDS) task
-            await RunQdsTask(ReductionTask);
+            await RunQdsTaskAsync(ReductionTask);
 
             ReducedDocumentNode = await GetSourceDocumentNode(JobDetail.Request.RequestedOutputFileName, WorkingFolderRelative);
 
@@ -511,7 +518,7 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException(Msg);
             }
 
-            Log.Information($"Task {JobDetail.TaskId.ToString()} completed CreateReducedContent");
+            Log.Information($"QvReductionRunner.CreateReducedContent() reduction Task {JobDetail.TaskId} completed CreateReducedContent");
         }
 
         /// <summary>
@@ -529,7 +536,7 @@ namespace ContentPublishingLib.JobRunners
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
-            Log.Information($"Task {JobDetail.TaskId.ToString()} completed DistributeReducedContent");
+            Log.Information($"QvReductionRunner.DistributeReducedContent() reduction Task {JobDetail.TaskId} completed DistributeReducedContent");
         }
 
         /// <summary>
@@ -547,11 +554,11 @@ namespace ContentPublishingLib.JobRunners
                 catch (System.Exception e)  // Do not let this throw upward
                 {
                     // It's an error, but the reduction task has completed by now so just log this and continue.
-                    Log.Error(e, $"In QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
+                    Log.Error(e, $"QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
                 }
             }
 
-            Log.Information($"Task {JobDetail.TaskId.ToString()} completed Cleanup");
+            Log.Information($"QvReductionRunner.Cleanup(), reduction Task {JobDetail.TaskId} completed Cleanup");
 
             return true;
         }
@@ -580,7 +587,7 @@ namespace ContentPublishingLib.JobRunners
             if (DocNode == null)
             {
                 // Don't throw here, caller can decide what to do
-                Log.Error($"Did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}");
+                Log.Error($"QvReductionRunner.GetSourceDocumentNode() did not find SourceDocument '{RequestedFileName}' in subfolder {RequestedRelativeFolder} of source documents folder {SourceDocFolder.General.Path}");
             }
 
             return DocNode;
@@ -753,7 +760,7 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         /// <param name="TInfo"></param>
         /// <returns></returns>
-        private async Task RunQdsTask(DocumentTask DocTask, int? timeoutMinutes = null)
+        private async Task RunQdsTaskAsync(DocumentTask DocTask, int? timeoutMinutes = null)
         {
             var defaultTimeout = int.Parse(Configuration.ApplicationConfiguration["DefaultQdsTaskTimeoutMinutes"]);
             TimeSpan MaxStartDelay = new TimeSpan(0, 0, 5, 0);
@@ -784,7 +791,7 @@ namespace ContentPublishingLib.JobRunners
                 throw new ApplicationException("After saving task, QmsClient.FindTaskAsync exception", ex);
             }
             Guid TaskIdGuid = TInfo.ID;
-            Log.Information($"In QvReductionRunner.RunQdsTask() successfully saved task {TaskIdGuid.ToString("D")}, and retrieved task info, after {DateTime.Now - SaveStartTime}");
+            Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} saved, and task info retrieved, after {DateTime.Now - SaveStartTime}");
 
             try
             {
@@ -796,7 +803,7 @@ namespace ContentPublishingLib.JobRunners
                     if (DateTime.Now - RunStartTime > MaxStartDelay)
                     {
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
-                        throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid.ToString("D")} before timeout");
+                        throw new System.Exception($"Qlikview publisher failed to start task {TaskIdGuid} before timeout");
                     }
 
                     try
@@ -818,13 +825,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskStartRetryCount-- > 0)
                         {
-                            Log.Information(ex, "Retrying after exception while polling for task status after RunTaskAsync");
+                            Log.Information(ex, "QvReductionRunner.RunQdsTaskAsync() Retrying after exception while polling for task status after RunTaskAsync");
                             continue;
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while trying to start task", ex);
                     }
                 } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
-                Log.Information($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} started running after {DateTime.Now - RunStartTime}");
+                Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
                 DateTime RunningStartTime = DateTime.Now;
@@ -834,7 +841,7 @@ namespace ContentPublishingLib.JobRunners
                     if (DateTime.Now - RunningStartTime > MaxElapsedRun)
                     {
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.ReductionProcessingTimeout;
-                        throw new System.Exception($"Qlikview publisher failed to finish task {TaskIdGuid.ToString("D")} before timeout");
+                        throw new System.Exception($"In QvReductionRunner.RunQdsTask() QDS task {TaskIdGuid} failed to finish before timeout ({MaxElapsedRun})");
                     }
 
                     Thread.Sleep(PublisherPollingInterval);
@@ -847,13 +854,13 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (pollTaskFinishRetryCount-- > 0)
                         {
-                            Log.Information(ex, "Retrying after exception while polling for task status while task is running");
+                            Log.Information(ex, "QvReductionRunner.RunQdsTaskAsync() Retrying after exception while polling for task status while task is running");
                             continue;
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while waiting for task to finish", ex);
                     }
                 } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
-                Log.Information($"In QvReductionRunner.RunQdsTask() task {TaskIdGuid.ToString("D")} finished running after {DateTime.Now - RunningStartTime}");
+                Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} finished running after {DateTime.Now - RunningStartTime}");
 
                 switch (Status.General.Status)
                 {
@@ -869,11 +876,11 @@ namespace ContentPublishingLib.JobRunners
                         {
                             JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
                         }
-                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
 
                     case TaskStatusValue.Failed:
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
-                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid.ToString("D")}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
                 }
             }
             finally
@@ -894,13 +901,33 @@ namespace ContentPublishingLib.JobRunners
                     try
                     {
                         await _newQdsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                        Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} deleted");
                     }
                     catch (System.Exception ex)
                     {
-                        throw new ApplicationException("QmsClient.DeleteTaskAsync exception", ex);
+                        throw new ApplicationException($"In QvReductionRunner.RunQdsTask() QmsClient.DeleteTaskAsync({TaskIdGuid}) exception", ex);
                     }
                 }
             }
         }
+
+        private void LogAcl(string path)
+        {
+            FileSecurity acl = new FileInfo(path).GetAccessControl();
+            AuthorizationRuleCollection securityIdentifierRules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.SecurityIdentifier));
+            AuthorizationRuleCollection ntAccountRules = acl.GetAccessRules(true, true, typeof(System.Security.Principal.NTAccount));
+
+            Log.Information($"  SecurityIdentifier ACL rules:");
+            foreach (FileSystemAccessRule rule in securityIdentifierRules)
+            {
+                Log.Information($"    {rule.AccessControlType} {rule.FileSystemRights},   IsInherited: {rule.IsInherited}");
+            }
+            Log.Information($"  NTAccount ACL rules:");
+            foreach (FileSystemAccessRule rule in ntAccountRules)
+            {
+                Log.Information($"    {rule.AccessControlType} {rule.FileSystemRights},   IsInherited: {rule.IsInherited}");
+            }
+        }
+
     }
 }

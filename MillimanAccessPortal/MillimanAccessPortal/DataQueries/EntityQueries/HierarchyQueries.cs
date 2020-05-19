@@ -1,8 +1,16 @@
-﻿using MapDbContextLib.Context;
+﻿/*
+ * CODE OWNERS: tOM pUCKETT
+ * OBJECTIVE: Query methods related to content reduction hierarchy
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.HierarchyModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries.EntityQueries
 {
@@ -24,10 +32,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of fields</returns>
-        internal List<BasicField> SelectFieldsWhereSelectionGroup(Guid selectionGroupId)
+        internal async Task<List<BasicField>> SelectFieldsWhereSelectionGroupAsync(Guid selectionGroupId)
         {
-            var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
-            var fields = _dbContext.HierarchyField
+            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(selectionGroupId);
+            var fields = await _dbContext.HierarchyField
                 .Where(f => f.RootContentItemId == selectionGroup.RootContentItemId)
                 .OrderBy(f => f.FieldDisplayName)
                 .Select(f => new BasicField
@@ -37,7 +45,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     FieldName = f.FieldName,
                     DisplayName = f.FieldDisplayName,
                 })
-                .ToList();
+                .ToListAsync();
 
             return fields;
         }
@@ -47,10 +55,10 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of fields</returns>
-        internal List<BasicValue> SelectValuesWhereSelectionGroup(Guid selectionGroupId)
+        internal async Task<List<BasicValue>> SelectValuesWhereSelectionGroupAsync(Guid selectionGroupId)
         {
-            var selectionGroup = _dbContext.SelectionGroup.Find(selectionGroupId);
-            var values = _dbContext.HierarchyFieldValue
+            var selectionGroup = await _dbContext.SelectionGroup.FindAsync(selectionGroupId);
+            var values = await _dbContext.HierarchyFieldValue
                 .Where(f => f.HierarchyField.RootContentItemId == selectionGroup.RootContentItemId)
                 .OrderBy(f => f.Value)
                 .Select(f => new BasicValue
@@ -59,7 +67,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     ReductionFieldId = f.HierarchyFieldId,
                     Value = f.Value,
                 })
-                .ToList();
+                .ToListAsync();
 
             return values;
         }

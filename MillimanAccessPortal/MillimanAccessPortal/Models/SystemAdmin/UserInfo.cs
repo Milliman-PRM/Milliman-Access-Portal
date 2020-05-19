@@ -6,9 +6,11 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -46,7 +48,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, Guid? clientId, Guid? profitCenterId)
+        public async Task QueryRelatedEntityCountsAsync(ApplicationDbContext dbContext, Guid? clientId, Guid? profitCenterId)
         {
             if (clientId.HasValue)
             {
@@ -55,11 +57,12 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 // don't count clients
 
                 // only count root content items that are under the specified client
-                RootContentItemCount = dbContext.UserInSelectionGroup
+                RootContentItemCount = await dbContext.UserInSelectionGroup
                     .Where(usg => usg.UserId == Id)
                     .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == clientId.Value)
                     .Select(usg => usg.SelectionGroup.RootContentItemId)
-                    .ToHashSet().Count;
+                    .Distinct()
+                    .CountAsync();
 
                 _assignRootContentItemList(dbContext, clientId.Value);
             }
@@ -68,30 +71,31 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 ProfitCenterId = profitCenterId.Value;
 
                 // only count clients that are under the specified profit center
-                var clientIdList = dbContext.UserClaims
+                var clientIdList = await dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == Id)
                     .Select(claim => Guid.Parse(claim.ClaimValue))
-                    .ToList();
-                ClientCount = dbContext.Client
+                    .ToListAsync();
+                ClientCount = await dbContext.Client
                     .Where(client => clientIdList.Contains(client.Id))
                     .Where(client => client.ProfitCenterId == profitCenterId.Value)
-                    .Count();
+                    .CountAsync();
 
                 // don't count root content items
             }
             else
             {
                 // count all clients and root content items related to the user
-                ClientCount = dbContext.UserClaims
+                ClientCount = await  dbContext.UserClaims
                     .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
                     .Where(claim => claim.UserId == Id)
-                    .Count();
+                    .CountAsync();
 
-                RootContentItemCount = dbContext.UserInSelectionGroup
+                RootContentItemCount = await dbContext.UserInSelectionGroup
                     .Where(usg => usg.UserId == Id)
                     .Select(usg => usg.SelectionGroup.RootContentItemId)
-                    .ToHashSet().Count;
+                    .Distinct()
+                    .CountAsync();
             }
         }
 

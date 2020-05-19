@@ -5,9 +5,11 @@
  */
 
 using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -36,12 +38,12 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext, Guid? userId)
+        public async Task QueryRelatedEntityCountsAsync(ApplicationDbContext dbContext, Guid? userId)
         {
-            ClientName = dbContext.RootContentItem
+            ClientName = await dbContext.RootContentItem
                 .Where(i => i.Id == Id)
                 .Select(i => i.Client.Name)
-                .Single();
+                .SingleAsync();
 
             if (userId.HasValue)
             {
@@ -52,13 +54,13 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             else
             {
                 // count all users and selection groups related to the root content item
-                UserCount = dbContext.UserInSelectionGroup
+                UserCount = await  dbContext.UserInSelectionGroup
                     .Where(usg => usg.SelectionGroup.RootContentItemId == Id)
-                    .Count();
+                    .CountAsync();
 
-                SelectionGroupCount = dbContext.SelectionGroup
+                SelectionGroupCount = await dbContext.SelectionGroup
                     .Where(group => group.RootContentItemId == Id)
-                    .Count();
+                    .CountAsync();
 
                 _includeUsers(dbContext);
             }

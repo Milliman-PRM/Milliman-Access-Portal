@@ -4,13 +4,8 @@
  * DEVELOPER NOTES: This class is an expansion of the one included with the Visual Studio template used to create MAP
  */
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using EmailQueue;
-using Microsoft.Extensions.Logging;
+using Prm.EmailQueue;
 
 namespace MillimanAccessPortal.Services
 {
@@ -19,17 +14,14 @@ namespace MillimanAccessPortal.Services
     // For more details see this link https://go.microsoft.com/fwlink/?LinkID=532713
     public class MessageQueueServices : IMessageQueue
     {
-        private ILogger _logger { get; }
         private MailSender _sender { get; set; }
 
         /// <summary>
-        /// Constructor. Consumes ILoggerFactory from application.
+        /// Constructor
         /// </summary>
-        /// <param name="loggerFactory"></param>
-        public MessageQueueServices(ILoggerFactory loggerFactory)
+        public MessageQueueServices()
         {
-            _logger = loggerFactory.CreateLogger<MessageQueueServices>();
-            _sender = new MailSender(_logger);
+            _sender = new MailSender();
         }
 
         /// <summary>

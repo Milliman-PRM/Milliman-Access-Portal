@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib.Services;
 using Serilog;
 using System;
 using System.Threading;
@@ -16,15 +17,15 @@ using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
-using Newtonsoft.Json;
-using TestResourcesLib;
-using Moq;
-using MapCommonLib;
 
 namespace ContentPublishingLib.JobMonitors
 {
     public class MapDbReductionJobMonitor : JobMonitorBase
     {
+        public MapDbReductionJobMonitor(IAuditLogger testAuditLogger = null)
+            :base(testAuditLogger)
+        {}
+
         internal class ReductionJobTrackingItem
         {
             internal Task<ReductionJobDetail> task;
@@ -34,11 +35,9 @@ namespace ContentPublishingLib.JobMonitors
 
         override internal string MaxConcurrentRunnersConfigKey { get; } = "MaxParallelTasks";
 
-        public Mutex QueueMutex { private get; set; }
+        public SemaphoreSlim QueueSemaphore { private get; set; }
 
         public TimeSpan MapDbPublishQueueServicedEventTimeout { private get; set;  } = new TimeSpan(0, 0, 20);
-
-        private bool IsTestMode { get { return MockContext != null; } }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
         private List<ReductionJobTrackingItem> ActiveReductionRunnerItems = new List<ReductionJobTrackingItem>();
@@ -58,7 +57,7 @@ namespace ContentPublishingLib.JobMonitors
         /// <summary>
         /// Initializes data used to construct database context instances.
         /// </summary>
-        internal string ConnectionString
+        public string ConnectionString
         {
             set
             {
@@ -73,16 +72,16 @@ namespace ContentPublishingLib.JobMonitors
         /// </summary>
         /// <param name="Token">Allows the worker to react to task cancellation by the caller</param>
         /// <returns></returns>
-        public override Task Start(CancellationToken Token)
+        public async override Task StartAsync(CancellationToken Token)
         {
-            if (ContextOptions == null && !IsTestMode)
+            if (ContextOptions == null)
             {
                 throw new NullReferenceException("Attempting to construct new ApplicationDbContext but connection string not initialized");
             }
 
-            CleanupOnStart();
+            await CleanupOnStartAsync();
 
-            return Task.Run(() => JobMonitorThreadMain(Token), Token);
+            await JobMonitorThreadMainAsync(Token);
         }
 
         /// <summary>
@@ -90,21 +89,21 @@ namespace ContentPublishingLib.JobMonitors
         /// It is necessary to pass the cancellation token both here and in Task.Run().  See: https://github.com/dotnet/docs/issues/5085
         /// </summary>
         /// <param name="Token"></param>
-        public override void JobMonitorThreadMain(CancellationToken Token)
+        public async override Task JobMonitorThreadMainAsync(CancellationToken Token)
         {
+            await Task.Yield();
+
             while (!Token.IsCancellationRequested)
             {
                 // Request to cancel active runners for canceled (in db) ContentReductionTasks. 
-                using (ApplicationDbContext Db = IsTestMode
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
                     List<Guid> AllActiveReductionTaskIdList = ActiveReductionRunnerItems.Select(i => i.dbTask.Id).ToList();
 
-                    List<Guid> CanceledTaskIdList = Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
-                                                                           .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
-                                                                           .Select(t => t.Id)
-                                                                           .ToList();
+                    List<Guid> CanceledTaskIdList = await Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
+                                                                                .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
+                                                                                .Select(t => t.Id)
+                                                                                .ToListAsync();
 
                     ActiveReductionRunnerItems.Where(i => CanceledTaskIdList.Contains(i.dbTask.Id))
                                               .ToList()
@@ -114,16 +113,16 @@ namespace ContentPublishingLib.JobMonitors
                 // Remove completed tasks from the RunningTasks collection. 
                 foreach (ReductionJobTrackingItem CompletedReductionRunnerItem in ActiveReductionRunnerItems.Where(t => t.task.IsCompleted).ToList())
                 {
-                    UpdateTask(CompletedReductionRunnerItem.task.Result);
+                    await UpdateTaskAsync(CompletedReductionRunnerItem.task.Result);
                     ActiveReductionRunnerItems.Remove(CompletedReductionRunnerItem);
                 }
 
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActiveReductionRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    if (QueueMutex.WaitOne(MapDbPublishQueueServicedEventTimeout))
+                    if (QueueSemaphore.Wait(MapDbPublishQueueServicedEventTimeout))
                     {
-                        List<ContentReductionTask> Responses = GetReadyTasks(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
+                        List<ContentReductionTask> Responses = await GetReadyTasksAsync(MaxConcurrentRunners - ActiveReductionRunnerItems.Count);
 
                         foreach (ContentReductionTask DbTask in Responses)
                         {
@@ -143,17 +142,17 @@ namespace ContentPublishingLib.JobMonitors
                                     {
                                         JobDetail = (ReductionJobDetail)DbTask,
                                     };
-                                    if (IsTestMode)
+                                    if (TestAuditLogger != null)
                                     {
-                                        Runner.SetTestAuditLogger(MockAuditLogger.New().Object);
+                                        Runner.SetTestAuditLogger(TestAuditLogger);
                                     }
 
-                                    NewTask = Task.Run(() => Runner.Execute(cancelSource.Token), cancelSource.Token);
-                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain executing TaskAction {DbTask.TaskAction.ToString()} for task {DbTask.Id}, ({ActiveReductionRunnerItems.Count + 1}/{MaxConcurrentRunners})");
+                                    NewTask = Runner.Execute(cancelSource.Token);
+                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain() executing TaskAction {DbTask.TaskAction.ToString()} for ContentReductionTask {DbTask.Id}");
                                     break;
 
                                 default:
-                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain, task record discovered for unsupported content type {type.ToString()}");
+                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain(), task record discovered for unsupported content type {type.ToString()}");
                                     break;
                             }
 
@@ -163,19 +162,19 @@ namespace ContentPublishingLib.JobMonitors
                             }
                         }
 
-                        QueueMutex.ReleaseMutex();
+                        QueueSemaphore.Release();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }
                     else
                     {
-                        // Mutex was not acquired
+                        // Semaphore was not acquired
                     }
 
                     Thread.Sleep(1000);
                 }
             }
 
-            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() stopping {ActiveReductionRunnerItems.Count} active JobRunners, waiting up to {StopWaitTimeSeconds}");
 
             if (ActiveReductionRunnerItems.Count != 0)
             {
@@ -184,7 +183,7 @@ namespace ContentPublishingLib.JobMonitors
                 DateTime WaitStart = DateTime.Now;
                 while (DateTime.Now - WaitStart < StopWaitTimeSeconds)
                 {
-                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() waiting for {ActiveReductionRunnerItems.Count} running tasks to complete");
 
                     int CompletedTaskIndex = Task.WaitAny(ActiveReductionRunnerItems.Select(t => t.task).ToArray(), new TimeSpan(StopWaitTimeSeconds.Ticks / 100));
                     if (CompletedTaskIndex > -1)
@@ -194,58 +193,60 @@ namespace ContentPublishingLib.JobMonitors
 
                     if (ActiveReductionRunnerItems.Count == 0)
                     {
-                        Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain all reduction runners terminated successfully");
+                        Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() all reduction runners terminated successfully");
                         break;
                     }
                 }
 
                 foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() after timer expired, task {Item.dbTask.Id.ToString()} not completed");
                 }
             }
 
             Token.ThrowIfCancellationRequested();
-            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain returning");
+            Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() returning");
         }
 
         /// <summary>
         /// Query the database for tasks to be run
         /// </summary>
-        /// <param name="ReturnNoMoreThan">The maximum number of records to return</param>
+        /// <param name="ReturnNoMoreThan">The maximum number of records to return. If <1, returns an empty list.</param>
         /// <returns></returns>
-        internal List<ContentReductionTask> GetReadyTasks(int ReturnNoMoreThan)
+        internal async Task<List<ContentReductionTask>> GetReadyTasksAsync(int ReturnNoMoreThan)
         {
             if (ReturnNoMoreThan < 1)
             {
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = IsTestMode
-                                             ? MockContext.Object
-                                             : new ApplicationDbContext(ContextOptions))
-            using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    DateTime EarliestPublicationRequestTimestamp = Db.ContentPublicationRequest
-                        .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                        .OrderBy(r => r.CreateDateTimeUtc)
-                        .Select(r => r.CreateDateTimeUtc)
-                        .FirstOrDefault();
+                    DateTime EarliestPublicationRequestTimestamp = await Db.ContentPublicationRequest
+                                                                           .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                           .OrderBy(r => r.CreateDateTimeUtc)
+                                                                           .Select(r => r.CreateDateTimeUtc)
+                                                                           .FirstOrDefaultAsync();
 
                     if (EarliestPublicationRequestTimestamp == default(DateTime))  // if no publications are queued or processing
                     {
                         EarliestPublicationRequestTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
                     }
 
-                    List<ContentReductionTask> TopItems = Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                                                 .Where(t => t.CreateDateTimeUtc < EarliestPublicationRequestTimestamp)
-                                                                                 .Include(t => t.SelectionGroup).ThenInclude(sg => sg.RootContentItem).ThenInclude(rc => rc.ContentType)
-                                                                                 .Include(t => t.ContentPublicationRequest).ThenInclude(r => r.RootContentItem).ThenInclude(rc => rc.ContentType)
-                                                                                 .OrderBy(t => t.CreateDateTimeUtc)
-                                                                                 .Take(ReturnNoMoreThan)
-                                                                                 .ToList();
+                    List<ContentReductionTask> TopItems = await Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                                       .Where(t => t.CreateDateTimeUtc <= EarliestPublicationRequestTimestamp)
+                                                                                       .Include(t => t.SelectionGroup)
+                                                                                           .ThenInclude(sg => sg.RootContentItem)
+                                                                                               .ThenInclude(rc => rc.ContentType)
+                                                                                       .Include(t => t.ContentPublicationRequest)
+                                                                                           .ThenInclude(r => r.RootContentItem)
+                                                                                               .ThenInclude(rc => rc.ContentType)
+                                                                                       .OrderBy(t => t.CreateDateTimeUtc)
+                                                                                       .Take(ReturnNoMoreThan)
+                                                                                       .ToListAsync();
                     if (TopItems.Count > 0)
                     {
                         TopItems.ForEach(rt =>
@@ -253,14 +254,14 @@ namespace ContentPublishingLib.JobMonitors
                             rt.ReductionStatus = ReductionStatusEnum.Reducing;
                             rt.ProcessingStartDateTimeUtc = DateTime.UtcNow;
                         });
-                        Db.SaveChanges();
-                        Transaction.Commit();
+                        await Db.SaveChangesAsync();
+                        await Transaction.CommitAsync();
                     }
                     return TopItems;
                 }
                 catch (Exception e)
                 {
-                    Log.Information($"Failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                    Log.Information($"MapDbReductionJobMonitor.GetReadyTasksAsync(), failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
                     throw;
                 }
             }
@@ -271,24 +272,21 @@ namespace ContentPublishingLib.JobMonitors
         /// </summary>
         /// <param name="Result">Contains the field values to be saved. All field values will be saved.</param>
         /// <returns></returns>
-        private bool UpdateTask(ReductionJobDetail JobDetail)
+        private async Task<bool> UpdateTaskAsync(ReductionJobDetail JobDetail)
         {
             if (JobDetail == null || JobDetail.Result == null || JobDetail.TaskId == Guid.Empty)
             {
-                string Msg = $"MapDbReductionJobMonitor.UpdateTask unusable argument";
-                Log.Information(Msg);
+                Log.Error($"MapDbReductionJobMonitor.UpdateTask() unusable JobDetail argument");
                 return false;
             }
 
             try
             {
                 // Use a transaction so that there is no concurrency issue after we get the current db record
-                using (ApplicationDbContext Db = IsTestMode
-                                               ? MockContext.Object
-                                               : new ApplicationDbContext(ContextOptions))
-                using (IDbContextTransaction Transaction = Db.Database.BeginTransaction())
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
                 {
-                    ContentReductionTask DbTask = Db.ContentReductionTask.Find(JobDetail.TaskId);
+                    ContentReductionTask DbTask = await Db.ContentReductionTask.FindAsync(JobDetail.TaskId);
 
                     if (DbTask == null)
                     {
@@ -381,35 +379,41 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbTask.OutcomeMetadataObj = OutcomeMetadataObj;
 
-                    Db.SaveChanges();
-                    Transaction.Commit();
+                    await Db.SaveChangesAsync();
+                    await Transaction.CommitAsync();
                 }
 
                 return true;
             }
             catch (Exception e)
             {
-                Log.Error(e, "Failed to update task in database");
+                Log.Error(e, "MapDbReductionJobMonitor.UpdateTaskAsync(), Failed to update task in database");
                 return false;
             }
         }
 
-        public override void CleanupOnStart()
+        public async override Task CleanupOnStartAsync()
         {
             int maxRetries = Configuration.ApplicationConfiguration.GetValue("MaxReductionRetries", 2);
             const string retryStatusMessagePrefix = "Retry: ";
 
-            lock (_CleanupOnStartLockObj)  // The lock object is declared / initialized in the base class
+            bool acquired = await _CleanupOnStartSemaphore.WaitAsync(TimeSpan.FromSeconds(60));
+            if (!acquired)
             {
-                using (ApplicationDbContext Db = IsTestMode
-                                                 ? MockContext.Object
-                                                 : new ApplicationDbContext(ContextOptions))
+                string msg = $"MapDbReductionJobMonitor.CleanupOnStart(), failed to acquire semaphore";
+                Log.Error(msg);
+                throw new TimeoutException(msg);
+            }
+
+            try
+            {
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    List<ContentReductionTask> inProgressReductionTasks = Db.ContentReductionTask
-                                                                            .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
-                                                                            .Where(t => t.ContentPublicationRequestId == null)
-                                                                            .ToList();
-                    Log.Information($"CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+                    List<ContentReductionTask> inProgressReductionTasks = await Db.ContentReductionTask
+                                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
+                                                                                  .Where(t => t.ContentPublicationRequestId == null)
+                                                                                  .ToListAsync();
+                    Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
 
                     foreach (ContentReductionTask task in inProgressReductionTasks)
                     {
@@ -423,18 +427,22 @@ namespace ContentPublishingLib.JobMonitors
                             task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
                             task.ReductionStatus = ReductionStatusEnum.Error;
 
-                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
+                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
                         }
                         else
                         {
                             task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
                             task.ReductionStatus = ReductionStatusEnum.Queued;
 
-                            Log.Information($"CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
+                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
                         }
-                        Db.SaveChanges();
+                        await Db.SaveChangesAsync();
                     }
                 }
+            }
+            finally
+            {
+                _CleanupOnStartSemaphore.Release();
             }
         }
 

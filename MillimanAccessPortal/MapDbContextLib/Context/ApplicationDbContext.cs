@@ -20,32 +20,32 @@ namespace MapDbContextLib.Context
 {
     public class ApplicationDbContext : IdentityDbContext<ApplicationUser, ApplicationRole, Guid>
     {
-        public DbSet<Client> Client { get; set; }
-        public DbSet<UserRoleInClient> UserRoleInClient { get; set; }
-        public DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
-        public DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
-        public DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
-        public DbSet<SelectionGroup> SelectionGroup { get; set; }
-        public DbSet<RootContentItem> RootContentItem { get; set; }
-        public DbSet<HierarchyField> HierarchyField { get; set; }
-        public DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
-        public DbSet<ContentType> ContentType { get; set; }
-        public DbSet<ProfitCenter> ProfitCenter { get; set; }
-        public DbSet<ContentReductionTask> ContentReductionTask { get; set; }
-        public DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
-        public DbSet<FileUpload> FileUpload { get; set; }
-        public DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
-        public DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
+        public virtual DbSet<Client> Client { get; set; }
+        public virtual DbSet<UserRoleInClient> UserRoleInClient { get; set; }
+        public virtual DbSet<UserRoleInProfitCenter> UserRoleInProfitCenter { get; set; }
+        public virtual DbSet<UserRoleInRootContentItem> UserRoleInRootContentItem { get; set; }
+        public virtual DbSet<UserInSelectionGroup> UserInSelectionGroup { get; set; }
+        public virtual DbSet<SelectionGroup> SelectionGroup { get; set; }
+        public virtual DbSet<RootContentItem> RootContentItem { get; set; }
+        public virtual DbSet<HierarchyField> HierarchyField { get; set; }
+        public virtual DbSet<HierarchyFieldValue> HierarchyFieldValue { get; set; }
+        public virtual DbSet<ContentType> ContentType { get; set; }
+        public virtual DbSet<ProfitCenter> ProfitCenter { get; set; }
+        public virtual DbSet<ContentReductionTask> ContentReductionTask { get; set; }
+        public virtual DbSet<ContentPublicationRequest> ContentPublicationRequest { get; set; }
+        public virtual DbSet<FileUpload> FileUpload { get; set; }
+        public virtual DbSet<AuthenticationScheme> AuthenticationScheme { get; set; }
+        public virtual DbSet<NameValueConfiguration> NameValueConfiguration { get; set; }
 
-        public DbSet<SftpAccount> SftpAccount { get; set; }
-        public DbSet<FileDrop> FileDrop { get; set; }
-        public DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
-        public DbSet<FileDropDirectory> FileDropDirectory { get; set; }
-        public DbSet<FileDropFile> FileDropFile { get; set; }
+        public virtual DbSet<SftpAccount> SftpAccount { get; set; }
+        public virtual DbSet<FileDrop> FileDrop { get; set; }
+        public virtual DbSet<FileDropUserPermissionGroup> FileDropUserPermissionGroup { get; set; }
+        public virtual DbSet<FileDropDirectory> FileDropDirectory { get; set; }
+        public virtual DbSet<FileDropFile> FileDropFile { get; set; }
 
         // Alteration of Identity entities
-        public DbSet<ApplicationUser> ApplicationUser { get; set; }
-        public DbSet<ApplicationRole> ApplicationRole { get; set; }
+        public virtual DbSet<ApplicationUser> ApplicationUser { get; set; }
+        public virtual DbSet<ApplicationRole> ApplicationRole { get; set; }
 
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
@@ -70,10 +70,10 @@ namespace MapDbContextLib.Context
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
 
-            builder.ForNpgsqlHasEnum<AuthenticationType>();
-            builder.ForNpgsqlHasEnum<PublicationStatus>();
-            builder.ForNpgsqlHasEnum<ReductionStatusEnum>();
-            builder.ForNpgsqlHasEnum<ContentTypeEnum>();
+            builder.HasPostgresEnum<AuthenticationType>();
+            builder.HasPostgresEnum<PublicationStatus>();
+            builder.HasPostgresEnum<ReductionStatusEnum>();
+            builder.HasPostgresEnum<ContentTypeEnum>();
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
             builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
@@ -148,12 +148,12 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
-                b.ForNpgsqlUseXminAsConcurrencyToken();
+                b.UseXminAsConcurrencyToken();
             });
             builder.Entity<ContentPublicationRequest>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.ForNpgsqlUseXminAsConcurrencyToken();
+                b.UseXminAsConcurrencyToken();
             });
             builder.Entity<FileUpload>(b =>
             {
@@ -196,22 +196,18 @@ namespace MapDbContextLib.Context
             });
         }
 
-        public bool ClientExists(Guid id)
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            return Client.Any(e => e.Id == id);
+            string cxnstr = optionsBuilder.Options.GetExtension<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension>().ConnectionString;
+            optionsBuilder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
         }
 
-        private bool ProfitCenterExists(Guid id)
-        {
-            return ProfitCenter.Any(pc => pc.Id == id);
-        }
-
-        public static async Task InitializeAll(IServiceProvider serviceProvider)
+        public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
         {
             await Identity.ApplicationRole.SeedRoles(serviceProvider);
-            Context.ContentType.InitializeContentTypes(serviceProvider);
+            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
-            Context.NameValueConfiguration.InitializeNameValueConfiguration(serviceProvider);
+            await Context.NameValueConfiguration.InitializeNameValueConfigurationAsync(serviceProvider);
         }
     }
 

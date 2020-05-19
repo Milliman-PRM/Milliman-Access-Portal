@@ -24,8 +24,9 @@ namespace ContentPublishingLib.JobRunners
         protected void AssertTesting()
         {
             StackTrace CallStack = new StackTrace();
-            bool IsTest = CallStack.GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "ContentPublishingServiceTests") 
-                       || System.Environment.CommandLine.Contains("testhost.dll");
+            bool IsTest = CallStack.GetFrames().Any(f => f.GetMethod().DeclaringType.Namespace == "ContentPublishingServiceTests")
+                       || System.Environment.CommandLine.Contains("testhost.dll", StringComparison.InvariantCultureIgnoreCase)
+                       || System.Environment.CommandLine.Contains("testhost.x86.dll", StringComparison.InvariantCultureIgnoreCase);
             if (!IsTest)
             {
                 throw new ApplicationException($"Assert testing failed.  Stack trace:{Environment.NewLine}{CallStack.ToString()}");

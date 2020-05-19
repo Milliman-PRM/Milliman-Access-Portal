@@ -1,10 +1,12 @@
 ﻿using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -30,9 +32,9 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="id">Content item ID</param>
         /// <returns>Content item</returns>
-        private BasicContentItem FindContentItem(Guid id)
+        private async Task<BasicContentItem> FindContentItemAsync(Guid id)
         {
-            var contentItem = _dbContext.RootContentItem
+            var contentItem = await _dbContext.RootContentItem
                 .Where(i => i.Id == id)
                 .Select(i => new BasicContentItem
                 {
@@ -43,7 +45,7 @@ namespace MillimanAccessPortal.DataQueries
                     DoesReduce = i.DoesReduce,
                     Name = i.ContentName,
                 })
-                .SingleOrDefault();
+                .SingleOrDefaultAsync();
 
             return contentItem;
         }
@@ -55,17 +57,22 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="role">Role</param>
         /// <param name="clientId">Client ID</param>
         /// <returns>List of content items</returns>
-        private List<BasicContentItem> SelectContentItemsWhereClient(
-            ApplicationUser user, RoleEnum role, Guid clientId)
+        private async Task<List<BasicContentItem>> SelectContentItemsWhereClientAsync(ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = _dbContext.UserRoleInRootContentItem
+            // This runs on the server
+            var contentItems = await _dbContext.UserRoleInRootContentItem
                 .Where(r => r.UserId == user.Id)
                 .Where(r => r.Role.RoleEnum == role)
                 .Where(r => r.RootContentItem.ClientId == clientId)
+                .OrderBy(r => r.RootContentItem)
+                    .ThenBy(r => r.RootContentItem.ContentName)
+                        .ThenBy(r => r.RootContentItem.ContentType.TypeEnum)
                 .Select(r => r.RootContentItem)
-                .Distinct()
-                .OrderBy(i => i.ContentName)
-                    .ThenBy(i => i.ContentType.Name)
+                .ToListAsync();
+
+            // The rest runs on the client
+            var contentItemModels = contentItems
+                .Distinct(new IdPropertyComparer<RootContentItem>())  // normally there won't be duplicates
                 .Select(i => new BasicContentItem
                 {
                     Id = i.Id,
@@ -77,7 +84,7 @@ namespace MillimanAccessPortal.DataQueries
                 })
                 .ToList();
 
-            return contentItems;
+            return contentItemModels;
         }
 
         /// <summary>
@@ -85,7 +92,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="contentItems">List of content items</param>
         /// <returns>List of content items with card stats</returns>
-        private List<BasicContentItemWithCardStats> WithCardStats(List<BasicContentItem> contentItems)
+        private async Task<List<BasicContentItemWithCardStats>> WithCardStatsAsync(List<BasicContentItem> contentItems)
         {
             var contentItemsWith = new List<BasicContentItemWithCardStats> { };
             foreach (var contentItem in contentItems)
@@ -100,12 +107,12 @@ namespace MillimanAccessPortal.DataQueries
                     Name = contentItem.Name,
                 };
 
-                contentItemWith.SelectionGroupCount = _dbContext.SelectionGroup
+                contentItemWith.SelectionGroupCount = await _dbContext.SelectionGroup
                     .Where(g => g.RootContentItemId == contentItem.Id)
-                    .Count();
-                contentItemWith.AssignedUserCount = _dbContext.UserInSelectionGroup
+                    .CountAsync();
+                contentItemWith.AssignedUserCount = await _dbContext.UserInSelectionGroup
                     .Where(u => u.SelectionGroup.RootContentItemId == contentItem.Id)
-                    .Count();
+                    .CountAsync();
 
                 contentItemsWith.Add(contentItemWith);
             }
@@ -120,11 +127,11 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="role">Role</param>
         /// <param name="clientId">Client ID</param>
         /// <returns>List of content items with card stats</returns>
-        internal List<BasicContentItemWithCardStats> SelectContentItemsWithCardStatsWhereClient(
+        internal async Task<List<BasicContentItemWithCardStats>> SelectContentItemsWithCardStatsWhereClientAsync(
             ApplicationUser user, RoleEnum role, Guid clientId)
         {
-            var contentItems = SelectContentItemsWhereClient(user, role, clientId);
-            var contentItemsWithStats = WithCardStats(contentItems);
+            var contentItems = await SelectContentItemsWhereClientAsync(user, role, clientId);
+            var contentItemsWithStats = await WithCardStatsAsync(contentItems);
 
             return contentItemsWithStats;
         }
@@ -134,11 +141,11 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="contentItemId">Content item ID</param>
         /// <returns>Content item with card stats</returns>
-        internal BasicContentItemWithCardStats SelectContentItemWithCardStats(Guid contentItemId)
+        internal async Task<BasicContentItemWithCardStats> SelectContentItemWithCardStatsAsync(Guid contentItemId)
         {
-            var contentItem = FindContentItem(contentItemId);
-            var contentItemWithStats = WithCardStats(new List<BasicContentItem> { contentItem })
-                .SingleOrDefault();
+            var contentItem = await FindContentItemAsync(contentItemId);
+            var contentItemWithStats = (await WithCardStatsAsync(new List<BasicContentItem> { contentItem }))
+                                        .SingleOrDefault();
 
             return contentItemWithStats;
         }
@@ -148,22 +155,27 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="contentItemIds">List of content item IDs</param>
         /// <returns>List of content types</returns>
-        internal List<BasicContentType> SelectContentTypesContentItemIn(List<Guid> contentItemIds)
+        internal async Task<List<BasicContentType>> SelectContentTypesContentItemInAsync(List<Guid> contentItemIds)
         {
-            var contentTypes = _dbContext.RootContentItem
+            var contentTypes = await _dbContext.RootContentItem
                 .Where(i => contentItemIds.Contains(i.Id))
                 .Select(i => i.ContentType)
-                .Distinct()
-                .OrderBy(t => t.Name)
+                .ToListAsync();
+
+            var contentTypeModelList = contentTypes
+                .Distinct(new IdPropertyComparer<ContentType>())  // normally there won't be duplicates
                 .Select(t => new BasicContentType(t))
+                .OrderBy(bt => bt.DisplayName)
                 .ToList();
 
-            return contentTypes;
+            return contentTypeModelList;
         }
 
-        internal List<BasicContentType> GetAllContentTypes()
+        internal async Task<List<BasicContentType>> GetAllContentTypesAsync()
         {
-            return _dbContext.ContentType.Select(t => new BasicContentType(t)).ToList();
+            return await _dbContext.ContentType
+                                   .Select(t => new BasicContentType(t))
+                                   .ToListAsync();
         }
     }
 }

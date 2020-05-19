@@ -15,38 +15,37 @@ using TestResourcesLib;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class FileUploadControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
 
-        /// <summary>Initializes test resources.</summary>
-        /// <remarks>This constructor is called before each test.</remarks>
-        public FileUploadControllerTests()
+        public FileUploadControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
         {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Basic });
+            _dbLifeTimeFixture = dbLifeTimeFixture;
         }
 
         /// <summary>Constructs a controller with the specified active user.</summary>
         /// <param name="Username"></param>
         /// <returns>ContentAccessAdminController</returns>
-        public async Task<FileUploadController> GetControllerForUser(string Username)
+        private async Task<FileUploadController> GetControllerForUser(TestInitialization TestResources, string Username)
         {
             var testController = new FileUploadController(
-                TestResources.AuditLoggerObject,
-                TestResources.MockDbContext.Object,
-                TestResources.UploadHelperObject,
-                TestResources.UploadTaskQueueObject);
+                TestResources.AuditLogger,
+                TestResources.DbContext,
+                TestResources.UploadHelper,
+                TestResources.UploadTaskQueue);
 
             try
             {
-                Username = (await TestResources.UserManagerObject.FindByNameAsync(Username)).UserName;
+                Username = (await TestResources.UserManager.FindByNameAsync(Username)).UserName;
             }
             catch (NullReferenceException)
             {
                 throw new ArgumentException($"Username '{Username}' is not present in the test database.");
             }
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(Username);
+            testController.ControllerContext = TestResources.GenerateControllerContext(Username);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
@@ -75,38 +74,44 @@ namespace MapTests
         [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 2)]
         public async Task ChunkStatus_NotFound(string fileName, string checksum, ulong size, uint chunkNumber)
         {
-            #region Arrange
-            FileUploadController controller = await GetControllerForUser("test1");
-            var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                FileUploadController controller = await GetControllerForUser(TestResources, "test1");
+                var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
+                #endregion
 
-            #region Act
-            var view = controller.ChunkStatus(resumableInfo);
-            #endregion
+                #region Act
+                var view = controller.ChunkStatus(resumableInfo);
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<List<uint>>(result.Value);
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<List<uint>>(result.Value);
+                #endregion
+            }
         }
 
         [Theory]
         [InlineData("random.dat", "2339ebed070fd30a869a22193ef2f76284ed333b", 2097152, 1)]
         public async Task ChunkStatus_Ok(string fileName, string checksum, ulong size, uint chunkNumber)
         {
-            #region Arrange
-            FileUploadController controller = await GetControllerForUser("test1");
-            var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                FileUploadController controller = await GetControllerForUser(TestResources, "test1");
+                var resumableInfo = BuildResumableInfo(fileName, checksum, size, chunkNumber);
+                #endregion
 
-            #region Act
-            var view = controller.ChunkStatus(resumableInfo);
-            #endregion
+                #region Act
+                var view = controller.ChunkStatus(resumableInfo);
+                #endregion
 
-            #region Assert
-            JsonResult result = Assert.IsType<JsonResult>(view);
-            Assert.IsType<List<uint>>(result.Value);
-            #endregion
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<List<uint>>(result.Value);
+                #endregion
+            }
         }
     }
 }

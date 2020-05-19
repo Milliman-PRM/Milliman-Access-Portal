@@ -1,3 +1,6 @@
+import '../../../scss/react/file-drop/file-drop.scss';
+
+import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
@@ -9,7 +12,7 @@ import * as State from './redux/store';
 
 import { generateUniqueId } from '../../generate-unique-identifier';
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, PermissionGroupsChangesModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropEvent, FileDropWithStats, PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -22,6 +25,7 @@ import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
 import { ContentPanelForm } from '../shared-components/form/form-elements';
@@ -37,6 +41,7 @@ interface FileDropProps {
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
   permissionGroups: PermissionGroupsReturnModel;
+  activityLog: FileDropEvent[];
   selected: State.FileDropSelectedState;
   cardAttributes: State.FileDropCardAttributesState;
   pending: State.FileDropPendingState;
@@ -303,7 +308,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'activityLog':
-                    // this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+                    this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
                   case 'settings':
@@ -674,7 +679,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
                   break;
                 case 'activityLog':
-                  // this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+                  this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                   break;
                 case 'settings':
                   // TODO: Add appropriate call here.
@@ -825,7 +830,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters } = this.props;
+    const { filters, activityLog, data } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -837,7 +842,67 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <div className="activity-log-table-header">
+            <span className="activity-log-header">Activity Log - <strong>Last 30 Days</strong></span>
+            <a
+              href={`./FileDrop/DownloadFullActivityLog?=${data.permissionGroups.fileDropId}`}
+              className="download-button button blue-button"
+              download={true}
+            >
+              Download All
+            </a>
+          </div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            {
+              this.props.pending.async.activityLog &&
+              <ColumnSpinner />
+            }
+            <div>
+              <table className="activity-log-table">
+                <thead>
+                  <tr>
+                    <th className="col-date">Date</th>
+                    <th className="col-author">Performed by</th>
+                    <th className="col-action">Action</th>
+                    <th className="col-description">Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {
+                    activityLog.map((logEvent) => (
+                      <tr className="event-row" key={`${logEvent.timeStampUtc}`}>
+                        <td className="date-width">
+                          <span title={moment(logEvent.timeStampUtc).local().format('MM/DD/YYYY h:mm:ss A')}>
+                            {
+                              moment(logEvent.timeStampUtc).local().format('M/D/YY \nh:mmA')
+                            }
+                          </span>
+                        </td>
+                        <td className="name-max-width">
+                          <span
+                            title={logEvent.fullName}
+                          >
+                            {logEvent.fullName}
+                          </span>
+                          <br />
+                          <span
+                            className="username"
+                            title={logEvent.userName}
+                          >
+                            {logEvent.userName}
+                          </span>
+                        </td>
+                        <td className="action-text">{logEvent.eventType}</td>
+                        <td>{logEvent.description}</td>
+                      </tr>
+                    ))
+                  }
+                </tbody>
+              </table>
+            </div>
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
@@ -862,6 +927,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
     permissionGroups: Selector.permissionGroupEntities(state),
+    activityLog: Selector.activityLogEntities(state),
     selected,
     cardAttributes,
     pending,

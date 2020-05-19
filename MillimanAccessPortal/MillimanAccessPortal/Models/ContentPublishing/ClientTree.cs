@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public long SelectedClientId { get; set; } = 0;
 
-        public static ClientTree Build(ApplicationUser currentUser, UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext, RoleEnum roleInClient)
+        public static async Task<ClientTree> BuildAsync(ApplicationUser currentUser, ApplicationDbContext dbContext, RoleEnum roleInClient)
         {
             #region Validation
             if (currentUser == null)
@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             var clientDetails = new List<ClientSummary>();
             foreach (var client in dbContext.Client.OrderBy(c => c.Name))
             {
-                clientDetails.Add(ClientSummary.Build(dbContext, userManager, currentUser, client, roleInClient));
+                clientDetails.Add(await ClientSummary.BuildAsync(dbContext, currentUser, client, roleInClient));
             }
 
             Model.Root.Populate(ref clientDetails);

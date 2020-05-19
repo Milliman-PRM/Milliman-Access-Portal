@@ -6,8 +6,10 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -36,18 +38,18 @@ namespace MillimanAccessPortal.Models.SystemAdmin
             };
         }
 
-        public void QueryRelatedEntityCounts(ApplicationDbContext dbContext)
+        public async Task QueryRelatedEntityCountsAsync(ApplicationDbContext dbContext)
         {
             // count all users under the profit center
-            UserCount = dbContext.UserRoleInProfitCenter
+            UserCount = await dbContext.UserRoleInProfitCenter
                 .Where(role => role.ProfitCenterId == Id)
                 .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
-                .Count();
+                .CountAsync();
 
             // count all clients under the profit center
-            ClientCount = dbContext.Client
+            ClientCount = await dbContext.Client
                 .Where(client => client.ProfitCenterId == Id)
-                .Count();
+                .CountAsync();
         }
     }
 }
