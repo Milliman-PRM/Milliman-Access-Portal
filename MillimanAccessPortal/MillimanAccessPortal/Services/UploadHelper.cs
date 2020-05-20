@@ -259,7 +259,7 @@ namespace MillimanAccessPortal.Services
 
                 if (fileInfo.IsDirectory)
                 {
-                    FileSystemUtil.DeleteDirectoryWithRetry(fileInfo.PhysicalPath);
+                    FileSystemUtil.DeleteDirectoryWithRetry(fileInfo.PhysicalPath, true);
                 }
                 else
                 {
