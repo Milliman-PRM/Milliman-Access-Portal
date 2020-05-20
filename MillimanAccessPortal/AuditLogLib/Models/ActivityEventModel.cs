@@ -151,6 +151,10 @@ namespace AuditLogLib.Models
                         descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
+                    case 8104:  // SFTP Account Credentials Generated
+                        descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
+
                     case 8110:  // SFTP Directory Created
                         descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
