@@ -245,7 +245,7 @@ namespace MillimanAccessPortal
             ReductionStatusEnum resultingStatus = ReductionStatusEnum.Error;  // initialize
             try
             {
-                Task copyTask =Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget), cancellationTokenSource.Token);
+                Task copyTask =Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget, true), cancellationTokenSource.Token);
                 await copyTask;
 
                 if (copyTask.IsCompletedSuccessfully)

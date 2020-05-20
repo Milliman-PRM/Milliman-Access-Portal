@@ -115,7 +115,7 @@ namespace MillimanAccessPortal.Services
                     string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), task.Id.ToString());
                     if (Directory.Exists(TaskFolderPath))
                     {
-                        FileSystemUtil.DeleteDirectoryWithRetry(TaskFolderPath);
+                        FileSystemUtil.DeleteDirectoryWithRetry(TaskFolderPath, true);
                     }
 
                     dbContext.ContentReductionTask.Remove(task);
