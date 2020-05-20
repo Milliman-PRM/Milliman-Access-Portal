@@ -1123,7 +1123,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCredentialsGenerated = new AuditEventType<SftpAccount, FileDrop>(
-            8104, "Account Credentials Generated", (account, fileDrop) => new
+            8104, "SFTP Account Password Generated", (account, fileDrop) => new
             {
                 SftpAccount = new
                 {
