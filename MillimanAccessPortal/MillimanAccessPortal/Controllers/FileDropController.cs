@@ -653,6 +653,8 @@ namespace MillimanAccessPortal.Controllers
             account.Password = newPassword;
             await _dbContext.SaveChangesAsync();
 
+            _auditLogger.Log(AuditEventType.SftpAccountCredentialsGenerated.ToEvent(account, fileDrop));
+
             return Json(returnModel);
         }
 
