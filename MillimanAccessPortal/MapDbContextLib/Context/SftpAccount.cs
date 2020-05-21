@@ -71,9 +71,16 @@ namespace MapDbContextLib.Context
                 return PasswordVerificationResult.Failed;
             }
 
-            var verificationResult = GetPasswordHasher().VerifyHashedPassword(this, PasswordHash, proposedPassword);
+            try
+            {
+                PasswordVerificationResult verificationResult = GetPasswordHasher().VerifyHashedPassword(this, PasswordHash, proposedPassword);
+                return verificationResult;
+            }
+            catch 
+            {
+                return PasswordVerificationResult.Failed;
+            }
 
-            return verificationResult;
         }
 
         private static PasswordHasher<SftpAccount> GetPasswordHasher()
