@@ -1122,6 +1122,20 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 
+        public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCredentialsGenerated = new AuditEventType<SftpAccount, FileDrop>(
+            8104, "SFTP Account Password Generated", (account, fileDrop) => new
+            {
+                SftpAccount = new
+                {
+                    account.Id,
+                    account.UserName,
+                },
+                MapUser = account.ApplicationUserId.HasValue
+                        ? new { Id = account.ApplicationUserId.Value, account.ApplicationUser?.UserName }
+                        : null,
+                FileDrop = (FileDropLogModel)fileDrop,
+            });
+
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
             8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
             {

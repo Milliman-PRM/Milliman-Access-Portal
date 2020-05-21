@@ -107,6 +107,12 @@ namespace AuditLogLib.Models
                         {
                             descriptionString += $"Name changed from \"{oldSettings.Name}\" to \"{newSettings.Name}\". ";
                         }
+                        else
+                        {
+                            descriptionString += permissionGroupModel.IsPersonalGroup
+                                                 ? $"For MAP user \"{oldSettings.Name}\": "
+                                                 : $"For the group named \"{oldSettings.Name}\": ";
+                        }
 
                         if (newSettings.ReadAccess && !oldSettings.ReadAccess)
                         {
@@ -149,6 +155,10 @@ namespace AuditLogLib.Models
 
                     case 8103:  // Account Removed From Permission Group
                         descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
+                        return descriptionString;
+
+                    case 8104:  // SFTP Account Credentials Generated
+                        descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
