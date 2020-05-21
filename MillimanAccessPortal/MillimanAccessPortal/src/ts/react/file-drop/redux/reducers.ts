@@ -699,7 +699,8 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: {
       ...state.fileDropSettings,
-      fileDropPassword: action.response,
+      userHasPassword: true,
+      fileDropPassword: action.response.password,
     },
   }),
   SET_FILE_DROP_NOTIFICATION_SETTING_SUCCEEDED: (state, action: Action.SetFileDropNotificationSettingSucceeded) => ({
