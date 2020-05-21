@@ -107,6 +107,12 @@ namespace AuditLogLib.Models
                         {
                             descriptionString += $"Name changed from \"{oldSettings.Name}\" to \"{newSettings.Name}\". ";
                         }
+                        else
+                        {
+                            descriptionString += permissionGroupModel.IsPersonalGroup
+                                                 ? $"For MAP user \"{oldSettings.Name}\": "
+                                                 : $"For the group named \"{oldSettings.Name}\": ";
+                        }
 
                         if (newSettings.ReadAccess && !oldSettings.ReadAccess)
                         {
