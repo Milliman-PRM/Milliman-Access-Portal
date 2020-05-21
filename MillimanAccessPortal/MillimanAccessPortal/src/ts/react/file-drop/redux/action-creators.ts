@@ -98,6 +98,10 @@ export const openModifiedFormModal =
 export const closeModifiedFormModal =
   createActionCreator<Action.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
 
+/** Close the password notification modal */
+export const closePasswordNotificationModal =
+  createActionCreator<Action.ClosePasswordNotificationModal>('CLOSE_PASSWORD_NOTIFICATION_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

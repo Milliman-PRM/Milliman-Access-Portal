@@ -107,6 +107,7 @@ export interface FileDropModals {
   deleteFileDrop: ModalState;
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
+  passwordNotification: ModalState;
 }
 
 /** Top-Level File Drop state */

@@ -584,6 +584,9 @@ const modals = combineReducers({
     'DELETE_FILE_DROP',
     'SELECT_FILE_DROP_TAB',
   ]),
+  passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
+    'CLOSE_PASSWORD_NOTIFICATION_MODAL',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
@@ -696,7 +699,8 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: {
       ...state.fileDropSettings,
-      fileDropPassword: action.response,
+      userHasPassword: true,
+      fileDropPassword: action.response.password,
     },
   }),
   SET_FILE_DROP_NOTIFICATION_SETTING_SUCCEEDED: (state, action: Action.SetFileDropNotificationSettingSucceeded) => ({

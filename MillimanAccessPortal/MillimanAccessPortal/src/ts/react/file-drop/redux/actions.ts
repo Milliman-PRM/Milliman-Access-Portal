@@ -159,6 +159,11 @@ export interface CloseModifiedFormModal {
   type: 'CLOSE_MODIFIED_FORM_MODAL';
 }
 
+/** Close the modal used to display the generated password */
+export interface ClosePasswordNotificationModal {
+  type: 'CLOSE_PASSWORD_NOTIFICATION_MODAL';
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -514,6 +519,7 @@ export type FileDropPageActions =
   | AddNewPermissionGroup
   | OpenModifiedFormModal
   | CloseModifiedFormModal
+  | ClosePasswordNotificationModal
   ;
 
 /** Actions that schedule another action */
@@ -597,4 +603,5 @@ export type OpenModalAction =
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
   | OpenModifiedFormModal
+  | GenerateNewSftpPasswordSucceeded
   ;
