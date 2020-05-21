@@ -584,6 +584,9 @@ const modals = combineReducers({
     'DELETE_FILE_DROP',
     'SELECT_FILE_DROP_TAB',
   ]),
+  passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
+    'CLOSE_PASSWORD_NOTIFICATION_MODAL',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
