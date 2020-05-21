@@ -964,18 +964,38 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </table>
                 </FormSection>
                 <FormSection title="SFTP Credentials">
-                  <span><strong>Username:</strong> {fileDropSettings.sftpUserName}</span>
                   {
-                    fileDropSettings.userHasPassword && <span>has password</span>
+                    !fileDropSettings.userHasPassword &&
+                    <span
+                      className="button blue-button"
+                      onClick={() => this.props.generateNewSftpPassword(fileDrop)}
+                    >
+                      Generate Credentials
+                    </span>
                   }
-                  <button
-                    onClick={(event: React.MouseEvent) => {
-                      event.preventDefault();
-                      this.props.generateNewSftpPassword(fileDrop);
-                    }}
-                  >
-                    Generate {fileDropSettings.userHasPassword ? 'New' : ''} Password
-                  </button>
+                  {
+                    fileDropSettings.userHasPassword &&
+                    <>
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td><strong>Username:</strong></td>
+                            <td>{fileDropSettings.sftpUserName}</td>
+                          </tr>
+                          <tr>
+                            <td><strong>Credentials Active:</strong></td>
+                            <td>{!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended}</td>
+                          </tr>
+                        </tbody>
+                      </table>
+                      <span
+                        className="button blue-button"
+                        onClick={() => this.props.generateNewSftpPassword(fileDrop)}
+                      >
+                        Generate Credentials
+                      </span>
+                    </>
+                  }
                 </ FormSection>
                 {
                   uploadNotification &&
