@@ -90,7 +90,7 @@ namespace SftpServerLib
                                                                                      (FileDropDirectoryLogModel)fileRecord.Directory,
                                                                                           new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
                                                                                           connection.Account,
-                                                                                          connection.MapUser));
+                                                                                          connection.MapUser), connection.MapUser?.UserName);
                         Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
                     }
                     else
