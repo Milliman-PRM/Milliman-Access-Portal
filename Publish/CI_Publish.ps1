@@ -553,7 +553,7 @@ docker rmi $FDImageName
 
 #trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
 
-& .\DeployContainer.ps1 `
+& $rootPath\Publish\DeployContainer.ps1 `
     -azTenantId $azTenantId `
     -SPCredential $SPCredential `
     -azSubscriptionId $azSubscriptionId `
