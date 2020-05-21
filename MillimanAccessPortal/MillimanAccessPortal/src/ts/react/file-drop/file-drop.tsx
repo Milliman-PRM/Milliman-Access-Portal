@@ -74,7 +74,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   public render() {
-    const { selected, modals, pending, activeSelectedClient } = this.props;
+    const { selected, modals, pending, activeSelectedClient, data } = this.props;
     return (
       <>
         <ReduxToastr
@@ -263,7 +263,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <button
               className="red-button"
               onClick={() => {
-                const { data, fileDrops } = this.props;
+                const { fileDrops } = this.props;
                 const { entityToSelect, entityType } = pending.afterFormModal;
                 this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
                 switch (entityType) {
@@ -326,6 +326,66 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               }}
             >
               Discard
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.passwordNotification.isOpen}
+          onRequestClose={() => this.props.closePasswordNotificationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">Password</h3>
+          <span className="modal-text">
+            {
+              // TODO: Reword this
+            }
+            This is the only time you will be able to view this password.
+          </span>
+          <div>
+            <input
+              type="text"
+              id="password"
+              defaultValue={data.fileDropSettings.fileDropPassword}
+            />
+            <table>
+              <tbody>
+                <tr>
+                  <td><strong>Username:</strong></td>
+                  <td>{data.fileDropSettings.sftpUserName}</td>
+                </tr>
+                <tr>
+                  <td><strong>Password:</strong></td>
+                  <td>{data.fileDropSettings.fileDropPassword}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="button-container">
+            <button
+              className="red-button"
+              type="button"
+              onClick={() => this.props.closePasswordNotificationModal({})}
+            >
+              Close
+            </button>
+            <button
+              className="blue-button"
+              onClick={() => {
+                const passwordInput = document.getElementById('password') as HTMLInputElement;
+                passwordInput.select();
+                passwordInput.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                toastr.success('', 'Password copied to clipboard');
+              }}
+            >
+              Copy Password
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
             </button>
           </div>
         </Modal>
