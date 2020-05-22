@@ -279,7 +279,7 @@ namespace SftpServerLib
                                                                                       deleteInventory, 
                                                                                       new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName }, 
                                                                                       connection.Account,
-                                                                                      connection.MapUser));
+                                                                                      connection.MapUser), connection.MapUser?.UserName);
                     Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                 }
             }
@@ -379,7 +379,7 @@ namespace SftpServerLib
                                                                                           new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
                                                                                           connection.Account,
                                                                                           new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
-                                                                                          connection.MapUser));
+                                                                                          connection.MapUser), connection.MapUser?.UserName);
                         Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
                 }
@@ -585,7 +585,7 @@ namespace SftpServerLib
                             FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
                             Account = connection.Account,
                             User = connection.MapUser,
-                        }));
+                        }), connection.MapUser?.UserName);
                     }
                 }
             }
