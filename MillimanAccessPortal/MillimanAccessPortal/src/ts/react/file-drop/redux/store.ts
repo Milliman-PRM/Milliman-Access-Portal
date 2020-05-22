@@ -17,7 +17,6 @@ import sagas from './sagas';
 
 /** Flags indicating whether the page is waiting on new data for an entity type */
 export interface FileDropPendingReturnState {
-  globalData: boolean;
   clients: boolean;
   fileDrops: boolean;
   createFileDrop: boolean;

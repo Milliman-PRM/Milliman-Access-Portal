@@ -106,10 +106,6 @@ export const closePasswordNotificationModal =
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
 
-/** Fetch global page data from the server */
-export const fetchGlobalData =
-  createRequestActionCreator<Action.FetchGlobalData>('FETCH_GLOBAL_DATA');
-
 /** Fetch all authorized Clients from the server */
 export const fetchClients =
   createRequestActionCreator<Action.FetchClients>('FETCH_CLIENTS');

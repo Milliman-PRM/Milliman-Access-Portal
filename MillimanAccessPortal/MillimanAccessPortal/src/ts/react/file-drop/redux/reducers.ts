@@ -30,7 +30,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // ~~~~~~~~~~~~~~~
 
 const _initialPendingData: State.FileDropPendingReturnState = {
-  globalData: false,
   clients: false,
   fileDrops: false,
   createFileDrop: false,
@@ -104,18 +103,6 @@ const _initialData: State.FileDropDataState = {
 
 /** Reducer for the async state object in the pending state object */
 const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPendingData, {
-  FETCH_GLOBAL_DATA: (state) => ({
-    ...state,
-    globalData: true,
-  }),
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
-    ...state,
-    globalData: false,
-  }),
-  FETCH_GLOBAL_DATA_FAILED: (state) => ({
-    ...state,
-    globalData: false,
-  }),
   FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
@@ -595,9 +582,6 @@ const modals = combineReducers({
 
 /** Reducer for the data state object */
 const data = createReducer<State.FileDropDataState>(_initialData, {
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
-    ...state,
-  }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: Action.FetchClientsSucceeded) => ({
     ...state,
     clients: {

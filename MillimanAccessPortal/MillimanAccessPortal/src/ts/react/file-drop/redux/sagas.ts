@@ -43,7 +43,6 @@ const takeEveryToast = createTakeEveryToast<Action.FileDropActions, Action.FileD
 
 export default function* rootSaga() {
   // API requests
-  yield takeLatestRequest('FETCH_GLOBAL_DATA', API.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', API.fetchClients);
   yield takeLatestRequest('FETCH_FILE_DROPS', API.fetchFileDrops);
   yield takeLatestRequest('CREATE_FILE_DROP', API.createFileDrop);
@@ -92,7 +91,6 @@ export default function* rootSaga() {
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update Client status.', 'warning');
   yield takeEveryToast<Action.FileDropErrorActions>([
-    'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
     'FETCH_FILE_DROPS_FAILED',
     'CREATE_FILE_DROP_FAILED',

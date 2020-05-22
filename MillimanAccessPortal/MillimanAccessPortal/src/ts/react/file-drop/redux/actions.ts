@@ -172,25 +172,6 @@ export interface ClosePasswordNotificationModal {
 
 /**
  * GET:
- *   Non-client/non-File Drop data used for the functioning of the page
- */
-export interface FetchGlobalData {
-  type: 'FETCH_GLOBAL_DATA';
-  request: {};
-}
-/** Action called upon successful return of the FetchGlobalData API call */
-export interface FetchGlobalDataSucceeded {
-  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
-  response: {};
-}
-/** Action called upon return of an error from the FetchGlobalData API call */
-export interface FetchGlobalDataFailed {
-  type: 'FETCH_GLOBAL_DATA_FAILED';
-  error: TSError;
-}
-
-/**
- * GET:
  *   Clients the current user has access to publish for
  *   Users who are File Drop eligible in those clients
  */

@@ -70,8 +70,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
 
-    // TODO: Implement these actions properly
-    // this.props.fetchGlobalData({});
     this.props.fetchClients({});
   }
 

@@ -17,10 +17,6 @@ const createJsonRequestor =
 /**
  *  Function for fetching global page data
  */
-export const fetchGlobalData =
-  createJsonRequestor<FileDropAction.FetchGlobalData, FileDropAction.FetchGlobalDataSucceeded>
-    ('GET', '/FileDrop/PageGlobalData');
-
 export const fetchClients =
   createJsonRequestor<FileDropAction.FetchClients, FileDropAction.FetchClientsSucceeded>
     ('GET', '/FileDrop/Clients');
