@@ -1157,8 +1157,6 @@ namespace MillimanAccessPortal.Controllers
                 model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
             }
 
-            // TODO Validate that the model is adequate
-
             return model;
         }
     }
