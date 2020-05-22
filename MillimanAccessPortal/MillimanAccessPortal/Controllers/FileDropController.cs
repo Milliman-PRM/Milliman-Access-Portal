@@ -619,16 +619,14 @@ namespace MillimanAccessPortal.Controllers
                                                   .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
-            if (account == null)
+            #region Validation
+            if (account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
-                account = new SftpAccount(fileDropId)
-                {
-                    ApplicationUserId = mapUser.Id,
-                    UserName = $"{User.Identity.Name}-{fileDrop.ShortHash}",
-                };
-                _dbContext.SftpAccount.Add(account);
-                await _dbContext.SaveChangesAsync();
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} User {User.Identity.Name} cannot generate credentials for file drop {fileDrop.Id} (named \"{fileDrop.Name}\") because there is no authorized sftp account");
+                Response.Headers.Add("Warning", "You may not generate a password because you are not currently authorized to this file drop.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
 
             #region Authorization
             if (account.IsSuspended)

@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Models;
+using System;
 using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.FileDropModels
@@ -20,6 +21,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public bool UserHasPassword { get; set; } = default;
         public bool IsSuspended { get; set; } = default;
         public bool IsPasswordExpired { get; set; } = default;
+        public Guid? AssignedPermissionGroupId { get; set; } = null;
         public HashSet<NotificationModel> Notifications { get; set; } = new HashSet<NotificationModel>(new FileDropUserNotificationModelSameEventComparer());
     }
 

@@ -526,6 +526,7 @@ namespace MillimanAccessPortal.DataQueries
                 returnModel.UserHasPassword = !string.IsNullOrWhiteSpace(userSftpAccount.PasswordHash);
                 returnModel.IsSuspended = userSftpAccount.IsSuspended;
                 returnModel.IsPasswordExpired = userSftpAccount.PasswordResetDateTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(sftpPasswordExpirationDays);
+                returnModel.AssignedPermissionGroupId = userSftpAccount.FileDropUserPermissionGroupId;
 
                 foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
                 {
