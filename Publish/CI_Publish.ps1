@@ -536,14 +536,17 @@ $acr_password = (get-azkeyvaultsecret `
 $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
-$FDACRCred = $SPCredential = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
+$FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
+$azFileShareName = "filedropsftpstagingstor"
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = $SPCredential = New-Object System.Management.Automation.PSCredential("filedropsftpstor", $acr_password_secure)
+$FDFileCred = New-Object System.Management.Automation.PSCredential($azFileShareName, $azFilesharePass_secure)
+
+Set-Location $rootpath
 
 docker login $acr_url -u $acr_username -p $acr_password
 
-docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp .
+docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp -f SftpServer/dockerfile
 
 docker tag filedropsftp $FDImageName
 
@@ -559,7 +562,7 @@ docker rmi $FDImageName
     -azSubscriptionId $azSubscriptionId `
     -FDImageName $FDImageName `
     -FDACRCred $FDACRCred `
-    -FDFileName "filedropsftpshare" `
+    -FDFileName "filedropsftpstagingshare" `
     -FDFileCred $FDFileCred `
     -azCertPass $azCertPass `
     -thumbprint $thumbprint
