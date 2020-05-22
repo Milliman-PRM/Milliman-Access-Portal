@@ -1045,8 +1045,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                             <td>{fileDropSettings.sftpUserName}</td>
                           </tr>
                           <tr>
-                            <td><strong>Credentials Active:</strong></td>
-                            <td>{!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended}</td>
+                            <td><strong>SFTP Account Status:</strong></td>
+                            <td>
+                              {
+                                (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
+                                  ? 'Active'
+                                  : fileDropSettings.isPasswordExpired
+                                    ? 'Expired'
+                                    : 'Suspended'
+                              }
+                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -1054,7 +1062,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         className="button blue-button"
                         onClick={() => this.props.generateNewSftpPassword(fileDrop)}
                       >
-                        Generate Credentials
+                        {
+                          fileDropSettings.userHasPassword
+                            ? 'Regenerate Password'
+                            : 'Generate Credentials'
+                        }
                       </span>
                     </>
                   }
