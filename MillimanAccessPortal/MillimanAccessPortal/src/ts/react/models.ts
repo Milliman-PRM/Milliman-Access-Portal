@@ -592,6 +592,7 @@ export interface FileDropSettings {
   fingerprint: string;
   isPasswordExpired: boolean;
   isSuspended: boolean;
+  assignedPermissionGroupId: Guid;
   notifications: Array<{
     notificationType: FileDropNotificationTypeEnum;
     isEnabled: boolean;

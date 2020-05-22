@@ -1026,42 +1026,57 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </tbody>
                   </table>
                 </FormSection>
-                    !fileDropSettings.userHasPassword &&
-                    <>
-                      <table className="sftpCredentialsTable">
-                        <tbody>
-                          <tr>
-                            <td><strong>Username:</strong></td>
-                            <td>{fileDropSettings.sftpUserName}</td>
-                          </tr>
-                          <tr>
-                            <td><strong>SFTP Account Status:</strong></td>
-                            <td>
-                              {
-                                (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
-                                  ? 'Active'
-                                  : fileDropSettings.isPasswordExpired
-                                    ? 'Password Expired'
-                                    : 'Suspended'
-                              }
-                            </td>
-                          </tr>
-                        </tbody>
-                      </table>
+                {
+                  fileDropSettings.assignedPermissionGroupId &&
+                  <FormSection title="SFTP Credentials">
+                    {
+                      !fileDropSettings.userHasPassword &&
                       <span
                         className="button blue-button"
                         onClick={() => this.props.generateNewSftpPassword(fileDrop)}
                       >
-                        {
-                          fileDropSettings.userHasPassword
-                            ? 'Regenerate Password'
-                            : 'Generate Credentials'
-                        }
+                        Generate Credentials
                       </span>
-                    </>
-                  }
-                </ FormSection>
+                    }
+                    {
+                      fileDropSettings.userHasPassword &&
+                      <>
+                        <table className="sftpCredentialsTable">
+                          <tbody>
+                            <tr>
+                              <td><strong>Username:</strong></td>
+                              <td>{fileDropSettings.sftpUserName}</td>
+                            </tr>
+                            <tr>
+                              <td><strong>SFTP Account Status:</strong></td>
+                              <td>
+                                {
+                                  (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
+                                    ? 'Active'
+                                    : fileDropSettings.isPasswordExpired
+                                      ? 'Password Expired'
+                                      : 'Suspended'
+                                }
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <span
+                          className="button blue-button"
+                          onClick={() => this.props.generateNewSftpPassword(fileDrop)}
+                        >
+                          {
+                            fileDropSettings.userHasPassword
+                              ? 'Regenerate Password'
+                              : 'Generate Credentials'
+                          }
+                        </span>
+                      </>
+                    }
+                  </ FormSection>
+                }
                 {
+                  fileDropSettings.assignedPermissionGroupId &&
                   uploadNotification &&
                   <FormSection title="Notification Settings">
                     <Toggle
