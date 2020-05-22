@@ -546,7 +546,7 @@ Set-Location $rootpath
 
 docker login $acr_url -u $acr_username -p $acr_password
 
-docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp -f SftpServer/dockerfile
+docker build --build-arg ASPNETCORE_ENVIRONMENT=$env:ASPNETCORE_ENVIRONMENT -t filedropsftp -f SftpServer/dockerfile .
 
 docker tag filedropsftp $FDImageName
 
