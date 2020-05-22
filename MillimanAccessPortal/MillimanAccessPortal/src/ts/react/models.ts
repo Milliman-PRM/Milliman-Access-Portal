@@ -523,7 +523,6 @@ export interface FDEventDirectoryRemoved extends BaseFileDropEvent {
     SftpAccount: FileDropEventObjectSftpUser;
     MapUser?: FileDropEventObjectMapUser;
     FileDropDirectory: FileDropEventObjectDirectory;
-    // TODO: Implement DeletedInventory?
   };
 }
 
