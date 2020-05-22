@@ -310,6 +310,7 @@ export interface FileDrop {
   id?: Guid;
   name: string;
   description: string;
+  isSuspended: boolean;
 }
 
 export interface FileDropWithStats extends FileDrop {

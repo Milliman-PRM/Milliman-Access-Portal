@@ -70,6 +70,7 @@ const _initialFileDropWithStats: FileDropWithStats = {
   id: null,
   name: null,
   description: null,
+  isSuspended: false,
   userCount: null,
 };
 

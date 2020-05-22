@@ -597,8 +597,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     !cardEditing &&
                       <CardText
                         text={entity.name}
-                        // If/when isSuspended is available this should be re-enabled
-                        // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                        textSuffix={entity.isSuspended ? '[Suspended]' : ''}
                         subtext={entity.description}
                       />
                   }
