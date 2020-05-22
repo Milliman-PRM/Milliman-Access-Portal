@@ -6,6 +6,8 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { toastr } from 'react-redux-toastr';
+
 import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
@@ -1043,8 +1045,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                             <td>{fileDropSettings.sftpUserName}</td>
                           </tr>
                           <tr>
-                            <td><strong>Credentials Active:</strong></td>
-                            <td>{!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended}</td>
+                            <td><strong>SFTP Account Status:</strong></td>
+                            <td>
+                              {
+                                (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
+                                  ? 'Active'
+                                  : fileDropSettings.isPasswordExpired
+                                    ? 'Password Expired'
+                                    : 'Suspended'
+                              }
+                            </td>
                           </tr>
                         </tbody>
                       </table>
@@ -1052,7 +1062,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         className="button blue-button"
                         onClick={() => this.props.generateNewSftpPassword(fileDrop)}
                       >
-                        Generate Credentials
+                        {
+                          fileDropSettings.userHasPassword
+                            ? 'Regenerate Password'
+                            : 'Generate Credentials'
+                        }
                       </span>
                     </>
                   }
