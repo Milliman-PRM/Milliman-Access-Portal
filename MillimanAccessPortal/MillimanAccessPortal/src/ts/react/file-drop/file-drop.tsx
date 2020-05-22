@@ -311,7 +311,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
                     break;
                   case 'files':
-                    // TODO: Call the appropriate fetch action here
+                    // Once this is implemented, a fetch to the files action should be called here
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'activityLog':
@@ -597,7 +597,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     !cardEditing &&
                       <CardText
                         text={entity.name}
-                        // TODO: Implement this when isSuspended is available
+                        // If/when isSuspended is available this should be re-enabled
                         // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
                         subtext={entity.description}
                       />
@@ -741,7 +741,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  // TODO: Add appropriate call here.
+                  // Once we have this implemented, this is where the action would go to fetch the files data
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
