@@ -12,6 +12,7 @@ ARG ASPNETCORE_ENVIRONMENT=CI
 ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
 
 COPY SftpServer/bin/Debug/netcoreapp3.1/* /app/
+COPY SftpServerLib/*.json /app
 COPY ../UtilityScripts/startsftpserver.sh /app/
 
 ENTRYPOINT ["/bin/sh", "/app/startsftpserver.sh"]
