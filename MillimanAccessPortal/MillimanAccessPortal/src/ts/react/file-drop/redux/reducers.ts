@@ -82,6 +82,7 @@ const _initialFileDropSettings: FileDropSettings = {
   fingerprint: '',
   isPasswordExpired: true,
   isSuspended: true,
+  assignedPermissionGroupId: null,
   notifications: [],
   sftpHost: '',
   sftpPort: '',
