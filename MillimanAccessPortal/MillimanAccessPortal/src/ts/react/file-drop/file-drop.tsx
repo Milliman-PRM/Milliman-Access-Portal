@@ -1051,7 +1051,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                                 (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
                                   ? 'Active'
                                   : fileDropSettings.isPasswordExpired
-                                    ? 'Expired'
+                                    ? 'Password Expired'
                                     : 'Suspended'
                               }
                             </td>
