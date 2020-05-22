@@ -260,7 +260,7 @@ namespace MillimanAccessPortal.Controllers
             };
 
             #region Validation
-            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && !new[] { nameof(FileDrop.RootPath), nameof(FileDrop.ShortHash) }.Contains(v.Key)))  // RootPath & ShortHash can/should be invalid here
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
