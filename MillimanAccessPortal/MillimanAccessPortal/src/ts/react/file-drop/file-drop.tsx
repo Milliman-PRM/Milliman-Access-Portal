@@ -637,10 +637,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </div>
                   }
                   {
-                    !cardEditing &&
-                    <CardSectionStats
-                      // TODO: Make this dynamic when canManage is available
-                    >
+                    activeSelectedClient.canManageFileDrops && !cardEditing &&
+                    <CardSectionStats>
                       <CardStat
                         name={'Authorized Users'}
                         value={entity.userCount}
@@ -648,9 +646,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       />
                     </CardSectionStats>
                   }
-                  <CardSectionButtons>
-                    {cardButtons(entity, true, cardEditing)}
-                  </CardSectionButtons>
+                  {
+                    activeSelectedClient.canManageFileDrops &&
+                    <CardSectionButtons>
+                      {cardButtons(entity, true, cardEditing)}
+                    </CardSectionButtons>
+                  }
                 </CardSectionMain>
               </Card>
             );
