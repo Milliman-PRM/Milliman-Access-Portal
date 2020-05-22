@@ -1,5 +1,5 @@
 {
   "AzureVaultName": "https://filedropsftpstagingkv.vault.azure.net/",
-  "AzureClientID": "4234bbf4-d523-4f76-b44c-b7c66e37b0d3",
-  "AzureCertificateThumbprint": "79B4D2A1849EECB7C433B7B5D28CFC600414DC38"
+  "AzureClientID": "f25d49a3-1b6d-4209-a4b5-49ce6671e503",
+  "AzureCertificateThumbprint": "e49ebc6e7a326526e424772e25d97e5d5263b24d"
 }
