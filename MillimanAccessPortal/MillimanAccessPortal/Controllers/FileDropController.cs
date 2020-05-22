@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(fileDropGlobalRoot) || !Directory.Exists(fileDropGlobalRoot))
             {
                 Log.Error($"In action {ControllerContext.ActionDescriptor.DisplayName} application configuration for FileDropGlobalRoot <{fileDropGlobalRoot}> is invalid or not found");
-                Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                Response.Headers.Add("Warning", "The provided FileDrop information was invalid."); 
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -169,6 +169,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} referenced client with Id {fileDropModel.ClientId} not found");
                 Response.Headers.Add("Warning", "The referenced client was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (_dbContext.FileDrop.Any(d => d.ClientId == referencedClient.Id &&
+                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+            {
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to create FileDrop with name <{fileDropModel.Name}>, already in use for client {referencedClient.Id}");
+                Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -254,14 +262,23 @@ namespace MillimanAccessPortal.Controllers
             #region Validation
             if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (_dbContext.FileDrop.Any(d => d.ClientId == fileDropRecord.ClientId &&
+                                             d.Id != fileDropRecord.Id && 
+                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+            {
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to update FileDrop with name <{fileDropModel.Name}>, already in use for client {fileDropRecord.ClientId}");
+                Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (string.IsNullOrWhiteSpace(fileDropModel.Name))
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
