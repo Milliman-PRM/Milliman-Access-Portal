@@ -590,7 +590,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     }
                   }
                 }}
-                // suspended={entity.isSuspended}
+                suspended={entity.isSuspended}
               >
                 <CardSectionMain>
                   {
