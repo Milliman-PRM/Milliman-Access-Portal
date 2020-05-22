@@ -285,7 +285,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       }
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
-                      // TODO: Call the appropriate action for this tab
+                      this.props.fetchSettings({ fileDropId: entityToSelect });
                     }
                     break;
                   case 'Delete File Drop': {
@@ -585,8 +585,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       }
                       this.props.selectFileDropTab({ tab: 'permissions' });
                     } else {
+                      this.props.fetchSettings({ fileDropId: entity.id });
                       this.props.selectFileDropTab({ tab: 'settings' });
-                      // TODO: Call the appropriate action for this tab
                     }
                   }
                 }}
