@@ -339,12 +339,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
-          <h3 className="title blue">Password</h3>
+          <h3 className="title blue">SFTP Connection Credentials</h3>
           <span className="modal-text">
-            {
-              // TODO: Reword this
-            }
-            This is the only time you will be able to view this password.
+            Please store the provided password in a secure location, such as a password manager.
+          </span>
+          <span className="modal-text">
+            Once this window is closed, you will no longer be able to access this password, and must generate a new
+            credential if this information is lost.
           </span>
           <div>
             <input
