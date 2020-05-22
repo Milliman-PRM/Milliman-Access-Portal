@@ -1026,18 +1026,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </tbody>
                   </table>
                 </FormSection>
-                <FormSection title="SFTP Credentials">
-                  {
                     !fileDropSettings.userHasPassword &&
-                    <span
-                      className="button blue-button"
-                      onClick={() => this.props.generateNewSftpPassword(fileDrop)}
-                    >
-                      Generate Credentials
-                    </span>
-                  }
-                  {
-                    fileDropSettings.userHasPassword &&
                     <>
                       <table className="sftpCredentialsTable">
                         <tbody>
