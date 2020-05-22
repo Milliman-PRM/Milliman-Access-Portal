@@ -6,6 +6,8 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { toastr } from 'react-redux-toastr';
+
 import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
