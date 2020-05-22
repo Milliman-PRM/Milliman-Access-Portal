@@ -103,3 +103,10 @@ table {
     opacity: 0;
     height: 1px;
 }
+
+.sftpConnectionInfoTable,
+.sftpCredentialsTable {
+    tr > td:first-child {
+        width: 13em;
+    }
+}

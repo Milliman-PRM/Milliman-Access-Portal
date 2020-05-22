@@ -1000,7 +1000,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               !this.props.pending.async.settings &&
               <>
                 <FormSection title="SFTP Connection Information">
-                  <table>
+                  <table className="sftpConnectionInfoTable">
                     <tbody>
                       <tr>
                         <td><strong>File Drop:</strong></td>
@@ -1038,7 +1038,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   {
                     fileDropSettings.userHasPassword &&
                     <>
-                      <table>
+                      <table className="sftpCredentialsTable">
                         <tbody>
                           <tr>
                             <td><strong>Username:</strong></td>
