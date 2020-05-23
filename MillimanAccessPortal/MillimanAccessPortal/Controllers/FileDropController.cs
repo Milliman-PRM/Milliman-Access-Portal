@@ -602,8 +602,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            SftpAccount account = await _dbContext.SftpAccount
+                                      .Include(a => a.ApplicationUser)
+                                      .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
+                                      .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
+
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
-            if (!adminRoleResult.Succeeded)
+            if (!adminRoleResult.Succeeded && !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
