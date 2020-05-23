@@ -552,7 +552,6 @@ const modals = combineReducers({
   createFileDrop: createModalReducer(['OPEN_CREATE_FILE_DROP_MODAL'], [
     'CLOSE_CREATE_FILE_DROP_MODAL',
     'CREATE_FILE_DROP_SUCCEEDED',
-    'CREATE_FILE_DROP_FAILED',
   ]),
   deleteFileDrop: createModalReducer(['OPEN_DELETE_FILE_DROP_MODAL'], [
     'CLOSE_DELETE_FILE_DROP_MODAL',
