@@ -901,7 +901,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters, activityLog, data } = this.props;
+    const { filters, activityLog, data, pending } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -910,6 +910,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={(text) => this.props.setFilterText({ filter: 'activityLog', text })}
             filterText={filters.activityLog.text}
           />
+          <ActionIcon
+            label="Refresh Activity Log"
+            icon="reload"
+            action={() => {
+                this.props.fetchActivityLog({ fileDropId: this.props.selected.fileDrop });
+              }
+            }
+          />
+
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>

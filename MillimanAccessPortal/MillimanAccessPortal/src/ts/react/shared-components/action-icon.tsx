@@ -10,6 +10,7 @@ import '../../../images/icons/edit.svg';
 import '../../../images/icons/email.svg';
 import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/expand-cards.svg';
+import '../../../images/icons/reload.svg';
 import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/upload.svg';
 import '../../../images/icons/user.svg';
@@ -24,8 +25,8 @@ import * as React from 'react';
 export interface ActionIconProps {
   label: string;
   icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
-    'delete' | 'edit' | 'email' | 'expand-card' | 'expand-cards' | 'remove-circle' | 'upload' | 'user' |
-    'userguide';
+  'delete' | 'edit' | 'email' | 'expand-card' | 'expand-cards' | 'reload' | 'remove-circle' | 'upload' |
+  'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
