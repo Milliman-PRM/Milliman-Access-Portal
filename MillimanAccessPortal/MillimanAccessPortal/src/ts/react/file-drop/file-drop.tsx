@@ -424,7 +424,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                    }
                    this.props.selectClient({ id: entity.id });
                  }
-                 // this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
@@ -470,7 +469,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       activeSelectedClient, selected, filters, pending, cardAttributes,
       fileDrops, permissionGroupChangesPending,
     } = this.props;
-    const createNewFileDropIcon = (
+    const createNewFileDropIcon = activeSelectedClient.canManageFileDrops && (
       <ActionIcon
         label="New File Drop"
         icon="add"
@@ -659,7 +658,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               </Card>
             );
           }}
-          renderNewEntityButton={() => (
+          renderNewEntityButton={() => activeSelectedClient.canManageFileDrops && (
             <div
               className="card-container action-card-container"
               onClick={() => {
