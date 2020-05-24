@@ -620,19 +620,24 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.permissionGroups,
     },
   }),
-  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
-    ...state,
-    clients: {
-      ...state.clients,
-      [action.response.clientCard.id]: {
-        ...action.response.clientCard,
+  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
+    const deletedActive = action.response.currentFileDropId === state.permissionGroups.fileDropId;
+    return {
+      ...state,
+      clients: {
+        ...state.clients,
+        [action.response.clientCard.id]: {
+          ...action.response.clientCard,
+        },
       },
-    },
-    fileDrops: {
-      ...action.response.fileDrops,
-    },
-    permissionGroups: null,
-  }),
+      fileDrops: {
+        ...action.response.fileDrops,
+      },
+      activityLogEvents: deletedActive ? null : state.activityLogEvents,
+      fileDropSettings: deletedActive ? _initialFileDropSettings : state.fileDropSettings,
+      permissionGroups: deletedActive ? _initialPermissionGroupsTab : state.permissionGroups,
+    };
+  },
   UPDATE_FILE_DROP_SUCCEEDED: (state, action: Action.UpdateFileDropSucceeded) => ({
     ...state,
     clients: {
