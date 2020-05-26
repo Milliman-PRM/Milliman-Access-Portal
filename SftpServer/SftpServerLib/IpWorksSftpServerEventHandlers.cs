@@ -72,15 +72,19 @@ namespace SftpServerLib
 
                 if (evtData.BeforeExec)
                 {
+                    bool failValidation = false;
                     if (fileRecord == null)
                     {
                         Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the database, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
-                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
-                        return;
+                        failValidation = true;
                     }
                     else if (!File.Exists(requestedAbsolutePath))
                     {
                         Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        failValidation = true;
+                    }
+                    if (failValidation) 
+                    {
                         evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                         return;
                     }
