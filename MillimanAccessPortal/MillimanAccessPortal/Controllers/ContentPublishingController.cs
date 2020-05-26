@@ -1123,7 +1123,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 try
                 {
-                    FileSystemUtil.DeleteDirectoryWithRetry(PreviewFolder, attempts: 4, baseIntervalMs: 2000);  // 4, 2000 is max 20 sec delay
+                    FileSystemUtil.DeleteDirectoryWithRetry(PreviewFolder, true, 4, 2000);  // 4, 2000 is max 20 sec delay
                 }
                 catch (IOException ex)
                 {

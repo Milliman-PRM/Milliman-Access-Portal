@@ -37,7 +37,7 @@ namespace QlikviewLib.Internal
             HttpResponseMessage ResponseMsg = null;
             try
             {
-                ResponseMsg = await client.PostAsync(QvServerUri.Uri, RequestContent);
+                ResponseMsg = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception,HttpResponseMessage>(async () => await client.PostAsync(QvServerUri.Uri, RequestContent), 2, 250);
             }
             catch (Exception e)
             {
