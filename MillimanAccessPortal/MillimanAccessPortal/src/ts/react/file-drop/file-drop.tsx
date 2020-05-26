@@ -101,7 +101,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             onSubmit={(e) => {
               {
                 e.preventDefault();
-                if (pending.createFileDrop.fileDropName) {
+                if (pending.createFileDrop.fileDropName && !pending.async.createFileDrop) {
                   this.props.createFileDrop({
                     clientId: pending.createFileDrop.clientId,
                     name: pending.createFileDrop.fileDropName,
@@ -409,7 +409,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <Card
               key={key}
               selected={selected.client === entity.id}
-              disabled={card.disabled}
+              disabled={!entity.authorizedFileDropUser}
               onSelect={() => {
                 if (permissionGroupChangesPending) {
                   this.props.openModifiedFormModal({
@@ -424,24 +424,26 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                    }
                    this.props.selectClient({ id: entity.id });
                  }
-                 // this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'File Drops'}
-                    value={entity.fileDropCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                </CardSectionStats>
+                {
+                  !card.disabled &&
+                  <CardSectionStats>
+                    <CardStat
+                      name={'File Drops'}
+                      value={entity.fileDropCount}
+                      icon={'reports'}
+                    />
+                    <CardStat
+                      name={'Users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                  </CardSectionStats>
+                }
               </CardSectionMain>
             </Card>
           );
@@ -467,7 +469,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       activeSelectedClient, selected, filters, pending, cardAttributes,
       fileDrops, permissionGroupChangesPending,
     } = this.props;
-    const createNewFileDropIcon = (
+    const createNewFileDropIcon = activeSelectedClient.canManageFileDrops && (
       <ActionIcon
         label="New File Drop"
         icon="add"
@@ -656,7 +658,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               </Card>
             );
           }}
-          renderNewEntityButton={() => (
+          renderNewEntityButton={() => activeSelectedClient.canManageFileDrops && (
             <div
               className="card-container action-card-container"
               onClick={() => {
@@ -898,7 +900,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters, activityLog, data } = this.props;
+    const { filters, activityLog, data, selected } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -907,6 +909,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={(text) => this.props.setFilterText({ filter: 'activityLog', text })}
             filterText={filters.activityLog.text}
           />
+          <ActionIcon
+            label="Refresh Activity Log"
+            icon="reload"
+            action={() => {
+                this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+              }
+            }
+          />
+
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
