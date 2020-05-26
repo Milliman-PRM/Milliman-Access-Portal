@@ -667,8 +667,8 @@ namespace AuditLogLib.Event
                     client.Name,
                 },
             });
-        public static readonly AuditEventType<RootContentItem, Client> RootContentItemDeleted = new AuditEventType<RootContentItem, Client>(
-            6002, "Root content item deleted", (rootContentItem, client) => new
+        public static readonly AuditEventType<RootContentItem, Client, List<SelectionGroupLogModel>> RootContentItemDeleted = new AuditEventType<RootContentItem, Client, List<SelectionGroupLogModel>>(
+            6002, "Root content item deleted", (rootContentItem, client, groupsAndMemberUserNames) => new
             {
                 RootContentItem = new
                 {
@@ -685,6 +685,7 @@ namespace AuditLogLib.Event
                     client.Id,
                     client.Name,
                 },
+                DeletedSelectionGroups = groupsAndMemberUserNames,
             });
         public static readonly AuditEventType<RootContentItem, Client> RootContentItemUpdated = new AuditEventType<RootContentItem, Client>(
             6003, "Root content item updated", (rootContentItem, client) => new
