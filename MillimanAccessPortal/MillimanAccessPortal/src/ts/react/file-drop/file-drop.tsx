@@ -1083,13 +1083,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       label="Upload"
                       checked={uploadNotification.isEnabled}
                       readOnly={!uploadNotification.canModify}
-                      onClick={() => this.props.setFileDropNotificationSetting({
-                        fileDropId: fileDrop,
-                        notifications: [{
-                          notificationType: FileDropNotificationTypeEnum.FileWritten,
-                          isEnabled: !uploadNotification.isEnabled,
-                        }],
-                      })}
+                      onClick={() => {
+                        if (uploadNotification.canModify) {
+                          this.props.setFileDropNotificationSetting({
+                            fileDropId: fileDrop,
+                            notifications: [{
+                              notificationType: FileDropNotificationTypeEnum.FileWritten,
+                              isEnabled: !uploadNotification.isEnabled,
+                            }],
+                          });
+                        }
+                      }}
                     />
                   </ FormSection>
                 }
