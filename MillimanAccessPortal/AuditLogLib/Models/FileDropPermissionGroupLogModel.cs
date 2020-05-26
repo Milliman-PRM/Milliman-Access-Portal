@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace AuditLogLib.Models
@@ -25,17 +26,27 @@ namespace AuditLogLib.Models
 
         public bool IsPersonalGroup { get; set; }
 
-        public static explicit operator FileDropPermissionGroupLogModel(FileDropUserPermissionGroup arg)
+        public FileDropPermissionGroupLogModel() { }
+
+        public FileDropPermissionGroupLogModel(FileDropUserPermissionGroup arg)
         {
-            return new FileDropPermissionGroupLogModel
-            {
-                Id = arg.Id,
-                Name = arg.Name,
-                ReadAccess = arg.ReadAccess,
-                WriteAccess = arg.WriteAccess,
-                DeleteAccess = arg.DeleteAccess,
-                IsPersonalGroup = arg.IsPersonalGroup,
-            };
+            Id = arg.Id;
+            Name = arg.Name;
+            ReadAccess = arg.ReadAccess;
+            WriteAccess = arg.WriteAccess;
+            DeleteAccess = arg.DeleteAccess;
+            IsPersonalGroup = arg.IsPersonalGroup;
+        }
+    }
+
+    public class FileDropPermissionGroupMembershipLogModel 
+        : FileDropPermissionGroupLogModel
+    {
+        public List<SftpAccountLogModel> MemberAccounts { get; set; }
+
+        public FileDropPermissionGroupMembershipLogModel(FileDropUserPermissionGroup arg) : base(arg)
+        {
+            MemberAccounts = arg.SftpAccounts.Select(a => new SftpAccountLogModel(a)).ToList();
         }
     }
 }

@@ -50,7 +50,7 @@ namespace AuditLogLib.Models
             FileDropLogModel fileDropModel = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "FileDrop");
             FileDropPermissionGroupLogModel permissionGroupModel = GetNamedPropertyOfSpecifiedType<FileDropPermissionGroupLogModel>(eventData, "PermissionGroup");
             FileDropDirectoryLogModel FileDropDirectoryModel = GetNamedPropertyOfSpecifiedType<FileDropDirectoryLogModel>(eventData, "FileDropDirectory");
-            dynamic mapUser = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "MapUser");
+            dynamic account = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "SftpAccount");
 
             try
             {
@@ -142,23 +142,23 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8100:  // SFTP Account Created
-                        descriptionString += $"SFTP account created for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account created for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8101:  // SFTP Account Deleted
-                        descriptionString += $"SFTP account deleted for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account deleted for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8102:  // Account Added To Permission Group
-                        descriptionString += $"\"{mapUser?.UserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
+                        descriptionString += $"\"{account?.MapUserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
                     case 8103:  // Account Removed From Permission Group
-                        descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
+                        descriptionString += $"\"{account?.MapUserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
                     case 8104:  // SFTP Account Credentials Generated
-                        descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account credentials generated for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
