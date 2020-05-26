@@ -1137,8 +1137,8 @@ namespace AuditLogLib.Event
             AuthenticationFailed,
         }
 
-        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason>(
-            8104, "Sftp Authentication Failed", (account, reason) => new
+        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel>(
+            8104, "Sftp Authentication Failed", (account, reason, fileDropModel) => new
             {
                 Account = new
                 {
@@ -1148,6 +1148,7 @@ namespace AuditLogLib.Event
                     PasswordResetDateTimeUtc = account?.PasswordResetDateTimeUtc.ToString("u"),
                 },
                 Reason = reason.GetDisplayDescriptionString(),
+                FileDrop = fileDropModel,
             });
 
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(

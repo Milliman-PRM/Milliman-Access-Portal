@@ -72,9 +72,15 @@ namespace SftpServerLib
 
                 if (evtData.BeforeExec)
                 {
-                    if (fileRecord == null || !File.Exists(requestedAbsolutePath))
+                    if (fileRecord == null)
                     {
-                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found (database or file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the database, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
+                        return;
+                    }
+                    else if (!File.Exists(requestedAbsolutePath))
+                    {
+                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
                         evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                         return;
                     }
@@ -716,6 +722,7 @@ namespace SftpServerLib
                                                 .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
+                                                .Include(a => a.FileDrop)
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
@@ -725,7 +732,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound, null));
                         return;
                     }
 
@@ -733,7 +740,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> is suspended");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop));
                         return;
                     }
 
@@ -742,7 +749,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop));
                         return;
                     }
 
@@ -779,7 +786,7 @@ namespace SftpServerLib
                     }
                     else
                     {
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop));
                         Log.Information($"Sftp acount <{userAccount.UserName}> authentication failed for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }
