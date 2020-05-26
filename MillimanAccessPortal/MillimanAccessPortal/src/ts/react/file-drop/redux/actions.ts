@@ -511,7 +511,6 @@ export type FileDropScheduleActions =
 
 /** Actions that makes Ajax requests */
 export type FileDropRequestActions =
-  | FetchGlobalData
   | FetchClients
   | FetchFileDrops
   | CreateFileDrop
@@ -529,7 +528,6 @@ export type FileDropRequestActions =
 
 /** Actions that marks the succesful response of an Ajax request */
 export type FileDropSuccessResponseActions =
-  | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchFileDropsSucceeded
   | CreateFileDropSucceeded
@@ -547,7 +545,6 @@ export type FileDropSuccessResponseActions =
 
 /** Actions that marks the errored response of an Ajax request */
 export type FileDropErrorActions =
-  | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchFileDropsFailed
   | CreateFileDropFailed
