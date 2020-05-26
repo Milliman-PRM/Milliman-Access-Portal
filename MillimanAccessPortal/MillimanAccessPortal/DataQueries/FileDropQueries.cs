@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
 using nsoftware.IPWorksSSH;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -558,7 +559,8 @@ namespace MillimanAccessPortal.DataQueries
                             break;
 
                         default:  // impossible unless a new FileDropNotificationType enum is added
-                            throw new ApplicationException("Encountered an unsupported FileDropNotificationType while evaluating ");
+                            Log.Error($"Encountered an unsupported FileDropNotificationType <{type}> while evaluating notification settings");
+                            break;
                     }
 
                     returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = canModify, IsEnabled = currentSetting?.IsEnabled ?? false });
