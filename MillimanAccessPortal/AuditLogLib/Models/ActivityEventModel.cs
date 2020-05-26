@@ -89,8 +89,8 @@ namespace AuditLogLib.Models
                         descriptionString += permissionGroupModel.IsPersonalGroup
                                              ? $"Personal permission group created for \"{permissionGroupModel.Name}\". "
                                              : $"Permission group name is \"{permissionGroupModel.Name}\". ";
-                        descriptionString += (permissionGroupModel.ReadAccess ? "Read access granted. " : "") +
-                                             (permissionGroupModel.WriteAccess ? "Write access granted. " : "") +
+                        descriptionString += (permissionGroupModel.ReadAccess ? "Download access granted. " : "") +
+                                             (permissionGroupModel.WriteAccess ? "Upload access granted. " : "") +
                                              (permissionGroupModel.DeleteAccess ? "Delete access granted. " : "");
                         return descriptionString;
 
@@ -116,11 +116,11 @@ namespace AuditLogLib.Models
 
                         if (newSettings.ReadAccess && !oldSettings.ReadAccess)
                         {
-                            descriptionString += $"Read access granted. ";
+                            descriptionString += $"Download access granted. ";
                         }
                         if (newSettings.WriteAccess && !oldSettings.WriteAccess)
                         {
-                            descriptionString += $"Write access granted. ";
+                            descriptionString += $"Upload access granted. ";
                         }
                         if (newSettings.DeleteAccess && !oldSettings.DeleteAccess)
                         {
@@ -129,11 +129,11 @@ namespace AuditLogLib.Models
 
                         if (!newSettings.ReadAccess && oldSettings.ReadAccess)
                         {
-                            descriptionString += $"Read access revoked. ";
+                            descriptionString += $"Download access revoked. ";
                         }
                         if (!newSettings.WriteAccess && oldSettings.WriteAccess)
                         {
-                            descriptionString += $"Write access revoked. ";
+                            descriptionString += $"Upload access revoked. ";
                         }
                         if (!newSettings.DeleteAccess && oldSettings.DeleteAccess)
                         {
@@ -170,11 +170,11 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8112:  // SFTP File Write Authorized
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" written to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for upload to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8113:  // SFTP File Read Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for download from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8114:  // SFTP File Delete Authorized
