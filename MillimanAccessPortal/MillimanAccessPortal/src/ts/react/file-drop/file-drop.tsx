@@ -409,7 +409,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <Card
               key={key}
               selected={selected.client === entity.id}
-              disabled={!entity.authorizedFileDropUser}
+              disabled={!entity.authorizedFileDropUser && !entity.canManageFileDrops}
               onSelect={() => {
                 if (permissionGroupChangesPending) {
                   this.props.openModifiedFormModal({
