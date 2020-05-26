@@ -9,6 +9,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Collections.Generic;
@@ -20,10 +21,12 @@ namespace ContentPublishingServiceTests
     {
         internal ApplicationDbContext DbContext { get; set; }
         internal IAuditLogger AuditLogger { get; set; }
+        private ConfigurationRoot _configuration { get; set; }
 
-        public TestInitialization(string connectionString)
+        public TestInitialization(string connectionString, ConfigurationRoot configuration)
         {
             DbContext = CreateDbContext(connectionString);
+            _configuration = configuration;
 
             AuditLogger = MockAuditLogger.New().Object;
 
@@ -336,7 +339,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine( _configuration.GetValue<string>("Storage:SampleData"), "Test1", @"CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -373,7 +376,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine( _configuration.GetValue<string>("Storage:SampleData"), "Test1", @"CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -427,7 +430,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -464,7 +467,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\CCR_0273ZDM_New_Reduction_Script.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "CCR_0273ZDM_New_Reduction_Script.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "1412C93D02FE7D2AF6F0146B772FB78E6455537B",
                 ReductionStatus = ReductionStatusEnum.Unspecified,
@@ -4350,7 +4353,7 @@ namespace ContentPublishingServiceTests
             {
                 TaskAction = TaskActionEnum.HierarchyAndReduction,
                 CreateDateTimeUtc = DateTime.UtcNow,
-                MasterFilePath = @"\\indy-qlikview\testing\Sample Data\Test1\Care_Coordinator_Report.qvw",
+                MasterFilePath = Path.Combine(_configuration.GetValue<string>("Storage:SampleData"), "Test1", "Care_Coordinator_Report.qvw"),
                 SelectionGroupId = TestUtil.MakeTestGuid(1),
                 MasterContentChecksum = "0756809FC22CB3429D9960611E68AE8131691AB0",
                 ReductionStatus = ReductionStatusEnum.Unspecified,

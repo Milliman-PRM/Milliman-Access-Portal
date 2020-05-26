@@ -362,7 +362,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 fullRootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath);
-                FileSystemUtil.DeleteDirectoryWithRetry(fullRootPath, attempts: 4,  baseIntervalMs: 1000);
+                FileSystemUtil.DeleteDirectoryWithRetry(fullRootPath, true, 4, 1000);
             } 
             catch(Exception ex)
             {

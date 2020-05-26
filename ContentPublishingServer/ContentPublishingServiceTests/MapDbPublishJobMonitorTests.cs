@@ -34,8 +34,8 @@ namespace ContentPublishingServiceTests
         public MapDbPublishJobMonitorTests(DatabaseLifetimeFixture dbLifeTimeFixture)
         {
             _dbLifeTimeFixture = dbLifeTimeFixture;
-            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString);
             Configuration.ApplicationConfiguration = (ConfigurationRoot)_dbLifeTimeFixture.Configuration;
+            TestResources = new TestInitialization(_dbLifeTimeFixture.ConnectionString, Configuration.ApplicationConfiguration);
         }
 
         [Fact]
@@ -288,7 +288,6 @@ namespace ContentPublishingServiceTests
                                           .ToList();
             try
             {
-                //Assert.Equal(TaskStatus.Running, PublishMonitorTask.Status);
                 Assert.Contains(PublishMonitorTask.Status, new[] { TaskStatus.Running, TaskStatus.WaitingForActivation });
                 Assert.Equal(PublicationStatus.PostProcessReady, DbRequest.RequestStatus);
                 Assert.Equal(string.Empty, DbRequest.StatusMessage);
