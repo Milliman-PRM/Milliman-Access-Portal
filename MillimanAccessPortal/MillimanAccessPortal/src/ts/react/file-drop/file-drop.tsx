@@ -1014,7 +1014,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <tbody>
                       <tr>
                         <td><strong>File Drop:</strong></td>
-                        <td>{fileDrops.filter((x) => x.id === fileDrop)[0].name}</td>
+                        <td>{this.props.data.fileDrops[fileDrop].name}</td>
                       </tr>
                       <tr>
                         <td><strong>Protocol:</strong></td>
