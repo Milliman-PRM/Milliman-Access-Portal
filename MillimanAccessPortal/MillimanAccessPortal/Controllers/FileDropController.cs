@@ -595,7 +595,7 @@ namespace MillimanAccessPortal.Controllers
             if (!adminRoleResult.Succeeded && !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                Response.Headers.Add("Warning", "You are not authorized to access account settings for this file drop.");
                 return Unauthorized();
             }
             #endregion

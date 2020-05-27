@@ -485,12 +485,6 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var usersRemoved = _dbContext.UserInSelectionGroup
-                                         .Include(usg => usg.SelectionGroup)
-                                         .Where(usg => usg.SelectionGroup.RootContentItemId == rootContentItemId)
-                                         .Select(usg => usg.User.UserName)
-                                         .ToList();
-
             RootContentItemDetail model = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             _dbContext.RootContentItem.Remove(rootContentItem);
