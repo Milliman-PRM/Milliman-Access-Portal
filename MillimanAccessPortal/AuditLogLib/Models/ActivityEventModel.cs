@@ -162,7 +162,7 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8105:  // Sftp Authentication Failed
-                        descriptionString += $"SFTP authentication failed for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP authentication failed for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
