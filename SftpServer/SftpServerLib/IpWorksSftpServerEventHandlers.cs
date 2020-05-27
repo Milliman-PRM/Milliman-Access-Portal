@@ -236,8 +236,9 @@ namespace SftpServerLib
                                                                                       .Select(a => a.ApplicationUser)
                                                                                       .ToList();
                                 string subject = "MAP file drop notification";
-                                string message = $"User <{connection.MapUser.UserName}> uploaded file <{evtData.Path}> to file drop \"{connection.FileDropName}\"{Environment.NewLine}{Environment.NewLine}" +
-                                $"You are subscribed to MAP notifications for this file drop. ";
+                                string message = $"File \"{evtData.Path.TrimStart('/')}\" has been uploaded to file drop \"{connection.FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
+                                    $"You are subscribed to MAP notifications for this file drop. " +
+                                    $"To manage your notifications, log into MAP and go to \"My Settings\" for file drop \"{connection.FileDropName}\". ";
 
                                 MailSender mailSender = new MailSender();
                                 foreach (ApplicationUser user in usersToNotify)

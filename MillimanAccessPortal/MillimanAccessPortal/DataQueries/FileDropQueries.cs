@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Serilog;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -502,10 +503,11 @@ namespace MillimanAccessPortal.DataQueries
 
         internal async Task<SftpAccountSettingsModel> GetAccountSettingsModelAsync(Guid fileDropId, ApplicationUser user)
         {
-            var userSftpAccount = await _dbContext.SftpAccount
-                                                  .Include(a => a.FileDropUserPermissionGroup)
-                                                  .Where(a => a.FileDropUserPermissionGroup.FileDropId == fileDropId)
-                                                  .SingleOrDefaultAsync(a => a.ApplicationUserId == user.Id);
+            SftpAccount userSftpAccount = await _dbContext.SftpAccount
+                                                          .Include(a => a.FileDropUserPermissionGroup)
+                                                              .ThenInclude(g => g.FileDrop)
+                                                          .Where(a => a.FileDropUserPermissionGroup.FileDropId == fileDropId)
+                                                          .SingleOrDefaultAsync(a => a.ApplicationUserId == user.Id);
 
             string privateKeyString = _appConfig.GetValue<string>("SftpServerPrivateKey");
             byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
@@ -528,14 +530,40 @@ namespace MillimanAccessPortal.DataQueries
                 returnModel.IsPasswordExpired = userSftpAccount.PasswordResetDateTimeUtc < DateTime.UtcNow - TimeSpan.FromDays(sftpPasswordExpirationDays);
                 returnModel.AssignedPermissionGroupId = userSftpAccount.FileDropUserPermissionGroupId;
 
-                foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
+                if (userSftpAccount.FileDropUserPermissionGroup != null)
                 {
-                    var dbSetting = userSftpAccount.NotificationSubscriptions.SingleOrDefault(n => n.NotificationType == type);
-                    bool canModify = (type == FileDropNotificationType.FileWrite && userSftpAccount.FileDropUserPermissionGroup.WriteAccess) ||
-                                     (type == FileDropNotificationType.FileRead && userSftpAccount.FileDropUserPermissionGroup.ReadAccess) ||
-                                     (type == FileDropNotificationType.FileDelete && userSftpAccount.FileDropUserPermissionGroup.DeleteAccess);
+                    bool userIsFileDropAdmin = _dbContext.UserRoleInClient.Any(urc => urc.UserId == user.Id
+                                                                                   && urc.ClientId == userSftpAccount.FileDropUserPermissionGroup.FileDrop.ClientId
+                                                                                   && urc.Role.RoleEnum == RoleEnum.FileDropAdmin);
 
-                    returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = canModify, IsEnabled = dbSetting?.IsEnabled ?? false });
+                    foreach (FileDropNotificationType type in Enum.GetValues(typeof(FileDropNotificationType)))
+                    {
+                        var dbSetting = userSftpAccount.NotificationSubscriptions.SingleOrDefault(n => n.NotificationType == type);
+
+                        bool canModify = false;
+                        switch (type)
+                        {
+                            case FileDropNotificationType.FileWrite:
+                                canModify = userIsFileDropAdmin ||
+                                            userSftpAccount.FileDropUserPermissionGroup.WriteAccess ||
+                                            userSftpAccount.FileDropUserPermissionGroup.ReadAccess ||
+                                            userSftpAccount.FileDropUserPermissionGroup.DeleteAccess;
+                                break;
+
+                            case FileDropNotificationType.FileRead:
+                                break;
+
+                            case FileDropNotificationType.FileDelete:
+                                break;
+
+                            default:  // Can only happen if a new enum value is added
+                                string msg = $"Encountered unsupported FileDropNotificationType value <{type}> in FileDropQueries.GetAccountSettingsModelAsync";
+                                Log.Error(msg);
+                                throw new ApplicationException(msg);
+                        }
+
+                        returnModel.Notifications.Add(new NotificationModel { NotificationType = type, CanModify = canModify, IsEnabled = dbSetting?.IsEnabled ?? false });
+                    }
                 }
             }
 
