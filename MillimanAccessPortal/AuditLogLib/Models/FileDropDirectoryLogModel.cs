@@ -6,8 +6,6 @@
 
 using MapDbContextLib.Context;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace AuditLogLib.Models
 {

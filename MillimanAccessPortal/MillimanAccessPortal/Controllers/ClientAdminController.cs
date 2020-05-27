@@ -548,7 +548,6 @@ namespace MillimanAccessPortal.Controllers
                             }
                         }
                     }
-                    // TODO: Determine if File Drop admins should be assigned to specific File Drops (possible not?)
                     await DbContext.SaveChangesAsync();
 
                     Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
@@ -584,7 +583,7 @@ namespace MillimanAccessPortal.Controllers
                         .ToListAsync();
                     DbContext.RemoveRange(existingSelectionGroupAssignments);
                 }
-                // TODO: De-assign user from any specific File Drops
+
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecordsForRequestedRole);
                 await DbContext.SaveChangesAsync();
 
