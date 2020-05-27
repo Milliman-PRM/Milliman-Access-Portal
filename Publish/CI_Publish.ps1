@@ -21,7 +21,7 @@
 
 
 Param(
-    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [ValidateSet("AzureCI","CI","Production","Staging","Development","Internal")]
     [string]$deployEnvironment="AzureCI",
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$testEnvironment="CI"
@@ -113,6 +113,10 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
+$core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
+$core3="C:\Program Files\dotnet\sdk\3.1.102\Sdks"
+$env:MSBuildSDKsPath=$core2
+
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -196,6 +200,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Set-Location $rootpath\MillimanAccessPortal\
+
+$env:MSBuildSDKsPath=$core2
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
