@@ -161,6 +161,10 @@ namespace AuditLogLib.Models
                         descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
                         return descriptionString;
 
+                    case 8105:  // Sftp Authentication Failed
+                        descriptionString += $"SFTP authentication failed for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
+
                     case 8110:  // SFTP Directory Created
                         descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
@@ -183,6 +187,10 @@ namespace AuditLogLib.Models
 
                     case 8115:  // SFTP File Or Directory Renamed
                         descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")}\" renamed to \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")}\"";
+                        return descriptionString;
+
+                    case 8116:  // SFTP File Removed
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
                 }
             }
