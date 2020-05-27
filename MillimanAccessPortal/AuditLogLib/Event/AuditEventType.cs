@@ -1060,7 +1060,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> AccountAddedToPermissionGroup = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
-            8102, "Account Added To Permission Group", (account, permissionGroup, fileDrop) => new
+            8102, "SFTP Account Added To Permission Group", (account, permissionGroup, fileDrop) => new
             {
                 SftpAccount = new SftpAccountLogModel(account),
                 PermissionGroup = new
@@ -1076,7 +1076,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> AccountRemovedFromPermissionGroup = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
-            8103, "Account Removed From Permission Group", (account, permissionGroup, fileDrop) => new
+            8103, "SFTP Account Removed From Permission Group", (account, permissionGroup, fileDrop) => new
             {
                 SftpAccount = new SftpAccountLogModel(account),
                 PermissionGroup = new
@@ -1124,7 +1124,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8112, "SFTP File Write Authorized", (model) => new
+            8112, "SFTP File Write", (model) => new
             {
                 model.FileName,
                 model.FileDrop,
@@ -1133,7 +1133,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileReadAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8113, "SFTP File Read Authorized", (model) => new
+            8113, "SFTP File Read", (model) => new
             {
                 model.FileName,
                 model.FileDrop,
