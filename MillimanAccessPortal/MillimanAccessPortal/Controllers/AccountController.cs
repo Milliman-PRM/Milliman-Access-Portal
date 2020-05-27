@@ -1161,8 +1161,22 @@ namespace MillimanAccessPortal.Controllers
 
             // Conditionally add the FileDrop Element
             AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
-            // TODO: Actually check if a File Drop User is assigned to a File Drop to provide access
             AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+            if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
+            {
+                // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
+                List<Guid> authorizedClientIds = DbContext.UserRoleInClient
+                                                          .Where(urc => EF.Functions.ILike(User.Identity.Name, urc.User.UserName))
+                                                          .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                                          .Select(urc => urc.ClientId)
+                                                          .ToList();
+                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDropUserPermissionGroup.FileDrop.ClientId)
+                                                 && EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName)))
+                {
+                    FileDropUserResult = AuthorizationResult.Failed();
+                }
+            }
+
             if (FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded)
             {
                 NavBarElements.Add(new NavBarElementModel

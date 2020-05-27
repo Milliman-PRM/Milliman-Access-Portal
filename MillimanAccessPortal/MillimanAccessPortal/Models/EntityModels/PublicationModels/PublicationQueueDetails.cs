@@ -34,31 +34,5 @@ namespace MillimanAccessPortal.Models.EntityModels.PublicationModels
         /// The total number of reductions for this publication
         /// </summary>
         public int ReductionsTotal { get; set; }
-
-        public static async Task<Dictionary<Guid, PublicationQueueDetails>> BuildQueueForClientAsync(ApplicationDbContext dbContext, Client client)
-        {
-            Dictionary<Guid, PublicationQueueDetails> returnDict = new Dictionary<Guid, PublicationQueueDetails>();
-
-            var requests = await dbContext.ContentPublicationRequest.Where(r => PublicationStatusExtensions.ActiveStatuses.Contains(r.RequestStatus))
-                                                              .OrderByDescending(r => r.CreateDateTimeUtc)
-                                                              .ToListAsync();
-
-            requests.Aggregate(seed: 0, func: (int i, ContentPublicationRequest r) =>
-            {
-                returnDict.Add(r.Id, new PublicationQueueDetails
-                {
-                    PublicationId = r.Id,
-                    QueuePosition = i,
-                    ReductionsTotal = dbContext.ContentReductionTask.Count(t => t.ContentPublicationRequestId == r.Id 
-                                                                             && t.SelectionGroupId != null),
-                    ReductionsCompleted = dbContext.ContentReductionTask.Count(t => t.ContentPublicationRequestId == r.Id
-                                                                                 && t.SelectionGroupId != null
-                                                                                 && (t.ReductionStatus == ReductionStatusEnum.Reduced || t.ReductionStatus == ReductionStatusEnum.Warning)),
-                });
-                return ++i;
-            });
-
-            return returnDict;
-        }
     }
 }

@@ -36,14 +36,88 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to delete a file.")]
         internal static void OnFileRemove(object sender, SftpserverFileRemoveEventArgs evtData)
         {
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRemove.htm
+
             Log.Information(GenerateEventArgsLogMessage("FileRemove", evtData));
+
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
+
+            if (result == AuthorizationResult.ConnectionNotFound)
+            {
+                Log.Warning("OnFileRemove: Connection not found, eventdata: {@evtData}", evtData);
+                evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
+                return;
+            }
+
+            connection.LastActivityUtc = DateTime.UtcNow;
+
+            if (result == AuthorizationResult.NotAuthorized)
+            {
+                Log.Warning("OnFileRemove: Permission denied, eventdata: {@evtData}", evtData);
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
+
+            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            {
+                string requestedFileName = Path.GetFileName(evtData.Path);
+                string requestedDirectoryCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
+                string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+                FileDropFile fileRecord = db.FileDropFile
+                                            .Include(f => f.Directory)
+                                            .Where(f => EF.Functions.ILike(requestedDirectoryCanonicalPath, f.Directory.CanonicalFileDropPath))
+                                            .Where(f => f.Directory.FileDropId == connection.FileDropId)
+                                            .SingleOrDefault(f => EF.Functions.ILike(requestedFileName, f.FileName));
+
+                if (evtData.BeforeExec)
+                {
+                    bool failValidation = false;
+                    if (fileRecord == null)
+                    {
+                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the database, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        failValidation = true;
+                    }
+                    else if (!File.Exists(requestedAbsolutePath))
+                    {
+                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                        failValidation = true;
+                    }
+                    if (failValidation) 
+                    {
+                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
+                        return;
+                    }
+                }
+                else
+                {
+                    if (evtData.StatusCode == 0)
+                    {
+                        db.FileDropFile.Remove(fileRecord);
+                        db.SaveChanges();
+
+                        new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
+                                                                                     (FileDropDirectoryLogModel)fileRecord.Directory,
+                                                                                          new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
+                                                                                          connection.Account,
+                                                                                          connection.MapUser), connection.MapUser?.UserName);
+                        Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                    }
+                    else
+                    {
+                        Log.Error($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} failed to be removed, event status {evtData.StatusCode}, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
+                    }
+                }
+
+
+            }
         }
 
         //[Description("Fires when a client wants to read from an open file.")]
         internal static void OnFileRead(object sender, SftpserverFileReadEventArgs evtData)
         {
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
-            Log.Information(GenerateEventArgsLogMessage("FileRead", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("FileRead", evtData));
         }
 
         //[Description("Fires when a client wants to open or create a file.")]
@@ -146,6 +220,8 @@ namespace SftpServerLib
                             });
                             db.SaveChanges();
 
+                            // TODO Process user notifications here for FileWrite event
+
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
                                 new SftpFileOperationLogModel
                                 {
@@ -198,7 +274,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
         internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileClose", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("FileClose", evtData));
         }
 
         //[Description("Fired when a connection is closed.")]
@@ -210,7 +286,7 @@ namespace SftpServerLib
                 Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.Account?.UserName}");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
-            Log.Information($"Connection <{evtData.ConnectionId}> closed");
+            Log.Debug($"Connection <{evtData.ConnectionId}> closed");
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
@@ -389,7 +465,7 @@ namespace SftpServerLib
         //[Description("Fired when a request for connection comes from a remote host.")]
         internal static void OnConnectionRequest(object sender, SftpserverConnectionRequestEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
         }
 
         //[Description("Fired immediately after a connection completes (or fails).")]
@@ -405,13 +481,13 @@ namespace SftpServerLib
 
             IpWorksSftpServer._connections[evtData.ConnectionId] = newConnection;
 
-            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now.ToString("u")}");
+            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now:u}");
         }
 
         //[Description("Fires when a client needs to get file information.")]
         internal static void OnGetAttributes(object sender, SftpserverGetAttributesEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("GetAttributes", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("GetAttributes", evtData));
 
             switch (evtData.FileType)
             {
@@ -426,14 +502,14 @@ namespace SftpServerLib
         //[Description("Fires once for each log message.")]
         internal static void OnLog(object sender, SftpserverLogEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("Log", evtData));
-            Log.Information($"Event OnLog: Args: {JsonSerializer.Serialize(evtData, prettyJsonOptions)}");
+            Log.Debug(GenerateEventArgsLogMessage("Log", evtData));
+            //Log.Debug($"Event OnLog: Args: {JsonSerializer.Serialize(evtData, prettyJsonOptions)}");
         }
 
         //[Description("Fires when a client attempts to canonicalize a path.")]
         internal static void OnResolvePath(object sender, SftpserverResolvePathEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("ResolvePath", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("ResolvePath", evtData));
         }
 
         //[Description("Fires when a client wants to rename a file.")]
@@ -612,7 +688,7 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to write to an open file.")]
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileWrite", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("FileWrite", evtData));
         }
 
         //[Description("Fires when a client attempts to set file or directory attributes.")]
@@ -624,7 +700,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to authenticate a connection.")]
         internal static void OnSSHUserAuthRequest(object sender, SftpserverSSHUserAuthRequestEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
 
             //_sftpServer.Config($"UserAuthBanner[{evtData.ConnectionId}]=Whatever");
             if (evtData.AuthMethod.Equals("password", StringComparison.InvariantCultureIgnoreCase))
@@ -650,6 +726,7 @@ namespace SftpServerLib
                                                 .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
+                                                .Include(a => a.FileDrop)
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
@@ -659,21 +736,24 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
-                        // TODO is an audit log called for here?
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound, null));
                         return;
                     }
 
-                    if (!userAccount.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60)))
+                    if (userAccount.IsSuspended)
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop));
+                        return;
+                    }
+
+                    int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
+                    if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc > TimeSpan.FromDays(sftpPasswordExpirationDays))
                     {
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");
-                        return;
-                    }
-
-                    if (userAccount.ApplicationUserId.HasValue && (!userAccount.ApplicationUser.IsCurrent(GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60)) || userAccount.ApplicationUser.IsSuspended))
-                    {
-                        evtData.Accept = false;
-                        Log.Information($"SftpConnection request denied.  The MAP user <{userAccount.ApplicationUser.UserName}> associated with this SFTP account has an expired password or is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop));
                         return;
                     }
 
@@ -708,6 +788,11 @@ namespace SftpServerLib
                                             ", delete: " + userAccount.FileDropUserPermissionGroup.DeleteAccess.ToString()
                                         : "no permission group assigned"));
                     }
+                    else
+                    {
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop));
+                        Log.Information($"Sftp acount <{userAccount.UserName}> authentication failed for FileDrop <{userAccount.FileDrop.Name}>");
+                    }
                 }
             }
         }
@@ -715,7 +800,7 @@ namespace SftpServerLib
         //[Description("Shows the progress of the secure connection.")]
         internal static void OnSSHStatus(object sender, SftpserverSSHStatusEventArgs evtData)
         {
-            //Log.Information(GenerateEventArgsLogMessage("SSHStatus", evtData));
+            Log.Debug(GenerateEventArgsLogMessage("SSHStatus", evtData));
         }
 
         internal static void OnMaintenanceTimerElapsed(object source, System.Timers.ElapsedEventArgs e)
