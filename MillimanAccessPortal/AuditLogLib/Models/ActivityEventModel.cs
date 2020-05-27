@@ -181,16 +181,12 @@ namespace AuditLogLib.Models
                         descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
-                    case 8114:  // SFTP File Delete Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" deleted from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                    case 8114:  // SFTP File Removed
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8115:  // SFTP File Or Directory Renamed
                         descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")}\" renamed to \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")}\"";
-                        return descriptionString;
-
-                    case 8116:  // SFTP File Removed
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
                 }
             }
