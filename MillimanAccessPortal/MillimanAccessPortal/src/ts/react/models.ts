@@ -310,6 +310,7 @@ export interface FileDrop {
   id?: Guid;
   name: string;
   description: string;
+  isSuspended?: boolean;
 }
 
 export interface FileDropWithStats extends FileDrop {
@@ -523,7 +524,6 @@ export interface FDEventDirectoryRemoved extends BaseFileDropEvent {
     SftpAccount: FileDropEventObjectSftpUser;
     MapUser?: FileDropEventObjectMapUser;
     FileDropDirectory: FileDropEventObjectDirectory;
-    // TODO: Implement DeletedInventory?
   };
 }
 

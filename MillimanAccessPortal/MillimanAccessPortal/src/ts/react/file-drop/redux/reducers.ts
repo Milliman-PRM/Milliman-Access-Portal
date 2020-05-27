@@ -30,7 +30,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // ~~~~~~~~~~~~~~~
 
 const _initialPendingData: State.FileDropPendingReturnState = {
-  globalData: false,
   clients: false,
   fileDrops: false,
   createFileDrop: false,
@@ -71,6 +70,7 @@ const _initialFileDropWithStats: FileDropWithStats = {
   id: null,
   name: null,
   description: null,
+  isSuspended: false,
   userCount: null,
 };
 
@@ -105,18 +105,6 @@ const _initialData: State.FileDropDataState = {
 
 /** Reducer for the async state object in the pending state object */
 const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPendingData, {
-  FETCH_GLOBAL_DATA: (state) => ({
-    ...state,
-    globalData: true,
-  }),
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
-    ...state,
-    globalData: false,
-  }),
-  FETCH_GLOBAL_DATA_FAILED: (state) => ({
-    ...state,
-    globalData: false,
-  }),
   FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
@@ -564,7 +552,6 @@ const modals = combineReducers({
   createFileDrop: createModalReducer(['OPEN_CREATE_FILE_DROP_MODAL'], [
     'CLOSE_CREATE_FILE_DROP_MODAL',
     'CREATE_FILE_DROP_SUCCEEDED',
-    'CREATE_FILE_DROP_FAILED',
   ]),
   deleteFileDrop: createModalReducer(['OPEN_DELETE_FILE_DROP_MODAL'], [
     'CLOSE_DELETE_FILE_DROP_MODAL',
@@ -596,9 +583,6 @@ const modals = combineReducers({
 
 /** Reducer for the data state object */
 const data = createReducer<State.FileDropDataState>(_initialData, {
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
-    ...state,
-  }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: Action.FetchClientsSucceeded) => ({
     ...state,
     clients: {
@@ -636,19 +620,24 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.permissionGroups,
     },
   }),
-  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
-    ...state,
-    clients: {
-      ...state.clients,
-      [action.response.clientCard.id]: {
-        ...action.response.clientCard,
+  DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => {
+    const deletedActive = action.response.currentFileDropId === state.permissionGroups.fileDropId;
+    return {
+      ...state,
+      clients: {
+        ...state.clients,
+        [action.response.clientCard.id]: {
+          ...action.response.clientCard,
+        },
       },
-    },
-    fileDrops: {
-      ...action.response.fileDrops,
-    },
-    permissionGroups: null,
-  }),
+      fileDrops: {
+        ...action.response.fileDrops,
+      },
+      activityLogEvents: deletedActive ? null : state.activityLogEvents,
+      fileDropSettings: deletedActive ? _initialFileDropSettings : state.fileDropSettings,
+      permissionGroups: deletedActive ? _initialPermissionGroupsTab : state.permissionGroups,
+    };
+  },
   UPDATE_FILE_DROP_SUCCEEDED: (state, action: Action.UpdateFileDropSucceeded) => ({
     ...state,
     clients: {

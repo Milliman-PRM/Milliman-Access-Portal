@@ -15,12 +15,12 @@ using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
 using nsoftware.IPWorksSSH;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Serilog;
 
 namespace MillimanAccessPortal.DataQueries
 {

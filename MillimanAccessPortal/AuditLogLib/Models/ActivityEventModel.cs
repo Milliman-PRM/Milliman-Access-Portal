@@ -50,7 +50,7 @@ namespace AuditLogLib.Models
             FileDropLogModel fileDropModel = GetNamedPropertyOfSpecifiedType<FileDropLogModel>(eventData, "FileDrop");
             FileDropPermissionGroupLogModel permissionGroupModel = GetNamedPropertyOfSpecifiedType<FileDropPermissionGroupLogModel>(eventData, "PermissionGroup");
             FileDropDirectoryLogModel FileDropDirectoryModel = GetNamedPropertyOfSpecifiedType<FileDropDirectoryLogModel>(eventData, "FileDropDirectory");
-            dynamic mapUser = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "MapUser");
+            dynamic account = GetNamedPropertyOfSpecifiedType<ExpandoObject>(eventData, "SftpAccount");
 
             try
             {
@@ -89,8 +89,8 @@ namespace AuditLogLib.Models
                         descriptionString += permissionGroupModel.IsPersonalGroup
                                              ? $"Personal permission group created for \"{permissionGroupModel.Name}\". "
                                              : $"Permission group name is \"{permissionGroupModel.Name}\". ";
-                        descriptionString += (permissionGroupModel.ReadAccess ? "Read access granted. " : "") +
-                                             (permissionGroupModel.WriteAccess ? "Write access granted. " : "") +
+                        descriptionString += (permissionGroupModel.ReadAccess ? "Download access granted. " : "") +
+                                             (permissionGroupModel.WriteAccess ? "Upload access granted. " : "") +
                                              (permissionGroupModel.DeleteAccess ? "Delete access granted. " : "");
                         return descriptionString;
 
@@ -116,11 +116,11 @@ namespace AuditLogLib.Models
 
                         if (newSettings.ReadAccess && !oldSettings.ReadAccess)
                         {
-                            descriptionString += $"Read access granted. ";
+                            descriptionString += $"Download access granted. ";
                         }
                         if (newSettings.WriteAccess && !oldSettings.WriteAccess)
                         {
-                            descriptionString += $"Write access granted. ";
+                            descriptionString += $"Upload access granted. ";
                         }
                         if (newSettings.DeleteAccess && !oldSettings.DeleteAccess)
                         {
@@ -129,11 +129,11 @@ namespace AuditLogLib.Models
 
                         if (!newSettings.ReadAccess && oldSettings.ReadAccess)
                         {
-                            descriptionString += $"Read access revoked. ";
+                            descriptionString += $"Download access revoked. ";
                         }
                         if (!newSettings.WriteAccess && oldSettings.WriteAccess)
                         {
-                            descriptionString += $"Write access revoked. ";
+                            descriptionString += $"Upload access revoked. ";
                         }
                         if (!newSettings.DeleteAccess && oldSettings.DeleteAccess)
                         {
@@ -142,27 +142,27 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8100:  // SFTP Account Created
-                        descriptionString += $"SFTP account created for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account created for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8101:  // SFTP Account Deleted
-                        descriptionString += $"SFTP account deleted for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account deleted for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8102:  // Account Added To Permission Group
-                        descriptionString += $"\"{mapUser?.UserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
+                        descriptionString += $"\"{account?.MapUserName}\" assigned to permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
                     case 8103:  // Account Removed From Permission Group
-                        descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
+                        descriptionString += $"\"{account?.MapUserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
                     case 8104:  // SFTP Account Credentials Generated
-                        descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP account credentials generated for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8105:  // Sftp Authentication Failed
-                        descriptionString += $"SFTP authentication failed for MAP user \"{mapUser?.UserName}\". ";
+                        descriptionString += $"SFTP authentication failed for MAP user \"{account?.MapUserName}\". ";
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
@@ -174,11 +174,11 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8112:  // SFTP File Write Authorized
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" written to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for upload to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8113:  // SFTP File Read Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for download from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8114:  // SFTP File Removed

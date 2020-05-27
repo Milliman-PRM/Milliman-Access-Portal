@@ -161,7 +161,7 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(fileDropGlobalRoot) || !Directory.Exists(fileDropGlobalRoot))
             {
                 Log.Error($"In action {ControllerContext.ActionDescriptor.DisplayName} application configuration for FileDropGlobalRoot <{fileDropGlobalRoot}> is invalid or not found");
-                Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                Response.Headers.Add("Warning", "The provided FileDrop information was invalid."); 
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -169,6 +169,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} referenced client with Id {fileDropModel.ClientId} not found");
                 Response.Headers.Add("Warning", "The referenced client was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (_dbContext.FileDrop.Any(d => d.ClientId == referencedClient.Id &&
+                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+            {
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to create FileDrop with name <{fileDropModel.Name}>, already in use for client {referencedClient.Id}");
+                Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -252,16 +260,25 @@ namespace MillimanAccessPortal.Controllers
             };
 
             #region Validation
-            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && !new[] { nameof(FileDrop.RootPath), nameof(FileDrop.ShortHash) }.Contains(v.Key)))  // RootPath & ShortHash can/should be invalid here
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (_dbContext.FileDrop.Any(d => d.ClientId == fileDropRecord.ClientId &&
+                                             d.Id != fileDropRecord.Id && 
+                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+            {
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to update FileDrop with name <{fileDropModel.Name}>, already in use for client {fileDropRecord.ClientId}");
+                Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             if (string.IsNullOrWhiteSpace(fileDropModel.Name))
             {
-                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
+                Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -305,7 +322,6 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteFileDrop([FromBody] Guid id)
         {
-            List<Action> pendingAuditLogActions = new List<Action>();
             FileDrop fileDrop = await _dbContext.FileDrop
                                                 .Include(d => d.Client)
                                                 .Include(d => d.SftpAccounts)
@@ -334,23 +350,13 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                foreach (SftpAccount account in _dbContext.SftpAccount
-                                                          .Include(a => a.ApplicationUser)
-                                                          .Include(a => a.FileDropUserPermissionGroup)
-                                                          .Where(a => a.FileDropId == fileDrop.Id))
-                {
-                    if (account.FileDropUserPermissionGroup != null)
-                    {
-                        var rememberGroupInstance = account.FileDropUserPermissionGroup;
-                        pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(account, rememberGroupInstance, fileDrop)));
-                    }
-                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.SftpAccountDeleted.ToEvent(account, fileDrop)));
-                }
-
+                List<FileDropPermissionGroupMembershipLogModel> membershipModel = new List<FileDropPermissionGroupMembershipLogModel>();
                 foreach (FileDropUserPermissionGroup group in _dbContext.FileDropUserPermissionGroup
+                                                                        .Include(g => g.SftpAccounts)
+                                                                            .ThenInclude(a => a.ApplicationUser)
                                                                         .Where(g => g.FileDropId == fileDrop.Id))
                 {
-                    pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, group)));
+                    membershipModel.Add(new FileDropPermissionGroupMembershipLogModel(group));
                 }
 
                 foreach (FileDropFile file in _dbContext.FileDropDirectory
@@ -358,25 +364,19 @@ namespace MillimanAccessPortal.Controllers
                                                         .SelectMany(d => d.Files))
                 {
                     _dbContext.FileDropFile.RemoveRange(file);
-                    // Audit log file removal?
                 }
 
                 _dbContext.FileDrop.Remove(fileDrop);
-                pendingAuditLogActions.Add(() => _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, fileDrop.SftpAccounts)));
                 
                 await _dbContext.SaveChangesAsync();
 
+                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, membershipModel));
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Failed to complete the request");
                 Response.Headers.Add("Warning", "Failed to complete the request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-
-            foreach (var logAction in pendingAuditLogActions)
-            {
-                logAction();
             }
 
             string fullRootPath = default;
@@ -585,11 +585,17 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            SftpAccount account = await _dbContext.SftpAccount
+                                      .Include(a => a.ApplicationUser)
+                                      .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
+                                      .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
+
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
-            if (!adminRoleResult.Succeeded)
+            if (!adminRoleResult.Succeeded && !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                Response.Headers.Add("Warning", "You are not authorized to access account settings for this file drop.");
                 return Unauthorized();
             }
             #endregion
