@@ -1098,6 +1098,35 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 
+        public enum SftpAuthenticationFailReason
+        {
+            [Display(Description = "The requested SFTP account name was not found")]
+            UserNotFound,
+
+            [Display(Description = "The requested SFTP account name is suspended")]
+            AccountSuspended,
+
+            [Display(Description = "The requested SFTP account has an expired password")]
+            PasswordExpired,
+
+            [Display(Description = "The requested SFTP account credentials are invalid")]
+            AuthenticationFailed,
+        }
+
+        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel>(
+            8105, "Sftp Authentication Failed", (account, reason, fileDropModel) => new
+            {
+                Account = new
+                {
+                    account?.Id,
+                    account?.UserName,
+                    account?.IsSuspended,
+                    PasswordResetDateTimeUtc = account?.PasswordResetDateTimeUtc.ToString("u"),
+                },
+                Reason = reason.GetDisplayDescriptionString(),
+                FileDrop = fileDropModel,
+            });
+
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
             8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
             {
@@ -1141,13 +1170,13 @@ namespace AuditLogLib.Event
                 SftpAccount = new SftpAccountLogModel(model.Account),
             });
 
-        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileDeleteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8114, "SFTP File Delete Authorized", (model) => new
+        public static readonly AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpFileRemoved = new AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8114, "SFTP File Removed", (fileDropFileModel, fileDropDirectoryModel, fileDropModel, sftpAccount, mapUser) => new
             {
-                model.FileName,
-                model.FileDrop,
-                model.FileDropDirectory,
-                SftpAccount = new SftpAccountLogModel(model.Account),
+                FileName = fileDropFileModel.FileName,
+                FileDropDirectory = fileDropDirectoryModel,
+                FileDrop = fileDropModel,
+                SftpAccount = new SftpAccountLogModel(sftpAccount),
             });
 
         public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(

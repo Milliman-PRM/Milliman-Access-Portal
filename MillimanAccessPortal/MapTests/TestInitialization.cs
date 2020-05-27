@@ -1349,11 +1349,11 @@ namespace MapTests
 
             IConfiguration returnVal = appConfigurationBuilder.Build();
 
-            // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
-            //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
-            //{
-            //    ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
-            //}
+            if (returnVal.GetValue("DumpVerboseConfiguration", false))
+            {
+                //This dumps the entire configuration to Serilog.  
+                //ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
+            }
 
             return returnVal;
         }

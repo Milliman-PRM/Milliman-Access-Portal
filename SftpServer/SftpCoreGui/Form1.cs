@@ -40,7 +40,7 @@ namespace SftpCoreGui
             buttonVerifyPassword.Enabled = false;
         }
 
-        private void btnStartStop_Click(object sender, EventArgs e)
+        private void BtnStartStop_Click(object sender, EventArgs e)
         {
             Button Sender = sender as Button;
             if (Sender.Text == "Start")
@@ -72,13 +72,13 @@ namespace SftpCoreGui
             }
         }
 
-        private void buttonHashPassword_Click(object sender, EventArgs e)
+        private void ButtonHashPassword_Click(object sender, EventArgs e)
         {
             sftpAccountObject.Password = textPassword.Text;
             textHash.Text = sftpAccountObject.PasswordHash;
         }
 
-        private void buttonVerifyPassword_Click(object sender, EventArgs e)
+        private void ButtonVerifyPassword_Click(object sender, EventArgs e)
         {
             if (sftpAccountObject != null)
             {
@@ -94,7 +94,7 @@ namespace SftpCoreGui
             }
         }
 
-        private void buttonReportReportServerState_Click(object sender, EventArgs e)
+        private void ButtonReportReportServerState_Click(object sender, EventArgs e)
         {
             if (_SftpApi != null)
             {
