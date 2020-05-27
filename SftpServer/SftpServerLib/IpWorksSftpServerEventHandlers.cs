@@ -9,10 +9,12 @@ using AuditLogLib.Event;
 using AuditLogLib.Models;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
+using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
+using Prm.EmailQueue;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -220,7 +222,31 @@ namespace SftpServerLib
                             });
                             db.SaveChanges();
 
-                            // TODO Process user notifications here for FileWrite event
+                            #region Process user notifications for FileWrite event
+                            List<SftpAccount> accountsToNotify = db.SftpAccount
+                                                                   .Include(a => a.ApplicationUser)
+                                                                   .Where(a => a.FileDropUserPermissionGroup.FileDropId == connection.FileDropId)
+                                                                   .Where(a => !a.IsSuspended)
+                                                                   .Where(a => !a.ApplicationUser.IsSuspended)
+                                                                   .ToList();
+                            if (accountsToNotify.Any())
+                            {
+                                List<ApplicationUser> usersToNotify = accountsToNotify.Where(a => a.NotificationSubscriptions.Any(n => n.NotificationType == FileDropNotificationType.FileWrite
+                                                                                                                                    && n.IsEnabled))
+                                                                                      .Select(a => a.ApplicationUser)
+                                                                                      .ToList();
+                                string subject = "MAP file drop notification";
+                                string message = $"File \"{evtData.Path.TrimStart('/')}\" has been uploaded to file drop \"{connection.FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
+                                    $"You are subscribed to MAP notifications for this file drop. " +
+                                    $"To manage your notifications, log into MAP and go to \"My Settings\" for file drop \"{connection.FileDropName}\". ";
+
+                                MailSender mailSender = new MailSender();
+                                foreach (ApplicationUser user in usersToNotify)
+                                {
+                                    mailSender.QueueMessage(user.Email, subject, message, "map.support@milliman.com", "Milliman Access Portal notifications");
+                                }
+                            }
+                            #endregion
 
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
                                 new SftpFileOperationLogModel
@@ -355,7 +381,7 @@ namespace SftpServerLib
                                                                                       deleteInventory, 
                                                                                       new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName }, 
                                                                                       connection.Account,
-                                                                                      connection.MapUser));
+                                                                                      connection.MapUser), connection.MapUser?.UserName);
                     Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                 }
             }
@@ -455,7 +481,7 @@ namespace SftpServerLib
                                                                                           new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
                                                                                           connection.Account,
                                                                                           new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
-                                                                                          connection.MapUser));
+                                                                                          connection.MapUser), connection.MapUser?.UserName);
                         Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
                     }
                 }
@@ -661,7 +687,7 @@ namespace SftpServerLib
                             FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
                             Account = connection.Account,
                             User = connection.MapUser,
-                        }));
+                        }), connection.MapUser?.UserName);
                     }
                 }
             }
@@ -730,7 +756,7 @@ namespace SftpServerLib
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
-                                                .SingleOrDefault(a => a.UserName == evtData.User);
+                                                .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
 
                     if (userAccount == null)
                     {

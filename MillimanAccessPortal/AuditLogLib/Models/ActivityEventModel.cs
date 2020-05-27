@@ -107,6 +107,12 @@ namespace AuditLogLib.Models
                         {
                             descriptionString += $"Name changed from \"{oldSettings.Name}\" to \"{newSettings.Name}\". ";
                         }
+                        else
+                        {
+                            descriptionString += permissionGroupModel.IsPersonalGroup
+                                                 ? $"For MAP user \"{oldSettings.Name}\": "
+                                                 : $"For the group named \"{oldSettings.Name}\": ";
+                        }
 
                         if (newSettings.ReadAccess && !oldSettings.ReadAccess)
                         {
@@ -151,6 +157,14 @@ namespace AuditLogLib.Models
                         descriptionString += $"\"{mapUser?.UserName}\" removed from permission group \"{permissionGroupModel.Name}\"";
                         return descriptionString;
 
+                    case 8104:  // SFTP Account Credentials Generated
+                        descriptionString += $"SFTP account credentials generated for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
+
+                    case 8105:  // Sftp Authentication Failed
+                        descriptionString += $"SFTP authentication failed for MAP user \"{mapUser?.UserName}\". ";
+                        return descriptionString;
+
                     case 8110:  // SFTP Directory Created
                         descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
@@ -167,8 +181,8 @@ namespace AuditLogLib.Models
                         descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" downloaded from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
-                    case 8114:  // SFTP File Delete Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" deleted from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                    case 8114:  // SFTP File Removed
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
                         return descriptionString;
 
                     case 8115:  // SFTP File Or Directory Renamed

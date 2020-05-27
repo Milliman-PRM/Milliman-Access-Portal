@@ -43,6 +43,7 @@ using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -143,7 +144,7 @@ namespace MillimanAccessPortal.Controllers
             Client referencedClient = await _dbContext.Client.FindAsync(fileDropModel.ClientId);
 
             #region Validation
-            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && v.Key != nameof(FileDrop.RootPath)))  // RootPath can/should be invalid here
+            if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && !new[] { nameof(FileDrop.RootPath), nameof(FileDrop.ShortHash) }.Contains(v.Key)  ))  // RootPath & ShortHash can/should be invalid here
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} ModelState not valid");
                 Response.Headers.Add("Warning", "The provided FileDrop information was invalid.");
@@ -175,6 +176,26 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 fileDropModel.RootPath = Guid.NewGuid().ToString();
+
+                string propsedShortHash = string.Empty;
+                int loopCounter = 0;
+                do
+                {
+                    if (loopCounter > 10)  // Try at most 10 times
+                    {
+                        Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} failed to generate unique FileDrop hash after {loopCounter} tries");
+                        Response.Headers.Add("Warning", "A processing error occurred.");
+                        return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                    }
+                    loopCounter++;
+
+                    byte[] randomBytes = new byte[24 / 8];
+                    new RNGCryptoServiceProvider().GetBytes(randomBytes);
+                    propsedShortHash = Convert.ToBase64String(randomBytes);
+                }
+                while (_dbContext.FileDrop.Any(d => d.ShortHash == propsedShortHash)); // Hash must be unique in the db
+                fileDropModel.ShortHash = propsedShortHash;
+
                 string fileDropAbsoluteRootFolder = Path.Combine(fileDropGlobalRoot, fileDropModel.RootPath);
 
                 FileDropDirectory rootDirectoryRecord = new FileDropDirectory
@@ -548,6 +569,143 @@ namespace MillimanAccessPortal.Controllers
             return new TemporaryPhysicalFileResult(tempFilePath, "text/csv") { FileDownloadName = $"FileDropActivity{DateTime.UtcNow:s}.csv" };
         }
 
+        [HttpGet]
+        public async Task<IActionResult> AccountSettings(Guid fileDropId)
+        {
+            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+
+            #region Validation
+            if (clientId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            if (!adminRoleResult.Succeeded)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
+                return Unauthorized();
+            }
+            #endregion
+
+            SftpAccountSettingsModel model = await _fileDropQueries.GetAccountSettingsModelAsync(fileDropId, user);
+
+            return Json(model);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateSftpAccountCredentials([FromBody] Guid fileDropId)
+        {
+            #region Preliminary validation
+            if (!ModelState.IsValid || fileDropId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} Invalid request, no bound value for input parameter fileDropId");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Include(a => a.ApplicationUser)
+                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
+                                                  .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
+
+            #region Validation
+            if (account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} User {User.Identity.Name} cannot generate credentials for file drop {fileDrop.Id} (named \"{fileDrop.Name}\") because there is no authorized sftp account");
+                Response.Headers.Add("Warning", "You may not generate a password because you are not currently authorized to this file drop.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            if (account.IsSuspended)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update credentials.");
+                Response.Headers.Add("Warning", "Your account is suspended. You may not update account credentials.");
+                return Unauthorized();
+            }
+            #endregion
+
+            // 144 bits yields same base64 encoded length (24) as 128 bits (no padding characters) with 16 more random bits
+            byte[] randomBytes = new byte[144 / 8];
+            new RNGCryptoServiceProvider().GetBytes(randomBytes);
+            string newPassword = Convert.ToBase64String(randomBytes);
+
+            SftpAccountCredentialModel returnModel = new SftpAccountCredentialModel
+            {
+                UserName = account.UserName,
+                Password = newPassword,
+            };
+
+            account.Password = newPassword;
+            await _dbContext.SaveChangesAsync();
+
+            _auditLogger.Log(AuditEventType.SftpAccountCredentialsGenerated.ToEvent(account, fileDrop));
+
+            return Json(returnModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAccountSettings([FromBody] UpdateAccountSettingsModel boundModel)
+        {
+            #region Preliminary validation
+            if (!ModelState.IsValid || boundModel.FileDropId == Guid.Empty)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName}, invalid request");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
+            ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))  // Does not find non-user accounts (future feature)
+                                                  .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
+
+            if (account == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName}, account not found");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #region Authorization
+            if (account.IsSuspended)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update account settings.");
+                Response.Headers.Add("Warning", "Your account is suspended. You may not update account settings.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region update the settings
+            var accountNotifications = new HashSet<FileDropUserNotificationModel>(account.NotificationSubscriptions, new FileDropUserNotificationModelSameEventComparer());
+            foreach (var notificationSetting in boundModel.Notifications)
+            {
+                accountNotifications.Remove(notificationSetting);
+                accountNotifications.Add(notificationSetting);
+            }
+            account.NotificationSubscriptions = accountNotifications;
+            await _dbContext.SaveChangesAsync();
+            #endregion
+
+            SftpAccountSettingsModel model = await _fileDropQueries.GetAccountSettingsModelAsync(boundModel.FileDropId, mapUser);
+
+            return Json(model);
+        }
     }
 
     /// <summary>

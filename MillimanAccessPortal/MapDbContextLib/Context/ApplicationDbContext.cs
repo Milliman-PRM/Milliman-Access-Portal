@@ -56,6 +56,7 @@ namespace MapDbContextLib.Context
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<FileDropNotificationType>();
         }
             
 
@@ -74,6 +75,7 @@ namespace MapDbContextLib.Context
             builder.HasPostgresEnum<PublicationStatus>();
             builder.HasPostgresEnum<ReductionStatusEnum>();
             builder.HasPostgresEnum<ContentTypeEnum>();
+            builder.HasPostgresEnum<FileDropNotificationType>();
 
             builder.HasPostgresExtension("uuid-ossp");  // enable server extension to support uuid generation functions
             builder.HasPostgresExtension("citext");  // enable server extension to support case insensitive text field type
@@ -168,6 +170,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasIndex(x => x.RootPath).IsUnique();
+                b.HasIndex(x => x.ShortHash).IsUnique();
             });
             builder.Entity<FileDropUserPermissionGroup>(b =>
             {
@@ -204,9 +207,9 @@ namespace MapDbContextLib.Context
 
         public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
         {
-            await Identity.ApplicationRole.SeedRoles(serviceProvider);
+            await Identity.ApplicationRole.SeedRolesAsync(serviceProvider);
             await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
-            await Context.AuthenticationScheme.SeedSchemes(serviceProvider);
+            await Context.AuthenticationScheme.SeedSchemesAsync(serviceProvider);
             await Context.NameValueConfiguration.InitializeNameValueConfigurationAsync(serviceProvider);
         }
     }

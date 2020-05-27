@@ -98,6 +98,10 @@ export const openModifiedFormModal =
 export const closeModifiedFormModal =
   createActionCreator<Action.CloseModifiedFormModal>('CLOSE_MODIFIED_FORM_MODAL');
 
+/** Close the password notification modal */
+export const closePasswordNotificationModal =
+  createActionCreator<Action.ClosePasswordNotificationModal>('CLOSE_PASSWORD_NOTIFICATION_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -137,6 +141,18 @@ export const updatePermissionGroups =
 /** Get the Activity Log information */
 export const fetchActivityLog =
   createRequestActionCreator<Action.FetchActivityLog>('FETCH_ACTIVITY_LOG');
+
+/** Get the Activity Log information */
+export const fetchSettings =
+  createRequestActionCreator<Action.FetchSettings>('FETCH_SETTINGS');
+
+/** Generate a new secure SFTP password */
+export const generateNewSftpPassword =
+  createRequestActionCreator<Action.GenerateNewSftpPassword>('GENERATE_NEW_SFTP_PASSWORD');
+
+/** Set a File Drop notification setting */
+export const setFileDropNotificationSetting =
+  createRequestActionCreator<Action.SetFileDropNotificationSetting>('SET_FILE_DROP_NOTIFICATION_SETTING');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

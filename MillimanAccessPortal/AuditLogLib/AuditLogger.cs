@@ -232,7 +232,7 @@ namespace AuditLogLib
                                                                                       .Select(u => new ActivityEventModel.Names { UserName = u.UserName, LastName = u.LastName, FirstName = u.FirstName })
                                                                                       .ToDictionaryAsync(u => u.UserName);
 
-            return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, eventNamesDict.ContainsKey(e.User) 
+            return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, !string.IsNullOrEmpty(e.User) && eventNamesDict.ContainsKey(e.User)
                                                                                   ? eventNamesDict[e.User] 
                                                                                   : ActivityEventModel.Names.Empty))
                                       .ToList();

@@ -22,6 +22,9 @@ namespace MapDbContextLib.Context
         public string Description { get; set; }
 
         [Required]
+        public string ShortHash { get; set; }
+
+        [Required]
         public bool IsSuspended { get; set; } = false;
 
         [Required]

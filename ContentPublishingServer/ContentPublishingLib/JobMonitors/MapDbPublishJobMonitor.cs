@@ -50,7 +50,6 @@ namespace ContentPublishingLib.JobMonitors
 
         private MapDbPublishJobMonitorType JobMonitorType { get; set; }
 
-        //public Mutex QueueMutex { private get; set; }
         public SemaphoreSlim QueueSemaphore { private get; set; }
 
         private DbContextOptions<ApplicationDbContext> ContextOptions = null;
@@ -131,7 +130,6 @@ namespace ContentPublishingLib.JobMonitors
                 // Start more tasks if there is room in the RunningTasks collection. 
                 if (ActivePublicationRunnerItems.Count < MaxConcurrentRunners)
                 {
-                    //if (QueueMutex.WaitOne(new TimeSpan(0, 0, 20)))
                     if (QueueSemaphore.Wait(new TimeSpan(0, 0, 20)))
                     {
                         // Can't await async code here because the Mutex is owned by the current thread
@@ -142,7 +140,6 @@ namespace ContentPublishingLib.JobMonitors
                             LaunchPublishRunnerForRequest(DbRequest);
                         }
 
-                        //QueueMutex.ReleaseMutex();
                         QueueSemaphore.Release();
                         Thread.Sleep(500 * (1 + JobMonitorInstanceCounter));  // Allow time for any new runner(s) to start executing
                     }

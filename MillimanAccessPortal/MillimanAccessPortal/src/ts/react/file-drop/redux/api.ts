@@ -53,6 +53,19 @@ export const fetchActivityLog =
   createJsonRequestor<FileDropAction.FetchActivityLog, FileDropAction.FetchActivityLogSucceeded>
     ('GET', '/FileDrop/ActionLog');
 
+export const fetchSettings =
+  createJsonRequestor<FileDropAction.FetchSettings, FileDropAction.FetchSettingsSucceeded>
+    ('GET', '/FileDrop/AccountSettings');
+
+export const generateNewSftpPassword =
+  createJsonRequestor<FileDropAction.GenerateNewSftpPassword, FileDropAction.GenerateNewSftpPasswordSucceeded>
+    ('POST', '/FileDrop/GenerateSftpAccountCredentials');
+
+export const setFileDropNotificationSetting =
+  createJsonRequestor<
+    FileDropAction.SetFileDropNotificationSetting, FileDropAction.SetFileDropNotificationSettingSucceeded
+  >('POST', '/FileDrop/UpdateAccountSettings');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

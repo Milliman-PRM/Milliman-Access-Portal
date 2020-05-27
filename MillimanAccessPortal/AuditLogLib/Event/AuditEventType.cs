@@ -1122,6 +1122,20 @@ namespace AuditLogLib.Event
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 
+        public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCredentialsGenerated = new AuditEventType<SftpAccount, FileDrop>(
+            8104, "SFTP Account Password Generated", (account, fileDrop) => new
+            {
+                SftpAccount = new
+                {
+                    account.Id,
+                    account.UserName,
+                },
+                MapUser = account.ApplicationUserId.HasValue
+                        ? new { Id = account.ApplicationUserId.Value, account.ApplicationUser?.UserName }
+                        : null,
+                FileDrop = (FileDropLogModel)fileDrop,
+            });
+
         public enum SftpAuthenticationFailReason
         {
             [Display(Description = "The requested SFTP account name was not found")]
@@ -1138,7 +1152,7 @@ namespace AuditLogLib.Event
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel>(
-            8104, "Sftp Authentication Failed", (account, reason, fileDropModel) => new
+            8105, "Sftp Authentication Failed", (account, reason, fileDropModel) => new
             {
                 Account = new
                 {
@@ -1209,15 +1223,17 @@ namespace AuditLogLib.Event
                     : null,
             });
 
-        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileDeleteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8114, "SFTP File Delete Authorized", (model) => new
+        public static readonly AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpFileRemoved = new AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8114, "SFTP File Removed", (fileDropFileModel, fileDropDirectoryModel, fileDropModel, sftpAccount, mapUser) => new
             {
-                model.FileName,
-                model.FileDrop,
-                model.FileDropDirectory,
-                SftpAccount = new { model.Account.Id, model.Account.UserName, },
-                MapUser = model.User != null
-                    ? new { model.User.Id, model.User.UserName, }
+                FileName = fileDropFileModel.FileName,
+                FileDropDirectory = fileDropDirectoryModel,
+                FileDrop = fileDropModel,
+                SftpAccount = sftpAccount != null
+                    ? new { sftpAccount.Id, sftpAccount.UserName, }
+                    : null,
+                MapUser = mapUser != null
+                    ? new { mapUser.Id, mapUser.UserName, }
                     : null,
             });
 
@@ -1231,20 +1247,6 @@ namespace AuditLogLib.Event
                 SftpAccount = new { model.Account.Id, model.Account.UserName, },
                 MapUser = model.User != null
                     ? new { model.User.Id, model.User.UserName, }
-                    : null,
-            });
-
-        public static readonly AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpFileRemoved = new AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser>(
-            8116, "SFTP File Removed", (fileDropFileModel, fileDropDirectoryModel, fileDropModel, sftpAccount, mapUser) => new
-            {
-                File = fileDropFileModel,
-                Directory = fileDropDirectoryModel,
-                FileDrop = fileDropModel,
-                SftpAccount = sftpAccount != null
-                    ? new { sftpAccount.Id, sftpAccount.UserName, }
-                    : null,
-                MapUser = mapUser != null
-                    ? new { mapUser.Id, mapUser.UserName, }
                     : null,
             });
 

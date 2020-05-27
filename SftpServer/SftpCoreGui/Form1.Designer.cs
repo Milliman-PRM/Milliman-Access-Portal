@@ -53,35 +53,41 @@
             // 
             // groupBox1
             // 
+            this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.groupBox1.Controls.Add(this.textHash);
             this.groupBox1.Controls.Add(this.buttonStorePassword);
             this.groupBox1.Controls.Add(this.label2);
             this.groupBox1.Controls.Add(this.buttonVerifyPassword);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.textPassword);
-            this.groupBox1.Location = new System.Drawing.Point(494, 12);
+            this.groupBox1.Location = new System.Drawing.Point(12, 273);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(470, 236);
+            this.groupBox1.Size = new System.Drawing.Size(952, 165);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Password Hashing";
             // 
             // textHash
             // 
+            this.textHash.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textHash.Location = new System.Drawing.Point(6, 85);
             this.textHash.Name = "textHash";
-            this.textHash.Size = new System.Drawing.Size(458, 23);
+            this.textHash.Size = new System.Drawing.Size(940, 23);
             this.textHash.TabIndex = 0;
+            this.textHash.TextChanged += new System.EventHandler(this.textHash_TextChanged);
             // 
             // buttonStorePassword
             // 
-            this.buttonStorePassword.Location = new System.Drawing.Point(6, 207);
+            this.buttonStorePassword.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.buttonStorePassword.Location = new System.Drawing.Point(6, 136);
             this.buttonStorePassword.Name = "buttonStorePassword";
             this.buttonStorePassword.Size = new System.Drawing.Size(212, 23);
             this.buttonStorePassword.TabIndex = 2;
-            this.buttonStorePassword.Text = "Store Password";
+            this.buttonStorePassword.Text = "Hash Password";
             this.buttonStorePassword.UseVisualStyleBackColor = true;
-            this.buttonStorePassword.Click += new System.EventHandler(this.ButtonStorePassword_Click);
+            this.buttonStorePassword.Click += new System.EventHandler(this.ButtonHashPassword_Click);
             // 
             // label2
             // 
@@ -94,7 +100,8 @@
             // 
             // buttonVerifyPassword
             // 
-            this.buttonVerifyPassword.Location = new System.Drawing.Point(252, 207);
+            this.buttonVerifyPassword.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.buttonVerifyPassword.Location = new System.Drawing.Point(734, 136);
             this.buttonVerifyPassword.Name = "buttonVerifyPassword";
             this.buttonVerifyPassword.Size = new System.Drawing.Size(212, 23);
             this.buttonVerifyPassword.TabIndex = 2;
@@ -113,16 +120,21 @@
             // 
             // textPassword
             // 
+            this.textPassword.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textPassword.Location = new System.Drawing.Point(6, 41);
             this.textPassword.Name = "textPassword";
-            this.textPassword.Size = new System.Drawing.Size(458, 23);
+            this.textPassword.Size = new System.Drawing.Size(940, 23);
             this.textPassword.TabIndex = 0;
+            this.textPassword.TextChanged += new System.EventHandler(this.textPassword_TextChanged);
             // 
             // textKeyfilePath
             // 
+            this.textKeyfilePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.textKeyfilePath.Location = new System.Drawing.Point(12, 42);
             this.textKeyfilePath.Name = "textKeyfilePath";
-            this.textKeyfilePath.Size = new System.Drawing.Size(476, 23);
+            this.textKeyfilePath.Size = new System.Drawing.Size(946, 23);
             this.textKeyfilePath.TabIndex = 2;
             this.textKeyfilePath.Text = "C:\\Users\\tom.puckett\\Desktop\\sftpPrivateKey.OpenSSH.pem";
             // 
@@ -145,6 +157,7 @@
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textKeyfilePath);
             this.Controls.Add(this.btnStartStop);
+            this.MinimumSize = new System.Drawing.Size(500, 400);
             this.Name = "Form1";
             this.Text = "Form1";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);

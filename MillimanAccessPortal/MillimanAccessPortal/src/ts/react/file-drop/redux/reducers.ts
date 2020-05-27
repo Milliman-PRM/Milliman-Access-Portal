@@ -5,7 +5,7 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
+import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, ModalState } from '../../shared-components/redux/store';
@@ -29,13 +29,6 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
 // Default Objects
 // ~~~~~~~~~~~~~~~
 
-const _initialData: State.FileDropDataState = {
-  clients: {},
-  fileDrops: {},
-  permissionGroups: null,
-  activityLogEvents: [],
-};
-
 const _initialPendingData: State.FileDropPendingReturnState = {
   globalData: false,
   clients: false,
@@ -46,6 +39,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissions: false,
   permissionsUpdate: false,
   activityLog: false,
+  settings: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -83,6 +77,26 @@ const _initialFileDropWithStats: FileDropWithStats = {
 const _initialAfterFormModal: State.AfterFormModal = {
   entityType: null,
   entityToSelect: null,
+};
+
+const _initialFileDropSettings: FileDropSettings = {
+  fingerprint: '',
+  isPasswordExpired: true,
+  isSuspended: true,
+  assignedPermissionGroupId: null,
+  notifications: [],
+  sftpHost: '',
+  sftpPort: '',
+  sftpUserName: '',
+  userHasPassword: false,
+};
+
+const _initialData: State.FileDropDataState = {
+  clients: {},
+  fileDrops: {},
+  permissionGroups: null,
+  activityLogEvents: [],
+  fileDropSettings: _initialFileDropSettings,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -186,6 +200,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_ACTIVITY_LOG_FAILED: (state) => ({
     ...state,
     activityLog: false,
+  }),
+  FETCH_SETTINGS: (state) => ({
+    ...state,
+    settings: true,
+  }),
+  FETCH_SETTINGS_SUCCEEDED: (state) => ({
+    ...state,
+    settings: false,
+  }),
+  FETCH_SETTINGS_FAILED: (state) => ({
+    ...state,
+    settings: false,
   }),
 });
 
@@ -559,6 +585,9 @@ const modals = combineReducers({
     'DELETE_FILE_DROP',
     'SELECT_FILE_DROP_TAB',
   ]),
+  passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
+    'CLOSE_PASSWORD_NOTIFICATION_MODAL',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
@@ -567,7 +596,7 @@ const modals = combineReducers({
 
 /** Reducer for the data state object */
 const data = createReducer<State.FileDropDataState>(_initialData, {
-  FETCH_GLOBAL_DATA_SUCCEEDED: (state, _action: Action.FetchGlobalDataSucceeded) => ({
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state) => ({
     ...state,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: Action.FetchClientsSucceeded) => ({
@@ -576,6 +605,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.clients,
     },
     permissionGroups: null,
+    fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
     ...state,
@@ -589,6 +619,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ...action.response.fileDrops,
     },
     permissionGroups: null,
+    fileDropSettings: _initialFileDropSettings,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
     ...state,
@@ -636,6 +667,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       ..._.cloneDeep(_initialPermissionGroupsTab),
     },
     activityLogEvents: [],
+    fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
     ...state,
@@ -652,6 +684,29 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   FETCH_ACTIVITY_LOG_SUCCEEDED: (state, action: Action.FetchActivityLogSucceeded) => ({
     ...state,
     activityLogEvents: action.response,
+  }),
+  FETCH_SETTINGS_SUCCEEDED: (state, action: Action.FetchSettingsSucceeded) => ({
+    ...state,
+    fileDropSettings: action.response,
+  }),
+  GENERATE_NEW_SFTP_PASSWORD: (state) => ({
+    ...state,
+    fileDropSettings: {
+      ...state.fileDropSettings,
+      fileDropPassword: null,
+    },
+  }),
+  GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED: (state, action: Action.GenerateNewSftpPasswordSucceeded) => ({
+    ...state,
+    fileDropSettings: {
+      ...state.fileDropSettings,
+      userHasPassword: true,
+      fileDropPassword: action.response.password,
+    },
+  }),
+  SET_FILE_DROP_NOTIFICATION_SETTING_SUCCEEDED: (state, action: Action.SetFileDropNotificationSettingSucceeded) => ({
+    ...state,
+    fileDropSettings: action.response,
   }),
 });
 
