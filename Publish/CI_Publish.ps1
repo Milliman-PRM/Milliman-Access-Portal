@@ -277,7 +277,9 @@ Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
+mkdir "out"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
 
 if ($LASTEXITCODE -ne 0)
 {
