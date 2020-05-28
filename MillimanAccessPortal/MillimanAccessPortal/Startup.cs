@@ -169,11 +169,11 @@ namespace MillimanAccessPortal
                         if (string.IsNullOrWhiteSpace(authenticatedUserName))
                         {
                             Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
-                            string supportEmail = Configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+                            string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
                             UriBuilder msg = new UriBuilder
                             {
                                 Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmail}\">{supportEmail}</a> and provide this error message and your user name.",
+                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and provide this error message and your user name.",
                             };
                             context.Response.Redirect(msg.Uri.PathAndQuery);
                             return;
@@ -187,7 +187,7 @@ namespace MillimanAccessPortal
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
-                                string supportEmail = Configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+                                string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
 
                                 if (_applicationUser == null)
                                 {
@@ -197,7 +197,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmail}\">{supportEmail}</a>.",
+                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -209,7 +209,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmail}\">{supportEmail}</a>.",
+                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -223,7 +223,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller","")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmail}\">{supportEmail}</a> and follow instructions in that message to activate the account."
+                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and follow instructions in that message to activate the account."
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
