@@ -509,7 +509,7 @@ namespace MillimanAccessPortal.DataQueries
                                                           .Where(a => a.FileDropUserPermissionGroup.FileDropId == fileDropId)
                                                           .SingleOrDefaultAsync(a => a.ApplicationUserId == user.Id);
 
-            string privateKeyString = _appConfig.GetValue<string>("SftpServerPrivateKey");
+            string privateKeyString = _appConfig.GetValue<string>("SftpServerPrivateKey").Replace(@"\n", "\n");
             byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
             Certificate certificate = new Certificate(privateKeyBytes);
 
