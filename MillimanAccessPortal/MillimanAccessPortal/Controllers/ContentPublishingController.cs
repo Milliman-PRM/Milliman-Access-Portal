@@ -439,6 +439,20 @@ namespace MillimanAccessPortal.Controllers
                                                    .Include(x => x.ContentType)
                                                    .SingleOrDefaultAsync(x => x.Id == rootContentItemId);
 
+            List<SelectionGroupLogModel> groupsAndMemberNames = new List<SelectionGroupLogModel>();
+            foreach (SelectionGroup group in await _dbContext.SelectionGroup.Where(g => g.RootContentItemId == rootContentItemId).ToListAsync())
+            {
+                groupsAndMemberNames.Add(new SelectionGroupLogModel
+                {
+                    GroupName = group.GroupName,
+                    Id = group.Id,
+                    MemberUsers = _dbContext.UserInSelectionGroup
+                                            .Where(usg => usg.SelectionGroupId == group.Id)
+                                            .Select(usg => new IdAndNameModel { Id = usg.UserId, UserName = usg.User.UserName })
+                                            .ToList()
+                });
+            }
+
             #region Preliminary Validation
             if (rootContentItem == null)
             {
@@ -528,7 +542,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.DeleteRootContentItem action: success, aborting");
-            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem, rootContentItem.Client));
+            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem, rootContentItem.Client, groupsAndMemberNames));
 
             return Json(model);
         }
@@ -1123,7 +1137,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 try
                 {
-                    FileSystemUtil.DeleteDirectoryWithRetry(PreviewFolder, attempts: 4, baseIntervalMs: 2000);  // 4, 2000 is max 20 sec delay
+                    FileSystemUtil.DeleteDirectoryWithRetry(PreviewFolder, true, 4, 2000);  // 4, 2000 is max 20 sec delay
                 }
                 catch (IOException ex)
                 {
@@ -1156,8 +1170,6 @@ namespace MillimanAccessPortal.Controllers
             {
                 model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
             }
-
-            // TODO Validate that the model is adequate
 
             return model;
         }

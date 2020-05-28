@@ -310,6 +310,7 @@ export interface FileDrop {
   id?: Guid;
   name: string;
   description: string;
+  isSuspended?: boolean;
 }
 
 export interface FileDropWithStats extends FileDrop {
@@ -523,7 +524,6 @@ export interface FDEventDirectoryRemoved extends BaseFileDropEvent {
     SftpAccount: FileDropEventObjectSftpUser;
     MapUser?: FileDropEventObjectMapUser;
     FileDropDirectory: FileDropEventObjectDirectory;
-    // TODO: Implement DeletedInventory?
   };
 }
 
@@ -587,3 +587,24 @@ export type FileDropEvent =
   | FDEventFileDeleteAuthorized
   | FDEventFileOrDirectoryRenamed
   ;
+
+export interface FileDropSettings {
+  fingerprint: string;
+  isPasswordExpired: boolean;
+  isSuspended: boolean;
+  assignedPermissionGroupId: Guid;
+  notifications: Array<{
+    notificationType: FileDropNotificationTypeEnum;
+    isEnabled: boolean;
+    canModify: boolean;
+  }>;
+  sftpHost: string;
+  sftpPort: string;
+  sftpUserName: string;
+  userHasPassword: boolean;
+  fileDropPassword?: string;
+}
+
+export enum FileDropNotificationTypeEnum {
+  FileWritten = 0,
+}

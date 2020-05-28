@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Context;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using SftpServerLib;
 using System;
@@ -31,9 +32,15 @@ namespace SftpCoreGui
 
             GlobalResources.LoadConfiguration();
             GlobalResources.InitializeSerilog(GlobalResources.ApplicationConfiguration);
+
+            sftpAccountObject = new SftpAccount(Guid.Empty);
+
+            buttonReportServerState.Enabled = false;
+            buttonStorePassword.Enabled = false;
+            buttonVerifyPassword.Enabled = false;
         }
 
-        private void btnStartStop_Click(object sender, EventArgs e)
+        private void BtnStartStop_Click(object sender, EventArgs e)
         {
             Button Sender = sender as Button;
             if (Sender.Text == "Start")
@@ -49,6 +56,7 @@ namespace SftpCoreGui
                     }
                 }
 
+                buttonReportServerState.Enabled = true;
                 Sender.Text = "Stop";
             }
             else
@@ -59,31 +67,34 @@ namespace SftpCoreGui
                     _SftpApi = null;
                 }
 
+                buttonReportServerState.Enabled = false;
                 Sender.Text = "Start";
             }
         }
 
-        private void buttonStorePassword_Click(object sender, EventArgs e)
+        private void ButtonHashPassword_Click(object sender, EventArgs e)
         {
-            Button Sender = sender as Button;
-
-            // TODO fix the file drop id
-            sftpAccountObject = new SftpAccount(Guid.Empty) { Password = textPassword.Text };
+            sftpAccountObject.Password = textPassword.Text;
             textHash.Text = sftpAccountObject.PasswordHash;
         }
 
-        private void buttonVerifyPassword_Click(object sender, EventArgs e)
+        private void ButtonVerifyPassword_Click(object sender, EventArgs e)
         {
             if (sftpAccountObject != null)
             {
                 Button Sender = sender as Button;
 
                 var result = sftpAccountObject.CheckPassword(textPassword.Text);
-                MessageBox.Show(result.ToString());
+
+                string msg = result == PasswordVerificationResult.Success || result == PasswordVerificationResult.SuccessRehashNeeded
+                    ? "Password matches hash"
+                    : "Password does not match hash";
+
+                MessageBox.Show(msg);
             }
         }
 
-        private void buttonReportReportServerState_Click(object sender, EventArgs e)
+        private void ButtonReportReportServerState_Click(object sender, EventArgs e)
         {
             if (_SftpApi != null)
             {
@@ -102,5 +113,41 @@ namespace SftpCoreGui
 
             //base.OnFormClosing(e);
         }
+
+        private void textPassword_TextChanged(object sender, EventArgs e)
+        {
+            if (!string.IsNullOrEmpty(textPassword.Text))
+            {
+                buttonStorePassword.Enabled = true;
+            }
+            else
+            {
+                buttonStorePassword.Enabled = false;
+            }
+
+            if (!string.IsNullOrEmpty(textPassword.Text) && !string.IsNullOrEmpty(textHash.Text))
+            {
+                buttonVerifyPassword.Enabled = true;
+            }
+            else
+            {
+                buttonVerifyPassword.Enabled = false;
+            }
+        }
+
+        private void textHash_TextChanged(object sender, EventArgs e)
+        {
+            sftpAccountObject.PasswordHash = textHash.Text;
+
+            if (!string.IsNullOrEmpty(textPassword.Text) && !string.IsNullOrEmpty(textHash.Text))
+            {
+                buttonVerifyPassword.Enabled = true;
+            }
+            else
+            {
+                buttonVerifyPassword.Enabled = false;
+            }
+        }
+
     }
 }

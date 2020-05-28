@@ -6,13 +6,20 @@ import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { toastr } from 'react-redux-toastr';
+
 import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
 import { generateUniqueId } from '../../generate-unique-identifier';
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropEvent, FileDropWithStats, PermissionGroupsChangesModel,
+  AvailableEligibleUsers,
+  FileDropClientWithStats,
+  FileDropEvent,
+  FileDropNotificationTypeEnum,
+  FileDropWithStats,
+  PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -28,8 +35,9 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { ContentPanel, ContentPanelSectionContent } from '../shared-components/content-panel/content-panel';
 import { Filter } from '../shared-components/filter';
-import { ContentPanelForm } from '../shared-components/form/form-elements';
+import { ContentPanelForm, FormSection } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
 import { PermissionsTable } from './permissions-table';
@@ -62,13 +70,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
 
-    // TODO: Implement these actions properly
-    // this.props.fetchGlobalData({});
     this.props.fetchClients({});
   }
 
   public render() {
-    const { selected, modals, pending, unassignedEligibleUsers, activeSelectedClient } = this.props;
+    const { selected, modals, pending, activeSelectedClient, data } = this.props;
     return (
       <>
         <ReduxToastr
@@ -95,7 +101,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             onSubmit={(e) => {
               {
                 e.preventDefault();
-                if (pending.createFileDrop.fileDropName) {
+                if (pending.createFileDrop.fileDropName && !pending.async.createFileDrop) {
                   this.props.createFileDrop({
                     clientId: pending.createFileDrop.clientId,
                     name: pending.createFileDrop.fileDropName,
@@ -257,7 +263,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <button
               className="red-button"
               onClick={() => {
-                const { data, fileDrops } = this.props;
+                const { fileDrops } = this.props;
                 const { entityToSelect, entityType } = pending.afterFormModal;
                 this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
                 switch (entityType) {
@@ -279,18 +285,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       }
                     } else {
                       this.props.selectFileDropTab({ tab: 'settings' });
-                      // TODO: Call the appropriate action for this tab
+                      this.props.fetchSettings({ fileDropId: entityToSelect });
                     }
                     break;
-                  case 'Delete File Drop':
-                    const fileDrop = fileDrops.filter((fD) => fD.id === entityToSelect);
-                    if (fileDrop.length === 1) {
-                      // Add a slight pause to make it obvious that you've switched modals
-                      setTimeout(() => this.props.openDeleteFileDropModal({
-                        fileDrop: fileDrops[0],
-                      }), 400);
+                  case 'Delete File Drop': {
+                      const fileDrop = fileDrops.filter((fD) => fD.id === entityToSelect);
+                      if (fileDrop.length === 1) {
+                        // Add a slight pause to make it obvious that you've switched modals
+                        setTimeout(() => this.props.openDeleteFileDropModal({
+                          fileDrop: fileDrops[0],
+                        }), 400);
+                      }
+                      break;
                     }
-                    break;
                   case 'New File Drop':
                     setTimeout(() =>
                       this.props.openCreateFileDropModal({ clientId: selected.client }),
@@ -304,7 +311,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
                     break;
                   case 'files':
-                    // TODO: Call the appropriate fetch action here
+                    // Once this is implemented, a fetch to the files action should be called here
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'activityLog':
@@ -312,13 +319,74 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDropTab({ tab: 'activityLog' });
                     break;
                   case 'settings':
-                    // TODO: Call the appropriate fetch action here
+                    this.props.fetchSettings({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'settings' });
                     break;
                 }
               }}
             >
               Discard
+            </button>
+          </div>
+        </Modal>
+        <Modal
+          isOpen={modals.passwordNotification.isOpen}
+          onRequestClose={() => this.props.closePasswordNotificationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">SFTP Connection Credentials</h3>
+          <span className="modal-text">
+            Please store the provided password in a secure location, such as a password manager.
+          </span>
+          <span className="modal-text">
+            Once this window is closed, you will no longer be able to access this password, and must generate a new
+            credential if this information is lost.
+          </span>
+          <div>
+            <input
+              type="text"
+              id="password"
+              defaultValue={data.fileDropSettings.fileDropPassword}
+            />
+            <table>
+              <tbody>
+                <tr>
+                  <td><strong>Username:</strong></td>
+                  <td>{data.fileDropSettings.sftpUserName}</td>
+                </tr>
+                <tr>
+                  <td><strong>Password:</strong></td>
+                  <td>{data.fileDropSettings.fileDropPassword}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div className="button-container">
+            <button
+              className="red-button"
+              type="button"
+              onClick={() => this.props.closePasswordNotificationModal({})}
+            >
+              Close
+            </button>
+            <button
+              className="blue-button"
+              onClick={() => {
+                const passwordInput = document.getElementById('password') as HTMLInputElement;
+                passwordInput.select();
+                passwordInput.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                toastr.success('', 'Password copied to clipboard');
+              }}
+            >
+              Copy Password
+              {pending.async.deleteFileDrop
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
             </button>
           </div>
         </Modal>
@@ -341,7 +409,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <Card
               key={key}
               selected={selected.client === entity.id}
-              disabled={card.disabled}
+              disabled={!entity.authorizedFileDropUser && !entity.canManageFileDrops}
               onSelect={() => {
                 if (permissionGroupChangesPending) {
                   this.props.openModifiedFormModal({
@@ -356,24 +424,26 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                    }
                    this.props.selectClient({ id: entity.id });
                  }
-                 // this.props.selectClient({ id: entity.id });
               }}
               indentation={entity.indent}
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'File Drops'}
-                    value={entity.fileDropCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                </CardSectionStats>
+                {
+                  !card.disabled &&
+                  <CardSectionStats>
+                    <CardStat
+                      name={'File Drops'}
+                      value={entity.fileDropCount}
+                      icon={'reports'}
+                    />
+                    <CardStat
+                      name={'Users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                  </CardSectionStats>
+                }
               </CardSectionMain>
             </Card>
           );
@@ -399,7 +469,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       activeSelectedClient, selected, filters, pending, cardAttributes,
       fileDrops, permissionGroupChangesPending,
     } = this.props;
-    const createNewFileDropIcon = (
+    const createNewFileDropIcon = activeSelectedClient.canManageFileDrops && (
       <ActionIcon
         label="New File Drop"
         icon="add"
@@ -517,20 +587,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       }
                       this.props.selectFileDropTab({ tab: 'permissions' });
                     } else {
+                      this.props.fetchSettings({ fileDropId: entity.id });
                       this.props.selectFileDropTab({ tab: 'settings' });
-                      // TODO: Call the appropriate action for this tab
                     }
                   }
                 }}
-                // suspended={entity.isSuspended}
+                suspended={entity.isSuspended}
               >
                 <CardSectionMain>
                   {
                     !cardEditing &&
                       <CardText
                         text={entity.name}
-                        // TODO: Implement this when isSuspended is available
-                        // textSuffix={entity.isSuspended ? '[Suspended]' : ''}
+                        textSuffix={entity.isSuspended ? '[Suspended]' : ''}
                         subtext={entity.description}
                       />
                   }
@@ -570,10 +639,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </div>
                   }
                   {
-                    !cardEditing &&
-                    <CardSectionStats
-                      // TODO: Make this dynamic when canManage is available
-                    >
+                    activeSelectedClient.canManageFileDrops && !cardEditing &&
+                    <CardSectionStats>
                       <CardStat
                         name={'Authorized Users'}
                         value={entity.userCount}
@@ -581,14 +648,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       />
                     </CardSectionStats>
                   }
-                  <CardSectionButtons>
-                    {cardButtons(entity, true, cardEditing)}
-                  </CardSectionButtons>
+                  {
+                    activeSelectedClient.canManageFileDrops &&
+                    <CardSectionButtons>
+                      {cardButtons(entity, true, cardEditing)}
+                    </CardSectionButtons>
+                  }
                 </CardSectionMain>
               </Card>
             );
           }}
-          renderNewEntityButton={() => (
+          renderNewEntityButton={() => activeSelectedClient.canManageFileDrops && (
             <div
               className="card-container action-card-container"
               onClick={() => {
@@ -673,7 +743,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  // TODO: Add appropriate call here.
+                  // Once we have this implemented, this is where the action would go to fetch the files data
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
@@ -682,7 +752,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
                   break;
                 case 'settings':
-                  // TODO: Add appropriate call here.
+                  this.props.fetchSettings({ fileDropId: selected.fileDrop });
                   break;
               }
               this.props.selectFileDropTab({ tab });
@@ -710,7 +780,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderPermissionsTab() {
     const {
-      data, filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
+      filters, pending, pendingPermissionGroupsChanges, permissionGroupChangesPending,
       permissionGroupChangesReady, permissionGroups,
     } = this.props;
     const editPermissionGroupsButton = (
@@ -793,7 +863,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 <button
                   className="link-button"
                   type="button"
-                  onClick={(event: any) => {
+                  onClick={(event: React.MouseEvent) => {
                     event.preventDefault();
                     this.props.openModifiedFormModal({
                       afterFormModal: {
@@ -830,7 +900,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderActivityLogTab() {
-    const { filters, activityLog, data } = this.props;
+    const { filters, activityLog, data, selected } = this.props;
     return (
       <>
         <PanelSectionToolbar>
@@ -839,6 +909,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={(text) => this.props.setFilterText({ filter: 'activityLog', text })}
             filterText={filters.activityLog.text}
           />
+          <ActionIcon
+            label="Refresh Activity Log"
+            icon="reload"
+            action={() => {
+                this.props.fetchActivityLog({ fileDropId: selected.fileDrop });
+              }
+            }
+          />
+
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
@@ -909,10 +988,127 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderSettingsTab() {
+    const { fileDrop } = this.props.selected;
+    const { fileDrops } = this.props;
+    const { fileDropSettings } = this.props.data;
+    const uploadNotification = fileDropSettings && fileDropSettings.notifications
+      ? fileDropSettings.notifications.filter((x) =>
+        x.notificationType === FileDropNotificationTypeEnum.FileWritten,
+      )[0] || null
+      : null;
     return (
       <>
         <ContentPanelSectionContent>
-          <div>Content Here...</div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            {
+              this.props.pending.async.settings &&
+              <ColumnSpinner />
+            }
+            {
+              !this.props.pending.async.settings &&
+              <>
+                <FormSection title="SFTP Connection Information">
+                  <table className="sftpConnectionInfoTable">
+                    <tbody>
+                      <tr>
+                        <td><strong>File Drop:</strong></td>
+                        <td>{this.props.data.fileDrops[fileDrop].name}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Protocol:</strong></td>
+                        <td>SFTP - SSH File Transfer Protocol</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Host:</strong></td>
+                        <td>{fileDropSettings.sftpHost}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Port:</strong></td>
+                        <td>{fileDropSettings.sftpPort}</td>
+                      </tr>
+                      <tr>
+                        <td><strong>Fingerprint (MD5):</strong></td>
+                        <td>{fileDropSettings.fingerprint}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </FormSection>
+                {
+                  fileDropSettings.assignedPermissionGroupId &&
+                  <FormSection title="SFTP Credentials">
+                    {
+                      !fileDropSettings.userHasPassword &&
+                      <span
+                        className="button blue-button"
+                        onClick={() => this.props.generateNewSftpPassword(fileDrop)}
+                      >
+                        Generate Credentials
+                      </span>
+                    }
+                    {
+                      fileDropSettings.userHasPassword &&
+                      <>
+                        <table className="sftpCredentialsTable">
+                          <tbody>
+                            <tr>
+                              <td><strong>Username:</strong></td>
+                              <td>{fileDropSettings.sftpUserName}</td>
+                            </tr>
+                            <tr>
+                              <td><strong>SFTP Account Status:</strong></td>
+                              <td>
+                                {
+                                  (!fileDropSettings.isPasswordExpired && !fileDropSettings.isSuspended)
+                                    ? 'Active'
+                                    : fileDropSettings.isPasswordExpired
+                                      ? 'Password Expired'
+                                      : 'Suspended'
+                                }
+                              </td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <span
+                          className="button blue-button"
+                          onClick={() => this.props.generateNewSftpPassword(fileDrop)}
+                        >
+                          {
+                            fileDropSettings.userHasPassword
+                              ? 'Regenerate Password'
+                              : 'Generate Credentials'
+                          }
+                        </span>
+                      </>
+                    }
+                  </ FormSection>
+                }
+                {
+                  fileDropSettings.assignedPermissionGroupId &&
+                  uploadNotification &&
+                  <FormSection title="Notification Settings">
+                    <Toggle
+                      label="Upload"
+                      checked={uploadNotification.isEnabled}
+                      readOnly={!uploadNotification.canModify}
+                      onClick={() => {
+                        if (uploadNotification.canModify) {
+                          this.props.setFileDropNotificationSetting({
+                            fileDropId: fileDrop,
+                            notifications: [{
+                              notificationType: FileDropNotificationTypeEnum.FileWritten,
+                              isEnabled: !uploadNotification.isEnabled,
+                            }],
+                          });
+                        }
+                      }}
+                    />
+                  </ FormSection>
+                }
+              </>
+            }
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );

@@ -23,7 +23,7 @@
   <ItemGroup>
     <Content Include="appsettings.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="AzureKeyVault.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>

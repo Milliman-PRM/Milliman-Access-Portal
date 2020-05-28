@@ -74,13 +74,9 @@ namespace AuditLogLib
                 }
 
                 InstanceCount++;
-                if (WorkerTask == null || (WorkerTask.Status != TaskStatus.Running && WorkerTask.Status != TaskStatus.WaitingToRun))
+                if (WorkerTask == null || !new[] { TaskStatus.Running, TaskStatus.WaitingToRun }.Contains(WorkerTask.Status))
                 {
-                    WorkerTask = ProcessQueueEventsAsync(Config);
-                    while (WorkerTask.Status == TaskStatus.Created)
-                    {
-                        Thread.Sleep(1);
-                    }
+                    WorkerTask = Task.Factory.StartNew(() => ProcessQueueEvents(Config));
                 }
             }
         }
@@ -133,7 +129,7 @@ namespace AuditLogLib
         /// <returns>true if thread is not running at time of return</returns>
         public bool WaitForWorkerThreadEnd(int MaxWaitMs = 0)
         {
-            if (WorkerTask != null && WorkerTask.Status == TaskStatus.Running)
+            if (WorkerTask != null && new[] { TaskStatus.Running, TaskStatus.WaitingToRun }.Contains(WorkerTask.Status))
             {
                 return WorkerTask.Wait(MaxWaitMs);
             }
@@ -144,10 +140,8 @@ namespace AuditLogLib
         /// Worker thread main entry point
         /// </summary>
         /// <param name="Arg">Configuration object</param>
-        private static async Task ProcessQueueEventsAsync(object Arg)
+        private static void ProcessQueueEvents(object Arg)
         {
-            await Task.Yield();
-
             AuditLoggerConfiguration Config = (AuditLoggerConfiguration)Arg;
 
             while (InstanceCount > 0)
@@ -166,7 +160,7 @@ namespace AuditLogLib
                             }
 
                             Db.AuditEvent.AddRange(NewEventsToStore);
-                            await Db.SaveChangesAsync();
+                            Db.SaveChanges();
                         }
                         catch (Exception e)
                         {
@@ -174,6 +168,7 @@ namespace AuditLogLib
 
                             if (RetryCount < 5)
                             {
+                                // Re-queue the messages to be logged
                                 foreach (AuditEvent RecoveredEvent in NewEventsToStore)
                                 {
                                     LogEventQueue.Enqueue(RecoveredEvent);
@@ -185,12 +180,11 @@ namespace AuditLogLib
                             {
                                 RetryCount = 0;
                             }
-                            // Re-queue the messages to be logged
                         }
                     }
                 }
 
-                Thread.Sleep(20);
+                Thread.Sleep(50);
             }
         }
 
@@ -238,7 +232,7 @@ namespace AuditLogLib
                                                                                       .Select(u => new ActivityEventModel.Names { UserName = u.UserName, LastName = u.LastName, FirstName = u.FirstName })
                                                                                       .ToDictionaryAsync(u => u.UserName);
 
-            return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, eventNamesDict.ContainsKey(e.User) 
+            return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, !string.IsNullOrEmpty(e.User) && eventNamesDict.ContainsKey(e.User)
                                                                                   ? eventNamesDict[e.User] 
                                                                                   : ActivityEventModel.Names.Empty))
                                       .ToList();

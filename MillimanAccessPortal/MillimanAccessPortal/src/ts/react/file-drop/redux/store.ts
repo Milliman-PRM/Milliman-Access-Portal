@@ -4,7 +4,7 @@ import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
 import {
-  FileDropClientWithStats, FileDropEvent, FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -17,7 +17,6 @@ import sagas from './sagas';
 
 /** Flags indicating whether the page is waiting on new data for an entity type */
 export interface FileDropPendingReturnState {
-  globalData: boolean;
   clients: boolean;
   fileDrops: boolean;
   createFileDrop: boolean;
@@ -26,6 +25,7 @@ export interface FileDropPendingReturnState {
   permissions: boolean;
   permissionsUpdate: boolean;
   activityLog: boolean;
+  settings: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -83,6 +83,7 @@ export interface FileDropDataState {
   fileDrops: Dict<FileDropWithStats>;
   permissionGroups: PermissionGroupsReturnModel;
   activityLogEvents: FileDropEvent[];
+  fileDropSettings: FileDropSettings;
 }
 
 /** State representing entity Card attribute collections */
@@ -105,6 +106,7 @@ export interface FileDropModals {
   deleteFileDrop: ModalState;
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
+  passwordNotification: ModalState;
 }
 
 /** Top-Level File Drop state */

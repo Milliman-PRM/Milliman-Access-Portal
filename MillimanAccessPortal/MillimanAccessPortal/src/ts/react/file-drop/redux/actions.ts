@@ -1,6 +1,7 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropsReturnModel,
-  FileDropWithStats, Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropNotificationTypeEnum,
+  FileDropSettings, FileDropsReturnModel, FileDropWithStats, Guid,
+  PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -158,30 +159,16 @@ export interface CloseModifiedFormModal {
   type: 'CLOSE_MODIFIED_FORM_MODAL';
 }
 
+/** Close the modal used to display the generated password */
+export interface ClosePasswordNotificationModal {
+  type: 'CLOSE_PASSWORD_NOTIFICATION_MODAL';
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
-
-/**
- * GET:
- *   Non-client/non-File Drop data used for the functioning of the page
- */
-export interface FetchGlobalData {
-  type: 'FETCH_GLOBAL_DATA';
-  request: {};
-}
-/** Action called upon successful return of the FetchGlobalData API call */
-export interface FetchGlobalDataSucceeded {
-  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
-  response: {};
-}
-/** Action called upon return of an error from the FetchGlobalData API call */
-export interface FetchGlobalDataFailed {
-  type: 'FETCH_GLOBAL_DATA_FAILED';
-  error: TSError;
-}
 
 /**
  * GET:
@@ -345,6 +332,74 @@ export interface FetchActivityLogFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   File Drop settings for the requesting user
+ */
+export interface FetchSettings {
+  type: 'FETCH_SETTINGS';
+  request: {
+    fileDropId: Guid;
+  };
+}
+/** Action called upon successful return of the FetchSettings API call */
+export interface FetchSettingsSucceeded {
+  type: 'FETCH_SETTINGS_SUCCEEDED';
+  response: FileDropSettings;
+}
+/** Action called upon return of an error from the FetchSettings API call */
+export interface FetchSettingsFailed {
+  type: 'FETCH_SETTINGS_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Generate a new SFTP password for the requesting user
+ */
+export interface GenerateNewSftpPassword {
+  type: 'GENERATE_NEW_SFTP_PASSWORD';
+  request: Guid;  // File Drop ID
+}
+/** Action called upon successful return of the GenerateNewSftpPassword API call */
+export interface GenerateNewSftpPasswordSucceeded {
+  type: 'GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED';
+  response: {
+    userName: string;
+    password: string;
+  };
+}
+/** Action called upon return of an error from the GenerateNewSftpPassword API call */
+export interface GenerateNewSftpPasswordFailed {
+  type: 'GENERATE_NEW_SFTP_PASSWORD_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Set the specified File Drop notification setting
+ */
+export interface SetFileDropNotificationSetting {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING';
+  request: {
+    fileDropId: Guid;
+    notifications: {
+      notificationType: FileDropNotificationTypeEnum;
+      isEnabled: boolean;
+    }[];
+  };
+}
+/** Action called upon successful return of the SetFileDropNotificationSetting API call */
+export interface SetFileDropNotificationSettingSucceeded {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING_SUCCEEDED';
+  response: FileDropSettings;
+}
+/** Action called upon return of an error from the SetFileDropNotificationSetting API call */
+export interface SetFileDropNotificationSettingFailed {
+  type: 'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -445,6 +500,7 @@ export type FileDropPageActions =
   | AddNewPermissionGroup
   | OpenModifiedFormModal
   | CloseModifiedFormModal
+  | ClosePasswordNotificationModal
   ;
 
 /** Actions that schedule another action */
@@ -455,7 +511,6 @@ export type FileDropScheduleActions =
 
 /** Actions that makes Ajax requests */
 export type FileDropRequestActions =
-  | FetchGlobalData
   | FetchClients
   | FetchFileDrops
   | CreateFileDrop
@@ -466,11 +521,13 @@ export type FileDropRequestActions =
   | FetchSessionCheck
   | UpdatePermissionGroups
   | FetchActivityLog
+  | FetchSettings
+  | GenerateNewSftpPassword
+  | SetFileDropNotificationSetting
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
 export type FileDropSuccessResponseActions =
-  | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchFileDropsSucceeded
   | CreateFileDropSucceeded
@@ -481,11 +538,13 @@ export type FileDropSuccessResponseActions =
   | FetchSessionCheckSucceeded
   | UpdatePermissionGroupsSucceeded
   | FetchActivityLogSucceeded
+  | FetchSettingsSucceeded
+  | GenerateNewSftpPasswordSucceeded
+  | SetFileDropNotificationSettingSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
 export type FileDropErrorActions =
-  | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchFileDropsFailed
   | CreateFileDropFailed
@@ -496,6 +555,9 @@ export type FileDropErrorActions =
   | FetchSessionCheckFailed
   | UpdatePermissionGroupsFailed
   | FetchActivityLogFailed
+  | FetchSettingsFailed
+  | GenerateNewSftpPasswordFailed
+  | SetFileDropNotificationSettingFailed
   ;
 
 /** Actions that set filter text */
@@ -519,4 +581,5 @@ export type OpenModalAction =
   | OpenDeleteFileDropModal
   | OpenDeleteFileDropConfirmationModal
   | OpenModifiedFormModal
+  | GenerateNewSftpPasswordSucceeded
   ;

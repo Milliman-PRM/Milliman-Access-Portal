@@ -40,12 +40,14 @@ namespace ContentPublishingLib.JobRunners
 
             Task initTask = Task.Run(async () =>
             {
-                ServiceInfo[] services = await _newQdsClient.GetServicesAsync(ServiceTypes.QlikViewDistributionService);
+                ServiceInfo[] services = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, ServiceInfo[]>(
+                    async () => await _newQdsClient.GetServicesAsync(ServiceTypes.QlikViewDistributionService), 2, 250);
                 QdsServiceInfo = services[0];
 
                 // Qv can have 0 or more configured source document folders, need to find the right one. 
-                var serverDocFolders = await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All);
-                foreach (DocumentFolder DocFolder in serverDocFolders)
+                DocumentFolder[] docFolderArray = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentFolder[]>(
+                    async () => await _newQdsClient.GetSourceDocumentFoldersAsync(QdsServiceInfo.ID, DocumentFolderScope.All), 2, 200);
+                foreach (DocumentFolder DocFolder in docFolderArray)
                 {
                     // eliminate any trailing slash issue
                     if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
@@ -322,7 +324,7 @@ namespace ContentPublishingLib.JobRunners
                 if (Directory.Exists(WorkingFolderAbsolute) && !string.IsNullOrWhiteSpace(WorkingFolderRelative))
                 {
                     Log.Warning($"QvReductionRunner.PreTaskSetupAsync(), reduction Task working directory {WorkingFolderAbsolute} already exists.  Deleting");
-                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute, true);
                 }
 
                 // Make sure the requested master content file exists
@@ -532,7 +534,7 @@ namespace ContentPublishingLib.JobRunners
             string ReducedFile = Directory.GetFiles(WorkingFolderAbsolute, JobDetail.Request.RequestedOutputFileName).Single();
             string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
-            File.Copy(ReducedFile, CopyDestinationPath, true);
+            FileSystemUtil.CopyFileWithRetry(ReducedFile, CopyDestinationPath, true);
             JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
@@ -549,7 +551,7 @@ namespace ContentPublishingLib.JobRunners
             {
                 try
                 {
-                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute);
+                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute, true);
                 }
                 catch (System.Exception e)  // Do not let this throw upward
                 {
@@ -573,13 +575,14 @@ namespace ContentPublishingLib.JobRunners
         {
             DocumentNode DocNode = null;
 
-            DocumentNode[] AllDocNodes = new DocumentNode[0];
+            DocumentNode[] allDocNodes = new DocumentNode[0];
             DateTime Start = DateTime.Now;
             while (DocNode == null && (DateTime.Now - Start) < new TimeSpan(0, 1, 10))  // QV server seems to poll for files every minute
             {
                 Thread.Sleep(500);
-                AllDocNodes = await _newQdsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder);
-                DocNode = AllDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
+                allDocNodes = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
+                    async () => await _newQdsClient.GetSourceDocumentNodesAsync(QdsServiceInfo.ID, SourceDocFolder.ID, RequestedRelativeFolder), 2, 250);
+                DocNode = allDocNodes.SingleOrDefault(dn => dn.FolderID == SourceDocFolder.ID
                                                             && dn.Name == RequestedFileName
                                                             && dn.RelativePath == RequestedRelativeFolder);
             }
@@ -768,13 +771,13 @@ namespace ContentPublishingLib.JobRunners
             TimeSpan TaskStartPollingInterval = new TimeSpan(0, 0, 0, 10);
             TimeSpan PublisherPollingInterval = new TimeSpan(0, 0, 0, 1);
 
-            QlikviewLib.Qms.TaskStatus Status = default;
+            QlikviewLib.Qms.TaskStatus status = default;
 
             // Save the task to Qlikview server
             DateTime SaveStartTime = DateTime.Now;
             try
             {
-                await _newQdsClient.SaveDocumentTaskAsync(DocTask);
+                await StaticUtil.DoRetryAsyncOperation<AggregateException>(async () => await _newQdsClient.SaveDocumentTaskAsync(DocTask), 2, 250);
             }
             catch (System.Exception ex)
             {
@@ -784,7 +787,8 @@ namespace ContentPublishingLib.JobRunners
             TaskInfo TInfo = default;
             try
             {
-                TInfo = await _newQdsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName);
+                TInfo = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, TaskInfo>(
+                    async () => await _newQdsClient.FindTaskAsync(QdsServiceInfo.ID, TaskType.DocumentTask, DocTask.General.TaskName), 2, 250);
             }
             catch (System.Exception ex)
             {
@@ -808,7 +812,7 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        await _newQdsClient.RunTaskAsync(TaskIdGuid);
+                        await StaticUtil.DoRetryAsyncOperation<AggregateException>(async () => await _newQdsClient.RunTaskAsync(TaskIdGuid), 2, 250);
                     }
                     catch (System.Exception ex)
                     {
@@ -819,7 +823,8 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        status = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, QlikviewLib.Qms.TaskStatus>(
+                            async () => await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All), 2, 250);
                     }
                     catch (System.Exception ex)
                     {
@@ -830,7 +835,7 @@ namespace ContentPublishingLib.JobRunners
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while trying to start task", ex);
                     }
-                } while (Status == null || Status.Extended == null || !(DateTime.TryParse(Status.Extended.StartTime, out _) || DateTime.TryParse(Status.Extended.FinishedTime, out _)));
+                } while (status == null || status.Extended == null || !(DateTime.TryParse(status.Extended.StartTime, out _) || DateTime.TryParse(status.Extended.FinishedTime, out _)));
                 Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} started running after {DateTime.Now - RunStartTime}");
 
                 // Wait for started task to finish
@@ -848,7 +853,8 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                        status = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, QlikviewLib.Qms.TaskStatus>(
+                            async () => await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All), 2, 250);
                     }
                     catch (System.Exception ex)
                     {
@@ -859,10 +865,10 @@ namespace ContentPublishingLib.JobRunners
                         }
                         throw new ApplicationException("Exceeded maximum retries for QmsClient.GetTaskStatusAsync while waiting for task to finish", ex);
                     }
-                } while (Status == null || Status.Extended == null || !DateTime.TryParse(Status.Extended.FinishedTime, out _));
+                } while (status == null || status.Extended == null || !DateTime.TryParse(status.Extended.FinishedTime, out _));
                 Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} finished running after {DateTime.Now - RunningStartTime}");
 
-                switch (Status.General.Status)
+                switch (status.General.Status)
                 {
                     case TaskStatusValue.Warning:
                         string ExpectedReducedFilePath = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative, JobDetail.Request.RequestedOutputFileName);
@@ -876,11 +882,11 @@ namespace ContentPublishingLib.JobRunners
                         {
                             JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
                         }
-                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                        throw new ApplicationException($"QDS status {status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{status.Extended.LastLogMessages}");
 
                     case TaskStatusValue.Failed:
                         JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
-                        throw new ApplicationException($"QDS status {Status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{Status.Extended.LastLogMessages}");
+                        throw new ApplicationException($"QDS status {status.General.Status.ToString()} after task {TaskIdGuid}:{Environment.NewLine}{status.Extended.LastLogMessages}");
                 }
             }
             finally
@@ -888,7 +894,8 @@ namespace ContentPublishingLib.JobRunners
                 // Clean up
                 try
                 {
-                    Status = await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All);
+                    status = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, QlikviewLib.Qms.TaskStatus>(
+                        async () => await _newQdsClient.GetTaskStatusAsync(TaskIdGuid, TaskStatusScope.All), 2, 250);
                 }
                 catch (System.Exception ex)
                 {
@@ -896,11 +903,12 @@ namespace ContentPublishingLib.JobRunners
                 }
 
                 // null would indicate that the task doesn't exist
-                if (Status != null)
+                if (status != null)
                 {
                     try
                     {
-                        await _newQdsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type);
+                        await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                            async () => await _newQdsClient.DeleteTaskAsync(TaskIdGuid, TInfo.Type), 2, 250);
                         Log.Information($"QvReductionRunner.RunQdsTaskAsync() QDS task {TaskIdGuid} deleted");
                     }
                     catch (System.Exception ex)

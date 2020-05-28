@@ -92,7 +92,7 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <param name="serviceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static async Task SeedSchemes(IServiceProvider serviceProvider)
+        internal static async Task SeedSchemesAsync(IServiceProvider serviceProvider)
         {
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
             AuthenticationService authService = (AuthenticationService)serviceProvider.GetService<IAuthenticationService>();

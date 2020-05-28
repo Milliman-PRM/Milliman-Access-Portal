@@ -43,7 +43,6 @@ const takeEveryToast = createTakeEveryToast<Action.FileDropActions, Action.FileD
 
 export default function* rootSaga() {
   // API requests
-  yield takeLatestRequest('FETCH_GLOBAL_DATA', API.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', API.fetchClients);
   yield takeLatestRequest('FETCH_FILE_DROPS', API.fetchFileDrops);
   yield takeLatestRequest('CREATE_FILE_DROP', API.createFileDrop);
@@ -52,6 +51,9 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_PERMISSION_GROUPS', API.fetchPermissionGroups);
   yield takeLatestRequest('UPDATE_PERMISSION_GROUPS', API.updatePermissionGroups);
   yield takeLatestRequest('FETCH_ACTIVITY_LOG', API.fetchActivityLog);
+  yield takeLatestRequest('FETCH_SETTINGS', API.fetchSettings);
+  yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
+  yield takeLatestRequest('SET_FILE_DROP_NOTIFICATION_SETTING', API.setFileDropNotificationSetting);
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
@@ -89,7 +91,6 @@ export default function* rootSaga() {
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
     'Please refresh the page to update Client status.', 'warning');
   yield takeEveryToast<Action.FileDropErrorActions>([
-    'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
     'FETCH_FILE_DROPS_FAILED',
     'CREATE_FILE_DROP_FAILED',
@@ -100,6 +101,9 @@ export default function* rootSaga() {
     'FETCH_SESSION_CHECK_FAILED',
     'FETCH_STATUS_REFRESH_FAILED',
     'FETCH_ACTIVITY_LOG_FAILED',
+    'FETCH_SETTINGS_FAILED',
+    'GENERATE_NEW_SFTP_PASSWORD_FAILED',
+    'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

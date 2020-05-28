@@ -30,6 +30,7 @@ namespace SftpServer
 
             var state = _SftpApi.ReportState();
             Console.WriteLine($"SFTP server listening on port {state.LocalPort}");
+            Console.WriteLine($"SFTP server fingerprint is {state.Fingerprint}");
 
             Console.WriteLine("Press any key to terminate this application");
             Console.ReadKey(true);

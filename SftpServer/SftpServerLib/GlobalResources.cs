@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Prm.SerilogCustomization;
+using Prm.EmailQueue;
 using Serilog;
 using System;
 using System.Reflection;
@@ -92,6 +93,15 @@ namespace SftpServerLib
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
 
             MapDbConnectionString = GetConnectionString("DefaultConnection");
+
+            MailSender.ConfigureMailSender(new SmtpConfig 
+            {
+                SendGridApiKey = ApplicationConfiguration.GetValue<string>("SendGridApiKey"),
+                SmtpFromAddress = ApplicationConfiguration.GetValue<string>("SmtpFromAddress"),
+                SmtpFromName = ApplicationConfiguration.GetValue<string>("SmtpFromName"),
+                SmtpServer = ApplicationConfiguration.GetValue<string>("SmtpServer"),
+                MaximumSendAttempts = ApplicationConfiguration.GetValue("MaximumSendAttempts", 3),
+            });
         }
 
         /// <summary>

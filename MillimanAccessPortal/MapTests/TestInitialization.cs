@@ -1197,9 +1197,9 @@ namespace MapTests
             #region Initialize FileDrops
             DbContext.FileDrop.AddRange(new List<FileDrop>
             {
-                new FileDrop { Id = TestUtil.MakeTestGuid(1), Name = "FileDrop 1", ClientId = TestUtil.MakeTestGuid(1), RootPath = TestUtil.MakeTestGuid(1).ToString(), SftpAccounts = new List<SftpAccount>() },
-                new FileDrop { Id = TestUtil.MakeTestGuid(2), Name = "FileDrop 2", ClientId = TestUtil.MakeTestGuid(2), RootPath = TestUtil.MakeTestGuid(2).ToString(), SftpAccounts = new List<SftpAccount>() },
-                new FileDrop { Id = TestUtil.MakeTestGuid(3), Name = "FileDrop 3", ClientId = TestUtil.MakeTestGuid(3), RootPath = TestUtil.MakeTestGuid(3).ToString(), SftpAccounts = new List<SftpAccount>() },
+                new FileDrop { Id = TestUtil.MakeTestGuid(1), Name = "FileDrop 1", ClientId = TestUtil.MakeTestGuid(1), RootPath = TestUtil.MakeTestGuid(1).ToString(), ShortHash = "aaa1", SftpAccounts = new List<SftpAccount>() },
+                new FileDrop { Id = TestUtil.MakeTestGuid(2), Name = "FileDrop 2", ClientId = TestUtil.MakeTestGuid(2), RootPath = TestUtil.MakeTestGuid(2).ToString(), ShortHash = "aaa2", SftpAccounts = new List<SftpAccount>() },
+                new FileDrop { Id = TestUtil.MakeTestGuid(3), Name = "FileDrop 3", ClientId = TestUtil.MakeTestGuid(3), RootPath = TestUtil.MakeTestGuid(3).ToString(), ShortHash = "aaa3", SftpAccounts = new List<SftpAccount>() },
             });
             foreach (FileDrop d in DbContext.FileDrop)
             {
@@ -1224,12 +1224,12 @@ namespace MapTests
             #region Initialize SftpAccount
             DbContext.SftpAccount.AddRange(new List<SftpAccount>
                 {
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "SFTP user 1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "SFTP user 2" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "SFTP user 3" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "SFTP user 4" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "SFTP user 5" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "SFTP user 6" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "SFTP user 1-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "SFTP user 2-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "SFTP user 3-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "SFTP user 4-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "SFTP user 5-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "SFTP user 6-aaa2" },
                 });
             #endregion
 
@@ -1349,11 +1349,11 @@ namespace MapTests
 
             IConfiguration returnVal = appConfigurationBuilder.Build();
 
-            // TODO Decide whether and how to dump the entire configuration to Serilog.  One idea is:
-            //if (Environment.GetEnvironmentVariable("MapCiVerboseConfigDump") != null)
-            //{
-            //    ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
-            //}
+            if (returnVal.GetValue("DumpVerboseConfiguration", false))
+            {
+                //This dumps the entire configuration to Serilog.  
+                //ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
+            }
 
             return returnVal;
         }
