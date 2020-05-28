@@ -8,9 +8,6 @@ FROM mcr.microsoft.com/dotnet/core/runtime:3.1-alpine
 
 COPY --from=build-env /app /app
 
-ARG ASPNETCORE_ENVIRONMENT=CI
-ENV ASPNETCORE_ENVIRONMENT=$ASPNETCORE_ENVIRONMENT
-
 COPY SftpServer/SftpServer/bin/Debug/netcoreapp3.1/* /app/
 COPY SftpServer/SftpServerLib/*.json /app/
 COPY UtilityScripts/startsftpserver.sh /app/

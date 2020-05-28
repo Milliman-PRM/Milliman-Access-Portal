@@ -7,7 +7,7 @@ Param(
     [Parameter()]
     [string]$azSubscriptionId=$env:azSubscriptionId,
     [Parameter()]
-    [string]$FDRG="filedropsftp",
+    [string]$FDRG="filedropsftp-staging",
     [Parameter()]
     [string]$FDConName="filedropsftp-cont",
     [Parameter()]
@@ -15,7 +15,7 @@ Param(
     [Parameter()]
     [PSCredential]$FDACRCred,
     [Parameter()]
-    [string]$FDFileName="filedropsftpshare",
+    [string]$FDFileName="filedropsftpstagingshare",
     [Parameter()]
     [PSCredential]$FDFileCred,
     [Parameter()]
@@ -25,7 +25,7 @@ Param(
 )
 
 $FDLocation = "eastus2"
-$FDFileName = "filedropsftpshare"
+
 
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
@@ -44,13 +44,11 @@ $params = @{
     MemoryInGB                          = 1.5
     IpAddressType                       = "Public"
     Port                                = 22
-    Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint"
+    Command                             = "tail -f /dev/null" #"/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint"
     EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
     AzureFileVolumeMountPath            = "/mnt/filedropshare"
-    IdentityType                        = "UserAssigned"
-    IdentityId                          = "/subscriptions/8f047950-269e-43c7-94e0-ff90d22bf013/resourceGroups/filedropsftp/providers/Microsoft.ManagedIdentity/userAssignedIdentities/filedrop-sftp"
 }
 
 New-AzContainerGroup @params
