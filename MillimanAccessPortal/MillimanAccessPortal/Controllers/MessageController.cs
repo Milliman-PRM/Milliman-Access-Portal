@@ -101,7 +101,7 @@ namespace MillimanAccessPortal.Controllers
             var senderName = $"{user.FirstName} {user.LastName}";
             var recipient = _configuration.GetValue<string>("SupportEmailAddress");
 
-            bool result = _mailSender.QueueEmail(new List<string> { recipient }, subject, message, senderAddress, senderName);
+            bool result = _mailSender.QueueEmail(recipient, subject, message, senderAddress, senderName);
 
             if (result)
             {
