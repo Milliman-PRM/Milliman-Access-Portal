@@ -23,7 +23,7 @@ namespace SftpServer
 
             _SftpApi = SftpLibApi.NewInstance();
 
-            string privateKeyString = GlobalResources.GetConfigValue<string>("SftpServerPrivateKey");
+            string privateKeyString = GlobalResources.GetConfigValue<string>("SftpServerPrivateKey").Replace(@"\n", "\n");
             byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
 
             _SftpApi.Start(privateKeyBytes);
