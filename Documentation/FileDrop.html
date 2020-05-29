@@ -1,132 +1,181 @@
 <!DOCTYPE html>
 <html>
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, user-scalable=yes"
+    />
     <title>File Drop - User Guide</title>
-    <link rel="stylesheet" href="_CSS\style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
-</head>
-<body>
-  <header>
-    <img src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg" >
-  </header>
-  <div class="body-content">
+    <link rel="stylesheet" href="_CSS\style.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <header>
+      <img
+        src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg"
+      />
+    </header>
+    <div class="body-content">
       <h1>File Drop User Guide</h1>
-      <p>This user guide is intended to walk through how to manage file drops. Some of the content found in this user guide will pertain to the Client Administration tab within Milliman Access Portal (MAP).</p>
-      <br>
+      <p>
+        This user guide is intended to walk through how to manage file drops.
+        Some of the content found in this user guide will pertain to the Client
+        Administration tab within Milliman Access Portal (MAP).
+      </p>
+      <br />
       <button class="accordion">
         <p>Setting Roles for File Drops in a Client</p>
-        <img 
+        <img
           src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
           class="icon"
-          >
+        />
       </button>
       <div class="content">
-          <p>File drop roles are set within a client. This means that the roles are set in the Client Administration tab of MAP. To set the roles for a user of the client, navigate to the Client Administration tab, filter to the client by clicking the client card, and then open the user card in the rightmost column. The user roles contain <strong>File drop user</strong> and <strong>File drop admin</strong>.</p>
-          <ul>
-              <li><strong>File drop user: </strong>A user who is capable of uploading, downloading, and deleting content (these permissions are set within a file drop), and can manage their own settings, but cannot view the file drop activity log or user permissions.</li>
-              <li><strong>File drop admin: </strong>A user with the ability to set user permissions at the file drop level. A file drop admin can also view the activity log for the file drop as well as their settings.</li>
-          </ul>
+        <p>
+          File drop roles are set within a client. This means that the roles are
+          set in the Client Administration tab of MAP. To set the roles for a
+          user of the client, navigate to the Client Administration tab, filter
+          to the client by clicking the client card, and then open the user card
+          in the rightmost column. The user roles contain
+          <strong>File drop user</strong> and <strong>File drop admin</strong>.
+        </p>
+        <ul>
+          <li>
+            <strong>File drop user: </strong>A user who is capable of uploading,
+            downloading, and deleting content (these permissions are set within
+            a file drop), and can manage their own settings, but cannot view the
+            file drop activity log or user permissions.
+          </li>
+          <li>
+            <strong>File drop admin: </strong>A user with the ability to set
+            user permissions at the file drop level. A file drop admin can also
+            view the activity log for the file drop as well as their settings.
+          </li>
+        </ul>
       </div>
       <button class="accordion">
         <p>Managing a File Drop</p>
-        <img 
+        <img
           src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
           class="icon"
-          >
+        />
       </button>
       <div class="content">
-          <h3 class="subheading">Creating a File Drop</h3>
-          <ol>
-              <li>Choose the client that you would like to create a file drop for</li>
-              <li>Click "Create File Drop"</li>
-              <li>Fill in the file drop name and description (optional) and press create</li>
-          </ol>
-          <h3 class="subheading">Editing a File Drop</h3>
-          <ol>
-              <li>Navigate to the file drop to edit</li>
-              <li>Click on the blue icon on the file drop card in order to enter edit mode</li>
-              <li>Click into the file drop name and/or description to edit</li>
-          </ol>
-          <h3 class="subheading">Deleting a File Drop</h3>
-          <ol>
-              <li>Navigate to the file drop to delete</li>
-              <li>Click on the trash icon on the file drop card</li>
-              <li>Confirm deletion of the file drop</li>
-          </ol>
+        <h3 class="subheading">Creating a File Drop</h3>
+        <ol>
+          <li>
+            Choose the client that you would like to create a file drop for
+          </li>
+          <li>Click "Create File Drop"</li>
+          <li>
+            Fill in the file drop name and description (optional) and press
+            create
+          </li>
+        </ol>
+        <h3 class="subheading">Editing a File Drop</h3>
+        <ol>
+          <li>Navigate to the file drop to edit</li>
+          <li>
+            Click on the blue icon on the file drop card in order to enter edit
+            mode
+          </li>
+          <li>Click into the file drop name and/or description to edit</li>
+        </ol>
+        <h3 class="subheading">Deleting a File Drop</h3>
+        <ol>
+          <li>Navigate to the file drop to delete</li>
+          <li>Click on the trash icon on the file drop card</li>
+          <li>Confirm deletion of the file drop</li>
+        </ol>
       </div>
       <button class="accordion">
         <p>Managing Files and Folders within a File Drop</p>
-        <img 
+        <img
           src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
           class="icon"
-          >
+        />
       </button>
       <div class="content">
-          <p>As of now, in order to upload, download, or delete files, you have to use a SFTP client such as FileZilla. The next release of MAP will include an interface for this action.</p>
-          <h3 class="subheading">Creating a Permission Group</h3>
-          <ol>
-              <li>Within MAP, navigate to the My Settings tab</li>
-              <li>Click "Generate Credentials" ********check this</li>
-              <li>Open a SFTP client outside of MAP</li>
-              <li>Navigate to the site manager in the SFTP client</li>
-              <li>Fill in the SFTP SSH file transfer protocol</li>
-              <li>Fill in the host, port, and username information</li>
-              <li>Copy the password generated by MAP and use in the SFTP client</li>
-              <li>Connect to MAP</li>
-          </ol>
-          <h3 class="subheading">Editing a Permission Group</h3>
-          <ol>
-              <li></li>
-          </ol>
-          <h3 class="subheading">Deleting a Permission Group</h3>
-          <ol>
-              <li></li>
-          </ol>
-          <h3 class="subheading">Setting Permissions for a Permission Group</h3>
-          <ul>
-              <li><strong>Download:</strong></li>
-              <li><strong>Upload:</strong></li>
-              <li><strong>Delete:</strong></li>
-          </ul>
+        <p>
+          As of now, in order to upload, download, or delete files, you have to
+          use a SFTP client such as FileZilla. The next release of MAP will
+          include an interface for this action.
+        </p>
+        <h3 class="subheading">Creating a Permission Group</h3>
+        <ol>
+          <li>Within MAP, navigate to the My Settings tab</li>
+          <li>Click "Generate Credentials" ********check this</li>
+          <li>Open a SFTP client outside of MAP</li>
+          <li>Navigate to the site manager in the SFTP client</li>
+          <li>Fill in the SFTP SSH file transfer protocol</li>
+          <li>Fill in the host, port, and username information</li>
+          <li>Copy the password generated by MAP and use in the SFTP client</li>
+          <li>Connect to MAP</li>
+        </ol>
+        <h3 class="subheading">Editing a Permission Group</h3>
+        <ol>
+          <li></li>
+        </ol>
+        <h3 class="subheading">Deleting a Permission Group</h3>
+        <ol>
+          <li></li>
+        </ol>
+        <h3 class="subheading">Setting Permissions for a Permission Group</h3>
+        <ul>
+          <li>
+            <strong>Download: </strong>The ability to download files from the
+            file drop
+          </li>
+          <li>
+            <strong>Upload: </strong>The ability to upload files to the file
+            drop
+          </li>
+          <li>
+            <strong>Delete: </strong>The ability to delete files from the file
+            drop
+          </li>
+        </ul>
       </div>
       <button class="accordion">
         <p>Activity Log</p>
-        <img 
+        <img
           src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
           class="icon"
-          >
+        />
       </button>
       <div class="content">
-          <p>Activity log description</p>
-          <p>Abillity to download all info to csv</p>
-          <h3 class="subheading">Definitions of Actions</h3>
-          <ul>
-            <li><strong>SFTP account created:</strong></li>
-            <li><strong>SFTP account deleted:</strong></li>
-            <li><strong>Account added to permission group:</strong></li>
-            <li><strong>Account removed from permission group:</strong></li>
-            <li><strong>File drop created:</strong></li>
-            <li><strong>File drop deleted:</strong></li>
-            <li><strong>File drop updated:</strong></li>
-            <li><strong>File drop permission group created:</strong></li>
-            <li><strong>File drop permission group deleted:</strong></li>
-            <li><strong>File drop permission group updated:</strong></li>
-            <li><strong>SFTP directory created:</strong></li>
-            <li><strong>SFTP directory removed:</strong></li>
-            <li><strong>SFTP file write authorized:</strong></li>
-            <li><strong>SFTP file read authorized:</strong></li>
-            <li><strong>SFTP file delete authorized:</strong></li>
-            <li><strong>SFTP file or directory renamed:</strong></li>
-          </ul>
+        <p>Activity log description</p>
+        <p>Abillity to download all info to csv</p>
+        <h3 class="subheading">Definitions of Actions</h3>
+        <ul>
+          <li><strong>SFTP account created:</strong></li>
+          <li><strong>SFTP account deleted:</strong></li>
+          <li><strong>Account added to permission group:</strong></li>
+          <li><strong>Account removed from permission group:</strong></li>
+          <li><strong>File drop created:</strong></li>
+          <li><strong>File drop deleted:</strong></li>
+          <li><strong>File drop updated:</strong></li>
+          <li><strong>File drop permission group created:</strong></li>
+          <li><strong>File drop permission group deleted:</strong></li>
+          <li><strong>File drop permission group updated:</strong></li>
+          <li><strong>SFTP directory created:</strong></li>
+          <li><strong>SFTP directory removed:</strong></li>
+          <li><strong>SFTP file write authorized:</strong></li>
+          <li><strong>SFTP file read authorized:</strong></li>
+          <li><strong>SFTP file delete authorized:</strong></li>
+          <li><strong>SFTP file or directory renamed:</strong></li>
+        </ul>
       </div>
       <button class="accordion">
         <p>My Settings</p>
-        <img 
+        <img
           src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
           class="icon"
-          >
+        />
       </button>
       <div class="content">
         <p><strong>SFTP Connection:</strong></p>
@@ -135,5 +184,5 @@
       </div>
     </div>
     <script src="_JS\accordion.js"></script>
-</body>
+  </body>
 </html>
