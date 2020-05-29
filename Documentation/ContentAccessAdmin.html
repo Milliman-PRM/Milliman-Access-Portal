@@ -7,54 +7,59 @@
     <link rel="stylesheet" href="_CSS\style.css">
 </head>
 <body>
-    <h1>Content Access Administration</h1>
-    <button class="accordion">Creating a Selection Group</button>
-    <div class="content">
-        <ol>
-            <li>Choose the Client for the content item you are working on by clicking the client card</li>
-            <li>Choose the content item you are working on by clicking the content item card</li>
-            <li>Under <strong>Selection Groups</strong> press the plus button near the search bar at the top or click on the card that says <strong>ADD SELECTION GROUP</strong></li>
-            <li>Enter a Selection Group name</li>
-            <li>Click <strong>Add Group</strong></li>
-        </ol>
-    </div>
-    <button class="accordion">Managing Users in Selection Groups</button>
-    <div class="content">
-        <h3 class="subheading">Adding Users in Selection Groups</h3>
-        <ol>
-            <li>While in edit mode on the expanded card, type in the user’s email address and press the enter or tab buttons to add the user
-			    <ul>
-				    <li>Only users that have been approved by a Client Administrator can be granted access to content</li>
-					<li>A user can only exist in one Selection Group per Content item</li>
-				</ul>
-            </li>
-            <li>When finished adding users, press the green checkmark on the card to save changes</li>
-        </ol>
+    <header>
+        <img src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg" >
+    </header>
+    <div class="body-content">
+        <h1>Content Access Administration</h1>
+        <button class="accordion">Creating a Selection Group</button>
+        <div class="content">
+            <ol>
+                <li>Choose the Client for the content item you are working on by clicking the client card</li>
+                <li>Choose the content item you are working on by clicking the content item card</li>
+                <li>Under <strong>Selection Groups</strong> press the plus button near the search bar at the top or click on the card that says <strong>ADD SELECTION GROUP</strong></li>
+                <li>Enter a Selection Group name</li>
+                <li>Click <strong>Add Group</strong></li>
+            </ol>
+        </div>
+        <button class="accordion">Managing Users in Selection Groups</button>
+        <div class="content">
+            <h3 class="subheading">Adding Users in Selection Groups</h3>
+            <ol>
+                <li>While in edit mode on the expanded card, type in the user’s email address and press the enter or tab buttons to add the user
+                    <ul>
+                        <li>Only users that have been approved by a Client Administrator can be granted access to content</li>
+                        <li>A user can only exist in one Selection Group per Content item</li>
+                    </ul>
+                </li>
+                <li>When finished adding users, press the green checkmark on the card to save changes</li>
+            </ol>
 
-        <h3 class="subheading">Removing Users in Selection Groups</h3>
-        <ol>
-            <li>While in edit mode on the expanded card, press the red minus sign next to the users name to remove</li>
-            <li>When finished removing users, press the green checkmark on the card to save changes</li>
-        </ol>
-    </div>
-    <button class="accordion">Managing Access to Content</button>
-    <div class="content">
-        <ol>
-            <li>Navigate and select the Selection Group card</li>
-            <li>For a selection group with access to the master version of the content, click the <strong>Unrestricted Access</strong> toggle to the <strong>ON</strong> position</li>
-            <li>For a selection group with access to a reduced version of the content (only applicable for reducible content):</li>
-        </ol>
-        <ul>
-            <li>Click the <strong>Unrestricted Access</strong> toggle at the top right to the <strong>OFF</strong> position</li>
-            <li>Check the desired selections in the <strong>Selections</strong> column to the right.</li>
-        </ul>
-    </div>
-    <button class="accordion">Suspending Access For a Selection Group</button>
-    <div class="content">
-        <ol>
-            <li>Navigate and select the desired Selection Group card</li>
-            <li>Click the <strong>Suspend Access</strong> toggle to the <strong>ON</strong> position</li>
-        </ol>
+            <h3 class="subheading">Removing Users in Selection Groups</h3>
+            <ol>
+                <li>While in edit mode on the expanded card, press the red minus sign next to the users name to remove</li>
+                <li>When finished removing users, press the green checkmark on the card to save changes</li>
+            </ol>
+        </div>
+        <button class="accordion">Managing Access to Content</button>
+        <div class="content">
+            <ol>
+                <li>Navigate and select the Selection Group card</li>
+                <li>For a selection group with access to the master version of the content, click the <strong>Unrestricted Access</strong> toggle to the <strong>ON</strong> position</li>
+                <li>For a selection group with access to a reduced version of the content (only applicable for reducible content):</li>
+            </ol>
+            <ul>
+                <li>Click the <strong>Unrestricted Access</strong> toggle at the top right to the <strong>OFF</strong> position</li>
+                <li>Check the desired selections in the <strong>Selections</strong> column to the right.</li>
+            </ul>
+        </div>
+        <button class="accordion">Suspending Access For a Selection Group</button>
+        <div class="content">
+            <ol>
+                <li>Navigate and select the desired Selection Group card</li>
+                <li>Click the <strong>Suspend Access</strong> toggle to the <strong>ON</strong> position</li>
+            </ol>
+        </div>
     </div>
     <script src="_JS\accordion.js"></script>
 </body>
