@@ -826,7 +826,7 @@ namespace SftpServerLib
         //[Description("Shows the progress of the secure connection.")]
         internal static void OnSSHStatus(object sender, SftpserverSSHStatusEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("SSHStatus", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SSHStatus", evtData));
         }
 
         internal static void OnMaintenanceTimerElapsed(object source, System.Timers.ElapsedEventArgs e)

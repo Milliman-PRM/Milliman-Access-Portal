@@ -15,6 +15,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
+using System.IO;
 
 namespace SftpServerLib
 {
@@ -122,6 +123,33 @@ namespace SftpServerLib
                             $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                             $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
                             $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+
+            #region temporary diag code
+            var configure = configuration.GetSection("Serilog:WriteTo:Async:Args:configure");
+            foreach (IConfigurationSection child in configure.GetChildren())
+            {
+                if (child.GetValue<string>("Name") == "RollingFile")
+                {
+                    string outputPath = child.GetValue<string>("Args:pathFormat");
+                    if (!string.IsNullOrEmpty(outputPath))
+                    {
+                        Console.WriteLine($"Configured Serilog log file path is: {outputPath}");
+                        string logFolder = Path.GetDirectoryName(outputPath);
+                        string testFile = Path.Combine(logFolder, "test.log");
+                        try
+                        {
+                            File.WriteAllText(testFile, "This is a test");
+                            Console.WriteLine($"Wrote test file: {testFile}");
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine($"Exception while trying to write test file: {testFile}: {e.Message}");
+                        }
+                    }
+                }
+            }
+
+            #endregion
         }
 
         /// <summary>
