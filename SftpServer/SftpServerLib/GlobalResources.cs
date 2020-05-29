@@ -50,6 +50,7 @@ namespace SftpServerLib
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
 
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
+                .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
@@ -103,6 +104,13 @@ namespace SftpServerLib
                 SmtpServer = ApplicationConfiguration.GetValue<string>("SmtpServer"),
                 MaximumSendAttempts = ApplicationConfiguration.GetValue("MaximumSendAttempts", 3),
             });
+
+            if (ApplicationConfiguration.AsEnumerable().Any(c => c.Key.Equals("Serilog", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                InitializeSerilog(ApplicationConfiguration);
+            }
+
+            // ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, ApplicationConfiguration, ConfigurationDumper.DumpTarget.Console);
         }
 
         /// <summary>
@@ -123,33 +131,6 @@ namespace SftpServerLib
                             $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                             $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
                             $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
-
-            #region temporary diag code
-            var configure = configuration.GetSection("Serilog:WriteTo:Async:Args:configure");
-            foreach (IConfigurationSection child in configure.GetChildren())
-            {
-                if (child.GetValue<string>("Name") == "RollingFile")
-                {
-                    string outputPath = child.GetValue<string>("Args:pathFormat");
-                    if (!string.IsNullOrEmpty(outputPath))
-                    {
-                        Console.WriteLine($"Configured Serilog log file path is: {outputPath}");
-                        string logFolder = Path.GetDirectoryName(outputPath);
-                        string testFile = Path.Combine(logFolder, "test.log");
-                        try
-                        {
-                            File.WriteAllText(testFile, "This is a test");
-                            Console.WriteLine($"Wrote test file: {testFile}");
-                        }
-                        catch (Exception e)
-                        {
-                            Console.WriteLine($"Exception while trying to write test file: {testFile}: {e.Message}");
-                        }
-                    }
-                }
-            }
-
-            #endregion
         }
 
         /// <summary>

@@ -5,7 +5,6 @@
  */
 
 using SftpServerLib;
-//using Microsoft.Extensions.Configuration.
 using System;
 using System.IO;
 using System.Text;
@@ -19,7 +18,6 @@ namespace SftpServer
         static void Main(string[] args)
         {
             GlobalResources.LoadConfiguration();
-            GlobalResources.InitializeSerilog(GlobalResources.ApplicationConfiguration);
 
             _SftpApi = SftpLibApi.NewInstance();
 

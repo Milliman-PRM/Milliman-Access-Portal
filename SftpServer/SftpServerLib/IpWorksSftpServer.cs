@@ -54,7 +54,6 @@ namespace SftpServerLib
             EstablishServerInstance(certificate);
 
             _sftpServer.Listening = true;
-            Log.Information($"SFTP server listening on port {_sftpServer.LocalPort}");
         }
 
         public override void Stop()
@@ -98,7 +97,7 @@ namespace SftpServerLib
                 SSHCert = cert,
                 RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,"
             };
-            Log.Information("SFTP Server instance constructed");
+            Log.Verbose("SFTP Server instance constructed");
 
             #region assign event handlers
             //[Description("Information about errors during data delivery.")]
@@ -145,7 +144,7 @@ namespace SftpServerLib
             _sftpServer.ExchangeKeysCompleted += IpWorksSftpServerEventHandlers.ExchangeKeysCompleted;
             _sftpServer.DisconnectCompleted += IpWorksSftpServerEventHandlers.DisconnectCompleted;
 
-            Log.Information("SFTP Server event handlers assigned");
+            Log.Verbose("SFTP Server event handlers assigned");
             #endregion
         }
 
