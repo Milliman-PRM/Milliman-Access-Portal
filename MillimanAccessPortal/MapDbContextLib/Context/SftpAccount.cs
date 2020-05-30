@@ -53,7 +53,7 @@ namespace MapDbContextLib.Context
 
         public virtual ICollection<FileDropFile> Files { get; set; }
 
-        public bool IsCurrent(int passwordExpiresDays) => !IsSuspended && DateTime.UtcNow - PasswordResetDateTimeUtc < TimeSpan.FromDays(passwordExpiresDays);
+        public bool IsCurrent(int passwordExpiresDays) => !IsSuspended && (DateTime.UtcNow - PasswordResetDateTimeUtc < TimeSpan.FromDays(passwordExpiresDays));
 
         [NotMapped]
         public string Password {
