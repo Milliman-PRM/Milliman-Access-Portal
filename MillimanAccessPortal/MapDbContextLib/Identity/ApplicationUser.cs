@@ -85,11 +85,5 @@ namespace MapDbContextLib.Identity
         public AuthenticationScheme AuthenticationScheme { get; set; }
 
         public IEnumerable<SftpAccount> SftpAccounts { get; set; }
-
-        public bool IsCurrent(int passwordExpiresDays) => 
-            !IsSuspended && 
-            (AuthenticationSchemeId.HasValue && AuthenticationScheme.Type != AuthenticationType.Default ||  // account uses SSO, or ...
-             DateTime.UtcNow - LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(passwordExpiresDays));     // password not expired
-
     }
 }

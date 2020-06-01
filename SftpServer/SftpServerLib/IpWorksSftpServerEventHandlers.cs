@@ -787,12 +787,19 @@ namespace SftpServerLib
                     }
 
                     int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
-                    if (userAccount.ApplicationUser.IsCurrent(mapPasswordExpirationDays))
+                    bool userIsSso = false;
+                    if (userAccount.ApplicationUser != null)
                     {
-                        evtData.Accept = false;
-                        Log.Information($"SftpConnection request denied.  The related map user with name <{evtData.User}> has an expired password or is suspended");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop));
-                        return;
+                        userIsSso = IsSsoUser(userAccount.ApplicationUser);
+
+                        if (userAccount.ApplicationUser.IsSuspended || 
+                            (!userIsSso && DateTime.UtcNow - userAccount.ApplicationUser.LastPasswordChangeDateTimeUtc > TimeSpan.FromDays(mapPasswordExpirationDays)))
+                        {
+                            evtData.Accept = false;
+                            Log.Information($"SftpConnection request denied.  The related map user with name <{evtData.User}> has an expired password or is suspended");
+                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop));
+                            return;
+                        }
                     }
 
                     var passwordResult = userAccount.CheckPassword(evtData.AuthParam);
@@ -816,6 +823,7 @@ namespace SftpServerLib
                         connection.WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess;
                         connection.DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess;
                         connection.FileDropRootPathAbsolute = absoluteFileDropRootPath;
+                        connection.MapUserIsSso = userIsSso;
 
                         evtData.Accept = true;
 
@@ -845,7 +853,7 @@ namespace SftpServerLib
         {
             using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
             {
-                int passwordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
+                int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
                 int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
 
                 List<Guid> currentConnectedAccountIds = IpWorksSftpServer._connections
@@ -857,7 +865,6 @@ namespace SftpServerLib
 
                 var query = db.SftpAccount
                               .Include(a => a.ApplicationUser)
-                                  .ThenInclude(p => p.AuthenticationScheme)
                               .Include(a => a.FileDropUserPermissionGroup)
                                   .ThenInclude(p => p.FileDrop)
                               .Where(a => currentConnectedAccountIds.Contains(a.Id));
@@ -884,7 +891,10 @@ namespace SftpServerLib
                             IpWorksSftpServer._connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
                         }
-                        else if (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(passwordExpirationDays))
+
+                        else if (connectedAccount.ApplicationUserId.HasValue && 
+                                  (connectedAccount.ApplicationUser.IsSuspended ||
+                                    !(connection.MapUserIsSso || DateTime.UtcNow - connectedAccount.ApplicationUser.LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(mapPasswordExpirationDays))))
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
@@ -993,6 +1003,45 @@ namespace SftpServerLib
             {
                 Log.Debug($"Connection {connectionId} exists but does not have required access {requiredAccess}");
                 return (AuthorizationResult.NotAuthorized, connectionRecord);
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user">Must have AuthenticationScheme navigation property present</param>
+        /// <returns></returns>
+        protected static bool IsSsoUser(ApplicationUser user)
+        {
+            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            {
+                if (user?.AuthenticationScheme != null)
+                {
+                    // user has an explicit individually assigned scheme
+                    return user.AuthenticationScheme.Type != AuthenticationType.Default;
+                }
+                else
+                {
+                    string userFullDomain = user.UserName.Contains('@')
+                                    ? user.UserName.Substring(user.UserName.IndexOf('@') + 1)
+                                    : user.UserName;
+
+                    if (db.AuthenticationScheme.Any(s => s.DomainList.Contains(userFullDomain) && s.Type != AuthenticationType.Default))
+                    {
+                        // domain of username is contained in the domain list of a scheme 
+                        return true;
+                    }
+                    else if (userFullDomain.Contains('.'))
+                    {
+                        // Secondary domain (the portion of userName between '@' and the last '.') matches a scheme name
+                        string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
+                        return db.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
             }
         }
 
