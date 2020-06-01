@@ -1111,6 +1111,9 @@ namespace AuditLogLib.Event
 
             [Display(Description = "The requested SFTP account credentials are invalid")]
             AuthenticationFailed,
+
+            [Display(Description = "The related MAP user has an expired password or is suspended")]
+            MapUserBlocked,
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel>(

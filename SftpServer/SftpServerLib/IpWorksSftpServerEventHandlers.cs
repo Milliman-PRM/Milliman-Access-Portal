@@ -309,7 +309,7 @@ namespace SftpServerLib
             if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
             {
                 var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.Account?.UserName}");
+                Log.Information($"Connection <{evtData.ConnectionId}> disconnected for account name <{connectionProperties.Account?.UserName}>");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
             Log.Debug($"Connection <{evtData.ConnectionId}> closed");
@@ -754,6 +754,7 @@ namespace SftpServerLib
                                                 .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
+                                                    .ThenInclude(u => u.AuthenticationScheme)
                                                 .Include(a => a.FileDrop)
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
@@ -782,6 +783,15 @@ namespace SftpServerLib
                         evtData.Accept = false;
                         Log.Information($"SftpConnection request denied.  The requested account with name <{evtData.User}> has an expired password");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop));
+                        return;
+                    }
+
+                    int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
+                    if (userAccount.ApplicationUser.IsCurrent(mapPasswordExpirationDays))
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"SftpConnection request denied.  The related map user with name <{evtData.User}> has an expired password or is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop));
                         return;
                     }
 
@@ -847,6 +857,7 @@ namespace SftpServerLib
 
                 var query = db.SftpAccount
                               .Include(a => a.ApplicationUser)
+                                  .ThenInclude(p => p.AuthenticationScheme)
                               .Include(a => a.FileDropUserPermissionGroup)
                                   .ThenInclude(p => p.FileDrop)
                               .Where(a => currentConnectedAccountIds.Contains(a.Id));
@@ -863,18 +874,21 @@ namespace SftpServerLib
 
                         if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays))
                         {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
-                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} removed because the account is suspended or has expired password");
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
                         {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
-                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} removed because the file drop is suspended");
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
                         }
                         else if (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(passwordExpirationDays))
                         {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
-                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} removed because the related MAP user is suspended or has expired password");
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the related MAP user is suspended or is locally authenticated and has expired password");
                         }
                         else
                         {
