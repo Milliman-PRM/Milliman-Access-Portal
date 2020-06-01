@@ -94,7 +94,7 @@ h3.subheading {
     line-height: 1.625rem;
     font-weight: 400;
     color: #444;
-    padding: 4px 0;
+    padding: 8px 0 4px 0;
     margin: 0;
 }
 
@@ -116,11 +116,11 @@ ol li ul li {
 }
 
 ul li {
-    list-style: none;
+    list-style: square;
 }
 
 li {
-    padding: 2px 0;
+    padding: 4px 0;
     line-height: 20px;
 }
 
