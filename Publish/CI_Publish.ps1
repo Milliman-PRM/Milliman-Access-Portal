@@ -277,6 +277,7 @@ Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
+Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
 mkdir "out"
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
