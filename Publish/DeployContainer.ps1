@@ -44,11 +44,12 @@ $params = @{
     MemoryInGB                          = 1.5
     IpAddressType                       = "Public"
     Port                                = 22
-    Command                             = "tail -f /dev/null" #"/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint"
+    Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint" # "tail -f /dev/null"
     EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
     AzureFileVolumeMountPath            = "/mnt/filedropshare"
+    DnsNameLabel                        = "filedrop-staging"
 }
 
 New-AzContainerGroup @params
