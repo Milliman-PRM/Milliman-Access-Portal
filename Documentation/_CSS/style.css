@@ -55,7 +55,6 @@ button p {
     text-align: left;
     outline: none;
     font-size: 16px;
-    transition: .4s;
     border-top: 1px solid #E8E9EA;
 }
 
@@ -68,11 +67,10 @@ button p {
     max-height: 0;
     background-color: white;
     overflow: hidden;
-    transition: 0s;
 }
 
 .content.show {
-    transition: 1.0s;
+    transition: max-height 1.0s ease-in-out;
     max-height: 100em;
     border-left: 4px solid rgba(0,128,226,.75);
     margin: 0px 16px 12px 18px;
