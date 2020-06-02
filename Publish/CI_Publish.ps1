@@ -517,6 +517,10 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\SftpServer
 
+#Replace Windows line endings with Unix ones in entrypoint script
+$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
+((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
+
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
