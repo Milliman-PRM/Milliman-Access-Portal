@@ -7,7 +7,7 @@ Param(
     [Parameter()]
     [string]$azSubscriptionId=$env:azSubscriptionId,
     [Parameter()]
-    [string]$FDRG="filedropsftp-staging",
+    [string]$FDRG="filedropsftp-$env:ASPNETCORE_ENVIRONMENT",
     [Parameter()]
     [string]$FDConName="filedropsftp-cont",
     [Parameter()]
@@ -22,9 +22,9 @@ Param(
     [string]$azCertPass,
     [Parameter()]
     [string]$thumbprint
+    [Parameter()]
+    [string]$FDLocation = "eastus2"
 )
-
-$FDLocation = "eastus2"
 
 
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
@@ -45,11 +45,11 @@ $params = @{
     IpAddressType                       = "Public"
     Port                                = 22
     Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint" # "tail -f /dev/null"
-    EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
+    EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = $env:ASPNETCORE_ENVIRONMENT}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
     AzureFileVolumeMountPath            = "/mnt/filedropshare"
-    DnsNameLabel                        = "filedrop-staging"
+    DnsNameLabel                        = "filedrop-$env:ASPNETCORE_ENVIRONMENT"
 }
 
 New-AzContainerGroup @params

@@ -98,8 +98,6 @@ log_statement "Building configuration: $buildType"
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
-$acr_url = "filedropci.azurecr.io"
-
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -139,7 +137,7 @@ $azClientId = $env:azClientId
 $azClientSecret = $env:AzClientSecret
 $azVaultNameFD = $env:azVaultNameFD
 $azVaultNameMAP = $env:azVaultNameMAP
-$thumbprint = "79B4D2A1849EECB7C433B7B5D28CFC600414DC38" # thumbprint of certificate used to authenticate as Service Principal
+$thumbprint = $env:thumbprint
 $azCertPass = $env:azCertPass
 $azFilesharePass = $env:azFilesharePass
 
@@ -540,14 +538,18 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
+$FDShareUrl = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "storage-url").SecretValueText
+
 $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
-$azFileShareName = "filedropsftpstagingstor"
+$FDShareName =  $($FDShareUrl).split('/')[-1] # Get the file share name from the URL
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = New-Object System.Management.Automation.PSCredential($azFileShareName, $azFilesharePass_secure)
+$FDFileCred = New-Object System.Management.Automation.PSCredential($FDShareName, $azFilesharePass_secure)
 
 Set-Location $rootpath
 
@@ -569,7 +571,7 @@ docker rmi $FDImageName
     -azSubscriptionId $azSubscriptionId `
     -FDImageName $FDImageName `
     -FDACRCred $FDACRCred `
-    -FDFileName "filedropsftpstagingshare" `
+    -FDFileName $FDShareName `
     -FDFileCred $FDFileCred `
     -azCertPass $azCertPass `
     -thumbprint $thumbprint
