@@ -277,6 +277,7 @@ Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
+Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
 mkdir "out"
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
@@ -516,6 +517,10 @@ if ($LASTEXITCODE -ne 0) {
 #region Create and publish FileDrop docker container
 
 Set-Location $rootpath\SftpServer
+
+#Replace Windows line endings with Unix ones in entrypoint script
+$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
+((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
 
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
