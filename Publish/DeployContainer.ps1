@@ -21,7 +21,7 @@ Param(
     [Parameter()]
     [string]$azCertPass,
     [Parameter()]
-    [string]$thumbprint
+    [string]$thumbprint,
     [Parameter()]
     [string]$FDLocation = "eastus2"
 )
