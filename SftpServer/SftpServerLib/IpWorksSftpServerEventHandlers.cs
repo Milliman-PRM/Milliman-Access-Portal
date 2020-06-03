@@ -149,7 +149,7 @@ namespace SftpServerLib
             (AuthorizationResult authResult, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, requiredAccess);
             if (authResult == AuthorizationResult.ConnectionNotFound)
             {
-                Log.Warning($"OnFileOpen event invoked but requested connection id {evtData.ConnectionId} was not found for account {evtData.User}");
+                Log.Warning($"OnFileOpen: the requested connection id {evtData.ConnectionId} was not found for account {evtData.User} and required access {requiredAccess}");
                 evtData.StatusCode = 7;  // SSH_FX_CONNECTION_LOST 7
                 return;
             }
@@ -309,7 +309,7 @@ namespace SftpServerLib
             if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
             {
                 var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> close requested for account name {connectionProperties.Account?.UserName}");
+                Log.Information($"Connection <{evtData.ConnectionId}> disconnected for account name <{connectionProperties.Account?.UserName}>");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
             Log.Debug($"Connection <{evtData.ConnectionId}> closed");
@@ -391,6 +391,7 @@ namespace SftpServerLib
         internal static void OnDirList(object sender, SftpserverDirListEventArgs evtData)
         {
             Log.Information(GenerateEventArgsLogMessage("DirList", evtData));
+            Log.Warning("TODO: Should there be a read permission check for a directory listing?");
         }
 
         internal static object OnDirCreateLockObj = new object();
@@ -726,18 +727,19 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to authenticate a connection.")]
         internal static void OnSSHUserAuthRequest(object sender, SftpserverSSHUserAuthRequestEventArgs evtData)
         {
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
             Log.Debug(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
 
             //_sftpServer.Config($"UserAuthBanner[{evtData.ConnectionId}]=Whatever");
             if (evtData.AuthMethod.Equals("password", StringComparison.InvariantCultureIgnoreCase))
             {
-                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.None);
+                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.NoRequirement);
 
-                // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
                 switch (result)
                 {
                     case AuthorizationResult.ConnectionNotFound:
                         return;
+
                     case AuthorizationResult.NotAuthorized:
                         connection.LastActivityUtc = DateTime.UtcNow;
                         return;
@@ -752,6 +754,7 @@ namespace SftpServerLib
                                                 .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
+                                                    .ThenInclude(u => u.AuthenticationScheme)
                                                 .Include(a => a.FileDrop)
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
@@ -783,6 +786,22 @@ namespace SftpServerLib
                         return;
                     }
 
+                    int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
+                    bool userIsSso = false;
+                    if (userAccount.ApplicationUser != null)
+                    {
+                        userIsSso = IsSsoUser(userAccount.ApplicationUser);
+
+                        if (userAccount.ApplicationUser.IsSuspended || 
+                            (!userIsSso && DateTime.UtcNow - userAccount.ApplicationUser.LastPasswordChangeDateTimeUtc > TimeSpan.FromDays(mapPasswordExpirationDays)))
+                        {
+                            evtData.Accept = false;
+                            Log.Information($"SftpConnection request denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
+                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop));
+                            return;
+                        }
+                    }
+
                     var passwordResult = userAccount.CheckPassword(evtData.AuthParam);
 
                     if (passwordResult == PasswordVerificationResult.Success ||
@@ -804,20 +823,21 @@ namespace SftpServerLib
                         connection.WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess;
                         connection.DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess;
                         connection.FileDropRootPathAbsolute = absoluteFileDropRootPath;
+                        connection.MapUserIsSso = userIsSso;
 
                         evtData.Accept = true;
 
-                        Log.Information($"Sftp acount <{userAccount.UserName}> authenticated, FileDrop is <{userAccount.FileDrop.Name}>, access is: " +
+                        Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId}, FileDrop <{userAccount.FileDrop.Name}>, access: " +
                                         (userAccount.FileDropUserPermissionGroupId.HasValue
-                                        ? "read: " + userAccount.FileDropUserPermissionGroup.ReadAccess.ToString() +
-                                            ", write: " + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
-                                            ", delete: " + userAccount.FileDropUserPermissionGroup.DeleteAccess.ToString()
+                                        ? "read:" + userAccount.FileDropUserPermissionGroup.ReadAccess.ToString() +
+                                          ", write:" + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
+                                          ", delete:" + userAccount.FileDropUserPermissionGroup.DeleteAccess.ToString()
                                         : "no permission group assigned"));
                     }
                     else
                     {
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop));
-                        Log.Information($"Sftp acount <{userAccount.UserName}> authentication failed for FileDrop <{userAccount.FileDrop.Name}>");
+                        Log.Information($"Acount <{userAccount.UserName}> authentication failed for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }
             }
@@ -826,14 +846,14 @@ namespace SftpServerLib
         //[Description("Shows the progress of the secure connection.")]
         internal static void OnSSHStatus(object sender, SftpserverSSHStatusEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("SSHStatus", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SSHStatus", evtData));
         }
 
         internal static void OnMaintenanceTimerElapsed(object source, System.Timers.ElapsedEventArgs e)
         {
             using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
             {
-                int passwordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
+                int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
                 int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
 
                 List<Guid> currentConnectedAccountIds = IpWorksSftpServer._connections
@@ -851,7 +871,7 @@ namespace SftpServerLib
 
                 foreach (SftpAccount connectedAccount in query)
                 {
-                    // There can be multiple connections for a user
+                    // An account can have multiple open connections
                     foreach (SftpConnectionProperties connection in IpWorksSftpServer._connections.Values.Where(c => c.Account?.Id == connectedAccount.Id))
                     {
                         if (connection == null)  // can happen during debug if a connection is closed while sitting at a breakpoint in this method
@@ -859,11 +879,26 @@ namespace SftpServerLib
                             continue;
                         }
 
-                        if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays) ||
-                            connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended ||
-                            (connectedAccount.ApplicationUserId.HasValue && !connectedAccount.ApplicationUser.IsCurrent(passwordExpirationDays)))
+                        if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays))
                         {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
+                        }
+                        else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
+                        }
+
+                        else if (connectedAccount.ApplicationUserId.HasValue && 
+                                  (connectedAccount.ApplicationUser.IsSuspended ||
+                                    !(connection.MapUserIsSso || DateTime.UtcNow - connectedAccount.ApplicationUser.LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(mapPasswordExpirationDays))))
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the related MAP user is suspended or is locally authenticated and has expired password");
                         }
                         else
                         {
@@ -909,7 +944,8 @@ namespace SftpServerLib
 
         protected enum RequiredAccess
         {
-            None,
+            NoRequirement,
+            AnyOneOrMore,
             Read,
             Write,
             Delete
@@ -926,6 +962,7 @@ namespace SftpServerLib
         {
             if (!IpWorksSftpServer._connections.Keys.Contains(connectionId))
             {
+                Log.Warning($"Connection <{connectionId}> not found among all tracked connections ({string.Join(',', IpWorksSftpServer._connections.Keys.ToArray())})");
                 return (AuthorizationResult.ConnectionNotFound, null);
             }
 
@@ -935,26 +972,77 @@ namespace SftpServerLib
 
             switch (requiredAccess)
             {
-                case RequiredAccess.None:
+                case RequiredAccess.NoRequirement:
                     accountHasAccess = true;
                     break;
+
+                case RequiredAccess.AnyOneOrMore:
+                    accountHasAccess = connectionRecord.ReadAccess
+                                    || connectionRecord.WriteAccess
+                                    || connectionRecord.DeleteAccess;
+                    break;
+
                 case RequiredAccess.Read:
                     accountHasAccess = connectionRecord.ReadAccess;
                     break;
+
                 case RequiredAccess.Write:
                     accountHasAccess = connectionRecord.WriteAccess;
                     break;
+
                 case RequiredAccess.Delete:
                     accountHasAccess = connectionRecord.DeleteAccess;
                     break;
             }
 
-            return (
-                accountHasAccess 
-                    ? AuthorizationResult.Authorized 
-                    : AuthorizationResult.NotAuthorized, 
-                connectionRecord);
+            if (accountHasAccess)
+            {
+                return (AuthorizationResult.Authorized, connectionRecord);
+            }
+            else
+            {
+                Log.Debug($"Connection {connectionId} exists but does not have required access {requiredAccess}");
+                return (AuthorizationResult.NotAuthorized, connectionRecord);
+            }
+        }
 
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="user">Must have AuthenticationScheme navigation property present</param>
+        /// <returns></returns>
+        protected static bool IsSsoUser(ApplicationUser user)
+        {
+            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            {
+                if (user?.AuthenticationScheme != null)
+                {
+                    // user has an explicit individually assigned scheme
+                    return user.AuthenticationScheme.Type != AuthenticationType.Default;
+                }
+                else
+                {
+                    string userFullDomain = user.UserName.Contains('@')
+                                    ? user.UserName.Substring(user.UserName.IndexOf('@') + 1)
+                                    : user.UserName;
+
+                    if (db.AuthenticationScheme.Any(s => s.DomainList.Contains(userFullDomain) && s.Type != AuthenticationType.Default))
+                    {
+                        // domain of username is contained in the domain list of a scheme 
+                        return true;
+                    }
+                    else if (userFullDomain.Contains('.'))
+                    {
+                        // Secondary domain (the portion of userName between '@' and the last '.') matches a scheme name
+                        string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
+                        return db.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+                    }
+                    else
+                    {
+                        return false;
+                    }
+                }
+            }
         }
 
     }

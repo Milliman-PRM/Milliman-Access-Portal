@@ -15,6 +15,7 @@ using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
+using System.IO;
 
 namespace SftpServerLib
 {
@@ -49,9 +50,8 @@ namespace SftpServerLib
             string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.ToUpper();
 
             IConfigurationBuilder CfgBuilder = new ConfigurationBuilder()
-                .AddJsonFile("SftpServerLibSettings.json", optional: true, reloadOnChange: true)
+                .SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location))
                 .AddJsonFile("appSettings.json", optional: true, reloadOnChange: true)
-                .AddJsonFile($"SftpServerLibSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true)
                 .AddJsonFile($"appSettings.{EnvironmentName}.json", optional: true, reloadOnChange: true);
 
             #region Add additional environment specific configuration sources
@@ -66,7 +66,7 @@ namespace SftpServerLib
                         .AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true)
                         .Build();
 
-                    var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+                    var store = new X509Store(StoreName.My, StoreLocation.CurrentUser);
                     store.Open(OpenFlags.ReadOnly);
                     var cert = store.Certificates.Find(X509FindType.FindByThumbprint, vaultConfig["AzureCertificateThumbprint"], false);
 
@@ -86,7 +86,7 @@ namespace SftpServerLib
                     CfgBuilder.AddUserSecrets(Assembly.GetEntryAssembly());
                     break;
 
-                default: // Unsupported environment name	
+                default: // Unsupported environment name
                     throw new InvalidOperationException($"Current environment name ({EnvironmentName}) is not supported in Configuration.cs");
 
             }
@@ -104,6 +104,13 @@ namespace SftpServerLib
                 SmtpServer = ApplicationConfiguration.GetValue<string>("SmtpServer"),
                 MaximumSendAttempts = ApplicationConfiguration.GetValue("MaximumSendAttempts", 3),
             });
+
+            if (ApplicationConfiguration.AsEnumerable().Any(c => c.Key.Equals("Serilog", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                InitializeSerilog(ApplicationConfiguration);
+            }
+
+            // ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, ApplicationConfiguration, ConfigurationDumper.DumpTarget.Console);
         }
 
         /// <summary>
