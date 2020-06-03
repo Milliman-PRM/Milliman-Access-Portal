@@ -52,4 +52,16 @@ $params = @{
     DnsNameLabel                        = "filedrop-$env:ASPNETCORE_ENVIRONMENT"
 }
 
-New-AzContainerGroup @params
+$containerGroup = New-AzContainerGroup @params
+
+$TMName = switch ($($env:ASPNETCORE_ENVIRONMENT).ToUpper()) {
+    "STAGING" {"filedrop-staging"}
+    "PRODUCTION" {"filedrop-prod"}
+    default {"filedrop-ci"}
+}
+
+$TrafficManagerEndpoint = Get-AzTrafficManagerEndpoint -Name $TMName -ResourceGroupName $FDRG -ProfileName "filedrop-sftp-endpoint"
+
+$TrafficManagerEndpoint.Target = $($containerGroup).Fqdn
+
+Set-AzTrafficManagerEndpoint -TrafficManagerEndpoint $TrafficManagerEndpoint
