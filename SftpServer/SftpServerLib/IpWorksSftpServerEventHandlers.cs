@@ -796,7 +796,7 @@ namespace SftpServerLib
                             (!userIsSso && DateTime.UtcNow - userAccount.ApplicationUser.LastPasswordChangeDateTimeUtc > TimeSpan.FromDays(mapPasswordExpirationDays)))
                         {
                             evtData.Accept = false;
-                            Log.Information($"SftpConnection request denied.  The related map user with name <{evtData.User}> has an expired password or is suspended");
+                            Log.Information($"SftpConnection request denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
                             new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop));
                             return;
                         }
