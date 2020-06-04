@@ -63,7 +63,7 @@ namespace SftpServerLib
                 {
                     _sftpServer.Shutdown();
                     _sftpServer = null;
-                    Log.Information("SFTP server shut down");
+                    Log.Information("SFTP server is shut down");
                 }
                 catch (Exception e)
                 {
