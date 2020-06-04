@@ -7,6 +7,7 @@
 using Serilog;
 using SftpServerLib;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,15 @@ namespace SftpServer
 
         static async Task Main(string[] args)
         {
+            AppDomain.CurrentDomain.ProcessExit += (sender, eventArgs) => Cts.Cancel();
+
+            Console.CancelKeyPress += (sender, eventArgs) => 
+            {
+                // Ctrl-C or Ctrl-Break pressed
+                eventArgs.Cancel = true;  // Allow the graceful shutdown to complete
+                Cts.Cancel();
+            };
+
             GlobalResources.LoadConfiguration();
 
             _SftpApi = SftpLibApi.NewInstance();
@@ -35,7 +45,7 @@ namespace SftpServer
             Console.WriteLine($"SFTP server listening on port {state.LocalPort}");
             Console.WriteLine($"SFTP server fingerprint is {state.Fingerprint}");
 
-            Task WaitForKeyTask = Task.Factory.StartNew(() => CancelWhenTerminationIndicated());
+            Task WaitForKeyTask = CancelWhenTerminationIndicated();
 
             // Terminate when the CancellationToken is canceled
             try
@@ -44,28 +54,37 @@ namespace SftpServer
             }
             catch (TaskCanceledException)
             {
-                Log.Information("Terminating...");
-                _SftpApi.Stop();
-                Log.Information("Server stopped");
+                StopSftpServer();
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "Exception while expecting termination event");
             }
 
+            Log.Information("The process is exiting");
             Log.CloseAndFlush();
+            Environment.Exit(0);  // seems to be needed when ctl-C
         }
 
-        private static void CancelWhenTerminationIndicated()
+        private static void StopSftpServer()
         {
+            Log.Information("Terminating normally...");
+            _SftpApi.Stop();
+            _SftpApi = null;
+        }
+
+        private async static Task CancelWhenTerminationIndicated()
+        {
+            Console.WriteLine("Press any key to terminate this application");
+            Task readKeyTask = Task.Run(() => Console.ReadKey(true), Cts.Token);
+
             while (true)
             {
                 try
                 {
-                    // If needed, use multiple termination techniques e.g. keystroke for Windows + SIGTERM handler for linux container
-                    Console.WriteLine("Press any key to terminate this application");
-                    ConsoleKeyInfo keyInfo = Console.ReadKey(true);
+                    await readKeyTask;
                     Cts.Cancel();
+                    break;
                 }
                 catch (Exception ex)
                 {

@@ -21,7 +21,6 @@ namespace SftpServerLib
         internal static System.Timers.Timer _maintenanceTimer;
         internal static Sftpserver _sftpServer;
         internal static Dictionary<string, SftpConnectionProperties> _connections;
-        internal static AuditLogger _auditLogger;
 
         static IpWorksSftpServer()
         {
@@ -36,8 +35,6 @@ namespace SftpServerLib
                 //ErrorLogRootFolder = "",  // TODO need to deal with this?
             };
 
-            _auditLogger = new AuditLogger();
-
             _maintenanceTimer = new System.Timers.Timer
             {
                 Interval = GlobalResources.GetConfigValue<double>("SftpMaintenanceIntervalMs", 20_000),
@@ -46,7 +43,7 @@ namespace SftpServerLib
             };
             _maintenanceTimer.Elapsed += IpWorksSftpServerEventHandlers.OnMaintenanceTimerElapsed;
         }
-        
+
         public override void Start(byte[] keyBytes)
         {
             Certificate certificate = new Certificate(keyBytes);
