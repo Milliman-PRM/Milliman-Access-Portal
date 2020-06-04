@@ -130,16 +130,24 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
 
+$envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
+    "AzureCI" {"ci"}
+    "Development" {"ci"}
+    "CI" {"ci"}
+    "Staging" {"staging"}
+    "Production" {"prod"}
+}
+
 # Required inputs to get-azkeyvaultsecret function
 $azTenantId = $env:azTenantId
-$azSubscriptionId = $env:azSubscriptionId
-$azClientId = $env:azClientId
-$azClientSecret = $env:AzClientSecret
-$azVaultNameFD = $env:azVaultNameFD
-$azVaultNameMAP = $env:azVaultNameMAP
-$thumbprint = $env:thumbprint
-$azCertPass = $env:azCertPass
-$azFilesharePass = $env:azFilesharePass
+$azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
+$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "User") # $env:azClientId
+$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "User") # $env:AzClientSecret
+
+$azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
+$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "User") #  $env:thumbprint
+$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "User") #  $env:azCertPass
+$azFilesharePass = [Environment]::GetEnvironmentVariable("azFilesharePass$envCommonName", "User") #  $env:azFilesharePass
 
 mkdir -p ${rootPath}\_test_results
 #endregion
