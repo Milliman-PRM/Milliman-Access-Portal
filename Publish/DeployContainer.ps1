@@ -1,4 +1,13 @@
+<#
+    .SYNOPSIS
+        Deploy FileDrop SFTP server
 
+    .DESCRIPTION
+        This script assumes the environment is set up in CI_Publish
+
+    .NOTES
+        AUTHORS - Steve Gredell
+#>
 Param(
     [Parameter()]
     [string]$azTenantId=$env:azTenantId,
@@ -60,7 +69,7 @@ $TMName = switch ($($env:ASPNETCORE_ENVIRONMENT).ToUpper()) {
     default {"filedrop-ci"}
 }
 
-$TrafficManagerEndpoint = Get-AzTrafficManagerEndpoint -Name $TMName -ResourceGroupName $FDRG -ProfileName "filedrop-sftp-endpoint"
+$TrafficManagerEndpoint = Get-AzTrafficManagerEndpoint -Name $TMName -Type "ExternalEndpoints" -ResourceGroupName $FDRG -ProfileName "filedrop-sftp-endpoint"
 
 $TrafficManagerEndpoint.Target = $($containerGroup).Fqdn
 
