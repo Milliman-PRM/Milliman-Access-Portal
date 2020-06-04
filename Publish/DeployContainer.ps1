@@ -1,4 +1,13 @@
+<#
+    .SYNOPSIS
+        Deploy FileDrop SFTP server
 
+    .DESCRIPTION
+        This script assumes the environment is set up in CI_Publish
+
+    .NOTES
+        AUTHORS - Steve Gredell
+#>
 Param(
     [Parameter()]
     [string]$azTenantId=$env:azTenantId,
