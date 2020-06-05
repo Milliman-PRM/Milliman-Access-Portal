@@ -428,7 +428,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               indentation={entity.indent}
             >
               <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
+                <CardText text={entity.name} subtext={entity.canManageFileDrops ? entity.code : null} />
                 {
                   !card.disabled &&
                   <CardSectionStats>
