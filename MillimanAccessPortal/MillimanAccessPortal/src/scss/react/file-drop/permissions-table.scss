@@ -3,29 +3,29 @@
 
 .permission-group-table {
 
-    &.col-group-user-icon {
+    .col-group-user-icon {
         width: 2em;
     }
 
-    &.col-name {
+    .col-name {
         max-width: 12em;
         width: 12em;
         min-width: 8em;
     }
 
-    &.col-permission-download,
-    &.col-permission-upload,
-    &.col-permission-delete {
-        width: 6em;
+    .col-permission-download,
+    .col-permission-upload,
+    .col-permission-delete {
+        width: 5em;
         padding: .25em 0;
     }
 
-    &.col-permissions {
+    .col-permissions {
         padding: .25em 0;
         border-bottom: 1px solid $charcoal;
     }
 
-    &.col-actions {
+    .col-actions {
         width: 4em;
     }
 
