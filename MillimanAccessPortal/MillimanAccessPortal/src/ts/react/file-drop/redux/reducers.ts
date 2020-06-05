@@ -690,6 +690,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDropSettings: {
       ...state.fileDropSettings,
       userHasPassword: true,
+      isPasswordExpired: false,
       fileDropPassword: action.response.password,
     },
   }),
