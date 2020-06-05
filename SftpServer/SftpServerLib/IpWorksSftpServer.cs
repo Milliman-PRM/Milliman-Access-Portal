@@ -58,6 +58,7 @@ namespace SftpServerLib
             {
                 try
                 {
+                    Log.Information("Initiating SFTP server shut down");
                     _sftpServer.Shutdown();
                     _sftpServer = null;
                     Log.Information("SFTP server is shut down");

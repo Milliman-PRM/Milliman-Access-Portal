@@ -27,8 +27,8 @@ namespace SftpServer
 
             Console.CancelKeyPress += (sender, eventArgs) => 
             {
-                // Ctrl-C or Ctrl-Break pressed
-                eventArgs.Cancel = true;  // Allow the graceful shutdown to complete
+                Log.Information("Ctl-C, Ctl-Break, or equivalent linux signal received");
+                eventArgs.Cancel = true;  // Allow the graceful shutdown code to run
                 Cts.Cancel();
             };
 
@@ -45,9 +45,8 @@ namespace SftpServer
             Console.WriteLine($"SFTP server listening on port {state.LocalPort}");
             Console.WriteLine($"SFTP server fingerprint is {state.Fingerprint}");
 
-            Task WaitForKeyTask = CancelWhenTerminationIndicated();
+            Task KeyPressTask = Task.Run(() => CancelTokenOnConsoleKeyPress());
 
-            // Terminate when the CancellationToken is canceled
             try
             {
                 await Task.Delay(Timeout.Infinite, Cts.Token);
@@ -68,30 +67,18 @@ namespace SftpServer
 
         private static void StopSftpServer()
         {
-            Log.Information("Terminating normally...");
             _SftpApi.Stop();
             _SftpApi = null;
         }
 
-        private async static Task CancelWhenTerminationIndicated()
+        private static void CancelTokenOnConsoleKeyPress()
         {
             Console.WriteLine("Press any key to terminate this application");
-            Task readKeyTask = Task.Run(() => Console.ReadKey(true), Cts.Token);
 
-            while (true)
-            {
-                try
-                {
-                    await readKeyTask;
-                    Cts.Cancel();
-                    break;
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "Error waiting for external termination instruction");
-                    Thread.Sleep(1000);
-                }
-            }
+            Console.ReadKey(true);
+
+            Log.Information("Normal user initiated termination");
+            Cts.Cancel();
         }
     }
 }
