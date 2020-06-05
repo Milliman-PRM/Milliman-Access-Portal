@@ -49,11 +49,13 @@ namespace SftpServer
 
             try
             {
+                // Block this thread indefinitely, until token is canceled
                 await Task.Delay(Timeout.Infinite, Cts.Token);
             }
             catch (TaskCanceledException)
             {
-                StopSftpServer();
+                _SftpApi.Stop();
+                _SftpApi = null;
             }
             catch (Exception ex)
             {
@@ -63,12 +65,6 @@ namespace SftpServer
             Log.Information("The process is exiting");
             Log.CloseAndFlush();
             Environment.Exit(0);  // seems to be needed when ctl-C
-        }
-
-        private static void StopSftpServer()
-        {
-            _SftpApi.Stop();
-            _SftpApi = null;
         }
 
         private static void CancelTokenOnConsoleKeyPress()
