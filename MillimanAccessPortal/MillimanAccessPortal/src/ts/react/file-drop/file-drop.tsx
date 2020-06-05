@@ -435,7 +435,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <CardStat
                       name={'File Drops'}
                       value={entity.fileDropCount}
-                      icon={'reports'}
+                      icon={'file-drop'}
                     />
                     <CardStat
                       name={'Users'}
