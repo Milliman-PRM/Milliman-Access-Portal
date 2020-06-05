@@ -45,6 +45,7 @@ const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
   fileDropId: '',
   eligibleUsers: {},
   permissionGroups: {},
+  clientModel: null,
 };
 
 const _initialFilterValues: State.FileDropFilterState = {
@@ -663,6 +664,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ...action.response,
     },
+    clients: {
+      ...state.clients,
+      [action.response.clientModel.id]: action.response.clientModel,
+    },
   }),
   UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.UpdatePermissionGroupsSucceeded) => {
     let userCount = 0;
@@ -680,6 +685,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
       },
       permissionGroups: {
         ...action.response,
+      },
+      clients: {
+        ...state.clients,
+        [action.response.clientModel.id]: action.response.clientModel,
       },
     };
   },
