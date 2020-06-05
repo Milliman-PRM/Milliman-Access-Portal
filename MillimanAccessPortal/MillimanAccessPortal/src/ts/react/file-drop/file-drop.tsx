@@ -1087,23 +1087,28 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 {
                   fileDropSettings.assignedPermissionGroupId &&
                   uploadNotification &&
+                  uploadNotification.canModify &&
                   <FormSection title="Notification Settings">
-                    <Toggle
-                      label="Upload"
-                      checked={uploadNotification.isEnabled}
-                      readOnly={!uploadNotification.canModify}
-                      onClick={() => {
-                        if (uploadNotification.canModify) {
-                          this.props.setFileDropNotificationSetting({
-                            fileDropId: fileDrop,
-                            notifications: [{
-                              notificationType: FileDropNotificationTypeEnum.FileWritten,
-                              isEnabled: !uploadNotification.isEnabled,
-                            }],
-                          });
-                        }
-                      }}
-                    />
+                    {
+                      uploadNotification &&
+                      uploadNotification.canModify &&
+                      <Toggle
+                        label="Upload"
+                        checked={uploadNotification.isEnabled}
+                        readOnly={!uploadNotification.canModify}
+                        onClick={() => {
+                          if (uploadNotification.canModify) {
+                            this.props.setFileDropNotificationSetting({
+                              fileDropId: fileDrop,
+                              notifications: [{
+                                notificationType: FileDropNotificationTypeEnum.FileWritten,
+                                isEnabled: !uploadNotification.isEnabled,
+                              }],
+                            });
+                          }
+                        }}
+                      />
+                    }
                   </ FormSection>
                 }
               </>
