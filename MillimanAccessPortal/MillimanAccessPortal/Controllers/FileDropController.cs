@@ -229,9 +229,10 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
 
-            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropModel.Id;
-            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId);
+            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser.Id);
 
             return Json(model);
         }
@@ -290,7 +291,8 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
 
-            var model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, await _userManager.GetUserAsync(User));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropRecord.Id;
 
             return Json(model);
@@ -313,7 +315,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(clientId, await _userManager.GetUserAsync(User));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(clientId, currentUser.Id);
 
             return Json(model);
         }
@@ -390,7 +393,8 @@ namespace MillimanAccessPortal.Controllers
                 Log.Warning(ex, $"Failed to delete root folder {fullRootPath} associated with File Drop with Id {fileDrop.Id}, named {fileDrop.Name}");
             }
 
-            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDrop.ClientId, await _userManager.GetUserAsync(User));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDrop.ClientId, currentUser.Id);
             model.CurrentFileDropId = id;
 
             return Json(model);
@@ -409,7 +413,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            PermissionGroupsModel model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId, currentUser.Id);
 
             return Json(model);
         }
@@ -438,7 +443,8 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                var returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model);
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                PermissionGroupsModel returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model, currentUser.Id);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
