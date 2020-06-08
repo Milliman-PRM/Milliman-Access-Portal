@@ -17,6 +17,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using Npgsql;
 using Prm.EmailQueue;
 using Serilog;
 using System.Diagnostics;
@@ -62,11 +63,14 @@ namespace MillimanAccessPortal
 
                 Assembly processAssembly = Assembly.GetEntryAssembly();
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+                NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
+
                 Log.Information($"Process launched:{Environment.NewLine}" +
                                 $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                                 $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                                 $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}" +
+                                $"\tUsing MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
 
                 try
                 {

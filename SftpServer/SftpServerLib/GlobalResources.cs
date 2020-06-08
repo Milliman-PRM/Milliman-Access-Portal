@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Npgsql;
 using Prm.SerilogCustomization;
 using Prm.EmailQueue;
 using Serilog;
@@ -126,11 +127,12 @@ namespace SftpServerLib
                 .CreateLogger();
             Assembly processAssembly = Assembly.GetEntryAssembly();
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+            NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(configuration.GetConnectionString("DefaultConnection"));
             Log.Information($"Process launched:{Environment.NewLine}" +
                             $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                             $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                             $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                            $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+                            $"\tUsing MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
         }
 
         /// <summary>
