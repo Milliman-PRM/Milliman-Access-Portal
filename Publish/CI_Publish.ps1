@@ -295,6 +295,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
+$runTests=$false
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
