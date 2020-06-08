@@ -142,6 +142,7 @@ $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
 $azTenantId = $env:azTenantId
 $azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
 $azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "User") # $env:azClientId
+log_statement "Got $azClientId from $envCommonName"
 $azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "User") # $env:AzClientSecret
 
 $azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
