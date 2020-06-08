@@ -141,13 +141,13 @@ $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
 # Required inputs to get-azkeyvaultsecret function
 $azTenantId = $env:azTenantId
 $azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
-$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "User") # $env:azClientId
-$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "User") # $env:AzClientSecret
+$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
+$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
 
 $azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
-$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "User") #  $env:thumbprint
-$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "User") #  $env:azCertPass
-$azFilesharePass = [Environment]::GetEnvironmentVariable("azFilesharePass$envCommonName", "User") #  $env:azFilesharePass
+$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
+$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
+$azFilesharePass = [Environment]::GetEnvironmentVariable("azFilesharePass$envCommonName", "Process") #  $env:azFilesharePass
 
 mkdir -p ${rootPath}\_test_results
 #endregion
