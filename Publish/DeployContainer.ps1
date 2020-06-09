@@ -38,10 +38,6 @@ Param(
 
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
-Remove-AzContainerGroup `
-      -ResourceGroupName $FDRG `
-      -Name $FDConName
-
 $params = @{
     ResourceGroupName                   = $FDRG
     Name                                = $FDConName
