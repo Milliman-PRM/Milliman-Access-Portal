@@ -152,7 +152,7 @@ $azFilesharePass = [Environment]::GetEnvironmentVariable("azFilesharePass$envCom
 mkdir -p ${rootPath}\_test_results
 #endregion
 
-#rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
+rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
@@ -209,7 +209,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --prefer-offline --frozen-lockfile"
+$command = "yarn install --frozen-lockfile"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
