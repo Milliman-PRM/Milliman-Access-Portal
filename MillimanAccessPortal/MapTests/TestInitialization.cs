@@ -113,7 +113,7 @@ namespace MapTests
 
             returnVal._dbLifeTimeFixture = dbLifeTimeFixture;
 
-            returnVal.Configuration = GenerateConfiguration();
+            returnVal.Configuration = dbLifeTimeFixture.Config;
 
             returnVal.ConfigureInjectedServices();
 
@@ -220,7 +220,7 @@ namespace MapTests
             //services.Configure<AuditLoggerConfiguration>(Configuration);
             //services.Configure<SmtpConfig>(Configuration);
 
-            services.AddScoped<IConfiguration>(p => this.Configuration);
+            services.AddScoped<IConfiguration>(p => _dbLifeTimeFixture.Config);
 
             //services.AddScoped<ApplicationDbContext, MockableMapDbContext>();
             services.AddScoped<StandardQueries>();
