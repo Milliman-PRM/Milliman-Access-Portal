@@ -557,8 +557,8 @@ $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
-$FDShareName = $($FDShareUrl).split('/')[2].split('.')[0]
-$FDAccountName = $($FDShareUrl).split('/')[-1] # Get the account name from the URL
+$FDAccountName = $($FDShareUrl).split('/')[2].split('.')[0]
+$FDShareName= $($FDShareUrl).split('/')[-1] # Get the account name from the URL
 $FDResourceGroup = "filedropsftp-$envCommonName"
 $azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName).Key1
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
