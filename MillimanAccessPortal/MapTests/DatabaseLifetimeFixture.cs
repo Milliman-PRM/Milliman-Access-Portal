@@ -28,6 +28,7 @@ namespace MapTests
     public class DatabaseLifetimeFixture : IDisposable
     {
         public string ConnectionString { get; private set; }
+        public IConfiguration Config { get; private set; }
 
         public DatabaseLifetimeFixture()
         {
@@ -37,7 +38,7 @@ namespace MapTests
                 .CreateLogger();
 
             #region Get configuration and set instance properties
-            IConfiguration Config = TestInitialization.GenerateConfiguration();
+            Config = TestInitialization.GenerateConfiguration();
 
             Dictionary<string,string> DbConfig = new Dictionary<string, string>
             {
