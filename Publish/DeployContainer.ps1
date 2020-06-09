@@ -10,13 +10,15 @@
 #>
 Param(
     [Parameter()]
+    [string]$envCommonName
+    [Parameter()]
     [string]$azTenantId=$env:azTenantId,
     [Parameter()]
     [PSCredential]$SPCredential,
     [Parameter()]
     [string]$azSubscriptionId=$env:azSubscriptionId,
     [Parameter()]
-    [string]$FDRG="filedropsftp-$env:ASPNETCORE_ENVIRONMENT",
+    [string]$FDRG,
     [Parameter()]
     [string]$FDConName="filedropsftp-cont",
     [Parameter()]
@@ -24,7 +26,7 @@ Param(
     [Parameter()]
     [PSCredential]$FDACRCred,
     [Parameter()]
-    [string]$FDFileName="filedropsftpstagingshare",
+    [string]$FDFileName,
     [Parameter()]
     [PSCredential]$FDFileCred,
     [Parameter()]
@@ -54,7 +56,7 @@ $params = @{
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
     AzureFileVolumeMountPath            = "/mnt/filedropshare"
-    DnsNameLabel                        = "filedrop-$env:ASPNETCORE_ENVIRONMENT"
+    DnsNameLabel                        = "filedrop-$envCommonName"
 }
 
 $containerGroup = New-AzContainerGroup @params
