@@ -530,11 +530,12 @@ Set-Location $rootpath\SftpServer
 $entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
 ((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
 
+log_statement "ClientID is $azClientId"
 $passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
 $SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
-
+log_statement "KeyVault Name is $azVaultNameFD"
 # Get Secrets from the FileDrop Key Vault
 $acr_url = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
@@ -557,6 +558,7 @@ $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
+log_statement "FDShareURL is $FDShareUrl"
 $FDShareName =  $($FDShareUrl).split('/')[-1] # Get the file share name from the URL
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
 $FDFileCred = New-Object System.Management.Automation.PSCredential($FDShareName, $azFilesharePass_secure)
