@@ -562,7 +562,7 @@ $FDAccountName = $($FDShareUrl).split('/')[-1] # Get the account name from the U
 $FDResourceGroup = "filedropsftp-$envCommonName"
 $azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName).Key1
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = New-Object System.Management.Automation.PSCredential($FDShareName, $azFilesharePass_secure)
+$FDFileCred = New-Object System.Management.Automation.PSCredential($FDAccountName, $azFilesharePass_secure)
 
 Set-Location $rootpath
 
