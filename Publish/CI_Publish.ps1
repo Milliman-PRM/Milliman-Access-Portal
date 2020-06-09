@@ -142,13 +142,12 @@ $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
 $azTenantId = $env:azTenantId
 $azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
 $azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
-log_statement "Got $azClientId from $envCommonName"
 $azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
 
 $azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
 $thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
 $azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
-$azFilesharePass = [Environment]::GetEnvironmentVariable("azFilesharePass$envCommonName", "Process") #  $env:azFilesharePass
+
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -558,9 +557,10 @@ $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
-log_statement "FDShareURL is $FDShareUrl"
 $FDShareName = $($FDShareUrl).split('/')[2].split('.')[0]
-#$FDShareName = $($FDShareUrl).split('/')[-1] # Get the file share name from the URL
+$FDAccountName = $($FDShareUrl).split('/')[-1] # Get the account name from the URL
+$FDResourceGroup = "filedropsftp-$envCommonName"
+$azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName).Key1
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
 $FDFileCred = New-Object System.Management.Automation.PSCredential($FDShareName, $azFilesharePass_secure)
 
