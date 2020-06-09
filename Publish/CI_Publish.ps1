@@ -559,7 +559,8 @@ $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
 log_statement "FDShareURL is $FDShareUrl"
-$FDShareName =  $($FDShareUrl).split('/')[-1] # Get the file share name from the URL
+$FDShareName = $($FDShareUrl).split('/')[2].split('.')[0]
+#$FDShareName = $($FDShareUrl).split('/')[-1] # Get the file share name from the URL
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
 $FDFileCred = New-Object System.Management.Automation.PSCredential($FDShareName, $azFilesharePass_secure)
 
