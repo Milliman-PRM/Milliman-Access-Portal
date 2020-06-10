@@ -132,6 +132,7 @@ namespace SftpServerLib
                             $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                             $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                             $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                            $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}") +                             
                             $"\tUsing MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
         }
 
