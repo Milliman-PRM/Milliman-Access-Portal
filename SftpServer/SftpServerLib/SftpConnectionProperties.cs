@@ -22,6 +22,7 @@ namespace SftpServerLib
         public SftpAccount Account { get; set; }
 
         public ApplicationUser MapUser { get; set; }
+        public bool MapUserIsSso { get; set; } = false;
 
         public Guid? FileDropId { get; set; } = null;
         public string FileDropName { get; set; } = null;

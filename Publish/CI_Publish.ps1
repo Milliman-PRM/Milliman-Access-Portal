@@ -19,7 +19,6 @@
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
 
-
 Param(
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$deployEnvironment="AzureCI",
@@ -27,6 +26,7 @@ Param(
     [string]$testEnvironment="CI"
 )
 
+import-module az.accounts, az.keyvault
 
 function log_statement {
     Param([string]$statement)
@@ -98,6 +98,8 @@ log_statement "Building configuration: $buildType"
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
+$acr_url = "filedropci.azurecr.io"
+
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -128,6 +130,18 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
+
+
+# Required inputs to get-azkeyvaultsecret function
+$azTenantId = $env:azTenantId
+$azSubscriptionId = $env:azSubscriptionId
+$azClientId = $env:azClientId
+$azClientSecret = $env:AzClientSecret
+$azVaultNameFD = $env:azVaultNameFD
+$azVaultNameMAP = $env:azVaultNameMAP
+$thumbprint = "79B4D2A1849EECB7C433B7B5D28CFC600414DC38" # thumbprint of certificate used to authenticate as Service Principal
+$azCertPass = $env:azCertPass
+$azFilesharePass = $env:azFilesharePass
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -263,7 +277,10 @@ Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
 
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
+Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
+mkdir "out"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -411,6 +428,7 @@ Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destinatio
 
 Set-Location $webBuildTarget
 
+
 $webVersion = get-childitem "MillimanAccessPortal.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $webVersion = "$webVersion-$branchName"
 
@@ -493,6 +511,68 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+#endregion
+
+#region Create and publish FileDrop docker container
+
+Set-Location $rootpath\SftpServer
+
+#Replace Windows line endings with Unix ones in entrypoint script
+$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
+((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
+
+$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
+$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
+Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
+
+
+# Get Secrets from the FileDrop Key Vault
+$acr_url = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrurl").SecretValueText
+
+$acr_username = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acruser").SecretValueText
+
+$acr_password = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrpass").SecretValueText
+
+$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
+
+$acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
+$FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
+
+$azFileShareName = "filedropsftpstagingstor"
+$azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
+$FDFileCred = New-Object System.Management.Automation.PSCredential($azFileShareName, $azFilesharePass_secure)
+
+Set-Location $rootpath
+
+docker login $acr_url -u $acr_username -p $acr_password
+
+docker build -t filedropsftp -f SftpServer/dockerfile .
+
+docker tag filedropsftp $FDImageName
+
+docker push $FDImageName
+
+docker rmi $FDImageName
+
+#trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
+
+& $rootPath\Publish\DeployContainer.ps1 `
+    -azTenantId $azTenantId `
+    -SPCredential $SPCredential `
+    -azSubscriptionId $azSubscriptionId `
+    -FDImageName $FDImageName `
+    -FDACRCred $FDACRCred `
+    -FDFileName "filedropsftpstagingshare" `
+    -FDFileCred $FDFileCred `
+    -azCertPass $azCertPass `
+    -thumbprint $thumbprint
 
 #endregion
 
