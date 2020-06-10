@@ -45,6 +45,7 @@ const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
   fileDropId: '',
   eligibleUsers: {},
   permissionGroups: {},
+  clientModel: null,
 };
 
 const _initialFilterValues: State.FileDropFilterState = {
@@ -663,13 +664,34 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: {
       ...action.response,
     },
-  }),
-  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.FetchPermissionGroupsSucceeded) => ({
-    ...state,
-    permissionGroups: {
-      ...action.response,
+    clients: {
+      ...state.clients,
+      [action.response.clientModel.id]: action.response.clientModel,
     },
   }),
+  UPDATE_PERMISSION_GROUPS_SUCCEEDED: (state, action: Action.UpdatePermissionGroupsSucceeded) => {
+    let userCount = 0;
+    for (const pG in action.response.permissionGroups) {
+      userCount = userCount + action.response.permissionGroups[pG].assignedMapUserIds.length;
+    }
+    return {
+      ...state,
+      fileDrops: {
+        ...state.fileDrops,
+        [action.response.fileDropId]: {
+          ...state.fileDrops[action.response.fileDropId],
+          userCount,
+        },
+      },
+      permissionGroups: {
+        ...action.response,
+      },
+      clients: {
+        ...state.clients,
+        [action.response.clientModel.id]: action.response.clientModel,
+      },
+    };
+  },
   FETCH_ACTIVITY_LOG_SUCCEEDED: (state, action: Action.FetchActivityLogSucceeded) => ({
     ...state,
     activityLogEvents: action.response,
@@ -690,6 +712,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDropSettings: {
       ...state.fileDropSettings,
       userHasPassword: true,
+      isPasswordExpired: false,
       fileDropPassword: action.response.password,
     },
   }),

@@ -347,6 +347,7 @@ export interface PermissionGroupsReturnModel {
   fileDropId: Guid;
   eligibleUsers: Dict<FileDropEligibleUser>;
   permissionGroups: Dict<PermissionGroupModel>;
+  clientModel?: FileDropClientWithStats;
 }
 
 export interface PGChangeModel {

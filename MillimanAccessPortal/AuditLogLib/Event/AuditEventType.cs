@@ -1156,7 +1156,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8112, "SFTP File Write", (model) => new
+            8112, "SFTP File Upload", (model) => new
             {
                 model.FileName,
                 model.FileDrop,
@@ -1165,7 +1165,7 @@ namespace AuditLogLib.Event
             });
 
         public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileReadAuthorized = new AuditEventType<SftpFileOperationLogModel>(
-            8113, "SFTP File Read", (model) => new
+            8113, "SFTP File Download", (model) => new
             {
                 model.FileName,
                 model.FileDrop,
