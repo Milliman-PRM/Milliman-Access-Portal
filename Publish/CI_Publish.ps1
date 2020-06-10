@@ -98,8 +98,6 @@ log_statement "Building configuration: $buildType"
 $gitExePath = "git"
 $psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
 
-$acr_url = "filedropci.azurecr.io"
-
 $dbServer = "map-ci-db.postgres.database.azure.com"
 $dbUser = $env:db_deploy_user
 $dbPassword = $env:db_deploy_password
@@ -132,16 +130,24 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
 
+$envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
+    "AzureCI" {"ci"}
+    "Development" {"ci"}
+    "CI" {"ci"}
+    "Staging" {"staging"}
+    "Production" {"prod"}
+}
+
 # Required inputs to get-azkeyvaultsecret function
 $azTenantId = $env:azTenantId
-$azSubscriptionId = $env:azSubscriptionId
-$azClientId = $env:azClientId
-$azClientSecret = $env:AzClientSecret
-$azVaultNameFD = $env:azVaultNameFD
-$azVaultNameMAP = $env:azVaultNameMAP
-$thumbprint = "79B4D2A1849EECB7C433B7B5D28CFC600414DC38" # thumbprint of certificate used to authenticate as Service Principal
-$azCertPass = $env:azCertPass
-$azFilesharePass = $env:azFilesharePass
+$azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
+$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
+$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
+
+$azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
+$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
+$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
+
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -540,14 +546,22 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
+$FDShareUrl = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "storage-url").SecretValueText
+
 $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
 
 $acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
 $FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
 
-$azFileShareName = "filedropsftpstagingstor"
+
+$FDAccountName = $($FDShareUrl).split('/')[2].split('.')[0]
+$FDShareName= $($FDShareUrl).split('/')[-1] # Get the account name from the URL
+$FDResourceGroup = "filedropsftp-$envCommonName"
+$azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName)[0].Value
 $azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = New-Object System.Management.Automation.PSCredential($azFileShareName, $azFilesharePass_secure)
+$FDFileCred = New-Object System.Management.Automation.PSCredential($FDAccountName, $azFilesharePass_secure)
 
 Set-Location $rootpath
 
@@ -564,12 +578,14 @@ docker rmi $FDImageName
 #trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
 
 & $rootPath\Publish\DeployContainer.ps1 `
+    -envCommonName $envCommonName `
+    -FDRG "filedropsftp-$envCommonName"
     -azTenantId $azTenantId `
     -SPCredential $SPCredential `
     -azSubscriptionId $azSubscriptionId `
     -FDImageName $FDImageName `
     -FDACRCred $FDACRCred `
-    -FDFileName "filedropsftpstagingshare" `
+    -FDFileName $FDShareName `
     -FDFileCred $FDFileCred `
     -azCertPass $azCertPass `
     -thumbprint $thumbprint

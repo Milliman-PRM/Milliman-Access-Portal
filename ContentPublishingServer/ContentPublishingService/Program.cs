@@ -11,6 +11,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Hosting.WindowsServices;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Npgsql;
 using Prm.SerilogCustomization;
 using Serilog;
 using System;
@@ -44,12 +45,15 @@ namespace ContentPublishingService
             Assembly processAssembly = Assembly.GetAssembly(typeof(Program));
             FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
             bool isService = WindowsServiceHelpers.IsWindowsService();
+            NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.ApplicationConfiguration.GetConnectionString("DefaultConnection"));
+
             string introMsg = $"Process launched:{Environment.NewLine}" +
                               $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                               $"    assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                               $"    assembly location <{processAssembly.Location}>{Environment.NewLine}" +
                               $"    host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
-                              $"    running as {(isService ? "Windows service" : "console application")}";
+                              $"    running as {(isService ? "Windows service" : "console application")}" +
+                              $"    using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}";
 
             Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(Configuration.ApplicationConfiguration)

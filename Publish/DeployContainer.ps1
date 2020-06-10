@@ -1,5 +1,16 @@
+<#
+    .SYNOPSIS
+        Deploy FileDrop SFTP server
 
+    .DESCRIPTION
+        This script assumes the environment is set up in CI_Publish
+
+    .NOTES
+        AUTHORS - Steve Gredell
+#>
 Param(
+    [Parameter()]
+    [string]$envCommonName
     [Parameter()]
     [string]$azTenantId=$env:azTenantId,
     [Parameter()]
@@ -7,7 +18,7 @@ Param(
     [Parameter()]
     [string]$azSubscriptionId=$env:azSubscriptionId,
     [Parameter()]
-    [string]$FDRG="filedropsftp-staging",
+    [string]$FDRG,
     [Parameter()]
     [string]$FDConName="filedropsftp-cont",
     [Parameter()]
@@ -15,23 +26,19 @@ Param(
     [Parameter()]
     [PSCredential]$FDACRCred,
     [Parameter()]
-    [string]$FDFileName="filedropsftpstagingshare",
+    [string]$FDFileName,
     [Parameter()]
     [PSCredential]$FDFileCred,
     [Parameter()]
     [string]$azCertPass,
     [Parameter()]
-    [string]$thumbprint
+    [string]$thumbprint,
+    [Parameter()]
+    [string]$FDLocation = "eastus2"
 )
-
-$FDLocation = "eastus2"
 
 
 Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
-
-Remove-AzContainerGroup `
-      -ResourceGroupName $FDRG `
-      -Name $FDConName
 
 $params = @{
     ResourceGroupName                   = $FDRG
@@ -45,11 +52,23 @@ $params = @{
     IpAddressType                       = "Public"
     Port                                = 22
     Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint" # "tail -f /dev/null"
-    EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = "CI"}
+    EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = $env:ASPNETCORE_ENVIRONMENT}
     AzureFileVolumeShareName            = $FDFileName
     AzureFileVolumeAccountCredential    = $FDFileCred
     AzureFileVolumeMountPath            = "/mnt/filedropshare"
-    DnsNameLabel                        = "filedrop-staging"
+    DnsNameLabel                        = "filedrop-$envCommonName"
 }
 
-New-AzContainerGroup @params
+$containerGroup = New-AzContainerGroup @params
+
+$TMName = switch ($($env:ASPNETCORE_ENVIRONMENT).ToUpper()) {
+    "STAGING" {"filedrop-staging"}
+    "PRODUCTION" {"filedrop-prod"}
+    default {"filedrop-ci"}
+}
+
+$TrafficManagerEndpoint = Get-AzTrafficManagerEndpoint -Name $TMName -Type "ExternalEndpoints" -ResourceGroupName $FDRG -ProfileName "filedrop-sftp-endpoint"
+
+$TrafficManagerEndpoint.Target = $($containerGroup).Fqdn
+
+Set-AzTrafficManagerEndpoint -TrafficManagerEndpoint $TrafficManagerEndpoint
