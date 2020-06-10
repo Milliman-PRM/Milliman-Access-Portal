@@ -1,11 +1,12 @@
 import '../../../../images/icons/client.svg';
+import '../../../../images/icons/file-drop.svg';
 import '../../../../images/icons/group.svg';
 import '../../../../images/icons/reports.svg';
 import '../../../../images/icons/user.svg';
 
 import * as React from 'react';
 
-export type CardStatIcon = 'client' | 'group' | 'reports' | 'user';
+export type CardStatIcon = 'client' | 'file-drop' | 'group' | 'reports' | 'user';
 
 export interface CardStatProps {
   name: string;

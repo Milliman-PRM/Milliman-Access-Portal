@@ -428,14 +428,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               indentation={entity.indent}
             >
               <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
+                <CardText text={entity.name} subtext={entity.canManageFileDrops ? entity.code : null} />
                 {
                   !card.disabled &&
                   <CardSectionStats>
                     <CardStat
                       name={'File Drops'}
                       value={entity.fileDropCount}
-                      icon={'reports'}
+                      icon={'file-drop'}
                     />
                     <CardStat
                       name={'Users'}
@@ -792,7 +792,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     );
     const cancelEditPermissionGroupsButton = (
       <ActionIcon
-        label="Discard Changes"
+        label={permissionGroupChangesPending ? 'Discard Changes' : 'Exit Edit Mode'}
         icon="cancel"
         action={() => {
           if (permissionGroupChangesPending) {
@@ -1087,23 +1087,28 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 {
                   fileDropSettings.assignedPermissionGroupId &&
                   uploadNotification &&
+                  uploadNotification.canModify &&
                   <FormSection title="Notification Settings">
-                    <Toggle
-                      label="Upload"
-                      checked={uploadNotification.isEnabled}
-                      readOnly={!uploadNotification.canModify}
-                      onClick={() => {
-                        if (uploadNotification.canModify) {
-                          this.props.setFileDropNotificationSetting({
-                            fileDropId: fileDrop,
-                            notifications: [{
-                              notificationType: FileDropNotificationTypeEnum.FileWritten,
-                              isEnabled: !uploadNotification.isEnabled,
-                            }],
-                          });
-                        }
-                      }}
-                    />
+                    {
+                      uploadNotification &&
+                      uploadNotification.canModify &&
+                      <Toggle
+                        label="Upload"
+                        checked={uploadNotification.isEnabled}
+                        readOnly={!uploadNotification.canModify}
+                        onClick={() => {
+                          if (uploadNotification.canModify) {
+                            this.props.setFileDropNotificationSetting({
+                              fileDropId: fileDrop,
+                              notifications: [{
+                                notificationType: FileDropNotificationTypeEnum.FileWritten,
+                                isEnabled: !uploadNotification.isEnabled,
+                              }],
+                            });
+                          }
+                        }}
+                      />
+                    }
                   </ FormSection>
                 }
               </>

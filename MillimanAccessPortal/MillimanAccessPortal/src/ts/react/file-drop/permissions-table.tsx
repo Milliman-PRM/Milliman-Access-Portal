@@ -239,7 +239,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   <ActionIcon
                     action={() => removePermissionGroup({ pgId: thisPG.id })}
                     icon="delete"
-                    label="Delete Permission Group"
+                    label={thisPG.isPersonalGroup ? 'Remove User' : 'Delete Permission Group'}
                     inline={true}
                   />
                 </ActionIconButtonContainer>

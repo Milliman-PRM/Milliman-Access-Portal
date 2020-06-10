@@ -87,7 +87,7 @@ namespace MillimanAccessPortal.DataQueries
             List<ClientCardModel> returnList = new List<ClientCardModel>();
             foreach (Client eachClient in clientsWithRole)
             {
-                ClientCardModel eachClientCardModel = await GetClientCardModelAsync(eachClient, user);
+                ClientCardModel eachClientCardModel = await GetClientCardModelAsync(eachClient, user.Id);
 
                 // Only include information about a client's otherwise unlisted parent in the model if the user can manage the (child) client
                 if (eachClientCardModel.ParentId.HasValue && 
@@ -95,7 +95,7 @@ namespace MillimanAccessPortal.DataQueries
                 {
                     if (eachClientCardModel.CanManageFileDrops)
                     {
-                        ClientCardModel parentCardModel = await GetClientCardModelAsync(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user);
+                        ClientCardModel parentCardModel = await GetClientCardModelAsync(unlistedParentClients.Single(p => p.Id == eachClientCardModel.ParentId.Value), user.Id);
                         returnList.Add(parentCardModel);
                     }
                     else
@@ -110,7 +110,7 @@ namespace MillimanAccessPortal.DataQueries
             return returnList.ToDictionary(c => c.Id);
         }
 
-        private async Task<ClientCardModel> GetClientCardModelAsync(Client client, ApplicationUser user)
+        private async Task<ClientCardModel> GetClientCardModelAsync(Client client, Guid userId)
         {
             return new ClientCardModel(client)
             {
@@ -126,20 +126,20 @@ namespace MillimanAccessPortal.DataQueries
 
                 CanManageFileDrops = await _dbContext.UserRoleInClient
                                                      .AnyAsync(ur => ur.ClientId == client.Id &&
-                                                                     ur.UserId == user.Id &&
+                                                                     ur.UserId == userId &&
                                                                      ur.Role.RoleEnum == RoleEnum.FileDropAdmin),
 
                 AuthorizedFileDropUser = await _dbContext.SftpAccount
-                                                        .AnyAsync(a => a.ApplicationUserId == user.Id &&
+                                                        .AnyAsync(a => a.ApplicationUserId == userId &&
                                                                        a.FileDropUserPermissionGroupId.HasValue &&
                                                                        a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
             };
         }
 
-        internal async Task<FileDropsModel> GetFileDropsModelForClientAsync(Guid clientId, ApplicationUser user)
+        internal async Task<FileDropsModel> GetFileDropsModelForClientAsync(Guid clientId, Guid userId)
         {
             bool userIsAdmin = await _dbContext.UserRoleInClient
-                                               .AnyAsync(urc => urc.UserId == user.Id &&
+                                               .AnyAsync(urc => urc.UserId == userId &&
                                                                 urc.Role.RoleEnum == RoleEnum.FileDropAdmin &&
                                                                 urc.ClientId == clientId);
 
@@ -148,7 +148,7 @@ namespace MillimanAccessPortal.DataQueries
                                                          .Where(d => d.ClientId == clientId)
                                                          .ToListAsync()
                                        : (await _dbContext.SftpAccount
-                                                          .Where(a => a.ApplicationUser.Id == user.Id)
+                                                          .Where(a => a.ApplicationUser.Id == userId)
                                                           //.Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                           .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == clientId)
                                                           .Select(a => a.FileDropUserPermissionGroup.FileDrop)
@@ -159,7 +159,7 @@ namespace MillimanAccessPortal.DataQueries
             Client client = await _dbContext.Client.FindAsync(clientId);
             FileDropsModel FileDropsModel = new FileDropsModel
             {
-                ClientCard = await GetClientCardModelAsync(client, user),
+                ClientCard = await GetClientCardModelAsync(client, userId),
             };
 
             foreach (FileDrop eachDrop in fileDrops)
@@ -180,7 +180,7 @@ namespace MillimanAccessPortal.DataQueries
             return FileDropsModel;
         }
 
-        internal async Task<PermissionGroupsModel> GetPermissionGroupsModelForFileDropAsync(Guid FileDropId, Guid ClientId)
+        internal async Task<PermissionGroupsModel> GetPermissionGroupsModelForFileDropAsync(Guid FileDropId, Guid ClientId, Guid currentUserId)
         {
             var returnModel = new PermissionGroupsModel
             {
@@ -225,13 +225,13 @@ namespace MillimanAccessPortal.DataQueries
                                             };
                                         })
                                         .ToDictionary(m => m.Id),
-
+                ClientModel = await GetClientCardModelAsync(await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == ClientId), currentUserId),
             };
 
             return returnModel;
         }
 
-        internal async Task<PermissionGroupsModel> UpdatePermissionGroupsAsync(UpdatePermissionGroupsModel model)
+        internal async Task<PermissionGroupsModel> UpdatePermissionGroupsAsync(UpdatePermissionGroupsModel model, Guid currentUserId)
         {
             // audit logs to record after the database transaction succeeds
             List<Action> auditLogActions = new List<Action>();
@@ -497,7 +497,7 @@ namespace MillimanAccessPortal.DataQueries
                     logAction();
                 }
 
-                return await GetPermissionGroupsModelForFileDropAsync(model.FileDropId, fileDrop.ClientId);
+                return await GetPermissionGroupsModelForFileDropAsync(model.FileDropId, fileDrop.ClientId, currentUserId);
             }
         }
 
