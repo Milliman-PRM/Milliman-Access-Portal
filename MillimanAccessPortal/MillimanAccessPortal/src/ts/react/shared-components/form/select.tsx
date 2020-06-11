@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-interface SelectProps {
+interface DropDownProps {
   name: string;
   label: string;
   value: string | number;
@@ -15,7 +15,7 @@ interface SelectProps {
   hidden?: boolean;
 }
 
-export const Select = React.forwardRef<HTMLSelectElement, SelectProps>((props, ref) => {
+export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>((props, ref) => {
   const { name, label, error, placeholderText, readOnly, hidden, values, children, ...rest } = props;
   const options = values.map((option, index) => {
     return (<option key={index} value={option.selectionValue}>{option.selectionLabel}</option>);

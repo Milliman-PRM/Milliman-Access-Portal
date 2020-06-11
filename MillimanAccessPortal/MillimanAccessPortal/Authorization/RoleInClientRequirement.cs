@@ -48,11 +48,9 @@ namespace MillimanAccessPortal.Authorization
                 return MapAuthorizationRequirementResult.Fail;
             }
 
-            IQueryable<UserRoleInClient> Query = 
-                DataContext.UserRoleInClient
-                           .Include(urc => urc.Role)
-                           .Where(urc => urc.Role.RoleEnum == RoleEnum &&
-                                         urc.UserId == User.Id);
+            IQueryable<UserRoleInClient> Query = DataContext.UserRoleInClient
+                                                            .Where(urc => urc.Role.RoleEnum == RoleEnum &&
+                                                                          urc.UserId == User.Id);
 
             if (!EvaluateAny)
             {

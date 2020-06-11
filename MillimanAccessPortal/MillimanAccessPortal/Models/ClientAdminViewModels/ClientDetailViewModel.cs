@@ -109,6 +109,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 RoleEnum.ContentAccessAdmin,
                 RoleEnum.ContentPublisher,
                 RoleEnum.ContentUser,
+                RoleEnum.FileDropAdmin,
+                RoleEnum.FileDropUser,
             };
 
             Claim ThisClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientEntity.Id.ToString());
@@ -124,23 +126,23 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                                         .ToList();
             }
 
-            var hasRequiredRole = DbContext.UserRoleInClient
+            var hasRequiredRole = await DbContext.UserRoleInClient
                 .Where(urc => urc.UserId == CurrentUser.Id)
                 .Where(urc => urc.Role.RoleEnum == ClientRoleRequiredToManage)
                 .Where(urc => urc.ClientId == ClientEntity.Id)
-                .Any();
-            var hasProfitCenterAuthority = DbContext.UserRoleInProfitCenter
+                .AnyAsync();
+            var hasProfitCenterAuthority = await DbContext.UserRoleInProfitCenter
                 .Where(urp => urp.UserId == CurrentUser.Id)
                 .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
                 .Where(urp => urp.ProfitCenterId == ClientEntity.ProfitCenterId)
-                .Any();
+                .AnyAsync();
             CanManage = hasRequiredRole && (!RequireProfitCenterAuthority || hasProfitCenterAuthority);
 
             // Assign the remaining assigned user properties
             if (CanManage)
             {
                 // Get all users currently member of any related Client (any descendant of the root client)
-                List<Client> AllRelatedClients = Queries.GetAllRelatedClients(ClientEntity);
+                List<Client> AllRelatedClients = await Queries.GetAllRelatedClientsAsync(ClientEntity);
                 var UsersAssignedToClientFamily = new List<ApplicationUser>();
                 foreach (Client OneClient in AllRelatedClients)
                 {
@@ -170,7 +172,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 // Query user details
                 foreach (UserInfoModel assignedUser in AssignedUsers)
                 {
-                    assignedUser.UserRoles = Queries.GetUserRolesForClient(assignedUser.Id, ClientEntity.Id)
+                    assignedUser.UserRoles = (await Queries.GetUserRolesForClientAsync(assignedUser.Id, ClientEntity.Id))
                         .Where(ur => RolesToManage.Contains(ur.RoleEnum))
                         .ToList();
 
@@ -187,8 +189,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 }
                 foreach (UserInfoModel eligibleUser in EligibleUsers)
                 {
-                    eligibleUser.UserRoles = Queries.GetUserRolesForClient(eligibleUser.Id, ClientEntity.Id)
-                        .ToList();
+                    eligibleUser.UserRoles = await Queries.GetUserRolesForClientAsync(eligibleUser.Id, ClientEntity.Id);
 
                     // any roles that were not found need to be included with IsAssigned=false
                     eligibleUser.UserRoles.AddRange(RolesToManage.Except(eligibleUser.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
@@ -203,9 +204,9 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 }
             }
 
-            ContentItems = DbContext.RootContentItem
+            ContentItems = await DbContext.RootContentItem
                                     .Where(rc => rc.ClientId == ClientEntity.Id)
-                                    .ToList();
+                                    .ToListAsync();
         }
     }
 }

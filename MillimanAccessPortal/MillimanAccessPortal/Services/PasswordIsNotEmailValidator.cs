@@ -18,12 +18,12 @@ namespace MillimanAccessPortal.Services
                 return Task.FromResult(IdentityResult.Success);
             }
 
-            string normalizedPassword = manager.NormalizeKey(password);
+            string normalizedPassword = manager.NormalizeName(password);
             
             // This case covers the user's initial password - May only be used by ~/Account/CreateInitialUser
             if (string.IsNullOrWhiteSpace(user.NormalizedEmail))
             {
-                if (normalizedPassword.Contains(manager.NormalizeKey(user.Email)))
+                if (normalizedPassword.Contains(manager.NormalizeName(user.Email)))
                 {
                     var result = IdentityResult.Failed(new IdentityError
                     {

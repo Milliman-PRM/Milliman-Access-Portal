@@ -1,4 +1,11 @@
-﻿using AuditLogLib.Event;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: Entry point of the MAP server application process
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using AuditLogLib;
+using AuditLogLib.Event;
 using System;
 using System.Collections.Generic;
 using MapCommonLib;
@@ -7,8 +14,11 @@ using Microsoft.AspNetCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
+using Npgsql;
+using Prm.EmailQueue;
 using Serilog;
 using System.Diagnostics;
 using System.Linq;
@@ -23,7 +33,7 @@ namespace MillimanAccessPortal
 
         public static async Task Main(string[] args)
         {
-            var host = RunTimeBuildWebHost(args);
+            var host = RunTimeBuildHost(args);
 
             using (var scope = host.Services.CreateScope())
             {
@@ -53,15 +63,49 @@ namespace MillimanAccessPortal
 
                 Assembly processAssembly = Assembly.GetEntryAssembly();
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+                NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
+
                 Log.Information($"Process launched:{Environment.NewLine}" +
                                 $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                                 $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                                 $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}");
+                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}" +
+                                $"\tUsing MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
 
                 try
                 {
-                    await ApplicationDbContext.InitializeAll(serviceProvider);
+                    await ApplicationDbContext.InitializeAllAsync(serviceProvider);
+
+                    MailSender.ConfigureMailSender(new SmtpConfig
+                    {
+                        SmtpServer = Configuration.GetValue<string>("SmtpServer"),
+                        SmtpPort = Configuration.GetValue<int>("SmtpPort"),
+                        SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
+                        SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
+                        SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
+                        SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
+                    });
+
+                    #region Configure Audit Logger connection string
+                    string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+                    // If the database name is defined in the environment, update the connection string
+                    if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+                    {
+                        Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                        {
+                            Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                        };
+                        auditLogConnectionString = stringBuilder.ConnectionString;
+                    }
+
+                    AuditLogger.Config = new AuditLoggerConfiguration
+                    {
+                        AuditLogConnectionString = auditLogConnectionString,
+                        ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
+                    };
+                    #endregion
+
                 }
                 catch (Exception e)
                 {
@@ -76,30 +120,37 @@ namespace MillimanAccessPortal
         }
 
         /// <summary>
-        /// Renamed implementation of BuildWebHost, forces execution of <see cref="ApplicationDbContextFactory.CreateDbContext"/> 
+        /// Renamed implementation of BuildHost, forces execution of <see cref="ApplicationDbContextFactory.CreateDbContext"/> 
         /// when deploying migrations, rather than running entire Startup configuration.
         /// </summary>
         /// <param name="args"></param>
         /// <returns></returns>
-        public static IWebHost RunTimeBuildWebHost(string[] args)
+        //public static IWebHost RunTimeBuildWebHost(string[] args)
+        public static IHost RunTimeBuildHost(string[] args)
         {
-            string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+            string EnvironmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") 
+                                  ?? Environment.GetEnvironmentVariable("DOTNET_ENVIRONMENT");
 
-            var webHost = 
-            WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .ConfigureAppConfiguration((hostContext, config) => SetApplicationConfiguration(hostContext.HostingEnvironment.EnvironmentName, config))
-            .ConfigureLogging((hostingContext, config) => config.ClearProviders())  // remove ASP default logger
-            ;
+            var hostBuilder = Host.CreateDefaultBuilder()
+                .ConfigureWebHostDefaults(webBuilder =>
+                {
+                    webBuilder.ConfigureKestrel(serverOptions =>
+                    {
+                    })
+                    .UseStartup<Startup>()
+                    .ConfigureAppConfiguration((hostContext, config) => SetApplicationConfiguration(hostContext.HostingEnvironment.EnvironmentName, config))
+                    .ConfigureLogging((hostingContext, config) => config.ClearProviders());  // remove ASP default logger
+                });
 
-            if (new List<string> { "DEVELOPMENT", "STAGING" }.Contains(EnvironmentNameUpper) &&
+            if (new List<string> { "Development", "Staging" }.Contains(EnvironmentName, StringComparer.InvariantCultureIgnoreCase) &&
                 Environment.GetEnvironmentVariable("SUPPRESS_MAP_WEBHOST_LOGGING") == null)
             {
                 // includes highly detailed .NET logging to the Serilog sinks
-                webHost = webHost.UseSerilog();
+                hostBuilder = hostBuilder.UseSerilog();
             }
 
-            return webHost.Build();
+            var host = hostBuilder.Build();
+            return host;
         }
 
         internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)

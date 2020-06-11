@@ -137,31 +137,31 @@ namespace MillimanAccessPortal.Controllers
             if (filter.ProfitCenterId.HasValue)
             {
                 // Constrain query to users that are admins in the specified profit center
-                var userIds = _dbContext.UserRoleInProfitCenter
-                    .Where(role => role.ProfitCenterId == filter.ProfitCenterId.Value)
-                    .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
-                    .Select(role => role.UserId)
-                    .ToList();
+                var userIds = await _dbContext.UserRoleInProfitCenter
+                                              .Where(role => role.ProfitCenterId == filter.ProfitCenterId.Value)
+                                              .Where(role => role.Role.RoleEnum == RoleEnum.Admin)
+                                              .Select(role => role.UserId)
+                                              .ToListAsync();
                 query = query.Where(user => userIds.Contains(user.Id));
             }
             if (filter.ClientId.HasValue)
             {
                 // Constrain query to users that are members of the specified client
-                var userIds = _dbContext.UserClaims
-                    .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
-                    .Where(claim => claim.ClaimValue == filter.ClientId.ToString())
-                    .Select(claim => claim.UserId)
-                    .ToList();
+                var userIds = await _dbContext.UserClaims
+                                              .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
+                                              .Where(claim => claim.ClaimValue == filter.ClientId.ToString())
+                                              .Select(claim => claim.UserId)
+                                              .ToListAsync();
                 query = query.Where(user => userIds.Contains(user.Id));
             }
             #endregion
             query = query.OrderBy(user => user.LastName).ThenBy(user => user.FirstName);
 
             var userInfoList = new List<UserInfo>();
-            foreach (var user in query)
+            foreach (var user in await query.ToListAsync())
             {
                 var userInfo = (UserInfo)user;
-                userInfo.QueryRelatedEntityCounts(_dbContext, filter.ClientId, filter.ProfitCenterId);
+                await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
 
@@ -187,7 +187,9 @@ namespace MillimanAccessPortal.Controllers
 
             var returnObject = new AllAuthenticationSchemes
             {
-                Schemes = _dbContext.AuthenticationScheme.Select(s => (AllAuthenticationSchemes.AuthenticationScheme)s).ToList(),
+                Schemes = await _dbContext.AuthenticationScheme
+                                          .Select(s => (AllAuthenticationSchemes.AuthenticationScheme)s)
+                                          .ToListAsync(),
             };
 
             Log.Verbose("Completed SystemAdminController.AuthenticationSchemes action");
@@ -217,7 +219,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             Guid queryUserId = filter.UserId ?? Guid.Empty;
-            ApplicationUser user = _dbContext.ApplicationUser.Include(u => u.AuthenticationScheme).SingleOrDefault(u => u.Id == queryUserId);
+            ApplicationUser user = await _dbContext.ApplicationUser
+                                                   .Include(u => u.AuthenticationScheme)
+                                                   .SingleOrDefaultAsync(u => u.Id == queryUserId);
 
             #region Validation
             if (user == null)
@@ -267,12 +271,13 @@ namespace MillimanAccessPortal.Controllers
             #region Filter query
             if (filter.UserId.HasValue)
             {
+                string clientMembershipString = ClaimNames.ClientMembership.ToString();
                 // Constrain query to clients that have the specified user as a member
-                var clientIds = _dbContext.UserClaims
-                    .Where(claim => claim.ClaimType == ClaimNames.ClientMembership.ToString())
-                    .Where(claim => claim.UserId == filter.UserId.Value)
-                    .Select(claim => Guid.Parse(claim.ClaimValue))
-                    .ToList();
+                var clientIds = await _dbContext.UserClaims
+                                                .Where(claim => claim.ClaimType == clientMembershipString)
+                                                .Where(claim => claim.UserId == filter.UserId.Value)
+                                                .Select(claim => Guid.Parse(claim.ClaimValue))
+                                                .ToListAsync();
                 query = query.Where(client => clientIds.Contains(client.Id));
             }
             if (filter.ProfitCenterId.HasValue)
@@ -282,7 +287,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
             // since the query won't be returned, order the tree instead of the query
 
-            var clientList = query.Select(c => c.Id).ToList();
+            var clientList = await query.Select(c => c.Id).ToListAsync();
 
             var clientInfoList = new List<ClientInfo>();
             foreach (var client in _dbContext.Client)
@@ -329,9 +334,10 @@ namespace MillimanAccessPortal.Controllers
 
             Client client = null;
             #region Validation
-            client = _dbContext.Client
-                .Include(c => c.ProfitCenter)
-                .SingleOrDefault(c => c.Id == (filter.ClientId ?? Guid.Empty));
+            Guid clientFilterId = filter.ClientId ?? Guid.Empty;
+            client = await _dbContext.Client
+                                     .Include(c => c.ProfitCenter)
+                                     .SingleOrDefaultAsync(c => c.Id == clientFilterId);
 
             if (client == null)
             {
@@ -385,16 +391,17 @@ namespace MillimanAccessPortal.Controllers
             query = query.OrderBy(pc => pc.Name);
 
             var pcInfoList = new List<ProfitCenterInfo>();
-            foreach (var pc in query)
+            foreach (var pc in await query.ToListAsync())
             {
                 var pcInfo = (ProfitCenterInfo)pc;
-                pcInfo.QueryRelatedEntityCounts(_dbContext);
+                await pcInfo.QueryRelatedEntityCountsAsync(_dbContext);
                 pcInfoList.Add(pcInfo);
             }
 
             Log.Verbose("In SystemAdminController.ProfitCenters action: success");
             return Json(pcInfoList);
         }
+
         /// <summary>
         /// Query for details for a specified profit center, optionally in context of another entity
         /// </summary>
@@ -419,7 +426,8 @@ namespace MillimanAccessPortal.Controllers
 
             ProfitCenter pc = null;
             #region Validation
-            pc = _dbContext.ProfitCenter.SingleOrDefault(c => c.Id == (filter.ProfitCenterId ?? Guid.Empty));
+            Guid profitCenterFilterId = filter.ProfitCenterId ?? Guid.Empty;
+            pc = await _dbContext.ProfitCenter.SingleOrDefaultAsync(c => c.Id == profitCenterFilterId);
             if (pc == null)
             {
                 Log.Debug($"In SystemAdminController.ProfitCenterDetail action: profit center {filter.ProfitCenterId ?? Guid.Empty} not found, aborting");
@@ -458,10 +466,10 @@ namespace MillimanAccessPortal.Controllers
             if (filter.UserId.HasValue)
             {
                 // Constrain query to root content items that the specified user can access
-                var itemIds = _dbContext.UserInSelectionGroup
-                    .Where(us => us.UserId == filter.UserId.Value)
-                    .Select(us => us.SelectionGroup.RootContentItemId)
-                    .ToList();
+                var itemIds = await _dbContext.UserInSelectionGroup
+                                              .Where(us => us.UserId == filter.UserId.Value)
+                                              .Select(us => us.SelectionGroup.RootContentItemId)
+                                              .ToListAsync();
                 query = query.Where(item => itemIds.Contains(item.Id));
             }
             if (filter.ClientId.HasValue)
@@ -470,13 +478,14 @@ namespace MillimanAccessPortal.Controllers
                 query = query.Where(item => item.ClientId == filter.ClientId.Value);
             }
             #endregion
-            query = query.OrderBy(item => item.ContentName).ThenBy(item => item.ContentType);
+            query = query.OrderBy(item => item.ContentName)
+                         .ThenBy(item => item.ContentType);
 
             var itemInfoList = new List<RootContentItemInfo>();
-            foreach (var item in query)
+            foreach (var item in await query.ToListAsync())
             {
                 var itemInfo = (RootContentItemInfo)item;
-                itemInfo.QueryRelatedEntityCounts(_dbContext, filter.UserId);
+                await itemInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.UserId);
                 itemInfoList.Add(itemInfo);
             }
 
@@ -508,9 +517,10 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem item = null;
             #region Validation
-            item = _dbContext.RootContentItem
-                .Include(i => i.ContentType)
-                .SingleOrDefault(i => i.Id == (filter.RootContentItemId ?? Guid.Empty));
+            Guid contentItemFilterId = filter.RootContentItemId ?? Guid.Empty;
+            item = await _dbContext.RootContentItem
+                                   .Include(i => i.ContentType)
+                                   .SingleOrDefaultAsync(i => i.Id == contentItemFilterId);
             if (item == null)
             {
                 Log.Debug($"In SystemAdminController.RootContentItemDetail action: content item {filter.RootContentItemId ?? Guid.Empty} not found, aborting");
@@ -527,7 +537,7 @@ namespace MillimanAccessPortal.Controllers
             else if (filter.ClientId.HasValue)
             {
                 var model = (RootContentItemDetailForClient)item;
-                model.QueryRelatedEntities(_dbContext, filter.ClientId.Value);
+                await model.QueryRelatedEntitiesAsync(_dbContext, filter.ClientId.Value);
                 Log.Verbose("In SystemAdminController.RootContentItemDetail action: success");
                 return Json(model);
             }
@@ -583,7 +593,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
             IdentityResult createResult;
-            (createResult, user) = await _queries.CreateNewAccount(email, email);
+            (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
             if (createResult.Succeeded && user != null)
             {
@@ -640,7 +650,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             _dbContext.ProfitCenter.Add(profitCenter);
-            _dbContext.SaveChanges();
+           await  _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.CreateProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter));
@@ -680,7 +690,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var client = _dbContext.Client.Find(clientId);
+            var client = await _dbContext.Client.FindAsync(clientId);
             if (client == null)
             {
                 Log.Debug($"In SystemAdminController.AddUserToClient action: requested client {clientId} not found, aborting");
@@ -698,7 +708,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
                     IdentityResult createResult;
-                    (createResult, user) = await _queries.CreateNewAccount(email, email);
+                    (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
                     if (createResult.Succeeded && user != null)
                     {
@@ -766,7 +776,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified email address is invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            var profitCenter = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
             if (profitCenter == null)
             {
                 Log.Debug($"In SystemAdminController.AddUserToProfitCenter action: provided profit center ID {profitCenterId} not found, aborting");
@@ -776,7 +786,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ApplicationUser user = null;
-            using (var transaction = _dbContext.Database.BeginTransaction())
+            using (var transaction = await _dbContext.Database.BeginTransactionAsync())
             {
                 // Find the user or create one if it doesn't exist
                 user = await _userManager.FindByEmailAsync(email);
@@ -784,7 +794,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     // Creates new user with logins disabled (EmailConfirmed == false) and no password. Password is added in AccountController.EnableAccount()
                     IdentityResult createResult;
-                    (createResult, user) = await _queries.CreateNewAccount(email, email);
+                    (createResult, user) = await _queries.CreateNewAccountAsync(email, email);
 
                     if (createResult.Succeeded && user != null)
                     {
@@ -800,11 +810,11 @@ namespace MillimanAccessPortal.Controllers
                     }
                 }
 
-                var alreadyAdmin = _dbContext.UserRoleInProfitCenter
-                    .Where(r => r.User.Email == email)
-                    .Where(r => r.ProfitCenterId == profitCenterId)
-                    .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                    .Any();
+                var alreadyAdmin = await _dbContext.UserRoleInProfitCenter
+                                                   .Where(r => r.User.Email == email)
+                                                   .Where(r => r.ProfitCenterId == profitCenterId)
+                                                   .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                   .AnyAsync();
 
                 if (!alreadyAdmin)
                 {
@@ -814,11 +824,11 @@ namespace MillimanAccessPortal.Controllers
                         RoleId = ApplicationRole.RoleIds[RoleEnum.Admin],
                         UserId = user.Id,
                     });
-                    _dbContext.SaveChanges();
+                    await _dbContext.SaveChangesAsync();
                 }
 
                 Log.Verbose($"In SystemAdminController.AddUserToProfitCenter action: success");
-                transaction.Commit();
+                await transaction.CommitAsync();
             }
 
             _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
@@ -853,7 +863,7 @@ namespace MillimanAccessPortal.Controllers
 
             // 2. There should not be an existing scheme with the requested name
             if (await _schemeProvider.GetSchemeAsync(model.Name) != null || 
-                _dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, model.Name)))
+                await _dbContext.AuthenticationScheme.AnyAsync(s => EF.Functions.ILike(s.Name, model.Name)))
             {
                 Log.Error($"Attempted to add authentication scheme named {model.Name} but a scheme with this name already exists");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -952,7 +962,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var existingRecord = _dbContext.ProfitCenter.Find(profitCenter.Id);
+            var existingRecord = await _dbContext.ProfitCenter.FindAsync(profitCenter.Id);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.UpdateProfitCenter action: requested profit center {profitCenter.Id} not found, aborting");
@@ -968,7 +978,7 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
@@ -1018,7 +1028,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", ModelState.Values.First(v => v.Errors.Any()).Errors.ToString());
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var existingRecord = _dbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText));
+            var existingRecord = await _dbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText));
             if (existingRecord == null)
             {
                 Log.Information($"In SystemAdminController.UpdateUserAgreement POST action: existing configuration record not found, aborting");
@@ -1033,22 +1043,24 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            using (var txn = _dbContext.Database.BeginTransaction())
+            using (var txn = await _dbContext.Database.BeginTransactionAsync())
             {
                 try
                 {
-                    List<ApplicationUser> usersToReset = _dbContext.ApplicationUser.Where(u => u.IsUserAgreementAccepted == true).ToList();
+                    List<ApplicationUser> usersToReset = await _dbContext.ApplicationUser
+                                                                         .Where(u => u.IsUserAgreementAccepted == true)
+                                                                         .ToListAsync();
 
 #pragma warning disable EF1000 // Possible SQL injection vulnerability.
-                    IRelationalEntityTypeAnnotations mapping = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).Relational();
-                    string statement = $"UPDATE \"{mapping.TableName}\" " +
+                    string tableName = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).GetTableName();
+                    string statement = $"UPDATE \"{tableName}\" " +
                                        $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
                                        $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
                     // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
-                    int howManyAffected = await _dbContext.Database.ExecuteSqlCommandAsync(statement); 
+                    int howManyAffected = await _dbContext.Database.ExecuteSqlRawAsync(statement); 
 #pragma warning restore EF1000 // Possible SQL injection vulnerability.
                     existingRecord.Value = newAgreementText;
-                    _dbContext.SaveChanges();
+                    await _dbContext.SaveChangesAsync();
 
                     #region Audit logging
                     _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText));
@@ -1059,7 +1071,7 @@ namespace MillimanAccessPortal.Controllers
                     #endregion
 
                     Log.Information("SystemAdminController.UpdateUserAgreement POST: The submitted text has been saved and all users have been flagged to renew their acceptance");
-                    txn.Commit();
+                    await txn.CommitAsync();
                 }
                 catch (Exception e)
                 {
@@ -1103,7 +1115,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var existingRecord = _dbContext.Client.Find(updatedClient.ClientId);
+            var existingRecord = await _dbContext.Client.FindAsync(updatedClient.ClientId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.UpdateClient action: requested client {updatedClient.ClientId} not found, aborting");
@@ -1135,7 +1147,7 @@ namespace MillimanAccessPortal.Controllers
                 existingRecord.DomainListCountLimit = updatedClient.DomainLimitChange.NewDomainLimit;
             }
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             #region Audit logging (may depend on what is updated)
             if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
@@ -1180,8 +1192,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. The requested scheme name must already exist in the database with the same type conveyed in the request model
-            else if (_dbContext.AuthenticationScheme.All(s => !EF.Functions.ILike(s.Name, model.Name)) ||
-                _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name)).Type != model.Type)
+            else if (await _dbContext.AuthenticationScheme.AllAsync(s => !EF.Functions.ILike(s.Name, model.Name)) ||
+                (await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, model.Name))).Type != model.Type)
             {
                 errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} exists in the database");
             }
@@ -1219,7 +1231,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // Prepare the database record changes
-            MapDbContextLib.Context.AuthenticationScheme schemeRecord = _dbContext.AuthenticationScheme.Single(s => EF.Functions.ILike(s.Name, model.Name));
+            MapDbContextLib.Context.AuthenticationScheme schemeRecord = await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, model.Name));
             MapDbContextLib.Context.AuthenticationScheme beforeUpdate = schemeRecord.DeepCopy();  // for logging
             schemeRecord.DisplayName = model.DisplayName;
             schemeRecord.DomainList = model.DomainList;
@@ -1298,7 +1310,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.ProfitCenter.Find(profitCenterId);
+            var existingRecord = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} not found, aborting");
@@ -1306,7 +1318,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             // The profit center should have no clients
-            if (_dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).Any())
+            if (await _dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).AnyAsync())
             {
                 Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} has clients and cannot be removed, aborting");
                 Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
@@ -1315,7 +1327,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             _dbContext.ProfitCenter.Remove(existingRecord);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.DeleteProfitCenter action: success");
             _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord));
@@ -1348,14 +1360,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var user = _dbContext.ApplicationUser.Find(userId);
+            var user = await _dbContext.ApplicationUser.FindAsync(userId);
             if (user == null)
             {
                 Log.Debug($"In SystemAdminController.RemoveUserFromProfitCenter action: requested user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var profitCenter = _dbContext.ProfitCenter.Find(profitCenterId);
+            var profitCenter = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
             if (profitCenter == null)
             {
                 Log.Debug($"In SystemAdminController.RemoveUserFromProfitCenter action: requested profit center {profitCenterId} not found, aborting");
@@ -1364,17 +1376,17 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var rolesToRemove = _dbContext.UserRoleInProfitCenter
-                .Where(r => r.User.Id == userId)
-                .Where(r => r.ProfitCenterId == profitCenterId)
-                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                .ToList();
+            var rolesToRemove = await _dbContext.UserRoleInProfitCenter
+                                                .Where(r => r.User.Id == userId)
+                                                .Where(r => r.ProfitCenterId == profitCenterId)
+                                                .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                .ToListAsync();
 
             foreach (var roleToRemove in rolesToRemove)
             {
                 _dbContext.UserRoleInProfitCenter.Remove(roleToRemove);
             }
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.RemoveUserFromProfitCenter action: success");
             _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user));
@@ -1407,14 +1419,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var user = _dbContext.ApplicationUser.Find(userId);
+            var user = await _dbContext.ApplicationUser.FindAsync(userId);
             if (user == null)
             {
                 Log.Debug($"In SystemAdminController.RemoveUserFromClient action: requested user {userId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified user does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var client = _dbContext.Client.Find(clientId);
+            var client = await _dbContext.Client.FindAsync(clientId);
             if (client == null)
             {
                 Log.Debug($"In SystemAdminController.RemoveUserFromClient action: requested client {clientId} not found, aborting");
@@ -1423,30 +1435,31 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var clientMembershipClaims = _dbContext.UserClaims
-                .Where(uc => uc.ClaimType == "ClientMembership")
-                .Where(uc => uc.ClaimValue == client.Id.ToString())
-                .Where(uc => uc.UserId == user.Id)
-                .ToList();
-            var selectionGroupAssignments = _dbContext.UserInSelectionGroup
-                .Where(u => u.UserId == user.Id)
-                .Where(u => u.SelectionGroup.RootContentItem.ClientId == client.Id)
-                .ToList();
-            var rootContentItemAssignments = _dbContext.UserRoleInRootContentItem
-                .Where(r => r.UserId == user.Id)
-                .Where(r => r.RootContentItem.ClientId == client.Id)
-                .ToList();
-            var clientAssignments = _dbContext.UserRoleInClient
-                .Where(r => r.UserId == user.Id)
-                .Where(r => r.ClientId == client.Id)
-                .ToList();
+            string clientIdString = client.Id.ToString();
+            var clientMembershipClaims = await _dbContext.UserClaims
+                                                         .Where(uc => uc.ClaimType == "ClientMembership")
+                                                         .Where(uc => uc.ClaimValue == clientIdString)
+                                                         .Where(uc => uc.UserId == user.Id)
+                                                         .ToListAsync();
+            var selectionGroupAssignments = await _dbContext.UserInSelectionGroup
+                                                            .Where(u => u.UserId == user.Id)
+                                                            .Where(u => u.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                                            .ToListAsync();
+            var rootContentItemAssignments = await _dbContext.UserRoleInRootContentItem
+                                                             .Where(r => r.UserId == user.Id)
+                                                             .Where(r => r.RootContentItem.ClientId == client.Id)
+                                                             .ToListAsync();
+            var clientAssignments = await _dbContext.UserRoleInClient
+                                                    .Where(r => r.UserId == user.Id)
+                                                    .Where(r => r.ClientId == client.Id)
+                                                    .ToListAsync();
 
             _dbContext.UserInSelectionGroup.RemoveRange(selectionGroupAssignments);
             _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemAssignments);
             _dbContext.UserRoleInClient.RemoveRange(clientAssignments);
             _dbContext.UserClaims.RemoveRange(clientMembershipClaims);
 
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.RemoveUserFromClient action: success");
             _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user));
@@ -1478,14 +1491,14 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var existingContentItemRecord = _dbContext.RootContentItem
-                .Include(c => c.Client)
-                .SingleOrDefault(c => c.Id == rootContentItemId);
+            var existingContentItemRecord = await _dbContext.RootContentItem
+                                                            .Include(c => c.Client)
+                                                            .SingleOrDefaultAsync(c => c.Id == rootContentItemId);
 
-            var activePublications = _dbContext.ContentPublicationRequest
-                .Where(pr => pr.RootContentItemId == rootContentItemId)
-                .Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus))
-                .ToList();
+            var activePublications = await _dbContext.ContentPublicationRequest
+                                                     .Where(pr => pr.RootContentItemId == rootContentItemId)
+                                                     .Where(pr => PublicationStatusExtensions.ActiveStatuses.Contains(pr.RequestStatus))
+                                                     .ToListAsync();
 
             #region Validation
             if (existingContentItemRecord == null)
@@ -1512,7 +1525,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
                 // See Github issue #1234
             }
             catch (DbUpdateConcurrencyException)
@@ -1556,10 +1569,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Validation
-            var existingRecord = _dbContext.SelectionGroup
-                .Include(g => g.RootContentItem)
-                    .ThenInclude(c => c.Client)
-                .SingleOrDefault(g => g.Id == selectionGroupId);
+            var existingRecord = await _dbContext.SelectionGroup
+                                                 .Include(g => g.RootContentItem)
+                                                     .ThenInclude(c => c.Client)
+                                                 .SingleOrDefaultAsync(g => g.Id == selectionGroupId);
             if (existingRecord == null)
             {
                 Log.Debug($"In SystemAdminController.CancelReduction action: selection group not found, aborting");
@@ -1567,10 +1580,10 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             // The selection group should have an active reduction
-            var activeReductions = _dbContext.ContentReductionTask
-                .Where(rt => rt.SelectionGroupId == selectionGroupId)
-                .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
-                .ToList();
+            var activeReductions = await _dbContext.ContentReductionTask
+                                                   .Where(rt => rt.SelectionGroupId == selectionGroupId)
+                                                   .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
+                                                   .ToListAsync();
             if (!activeReductions.Any())
             {
                 Log.Debug($"In SystemAdminController.CancelReduction action: selection group {selectionGroupId} has no active reduction tasks, aborting");
@@ -1582,12 +1595,11 @@ namespace MillimanAccessPortal.Controllers
             foreach (var activeReduction in activeReductions)
             {
                 activeReduction.ReductionStatus = ReductionStatusEnum.Canceled;
-                _dbContext.ContentReductionTask.Update(activeReduction);
             }
 
             try
             {
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException)
             {
@@ -1681,7 +1693,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
             #region Validation
             if (user == null)
             {
@@ -1703,7 +1715,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var roleId = ApplicationRole.RoleIds[role];
-            var roleExists = _dbContext.UserRoles.Any(ur => ur.UserId == userId && ur.RoleId == roleId);
+            var roleExists = await _dbContext.UserRoles.AnyAsync(ur => ur.UserId == userId && ur.RoleId == roleId);
 
             Log.Verbose("In SystemAdminController.SystemRole action: success");
 
@@ -1735,7 +1747,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
             #region Validation
             if (user == null)
             {
@@ -1755,7 +1767,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            var currentUser = await _userManager.GetUserAsync(User);
             if (user.Id == currentUser.Id && role == RoleEnum.Admin && !value)
             {
                 Log.Debug($"In SystemAdminController.SystemRole action: no user can unassign themself as system admin, aborting");
@@ -1766,7 +1778,7 @@ namespace MillimanAccessPortal.Controllers
 
             var roleId = ApplicationRole.RoleIds[role];
             var roleQuery = _dbContext.UserRoles.Where(ur => ur.UserId == userId && ur.RoleId == roleId);
-            var roleIsAssigned = roleQuery.Any();
+            var roleIsAssigned = await roleQuery.AnyAsync();
 
             if (roleIsAssigned == value)
             {
@@ -1780,7 +1792,7 @@ namespace MillimanAccessPortal.Controllers
                     RoleId = roleId,
                 };
                 _dbContext.UserRoles.Add(userRoleToAdd);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
 
                 _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role));
             }
@@ -1788,7 +1800,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 var userRoleToRemove = roleQuery.Single();
                 _dbContext.UserRoles.Remove(userRoleToRemove);
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
 
                 _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
             }
@@ -1820,7 +1832,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
             #region Validation
             if (user == null)
             {
@@ -1859,7 +1871,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
             #region Validation
             if (user == null)
             {
@@ -1868,7 +1880,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var currentUser = await _queries.GetCurrentApplicationUser(User);
+            var currentUser = await _userManager.GetUserAsync(User);
             if (user.Id == currentUser.Id && value)
             {
                 Log.Debug($"In SystemAdminController.UserSuspendedStatus action: no user can suspend their own account, aborting");
@@ -1878,8 +1890,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             user.IsSuspended = value;
-            _dbContext.ApplicationUser.Update(user);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose($"In SystemAdminController.UserSuspendedStatus action: success");
             _auditLogger.Log(AuditEventType.UserSuspensionUpdate.ToEvent(user, value, ""));
@@ -1911,8 +1922,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
-            var client = _dbContext.Client.SingleOrDefault(c => c.Id == clientId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
+            var client = await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == clientId);
             #region Validation
             if (user == null)
             {
@@ -1949,11 +1960,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var roleQuery = _dbContext.UserRoleInClient
-                .Where(ur => ur.UserId == user.Id)
-                .Where(ur => ur.ClientId == client.Id);
+                                      .Where(ur => ur.UserId == user.Id)
+                                      .Where(ur => ur.ClientId == client.Id);
             var roleExists = userClientAssignments[role]
-                .All(a => roleQuery
-                    .Any(ur => ur.Role.RoleEnum == a));
+                .All(a => roleQuery.Any(ur => ur.Role.RoleEnum == a));
 
             Log.Verbose($"In SystemAdminController.UserClientRoleAssignment action: success");
 
@@ -1986,8 +1996,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var user = _dbContext.ApplicationUser.SingleOrDefault(u => u.Id == userId);
-            var client = _dbContext.Client.SingleOrDefault(c => c.Id == clientId);
+            var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
+            var client = await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == clientId);
             #region Validation
             if (user == null)
             {
@@ -2072,7 +2082,7 @@ namespace MillimanAccessPortal.Controllers
                         _dbContext.UserRoleInRootContentItem.AddRange(rootContentItemRoles);
                     }
                 }
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
 
                 _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role]));
             }
@@ -2093,11 +2103,11 @@ namespace MillimanAccessPortal.Controllers
                     if (rolesToApplyToRootContentItems.Contains(roleInClientToRemove.Role.RoleEnum))
                     {
                         // Remove all matching roles in case there are duplicates
-                        var rootContentItemRoles = _dbContext.UserRoleInRootContentItem
-                            .Where(r => r.RootContentItem.ClientId == client.Id)
-                            .Where(r => r.UserId == user.Id)
-                            .Where(r => r.Role == roleInClientToRemove.Role)
-                            .ToList();
+                        var rootContentItemRoles = await _dbContext.UserRoleInRootContentItem
+                                                                   .Where(r => r.RootContentItem.ClientId == client.Id)
+                                                                   .Where(r => r.UserId == user.Id)
+                                                                   .Where(r => r.Role == roleInClientToRemove.Role)
+                                                                   .ToListAsync();
                         _dbContext.UserRoleInRootContentItem.RemoveRange(rootContentItemRoles);
                     }
 
@@ -2105,17 +2115,17 @@ namespace MillimanAccessPortal.Controllers
                     // The ContentUser role likely needs a slight adjustment to improve its consitency with other roles
                     if (roleInClientToRemove.Role.RoleEnum == RoleEnum.ContentUser)
                     {
-                        var existingSelectionGroupAssignments = _dbContext.UserInSelectionGroup
+                        var existingSelectionGroupAssignments = await _dbContext.UserInSelectionGroup
                             .Where(usg => usg.UserId == user.Id)
                             .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == client.Id)
-                            .ToList();
+                            .ToListAsync();
                         foreach (var existingSelectionGroupAssignment in existingSelectionGroupAssignments)
                         {
                             _dbContext.Remove(existingSelectionGroupAssignment);
                         }
                     }
                 }
-                _dbContext.SaveChanges();
+                await _dbContext.SaveChangesAsync();
 
                 _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
             }
@@ -2147,7 +2157,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var rootContentItem = _dbContext.RootContentItem.SingleOrDefault(i => i.Id == rootContentItemId);
+            var rootContentItem = await _dbContext.RootContentItem.SingleOrDefaultAsync(i => i.Id == rootContentItemId);
             #region Validation
             if (rootContentItem == null)
             {
@@ -2186,9 +2196,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var rootContentItem = _dbContext.RootContentItem
-                .Include(i => i.Client)
-                .SingleOrDefault(i => i.Id == rootContentItemId);
+            var rootContentItem = await _dbContext.RootContentItem
+                                                  .Include(i => i.Client)
+                                                  .SingleOrDefaultAsync(i => i.Id == rootContentItemId);
 
             #region Validation
             if (rootContentItem == null)
@@ -2200,8 +2210,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             rootContentItem.IsSuspended = value;
-            _dbContext.RootContentItem.Update(rootContentItem);
-            _dbContext.SaveChanges();
+            await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.ContentSuspendedStatus action: success");
             _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, rootContentItem.Client, value, ""));

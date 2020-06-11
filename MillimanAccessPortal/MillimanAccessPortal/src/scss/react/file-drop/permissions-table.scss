@@ -1,0 +1,156 @@
+﻿@import "../../map_modules/variables";
+@import "../../map_modules/mixins";
+
+.permission-group-table {
+
+    .col-group-user-icon {
+        width: 2em;
+    }
+
+    .col-name {
+        max-width: 12em;
+        width: 12em;
+        min-width: 8em;
+    }
+
+    .col-permission-download,
+    .col-permission-upload,
+    .col-permission-delete {
+        width: 5em;
+        padding: .25em 0;
+    }
+
+    .col-permissions {
+        padding: .25em 0;
+        border-bottom: 1px solid $charcoal;
+    }
+
+    .col-actions {
+        width: 4em;
+    }
+
+    .group-name-input {
+        font-weight: bold;
+        color: $charcoal;
+        padding: 0;
+    }
+
+    th.content-center, td.content-center {
+        text-align: center;
+    }
+
+    th.content-right,
+    td.content-right {
+        text-align: right;
+    }
+
+    .table-icon {
+        height: 1.5em;
+        width: 1.5em;
+
+        &.required {
+            color: $red;
+        }
+    }
+
+    td.add-user {
+        svg {
+            color: $green;
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
+    td.remove-user {
+
+        svg {
+            color: $red;
+
+            &:hover {
+                color: lighten($red, .5);
+            }
+        }
+
+        .action-icon-container-inline {
+            margin: 0 !important;
+        }
+    }
+
+    tbody {
+
+        tr {
+
+            &.last-group-row,
+            &.action-row {
+                border-bottom: 1px solid $grey;
+            }
+
+            &.last-group-row td {
+                padding-bottom: 1.5em;
+            }
+
+            &.first-group-row td {
+                padding-top: 1.5em;
+            }
+
+            &.action-row {
+                cursor: pointer;
+
+                .action-text {
+                    color: $green;
+                    font-weight: bold;
+                }
+
+                &.disabled {
+                    cursor: default;
+
+                    .table-icon {
+                        color: $grey;
+                    }
+
+                    .action-text {
+                        color: $grey;
+                    }
+                }
+            }
+
+            td {
+                padding-top: .25em;
+                padding-bottom: .25em;
+                font-size: .875rem;
+
+                .selection-option-container {
+                    justify-content: center;
+                    align-items: center;
+                    padding: 0;
+                    margin: 0;
+
+                    .selection-option-label {
+                        height: 1em;
+                    }
+                }
+
+                .react-select.required .react-select__control {
+                    border: 2px solid $red;
+                    box-shadow: 1 1 2px $red;
+                    
+                    .react-select__placeholder {
+                        color: rgba($red, .5);
+                        font-weight: bold;
+                    }
+                }
+
+                .group-name-input.required {
+                    border-bottom: 2px solid $red;
+
+                    &::placeholder {
+                        color: rgba($red, .5);
+                        opacity: 1;
+                    }
+                }
+            }
+        }
+    }
+}

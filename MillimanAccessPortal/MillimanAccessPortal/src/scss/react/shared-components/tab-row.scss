@@ -4,7 +4,7 @@
     display: flex;
     flex-flow: row nowrap;
     flex: 0 0 auto;
-    margin-bottom: .5em;
+    margin-bottom: 1em;
 
     &.min-width {
         justify-content: flex-start;
@@ -12,7 +12,7 @@
 
         .tab {
             flex: 0 0 auto;
-            padding: 0 2em;
+            padding: 0 4em;
         }
     }
 

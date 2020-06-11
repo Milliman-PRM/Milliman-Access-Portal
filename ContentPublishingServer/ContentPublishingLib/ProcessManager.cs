@@ -94,15 +94,15 @@ namespace ContentPublishingLib
         /// <param name="ProcessConfig"></param>
         public void Start()
         {
-            ManualResetEvent MapDbPublishQueueServicedEvent = new ManualResetEvent(false);
             Mutex QueueMutex = new Mutex(false);
+            SemaphoreSlim queueSemaphore = new SemaphoreSlim(1, 1);
 
             JobMonitorDict.Add(0, new JobMonitorInfo
             {
                 Monitor = new MapDbReductionJobMonitor
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    QueueSemaphore = queueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
@@ -113,7 +113,7 @@ namespace ContentPublishingLib
                 Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.NonReducingPublications)
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    QueueSemaphore = queueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
@@ -124,7 +124,7 @@ namespace ContentPublishingLib
                 Monitor = new MapDbPublishJobMonitor(MapDbPublishJobMonitor.MapDbPublishJobMonitorType.ReducingPublications)
                 {
                     ConfiguredConnectionStringParamName = "DefaultConnection",
-                    QueueMutex = QueueMutex,
+                    QueueSemaphore = queueSemaphore,
                 },
                 TokenSource = new CancellationTokenSource(),
                 AwaitableTask = null
@@ -134,7 +134,7 @@ namespace ContentPublishingLib
             foreach (var MonitorKvp in JobMonitorDict)
             {
                 JobMonitorInfo MonitorInfo = MonitorKvp.Value;
-                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.Start(MonitorInfo.TokenSource.Token);
+                MonitorInfo.AwaitableTask = MonitorInfo.Monitor.StartAsync(MonitorInfo.TokenSource.Token);
 
                 Log.Information($"JobMonitor {MonitorKvp.Key} of type {MonitorInfo.Monitor.GetType().Name} started");
             }
@@ -154,10 +154,7 @@ namespace ContentPublishingLib
 
             if (WaitSec < 0)
             {
-                if (!int.TryParse(Configuration.ApplicationConfiguration["StopWaitTimeSeconds"], out WaitSec))
-                {
-                    WaitSec = 3 * 60;
-                }
+                WaitSec = Configuration.ApplicationConfiguration.GetValue("StopWaitTimeSeconds", 3 * 60);
             }
             TimeSpan MaxWaitTime = TimeSpan.FromSeconds(WaitSec);
 
@@ -200,7 +197,7 @@ namespace ContentPublishingLib
         {
             get
             {
-                return JobMonitorDict.Values.All(v => v.AwaitableTask.Status == TaskStatus.Running);
+                return JobMonitorDict.Values.All(v => v.AwaitableTask != null && !v.AwaitableTask.IsCompleted);
             }
         }
 
@@ -211,7 +208,7 @@ namespace ContentPublishingLib
         {
             get
             {
-                return JobMonitorDict.Values.Any(v => v.AwaitableTask.Status == TaskStatus.Running);
+                return JobMonitorDict.Values.Any(v => v.AwaitableTask != null && !v.AwaitableTask.IsCompleted);
             }
         }
 

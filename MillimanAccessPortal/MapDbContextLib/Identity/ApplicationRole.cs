@@ -36,6 +36,12 @@ namespace MapDbContextLib.Identity
 
         [Display(Name = "Content User")]
         ContentUser = 5,
+
+        [Display(Name = "File Drop Admin")]
+        FileDropAdmin = 6,
+
+        [Display(Name = "File Drop User")]
+        FileDropUser = 7,
     };
 
     public class ApplicationRole : IdentityRole<Guid>
@@ -65,7 +71,7 @@ namespace MapDbContextLib.Identity
         /// </summary>
         /// <param name="serviceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static async Task SeedRoles(IServiceProvider serviceProvider)
+        public static async Task SeedRolesAsync(IServiceProvider serviceProvider)
         {
             RoleManager<ApplicationRole> roleManager = serviceProvider.GetRequiredService<RoleManager<ApplicationRole>>();
             ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();

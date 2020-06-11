@@ -19,7 +19,6 @@
         AUTHORS - Ben Wyatt, Steve Gredell
 #>
 
-
 Param(
     [ValidateSet("AzureCI","CI","Production","Staging","Development","Internal")]
     [string]$deployEnvironment="AzureCI",
@@ -27,6 +26,7 @@ Param(
     [string]$testEnvironment="CI"
 )
 
+import-module az.accounts, az.keyvault
 
 function log_statement {
     Param([string]$statement)
@@ -114,9 +114,8 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
-$core3="C:\Program Files\dotnet\sdk\3.1.102\Sdks"
-$env:MSBuildSDKsPath=$core2
-
+$core3="C:\Program Files\dotnet\sdk\3.1.201\Sdks"
+$env:MSBuildSDKsPath=$core3
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -129,6 +128,27 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
+
+
+$envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
+    "AzureCI" {"ci"}
+    "Development" {"ci"}
+    "CI" {"ci"}
+    "Staging" {"staging"}
+    "Production" {"prod"}
+    default {"internal"}
+}
+
+# Required inputs to get-azkeyvaultsecret function
+$azTenantId = $env:azTenantId
+$azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
+$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
+$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
+
+$azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
+$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
+$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
+
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -201,8 +221,6 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\
 
-$env:MSBuildSDKsPath=$core2
-
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
 if ($LASTEXITCODE -ne 0) {
@@ -247,15 +265,33 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
+$env:MSBuildSDKsPath=$core2
 Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish --configuration=release /p:Platform=x64
+dotnet publish --configuration=$buildType /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
     log_statement "ERROR: Build failed for MAP User Stats Loader project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$env:MSBuildSDKsPath=$core3
+Set-Location "$rootPath\SftpServer"
+
+log_statement "Building SFTP Server"
+
+Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
+mkdir "out"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for MAP SFTP Server project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
@@ -399,7 +435,8 @@ Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destinatio
 
 Set-Location $webBuildTarget
 
-$webVersion = get-childitem "MillimanAccessPortal.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+
+$webVersion = get-childitem "MillimanAccessPortal.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $webVersion = "$webVersion-$branchName"
 
 octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
@@ -419,7 +456,7 @@ log_statement "Packaging publication server"
 
 Set-Location $serviceBuildTarget
 
-$serviceVersion = get-childitem "ContentPublishingService.exe" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$serviceVersion = get-childitem "ContentPublishingService.exe" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
 $serviceVersion = "$serviceVersion-$branchName"
 
 octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
@@ -436,7 +473,8 @@ if ($LASTEXITCODE -ne 0) {
 #region Package MAP User Stats Loader for nuget
 log_statement "Packaging MAP User Stats Loader"
 
-Set-Location "$rootPath\User Stats\MAPStatsLoader\bin\x64\release\netcoreapp2.1\publish"
+Set-Location "$rootPath\User Stats\MAPStatsLoader\"
+Set-Location (Get-ChildItem -Directory "publish" -Recurse | Select-Object -First 1)
 
 octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
 
@@ -469,7 +507,7 @@ log_statement "Packaging MAP Query Admin"
 
 Set-Location $queryAppBuildTarget
 
-$queryVersion = get-childitem "MapQueryAdminWeb.dll" | Select-Object -expandproperty VersionInfo | Select-Object -expandproperty ProductVersion
+$queryVersion = get-childitem "MapQueryAdminWeb.dll" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
 $queryVersion = "$queryVersion-$branchName"
 
 octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
@@ -480,6 +518,78 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+#endregion
+
+#region Create and publish FileDrop docker container
+
+Set-Location $rootpath\SftpServer
+
+#Replace Windows line endings with Unix ones in entrypoint script
+$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
+((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
+
+$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
+$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
+Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
+
+
+# Get Secrets from the FileDrop Key Vault
+$acr_url = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrurl").SecretValueText
+
+$acr_username = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acruser").SecretValueText
+
+$acr_password = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "acrpass").SecretValueText
+
+$FDShareUrl = (get-azkeyvaultsecret `
+    -VaultName $azVaultNameFD `
+    -SecretName "storage-url").SecretValueText
+
+$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
+
+$acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
+$FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
+
+
+$FDAccountName = $($FDShareUrl).split('/')[2].split('.')[0]
+$FDShareName= $($FDShareUrl).split('/')[-1] # Get the account name from the URL
+$FDResourceGroup = "filedropsftp-$envCommonName"
+$azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName)[0].Value
+$azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
+$FDFileCred = New-Object System.Management.Automation.PSCredential($FDAccountName, $azFilesharePass_secure)
+
+Set-Location $rootpath
+
+docker login $acr_url -u $acr_username -p $acr_password
+
+docker build -t filedropsftp -f SftpServer/dockerfile .
+
+docker tag filedropsftp $FDImageName
+
+docker push $FDImageName
+
+docker rmi $FDImageName
+
+#trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
+
+& $rootPath\Publish\DeployContainer.ps1 `
+    -envCommonName $envCommonName `
+    -FDRG "filedropsftp-$envCommonName"
+    -azTenantId $azTenantId `
+    -SPCredential $SPCredential `
+    -azSubscriptionId $azSubscriptionId `
+    -FDImageName $FDImageName `
+    -FDACRCred $FDACRCred `
+    -FDFileName $FDShareName `
+    -FDFileCred $FDFileCred `
+    -azCertPass $azCertPass `
+    -thumbprint $thumbprint
 
 #endregion
 

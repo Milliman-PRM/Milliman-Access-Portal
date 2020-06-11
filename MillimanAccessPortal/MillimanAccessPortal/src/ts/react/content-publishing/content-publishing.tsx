@@ -42,7 +42,7 @@ import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
-import { Select } from '../shared-components/form/select';
+import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
@@ -709,7 +709,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={4}>
-                  <Select
+                  <DropDown
                     error={formData.formErrors.contentTypeId}
                     label="Content Type"
                     name="contentType"

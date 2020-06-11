@@ -4,12 +4,14 @@
  * DEVELOPER NOTES: 
  */
 
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.Extensions.DependencyInjection;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Context
 {
@@ -18,15 +20,15 @@ namespace MapDbContextLib.Context
         [Display(Name = "Unknown")]
         Unknown = 0,
         [Display(Name = "QlikView")]
-        Qlikview,
+        Qlikview = 1,
         [Display(Name = "HTML")]
-        Html,
+        Html = 2,
         [Display(Name = "PDF")]
-        Pdf,
+        Pdf = 3,
         [Display(Name = "File Download")]
-        FileDownload,
+        FileDownload = 4,
         [Display(Name = "Power BI")]
-        PowerBi,
+        PowerBi = 5,
     }
 
     public static class EnumExtensions
@@ -45,31 +47,8 @@ namespace MapDbContextLib.Context
         /// <summary>
         /// Convenience property to automatically translate from the persisted Name to corresponding enumeration
         /// </summary>
-        [NotMapped]
-        public ContentTypeEnum TypeEnum
-        {
-            set
-            {
-                Name = value.ToString();
-            }
-            get
-            {
-                if (Enum.TryParse(Name, true, out ContentTypeEnum result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return (ContentTypeEnum)int.MaxValue;
-                }
-            }
-        }
-
-        /// <summary>
-        /// Name should match the enumeration value label
-        /// </summary>
         [Required]
-        public string Name { get; set; }
+        public ContentTypeEnum TypeEnum { get; set; }
 
         [Required]
         public bool CanReduce { get; set; }
@@ -86,7 +65,7 @@ namespace MapDbContextLib.Context
         /// </summary>
         /// <param name="ServiceProvider">Application Services provide connectivity to the identity database.</param>
         /// <returns></returns>
-        internal static void InitializeContentTypes(IServiceProvider serviceProvider)
+        public static async Task InitializeContentTypesAsync(IServiceProvider serviceProvider)
         {
             List<ContentType> AllProposedContentTypes = new List<ContentType>
             {
@@ -126,20 +105,19 @@ namespace MapDbContextLib.Context
 
             foreach (ContentType type in AllProposedContentTypes)
             {
-                ContentType fromDb = Db.ContentType.SingleOrDefault(t => t.TypeEnum == type.TypeEnum);
+                ContentType fromDb = await Db.ContentType.SingleOrDefaultAsync(t => t.TypeEnum == type.TypeEnum);
                 if (fromDb == null)
                 {
                     Db.ContentType.Add(type);
                 }
                 else
                 {
-                    fromDb.Name = type.Name;
                     fromDb.CanReduce = type.CanReduce;
                     fromDb.DefaultIconName = type.DefaultIconName;
                     fromDb.FileExtensions = type.FileExtensions;
                 }
             }
-            Db.SaveChanges();
+            await Db.SaveChangesAsync();
         }
 
         /// <summary>
@@ -153,7 +131,7 @@ namespace MapDbContextLib.Context
         {
             if (l != null && r != null)  // Neither one is null
             {
-                return l.Id == r.Id && l.Name == r.Name && l.CanReduce == r.CanReduce && r.DefaultIconName == l.DefaultIconName;
+                return l.Id == r.Id && l.TypeEnum == r.TypeEnum && l.CanReduce == r.CanReduce && r.DefaultIconName == l.DefaultIconName;
             }
             else if (l == null ^ r == null)  // exactly one is null  (^ is logical xor operator)
             {

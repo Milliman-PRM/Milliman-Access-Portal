@@ -47,7 +47,7 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="UserNameArg"></param>
         /// <param name="EmailArg"></param>
         /// <returns>On success, returns the new ApplicationUser instance, null otherwise</returns>
-        internal async Task<(IdentityResult result, ApplicationUser user)> CreateNewAccount(string UserNameArg, string EmailArg)
+        internal async Task<(IdentityResult result, ApplicationUser user)> CreateNewAccountAsync(string UserNameArg, string EmailArg)
         {
             var RequestedUser = new ApplicationUser
             {
@@ -67,41 +67,22 @@ namespace MillimanAccessPortal.DataQueries
             return (result, RequestedUser);
         }
 
-        /// <summary>
-        /// Returns a list of the Clients to which the user is assigned Admin role
-        /// </summary>
-        /// <param name="UserName"></param>
-        /// <returns></returns>
-        public List<Client> GetListOfClientsUserIsAuthorizedToManage(string UserName)
+        public async Task<List<Client>> GetAllRelatedClientsAsync(Client ClientArg)
         {
-            List<Client> ListOfAuthorizedClients = new List<Client>();
-            IQueryable<Client> AuthorizedClientsQuery =
-                DbContext.UserRoleInClient
-                .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
-                .Where(urc => urc.User.UserName == UserName)
-                .Join(DbContext.Client, urc => urc.ClientId, c => c.Id, (urc, c) => c);
-
-            ListOfAuthorizedClients.AddRange(AuthorizedClientsQuery);  // Query executes here
-
-            return ListOfAuthorizedClients;
-        }
-
-        public List<Client> GetAllRelatedClients(Client ClientArg)
-        {
-            List<Client> ReturnList = new List<Client>();
-
-            Client RootClient = GetRootClientOfClient(ClientArg.Id);
-            ReturnList.Add(RootClient);
-            ReturnList.AddRange(GetChildClients(RootClient, true));
+            Client RootClient = await GetRootClientOfClientAsync(ClientArg.Id);
+            List<Client> ReturnList = new List<Client> { RootClient };
+            ReturnList.AddRange(await GetChildClientsAsync(RootClient, true));
 
             return ReturnList;
         }
 
-        private List<Client> GetChildClients(Client ClientArg, bool Recurse = false)
+        private async Task<List<Client>> GetChildClientsAsync(Client ClientArg, bool Recurse = false)
         {
             List<Client> ReturnList = new List<Client>();
 
-            List<Client> FoundChildClients = DbContext.Client.Where(c => c.ParentClientId == ClientArg.Id).ToList();
+            List<Client> FoundChildClients = await DbContext.Client
+                                                            .Where(c => c.ParentClientId == ClientArg.Id)
+                                                            .ToListAsync();
 
             ReturnList.AddRange(FoundChildClients);
             if (Recurse)
@@ -109,17 +90,17 @@ namespace MillimanAccessPortal.DataQueries
                 // Get grandchildren too
                 foreach (Client ChildClient in FoundChildClients)
                 {
-                    ReturnList.AddRange(GetChildClients(ChildClient, Recurse));
+                    ReturnList.AddRange(await GetChildClientsAsync(ChildClient, Recurse));
                 }
             }
 
             return ReturnList;
         }
 
-        public Client GetRootClientOfClient(Guid id)
+        public async Task<Client> GetRootClientOfClientAsync(Guid id)
         {
             // Execute query here so there is only one db query and the rest is done locally in memory
-            List<Client> AllClients = DbContext.Client.ToList();
+            List<Client> AllClients = await DbContext.Client.ToListAsync();
 
             // start with the client id supplied
             Client CandidateResult = AllClients.SingleOrDefault(c => c.Id == id);
@@ -133,9 +114,11 @@ namespace MillimanAccessPortal.DataQueries
             return CandidateResult;
         }
 
-        public List<Client> GetAllRootClients()
+        public async Task<List<Client>> GetAllRootClientsAsync()
         {
-            return DbContext.Client.Where(c => c.ParentClientId == null).ToList();
+            return await DbContext.Client
+                                  .Where(c => c.ParentClientId == null)
+                                  .ToListAsync();
         }
 
         /// <summary>
@@ -144,34 +127,23 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="UserId"></param>
         /// <param name="ClientId"></param>
         /// <returns></returns>
-        public List<AssignedRoleInfo> GetUserRolesForClient(Guid UserId, Guid ClientId)
+        public async Task<List<AssignedRoleInfo>> GetUserRolesForClientAsync(Guid UserId, Guid ClientId)
         {
-            IQueryable<AssignedRoleInfo> Query = DbContext.UserRoleInClient
-                                                            .Include(urc => urc.Role)
-                                                            .Where(urc => urc.UserId == UserId
-                                                                       && urc.ClientId == ClientId)
-                                                            .Distinct()
-                                                            .Select(urc =>
-                                                                new AssignedRoleInfo
-                                                                {
-                                                                    RoleEnum = urc.Role.RoleEnum,
-                                                                    RoleDisplayValue = urc.Role.RoleEnum.GetDisplayNameString(false),
-                                                                    IsAssigned = true,
-                                                                });
-
-            List<AssignedRoleInfo> ReturnVal = Query.ToList();
+            List<AssignedRoleInfo> ReturnVal = await DbContext.UserRoleInClient
+                                                              .Include(urc => urc.Role)
+                                                              .Where(urc => urc.UserId == UserId
+                                                                         && urc.ClientId == ClientId)
+                                                              .Distinct()
+                                                              .Select(urc =>
+                                                                  new AssignedRoleInfo
+                                                                  {
+                                                                      RoleEnum = urc.Role.RoleEnum,
+                                                                      RoleDisplayValue = urc.Role.RoleEnum.GetDisplayNameString(false),
+                                                                      IsAssigned = true,
+                                                                  })
+                                                              .ToListAsync();
 
             return ReturnVal;
-        }
-
-        /// <summary>
-        /// Returns an ApplicationUser entity associated with the provided ClaimsPrincipal, using an injected UserManager
-        /// </summary>
-        /// <param name="User"></param>
-        /// <returns></returns>
-        internal async Task<ApplicationUser> GetCurrentApplicationUser(ClaimsPrincipal User)
-        {
-            return await _userManager.GetUserAsync(User);
         }
 
     }

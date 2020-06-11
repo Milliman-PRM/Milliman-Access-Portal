@@ -2,7 +2,7 @@ import * as _ from 'lodash';
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
-import { generateUniqueId } from '../../../upload/generate-unique-identifier';
+import { generateUniqueId } from '../../../generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
