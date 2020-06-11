@@ -52,7 +52,7 @@ namespace ContentPublishingService
                               $"    assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                               $"    assembly location <{processAssembly.Location}>{Environment.NewLine}" +
                               $"    host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
-                              $"    running as {(isService ? "Windows service" : "console application")}" +
+                              $"    running as {(isService ? "Windows service" : "console application")}{Environment.NewLine}" +
                               $"    using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}";
 
             Log.Logger = new LoggerConfiguration()
