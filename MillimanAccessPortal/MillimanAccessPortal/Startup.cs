@@ -377,6 +377,7 @@ namespace MillimanAccessPortal
             {
                 case "PRODUCTION":
                 case "STAGING":
+                case "INTERNAL":
 
                     Log.Debug("Configuring Data Protection");
 

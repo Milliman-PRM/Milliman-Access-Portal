@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <None Update="contentPublicationLibSettings.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 

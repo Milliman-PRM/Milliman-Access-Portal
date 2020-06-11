@@ -20,7 +20,7 @@
 #>
 
 Param(
-    [ValidateSet("AzureCI","CI","Production","Staging","Development")]
+    [ValidateSet("AzureCI","CI","Production","Staging","Development","Internal")]
     [string]$deployEnvironment="AzureCI",
     [ValidateSet("AzureCI","CI","Production","Staging","Development")]
     [string]$testEnvironment="CI"
@@ -136,6 +136,7 @@ $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
     "CI" {"ci"}
     "Staging" {"staging"}
     "Production" {"prod"}
+    default {"internal"}
 }
 
 # Required inputs to get-azkeyvaultsecret function
