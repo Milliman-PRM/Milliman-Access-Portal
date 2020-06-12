@@ -66,11 +66,11 @@ namespace MillimanAccessPortal
                 NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
 
                 Log.Information($"Process launched:{Environment.NewLine}" +
-                                $"\tProduct Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
-                                $"\tAssembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
-                                $"\tAssembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                $"\tASPNETCORE_ENVIRONMENT = <{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}>{Environment.NewLine}" +
-                                $"\tUsing MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
+                                $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                                $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                                $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                                $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
+                                $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
 
                 try
                 {
