@@ -491,16 +491,6 @@ namespace MillimanAccessPortal
 
             app.UseSession();
 
-            app.UseEndpoints(endpoints => 
-            {
-                endpoints.MapControllers();
-                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
-                //endpoints.MapRazorPages();
-            });
-            //Todo: read this: https://github.com/aspnet/Security/issues/1310
-
-            // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
-
             // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
             {
@@ -537,6 +527,13 @@ namespace MillimanAccessPortal
             app.Use(async (context, next) =>
             {
                 await next();
+            });
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                //endpoints.MapRazorPages();
             });
         }
     }
