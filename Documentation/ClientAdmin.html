@@ -1,98 +1,81 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>Client Administration - User Guide</title>
-    <link rel="stylesheet" href="_CSS\style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <img src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg" >
-    </header>
-    <div class="body-content">
-        <h1>Client Administration</h1>
-        <button class="accordion">
-            <p>Managing Clients</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <h3 class="subheading">Creating a New Client</h3>
-            <ol>
-                <li>Click the <strong>New Client</strong> card at the left, or the <strong>+</strong> icon to the right of the Filter Clients box</li>
-                <li>Fill in the Client information form</li>
-                <li>The <strong>Client Name</strong> and <strong>Profit Center</strong> fields are required</li>
-                <li>Note that the username/email of a user of this client must match the <strong>Approved Email Domain List</strong> or <strong>Approved Email Address Exception List</strong></li>
-                <li>The user creating a new client is initially added to that client with Client Admin role</li>
-                <li>Click the <strong>Create Client</strong> button to save the new Client with the entered information</li>
-            </ol>
-
-            <h3 class="subheading">Creating a Sub-Client</h3>
-            <ol>
-                <li>Click the green plus sign on the Client card that you want to create a Sub-Client for</li>
-                <li>Fill in the form, following the same steps as above for creating a new Client</li>
-            </ol>
-            <h3 class="subheading">Editing Client Information</h3>
-            <ol>
-                <li>Identify the Client card to be managed in the left column</li>
-                <li>Click on the blue pencil on the Client card, or on the pencil in the upper right of the form</li>
-                <li>Click the desired information to update</li>
-                <li>Note that the username/email of a user of this client must match the </strong>Approved Email Domain List</strong> or </strong>Approved Email Address Exception List</strong></li>
-                <li>Click <strong>Save Changes</strong> to update the client information</li>
-            </ol>
-            <h3 class="subheading">Requesting a Domain Limit Increase</h3>
-            <ol>
-                <li>Send an email to MAP.Support@milliman.com</li>
-                <li>In the email, include the name of the Client, the new domain limit, and a detailed reason for the necessity of the increase</li>
-                <li>Once the request has been processed, you will be able to add new domains to the Approved Email Domain Limit up to the new limit</li>
-            </ol>
-
-            <h3 class="subheading">Deleting a Client</h3>
-            <ol>
-                <li>Click on the red trash icon on the card of the Client to delete</li>
-                <li>Click <strong>Delete</strong> in the popup message</li>
-                <li>Enter the word "DELETE" and press the <strong>Delete</strong> button to confirm deletion</li>
-            </ol>
-        </div>
-
-        <button class="accordion">
-            <p>Managing Users in the Client</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <h3 class="subheading">Adding Users to a Client</h3>
-            <ol>
-                <li>Click on the Client card to be managed</li>
-                <li>Click the <strong>Add User</strong> card or the <strong>+</strong> icon near the top of the right column</li>
-                <li>Enter the new user&apos;s email address in the <strong>Add User</strong> pop up</li>
-                <li>Note that the user&apos;s email address must match the <strong>Approved Email Domain List</strong> or <strong>Approved Email Address Exception List</strong> of the Client</li>
-                <li>Note that if the added user is new to MAP the user will immediately be sent a welcome email with a link to enable their account</li>
-            </ol>
-
-            <h3 class="subheading">Adjusting User Roles for the Client</h3>
-            <ol>
-                <li>Click on a Client card to select the client to be managed. User cards for that Client will be displayed at the right</li>
-                <li>Click on the down blue arrow on the user’s card to view the assigned roles</li>
-                <li>Toggle the user&apos;s roles to turn off or on</li>
-                <li>Note that a user&apos;s Admin role cannot be removed if they are the only admin for the Client</li>
-            </ol>
-
-            <h3 class="subheading">Removing a User</h3>
-            <ol>
-                <li>Click on a Client card to select the client to be managed</li>
-                <li>Click on the red minus icon on the card of the user to be removed</li>
-                <li>Click <strong>Remove</strong> to confirm</li>
-                <li>Note that a user cannot be removed if they are the only Admin for the client</li>
-            </ol>
-        </div>
+    <div class="accordion">
+        <p>Managing Clients</p>
+        <span class="material-icons icon">expand_more</span>
     </div>
-    <script src="_JS\accordion.js"></script>
+    <div class="content">
+        <h3 class="subheading">Creating a New Client</h3>
+        <ol>
+            <li>Click the <strong>New Client</strong> card at the left, or the <strong>+</strong> icon to the right of the Filter Clients box</li>
+            <li>Fill in the Client information form</li>
+            <li>The <strong>Client Name</strong> and <strong>Profit Center</strong> fields are required</li>
+            <li>Note that the username/email of a user of this client must match the <strong>Approved Email Domain List</strong> or <strong>Approved Email Address Exception List</strong></li>
+            <li>The user creating a new client is initially added to that client with Client Admin role</li>
+            <li>Click the <strong>Create Client</strong> button to save the new Client with the entered information</li>
+        </ol>
+
+        <h3 class="subheading">Creating a Sub-Client</h3>
+        <ol>
+            <li>Click the green plus sign on the Client card that you want to create a Sub-Client for</li>
+            <li>Fill in the form, following the same steps as above for creating a new Client</li>
+        </ol>
+        <h3 class="subheading">Editing Client Information</h3>
+        <ol>
+            <li>Identify the Client card to be managed in the left column</li>
+            <li>Click on the blue pencil on the Client card, or on the pencil in the upper right of the form</li>
+            <li>Click the desired information to update</li>
+            <li>Note that the username/email of a user of this client must match the </strong>Approved Email Domain List</strong> or </strong>Approved Email Address Exception List</strong></li>
+            <li>Click <strong>Save Changes</strong> to update the client information</li>
+        </ol>
+        <h3 class="subheading">Requesting a Domain Limit Increase</h3>
+        <ol>
+            <li>Send an email to MAP.Support@milliman.com</li>
+            <li>In the email, include the name of the Client, the new domain limit, and a detailed reason for the necessity of the increase</li>
+            <li>Once the request has been processed, you will be able to add new domains to the Approved Email Domain Limit up to the new limit</li>
+        </ol>
+
+        <h3 class="subheading">Deleting a Client</h3>
+        <ol>
+            <li>Click on the red trash icon on the card of the Client to delete</li>
+            <li>Click <strong>Delete</strong> in the popup message</li>
+            <li>Enter the word "DELETE" and press the <strong>Delete</strong> button to confirm deletion</li>
+        </ol>
+    </div>
+
+    <div class="accordion">
+        <p>Managing Users in the Client</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <h3 class="subheading">Adding Users to a Client</h3>
+        <ol>
+            <li>Click on the Client card to be managed</li>
+            <li>Click the <strong>Add User</strong> card or the <strong>+</strong> icon near the top of the right column</li>
+            <li>Enter the new user&apos;s email address in the <strong>Add User</strong> pop up</li>
+            <li>Note that the user&apos;s email address must match the <strong>Approved Email Domain List</strong> or <strong>Approved Email Address Exception List</strong> of the Client</li>
+            <li>Note that if the added user is new to MAP the user will immediately be sent a welcome email with a link to enable their account</li>
+        </ol>
+
+        <h3 class="subheading">Adjusting User Roles for the Client</h3>
+        <ol>
+            <li>Click on a Client card to select the client to be managed. User cards for that Client will be displayed at the right</li>
+            <li>Click on the down blue arrow on the user’s card to view the assigned roles</li>
+            <li>Toggle the user&apos;s roles to turn off or on</li>
+            <li>Note that a user&apos;s Admin role cannot be removed if they are the only admin for the Client</li>
+        </ol>
+
+        <h3 class="subheading">Removing a User</h3>
+        <ol>
+            <li>Click on a Client card to select the client to be managed</li>
+            <li>Click on the red minus icon on the card of the user to be removed</li>
+            <li>Click <strong>Remove</strong> to confirm</li>
+            <li>Note that a user cannot be removed if they are the only Admin for the client</li>
+        </ol>
+    </div>
 </body>
 </html>

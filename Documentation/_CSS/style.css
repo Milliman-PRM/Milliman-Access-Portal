@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
+
 body {
     font-family: 'Open Sans', sans-serif;
     color: #39414D;
@@ -35,12 +37,12 @@ h1 {
     margin: 1rem 0;
 }
 
-button {
+.accordion {
     display: flex;
     flex-flow: row nowrap;
 }
 
-button p {
+.accordion p {
     flex-grow: 2;
     margin: 0;
 }

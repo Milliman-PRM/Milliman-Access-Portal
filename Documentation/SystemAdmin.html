@@ -1,132 +1,112 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>System Administration - User Guide</title>
-    <link rel="stylesheet" href="_CSS\style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <img src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg" >
-    </header>
-    <div class="body-content">
-        <h1>System Administration</h1>
-        <button class="accordion">
-            <p>Managing Users</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-
-            <h3 class="subheading">Creating a New User</h3>
-            <ol>
-                <li>Click on the <strong>Users</strong> tab in the left column</li>
-                <li>Click the plus sign near the search bar</li>
-                <li>Fill in user email</li>
-                <li>Click <strong>Create User</strong></li>
-            </ol>
-
-            <h3 class="subheading">Managing User Roles</h3>
-            <ol>
-                <li>Click on the <strong>Users</strong> tab in the left column</li>
-                <li>Click a user card to manage</li>
-                <li>Toggle System Permissions and User Settings in the far right section</li>
-            </ol>
-
-            <h3 class="subheading">Managing User Roles at Client Level</h3>
-            <ol>
-                <li>Click on the <strong>Users</strong> tab in the left column</li>
-                <li>Click a user card to manage</li>
-                <li>Click on the <strong>Clients</strong> tab in the center column</li>
-                <li>Click on the Client card for which the user&apos;s roles will be managed</li>
-                <li>Toggle individual <strong>Client/User Roles</strong> settings in far right section</li>
-            </ol>
-
-            <h3 class="subheading">Suspending Users</h3>
-            <ol>
-                <li>Click on the <strong>Users</strong> tab in the left column</li>
-                <li>Click the user card to be suspended</li>
-                <li>Click the <strong>Suspended</strong> toggle on the far right to the <strong>ON</strong> position</li>
-            </ol>
-        </div>
-
-        <button class="accordion">
-            <p>Managing Clients</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <h3 class="subheading">Adding A User to a specific Client</h3>
-            <ol>
-                <li>Click on the <strong>Clients</strong> tab in the left column</li>
-                <li>Click a Client card to be managed</li>
-                <li>Click on the <strong>Users</strong> tab in the center column</li>
-                <li>Click on the plus sign next to the <strong>Filter Users...</strong> search bar</li>
-                <li>Enter the user&apos;s email address</li>
-                <li>Click <strong>Add User</strong>"</li>
-            </ol>
-
-            <h3 class="subheading">Suspending Content</h3>
-            <ol>
-                <li>Click on the <strong>Clients</strong> tab in the left column</li>
-                <li>Click a Client card to be managed</li>
-                <li>Click on the <strong>Content Items</strong> tab in the center column</li>
-                <li>Choose a content item</li>
-                <li>Click on the <strong>Suspended</strong> toggle on the far right under <strong>Content Item Details</strong></li>
-            </ol>
-
-            <h3 class="subheading">Increasing the Client Domain Limit</h3>
-            <ol>
-                <li>Click on the <strong>Clients</strong> tab in the left column</li>
-                <li>Click a Client card to be managed</li>
-                <li>Click on the <strong>Increase Domain Limit</strong> button under the Client Information on the right</li>
-                <li>Fill in the new domain limit, the email of the user that requested the increase, and the reason for the increase</li>
-                <li>Once the form has been completed, click the <strong>UPDATE DOMAIN LIMITS</strong> button</li>
-            </ol>
-        </div>
-
-        <button class="accordion">
-            <p>Managing Profit Centers</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <h3 class="subheading">Creating a Profit Center</h3>
-            <ol>
-                <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
-                <li>Click on the plus sign next to the searh bar for Profit Center</li>
-                <li>Fill in new Profit Center information</li>
-                <li>Click on <strong>Create Profit Center</strong></li>
-            </ol>
-
-            <h3 class="subheading">Adding Authorized Users to a Profit Center</h3>
-            <ol>
-                <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
-                <li>Click to select a Profit Center to add an authorized user to</li>
-                <li>Click on the <strong>Authorized Users</strong> tab in the center column</li>
-                <li>Click on the plus sign next to the Authorized Users search bar</li>
-                <li>Input the authorized user&apos;s email address</li>
-                <li>Click on <strong>Add User</strong></li>
-            </ol>
-
-            <h3 class="subheading">Viewing Clients in a Profit Center</h3>
-            <ol>
-                <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
-                <li>Choose a Profit Center to view Client information</li>
-                <li>Click on the <strong>Clients</strong> tab in the center column</li>
-                <li>Click on the Client card to be viewed</li>
-                <li>View information on the right</li>
-            </ol>
-        </div>
+    <div class="accordion">
+        <p>Managing Users</p>
+        <span class="material-icons icon">expand_more</span>
     </div>
-    <script src="_JS\accordion.js"></script>
+    <div class="content">
+
+        <h3 class="subheading">Creating a New User</h3>
+        <ol>
+            <li>Click on the <strong>Users</strong> tab in the left column</li>
+            <li>Click the plus sign near the search bar</li>
+            <li>Fill in user email</li>
+            <li>Click <strong>Create User</strong></li>
+        </ol>
+
+        <h3 class="subheading">Managing User Roles</h3>
+        <ol>
+            <li>Click on the <strong>Users</strong> tab in the left column</li>
+            <li>Click a user card to manage</li>
+            <li>Toggle System Permissions and User Settings in the far right section</li>
+        </ol>
+
+        <h3 class="subheading">Managing User Roles at Client Level</h3>
+        <ol>
+            <li>Click on the <strong>Users</strong> tab in the left column</li>
+            <li>Click a user card to manage</li>
+            <li>Click on the <strong>Clients</strong> tab in the center column</li>
+            <li>Click on the Client card for which the user&apos;s roles will be managed</li>
+            <li>Toggle individual <strong>Client/User Roles</strong> settings in far right section</li>
+        </ol>
+
+        <h3 class="subheading">Suspending Users</h3>
+        <ol>
+            <li>Click on the <strong>Users</strong> tab in the left column</li>
+            <li>Click the user card to be suspended</li>
+            <li>Click the <strong>Suspended</strong> toggle on the far right to the <strong>ON</strong> position</li>
+        </ol>
+    </div>
+
+    <div class="accordion">
+        <p>Managing Clients</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <h3 class="subheading">Adding A User to a specific Client</h3>
+        <ol>
+            <li>Click on the <strong>Clients</strong> tab in the left column</li>
+            <li>Click a Client card to be managed</li>
+            <li>Click on the <strong>Users</strong> tab in the center column</li>
+            <li>Click on the plus sign next to the <strong>Filter Users...</strong> search bar</li>
+            <li>Enter the user&apos;s email address</li>
+            <li>Click <strong>Add User</strong>"</li>
+        </ol>
+
+        <h3 class="subheading">Suspending Content</h3>
+        <ol>
+            <li>Click on the <strong>Clients</strong> tab in the left column</li>
+            <li>Click a Client card to be managed</li>
+            <li>Click on the <strong>Content Items</strong> tab in the center column</li>
+            <li>Choose a content item</li>
+            <li>Click on the <strong>Suspended</strong> toggle on the far right under <strong>Content Item Details</strong></li>
+        </ol>
+
+        <h3 class="subheading">Increasing the Client Domain Limit</h3>
+        <ol>
+            <li>Click on the <strong>Clients</strong> tab in the left column</li>
+            <li>Click a Client card to be managed</li>
+            <li>Click on the <strong>Increase Domain Limit</strong> button under the Client Information on the right</li>
+            <li>Fill in the new domain limit, the email of the user that requested the increase, and the reason for the increase</li>
+            <li>Once the form has been completed, click the <strong>UPDATE DOMAIN LIMITS</strong> button</li>
+        </ol>
+    </div>
+
+    <div class="accordion">
+        <p>Managing Profit Centers</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <h3 class="subheading">Creating a Profit Center</h3>
+        <ol>
+            <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
+            <li>Click on the plus sign next to the searh bar for Profit Center</li>
+            <li>Fill in new Profit Center information</li>
+            <li>Click on <strong>Create Profit Center</strong></li>
+        </ol>
+
+        <h3 class="subheading">Adding Authorized Users to a Profit Center</h3>
+        <ol>
+            <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
+            <li>Click to select a Profit Center to add an authorized user to</li>
+            <li>Click on the <strong>Authorized Users</strong> tab in the center column</li>
+            <li>Click on the plus sign next to the Authorized Users search bar</li>
+            <li>Input the authorized user&apos;s email address</li>
+            <li>Click on <strong>Add User</strong></li>
+        </ol>
+
+        <h3 class="subheading">Viewing Clients in a Profit Center</h3>
+        <ol>
+            <li>Click on the <strong>Profit Center</strong> tab in the left column</li>
+            <li>Choose a Profit Center to view Client information</li>
+            <li>Click on the <strong>Clients</strong> tab in the center column</li>
+            <li>Click on the Client card to be viewed</li>
+            <li>View information on the right</li>
+        </ol>
+    </div>
 </body>
 </html>

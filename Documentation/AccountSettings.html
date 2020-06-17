@@ -1,48 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>Account Setting - User Guide</title>
-    <link rel="stylesheet" href="_CSS\style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Open+Sans&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <img src="../MillimanAccessPortal/MillimanAccessPortal/src/images/map-logo-white.svg" >
-    </header>
-    <div class="body-content">
-        <h1>Account Settings</h1>
-        <button class="accordion">
-            <p>Updating Your Information</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <ol>
-                <li>Click to select each field that is to be updated and enter the updated information</li>
-                <li>Whenever any field is changed, <strong>Update Account</strong> and <strong>Discard Changes</strong> buttons will be available at the bottom of the form. To save your changes, click <strong>Update Account</strong></li>
-            </ol>
-        </div>
-        <button class="accordion">
-            <p>Changing Your Password</p>
-            <img 
-                src="../MillimanAccessPortal/MillimanAccessPortal/src/images/icons/expand-card.svg"
-                class="icon"
-                >
-        </button>
-        <div class="content">
-            <ol>
-                <li>Enter your current password in the <strong>Current Password</strong> field</li>
-                <li>Enter your desired new password in the <strong>New Password</strong> and <strong>Confirm Password</strong> fields</li>
-                <li>Click <strong>Update Account</strong> at the bottom of the form to complete the update</li>
-                <li>The new password will be checked for MAP password requirements</li>
-            </ol>
-            <p>If you sign in to Milliman Access Portal using credentials controlled by your organization, please contact your local IT department for help updating your password.</p>
-        </div>
+    <div class="accordion">
+        <p>Updating Your Information</p>
+        <span class="material-icons icon">expand_more</span>
     </div>
-    <script src="_JS\accordion.js"></script>
+    <div class="content">
+        <ol>
+            <li>Click to select each field that is to be updated and enter the updated information</li>
+            <li>Whenever any field is changed, <strong>Update Account</strong> and <strong>Discard Changes</strong> buttons will be available at the bottom of the form. To save your changes, click <strong>Update Account</strong></li>
+        </ol>
+    </div>
+    <div class="accordion">
+        <p>Changing Your Password</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <ol>
+            <li>Enter your current password in the <strong>Current Password</strong> field</li>
+            <li>Enter your desired new password in the <strong>New Password</strong> and <strong>Confirm Password</strong> fields</li>
+            <li>Click <strong>Update Account</strong> at the bottom of the form to complete the update</li>
+            <li>The new password will be checked for MAP password requirements</li>
+        </ol>
+        <p>If you sign in to Milliman Access Portal using credentials controlled by your organization, please contact your local IT department for help updating your password.</p>
+    </div>
 </body>
 </html>
