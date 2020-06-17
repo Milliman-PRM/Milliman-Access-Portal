@@ -1,5 +1,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans&display=swap');
 
+html {
+    overflow-y: scroll;
+}
+
 body {
     font-family: 'Open Sans', sans-serif;
     color: #39414D;
@@ -52,7 +56,6 @@ h1 {
     color: #39414D;
     cursor: pointer;
     padding: 10px 16px;
-    width: 100%;
     border: #E8E9EA;
     text-align: left;
     outline: none;
@@ -79,14 +82,13 @@ h1 {
 }
 
 .icon {
-    max-height: 14px;
-    max-width: 14px;
     color: #39414D;
     align-self: center;
 }
 
 .rotate {
     transform: rotate(180deg);
+    transition: .1s;
 }
 
 h3.subheading {
