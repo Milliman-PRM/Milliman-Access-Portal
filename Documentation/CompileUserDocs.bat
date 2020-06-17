@@ -19,7 +19,7 @@ xcopy /I /D /Y "_CSS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Docu
 xcopy /I /D /Y "_JS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_JS"
 copy "..\MillimanAccessPortal\MillimanAccessPortal\src\images\map-logo-white.svg" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\images\"
 
-echo Copying user guides
+echo Compiling user guides
 for %%x in (
 	Content
  	AccountSettings
