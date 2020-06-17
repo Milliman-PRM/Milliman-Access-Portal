@@ -130,7 +130,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         {
           !this.state.hasLoaded
             ? <ColumnSpinner />
-            : clientGroups.length === 0
+            : this.state.itemGroups.length === 0
               ? (
                 <div className="welcome-text">
                   <h1>Welcome to Milliman Access Portal!</h1>
@@ -150,7 +150,18 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
                     />
                   </div>
                   <div id="authorized-content-items">
-                    {clientGroups}
+                    {
+                      clientGroups.length > 0
+                        ? clientGroups
+                        : (
+                          <>
+                            <h3 className="filter-error-msg-header">No Results to Display</h3>
+                            <p className="filter-error-msg">
+                              Your search returned no results.  Please revise and try again.
+                            </p>
+                          </>
+                        )
+                    }
                   </div>
                 </div>
               )
