@@ -17,15 +17,19 @@ pandoc --self-contained --css=".\_CSS\style.css" --metadata=pagetitle:"Milliman 
 
 xcopy /I /D /Y "_CSS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_CSS"
 xcopy /I /D /Y "_JS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_JS"
+copy "..\MillimanAccessPortal\MillimanAccessPortal\src\images\map-logo-white.svg" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\images\"
 
-echo Copying user guides
+echo Compiling user guides
 for %%x in (
 	Content
  	AccountSettings
  	ContentAccessAdmin
  	ContentPublishing
  	ClientAdmin
+	FileDrop
  	SystemAdmin
  	) do (
- 		copy ".\%%x.html" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\"
+		pandoc --metadata=pagetitle:"%%x" -o "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\%%x.html" "%%x.html" --template=".\_TEMPLATES\user_guide_pandoc_template.html"
  	)
+
+pandoc --metadata=pagetitle:"File Drop Admin" -o "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\FileDropAdmin.html" "FileDropAdmin.html" "FileDrop.html" --template=".\_TEMPLATES\user_guide_pandoc_template.html"

@@ -1,14 +1,13 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
     <title>Content Publishing - User Guide</title>
-    <link rel="stylesheet" href="_CSS\style.css">
 </head>
 <body>
-    <h1>Content Publishing</h1>
-    <button class="accordion">Creating a New Content Item</button>
+    <div class="accordion">
+        <p>Creating a New Content Item</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
     <div class="content">
         <ol>
             <li>Select the client to which the content will be published in the <strong>Clients</strong> column on the left side of the screen</li>
@@ -38,7 +37,10 @@
             <li>The new content will not be viewable by the end user until the publication has been reviewed and approved</li>
         </ol>
     </div>
-    <button class="accordion">Updating Existing Content</button>
+    <div class="accordion">
+        <p>Updating Existing Content</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
     <div class="content">
         <ol>
             <li>Select the client for which the content item has been published in the <strong>Clients</strong> column on the left side</li>
@@ -50,87 +52,25 @@
             <li>If a new content file, Thumbnail, User Guide, or Release Notes was included, the approval process outlined in the <strong>Content Publishing</strong> section above must be followed for the content to go live</li>
         </ol>
     </div>
-    <button class="accordion">Adding a Content Disclaimer</button>
+    <div class="accordion">
+        <p>Adding a Content Disclaimer</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
     <div class="content">
         <ol>
             <li>Select the client for which the content item has been published in the <strong>Clients</strong> column on the left side</li>
             <li>Select the content item that you would to add a disclaimer to</li>
             <li>Click on the blue Update icon on the content card, or click on the <strong>Update Content Item</strong> icon in the upper right corner</li>
             <li>Input the desired disclaimer text in the "Custom Disclaimer Text" input field</li>
-            <li>If text formatting is desired, this can be accomplished through the use of markdown syntax</li>
+            <li>If text formatting is desired, this can be accomplished through the use of <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">markdown syntax</a></li>
             <li>To preview the formatted disclaimer text, click the "Preview" button above the "Custom Disclaimer Text" text box</li>
             <li>Once you are satisfied with the disclaimer text and formatting, click the "CREATE CONTENT ITEM" or "UPDATE CONTENT ITEM" button</li>
         </ol>
-        <h3 class="subheading">Markdown Syntax:</h3>
-        <table id="syntax">
-            <tr>
-                <th>Element</th>
-                <th>Syntax</th>
-                <th>Result</th>
-            </tr>
-            <tr>
-                <td rowspan="3">Section Heading</td>
-                <td># H1</td>
-                <td><h1>H1</h1></td>
-            </tr>
-            <tr>
-                <td>## H2</td>
-                <td><h2>H2</h2></td>
-            </tr>
-            <tr>
-                <td>### H3</td>
-                <td><h3>H3</h3></td>
-            </tr>
-            <tr>
-                <td rowspan="2">Text Formatting</td>
-                <td>**Bold**</td>
-                <td><strong>Bold</strong></td>
-            </tr>
-            <tr>
-                <td>_Italics_</td>
-                <td><i>Italics</i></td>
-            </tr>
-            <tr>
-                <td>Link</td>
-                <td>[Google](https://www.google.com)</td>
-                <td><a href="https://www.google.com">Google</a></td>
-            </tr>
-            <tr>
-                <td rowspan="2">Lists</td>
-                <td>
-                    <ul>
-                        <li style="list-style: none;">1. First Item</li>
-                        <li style="list-style: none;">1. Second Item</li>
-                        <li style="list-style: none;">1. Third Item</li>
-                    </ul>
-                </td>
-                <td>
-                    <ol>
-                        <li>First Item</li>
-                        <li>Second Item</li>
-                        <li>Third Item</li>
-                    </ol>
-                </td>
-            </tr>
-            <tr>
-                <td>
-                    <ul>
-                        <li style="list-style: none;">- First Item</li>
-                        <li style="list-style: none;">- Second Item</li>
-                        <li style="list-style: none;">- Third Item</li>
-                    </ul>
-                </td>
-                <td>
-                    <ul>
-                        <li>First Item</li>
-                        <li>Second Item</li>
-                        <li>Third Item</li>
-                    </ul>
-                </td>
-            </tr>
-        </table>
     </div>
-    <button class="accordion">Deleting Content Items</button>
+    <div class="accordion">
+        <p>Deleting Content Items</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
     <div class="content">
         <ol>
             <li>Navigate to the Client, then the Content Item to be deleted</li>
@@ -139,6 +79,5 @@
             <li>Press the <strong>Confirm Deletion</strong> to confirm the deletion</li>
         </ol>
     </div>
-    <script src="_JS\accordion.js"></script>
 </body>
 </html>
