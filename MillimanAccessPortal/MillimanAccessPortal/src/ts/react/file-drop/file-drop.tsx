@@ -75,6 +75,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   public render() {
     const { selected, modals, pending, activeSelectedClient, data } = this.props;
+    const isFileDropAdmin = data.clients && Object.keys(data.clients).some((client) => {
+      return data.clients[client].canManageFileDrops === true;
+    });
     return (
       <>
         <ReduxToastr
@@ -84,7 +87,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           transitionIn="fadeIn"
           transitionOut="fadeOut"
         />
-        <NavBar currentView={this.currentView} />
+        <NavBar currentView={`${this.currentView}${isFileDropAdmin ? 'Admin' : ''}`} />
         {this.renderClientPanel()}
         {selected.client && this.renderFileDropPanel()}
         {selected.fileDrop && this.renderFileDropManagementPanel()}
