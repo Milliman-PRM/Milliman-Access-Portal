@@ -83,7 +83,8 @@ namespace MillimanAccessPortal
                         SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
                         SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
                         SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
-                        SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
+                        SmtpPassword = Configuration.GetValue<string>("SmtpPassword"),
+                        SendGridApiKey = Configuration.GetValue<string>("SendGridApiKey")
                     });
 
                     #region Configure Audit Logger connection string

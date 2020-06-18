@@ -69,7 +69,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 PublicationRequestId = PubRequest.Id,
                 RootContentId = PubRequest.RootContentItem.Id,
                 RootContentName = PubRequest.RootContentItem.ContentName,
-                ContentTypeName = PubRequest.RootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
+                ContentTypeName = PubRequest.RootContentItem.ContentType.TypeEnum.ToString(),
                 ContentDescription = PubRequest.RootContentItem.Description,
                 DoesReduce = PubRequest.RootContentItem.DoesReduce,
                 ClientId = PubRequest.RootContentItem.Client.Id,
