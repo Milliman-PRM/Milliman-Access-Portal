@@ -53,7 +53,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               selectedContentURL: null,
               selectedContentType: null,
             }, () => {
-              const display = null;
+              const display: string = null;
               document.getElementById('page-header').style.display = display;
               document.getElementById('page-footer').style.display = display;
               document.getElementById('authorized-content-container').style.display = display;
