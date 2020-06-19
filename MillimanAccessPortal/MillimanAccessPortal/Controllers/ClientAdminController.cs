@@ -583,25 +583,6 @@ namespace MillimanAccessPortal.Controllers
                         .ToListAsync();
                     DbContext.RemoveRange(existingSelectionGroupAssignments);
                 }
-                if (RequestedRole.RoleEnum == RoleEnum.FileDropUser)
-                {
-                    var accountsToReset = await DbContext.SftpAccount
-                                                         .Include(a => a.FileDrop)
-                                                         .Include(a => a.FileDropUserPermissionGroup)
-                                                         .Where(a => a.FileDrop.ClientId == ClientUserModel.ClientId)
-                                                         .Where(a => a.ApplicationUserId == ClientUserModel.UserId)
-                                                         .ToListAsync();
-
-                    accountsToReset.ForEach(a =>
-                    {
-                        if (a.FileDropUserPermissionGroup != null && a.FileDropUserPermissionGroup.IsPersonalGroup)
-                        {
-                            DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
-                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
-                        }
-                        a.FileDropUserPermissionGroupId = null;
-                    });
-                }
 
                 DbContext.UserRoleInClient.RemoveRange(ExistingRecordsForRequestedRole);
                 await DbContext.SaveChangesAsync();
