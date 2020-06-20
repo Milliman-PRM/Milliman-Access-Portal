@@ -274,19 +274,8 @@ namespace MillimanAccessPortal.DataQueries
                                                                               .Where(u => userIdsRemovedInUpdatedGroups.Contains(u.Id))
                                                                               .ToListAsync();
 
-                #region temporary diagnostic code
-                usersRemovedInUpdates.ForEach(u => 
-                {
-                    string logMsg = $"usersRemovedInUpdates contains user.Id {u.Id}, SFTP accounts are:{Environment.NewLine}";
-                    foreach (var a in u.SftpAccounts)
-                    {
-                        logMsg += $"    Id {a.Id}, UserName {a.UserName}, referenced ApplicationUserId {a.ApplicationUserId}, Permission group Id {(a.FileDropUserPermissionGroupId.HasValue ? a.FileDropUserPermissionGroupId.Value.ToString() : "null")}{Environment.NewLine}";
-                    }
-                    Log.Warning(logMsg);
-                });
-                #endregion
-
-                List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
+                List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                                                       .Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
                                                                                         .Select(a => a.Id)
                                                                                         .ToList();
 
