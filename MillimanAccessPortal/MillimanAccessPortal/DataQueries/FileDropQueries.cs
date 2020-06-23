@@ -274,7 +274,8 @@ namespace MillimanAccessPortal.DataQueries
                                                                               .Where(u => userIdsRemovedInUpdatedGroups.Contains(u.Id))
                                                                               .ToListAsync();
 
-                List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
+                List<Guid> sftpAccountIdsOfUsersRemovedInUpdates = usersRemovedInUpdates.SelectMany(u => u.SftpAccounts.Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                                                       .Where(a => model.UpdatedPermissionGroups.Keys.Contains(a.FileDropUserPermissionGroupId.Value)))
                                                                                         .Select(a => a.Id)
                                                                                         .ToList();
 
