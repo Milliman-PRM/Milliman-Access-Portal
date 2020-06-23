@@ -1116,19 +1116,40 @@ namespace AuditLogLib.Event
             MapUserBlocked,
         }
 
-        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel>(
-            8105, "Sftp Authentication Failed", (account, reason, fileDropModel) => new
+        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(
+            8105, "Sftp Authentication Failed", (account, reason, fileDropModel, clientAddress) =>
             {
-                Account = new
+                if (reason != SftpAuthenticationFailReason.UserNotFound)
                 {
-                    account?.Id,
-                    account?.UserName,
-                    account?.IsSuspended,
-                    PasswordResetDateTimeUtc = account?.PasswordResetDateTimeUtc.ToString("u"),
-                },
-                Reason = reason.GetDisplayDescriptionString(),
-                FileDrop = fileDropModel,
-            });
+                    return new
+                    {
+                        ClientAddress = clientAddress,
+                        Account = new
+                        {
+                            account.Id,
+                            account.UserName,
+                            account.IsSuspended,
+                            PasswordResetDateTimeUtc = account.PasswordResetDateTimeUtc.ToString("u"),
+                        },
+                        Reason = reason.GetDisplayDescriptionString(),
+                        FileDrop = fileDropModel,
+                    };
+                }
+                else
+                {
+                    return new
+                    {
+                        ClientAddress = clientAddress,
+                        Account = new
+                        {
+                            account.UserName,
+                        },
+                        Reason = reason.GetDisplayDescriptionString(),
+                        FileDrop = fileDropModel,
+                    };
+                }
+            }
+);
 
         public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
             8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
