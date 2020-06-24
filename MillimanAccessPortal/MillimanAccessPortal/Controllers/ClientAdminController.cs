@@ -594,10 +594,11 @@ namespace MillimanAccessPortal.Controllers
 
                     accountsToReset.ForEach(a =>
                     {
+                        AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
                         if (a.FileDropUserPermissionGroup != null && a.FileDropUserPermissionGroup.IsPersonalGroup)
                         {
+                            AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
                             DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
-                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
                         }
                         a.FileDropUserPermissionGroupId = null;
                     });
