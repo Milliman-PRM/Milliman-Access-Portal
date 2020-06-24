@@ -547,22 +547,7 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
-$FDShareUrl = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "storage-url").SecretValueText
-
 $FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
-
-$acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
-$FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
-
-
-$FDAccountName = $($FDShareUrl).split('/')[2].split('.')[0]
-$FDShareName= $($FDShareUrl).split('/')[-1] # Get the account name from the URL
-$FDResourceGroup = "filedropsftp-$envCommonName"
-$azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName)[0].Value
-$azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = New-Object System.Management.Automation.PSCredential($FDAccountName, $azFilesharePass_secure)
 
 Set-Location $rootpath
 
@@ -576,21 +561,7 @@ docker push $FDImageName
 
 docker rmi $FDImageName
 
-#trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
-
-& $rootPath\Publish\DeployContainer.ps1 `
-    -envCommonName $envCommonName `
-    -FDRG "filedropsftp-$envCommonName"
-    -azTenantId $azTenantId `
-    -SPCredential $SPCredential `
-    -azSubscriptionId $azSubscriptionId `
-    -FDImageName $FDImageName `
-    -FDACRCred $FDACRCred `
-    -FDFileName $FDShareName `
-    -FDFileCred $FDFileCred `
-    -azCertPass $azCertPass `
-    -thumbprint $thumbprint
-
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 #endregion
 
 #region Deploy releases to Octopus
