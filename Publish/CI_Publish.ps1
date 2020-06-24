@@ -296,6 +296,9 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
+$sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
+$sFTPVersion = "$sFTPVersion-$branchName"
+
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
@@ -561,7 +564,7 @@ docker push $FDImageName
 
 docker rmi $FDImageName
 
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 #endregion
 
 #region Deploy releases to Octopus
