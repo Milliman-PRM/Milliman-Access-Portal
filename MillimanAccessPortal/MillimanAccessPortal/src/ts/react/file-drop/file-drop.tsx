@@ -1113,6 +1113,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         }}
                       />
                     }
+                    <p className="notification-instruction">
+                      Receive an email when a file is uploaded to this File Drop
+                    </p>
                   </ FormSection>
                 }
               </>
