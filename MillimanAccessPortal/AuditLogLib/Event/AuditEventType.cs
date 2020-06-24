@@ -1131,7 +1131,8 @@ namespace AuditLogLib.Event
                             account.IsSuspended,
                             PasswordResetDateTimeUtc = account.PasswordResetDateTimeUtc.ToString("u"),
                         },
-                        Reason = reason.GetDisplayDescriptionString(),
+                        Reason = (int)reason,
+                        ReasonDescription = reason.GetDisplayDescriptionString(),
                         FileDrop = fileDropModel,
                     };
                 }
@@ -1144,7 +1145,8 @@ namespace AuditLogLib.Event
                         {
                             account.UserName,
                         },
-                        Reason = reason.GetDisplayDescriptionString(),
+                        Reason = (int)reason,
+                        ReasonDescription = reason.GetDisplayDescriptionString(),
                         FileDrop = fileDropModel,
                     };
                 }
