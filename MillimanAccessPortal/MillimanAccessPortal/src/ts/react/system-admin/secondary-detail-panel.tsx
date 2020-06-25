@@ -196,6 +196,20 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
                           />
                         </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop Admin'}
+                            checked={this.props.checkedFileDropAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropAdmin)}
+                          />
+                        </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop User'}
+                            checked={this.props.checkedFileDropUser}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropUser)}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
