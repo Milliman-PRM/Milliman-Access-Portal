@@ -580,7 +580,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.openModifiedFormModal({
                       afterFormModal: {
                         entityToSelect: entity.id,
-                        entityType: 'files',
+                        entityType: 'Select File Drop',
                       },
                     });
                   } else {
