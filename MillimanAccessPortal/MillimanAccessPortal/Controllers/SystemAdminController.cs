@@ -1950,6 +1950,8 @@ namespace MillimanAccessPortal.Controllers
                 { RoleEnum.ContentAccessAdmin, new List<RoleEnum> { RoleEnum.ContentAccessAdmin, } },
                 { RoleEnum.ContentPublisher, new List<RoleEnum> { RoleEnum.ContentPublisher, } },
                 { RoleEnum.ContentUser, new List<RoleEnum> { RoleEnum.ContentUser, } },
+                { RoleEnum.FileDropAdmin, new List<RoleEnum> { RoleEnum.FileDropAdmin} },
+                { RoleEnum.FileDropUser, new List<RoleEnum> { RoleEnum.FileDropUser } }
             };
             if (!userClientAssignments.Keys.Contains(role))
             {
@@ -2026,6 +2028,8 @@ namespace MillimanAccessPortal.Controllers
                 { RoleEnum.ContentAccessAdmin, new List<RoleEnum> { RoleEnum.ContentAccessAdmin, } },
                 { RoleEnum.ContentPublisher, new List<RoleEnum> { RoleEnum.ContentPublisher, } },
                 { RoleEnum.ContentUser, new List<RoleEnum> { RoleEnum.ContentUser, } },
+                { RoleEnum.FileDropAdmin, new List<RoleEnum> { RoleEnum.FileDropAdmin} },
+                { RoleEnum.FileDropUser, new List<RoleEnum> { RoleEnum.FileDropUser } }
             };
             if (!userClientAssignments.Keys.Contains(role))
             {
