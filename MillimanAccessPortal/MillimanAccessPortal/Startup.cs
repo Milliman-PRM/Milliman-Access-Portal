@@ -311,6 +311,12 @@ namespace MillimanAccessPortal
             });
 
             services.AddResponseCaching();
+            services.AddHsts(options =>
+            {
+                options.Preload = true;
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+            });
 
             services
             .AddControllersWithViews(options => 
@@ -423,6 +429,7 @@ namespace MillimanAccessPortal
                         ConfigFile = "webpack.dev.js",
                     });
                 }
+                app.UseHsts();
             }
             else
             {
