@@ -832,7 +832,7 @@ export function ClientCard(
   });
   this.addComponent('statistic', {
     icon: 'reports',
-    tooltip: 'Reports',
+    tooltip: 'Content items',
     value: reportCount,
   });
   this.addComponent('button', {
