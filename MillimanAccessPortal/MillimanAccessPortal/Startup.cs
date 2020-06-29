@@ -431,6 +431,25 @@ namespace MillimanAccessPortal
                 app.UseExceptionHandler("/Home/Error");
             }
 
+            // Temporary diagnostic code to examine/log all cookie headers
+            app.Use(async (context, next) =>
+            {
+                context.Response.OnStarting(state =>
+                {
+                    var response = (HttpResponse)state;
+                    if (response.Headers.ContainsKey(HeaderNames.SetCookie))
+                    {
+                        StringValues cookieHeader = response.Headers[HeaderNames.SetCookie]
+                            .Aggregate(new StringValues(), (current, s) => StringValues.Concat(current, s));
+
+                        string msg = $"Cookie header strings:{Environment.NewLine}{string.Join(Environment.NewLine, cookieHeader.ToArray())}";
+                        Log.Information(msg);
+                    }
+                    return Task.CompletedTask;
+                }, context.Response);
+                await next();
+            });
+
             app.UseStaticFiles(new StaticFileOptions
             {
                 OnPrepareResponse = (context) =>
