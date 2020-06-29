@@ -313,7 +313,6 @@ namespace MillimanAccessPortal
             services.AddResponseCaching();
             services.AddHsts(options =>
             {
-                options.Preload = true;
                 options.MaxAge = TimeSpan.FromDays(365);
                 options.IncludeSubDomains = true;
             });
