@@ -429,7 +429,6 @@ namespace MillimanAccessPortal
                         ConfigFile = "webpack.dev.js",
                     });
                 }
-                app.UseHsts();
             }
             else
             {
