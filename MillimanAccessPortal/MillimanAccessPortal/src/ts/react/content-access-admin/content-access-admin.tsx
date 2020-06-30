@@ -576,7 +576,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 Cancel
               </button>
               <button
-                className={`blue-button${pending.newGroupName ? '' : ' disabled'}`}
+                className={`blue-button${pending.newGroupName.trim() ? '' : ' disabled'}`}
                 type="submit"
               >
                 Add
