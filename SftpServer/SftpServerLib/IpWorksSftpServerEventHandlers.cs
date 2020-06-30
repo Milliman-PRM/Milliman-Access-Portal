@@ -715,20 +715,20 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to write to an open file.")]
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("FileWrite", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileWrite", evtData));
         }
 
         //[Description("Fires when a client attempts to set file or directory attributes.")]
         internal static void OnSetAttributes(object sender, SftpserverSetAttributesEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("SetAttributes", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SetAttributes", evtData));
         }
 
         //[Description("Fires when a client attempts to authenticate a connection.")]
         internal static void OnSSHUserAuthRequest(object sender, SftpserverSSHUserAuthRequestEventArgs evtData)
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
-            Log.Debug(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
 
             string clientAddress = IpWorksSftpServer._sftpServer.Connections[evtData.ConnectionId]?.RemoteHost;
 
@@ -889,6 +889,12 @@ namespace SftpServerLib
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
+                        }
+                        else if (connectedAccount.FileDropUserPermissionGroup == null)
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account currently is not authorized through a permission group");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
                         {
