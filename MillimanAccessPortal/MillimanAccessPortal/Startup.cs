@@ -311,6 +311,11 @@ namespace MillimanAccessPortal
             });
 
             services.AddResponseCaching();
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+            });
 
             services
             .AddControllersWithViews(options => 
