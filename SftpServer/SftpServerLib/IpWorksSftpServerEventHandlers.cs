@@ -40,7 +40,7 @@ namespace SftpServerLib
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRemove.htm
 
-            Log.Information(GenerateEventArgsLogMessage("FileRemove", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileRemove", evtData));
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
 
@@ -119,13 +119,13 @@ namespace SftpServerLib
         internal static void OnFileRead(object sender, SftpserverFileReadEventArgs evtData)
         {
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
-            Log.Debug(GenerateEventArgsLogMessage("FileRead", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileRead", evtData));
         }
 
         //[Description("Fires when a client wants to open or create a file.")]
         internal static void OnFileOpen(object sender, SftpserverFileOpenEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileOpen", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileOpen", evtData));
 
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileOpen.htm
 
@@ -300,7 +300,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
         internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("FileClose", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
         }
 
         //[Description("Fired when a connection is closed.")]
@@ -390,7 +390,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to open a directory for listing.")]
         internal static void OnDirList(object sender, SftpserverDirListEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("DirList", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("DirList", evtData));
             Log.Warning("TODO: Should there be a read permission check for a directory listing?");
         }
 
@@ -492,7 +492,7 @@ namespace SftpServerLib
         //[Description("Fired when a request for connection comes from a remote host.")]
         internal static void OnConnectionRequest(object sender, SftpserverConnectionRequestEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
         }
 
         //[Description("Fired immediately after a connection completes (or fails).")]
@@ -514,7 +514,7 @@ namespace SftpServerLib
         //[Description("Fires when a client needs to get file information.")]
         internal static void OnGetAttributes(object sender, SftpserverGetAttributesEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("GetAttributes", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("GetAttributes", evtData));
 
             switch (evtData.FileType)
             {
@@ -529,14 +529,14 @@ namespace SftpServerLib
         //[Description("Fires once for each log message.")]
         internal static void OnLog(object sender, SftpserverLogEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("Log", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("Log", evtData));
             //Log.Debug($"Event OnLog: Args: {JsonSerializer.Serialize(evtData, prettyJsonOptions)}");
         }
 
         //[Description("Fires when a client attempts to canonicalize a path.")]
         internal static void OnResolvePath(object sender, SftpserverResolvePathEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("ResolvePath", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("ResolvePath", evtData));
         }
 
         //[Description("Fires when a client wants to rename a file.")]
