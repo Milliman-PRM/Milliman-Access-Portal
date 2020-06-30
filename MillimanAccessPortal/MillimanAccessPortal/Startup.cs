@@ -463,10 +463,9 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            // Send header to prevent IE from going into compatibility mode
-            // Should work for internal and external users
             var policyCollection = new HeaderPolicyCollection()
-                .AddCustomHeader("X-UA-Compatible", "IE=Edge");
+                .AddCustomHeader("X-UA-Compatible", "IE=Edge") // Prevents IE from going into compatibility mode, should work for internal and external users
+                .AddCustomHeader("X-Frame-Options", "SAMEORIGIN"); // Prevents clickjacking
             app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
