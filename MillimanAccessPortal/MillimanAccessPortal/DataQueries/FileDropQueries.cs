@@ -437,6 +437,22 @@ namespace MillimanAccessPortal.DataQueries
 
                 foreach (NewPermissionGroup newGroup in model.NewPermissionGroups)
                 {
+                    var allAuthorizedUserClientRoles = _dbContext.UserRoleInClient
+                                                                 .Where(urc => urc.ClientId == fileDrop.ClientId)
+                                                                 .GroupBy(
+                                                                     urc => urc.User.UserName,
+                                                                     urc => urc.Role.RoleEnum
+                                                                  );
+                    var userNamesWithoutFileDropUserRole = allAuthorizedUserClientRoles.Where(g => !g.Contains(RoleEnum.FileDropUser))
+                                                                                       .Select(g => g.Key)
+                                                                                       .ToList();
+                    if (userNamesWithoutFileDropUserRole.Any())
+                    {
+                        await txn.RollbackAsync();
+                        Log.Error($"Users [{string.Join(",", userNamesWithoutFileDropUserRole)}] are not authorized to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
+                        throw new ApplicationException("One or more requested users are not authorized to this file drop");
+                    }
+
                     FileDropUserPermissionGroup newFileDropUserPermissionGroup = new FileDropUserPermissionGroup
                     {
                         Name = newGroup.Name,
@@ -450,7 +466,7 @@ namespace MillimanAccessPortal.DataQueries
 
                     List<SftpAccount> existingSftpAccountsOfGroupUsers = await _dbContext.SftpAccount
                                                                                          .Include(a => a.ApplicationUser)
-                                                                                         //.Where(a => a.ApplicationUserId.HasValue)
+                                                                                         .Where(a => a.ApplicationUserId.HasValue)
                                                                                          .Where(a => newGroup.AssignedMapUserIds.Contains(a.ApplicationUserId.Value))
                                                                                          .Where(a => a.FileDropId == model.FileDropId)
                                                                                          .ToListAsync();
@@ -467,6 +483,12 @@ namespace MillimanAccessPortal.DataQueries
                                 UserName = (await _dbContext.ApplicationUser.FindAsync(userId)).UserName + $"-{fileDrop.ShortHash}",
                             };
                             auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop)));
+                        }
+                        else if (userSftpAccount.FileDropUserPermissionGroupId.HasValue)
+                        {
+                            await txn.RollbackAsync();
+                            Log.Error($"User <{userId}> is already assigned to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
+                            throw new ApplicationException("One or more requested users are already assigned to this file drop");
                         }
 
                         newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
