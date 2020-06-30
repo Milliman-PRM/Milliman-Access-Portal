@@ -391,14 +391,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionStats>
                   <CardStat
-                    name={'Reports'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
+                    name={'Content-assigned users'}
                     value={entity.userCount}
                     icon={'user'}
+                  />
+                  <CardStat
+                    name={'Content items'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
                   />
                 </CardSectionStats>
               </CardSectionMain>
@@ -570,14 +570,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 />
                 <CardSectionStats>
                   <CardStat
-                    name={'Selection groups'}
-                    value={entity.selectionGroupCount}
-                    icon={'group'}
-                  />
-                  <CardStat
                     name={'Assigned users'}
                     value={entity.assignedUserCount}
                     icon={'user'}
+                  />
+                  <CardStat
+                    name={'Selection groups'}
+                    value={entity.selectionGroupCount}
+                    icon={'group'}
                   />
                 </CardSectionStats>
                 <CardSectionButtons>

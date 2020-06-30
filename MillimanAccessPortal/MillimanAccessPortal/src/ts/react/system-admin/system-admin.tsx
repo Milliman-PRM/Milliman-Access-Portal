@@ -186,7 +186,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardText text={entity.name} subtext={entity.code} />
                     <CardSectionStats>
                       <CardStat
-                        name={'Reports'}
+                        name={'Content items'}
                         value={entity.rootContentItemCount}
                         icon={'reports'}
                       />
@@ -211,7 +211,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       />
                       <CardSectionStats>
                         <CardStat
-                          name={'Reports'}
+                          name={'Content items'}
                           value={entity.rootContentItemCount}
                           icon={'reports'}
                         />
@@ -273,7 +273,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardText text={entity.name} subtext={entity.clientName} />
                       <CardSectionStats>
                         <CardStat
-                          name={'Users'}
+                          name={'Users with access'}
                           value={entity.userCount}
                           icon={'user'}
                         />
@@ -464,7 +464,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       icon={'client'}
                     />
                     <CardStat
-                      name={'Reports'}
+                      name={'Content items'}
                       value={entity.rootContentItemCount}
                       icon={'reports'}
                     />
@@ -485,12 +485,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <CardText text={entity.name} subtext={entity.code} />
                   <CardSectionStats>
                     <CardStat
-                      name={'Users'}
+                      name={'Client users'}
                       value={entity.userCount}
                       icon={'user'}
                     />
                     <CardStat
-                      name={'Reports'}
+                      name={'Content items'}
                       value={entity.rootContentItemCount}
                       icon={'reports'}
                     />
