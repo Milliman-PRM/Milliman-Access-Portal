@@ -449,7 +449,7 @@ namespace MillimanAccessPortal.DataQueries
                     if (userNamesWithoutFileDropUserRole.Any())
                     {
                         await txn.RollbackAsync();
-                        Log.Error($"Users [{string.Join(",", userNamesWithoutFileDropUserRole)}] are not authorized to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
+                        Log.Warning($"Users [{string.Join(",", userNamesWithoutFileDropUserRole)}] are not authorized to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
                         throw new ApplicationException("One or more requested users are not authorized to this file drop");
                     }
 
@@ -487,7 +487,7 @@ namespace MillimanAccessPortal.DataQueries
                         else if (userSftpAccount.FileDropUserPermissionGroupId.HasValue)
                         {
                             await txn.RollbackAsync();
-                            Log.Error($"User <{userId}> is already assigned to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
+                            Log.Warning($"User <{userId}> is already assigned to file drop {fileDrop.Id}, cannot be added in new permission group {newGroup.Name}, aborting");
                             throw new ApplicationException("One or more requested users are already assigned to this file drop");
                         }
 
