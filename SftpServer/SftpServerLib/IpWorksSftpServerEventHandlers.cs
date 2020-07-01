@@ -118,12 +118,13 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to read from an open file.")]
         internal static void OnFileRead(object sender, SftpserverFileReadEventArgs evtData)
         {
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRead.htm
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
             Log.Verbose(GenerateEventArgsLogMessage("FileRead", evtData));
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
 
-            if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
+            if (result != AuthorizationResult.Authorized || !connection.ReadAccess)
             {
                 Log.Information($"OnFileRead event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Read access");
                 evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
@@ -724,6 +725,7 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to write to an open file.")]
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
+        // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileWrite.htm
             Log.Verbose(GenerateEventArgsLogMessage("FileWrite", evtData));
 
             if (evtData.BeforeExec)
