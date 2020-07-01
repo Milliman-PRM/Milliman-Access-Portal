@@ -297,7 +297,7 @@ if ($LASTEXITCODE -ne 0)
 }
 
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
-$sFTPVersion = "$sFTPVersion-$branchName"
+$sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
@@ -550,7 +550,7 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
-$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
+$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
 
 Set-Location $rootpath
 
