@@ -1053,8 +1053,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </button>
             <button
               type="button"
-              className={`green-button${this.props.formCanSubmit
-                        && formData.pendingFormData.contentName.trim() ? '' : ' disabled'}`}
+              className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
               onClick={(event: React.MouseEvent) => {
                 event.preventDefault();
                 if (!formData.pendingFormData.id) {
