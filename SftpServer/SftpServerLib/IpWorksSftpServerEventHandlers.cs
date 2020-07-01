@@ -120,6 +120,15 @@ namespace SftpServerLib
         {
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
             Log.Verbose(GenerateEventArgsLogMessage("FileRead", evtData));
+
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
+
+            if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
+            {
+                Log.Information($"OnFileRead event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Read access");
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
         }
 
         //[Description("Fires when a client wants to open or create a file.")]
@@ -716,6 +725,18 @@ namespace SftpServerLib
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
             Log.Verbose(GenerateEventArgsLogMessage("FileWrite", evtData));
+
+            if (evtData.BeforeExec)
+            {
+                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+                if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
+                {
+                    Log.Information($"OnFileWrite event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
+                    evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                    return;
+                }
+            }
         }
 
         //[Description("Fires when a client attempts to set file or directory attributes.")]
