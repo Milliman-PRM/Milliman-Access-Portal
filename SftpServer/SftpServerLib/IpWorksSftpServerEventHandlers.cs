@@ -518,7 +518,7 @@ namespace SftpServerLib
 
             IpWorksSftpServer._connections[evtData.ConnectionId] = newConnection;
 
-            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now:u}");
+            Log.Information($"New connection <{evtData.ConnectionId}> accepted from remote host {IpWorksSftpServer._sftpServer.Connections[evtData.ConnectionId]?.RemoteHost}");
         }
 
         //[Description("Fires when a client needs to get file information.")]
@@ -788,7 +788,7 @@ namespace SftpServerLib
                     if (userAccount == null)
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
                         if (!string.IsNullOrWhiteSpace(evtData.User))
                         {
                             userAccount = new SftpAccount(Guid.Empty) { UserName = evtData.User };
@@ -800,7 +800,7 @@ namespace SftpServerLib
                     if (userAccount.IsSuspended)
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
@@ -809,7 +809,7 @@ namespace SftpServerLib
                     if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc > TimeSpan.FromDays(sftpPasswordExpirationDays))
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The requested account with name <{evtData.User}> has an expired password");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> has an expired password");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
@@ -824,7 +824,7 @@ namespace SftpServerLib
                             (!userIsSso && DateTime.UtcNow - userAccount.ApplicationUser.LastPasswordChangeDateTimeUtc > TimeSpan.FromDays(mapPasswordExpirationDays)))
                         {
                             evtData.Accept = false;
-                            Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
+                            Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
                             new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                             return;
                         }
@@ -855,7 +855,7 @@ namespace SftpServerLib
 
                         evtData.Accept = true;
 
-                        Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId} from remote address <{clientAddress}>, FileDrop <{userAccount.FileDrop.Name}>, access: " +
+                        Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId} from remote host <{clientAddress}>, FileDrop <{userAccount.FileDrop.Name}>, access: " +
                                         (userAccount.FileDropUserPermissionGroupId.HasValue
                                         ? "read:" + userAccount.FileDropUserPermissionGroup.ReadAccess.ToString() +
                                           ", write:" + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
@@ -865,7 +865,7 @@ namespace SftpServerLib
                     else
                     {
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
-                        Log.Information($"Acount <{userAccount.UserName}> authentication failed from remote address <{clientAddress}> for FileDrop <{userAccount.FileDrop.Name}>");
+                        Log.Information($"Acount <{userAccount.UserName}> authentication failed from remote host <{clientAddress}> for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }
             }
