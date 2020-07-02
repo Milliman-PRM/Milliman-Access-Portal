@@ -319,10 +319,13 @@ namespace SftpServerLib
             if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
             {
                 var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> disconnected for account name <{connectionProperties.Account?.UserName}>");
+                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account?.UserName}>");
                 IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
             }
-            Log.Debug($"Connection <{evtData.ConnectionId}> closed");
+            else
+            {
+                Log.Debug($"Connection <{evtData.ConnectionId}> closed");
+            }
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
@@ -942,10 +945,10 @@ namespace SftpServerLib
                                 connection.DeleteAccess != connectedAccount.FileDropUserPermissionGroup.DeleteAccess
                             )
                             {
-                                Log.Information($"Maintenance handler modifying permissions for connection <{connection.Id}> " +
-                                    $"Read: was {connection.ReadAccess}, now {connectedAccount.FileDropUserPermissionGroup.ReadAccess}, " +
-                                    $"Write: was {connection.WriteAccess}, now {connectedAccount.FileDropUserPermissionGroup.WriteAccess}, " +
-                                    $"Delete: was {connection.DeleteAccess}, now {connectedAccount.FileDropUserPermissionGroup.DeleteAccess}");
+                                Log.Information($"Maintenance handler modifying user {connectedAccount.UserName} cached permissions for connection <{connection.Id}> " +
+                                    $"Read was {connection.ReadAccess}, now {connectedAccount.FileDropUserPermissionGroup.ReadAccess}; " +
+                                    $"Write was {connection.WriteAccess}, now {connectedAccount.FileDropUserPermissionGroup.WriteAccess}; " +
+                                    $"Delete was {connection.DeleteAccess}, now {connectedAccount.FileDropUserPermissionGroup.DeleteAccess}");
 
                                 connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
                                 connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
