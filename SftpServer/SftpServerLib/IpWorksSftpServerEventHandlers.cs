@@ -316,16 +316,18 @@ namespace SftpServerLib
         //[Description("Fired when a connection is closed.")]
         internal static void OnDisconnected(object sender, SftpserverDisconnectedEventArgs evtData)
         {
-            if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
+            var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
+
+            if (connectionProperties.Account != null)
             {
-                var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account?.UserName}>");
-                IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
+                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account.UserName}>");
             }
             else
             {
-                Log.Debug($"Connection <{evtData.ConnectionId}> closed");
+                Log.Information($"Connection <{evtData.ConnectionId}> closed");
             }
+
+            IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
