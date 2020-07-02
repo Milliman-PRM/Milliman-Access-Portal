@@ -936,9 +936,22 @@ namespace SftpServerLib
                         }
                         else
                         {
-                            connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
-                            connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
-                            connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                            if (
+                                connection.ReadAccess != connectedAccount.FileDropUserPermissionGroup.ReadAccess ||
+                                connection.WriteAccess != connectedAccount.FileDropUserPermissionGroup.WriteAccess ||
+                                connection.DeleteAccess != connectedAccount.FileDropUserPermissionGroup.DeleteAccess
+                            )
+                            {
+                                Log.Information($"Maintenance handler modifying permissions for connection <{connection.Id}> " +
+                                    $"Read: was {connection.ReadAccess}, now {connectedAccount.FileDropUserPermissionGroup.ReadAccess}, " +
+                                    $"Write: was {connection.WriteAccess}, now {connectedAccount.FileDropUserPermissionGroup.WriteAccess}, " +
+                                    $"Delete: was {connection.DeleteAccess}, now {connectedAccount.FileDropUserPermissionGroup.DeleteAccess}");
+
+                                connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
+                                connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
+                                connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                            }
+
                         }
                     }
                 }
