@@ -36,21 +36,21 @@ properties: # Properties of container group
         - protocol: TCP
             port: 22
         type: Public
-        dnsNameLabel: {{ filedrop-dns }}
+        dnsNameLabel: __filedropdns__
     osType: Linux
     volumes: # Array of volumes available to the instances
     - name: filedroproot
         azureFile:
-            shareName: {{ filedroproot-sharename}}
-            storageAccountName: {{ filedroproot-storagename}}
-            storageAccountKey: {{ filedroproot-key}}
+            shareName: __filedroprootsharename__
+            storageAccountName: __filedroprootstoragename__
+            storageAccountKey: __filedroprootkey__
     - name: filedroplogs
         azureFile:
-            shareName: {{ filedroplogs-sharename}}
-            storageAccountName: {{ filedroplogs-storagename}}
-            storageAccountKey: {{ filedroplogs-key}}
+            shareName: __filedroplogssharename__
+            storageAccountName: __filedroplogsstoragename__
+            storageAccountKey: __filedroplogskey__
     - name: filedroppk
         azureFile:
-            shareName: {{ filedroppk-sharename}}
-            storageAccountName: {{ filedroppk-storagename}}
-            storageAccountKey: {{ filedroppk-key}}
+            shareName: __filedroppksharename__
+            storageAccountName: __filedroppkstoragename__
+            storageAccountKey: __filedroppkkey__
