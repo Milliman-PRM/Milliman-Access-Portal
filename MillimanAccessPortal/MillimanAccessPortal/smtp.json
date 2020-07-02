@@ -5,5 +5,7 @@
   "SmtpFromName": "Milliman Access Portal Support",
   "MaximumSendAttempts": 5,
   "SmtpUsername": "",
-  "SmtpPassword":  ""
+  "SmtpPassword": "",
+  "EmailDisclaimer": "******************************************************************\r\nThis communication is intended solely for the addressee and is confidential. If you are not the intended recipient, any disclosure, copying, distribution or any action taken or omitted to be taken in reliance on it, is prohibited and may be unlawful.\r\n******************************************************************",
+  "DisclaimerExemptDomainString": "milliman.com"  // delimit domains with ';' or whitespace
 }
