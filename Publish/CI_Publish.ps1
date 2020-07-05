@@ -431,6 +431,8 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Copying Deployment scripts to target folder"
 
 Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
+Get-ChildItem -path "$rootPath\Publish\*" -include *.template | Copy-Item -Destination "$webBuildTarget"
+
 
 #endregion
 
