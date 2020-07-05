@@ -3,54 +3,54 @@ apiVersion: '2018-10-01'
 location: __location__
 tags: {}
 properties: # Properties of container group
-    containers: # Array of container instances in the group
-    - name: sftp # Name of an instance
-        properties: # Properties of an instance
-            image: string # Container image used to create the instance
-            command:
-            - "/bin/sh /app/startsftpserver.sh __azCertPass__ __thumbprint__"
-            ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
-            - protocol: TCP
-                port: 22
-            environmentVariables:
-            - name: ASPNETCORE_ENVIRONMENT
-                value: __ASPNETCORE_ENVIRONMENT__
-            resources: # Resource requirements of the instance
-                requests:
-                    memoryInGB: 1.5
-                    cpu: 1
-            volumeMounts: # Array of volume mounts for the instance
-            - name: filedroproot
-                mountPath: /mnt/filedropshare
-            - name: filedroplogs
-                mountPath: /mnt/filedroplogs
-            - name: filedroppk
-                mountPath: /mnt/filedroppk
-    imageRegistryCredentials: # Credentials to pull a private image
-    - server: __acr_url__
-        username: __acr_user__
-        password: __acr_password__
-    restartPolicy: Always
-    ipAddress: # IP address configuration of container group
-        ports:
-        - protocol: TCP
-            port: 22
-        type: Public
-        dnsNameLabel: __filedropdns__
-    osType: Linux
-    volumes: # Array of volumes available to the instances
-    - name: filedroproot
-        azureFile:
-            shareName: __filedroprootsharename__
-            storageAccountName: __filedroprootstoragename__
-            storageAccountKey: __filedroprootkey__
-    - name: filedroplogs
-        azureFile:
-            shareName: __filedroplogssharename__
-            storageAccountName: __filedroplogsstoragename__
-            storageAccountKey: __filedroplogskey__
-    - name: filedroppk
-        azureFile:
-            shareName: __filedroppksharename__
-            storageAccountName: __filedroppkstoragename__
-            storageAccountKey: __filedroppkkey__
+  containers: # Array of container instances in the group
+  - name: sftp # Name of an instance
+    properties: # Properties of an instance
+      image: string # Container image used to create the instance
+      command:
+      - "/bin/sh /app/startsftpserver.sh __azCertPass__ __thumbprint__"
+      ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
+      - protocol: TCP
+        port: 22
+      environmentVariables:
+      - name: ASPNETCORE_ENVIRONMENT
+        value: __ASPNETCORE_ENVIRONMENT__
+      resources: # Resource requirements of the instance
+        requests:
+          memoryInGB: 1.5
+          cpu: 1
+      volumeMounts: # Array of volume mounts for the instance
+      - name: filedroproot
+        mountPath: /mnt/filedropshare
+      - name: filedroplogs
+        mountPath: /mnt/filedroplogs
+      - name: filedroppk
+        mountPath: /mnt/filedroppk
+  imageRegistryCredentials: # Credentials to pull a private image
+  - server: __acr_url__
+    username: __acr_user__
+    password: __acr_password__
+  restartPolicy: Always
+  ipAddress: # IP address configuration of container group
+    ports:
+    - protocol: TCP
+      port: 22
+    type: Public
+    dnsNameLabel: __filedropdns__
+  osType: Linux
+  volumes: # Array of volumes available to the instances
+  - name: filedroproot
+    azureFile:
+      shareName: __filedroprootsharename__
+      storageAccountName: __filedroprootstoragename__
+      storageAccountKey: __filedroprootkey__
+  - name: filedroplogs
+    azureFile:
+      shareName: __filedroplogssharename__
+      storageAccountName: __filedroplogsstoragename__
+      storageAccountKey: __filedroplogskey__
+  - name: filedroppk
+    azureFile:
+      shareName: __filedroppksharename__
+      storageAccountName: __filedroppkstoragename__
+      storageAccountKey: __filedroppkkey__
