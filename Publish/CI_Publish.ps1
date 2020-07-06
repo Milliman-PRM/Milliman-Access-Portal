@@ -673,4 +673,34 @@ else {
     exit $error_code
 }
 
+log_statement "Creating Filedrop Release"
+
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+
+log_statement "Deploying FileDrop release"
+
+octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy Filedrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+
 #endregion
