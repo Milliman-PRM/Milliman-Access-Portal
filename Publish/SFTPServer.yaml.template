@@ -6,7 +6,7 @@ properties: # Properties of container group
   containers: # Array of container instances in the group
   - name: sftp # Name of an instance
     properties: # Properties of an instance
-      image: string # Container image used to create the instance
+      image: __Image__ # Container image used to create the instance
       command:
       - "/bin/sh /app/startsftpserver.sh __azCertPass__ __thumbprint__"
       ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
@@ -47,7 +47,7 @@ properties: # Properties of container group
   - name: filedroplogs
     azureFile:
       shareName: __filedroplogssharename__
-      storageAccountName: __filedroplogsstoragename__
+      storageAccountName: __filedroplogstoragename__
       storageAccountKey: __filedroplogskey__
   - name: filedroppk
     azureFile:
