@@ -431,6 +431,8 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Copying Deployment scripts to target folder"
 
 Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
+Get-ChildItem -path "$rootPath\Publish\*" -include *.template | Copy-Item -Destination "$webBuildTarget"
+
 
 #endregion
 
@@ -550,7 +552,7 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
-$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
+$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
 
 Set-Location $rootpath
 
@@ -670,5 +672,35 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+log_statement "Creating Filedrop Release"
+
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+
+log_statement "Deploying FileDrop release"
+
+octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy Filedrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 
 #endregion
