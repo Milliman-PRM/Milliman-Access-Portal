@@ -40,7 +40,7 @@ namespace SftpServerLib
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRemove.htm
 
-            Log.Information(GenerateEventArgsLogMessage("FileRemove", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileRemove", evtData));
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Delete);
 
@@ -118,14 +118,24 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to read from an open file.")]
         internal static void OnFileRead(object sender, SftpserverFileReadEventArgs evtData)
         {
+            // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileRead.htm
             // This event occurs between OnFileOpen and OnFileClose, only to document transfer of a block of file data
-            Log.Debug(GenerateEventArgsLogMessage("FileRead", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileRead", evtData));
+
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
+
+            if (result != AuthorizationResult.Authorized || !connection.ReadAccess)
+            {
+                Log.Information($"OnFileRead event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Read access");
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
+            }
         }
 
         //[Description("Fires when a client wants to open or create a file.")]
         internal static void OnFileOpen(object sender, SftpserverFileOpenEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("FileOpen", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileOpen", evtData));
 
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileOpen.htm
 
@@ -300,19 +310,24 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
         internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("FileClose", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
         }
 
         //[Description("Fired when a connection is closed.")]
         internal static void OnDisconnected(object sender, SftpserverDisconnectedEventArgs evtData)
         {
-            if (IpWorksSftpServer._connections.Keys.Contains(evtData.ConnectionId))
+            var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
+
+            if (connectionProperties.Account != null)
             {
-                var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-                Log.Information($"Connection <{evtData.ConnectionId}> disconnected for account name <{connectionProperties.Account?.UserName}>");
-                IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
+                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account.UserName}>");
             }
-            Log.Debug($"Connection <{evtData.ConnectionId}> closed");
+            else
+            {
+                Log.Information($"Connection <{evtData.ConnectionId}> closed");
+            }
+
+            IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
@@ -390,7 +405,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to open a directory for listing.")]
         internal static void OnDirList(object sender, SftpserverDirListEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("DirList", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("DirList", evtData));
             Log.Warning("TODO: Should there be a read permission check for a directory listing?");
         }
 
@@ -492,7 +507,7 @@ namespace SftpServerLib
         //[Description("Fired when a request for connection comes from a remote host.")]
         internal static void OnConnectionRequest(object sender, SftpserverConnectionRequestEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("ConnectionRequest", evtData));
         }
 
         //[Description("Fired immediately after a connection completes (or fails).")]
@@ -508,13 +523,13 @@ namespace SftpServerLib
 
             IpWorksSftpServer._connections[evtData.ConnectionId] = newConnection;
 
-            Log.Information($"New connection <{evtData.ConnectionId}> accepted at {now:u}");
+            Log.Information($"New connection <{evtData.ConnectionId}> accepted from remote host {IpWorksSftpServer._sftpServer.Connections[evtData.ConnectionId]?.RemoteHost}");
         }
 
         //[Description("Fires when a client needs to get file information.")]
         internal static void OnGetAttributes(object sender, SftpserverGetAttributesEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("GetAttributes", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("GetAttributes", evtData));
 
             switch (evtData.FileType)
             {
@@ -529,14 +544,14 @@ namespace SftpServerLib
         //[Description("Fires once for each log message.")]
         internal static void OnLog(object sender, SftpserverLogEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("Log", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("Log", evtData));
             //Log.Debug($"Event OnLog: Args: {JsonSerializer.Serialize(evtData, prettyJsonOptions)}");
         }
 
         //[Description("Fires when a client attempts to canonicalize a path.")]
         internal static void OnResolvePath(object sender, SftpserverResolvePathEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("ResolvePath", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("ResolvePath", evtData));
         }
 
         //[Description("Fires when a client wants to rename a file.")]
@@ -715,20 +730,33 @@ namespace SftpServerLib
         //[Description("Fires when a client wants to write to an open file.")]
         internal static void OnFileWrite(object sender, SftpserverFileWriteEventArgs evtData)
         {
-            Log.Debug(GenerateEventArgsLogMessage("FileWrite", evtData));
+        // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileWrite.htm
+            Log.Verbose(GenerateEventArgsLogMessage("FileWrite", evtData));
+
+            if (evtData.BeforeExec)
+            {
+                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+                if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
+                {
+                    Log.Information($"OnFileWrite event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
+                    evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                    return;
+                }
+            }
         }
 
         //[Description("Fires when a client attempts to set file or directory attributes.")]
         internal static void OnSetAttributes(object sender, SftpserverSetAttributesEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage("SetAttributes", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SetAttributes", evtData));
         }
 
         //[Description("Fires when a client attempts to authenticate a connection.")]
         internal static void OnSSHUserAuthRequest(object sender, SftpserverSSHUserAuthRequestEventArgs evtData)
         {
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_DirCreate.htm
-            Log.Debug(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
+            Log.Verbose(GenerateEventArgsLogMessage("SSHUserAuthRequest", evtData));
 
             string clientAddress = IpWorksSftpServer._sftpServer.Connections[evtData.ConnectionId]?.RemoteHost;
 
@@ -765,7 +793,7 @@ namespace SftpServerLib
                     if (userAccount == null)
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
                         if (!string.IsNullOrWhiteSpace(evtData.User))
                         {
                             userAccount = new SftpAccount(Guid.Empty) { UserName = evtData.User };
@@ -777,7 +805,7 @@ namespace SftpServerLib
                     if (userAccount.IsSuspended)
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
@@ -786,7 +814,7 @@ namespace SftpServerLib
                     if (DateTime.UtcNow - userAccount.PasswordResetDateTimeUtc > TimeSpan.FromDays(sftpPasswordExpirationDays))
                     {
                         evtData.Accept = false;
-                        Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The requested account with name <{evtData.User}> has an expired password");
+                        Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> has an expired password");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
@@ -801,7 +829,7 @@ namespace SftpServerLib
                             (!userIsSso && DateTime.UtcNow - userAccount.ApplicationUser.LastPasswordChangeDateTimeUtc > TimeSpan.FromDays(mapPasswordExpirationDays)))
                         {
                             evtData.Accept = false;
-                            Log.Information($"SftpConnection request from remote address <{clientAddress}> denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
+                            Log.Information($"SftpConnection request from remote host <{clientAddress}> denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
                             new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                             return;
                         }
@@ -832,7 +860,7 @@ namespace SftpServerLib
 
                         evtData.Accept = true;
 
-                        Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId} from remote address <{clientAddress}>, FileDrop <{userAccount.FileDrop.Name}>, access: " +
+                        Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId} from remote host <{clientAddress}>, FileDrop <{userAccount.FileDrop.Name}>, access: " +
                                         (userAccount.FileDropUserPermissionGroupId.HasValue
                                         ? "read:" + userAccount.FileDropUserPermissionGroup.ReadAccess.ToString() +
                                           ", write:" + userAccount.FileDropUserPermissionGroup.WriteAccess.ToString() +
@@ -842,7 +870,7 @@ namespace SftpServerLib
                     else
                     {
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
-                        Log.Information($"Acount <{userAccount.UserName}> authentication failed from remote address <{clientAddress}> for FileDrop <{userAccount.FileDrop.Name}>");
+                        Log.Information($"Acount <{userAccount.UserName}> authentication failed from remote host <{clientAddress}> for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }
             }
@@ -890,6 +918,12 @@ namespace SftpServerLib
                             IpWorksSftpServer._connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
                         }
+                        else if (connectedAccount.FileDropUserPermissionGroup == null)
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account currently is not authorized through a permission group");
+                        }
                         else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
@@ -907,9 +941,22 @@ namespace SftpServerLib
                         }
                         else
                         {
-                            connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
-                            connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
-                            connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                            if (
+                                connection.ReadAccess != connectedAccount.FileDropUserPermissionGroup.ReadAccess ||
+                                connection.WriteAccess != connectedAccount.FileDropUserPermissionGroup.WriteAccess ||
+                                connection.DeleteAccess != connectedAccount.FileDropUserPermissionGroup.DeleteAccess
+                            )
+                            {
+                                Log.Information($"Maintenance handler modifying user {connectedAccount.UserName} cached permissions for connection <{connection.Id}> " +
+                                    $"Read was {connection.ReadAccess}, now {connectedAccount.FileDropUserPermissionGroup.ReadAccess}; " +
+                                    $"Write was {connection.WriteAccess}, now {connectedAccount.FileDropUserPermissionGroup.WriteAccess}; " +
+                                    $"Delete was {connection.DeleteAccess}, now {connectedAccount.FileDropUserPermissionGroup.DeleteAccess}");
+
+                                connection.ReadAccess = connectedAccount.FileDropUserPermissionGroup.ReadAccess;
+                                connection.WriteAccess = connectedAccount.FileDropUserPermissionGroup.WriteAccess;
+                                connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
+                            }
+
                         }
                     }
                 }
