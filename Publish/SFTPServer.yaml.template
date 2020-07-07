@@ -8,7 +8,7 @@ properties: # Properties of container group
     properties: # Properties of an instance
       image: __Image__ # Container image used to create the instance
       command:
-      - '["/app/startsftpserver.sh"]'
+      - "/app/startsftpserver.sh"
       ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
       - protocol: TCP
         port: 22
