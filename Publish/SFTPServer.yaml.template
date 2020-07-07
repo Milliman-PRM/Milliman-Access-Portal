@@ -8,13 +8,17 @@ properties: # Properties of container group
     properties: # Properties of an instance
       image: __Image__ # Container image used to create the instance
       command:
-      - "/bin/sh /app/startsftpserver.sh __azCertPass__ __thumbprint__"
+      - "/app/startsftpserver.sh"
       ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
       - protocol: TCP
         port: 22
       environmentVariables:
       - name: ASPNETCORE_ENVIRONMENT
         value: __ASPNETCORE_ENVIRONMENT__
+      - name: azCertPass
+        value: __azCertPass__
+      - name: thumbprint
+        value: __thumbprint__
       resources: # Resource requirements of the instance
         requests:
           memoryInGB: 1.5
