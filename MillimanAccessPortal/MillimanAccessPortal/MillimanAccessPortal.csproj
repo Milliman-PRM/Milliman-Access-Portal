@@ -57,6 +57,17 @@
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="src\ts\react\client-admin\client-admin.tsx" />
+    <None Remove="src\ts\react\client-admin\index.tsx" />
+    <None Remove="src\ts\react\client-admin\redux\action-creators.ts" />
+    <None Remove="src\ts\react\client-admin\redux\actions.ts" />
+    <None Remove="src\ts\react\client-admin\redux\api.ts" />
+    <None Remove="src\ts\react\client-admin\redux\reducers.ts" />
+    <None Remove="src\ts\react\client-admin\redux\sagas.ts" />
+    <None Remove="src\ts\react\client-admin\redux\selectors.ts" />
+    <None Remove="src\ts\react\client-admin\redux\store.ts" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
@@ -139,6 +150,17 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="src\ts\react\client-admin\client-admin.tsx" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\index.tsx" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\action-creators.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\actions.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\api.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\reducers.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\sagas.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\selectors.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\store.ts" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="BuildTimeProperties.cs">
