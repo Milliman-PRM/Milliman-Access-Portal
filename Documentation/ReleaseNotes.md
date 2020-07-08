@@ -5,8 +5,8 @@
 ### v1.9.0
 
 - Added a new file drop administration UI and corresponding SFTP server application
+- Enhanced the resiliency of interactions between MAP and Qlikview server
 - Fixed a bug that inaccurately displayed the queue order of publication requests in certain circumstances
-- Enhanced the resiliency of interactions between MAP and Qlikview server when Qlikview fails to respond
 
 #### v1.8.1
 
