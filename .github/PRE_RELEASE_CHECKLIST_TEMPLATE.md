@@ -75,6 +75,7 @@ Completed by: ___________
 - [ ] Tag release
 - [ ] Merge into Develop to make sure warm changes are propagated
 - [ ] Schedule a Hosting retrospective meeting
+- [ ] Schedule next milestone meeting
 
 ##### Assertions
 

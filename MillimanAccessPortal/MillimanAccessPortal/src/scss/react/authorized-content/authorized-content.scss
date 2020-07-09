@@ -55,5 +55,14 @@
                 border-bottom: 2px solid $charcoal;
             }
         }
+
+        .filter-error-msg-header,
+        .filter-error-msg {
+            text-align: center;
+        }
+
+        .filter-error-msg-header {
+            margin-top: 2em;
+        }
     }
 }

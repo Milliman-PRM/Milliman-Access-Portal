@@ -20,7 +20,7 @@ namespace TestResourcesLib
     /// <summary>
     /// Support for mocking of a ApplicationDbContext instance
     /// </summary>
-    public static class MockMapDbContext
+    public class MockMapDbContext
     {
         /// <summary>
         /// Creates an instance of mocked ApplicationDbContext. 
@@ -43,6 +43,11 @@ namespace TestResourcesLib
             ReturnMockContext.Object.UserClaims = MockDbSet<IdentityUserClaim<Guid>>.New(new List<IdentityUserClaim<Guid>>()).Object;
             ReturnMockContext.Object.FileUpload = MockDbSet<FileUpload>.New(new List<FileUpload>()).Object;
             ReturnMockContext.Object.AuthenticationScheme = MockDbSet<AuthenticationScheme>.New(new List<AuthenticationScheme>()).Object;
+            ReturnMockContext.Object.SftpAccount = MockDbSet<SftpAccount>.New(new List<SftpAccount>()).Object;
+            ReturnMockContext.Object.FileDrop = MockDbSet<FileDrop>.New(new List<FileDrop>()).Object;
+            ReturnMockContext.Object.FileDropUserPermissionGroup = MockDbSet<FileDropUserPermissionGroup>.New(new List<FileDropUserPermissionGroup>()).Object;
+            ReturnMockContext.Object.FileDropDirectory = MockDbSet<FileDropDirectory>.New(new List<FileDropDirectory>()).Object;
+            ReturnMockContext.Object.FileDropFile = MockDbSet<FileDropFile>.New(new List<FileDropFile>()).Object;
 
             List<ContentPublicationRequest> ContentPublicationRequestData = new List<ContentPublicationRequest>();
             Mock<DbSet<ContentPublicationRequest>> MockContentPublicationRequest = MockDbSet<ContentPublicationRequest>.New(ContentPublicationRequestData);
@@ -55,10 +60,10 @@ namespace TestResourcesLib
             });
             MockContentPublicationRequest.Setup(d => d.AddRange(It.IsAny<IEnumerable<ContentPublicationRequest>>())).Callback<IEnumerable<ContentPublicationRequest>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                ContentPublicationRequestData.AddRange(s);
-                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "ApplicationUserId", ReturnMockContext.Object.ApplicationUser);
-                MockDbSet<ContentPublicationRequest>.AssignNavigationProperty(MockContentPublicationRequest.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.ContentPublicationRequest.Add(instance);
+                }
             });
             ReturnMockContext.Object.ContentPublicationRequest = MockContentPublicationRequest.Object;
 
@@ -75,6 +80,13 @@ namespace TestResourcesLib
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
                 MockDbSet<ContentReductionTask>.AssignNavigationProperty(MockContentReductionTask.Object, "ContentPublicationRequestId", ReturnMockContext.Object.ContentPublicationRequest);
             });
+            MockContentReductionTask.Setup(d => d.AddRange(It.IsAny<IEnumerable<ContentReductionTask>>())).Callback<IEnumerable<ContentReductionTask>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.ContentReductionTask.Add(instance);
+                }
+            });
             ReturnMockContext.Object.ContentReductionTask = MockContentReductionTask.Object;
 
             List<RootContentItem> RootContentItemData = new List<RootContentItem>();
@@ -88,12 +100,30 @@ namespace TestResourcesLib
             });
             MockRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<RootContentItem>>())).Callback< IEnumerable<RootContentItem>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                RootContentItemData.AddRange(s);
-                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ContentTypeId", ReturnMockContext.Object.ContentType);
-                MockDbSet<RootContentItem>.AssignNavigationProperty(MockRootContentItem.Object, "ClientId", ReturnMockContext.Object.Client);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.RootContentItem.Add(instance);
+                }
             });
             ReturnMockContext.Object.RootContentItem = MockRootContentItem.Object;
+
+            List<Client> ClientData = new List<Client>();
+            Mock<DbSet<Client>> MockClient = MockDbSet<Client>.New(ClientData);
+            MockClient.Setup(d => d.Add(It.IsAny<Client>())).Callback<Client>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                ClientData.Add(s);
+                MockDbSet<Client>.AssignNavigationProperty(MockClient.Object, nameof(Client.ProfitCenterId), ReturnMockContext.Object.ProfitCenter);
+                MockDbSet<Client>.AssignNavigationProperty(MockClient.Object, nameof(Client.ParentClientId), ReturnMockContext.Object.Client);
+            });
+            MockClient.Setup(d => d.AddRange(It.IsAny<IEnumerable<Client>>())).Callback<IEnumerable<Client>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.Client.Add(instance);
+                }
+            });
+            ReturnMockContext.Object.Client = MockClient.Object;
 
             List<SelectionGroup> SelectionGroupData = new List<SelectionGroup>();
             Mock<DbSet<SelectionGroup>> MockSelectionGroup = MockDbSet<SelectionGroup>.New(SelectionGroupData);
@@ -105,9 +135,10 @@ namespace TestResourcesLib
             });
             MockSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<SelectionGroup>>())).Callback< IEnumerable<SelectionGroup>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                SelectionGroupData.AddRange(s);
-                MockDbSet<SelectionGroup>.AssignNavigationProperty(MockSelectionGroup.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.SelectionGroup.Add(instance);
+                }
             });
             ReturnMockContext.Object.SelectionGroup = MockSelectionGroup.Object;
 
@@ -124,11 +155,10 @@ namespace TestResourcesLib
             });
             MockUserRoleInClient.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInClient>>())).Callback<IEnumerable<UserRoleInClient>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                UserRoleInClientData.AddRange(s);
-                MockDbSet<UserRoleInClient>.AssignNavigationProperty<Client>(MockUserRoleInClient.Object, "ClientId", ReturnMockContext.Object.Client);
-                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationUser>(MockUserRoleInClient.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
-                MockDbSet<UserRoleInClient>.AssignNavigationProperty<ApplicationRole>(MockUserRoleInClient.Object, "RoleId", ReturnMockContext.Object.Roles);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.UserRoleInClient.Add(instance);
+                }
             });
             ReturnMockContext.Object.UserRoleInClient = MockUserRoleInClient.Object;
 
@@ -144,11 +174,10 @@ namespace TestResourcesLib
             });
             mockUserRoleInRootContentItem.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserRoleInRootContentItem>>())).Callback<IEnumerable<UserRoleInRootContentItem>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                userRoleInRootContentItemData.AddRange(s);
-                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RootContentItemId", ReturnMockContext.Object.RootContentItem);
-                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "RoleId", ReturnMockContext.Object.Roles);
-                MockDbSet<UserRoleInRootContentItem>.AssignNavigationProperty(mockUserRoleInRootContentItem.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.UserRoleInRootContentItem.Add(instance);
+                }
             });
             ReturnMockContext.Object.UserRoleInRootContentItem = mockUserRoleInRootContentItem.Object;
 
@@ -163,10 +192,10 @@ namespace TestResourcesLib
             });
             MockUserInSelectionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<UserInSelectionGroup>>())).Callback<IEnumerable<UserInSelectionGroup>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                UserInSelectionGroupData.AddRange(s);
-                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<SelectionGroup>(MockUserInSelectionGroup.Object, "SelectionGroupId", ReturnMockContext.Object.SelectionGroup);
-                MockDbSet<UserInSelectionGroup>.AssignNavigationProperty<ApplicationUser>(MockUserInSelectionGroup.Object, "UserId", ReturnMockContext.Object.ApplicationUser);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.UserInSelectionGroup.Add(instance);
+                }
             });
             ReturnMockContext.Object.UserInSelectionGroup = MockUserInSelectionGroup.Object;
 
@@ -177,16 +206,111 @@ namespace TestResourcesLib
                 if (s.Id == default) s.Id = Guid.NewGuid();
                 ApplicationUserData.Add(s);
                 MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
+                s.SftpAccounts = new List<SftpAccount>();
             });
             MockApplicationUser.Setup(d => d.AddRange(It.IsAny<IEnumerable<ApplicationUser>>())).Callback<IEnumerable<ApplicationUser>>(s =>
             {
-                foreach (var instance in s) if (instance.Id == default) instance.Id = Guid.NewGuid();
-                ApplicationUserData.AddRange(s);
-                MockDbSet<ApplicationUser>.AssignNavigationProperty<AuthenticationScheme>(MockApplicationUser.Object, "AuthenticationSchemeId", ReturnMockContext.Object.AuthenticationScheme);
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.ApplicationUser.Add(instance);
+                }
             });
             ReturnMockContext.Object.ApplicationUser = MockApplicationUser.Object;
 
-            // Mock DbContext.Database.CommitTransaction() as no ops.
+            List<SftpAccount> SftpAccountData = new List<SftpAccount>();
+            Mock<DbSet<SftpAccount>> MockSftpAccount = MockDbSet<SftpAccount>.New(SftpAccountData);
+            MockSftpAccount.Setup(d => d.Add(It.IsAny<SftpAccount>())).Callback<SftpAccount>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                SftpAccountData.Add(s);
+                MockDbSet<SftpAccount>.AssignNavigationProperty<ApplicationUser>(MockSftpAccount.Object, nameof(SftpAccount.ApplicationUserId), ReturnMockContext.Object.ApplicationUser);
+                MockDbSet<SftpAccount>.AssignNavigationProperty<FileDropUserPermissionGroup>(MockSftpAccount.Object, nameof(SftpAccount.FileDropUserPermissionGroupId), ReturnMockContext.Object.FileDropUserPermissionGroup);
+                MockDbSet<SftpAccount>.AssignNavigationProperty<FileDrop>(MockSftpAccount.Object, nameof(SftpAccount.FileDropId), ReturnMockContext.Object.FileDrop);
+                if (s.ApplicationUser != null)
+                {
+                    ((List<SftpAccount>)s.ApplicationUser.SftpAccounts).Add(s);
+                }
+            });
+            MockSftpAccount.Setup(d => d.AddRange(It.IsAny<IEnumerable<SftpAccount>>())).Callback<IEnumerable<SftpAccount>>(s =>
+            {
+                foreach (SftpAccount account in s)
+                {
+                    ReturnMockContext.Object.SftpAccount.Add(account);
+                }
+            });
+            ReturnMockContext.Object.SftpAccount = MockSftpAccount.Object;
+
+            List<FileDropUserPermissionGroup> FileDropUserPermissionGroupData = new List<FileDropUserPermissionGroup>();
+            Mock<DbSet<FileDropUserPermissionGroup>> MockFileDropUserPermissionGroup = MockDbSet<FileDropUserPermissionGroup>.New(FileDropUserPermissionGroupData);
+            MockFileDropUserPermissionGroup.Setup(d => d.Add(It.IsAny<FileDropUserPermissionGroup>())).Callback<FileDropUserPermissionGroup>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                FileDropUserPermissionGroupData.Add(s);
+                MockDbSet<FileDropUserPermissionGroup>.AssignNavigationProperty<FileDrop>(MockFileDropUserPermissionGroup.Object, nameof(FileDropUserPermissionGroup.FileDropId), ReturnMockContext.Object.FileDrop);
+            });
+            MockFileDropUserPermissionGroup.Setup(d => d.AddRange(It.IsAny<IEnumerable<FileDropUserPermissionGroup>>())).Callback<IEnumerable<FileDropUserPermissionGroup>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.FileDropUserPermissionGroup.Add(instance);
+                }
+            });
+            ReturnMockContext.Object.FileDropUserPermissionGroup = MockFileDropUserPermissionGroup.Object;
+
+            List<FileDrop> FileDropData = new List<FileDrop>();
+            Mock<DbSet<FileDrop>> MockFileDrop = MockDbSet<FileDrop>.New(FileDropData);
+            MockFileDrop.Setup(d => d.Add(It.IsAny<FileDrop>())).Callback<FileDrop>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                FileDropData.Add(s);
+                MockDbSet<FileDrop>.AssignNavigationProperty<Client>(MockFileDrop.Object, nameof(FileDrop.ClientId), ReturnMockContext.Object.Client);
+            });
+            MockFileDrop.Setup(d => d.AddRange(It.IsAny<IEnumerable<FileDrop>>())).Callback<IEnumerable<FileDrop>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.FileDrop.Add(instance);
+                }
+            });
+            ReturnMockContext.Object.FileDrop = MockFileDrop.Object;
+
+            List<FileDropFile> FileDropFileData = new List<FileDropFile>();
+            Mock<DbSet<FileDropFile>> MockFileDropFile = MockDbSet<FileDropFile>.New(FileDropFileData);
+            MockFileDropFile.Setup(d => d.Add(It.IsAny<FileDropFile>())).Callback<FileDropFile>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                FileDropFileData.Add(s);
+                MockDbSet<FileDropFile>.AssignNavigationProperty<SftpAccount>(MockFileDropFile.Object, nameof(FileDropFile.CreatedByAccountId), ReturnMockContext.Object.SftpAccount);
+                MockDbSet<FileDropFile>.AssignNavigationProperty<FileDropDirectory>(MockFileDropFile.Object, nameof(FileDropFile.DirectoryId), ReturnMockContext.Object.FileDropDirectory);
+            });
+            MockFileDropFile.Setup(d => d.AddRange(It.IsAny<IEnumerable<FileDropFile>>())).Callback<IEnumerable<FileDropFile>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.FileDropFile.Add(instance);
+                }
+            });
+            ReturnMockContext.Object.FileDropFile = MockFileDropFile.Object;
+
+            List<FileDropDirectory> FileDropDirectoryData = new List<FileDropDirectory>();
+            Mock<DbSet<FileDropDirectory>> MockFileDropDirectory = MockDbSet<FileDropDirectory>.New(FileDropDirectoryData);
+            MockFileDropDirectory.Setup(d => d.Add(It.IsAny<FileDropDirectory>())).Callback<FileDropDirectory>(s =>
+            {
+                if (s.Id == default) s.Id = Guid.NewGuid();
+                FileDropDirectoryData.Add(s);
+                MockDbSet<FileDropDirectory>.AssignNavigationProperty<FileDrop>(MockFileDropDirectory.Object, nameof(FileDropDirectory.FileDropId), ReturnMockContext.Object.FileDrop);
+                MockDbSet<FileDropDirectory>.AssignNavigationProperty<FileDropDirectory>(MockFileDropDirectory.Object, nameof(FileDropDirectory.ParentDirectoryId), ReturnMockContext.Object.FileDropDirectory);
+            });
+            MockFileDropDirectory.Setup(d => d.AddRange(It.IsAny<IEnumerable<FileDropDirectory>>())).Callback<IEnumerable<FileDropDirectory>>(s =>
+            {
+                foreach (var instance in s)
+                {
+                    ReturnMockContext.Object.FileDropDirectory.Add(instance);
+                }
+            });
+            ReturnMockContext.Object.FileDropDirectory = MockFileDropDirectory.Object;
+
+            // Mock DbContext.Database.CommitTransaction() as no-op.
             Mock<IDbContextTransaction> DbTransaction = new Mock<IDbContextTransaction>();
 
             Mock<DatabaseFacade> MockDatabaseFacade = new Mock<DatabaseFacade>(ReturnMockContext.Object);
@@ -205,7 +329,7 @@ namespace TestResourcesLib
             return ReturnMockContext;
         }
 
-        static object LockObject = new object();
+        static readonly object LockObject = new object();
         private static List<ApplicationRole> GetSystemRolesList()
         {
             lock (LockObject)

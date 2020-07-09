@@ -1,0 +1,14 @@
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-bionic as build-env
+
+WORKDIR /app
+
+RUN dotnet tool install --tool-path ./ dotnet-certificate-tool
+
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-bionic
+
+COPY --from=build-env /app /app
+
+COPY SftpServer/out/* /app/
+COPY UtilityScripts/startsftpserver.sh /app/
+
+ENTRYPOINT ["/bin/sh", "/app/startsftpserver.sh"]

@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
@@ -18,32 +19,38 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder
                 .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
                 .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
+                .HasAnnotation("Npgsql:Enum:file_drop_notification_type", "file_write,file_read,file_delete")
                 .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
                 .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,warning,error")
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.2.1-servicing-10028")
+                .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("MapDbContextLib.Context.AuthenticationScheme", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("DisplayName");
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
 
                     b.Property<List<string>>("DomainList")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<string>("Name")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("SchemeProperties")
                         .HasColumnType("jsonb");
 
-                    b.Property<AuthenticationType>("Type");
+                    b.Property<AuthenticationType>("Type")
+                        .HasColumnType("authentication_type");
 
                     b.HasKey("Id");
 
@@ -56,42 +63,58 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
                     b.Property<List<string>>("AcceptedEmailAddressExceptionList")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
                     b.Property<List<string>>("AcceptedEmailDomainList")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text[]");
 
-                    b.Property<string>("ClientCode");
+                    b.Property<string>("ClientCode")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ConsultantEmail");
+                    b.Property<string>("ConsultantEmail")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ConsultantName");
+                    b.Property<string>("ConsultantName")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ConsultantOffice");
+                    b.Property<string>("ConsultantOffice")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactEmail");
+                    b.Property<string>("ContactEmail")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactName");
+                    b.Property<string>("ContactName")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactPhone");
+                    b.Property<string>("ContactPhone")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactTitle");
+                    b.Property<string>("ContactTitle")
+                        .HasColumnType("text");
 
                     b.Property<int>("DomainListCountLimit")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
                         .HasDefaultValue(3);
 
                     b.Property<string>("Name")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string>("NewUserWelcomeText");
+                    b.Property<string>("NewUserWelcomeText")
+                        .HasColumnType("text");
 
-                    b.Property<Guid?>("ParentClientId");
+                    b.Property<Guid?>("ParentClientId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("ProfitCenterId");
+                    b.Property<Guid>("ProfitCenterId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -106,11 +129,14 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("ApplicationUserId");
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreateDateTimeUtc");
+                    b.Property<DateTime>("CreateDateTimeUtc")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("LiveReadyAssociatedFiles")
                         .HasColumnType("jsonb");
@@ -124,7 +150,8 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ReductionRelatedFiles")
                         .HasColumnType("jsonb");
 
-                    b.Property<PublicationStatus>("RequestStatus");
+                    b.Property<PublicationStatus>("RequestStatus")
+                        .HasColumnType("publication_status");
 
                     b.Property<string>("RequestedAssociatedFiles")
                         .HasColumnType("jsonb");
@@ -132,9 +159,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ResultHierarchy")
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("RootContentItemId");
+                    b.Property<Guid>("RootContentItemId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("StatusMessage");
+                    b.Property<string>("StatusMessage")
+                        .HasColumnType("text");
 
                     b.Property<string>("UploadedRelatedFiles")
                         .HasColumnType("jsonb");
@@ -157,48 +186,61 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("ApplicationUserId");
+                    b.Property<Guid>("ApplicationUserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid?>("ContentPublicationRequestId");
+                    b.Property<Guid?>("ContentPublicationRequestId")
+                        .HasColumnType("uuid");
 
-                    b.Property<DateTime>("CreateDateTimeUtc");
+                    b.Property<DateTime>("CreateDateTimeUtc")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<string>("MasterContentChecksum");
+                    b.Property<string>("MasterContentChecksum")
+                        .HasColumnType("text");
 
                     b.Property<string>("MasterContentHierarchy")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("MasterFilePath")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("OutcomeMetadata")
                         .HasColumnType("jsonb");
 
                     b.Property<DateTime>("ProcessingStartDateTimeUtc")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
                         .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
-                    b.Property<string>("ReducedContentChecksum");
+                    b.Property<string>("ReducedContentChecksum")
+                        .HasColumnType("text");
 
                     b.Property<string>("ReducedContentHierarchy")
                         .HasColumnType("jsonb");
 
                     b.Property<ReductionStatusEnum>("ReductionStatus")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("reduction_status_enum")
                         .HasDefaultValue(ReductionStatusEnum.Unspecified);
 
-                    b.Property<string>("ReductionStatusMessage");
+                    b.Property<string>("ReductionStatusMessage")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ResultFilePath");
+                    b.Property<string>("ResultFilePath")
+                        .HasColumnType("text");
 
                     b.Property<string>("SelectionCriteria")
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid?>("SelectionGroupId");
+                    b.Property<Guid?>("SelectionGroupId")
+                        .HasColumnType("uuid");
 
-                    b.Property<int>("TaskAction");
+                    b.Property<int>("TaskAction")
+                        .HasColumnType("integer");
 
                     b.Property<uint>("xmin")
                         .IsConcurrencyToken()
@@ -220,46 +262,192 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<bool>("CanReduce");
+                    b.Property<bool>("CanReduce")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("DefaultIconName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string[]>("FileExtensions")
+                    b.Property<List<string>>("FileExtensions")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("text[]")
                         .HasDefaultValueSql("'{}'");
 
-                    b.Property<string>("Name")
-                        .IsRequired();
+                    b.Property<ContentTypeEnum>("TypeEnum")
+                        .HasColumnType("content_type_enum");
 
                     b.HasKey("Id");
 
                     b.ToTable("ContentType");
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("RootPath")
+                        .IsRequired()
+                        .HasColumnType("citext");
+
+                    b.Property<string>("ShortHash")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("RootPath")
+                        .IsUnique();
+
+                    b.HasIndex("ShortHash")
+                        .IsUnique();
+
+                    b.ToTable("FileDrop");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<string>("CanonicalFileDropPath")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("FileDropId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("ParentDirectoryId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentDirectoryId");
+
+                    b.HasIndex("FileDropId", "CanonicalFileDropPath")
+                        .IsUnique();
+
+                    b.ToTable("FileDropDirectory");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid>("CreatedByAccountId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("DirectoryId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedByAccountId");
+
+                    b.HasIndex("DirectoryId", "FileName")
+                        .IsUnique();
+
+                    b.ToTable("FileDropFile");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<bool>("DeleteAccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<Guid>("FileDropId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsPersonalGroup")
+                        .HasColumnType("boolean");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool>("ReadAccess")
+                        .HasColumnType("boolean");
+
+                    b.Property<bool>("WriteAccess")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("FileDropId");
+
+                    b.ToTable("FileDropUserPermissionGroup");
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.FileUpload", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("Checksum");
+                    b.Property<string>("Checksum")
+                        .HasColumnType("text");
 
                     b.Property<string>("ClientFileIdentifier")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<DateTime>("CreatedDateTimeUtc");
+                    b.Property<DateTime>("CreatedDateTimeUtc")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<DateTime>("InitiatedDateTimeUtc");
+                    b.Property<DateTime>("InitiatedDateTimeUtc")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<int>("Status");
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
 
-                    b.Property<string>("StatusMessage");
+                    b.Property<string>("StatusMessage")
+                        .HasColumnType("text");
 
-                    b.Property<string>("StoragePath");
+                    b.Property<string>("StoragePath")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -270,20 +458,26 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("FieldDelimiter");
+                    b.Property<string>("FieldDelimiter")
+                        .HasColumnType("text");
 
                     b.Property<string>("FieldDisplayName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<string>("FieldName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("RootContentItemId");
+                    b.Property<Guid>("RootContentItemId")
+                        .HasColumnType("uuid");
 
                     b.Property<int>("StructureType")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
                         .HasDefaultValue(0);
 
                     b.HasKey("Id");
@@ -297,12 +491,15 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("HierarchyFieldId");
+                    b.Property<Guid>("HierarchyFieldId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("Value")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -314,11 +511,12 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.NameValueConfiguration", b =>
                 {
                     b.Property<string>("Key")
-                        .ValueGeneratedOnAdd();
+                        .HasColumnType("text");
 
                     b.Property<string>("Value")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("text")
                         .HasDefaultValue("");
 
                     b.HasKey("Key");
@@ -330,22 +528,30 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("ContactEmail");
+                    b.Property<string>("ContactEmail")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactName");
+                    b.Property<string>("ContactName")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactPhone");
+                    b.Property<string>("ContactPhone")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ContactTitle");
+                    b.Property<string>("ContactTitle")
+                        .HasColumnType("text");
 
-                    b.Property<string>("MillimanOffice");
+                    b.Property<string>("MillimanOffice")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<string>("ProfitCenterCode");
+                    b.Property<string>("ProfitCenterCode")
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -356,30 +562,39 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
                     b.Property<string>("AssociatedFiles")
                         .HasColumnType("jsonb");
 
-                    b.Property<Guid>("ClientId");
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("ContentDisclaimer");
+                    b.Property<string>("ContentDisclaimer")
+                        .HasColumnType("text");
 
                     b.Property<string>("ContentFiles")
                         .HasColumnType("jsonb");
 
                     b.Property<string>("ContentName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("ContentTypeId");
+                    b.Property<Guid>("ContentTypeId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("Description");
+                    b.Property<string>("Description")
+                        .HasColumnType("text");
 
-                    b.Property<bool>("DoesReduce");
+                    b.Property<bool>("DoesReduce")
+                        .HasColumnType("boolean");
 
-                    b.Property<bool>("IsSuspended");
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("Notes");
+                    b.Property<string>("Notes")
+                        .HasColumnType("text");
 
                     b.Property<string>("TypeSpecificDetail")
                         .HasColumnType("jsonb");
@@ -397,22 +612,30 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<string>("ContentInstanceUrl");
+                    b.Property<string>("ContentInstanceUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("GroupName")
-                        .IsRequired();
+                        .IsRequired()
+                        .HasColumnType("text");
 
-                    b.Property<bool>("IsMaster");
+                    b.Property<bool>("IsMaster")
+                        .HasColumnType("boolean");
 
-                    b.Property<bool>("IsSuspended");
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("ReducedContentChecksum");
+                    b.Property<string>("ReducedContentChecksum")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("RootContentItemId");
+                    b.Property<Guid>("RootContentItemId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid[]>("SelectedHierarchyFieldValueList");
+                    b.Property<List<Guid>>("SelectedHierarchyFieldValueList")
+                        .HasColumnType("uuid[]");
 
                     b.HasKey("Id");
 
@@ -421,17 +644,66 @@ namespace MillimanAccessPortal.Migrations
                     b.ToTable("SelectionGroup");
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
+                        .HasDefaultValueSql("uuid_generate_v4()");
+
+                    b.Property<Guid?>("ApplicationUserId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("FileDropId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid?>("FileDropUserPermissionGroupId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean");
+
+                    b.Property<HashSet<FileDropUserNotificationModel>>("NotificationSubscriptions")
+                        .HasColumnType("jsonb");
+
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
+
+                    b.Property<DateTime>("PasswordResetDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("FileDropId");
+
+                    b.HasIndex("FileDropUserPermissionGroupId");
+
+                    b.ToTable("SftpAccount");
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<bool>("DisclaimerAccepted");
+                    b.Property<bool>("DisclaimerAccepted")
+                        .HasColumnType("boolean");
 
-                    b.Property<Guid>("SelectionGroupId");
+                    b.Property<Guid>("SelectionGroupId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -446,13 +718,17 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("ClientId");
+                    b.Property<Guid>("ClientId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("RoleId");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -469,13 +745,17 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("ProfitCenterId");
+                    b.Property<Guid>("ProfitCenterId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("RoleId");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -492,13 +772,17 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("RoleId");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("RootContentItemId");
+                    b.Property<Guid>("RootContentItemId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -515,20 +799,26 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
                     b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken();
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
 
-                    b.Property<string>("DisplayName");
+                    b.Property<string>("DisplayName")
+                        .HasColumnType("text");
 
                     b.Property<string>("Name")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedName")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
-                    b.Property<int>("RoleEnum");
+                    b.Property<int>("RoleEnum")
+                        .HasColumnType("integer");
 
                     b.HasKey("Id");
 
@@ -543,58 +833,80 @@ namespace MillimanAccessPortal.Migrations
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<int>("AccessFailedCount");
+                    b.Property<int>("AccessFailedCount")
+                        .HasColumnType("integer");
 
-                    b.Property<Guid?>("AuthenticationSchemeId");
+                    b.Property<Guid?>("AuthenticationSchemeId")
+                        .HasColumnType("uuid");
 
                     b.Property<string>("ConcurrencyStamp")
-                        .IsConcurrencyToken();
+                        .IsConcurrencyToken()
+                        .HasColumnType("text");
 
                     b.Property<string>("Email")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
-                    b.Property<bool>("EmailConfirmed");
+                    b.Property<bool>("EmailConfirmed")
+                        .HasColumnType("boolean");
 
-                    b.Property<string>("Employer");
+                    b.Property<string>("Employer")
+                        .HasColumnType("text");
 
-                    b.Property<string>("FirstName");
+                    b.Property<string>("FirstName")
+                        .HasColumnType("text");
 
-                    b.Property<bool>("IsSuspended");
+                    b.Property<bool>("IsSuspended")
+                        .HasColumnType("boolean");
 
                     b.Property<bool?>("IsUserAgreementAccepted")
                         .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
                         .HasDefaultValue(null);
 
-                    b.Property<string>("LastName");
+                    b.Property<string>("LastName")
+                        .HasColumnType("text");
 
-                    b.Property<DateTime>("LastPasswordChangeDateTimeUtc");
+                    b.Property<DateTime>("LastPasswordChangeDateTimeUtc")
+                        .HasColumnType("timestamp without time zone");
 
-                    b.Property<bool>("LockoutEnabled");
+                    b.Property<bool>("LockoutEnabled")
+                        .HasColumnType("boolean");
 
-                    b.Property<DateTimeOffset?>("LockoutEnd");
+                    b.Property<DateTimeOffset?>("LockoutEnd")
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
                     b.Property<string>("NormalizedUserName")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
-                    b.Property<string>("PasswordHash");
+                    b.Property<string>("PasswordHash")
+                        .HasColumnType("text");
 
-                    b.Property<string>("PhoneNumber");
+                    b.Property<string>("PhoneNumber")
+                        .HasColumnType("text");
 
-                    b.Property<bool>("PhoneNumberConfirmed");
+                    b.Property<bool>("PhoneNumberConfirmed")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("PreviousPasswords")
                         .HasColumnType("jsonb");
 
-                    b.Property<string>("SecurityStamp");
+                    b.Property<string>("SecurityStamp")
+                        .HasColumnType("text");
 
-                    b.Property<bool>("TwoFactorEnabled");
+                    b.Property<bool>("TwoFactorEnabled")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("UserName")
+                        .HasColumnType("character varying(256)")
                         .HasMaxLength(256);
 
                     b.HasKey("Id");
@@ -615,13 +927,18 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
 
-                    b.Property<string>("ClaimType");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ClaimValue");
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("RoleId");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -633,13 +950,18 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
 
-                    b.Property<string>("ClaimType");
+                    b.Property<string>("ClaimType")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ClaimValue");
+                    b.Property<string>("ClaimValue")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
 
@@ -650,13 +972,17 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.Property<string>("LoginProvider");
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ProviderKey");
+                    b.Property<string>("ProviderKey")
+                        .HasColumnType("text");
 
-                    b.Property<string>("ProviderDisplayName");
+                    b.Property<string>("ProviderDisplayName")
+                        .HasColumnType("text");
 
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("LoginProvider", "ProviderKey");
 
@@ -667,9 +993,11 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<Guid>("RoleId");
+                    b.Property<Guid>("RoleId")
+                        .HasColumnType("uuid");
 
                     b.HasKey("UserId", "RoleId");
 
@@ -680,13 +1008,17 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.Property<Guid>("UserId");
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("LoginProvider");
+                    b.Property<string>("LoginProvider")
+                        .HasColumnType("text");
 
-                    b.Property<string>("Name");
+                    b.Property<string>("Name")
+                        .HasColumnType("text");
 
-                    b.Property<string>("Value");
+                    b.Property<string>("Value")
+                        .HasColumnType("text");
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
@@ -702,7 +1034,8 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()
                         .HasForeignKey("ProfitCenterId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequest", b =>
@@ -710,12 +1043,14 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
@@ -723,7 +1058,8 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
                         .WithMany()
                         .HasForeignKey("ApplicationUserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Context.ContentPublicationRequest", "ContentPublicationRequest")
                         .WithMany()
@@ -736,12 +1072,60 @@ namespace MillimanAccessPortal.Migrations
                         .OnDelete(DeleteBehavior.Cascade);
                 });
 
+            modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany()
+                        .HasForeignKey("FileDropId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "ParentDirectory")
+                        .WithMany("ChildDirectories")
+                        .HasForeignKey("ParentDirectoryId")
+                        .OnDelete(DeleteBehavior.Cascade);
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
+                        .WithMany("Files")
+                        .HasForeignKey("CreatedByAccountId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("MapDbContextLib.Context.FileDropDirectory", "Directory")
+                        .WithMany("Files")
+                        .HasForeignKey("DirectoryId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
+                {
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany()
+                        .HasForeignKey("FileDropId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyFieldValue", b =>
@@ -749,7 +1133,8 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.HierarchyField", "HierarchyField")
                         .WithMany()
                         .HasForeignKey("HierarchyFieldId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.RootContentItem", b =>
@@ -757,12 +1142,14 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Context.ContentType", "ContentType")
                         .WithMany()
                         .HasForeignKey("ContentTypeId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.SelectionGroup", b =>
@@ -770,7 +1157,27 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
+                {
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", "ApplicationUser")
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("ApplicationUserId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MapDbContextLib.Context.FileDropUserPermissionGroup", "FileDropUserPermissionGroup")
+                        .WithMany("SftpAccounts")
+                        .HasForeignKey("FileDropUserPermissionGroupId")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
@@ -778,12 +1185,14 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.SelectionGroup", "SelectionGroup")
                         .WithMany()
                         .HasForeignKey("SelectionGroupId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInClient", b =>
@@ -791,17 +1200,20 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.Client", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationRole", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInProfitCenter", b =>
@@ -809,17 +1221,20 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()
                         .HasForeignKey("ProfitCenterId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationRole", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInRootContentItem", b =>
@@ -827,17 +1242,20 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Identity.ApplicationRole", "Role")
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Context.RootContentItem", "RootContentItem")
                         .WithMany()
                         .HasForeignKey("RootContentItemId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("MapDbContextLib.Identity.ApplicationUser", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("MapDbContextLib.Identity.ApplicationUser", b =>
@@ -849,47 +1267,53 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
                 {
-                    b.HasOne("MapDbContextLib.Identity.ApplicationRole")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<System.Guid>", b =>
                 {
-                    b.HasOne("MapDbContextLib.Identity.ApplicationUser")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<System.Guid>", b =>
                 {
-                    b.HasOne("MapDbContextLib.Identity.ApplicationUser")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<System.Guid>", b =>
                 {
-                    b.HasOne("MapDbContextLib.Identity.ApplicationRole")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationRole", null)
                         .WithMany()
                         .HasForeignKey("RoleId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("MapDbContextLib.Identity.ApplicationUser")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<System.Guid>", b =>
                 {
-                    b.HasOne("MapDbContextLib.Identity.ApplicationUser")
+                    b.HasOne("MapDbContextLib.Identity.ApplicationUser", null)
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade);
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

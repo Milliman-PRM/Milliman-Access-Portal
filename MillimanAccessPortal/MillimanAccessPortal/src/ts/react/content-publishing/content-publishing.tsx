@@ -42,7 +42,7 @@ import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
 import { Input, TextAreaInput } from '../shared-components/form/input';
-import { Select } from '../shared-components/form/select';
+import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { Dict } from '../shared-components/redux/store';
@@ -391,14 +391,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionStats>
                   <CardStat
-                    name={'Reports'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
+                    name={'Content-assigned users'}
                     value={entity.userCount}
                     icon={'user'}
+                  />
+                  <CardStat
+                    name={'Content items'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
                   />
                 </CardSectionStats>
               </CardSectionMain>
@@ -570,14 +570,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 />
                 <CardSectionStats>
                   <CardStat
-                    name={'Selection groups'}
-                    value={entity.selectionGroupCount}
-                    icon={'group'}
-                  />
-                  <CardStat
                     name={'Assigned users'}
                     value={entity.assignedUserCount}
                     icon={'user'}
+                  />
+                  <CardStat
+                    name={'Selection groups'}
+                    value={entity.selectionGroupCount}
+                    icon={'group'}
                   />
                 </CardSectionStats>
                 <CardSectionButtons>
@@ -709,7 +709,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={4}>
-                  <Select
+                  <DropDown
                     error={formData.formErrors.contentTypeId}
                     label="Content Type"
                     name="contentType"
@@ -1054,7 +1054,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             <button
               type="button"
               className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
-              disabled={!this.props.formCanSubmit}
               onClick={(event: React.MouseEvent) => {
                 event.preventDefault();
                 if (!formData.pendingFormData.id) {

@@ -34,10 +34,9 @@ namespace MillimanAccessPortal.Authorization
                 return MapAuthorizationRequirementResult.Fail;
             }
 
-            IQueryable<UserInSelectionGroup> Query =
-                DataContext.UserInSelectionGroup
-                           .Where(usg => usg.UserId == User.Id
-                                     && usg.SelectionGroupId == SelectionGroupId);
+            IQueryable<UserInSelectionGroup> Query = DataContext.UserInSelectionGroup
+                                                                .Where(usg => usg.UserId == User.Id
+                                                                           && usg.SelectionGroupId == SelectionGroupId);
 
             if (Query.Any())  // Query executes here
             {

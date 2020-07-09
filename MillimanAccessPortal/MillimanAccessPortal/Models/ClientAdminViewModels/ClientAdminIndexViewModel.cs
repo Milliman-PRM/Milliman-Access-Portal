@@ -41,7 +41,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
 
             // Add all appropriate client trees
-            List<Client> AllRootClients = Queries.GetAllRootClients();  // list to memory so utilization is fast and no lingering transaction
+            List<Client> AllRootClients = await Queries.GetAllRootClientsAsync();  // list to memory so utilization is fast and no lingering transaction
             foreach (Client RootClient in AllRootClients.OrderBy(c => c.Name))
             {
                 //await Queries.GetDescendentFamilyOfClient(RootClient, CurrentUser, RoleEnum.Admin, true, true);
@@ -54,13 +54,14 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
 
             // Add all ProfitCenterManager authorizations for the current user
-            foreach (var AuthorizedProfitCenter in DbContext.UserRoleInProfitCenter
-                                                            .Include(urpc => urpc.Role)
-                                                            .Include(urpc => urpc.ProfitCenter)
-                                                            .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
-                                                                        && urpc.UserId == CurrentUser.Id)
-                                                            .Distinct()
-                                                            .Select(urpc => urpc.ProfitCenter))
+            foreach (var AuthorizedProfitCenter in (await DbContext.UserRoleInProfitCenter
+                                                                   .Include(urpc => urpc.Role)
+                                                                   .Include(urpc => urpc.ProfitCenter)
+                                                                   .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
+                                                                               && urpc.UserId == CurrentUser.Id)
+                                                                   .Select(urpc => urpc.ProfitCenter)
+                                                                   .ToListAsync())
+                                                           .Distinct(new IdPropertyComparer<ProfitCenter>()))
             {
                 ModelToReturn.AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
             }
@@ -121,7 +122,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             if (Recursive)
             {
-                List<Client> ChildrenOfThisClient = DbContext.Client.Where(c => c.ParentClientId == ClientModel.ClientEntity.Id).OrderBy(c => c.Name).ToList();
+                List<Client> ChildrenOfThisClient = await DbContext.Client.Where(c => c.ParentClientId == ClientModel.ClientEntity.Id).OrderBy(c => c.Name).ToListAsync();
                 foreach (Client ChildOfThisClient in ChildrenOfThisClient)
                 {
                     ClientAndChildrenModel NextChild = new ClientAndChildrenModel(ChildOfThisClient);

@@ -17,6 +17,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ContentPublishing
 {
@@ -41,13 +42,16 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
 
-        public static PreLiveContentValidationSummary Build(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
+        public static async Task<PreLiveContentValidationSummary> BuildAsync(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
-            ContentPublicationRequest PubRequest = Db.ContentPublicationRequest
-                                                     .Include(r => r.RootContentItem).ThenInclude(c => c.ContentType)
-                                                     .Include(r => r.RootContentItem).ThenInclude(c => c.Client)
-                                                     .Where(r => r.RootContentItemId == RootContentItemId)
-                                                     .SingleOrDefault(r => r.RequestStatus == PublicationStatus.Processed);
+            ContentPublicationRequest PubRequest = await Db.ContentPublicationRequest
+                                                           .Include(r => r.RootContentItem)
+                                                              .ThenInclude(c => c.ContentType)
+                                                           .Include(r => r.RootContentItem)
+                                                              .ThenInclude(c => c.Client)
+                                                           .Where(r => r.RootContentItemId == RootContentItemId)
+                                                           .SingleOrDefaultAsync(r => r.RequestStatus == PublicationStatus.Processed);
+
             #region Validation of PubRequest and related nav properties from db
             if (PubRequest == null
              || PubRequest.RootContentItem == null
@@ -65,7 +69,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 PublicationRequestId = PubRequest.Id,
                 RootContentId = PubRequest.RootContentItem.Id,
                 RootContentName = PubRequest.RootContentItem.ContentName,
-                ContentTypeName = PubRequest.RootContentItem.ContentType.Name,
+                ContentTypeName = PubRequest.RootContentItem.ContentType.TypeEnum.ToString(),
                 ContentDescription = PubRequest.RootContentItem.Description,
                 DoesReduce = PubRequest.RootContentItem.DoesReduce,
                 ClientId = PubRequest.RootContentItem.Client.Id,
@@ -152,11 +156,12 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             if (PubRequest.RootContentItem.DoesReduce)
             {
                 // retrieve all related reduction tasks that are associated with selection groups
-                List<ContentReductionTask> AllTasks = Db.ContentReductionTask
-                                                        .Include(t => t.SelectionGroup)
-                                                        .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                        .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
-                                                        .ToList();
+                List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
+                                                              .Include(t => t.SelectionGroup)
+                                                              .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
+                                                              .ToListAsync();
+
                 #region Validation of reduction tasks and related nav properties from db
                 if (AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId))
                 {
@@ -205,7 +210,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
                         var liveSelections = task.SelectionGroup.IsMaster
                             ? null
-                            : ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroup(Db, task.SelectionGroupId.Value);
+                            : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(Db, task.SelectionGroupId.Value);
                         var pendingSelections = task.SelectionGroup.IsMaster
                             ? null
                             : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);

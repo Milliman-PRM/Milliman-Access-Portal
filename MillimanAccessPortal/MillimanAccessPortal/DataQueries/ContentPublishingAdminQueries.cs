@@ -8,8 +8,9 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Controllers;
-using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
@@ -18,7 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -31,21 +32,24 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
         private readonly UserQueries _userQueries;
+        private readonly PublicationQueries _publicationQueries;
 
         public ContentPublishingAdminQueries(
             ClientQueries clientQueries,
             ContentItemQueries contentItemQueries,
             UserQueries userQueries,
-            ApplicationDbContext dbContextArg
+            ApplicationDbContext dbContextArg,
+            PublicationQueries publicationQueriesArg
             )
         {
             _clientQueries = clientQueries;
             _contentItemQueries = contentItemQueries;
             _userQueries = userQueries;
             _dbContext = dbContextArg;
+            _publicationQueries = publicationQueriesArg;
         }
 
-        internal PublishingPageGlobalModel BuildPublishingPageGlobalModel()
+        internal async Task<PublishingPageGlobalModel> BuildPublishingPageGlobalModelAsync()
         {
             var typeValues = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
             return new PublishingPageGlobalModel
@@ -54,51 +58,28 @@ namespace MillimanAccessPortal.DataQueries
                     .Select(t => new AssociatedFileTypeModel(t))
                     .ToDictionary(f => (int)f.TypeEnum),
 
-                ContentTypes = _dbContext.ContentType
-                    .Select(t => new BasicContentType(t))
-                    .ToDictionary(t => t.Id),
+                ContentTypes = await _dbContext.ContentType
+                                               .Select(t => new BasicContentType(t))
+                                               .ToDictionaryAsync(t => t.Id),
             };
         }
 
-        internal Dictionary<Guid, BasicClientWithCardStats> GetAuthorizedClientsModel(ApplicationUser user)
+        internal async Task<Dictionary<Guid, BasicClientWithCardStats>> GetAuthorizedClientsModelAsync(ApplicationUser user)
         {
-            List<Client> clientList = _dbContext.UserRoleInClient
-                                                .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
-                                                .Select(urc => urc.Client)
-                                                .ToList();
-            clientList = AddUniqueAncestorClientsNonInclusiveOf(clientList);
+            List<Client> clientList = await _dbContext.UserRoleInClient
+                                                      .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.ContentPublisher)
+                                                      .Select(urc => urc.Client)
+                                                      .ToListAsync();
+            clientList = _clientQueries.AddUniqueAncestorClientsNonInclusiveOf(clientList);
 
             List<BasicClientWithCardStats> returnList = new List<BasicClientWithCardStats>();
 
             foreach (Client oneClient in clientList)
             {
-                returnList.Add(_clientQueries.SelectClientWithPublishingCardStats(oneClient, RoleEnum.ContentPublisher, user.Id));
+                returnList.Add(await _clientQueries.SelectClientWithPublishingCardStatsAsync(oneClient, RoleEnum.ContentPublisher, user.Id));
             }
 
             return returnList.ToDictionary(c => c.Id);
-        }
-
-        internal List<Client> AddUniqueAncestorClientsNonInclusiveOf(IEnumerable<Client> children)
-        {
-            HashSet<Client> returnSet = children.ToHashSet(new IdPropertyComparer<Client>());
-
-            foreach (Client client in children)
-            {
-                FindAncestorClients(client).ForEach(c => returnSet.Add(c));
-            }
-            return returnSet.ToList();
-        }
-
-        private List<Client> FindAncestorClients(Client client)
-        {
-            List<Client> returnObject = new List<Client>();
-            if (client.ParentClientId.HasValue && client.ParentClientId.Value != default)
-            {
-                Client parent = _dbContext.Client.Find(client.ParentClientId);
-                returnObject.Add(parent);
-                returnObject.AddRange(FindAncestorClients(parent));
-            }
-            return returnObject;
         }
 
         /// <summary>
@@ -108,9 +89,9 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user"></param>
         /// <param name="roleInRootContentItem"></param>
         /// <returns></returns>
-        internal RootContentItemsModel BuildRootContentItemsModel(Client client, ApplicationUser user)
+        internal async Task<RootContentItemsModel> BuildRootContentItemsModelAsync(Client client, ApplicationUser user)
         {
-            var statusModel = SelectStatus(user, client.Id);
+            var statusModel = await SelectStatusAsync(user, client.Id);
 
             RootContentItemsModel model = new RootContentItemsModel
             {
@@ -120,32 +101,32 @@ namespace MillimanAccessPortal.DataQueries
                 ClientStats = new
                 {
                     code = client.ClientCode,
-                    contentItemCount = _dbContext.RootContentItem
-                                                 .Where(r => r.ClientId == client.Id)
-                                                 .Select(r => r.Id)
-                                                 .Distinct()
-                                                 .Count(),
+                    contentItemCount = await _dbContext.RootContentItem
+                                                       .Where(r => r.ClientId == client.Id)
+                                                       .Select(r => r.Id)
+                                                       .Distinct()
+                                                       .CountAsync(),
                     Id = client.Id.ToString(),
                     name = client.Name,
                     parentId = client.ParentClientId?.ToString(),
-                    userCount = _dbContext.UserInSelectionGroup
-                                          .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
-                                          .Select(r => r.UserId)
-                                          .Distinct()
-                                          .Count(),
+                    userCount = await _dbContext.UserInSelectionGroup
+                                                .Where(g => g.SelectionGroup.RootContentItem.ClientId == client.Id)
+                                                .Select(r => r.UserId)
+                                                .Distinct()
+                                                .CountAsync(),
                 },
             };
 
             return model;
         }
 
-        internal RootContentItemDetail BuildContentItemDetailModel(RootContentItem rootContentItem, HttpRequest httpRequest)
+        internal async Task<RootContentItemDetail> BuildContentItemDetailModelAsync(RootContentItem rootContentItem, HttpRequest httpRequest)
         {
-            var publicationRequest = _dbContext.ContentPublicationRequest
-                .Where(r => r.RootContentItemId == rootContentItem.Id)
-                .OrderByDescending(r => r.CreateDateTimeUtc)
-                .FirstOrDefault();
-            var contentType = _dbContext.ContentType.Find(rootContentItem.ContentTypeId);
+            var publicationRequest = await _dbContext.ContentPublicationRequest
+                                                     .Where(r => r.RootContentItemId == rootContentItem.Id)
+                                                     .OrderByDescending(r => r.CreateDateTimeUtc)
+                                                     .FirstOrDefaultAsync();
+            var contentType = await _dbContext.ContentType.FindAsync(rootContentItem.ContentTypeId);
 
             List<ContentRelatedFile> relatedFiles = rootContentItem.ContentFilesList;
             if ((publicationRequest?.RequestStatus ?? PublicationStatus.Unknown).IsActive())
@@ -205,12 +186,12 @@ namespace MillimanAccessPortal.DataQueries
             return model;
         }
 
-        internal CancelPublicationModel SelectCancelContentPublicationRequest(ApplicationUser user, RootContentItem rootContentItem, HttpRequest httpRequest)
+        internal async Task<CancelPublicationModel> SelectCancelContentPublicationRequestAsync(ApplicationUser user, RootContentItem rootContentItem, HttpRequest httpRequest)
         {
             var model = new CancelPublicationModel
             {
-                StatusResponseModel = SelectStatus(user, rootContentItem.ClientId),
-                RootContentItemDetail = BuildContentItemDetailModel(rootContentItem, httpRequest),
+                StatusResponseModel = await SelectStatusAsync(user, rootContentItem.ClientId),
+                RootContentItemDetail = await BuildContentItemDetailModelAsync(rootContentItem, httpRequest),
             };
 
             return model;
@@ -222,9 +203,9 @@ namespace MillimanAccessPortal.DataQueries
         /// <param name="user"></param>
         /// <param name="clientId"></param>
         /// <returns></returns>
-        internal StatusResponseModel SelectStatus(ApplicationUser user, Guid clientId)
+        internal async Task<StatusResponseModel> SelectStatusAsync(ApplicationUser user, Guid clientId)
         {
-            Client client = _dbContext.Client.Find(clientId);
+            Client client = await _dbContext.Client.FindAsync(clientId);
 
             var model = new StatusResponseModel();
 
@@ -237,36 +218,41 @@ namespace MillimanAccessPortal.DataQueries
                 .AsEnumerable()
                 .Distinct(new IdPropertyComparer<RootContentItem>())
                 .ToList();
+
             List<Guid> contentItemIds = rootContentItems.ConvertAll(c => c.Id);
             foreach (var rootContentItem in rootContentItems)
             {
-                var summary = RootContentItemNewSummary.Build(_dbContext, rootContentItem);
+                var summary = await RootContentItemNewSummary.BuildAsync(_dbContext, rootContentItem);
                 model.ContentItems.Add(rootContentItem.Id, summary);
             }
 
-            model.PublicationQueue = PublicationQueueDetails.BuildQueueForClient(_dbContext, client);
-
-            var publications = _dbContext.ContentPublicationRequest
+            var publications = await _dbContext.ContentPublicationRequest
                                           .Where(r => contentItemIds.Contains(r.RootContentItemId))
                                           .Where(r => PublicationStatusExtensions.CurrentStatuses.Contains(r.RequestStatus))
-                                          .GroupBy(r => r.RootContentItemId,
-                                                   (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
-                                                  );
+                                          .ToListAsync();
+            // Only retain the latest one for each content item
+            publications = publications.GroupBy(r => r.RootContentItemId,
+                                                (k, g) => g.OrderByDescending(r => r.CreateDateTimeUtc).FirstOrDefault()
+                                               )
+                                       .ToList();
 
             // This is required because a `resultSelector` (2nd expression argument) in GroupBy() can return any type, so no EF cache tracking
             _dbContext.AttachRange(publications); // track in EF cache, including navigation properties
             foreach (var pub in publications)
             {
                 // If the content item has a live publication, only publications requested later than that should be returned
-                var livePublication = _dbContext.ContentPublicationRequest
-                                                .SingleOrDefault(r => r.RootContentItemId == pub.RootContentItemId
-                                                                   && r.RequestStatus == PublicationStatus.Confirmed);
+                var livePublication = await _dbContext.ContentPublicationRequest
+                                                      .SingleOrDefaultAsync(r => r.RootContentItemId == pub.RootContentItemId
+                                                                              && r.RequestStatus == PublicationStatus.Confirmed);
 
                 if (livePublication == null || pub.CreateDateTimeUtc > livePublication.CreateDateTimeUtc)
                 {
                     model.Publications.Add(pub.Id, (BasicPublication)pub);
                 }
             }
+
+            List<PublicationQueueDetails> publicationQueueModel = await _publicationQueries.SelectQueueDetailsWherePublicationInAsync(model.Publications.Keys);
+            model.PublicationQueue = publicationQueueModel.ToDictionary(p => p.PublicationId);
 
             return model;
         }

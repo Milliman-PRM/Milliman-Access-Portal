@@ -83,5 +83,7 @@ namespace MapDbContextLib.Identity
         [ForeignKey("AuthenticationScheme")]
         public Guid? AuthenticationSchemeId { get; set; }
         public AuthenticationScheme AuthenticationScheme { get; set; }
+
+        public IEnumerable<SftpAccount> SftpAccounts { get; set; }
     }
 }

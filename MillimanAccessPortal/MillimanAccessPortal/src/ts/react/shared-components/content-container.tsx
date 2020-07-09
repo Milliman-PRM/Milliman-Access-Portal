@@ -36,7 +36,13 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
     if (window.location === window.parent.location) {
       window.close();
     } else {
-      window.parent.history.back();
+      // IE doesn't support popstate on URL hashchange so we need to treat it differently here.
+      const isIE = navigator.userAgent.indexOf('MSIE ') > -1 || navigator.userAgent.indexOf('Trident/') > -1;
+      if (!isIE) {
+        window.parent.history.back();
+      } else {
+        window.parent.location.reload();
+      }
     }
   }
 

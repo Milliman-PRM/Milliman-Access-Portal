@@ -1,5 +1,4 @@
-﻿@* @inject Microsoft.ApplicationInsights.AspNetCore.JavaScriptSnippet JavaScriptSnippet  *@
-@{string Title = String.Format("{0}{1}Milliman Access Portal", ViewData["Title"], (ViewData["Title"].ToString().Length > 0) ? " - " : "");}
+﻿@{string Title = String.Format("{0}{1}Milliman Access Portal", ViewData["Title"], (ViewData["Title"].ToString().Length > 0) ? " - " : "");}
 
 <!DOCTYPE html>
 <html lang="en">
@@ -16,9 +15,12 @@
             document.write('<script src="/js/polyfills.min.js"><\/script>');
         }
     </script>
-    
+
     @RenderSection("Scripts", required: false)
-    @Html.Raw(JavaScriptSnippet.FullScript)
+    @if (User.Identity.IsAuthenticated)
+    {
+        @Html.Raw(JavaScriptSnippet.FullScript)
+    }
 </head>
 <body data-nav-location="@ViewData["NavIcon"]">
 

@@ -3,6 +3,7 @@ import '../../../images/icons/content-access.svg';
 import '../../../images/icons/content-grid.svg';
 import '../../../images/icons/content-publishing.svg';
 import '../../../images/icons/email.svg';
+import '../../../images/icons/file-drop.svg';
 import '../../../images/icons/logout.svg';
 import '../../../images/icons/system-admin.svg';
 import '../../../images/icons/user-settings.svg';
@@ -18,6 +19,7 @@ import { NavBarElement } from './interfaces';
 
 export interface NavBarProps {
   currentView: string;
+  userGuidePath?: string;
 }
 
 export interface NavBarState {
@@ -110,7 +112,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <UserGuideModal
               isOpen={this.state.userGuideOpen}
               onRequestClose={this.closeUserGuide}
-              source={this.props.currentView}
+              source={this.props.userGuidePath ? this.props.userGuidePath : this.props.currentView}
             />
           </div>
         </nav>

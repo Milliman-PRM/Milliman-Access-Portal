@@ -7,14 +7,12 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
-using EmailQueue;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
@@ -22,15 +20,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.AspNetCore.Rewrite;
-using Microsoft.AspNetCore.Session;
 using Microsoft.AspNetCore.SpaServices.Webpack;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
@@ -43,6 +40,7 @@ using MillimanAccessPortal.Utilities;
 using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
 using PowerBiLib;
+using Prm.EmailQueue;
 using QlikviewLib;
 using Serilog;
 using System;
@@ -69,11 +67,6 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<MvcOptions>(options =>
-            {
-                options.Filters.Add(new RequireHttpsAttribute());
-            });
-
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             // Add framework services.
             services.AddDbContext<ApplicationDbContext>(options =>
@@ -176,11 +169,11 @@ namespace MillimanAccessPortal
                         if (string.IsNullOrWhiteSpace(authenticatedUserName))
                         {
                             Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
-                            string supportEmail = Configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+                            string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
                             UriBuilder msg = new UriBuilder
                             {
                                 Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmail}\">{supportEmail}</a> and provide this error message and your user name.",
+                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and provide this error message and your user name.",
                             };
                             context.Response.Redirect(msg.Uri.PathAndQuery);
                             return;
@@ -194,7 +187,7 @@ namespace MillimanAccessPortal
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
-                                string supportEmail = Configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
+                                string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
 
                                 if (_applicationUser == null)
                                 {
@@ -204,7 +197,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmail}\">{supportEmail}</a>.",
+                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -216,7 +209,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmail}\">{supportEmail}</a>.",
+                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -230,7 +223,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller","")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmail}\">{supportEmail}</a> and follow instructions in that message to activate the account."
+                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and follow instructions in that message to activate the account."
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -310,25 +303,34 @@ namespace MillimanAccessPortal
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
 
-            services.AddMemoryCache();
-            services.AddSession();
+            //services.AddMemoryCache();
+            services.AddDistributedMemoryCache();
+            services.AddSession(options => 
+            {
+                options.Cookie.IsEssential = true;  // TODO This bypasses cookie consent.  Think about GDPR
+            });
 
             services.AddResponseCaching();
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+            });
 
-            services.AddMvc(config =>
+            services
+            .AddControllersWithViews(options => 
             {
                 var policy = new AuthorizationPolicyBuilder()
                              .RequireAuthenticatedUser()
                              .Build();
-                config.Filters.Add(new AuthorizeFilter(policy));
+                options.Filters.Add(new AuthorizeFilter(policy));
             })
-            .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-            .AddControllersAsServices()
-            .AddJsonOptions(opt =>
+            .AddNewtonsoftJson(options =>
             {
-                opt.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-                opt.SerializerSettings.NullValueHandling = NullValueHandling.Include;
-            });
+                options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
+                options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+            })
+            .AddControllersAsServices();
 
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -350,6 +352,7 @@ namespace MillimanAccessPortal
             services.AddScoped<ContentAccessAdminQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
 
+            services.AddScoped<FileDropQueries>();
             services.AddScoped<ClientQueries>();
             services.AddScoped<ContentItemQueries>();
             services.AddScoped<HierarchyQueries>();
@@ -379,6 +382,7 @@ namespace MillimanAccessPortal
             {
                 case "PRODUCTION":
                 case "STAGING":
+                case "INTERNAL":
 
                     Log.Debug("Configuring Data Protection");
 
@@ -402,7 +406,7 @@ namespace MillimanAccessPortal
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             var rewriteOptions = new RewriteOptions().AddRedirectToHttps();
             app.UseRewriter(rewriteOptions);
@@ -415,6 +419,9 @@ namespace MillimanAccessPortal
 
                 if (env.IsDevelopment())
                 {
+#warning HEY!!!  Figure out a replacement for this obsolete code
+                    // TODO need to address what to do here since this is obsolete
+                    // https://github.com/dotnet/AspNetCore.Docs/issues/13245
                     app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
                     {
                         HotModuleReplacement = true,
@@ -456,10 +463,9 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            // Send header to prevent IE from going into compatibility mode
-            // Should work for internal and external users
             var policyCollection = new HeaderPolicyCollection()
-                .AddCustomHeader("X-UA-Compatible", "IE=Edge");
+                .AddCustomHeader("X-UA-Compatible", "IE=Edge") // Prevents IE from going into compatibility mode, should work for internal and external users
+                .AddCustomHeader("X-Frame-Options", "SAMEORIGIN"); // Prevents clickjacking
             app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
@@ -482,10 +488,10 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            app.UseAuthentication();
-            //Todo: read this: https://github.com/aspnet/Security/issues/1310
+            app.UseRouting();
 
-            // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
+            app.UseAuthentication();
+            app.UseAuthorization();
 
             app.UseSession();
 
@@ -527,43 +533,12 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            app.UseMvc(routes =>
+            app.UseEndpoints(endpoints =>
             {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                //endpoints.MapRazorPages();
             });
-
-            MailSender.ConfigureMailSender(new SmtpConfig
-            {
-                SmtpServer = Configuration.GetValue<string>("SmtpServer"),
-                SmtpPort = Configuration.GetValue<int>("SmtpPort"),
-                SmtpFromAddress = Configuration.GetValue<string>("SmtpFromAddress"),
-                SmtpFromName = Configuration.GetValue<string>("SmtpFromName"),
-                SmtpUsername = Configuration.GetValue<string>("SmtpUsername"),
-                SmtpPassword = Configuration.GetValue<string>("SmtpPassword")
-            });
-
-            #region Configure Audit Logger connection string
-            string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-
-            // If the database name is defined in the environment, update the connection string
-            if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
-            {
-                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
-                {
-                    Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
-                };
-                auditLogConnectionString = stringBuilder.ConnectionString;
-            }
-
-            AuditLogger.Config = new AuditLoggerConfiguration
-            {
-                AuditLogConnectionString = auditLogConnectionString,
-                ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
-            };
-            #endregion
-
         }
     }
 }

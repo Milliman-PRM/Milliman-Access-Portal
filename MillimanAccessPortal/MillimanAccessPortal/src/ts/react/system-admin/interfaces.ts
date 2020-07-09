@@ -144,6 +144,8 @@ export interface UserClientRoles {
   isAccessAdmin: boolean;
   isContentPublisher: boolean;
   isContentUser: boolean;
+  isFileDropAdmin: boolean;
+  isFileDropUser: boolean;
 }
 export function isUserClientRoles(detail: SecondaryDetail): detail is UserDetailForClient | ClientDetailForUser {
   return detail

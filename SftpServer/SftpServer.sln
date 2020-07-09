@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29521.150
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SftpServerLib", "SftpServerLib\SftpServerLib.csproj", "{05ACF5A2-AA44-44A2-83ED-5F32836492DF}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SftpCoreGui", "SftpCoreGui\SftpCoreGui.csproj", "{CE38FE68-EBCB-4626-A2F3-B0AD6D08F9BC}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDbContextLib", "..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj", "{27EC3AEA-60FE-4170-B670-50E0E4C0F51B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapCommonLib", "..\MillimanAccessPortal\MapCommonLib\MapCommonLib.csproj", "{C8549A2D-F561-4B87-9304-27C8BCC6F8C1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "..\MillimanAccessPortal\AuditLogLib\AuditLogLib.csproj", "{BC61075A-4DE4-4351-A1A3-C58F9127E3EF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SftpServer", "SftpServer\SftpServer.csproj", "{B847C19B-43BA-4713-8C53-980FF801DB37}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{05ACF5A2-AA44-44A2-83ED-5F32836492DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05ACF5A2-AA44-44A2-83ED-5F32836492DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05ACF5A2-AA44-44A2-83ED-5F32836492DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05ACF5A2-AA44-44A2-83ED-5F32836492DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CE38FE68-EBCB-4626-A2F3-B0AD6D08F9BC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CE38FE68-EBCB-4626-A2F3-B0AD6D08F9BC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CE38FE68-EBCB-4626-A2F3-B0AD6D08F9BC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CE38FE68-EBCB-4626-A2F3-B0AD6D08F9BC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{27EC3AEA-60FE-4170-B670-50E0E4C0F51B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{27EC3AEA-60FE-4170-B670-50E0E4C0F51B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{27EC3AEA-60FE-4170-B670-50E0E4C0F51B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{27EC3AEA-60FE-4170-B670-50E0E4C0F51B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8549A2D-F561-4B87-9304-27C8BCC6F8C1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8549A2D-F561-4B87-9304-27C8BCC6F8C1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8549A2D-F561-4B87-9304-27C8BCC6F8C1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8549A2D-F561-4B87-9304-27C8BCC6F8C1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BC61075A-4DE4-4351-A1A3-C58F9127E3EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BC61075A-4DE4-4351-A1A3-C58F9127E3EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BC61075A-4DE4-4351-A1A3-C58F9127E3EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BC61075A-4DE4-4351-A1A3-C58F9127E3EF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B847C19B-43BA-4713-8C53-980FF801DB37}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B847C19B-43BA-4713-8C53-980FF801DB37}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B847C19B-43BA-4713-8C53-980FF801DB37}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B847C19B-43BA-4713-8C53-980FF801DB37}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {8716D6EF-A1AF-45C6-814B-844248931F3F}
+	EndGlobalSection
+EndGlobal

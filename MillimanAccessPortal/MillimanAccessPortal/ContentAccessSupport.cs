@@ -78,7 +78,7 @@ namespace MillimanAccessPortal
 
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
+                    thisContentReductionTask = await Db.ContentReductionTask.FindAsync(TaskGuid);
                 }
             }
             while (thisContentReductionTask.ReductionStatus.IsCancelable());
@@ -97,7 +97,7 @@ namespace MillimanAccessPortal
 
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    thisContentReductionTask = Db.ContentReductionTask.Find(TaskGuid);
+                    thisContentReductionTask = await Db.ContentReductionTask.FindAsync(TaskGuid);
                 }
 
                 if (thisContentReductionTask.ReductionStatus == ReductionStatusEnum.Canceled || 
@@ -110,14 +110,15 @@ namespace MillimanAccessPortal
             // ready for go live, get all the navigation properties
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                thisContentReductionTask = Db.ContentReductionTask.Include(t => t.ApplicationUser)
-                                                                  .Include(t => t.SelectionGroup)
-                                                                      .ThenInclude(g => g.RootContentItem)
-                                                                          .ThenInclude(c=> c.ContentType)
-                                                                  .Include(t => t.SelectionGroup)
-                                                                      .ThenInclude(g => g.RootContentItem)
-                                                                          .ThenInclude(c => c.Client)
-                                                                  .Single(t => t.Id == thisContentReductionTask.Id);
+                thisContentReductionTask = await Db.ContentReductionTask
+                                                   .Include(t => t.ApplicationUser)
+                                                   .Include(t => t.SelectionGroup)
+                                                       .ThenInclude(g => g.RootContentItem)
+                                                           .ThenInclude(c=> c.ContentType)
+                                                   .Include(t => t.SelectionGroup)
+                                                       .ThenInclude(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.Client)
+                                                   .SingleAsync(t => t.Id == thisContentReductionTask.Id);
 
                 List<string> FilesToDelete = await ReducedContentGoLive(Db, thisContentReductionTask, contentRootFolder, ContentTypeConfig);
 
@@ -176,14 +177,15 @@ namespace MillimanAccessPortal
             // update selection group
             List<Guid> ValueIdList = new List<Guid>();
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
-            reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList.ToArray();
+            reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList;
             reductionTask.SelectionGroup.IsMaster = false;
             reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
             reductionTask.SelectionGroup.ReducedContentChecksum = reductionTask.ReducedContentChecksum;
 
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live
-            ContentReductionTask PreviousLiveTask = Db.ContentReductionTask.SingleOrDefault(t => t.SelectionGroupId == reductionTask.SelectionGroupId && 
-                                                                                                 t.ReductionStatus == ReductionStatusEnum.Live);
+            ContentReductionTask PreviousLiveTask = await Db.ContentReductionTask
+                                                            .SingleOrDefaultAsync(t => t.SelectionGroupId == reductionTask.SelectionGroupId 
+                                                                                    && t.ReductionStatus == ReductionStatusEnum.Live);
             if (PreviousLiveTask != null)
             {
                 PreviousLiveTask.ReductionStatus = ReductionStatusEnum.Replaced;
@@ -208,16 +210,16 @@ namespace MillimanAccessPortal
             }
 
             // Reset disclaimer acceptance
-            var usersInGroup = Db.UserInSelectionGroup
-                                 .Include(usg => usg.User)
-                                 .Include(usg => usg.SelectionGroup)
-                                 .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
-                                 .ToList();
+            var usersInGroup = await Db.UserInSelectionGroup
+                                       .Include(usg => usg.User)
+                                       .Include(usg => usg.SelectionGroup)
+                                       .Where(u => u.SelectionGroupId == reductionTask.SelectionGroupId)
+                                       .ToListAsync();
             usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             var rootContentItemId = usersInGroup.FirstOrDefault()?.SelectionGroup.RootContentItemId ?? Guid.Empty;
 
             // save changes
-            Db.SaveChanges();
+            await Db.SaveChangesAsync();
 
             AuditLogger Logger = new AuditLogger();
             Logger.Log(AuditEventType.ContentDisclaimerAcceptanceReset.ToEvent(usersInGroup, reductionTask.SelectionGroup.RootContentItem, reductionTask.SelectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified),
@@ -245,7 +247,7 @@ namespace MillimanAccessPortal
             ReductionStatusEnum resultingStatus = ReductionStatusEnum.Error;  // initialize
             try
             {
-                Task copyTask =Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget), cancellationTokenSource.Token);
+                Task copyTask =Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget, true), cancellationTokenSource.Token);
                 await copyTask;
 
                 if (copyTask.IsCompletedSuccessfully)
@@ -263,9 +265,9 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 GlobalFunctions.IssueLog(IssueLogEnum.LongRunningSelectionGroupProcessing, $"LongRunningUpdateSelectionCodeAsync updating status of reduction task {reductionTask.Id.ToString()} to {ContentReductionTask.ReductionStatusDisplayNames[resultingStatus]}");
-                reductionTask = Db.ContentReductionTask.Find(reductionTask.Id);
+                reductionTask = await Db.ContentReductionTask.FindAsync(reductionTask.Id);
                 reductionTask.ReductionStatus = resultingStatus;
-                Db.SaveChanges();
+                await Db.SaveChangesAsync();
             }
 
             return;

@@ -5,9 +5,11 @@
  */
 
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Context
 {
@@ -24,16 +26,16 @@ namespace MapDbContextLib.Context
         [Required]
         public string Value { get; set; }
 
-        internal static void InitializeNameValueConfiguration(IServiceProvider serviceProvider)
+        internal static async Task InitializeNameValueConfigurationAsync(IServiceProvider serviceProvider)
         {
             ApplicationDbContext Db = serviceProvider.GetService<ApplicationDbContext>();
 
             foreach (ConfiguredValueKeys key in Enum.GetValues(typeof(ConfiguredValueKeys)))
             {
-                if (!Db.NameValueConfiguration.Any(c => c.Key == key.ToString()))
+                if (!await Db.NameValueConfiguration.AnyAsync(c => c.Key == key.ToString()))
                 {
                     Db.NameValueConfiguration.Add(new NameValueConfiguration { Key = key.ToString(), Value = "This configuration item has not been set." });
-                    Db.SaveChanges();
+                    await Db.SaveChangesAsync();
                 }
             }
         }

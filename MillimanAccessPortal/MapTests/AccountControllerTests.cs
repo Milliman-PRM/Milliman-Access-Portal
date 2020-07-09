@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.SharedModels;
 using MillimanAccessPortal.Services;
 using System;
 using System.Collections.Generic;
@@ -21,17 +22,15 @@ using Xunit;
 
 namespace MapTests
 {
+    [Collection("DatabaseLifetime collection")]
+    [LogTestBeginEnd]
     public class AccountControllerTests
     {
-        internal TestInitialization TestResources { get; set; }
+        DatabaseLifetimeFixture _dbLifeTimeFixture;
 
-        /// <summary>
-        /// Constructor is called for each test execution
-        /// </summary>
-        public AccountControllerTests()
+        public AccountControllerTests(DatabaseLifetimeFixture dbLifeTimeFixture)
         {
-            TestResources = new TestInitialization();
-            TestResources.GenerateTestData(new DataSelection[] { DataSelection.Account });
+            _dbLifeTimeFixture = dbLifeTimeFixture;
         }
 
         /// <summary>
@@ -39,19 +38,18 @@ namespace MapTests
         /// </summary>
         /// <param name="UserName"></param>
         /// <returns></returns>
-        public AccountController GetController(string UserName = null)
+        private AccountController GetController(TestInitialization testResources, string UserName = null)
         {
-            AccountController testController = new AccountController(TestResources.DbContextObject,
-                TestResources.UserManagerObject,
-                TestResources.RoleManagerObject,
-                TestResources.SignInManagerObject,
-                TestResources.MessageQueueServicesObject,
-                TestResources.AuditLoggerObject,
-                TestResources.QueriesObj,
-                TestResources.AuthorizationService,
-                TestResources.ConfigurationObject,
-                TestResources.ServiceProviderObject,
-                TestResources.AuthenticationServiceObject)
+            AccountController testController = new AccountController(testResources.DbContext,
+                testResources.UserManager,
+                testResources.RoleManager,
+                testResources.SignInManager,
+                testResources.MessageQueueServicesObject,
+                testResources.AuditLogger,
+                testResources.AuthorizationService,
+                testResources.Configuration,
+                testResources.ScopedServiceProvider,
+                testResources.AuthenticationService)
                 ;
 
             UriBuilder uriBuilder = new UriBuilder
@@ -60,7 +58,7 @@ namespace MapTests
                 Host = "abc",
                 Port = 123,
             };
-            testController.ControllerContext = TestInitialization.GenerateControllerContext(userName: UserName, requestUriBuilder: uriBuilder);
+            testController.ControllerContext = testResources.GenerateControllerContext(userName: UserName, requestUriBuilder: uriBuilder);
             testController.HttpContext.Session = new MockSession();
             return testController;
         }
@@ -68,285 +66,321 @@ namespace MapTests
         [Fact]
         public async Task EnableAccountGETReturnsEnableFormWhenNotEnabled()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string TestCode = MockUserManager.GoodToken;
-            string TestUserId = TestUtil.MakeTestGuid(1).ToString();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
+                string TestCode = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
+                string TestUserId = TestUtil.MakeTestGuid(1).ToString();
+                #endregion
 
-            #region Act
-            var view = await controller.EnableAccount(TestUserId, TestCode);
-            #endregion
+                #region Act
+                var view = await controller.EnableAccount(TestUserId, TestCode);
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            //Assert.Equal("EnableAccount", viewAsViewResult.ViewName);  // .ViewName is null when the action is driven by xunit
-            EnableAccountViewModel viewModel = Assert.IsType<EnableAccountViewModel>(viewAsViewResult.Model);
-            Assert.Equal(TestCode, viewModel.Code);
-            Assert.Equal(TestUserId, viewModel.Id.ToString());
-            Assert.Null(viewModel.FirstName);
-            Assert.Null(viewModel.LastName);
-            Assert.Null(viewModel.Phone);
-            Assert.Null(viewModel.Employer);
-            Assert.Null(viewModel.NewPassword);
-            Assert.Null(viewModel.ConfirmNewPassword);
-            #endregion
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                //Assert.Equal("EnableAccount", viewAsViewResult.ViewName);  // .ViewName is null when the action is driven by xunit
+                EnableAccountViewModel viewModel = Assert.IsType<EnableAccountViewModel>(viewAsViewResult.Model);
+                Assert.Equal(TestCode, viewModel.Code);
+                Assert.Equal(TestUserId, viewModel.Id.ToString());
+                Assert.Null(viewModel.FirstName);
+                Assert.Null(viewModel.LastName);
+                Assert.Null(viewModel.Phone);
+                Assert.Null(viewModel.Employer);
+                Assert.Null(viewModel.NewPassword);
+                Assert.Null(viewModel.ConfirmNewPassword);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task EnableAccountGETReturnsLoginWhenEnabled()
         {
-            #region Arrange
-            AccountController controller = GetController("user2");
-            string TestCode = MockUserManager.GoodToken;
-            string TestUserId = TestUtil.MakeTestGuid(2).ToString();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user2");
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user2");
+                string TestCode = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
+                string TestUserId = TestUtil.MakeTestGuid(2).ToString();
+                #endregion
 
-            #region Act
-            var view = await controller.EnableAccount(TestUserId, TestCode);
-            #endregion
+                #region Act
+                var view = await controller.EnableAccount(TestUserId, TestCode);
+                #endregion
 
-            #region Assert
-            var typedResult = Assert.IsType<RedirectToActionResult>(view);
-            Assert.Equal("Login", typedResult.ActionName);
-            
-            #endregion
+                #region Assert
+                var typedResult = Assert.IsType<RedirectToActionResult>(view);
+                Assert.Equal("Login", typedResult.ActionName);
+
+                #endregion
+            }
         }
 
         [Fact]
         public async Task EnableAccountGETReturnsMessageWhenTokenIsInvalid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string TestCode = MockUserManager.BadToken;
-            string TestUserId = TestUtil.MakeTestGuid(1).ToString();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                string TestUserId = TestUtil.MakeTestGuid(1).ToString();
+                #endregion
 
-            #region Act
-            var view = await controller.EnableAccount(TestUserId, TestCode);
-            #endregion
+                #region Act
+                var view = await controller.EnableAccount(TestUserId, "BadToken!!!!!!!!!!!!!");
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
 
-            #endregion
+                #endregion
+            }
         }
 
         [Fact]
         public async Task EnableAccountPOSTUpdatesUserWhenTokenIsValid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string NewToken = MockUserManager.GoodToken;
-            string NewPass = "TestPassword";
-            string NewEmployer = "Milliman";
-            string FirstName = "MyFirstName";
-            string LastName = "MyLastName";
-            string Phone = "3173171212";
-            EnableAccountViewModel model = new EnableAccountViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Id = TestUtil.MakeTestGuid(1),
-                Code = NewToken,
-                NewPassword = NewPass,
-                ConfirmNewPassword = NewPass,
-                Employer = NewEmployer,
-                FirstName = FirstName,
-                LastName = LastName,
-                Phone = Phone,
-                IsLocalAccount = true,
-                Username = controller.HttpContext.User.Identity.Name,
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
+                string NewToken = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
+                string NewPass = "TestPassword1!";
+                string NewEmployer = "Milliman";
+                string FirstName = "MyFirstName";
+                string LastName = "MyLastName";
+                string Phone = "3173171212";
+                EnableAccountViewModel model = new EnableAccountViewModel
+                {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Code = NewToken,
+                    NewPassword = NewPass,
+                    ConfirmNewPassword = NewPass,
+                    Employer = NewEmployer,
+                    FirstName = FirstName,
+                    LastName = LastName,
+                    Phone = Phone,
+                    IsLocalAccount = true,
+                    Username = controller.HttpContext.User.Identity.Name,
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.EnableAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.EnableAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            RedirectToActionResult typedResult = Assert.IsType<RedirectToActionResult>(view);
-            Assert.Equal("Login", typedResult.ActionName);
-            Assert.Equal(NewPass + "xyz", UserRecord.PasswordHash);
-            Assert.Equal(NewEmployer, UserRecord.Employer);
-            Assert.Equal(FirstName, UserRecord.FirstName);
-            Assert.Equal(LastName, UserRecord.LastName);
-            Assert.Equal(Phone, UserRecord.PhoneNumber);
-            #endregion
+                #region Assert
+                RedirectToActionResult typedResult = Assert.IsType<RedirectToActionResult>(view);
+                Assert.Equal("Login", typedResult.ActionName);
+                Assert.True(await TestResources.UserManager.CheckPasswordAsync(user, NewPass));
+                Assert.Equal(NewEmployer, UserRecord.Employer);
+                Assert.Equal(FirstName, UserRecord.FirstName);
+                Assert.Equal(LastName, UserRecord.LastName);
+                Assert.Equal(Phone, UserRecord.PhoneNumber);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task EnableAccountPOSTReturnsMessageWhenTokenIsInvalid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string NewToken = MockUserManager.BadToken;
-            string NewPass = "TestPassword";
-            string NewEmployer = "Milliman";
-            string FirstName = "MyFirstName";
-            string LastName = "MyLastName";
-            string Phone = "3173171212";
-            EnableAccountViewModel model = new EnableAccountViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Id = TestUtil.MakeTestGuid(1),
-                Code = NewToken,
-                NewPassword = NewPass,
-                ConfirmNewPassword = NewPass,
-                Employer = NewEmployer,
-                FirstName = FirstName,
-                LastName = LastName,
-                Phone = Phone,
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                string NewPass = "TestPassword";
+                string NewEmployer = "Milliman";
+                string FirstName = "MyFirstName";
+                string LastName = "MyLastName";
+                string Phone = "3173171212";
+                EnableAccountViewModel model = new EnableAccountViewModel
+                {
+                    Id = TestUtil.MakeTestGuid(1),
+                    Code = "BadToken!!!!!!!!!!!!",
+                    NewPassword = NewPass,
+                    ConfirmNewPassword = NewPass,
+                    Employer = NewEmployer,
+                    FirstName = FirstName,
+                    LastName = LastName,
+                    Phone = Phone,
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.EnableAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.EnableAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
-            #endregion
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task ForgotPasswordPOSTReturnsMessageWhenNotActivated()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var model = new ForgotPasswordViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Email = "user1@example.com"
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var model = new ForgotPasswordViewModel
+                {
+                    Email = "user1@example.com"
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.ForgotPassword(model);
-            #endregion
+                #region Act
+                var view = await controller.ForgotPassword(model);
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
-            #endregion
-
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+                #endregion
+            }
         }
 
         [Fact]
         public async Task ForgotPasswordPOSTReturnsConfirmationWhenActivated()
         {
-            #region Arrange
-            AccountController controller = GetController("user2");
-            MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } });
-
-            var model = new ForgotPasswordViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Email = "user2@example.com"
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user2");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "ForgotPassword" }, { "controller", "Account" } });
 
-            #region Act
-            var view = await controller.ForgotPassword(model);
-            #endregion
+                var model = new ForgotPasswordViewModel
+                {
+                    Email = "user2@example.com"
+                };
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal(nameof(SharedController.UserMessage), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
-            Assert.IsType<MillimanAccessPortal.Models.SharedModels.UserMessageModel>(viewAsViewResult.Model);
-            #endregion
+                #region Act
+                var view = await controller.ForgotPassword(model);
+                #endregion
+
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal(nameof(SharedController.UserMessage), viewAsViewResult.ViewName);  // This one works because view is named explicitly in controller
+                Assert.IsType<MillimanAccessPortal.Models.SharedModels.UserMessageModel>(viewAsViewResult.Model);
+                #endregion
+            }
         }
 
 
         [Fact]
         public async Task ResetPasswordGETReturnsFormWhenTokenIsValid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string TestEmail = "user1@example.com";
-            string TestToken = MockUserManager.GoodToken;
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                string TestEmail = "user1@example.com";
+                ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
+                string TestToken = await TestResources.UserManager.GeneratePasswordResetTokenAsync(user);
+                #endregion
 
-            #region Act
-            var view = await controller.ResetPassword(TestEmail, TestToken);
-            #endregion
+                #region Act
+                var view = await controller.ResetPassword(TestEmail, TestToken);
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            ResetPasswordViewModel viewModel = Assert.IsType<ResetPasswordViewModel>(viewAsViewResult.Model);
-            Assert.Equal(TestEmail, viewModel.Email);
-            Assert.Equal(TestToken, viewModel.PasswordResetToken);
-            Assert.Equal(string.Empty, viewModel.Message);
-            Assert.Null(viewModel.ConfirmNewPassword);
-            Assert.Null(viewModel.NewPassword);
-            #endregion
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                ResetPasswordViewModel viewModel = Assert.IsType<ResetPasswordViewModel>(viewAsViewResult.Model);
+                Assert.Equal(TestEmail, viewModel.Email);
+                Assert.Equal(TestToken, viewModel.PasswordResetToken);
+                Assert.Equal(string.Empty, viewModel.Message);
+                Assert.Null(viewModel.ConfirmNewPassword);
+                Assert.Null(viewModel.NewPassword);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task ResetPasswordGETReturnsMessageWhenTokenIsInvalid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            string TestEmail = "user1@example.com";
-            string TestToken = MockUserManager.BadToken;
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                string TestEmail = "user1@example.com";
+                string TestToken = "IncorrectToken";
+                #endregion
 
-            #region Act
-            var view = await controller.ResetPassword(TestEmail, TestToken);
-            #endregion
+                #region Act
+                var view = await controller.ResetPassword(TestEmail, TestToken);
+                #endregion
 
-            #region Assert
-            ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
-            #endregion
+                #region Assert
+                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task ResetPasswordPOSTReturnsRightFormWhenTokenIsValid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            ResetPasswordViewModel model = new ResetPasswordViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Email = "user1@example.com",
-                PasswordResetToken = MockUserManager.GoodToken,
-                NewPassword = "Password123",
-                ConfirmNewPassword = "Password123",
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                ApplicationUser user1 = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                ResetPasswordViewModel model = new ResetPasswordViewModel
+                {
+                    Email = "user1@example.com",
+                    PasswordResetToken = await TestResources.UserManager.GeneratePasswordResetTokenAsync(user1),
+                    NewPassword = "Password123$",
+                    ConfirmNewPassword = "Password123$",
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.ResetPassword(model);
-            #endregion
+                #region Act
+                var view = await controller.ResetPassword(model);
+                #endregion
 
-            #region Assert
-            Assert.IsType<ViewResult>(view);
-            var viewAsViewResult = view as ViewResult;
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
-            #endregion
+                #region Assert
+                var viewAsViewResult = Assert.IsType<ViewResult>(view);
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                var viewModel = Assert.IsType<UserMessageModel>(viewAsViewResult.Model);
+                Assert.Contains("Your password has been reset", viewModel.PrimaryMessages[0]);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task ResetPasswordPOSTReturnsMessageWhenTokenIsInvalid()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            ResetPasswordViewModel model = new ResetPasswordViewModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                Email = "user1@example.com",
-                PasswordResetToken = MockUserManager.BadToken,
-                NewPassword = "Password123",
-                ConfirmNewPassword = "Password123",
-            };
-            #endregion
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                ResetPasswordViewModel model = new ResetPasswordViewModel
+                {
+                    Email = "user1@example.com",
+                    PasswordResetToken = "BadToken!!!!!!!!!!!!!",
+                    NewPassword = "Password123",
+                    ConfirmNewPassword = "Password123",
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.ResetPassword(model);
-            #endregion
+                #region Act
+                var view = await controller.ResetPassword(model);
+                #endregion
 
-            #region Assert
-            var viewAsViewResult = view as ViewResult;
-            Assert.Equal("UserMessage", viewAsViewResult.ViewName);
-            #endregion
+                #region Assert
+                var viewAsViewResult = view as ViewResult;
+                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -356,24 +390,27 @@ namespace MapTests
         [Fact]
         public async Task PasswordInRecentDaysNotAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
 
-            string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
-            #endregion
+                string newPassword = "Passw0rd!";
+                var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                #endregion
 
-            #region Act
+                #region Act
 
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
-            #endregion
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, newPassword);
+                #endregion
 
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.False(result.Succeeded);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -383,23 +420,26 @@ namespace MapTests
         [Fact]
         public async Task PasswordNotInRecentDaysAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordRecentDaysValidator<ApplicationUser>() { numberOfDays = 1 };
 
-            string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword) { dateSetUtc = DateTime.UtcNow.Subtract(new TimeSpan(2, 0, 0, 0)) });
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
-            #endregion
+                string newPassword = "Passw0rd!";
+                var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword) { dateSetUtc = DateTime.UtcNow.Subtract(new TimeSpan(2, 0, 0, 0)) });
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, newPassword);
+                #endregion
 
-            #region Assert
-            Assert.True(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.True(result.Succeeded);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -409,27 +449,30 @@ namespace MapTests
         [Fact]
         public async Task PasswordInRecentNumberNotAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
 
-            string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                string newPassword = "Passw0rd!";
+                var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
 
-            string secondNewPassword = "Passw0rd!2";
-            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
-            #endregion
+                string secondNewPassword = "Passw0rd!2";
+                passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, secondNewPassword);
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, secondNewPassword);
+                #endregion
 
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.False(result.Succeeded);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -439,27 +482,30 @@ namespace MapTests
         [Fact]
         public async Task PasswordNotInRecentNumberAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordRecentNumberValidator<ApplicationUser>() { numberOfPasswords = 1 };
 
-            string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                string newPassword = "Passw0rd!";
+                var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
 
-            string secondNewPassword = "Passw0rd!2";
-            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
-            #endregion
+                string secondNewPassword = "Passw0rd!2";
+                passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, newPassword);
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, newPassword);
+                #endregion
 
-            #region Assert
-            Assert.True(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.True(result.Succeeded);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -472,45 +518,51 @@ namespace MapTests
         [InlineData("Passw0rd!2")]
         public async Task PasswordEverInHistoryNotAllowed(string inputPassword)
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordHistoryValidator<ApplicationUser>();
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordHistoryValidator<ApplicationUser>();
 
-            string newPassword = "Passw0rd!";
-            var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                string newPassword = "Passw0rd!";
+                var passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(newPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
 
-            string secondNewPassword = "Passw0rd!2";
-            passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
-            AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
-            #endregion
+                string secondNewPassword = "Passw0rd!2";
+                passwordHistory = AppUser.PasswordHistoryObj.Append(new PreviousPassword(secondNewPassword));
+                AppUser.PasswordHistoryObj = passwordHistory.ToList<PreviousPassword>();
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, inputPassword);
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, inputPassword);
+                #endregion
 
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.False(result.Succeeded);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task EmailInPasswordNotAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordIsNotEmailValidator<ApplicationUser>();
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, AppUser.Email);
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, AppUser.Email);
+                #endregion
 
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.False(result.Succeeded);
+                #endregion
+            }
         }
 
         /// <summary>
@@ -520,142 +572,157 @@ namespace MapTests
         [Fact]
         public async Task CommonWordInPasswordNotAllowed()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            var validator = new PasswordContainsCommonWordsValidator<ApplicationUser>() { commonWords = { "milliman" } };
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                var validator = new PasswordContainsCommonWordsValidator<ApplicationUser>() { commonWords = { "milliman" } };
+                #endregion
 
-            #region Act
-            IdentityResult result = await validator.ValidateAsync(TestResources.UserManagerObject, AppUser, "Milliman123");
-            #endregion
+                #region Act
+                IdentityResult result = await validator.ValidateAsync(TestResources.UserManager, AppUser, "Milliman123");
+                #endregion
 
-            #region Assert
-            Assert.False(result.Succeeded);
-            #endregion
+                #region Assert
+                Assert.False(result.Succeeded);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task AccountSettingsGETWorks()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+                #endregion
 
-            #region Act
-            var view = await controller.AccountSettings();
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.AccountSettings();
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            Assert.IsType<ViewResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<ViewResult>(view);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task UpdateAccountPOSTWorksForUserInformation()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-            string NewEmployer = "Milliman";
-            string NewFirstName = "MyFirstName";
-            string NewLastName = "MyLastName";
-            string NewPhone = "3173171212";
-            UpdateAccountModel model = new UpdateAccountModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                User = new UpdateAccountModel.UserModel
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+                string NewEmployer = "Milliman";
+                string NewFirstName = "MyFirstName";
+                string NewLastName = "MyLastName";
+                string NewPhone = "3173171212";
+                UpdateAccountModel model = new UpdateAccountModel
                 {
-                    FirstName = NewFirstName,
-                    Employer = NewEmployer,
-                    LastName = NewLastName,
-                    Phone = NewPhone,
-                },
-                Password = null,
-            };
-            #endregion
+                    User = new UpdateAccountModel.UserModel
+                    {
+                        FirstName = NewFirstName,
+                        Employer = NewEmployer,
+                        LastName = NewLastName,
+                        Phone = NewPhone,
+                    },
+                    Password = null,
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.UpdateAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.UpdateAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            Assert.IsType<JsonResult>(view);
-            Assert.Equal(NewEmployer, UserRecord.Employer);
-            Assert.Equal(NewFirstName, UserRecord.FirstName);
-            Assert.Equal(NewLastName, UserRecord.LastName);
-            Assert.Equal(NewPhone, UserRecord.PhoneNumber);
-            #endregion
+                #region Assert
+                Assert.IsType<JsonResult>(view);
+                Assert.Equal(NewEmployer, UserRecord.Employer);
+                Assert.Equal(NewFirstName, UserRecord.FirstName);
+                Assert.Equal(NewLastName, UserRecord.LastName);
+                Assert.Equal(NewPhone, UserRecord.PhoneNumber);
+                #endregion
+            }
         }
 
         [Fact]
         public async Task UpdateAccountPOSTWorksForPasswordChange()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-            string CurrentPassword = "QWERqwer1234!@$#";
-            string NewPassword = "Abcd!@#$1234";
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
-
-            UpdateAccountModel model = new UpdateAccountModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                User = null,
-                Password = new UpdateAccountModel.PasswordModel
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+                string CurrentPassword = "QWERqwer1234!@$#";
+                string NewPassword = "Abcd!@#$1234";
+                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
+
+                UpdateAccountModel model = new UpdateAccountModel
                 {
-                    New = NewPassword,
-                    Confirm = NewPassword,
-                    Current = CurrentPassword,
-                }
-            };
-            #endregion
+                    User = null,
+                    Password = new UpdateAccountModel.PasswordModel
+                    {
+                        New = NewPassword,
+                        Confirm = NewPassword,
+                        Current = CurrentPassword,
+                    }
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.UpdateAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.UpdateAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            Assert.IsType<JsonResult>(view);
-            Assert.Equal(NewPassword + "xyz", UserRecord.PasswordHash);
-            #endregion
+                #region Assert
+                Assert.IsType<JsonResult>(view);
+                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, NewPassword));
+                #endregion
+            }
         }
 
         [Fact]
         public async Task UpdateAccountPOSTFailsForWrongCurrentPassword()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-            string CurrentPassword = "QWERqwer1234!@$#";
-            string NewPassword = "Abcd!@#$1234";
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
-
-            UpdateAccountModel model = new UpdateAccountModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                User = null,
-                Password = new UpdateAccountModel.PasswordModel
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+                string CurrentPassword = "QWERqwer1234!@$#";
+                string NewPassword = "Abcd!@#$1234";
+                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
+
+                UpdateAccountModel model = new UpdateAccountModel
                 {
-                    New = NewPassword,
-                    Confirm = NewPassword,
-                    Current = CurrentPassword + "X",
-                }
-            };
-            #endregion
+                    User = null,
+                    Password = new UpdateAccountModel.PasswordModel
+                    {
+                        New = NewPassword,
+                        Confirm = NewPassword,
+                        Current = CurrentPassword + "X",
+                    }
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.UpdateAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var view = await controller.UpdateAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestResult>(view);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestResult>(view);
+                #endregion
+            }
         }
 
         [Theory]
@@ -667,20 +734,23 @@ namespace MapTests
         [InlineData("user7-confirmed@domainnomatch.local", true)]
         public async Task IsLocalAccount(string userName, bool isLocalTruth)
         {
-            #region Arrange
-            AccountController controller = GetController();
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources);
+                #endregion
 
-            #region Act
-            var result = await controller.IsLocalAccount(userName);
-            #endregion
+                #region Act
+                var result = await controller.IsLocalAccount(userName);
+                #endregion
 
-            #region Assert
-            JsonResult typedResult = Assert.IsType<JsonResult>(result);
-            PropertyInfo info = typedResult.Value.GetType().GetProperty("localAccount");
-            Assert.Equal(typeof(bool), info.PropertyType);
-            Assert.Equal(isLocalTruth, (bool)info.GetValue(typedResult.Value));
-            #endregion
+                #region Assert
+                JsonResult typedResult = Assert.IsType<JsonResult>(result);
+                PropertyInfo info = typedResult.Value.GetType().GetProperty("localAccount");
+                Assert.Equal(typeof(bool), info.PropertyType);
+                Assert.Equal(isLocalTruth, (bool)info.GetValue(typedResult.Value));
+                #endregion
+            }
         }
 
         [Theory]
@@ -692,66 +762,72 @@ namespace MapTests
         [InlineData("user7-confirmed@domainnomatch.local", typeof(RedirectToActionResult), "Login")]
         public async Task RemoteAuthenticateReturnsCorrectResult(string userName, Type expectedType, string expectedString)
         {
-            #region Arrange
-            AccountController controller = GetController();
-            MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "RemoteAuthenticate" }, { "controller", "Account" } });
-            #endregion
-
-            #region Act
-            var result = await controller.RemoteAuthenticate(userName, "%2F");
-            #endregion
-
-            #region Assert
-            Assert.IsType(expectedType, result);
-            switch (expectedType.Name)
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                case "RedirectToActionResult":
-                    RedirectToActionResult redirectToActionResult = (RedirectToActionResult)result;
-                    Assert.Equal(expectedString, redirectToActionResult.ActionName);
-                    break;
-                case "ChallengeResult":
-                    ChallengeResult challengeResult = (ChallengeResult)result;
-                    Assert.Equal(1, challengeResult.AuthenticationSchemes.Count);
-                    Assert.Equal(expectedString, challengeResult.AuthenticationSchemes.ElementAt(0), StringComparer.OrdinalIgnoreCase);
-                    break;
-                default:
-                    throw new NotImplementedException($"Unsupported return type <{expectedType.Name}> expected. This unit test needs work.");
+                #region Arrange
+                AccountController controller = GetController(TestResources);
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "RemoteAuthenticate" }, { "controller", "Account" } });
+                #endregion
+
+                #region Act
+                var result = await controller.RemoteAuthenticate(userName, "%2F");
+                #endregion
+
+                #region Assert
+                Assert.IsType(expectedType, result);
+                switch (expectedType.Name)
+                {
+                    case "RedirectToActionResult":
+                        RedirectToActionResult redirectToActionResult = (RedirectToActionResult)result;
+                        Assert.Equal(expectedString, redirectToActionResult.ActionName);
+                        break;
+                    case "ChallengeResult":
+                        ChallengeResult challengeResult = (ChallengeResult)result;
+                        Assert.Equal(1, challengeResult.AuthenticationSchemes.Count);
+                        Assert.Equal(expectedString, challengeResult.AuthenticationSchemes.ElementAt(0), StringComparer.OrdinalIgnoreCase);
+                        break;
+                    default:
+                        throw new NotImplementedException($"Unsupported return type <{expectedType.Name}> expected. This unit test needs work.");
+                }
+                #endregion
             }
-            #endregion
         }
 
         [Fact]
         public async Task UpdateAccountPOSTFailsForWrongMismatchedPassword()
         {
-            #region Arrange
-            AccountController controller = GetController("user1");
-            var AppUser = await TestResources.UserManagerObject.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-            string CurrentPassword = "QWERqwer1234!@$#";
-            string NewPassword = "Abcd!@#$1234";
-            await TestResources.UserManagerObject.AddPasswordAsync(AppUser, CurrentPassword);
-
-            UpdateAccountModel model = new UpdateAccountModel
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
-                User = null,
-                Password = new UpdateAccountModel.PasswordModel
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
+
+                string CurrentPassword = "QWERqwer1234!@$#";
+                string NewPassword = "Abcd!@#$1234";
+                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
+
+                UpdateAccountModel model = new UpdateAccountModel
                 {
-                    New = NewPassword,
-                    Confirm = NewPassword + "X",
-                    Current = CurrentPassword,
-                }
-            };
-            #endregion
+                    User = null,
+                    Password = new UpdateAccountModel.PasswordModel
+                    {
+                        New = NewPassword,
+                        Confirm = NewPassword + "X",
+                        Current = CurrentPassword,
+                    }
+                };
+                #endregion
 
-            #region Act
-            var view = await controller.UpdateAccount(model);
-            var UserRecord = TestResources.DbContextObject.ApplicationUser.Single(u => u.UserName == "user1");
-            #endregion
+                #region Act
+                var result = await controller.UpdateAccount(model);
+                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                #endregion
 
-            #region Assert
-            Assert.IsType<BadRequestResult>(view);
-            Assert.Equal(CurrentPassword + "xyz", UserRecord.PasswordHash);
-            #endregion
+                #region Assert
+                Assert.IsType<BadRequestResult>(result);
+                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, CurrentPassword));
+                #endregion
+            }
         }
     }
 }

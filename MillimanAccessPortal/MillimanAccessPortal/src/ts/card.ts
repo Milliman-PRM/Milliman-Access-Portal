@@ -13,6 +13,7 @@ import '../images/icons/user.svg';
 
 import * as toastr from 'toastr';
 
+import { RoleEnum } from './react/shared-components/interfaces';
 import * as shared from './shared';
 import { SelectionGroupSummary } from './view-models/content-access-admin';
 import { RootContentItemSummary, UserInfo } from './view-models/content-publishing';
@@ -831,7 +832,7 @@ export function ClientCard(
   });
   this.addComponent('statistic', {
     icon: 'reports',
-    tooltip: 'Reports',
+    tooltip: 'Content items',
     value: reportCount,
   });
   this.addComponent('button', {
@@ -1141,7 +1142,7 @@ export function UserCard(
           'role-enum': role.roleEnum,
         },
         id: 'user-role-' + user.id + '-' + role.roleEnum,
-        text: role.roleDisplayValue,
+        text: (role.roleEnum === RoleEnum.Admin) ? 'Client Admin' : role.roleDisplayValue,
       });
     }, this);
     this.callback = shared.toggleExpandedListener;

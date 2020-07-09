@@ -92,6 +92,7 @@ namespace AuditLogLib
                 case "AZURECI":
                 case "PRODUCTION":
                 case "STAGING":
+                case "INTERNAL":
                     configurationBuilder.AddJsonFile(path: $"AzureKeyVault.{environmentName}.json", optional: false);
                     built = configurationBuilder.Build();
                     var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);

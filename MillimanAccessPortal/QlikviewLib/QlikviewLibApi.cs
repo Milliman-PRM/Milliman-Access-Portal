@@ -31,24 +31,24 @@ namespace QlikviewLib
             _config = configArg;
         }
 
-        public async Task<ServiceInfo> SafeGetServiceInfo(ServiceTypes Type, int Index = 0)
+        public async Task<ServiceInfo> SafeGetServiceInfo(ServiceTypes serviceType, int Index = 0)
         {
             try
             {
                 ServiceInfo[] Services = new ServiceInfo[0];
-                switch (Type)
+                switch (serviceType)
                 {
                     case ServiceTypes.QlikViewServer:
-                        Services = await _newQvsClient.GetServicesAsync(Type);
+                        Services = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, ServiceInfo[]>(async () => await _newQvsClient.GetServicesAsync(serviceType), 2, 250);
                         break;
                     case ServiceTypes.QlikViewDistributionService:
-                        Services = await _newQdsClient.GetServicesAsync(Type);
+                        Services = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, ServiceInfo[]>(async () => await _newQdsClient.GetServicesAsync(serviceType), 2, 250);
                         break;
                     default:
-                        throw new ArgumentOutOfRangeException($"QlikviewLibApi.SafeGetServiceInfo called with not implemented Service Type <{Type.ToString()}>");
+                        throw new ArgumentOutOfRangeException($"QlikviewLibApi.SafeGetServiceInfo called with not implemented Service Type <{serviceType.ToString()}>");
                 }
                 return
-                    Services.Count() >= Index
+                    Services.Count() > Index
                     ? Services[Index]
                     : null;
             }
@@ -67,10 +67,12 @@ namespace QlikviewLib
         public async Task<(ServiceInfo, DocumentFolder)> SafeGetUserDocFolder(int ServiceIndex = 0)
         {
             ServiceInfo SvcInfo = await SafeGetServiceInfo(ServiceTypes.QlikViewServer, ServiceIndex);
+
             DocumentFolder QvsUserDocFolder = null;
             try
             {
-                DocumentFolder[] QvsUserDocFolders = await _newQvsClient.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General);
+                DocumentFolder[] QvsUserDocFolders = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentFolder[]>(
+                    async () => await _newQvsClient.GetUserDocumentFoldersAsync(SvcInfo.ID, DocumentFolderScope.General), 2, 200);
                 QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path == _config.QvServerContentUriSubfolder);
             }
             catch (System.Exception)
@@ -149,7 +151,8 @@ namespace QlikviewLib
             }
 
             // If user has an available named CAL then don't allocate a document CAL.
-            CALConfiguration CalConfig = await _newQvsClient.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs);
+            CALConfiguration CalConfig = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, CALConfiguration>(
+                async () => await _newQvsClient.GetCALConfigurationAsync(SvcInfo.ID, CALConfigurationScope.NamedCALs), 2, 250);
             if (CalConfig.NamedCALs.AssignedCALs.Any(c => string.Compare(c.UserName, UserName, true) == 0 
                                                        && c.QuarantinedUntil == DateTime.MinValue))
             {
@@ -173,7 +176,8 @@ namespace QlikviewLib
                         List<AssignedNamedCAL> NamedCalList = CalConfig.NamedCALs.AssignedCALs.ToList();
                         NamedCalList.Add(NewCal);
                         CalConfig.NamedCALs.AssignedCALs = NamedCalList.ToArray();
-                        await _newQvsClient.SaveCALConfigurationAsync(CalConfig);
+                        await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                            async () => await _newQvsClient.SaveCALConfigurationAsync(CalConfig), 2, 250);
                         Log.Information($"Assigned Qlikview named CAL to user {UserName}, there are now {CalConfig.NamedCALs.AssignedCALs.Length} assigned named CALs");
                         return true;
                     }
@@ -191,7 +195,8 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
+                    async () => await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath), 2, 250);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.Equals(DocumentFileName, StringComparison.InvariantCultureIgnoreCase));
             }
             catch (System.Exception)
@@ -204,7 +209,8 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentMetaData>(
+                async () => await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing), 2, 250);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
 
             if (CurrentDocCals.Any(c => string.Compare(c.UserName, UserName, true) == 0
@@ -225,7 +231,8 @@ namespace QlikviewLib
 
             try
             {
-                await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata);
+                await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                    async () => await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata), 2, 250);
                 Log.Information($"Assigned Qlikview document CAL to user {UserName}");
             }
             catch (System.Exception e)
@@ -263,7 +270,8 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
+                    async () => await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath), 2, 250);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.Equals(DocumentFileName, StringComparison.InvariantCultureIgnoreCase));
             }
             catch (System.Exception)
@@ -276,12 +284,14 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentMetaData>(
+                async () => await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing), 2, 250);
             DocMetadata.Licensing.RemovedAssignedCALs = DocMetadata.Licensing.AssignedCALs.ToList().ToArray();
             DocMetadata.Licensing.AssignedCALs = new AssignedNamedCAL[0];
             DocMetadata.Licensing.CALsAllocated = 0;
 
-            await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata);
+            await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                async () => await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata), 2, 250);
 
             return true;
         }
@@ -307,7 +317,8 @@ namespace QlikviewLib
             DocumentNode RequestedDocNode = null;
             try
             {
-                DocumentNode[] AllDocNodesInRequestedFolder = await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath);
+                DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
+                    async () => await _newQvsClient.GetUserDocumentNodesAsync(SvcInfo.ID, QvsUserDocFolder.ID, DocumentRelativeFolderPath), 2, 250);
                 RequestedDocNode = AllDocNodesInRequestedFolder.FirstOrDefault(n => n.Name.Equals(DocumentFileName, StringComparison.InvariantCultureIgnoreCase));
             }
             catch (System.Exception)
@@ -320,7 +331,8 @@ namespace QlikviewLib
                 return false;
             }
 
-            DocumentMetaData DocMetadata = await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing);
+            DocumentMetaData DocMetadata = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentMetaData>(
+                    async () => await _newQvsClient.GetDocumentMetaDataAsync(RequestedDocNode, DocumentMetaDataScope.Licensing), 2, 250);
             List<AssignedNamedCAL> CurrentDocCals = DocMetadata.Licensing.AssignedCALs.ToList();
             List<AssignedNamedCAL> RemovableCALs = new List<AssignedNamedCAL>();
 
@@ -338,7 +350,8 @@ namespace QlikviewLib
             DocMetadata.Licensing.AssignedCALs = CurrentDocCals.ToArray();
             DocMetadata.Licensing.RemovedAssignedCALs = RemovableCALs.ToArray();
 
-            await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata);
+            await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                async () => await _newQvsClient.SaveDocumentMetaDataAsync(DocMetadata), 2, 250);
 
             return ReturnBool;
         }
@@ -353,21 +366,20 @@ namespace QlikviewLib
         /// <returns></returns>
         public async Task AuthorizeUserDocumentsInFolderAsync(string ContentPathRelativeToNamedUserDocFolder, string SpecificFileName = null)
         {
-            ServiceInfo[] QvsServicesArrray = await _newQvsClient.GetServicesAsync(ServiceTypes.QlikViewServer);
-            ServiceInfo QvsServiceInfo = QvsServicesArrray[0];
+            (ServiceInfo QvsServiceInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder();
 
-            DocumentFolder[] QvsUserDocFolders = await _newQvsClient.GetUserDocumentFoldersAsync(QvsServiceInfo.ID, DocumentFolderScope.General);
-            DocumentFolder QvsUserDocFolder = QvsUserDocFolders.Single(f => f.General.Path.Equals(_config.QvServerContentUriSubfolder, StringComparison.InvariantCultureIgnoreCase));
+            await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                async () => await _newQvsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList), 2, 250);  // Is this really needed?
 
-            await _newQvsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);  // Is this really needed?
-
-            DocumentNode[] AllDocNodesInRequestedFolder = await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
+            DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
+                async () => await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder), 2, 250);
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder.Where(n => !n.IsSubFolder))
             {
                 if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)
                     continue;
 
-                var DocAuthorizationMetadata = await _newQvsClient.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization);
+                DocumentMetaData DocAuthorizationMetadata = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentMetaData>(
+                    async () => await _newQvsClient.GetDocumentMetaDataAsync(DocNode, DocumentMetaDataScope.Authorization), 2, 250);
 
                 if (!DocAuthorizationMetadata.Authorization.Access.Any(a => a.UserName == ""))
                 {
@@ -379,7 +391,8 @@ namespace QlikviewLib
                         DayOfWeekConstraints = new DayOfWeek[0],
                     });
                     DocAuthorizationMetadata.Authorization.Access = DAL.ToArray();
-                    await _newQvsClient.SaveDocumentMetaDataAsync(DocAuthorizationMetadata);
+                    await StaticUtil.DoRetryAsyncOperation<AggregateException>(
+                        async () => await _newQvsClient.SaveDocumentMetaDataAsync(DocAuthorizationMetadata), 2, 250);
                 }
             }
         }

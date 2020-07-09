@@ -659,7 +659,7 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {
@@ -667,8 +667,8 @@ namespace AuditLogLib.Event
                     client.Name,
                 },
             });
-        public static readonly AuditEventType<RootContentItem, Client> RootContentItemDeleted = new AuditEventType<RootContentItem, Client>(
-            6002, "Root content item deleted", (rootContentItem, client) => new
+        public static readonly AuditEventType<RootContentItem, Client, List<SelectionGroupLogModel>> RootContentItemDeleted = new AuditEventType<RootContentItem, Client, List<SelectionGroupLogModel>>(
+            6002, "Root content item deleted", (rootContentItem, client, groupsAndMemberUserNames) => new
             {
                 RootContentItem = new
                 {
@@ -678,13 +678,14 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {
                     client.Id,
                     client.Name,
                 },
+                DeletedSelectionGroups = groupsAndMemberUserNames,
             });
         public static readonly AuditEventType<RootContentItem, Client> RootContentItemUpdated = new AuditEventType<RootContentItem, Client>(
             6003, "Root content item updated", (rootContentItem, client) => new
@@ -700,7 +701,7 @@ namespace AuditLogLib.Event
                 ContentType = new
                 {
                     rootContentItem.ContentType.Id,
-                    rootContentItem.ContentType.Name,
+                    Name = rootContentItem.ContentType.TypeEnum.GetDisplayNameString(),
                 },
                 Client = new
                 {
@@ -947,6 +948,273 @@ namespace AuditLogLib.Event
         // 74xx - Global system management
         public static readonly AuditEventType<string> UserAgreementUpdated = new AuditEventType<string>(
             7401, "User agreement updated", NewText => NewText);
+        #endregion
+
+        #region File Drop [8000 - 8999]
+        // 80xx - FileDrop admin events
+        // 800x - File Drop entity events
+        public static readonly AuditEventType<FileDrop, Guid, string> FileDropCreated = new AuditEventType<FileDrop, Guid, string>(
+            8001, "File Drop Created", (fileDrop, clientId, clientName) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new
+                {
+                    Id = clientId,
+                    Name = clientName,
+                },
+            });
+
+        /// <summary>
+        /// membershipModel expected to have nested navigation properties SftpAccounts and ApplicationUser populated
+        /// </summary>
+        public static readonly AuditEventType<FileDrop, Client, List<FileDropPermissionGroupMembershipLogModel>> FileDropDeleted = new AuditEventType<FileDrop, Client, List<FileDropPermissionGroupMembershipLogModel>>(
+            8002, "File Drop Deleted", (fileDrop, client, membershipModel) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                DeletedPermissionGroups = membershipModel,
+            });
+
+        public static readonly AuditEventType<FileDrop, FileDrop, Guid, string> FileDropUpdated = new AuditEventType<FileDrop, FileDrop, Guid, string>(
+            8003, "File Drop Updated", (oldFileDrop, newFileDrop, clientId, clientName) => new
+            {
+                OldFileDrop = (FileDropLogModel)oldFileDrop,
+                NewFileDrop = (FileDropLogModel)newFileDrop,
+                Client = new
+                {
+                    Id = clientId,
+                    Name = clientName,
+                },
+            });
+
+        // 801x - Permission Group entity events
+        public static readonly AuditEventType<FileDrop, FileDropUserPermissionGroup, Guid, string> FileDropPermissionGroupCreated = new AuditEventType<FileDrop, FileDropUserPermissionGroup, Guid, string>(
+            8011, "File Drop Permission Group Created", (fileDrop, permissionGroup, clientId, clientName) => new
+            {
+                PermissionGroup = new FileDropPermissionGroupLogModel(permissionGroup),
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new
+                {
+                    Id = clientId,
+                    Name = clientName,
+                },
+            });
+
+        public static readonly AuditEventType<FileDrop, FileDropUserPermissionGroup> FileDropPermissionGroupDeleted = new AuditEventType<FileDrop, FileDropUserPermissionGroup>(
+            8012, "File Drop Permission Group Deleted", (fileDrop, permissionGroup) => new
+            {
+                PermissionGroup = new FileDropPermissionGroupLogModel(permissionGroup),
+                FileDrop = (FileDropLogModel)fileDrop,
+                Client = new
+                {
+                    fileDrop.Client.Id,
+                    fileDrop.Client.Name,
+                },
+            });
+
+        public static readonly AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop> PermissionGroupUpdated = new AuditEventType<FileDropUserPermissionGroup, FileDropPermissionGroupLogModel, FileDrop>(
+            8013, "File Drop Permission Group Updated", (permissionGroup, updatedGroup, fileDrop) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                PermissionGroup = new
+                {
+                    permissionGroup.Id,
+                    permissionGroup.IsPersonalGroup,
+                },
+                PreviousProperties = new 
+                {
+                    permissionGroup.Name,
+                    permissionGroup.ReadAccess,
+                    permissionGroup.WriteAccess,
+                    permissionGroup.DeleteAccess,
+                },
+                UpdatedProperties = new 
+                {
+                    updatedGroup.Name,
+                    updatedGroup.ReadAccess,
+                    updatedGroup.WriteAccess,
+                    updatedGroup.DeleteAccess,
+                },
+            });
+
+        // 81xx - Sftp user events
+        /// <summary>
+        /// sftpAccounts expected to have navigation property ApplicationUser populated
+        /// </summary>
+        public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCreated = new AuditEventType<SftpAccount, FileDrop>(
+            8100, "SFTP Account Created", (account, fileDrop) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                SftpAccount = new SftpAccountLogModel(account),
+            });
+
+        public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountDeleted = new AuditEventType<SftpAccount, FileDrop>(
+            8101, "SFTP Account Deleted", (account, fileDrop) => new
+            {
+                FileDrop = (FileDropLogModel)fileDrop,
+                SftpAccount = new SftpAccountLogModel(account),
+            });
+
+        public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> AccountAddedToPermissionGroup = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
+            8102, "SFTP Account Added To Permission Group", (account, permissionGroup, fileDrop) => new
+            {
+                SftpAccount = new SftpAccountLogModel(account),
+                PermissionGroup = new
+                {
+                    permissionGroup.Id,
+                    permissionGroup.Name,
+                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.ReadAccess,
+                    permissionGroup.WriteAccess,
+                    permissionGroup.DeleteAccess,
+                },
+                FileDrop = (FileDropLogModel)fileDrop,
+            });
+
+        public static readonly AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop> AccountRemovedFromPermissionGroup = new AuditEventType<SftpAccount, FileDropUserPermissionGroup, FileDrop>(
+            8103, "SFTP Account Removed From Permission Group", (account, permissionGroup, fileDrop) => new
+            {
+                SftpAccount = new SftpAccountLogModel(account),
+                PermissionGroup = new
+                {
+                    permissionGroup.Id,
+                    permissionGroup.Name,
+                    permissionGroup.IsPersonalGroup,
+                    permissionGroup.ReadAccess,
+                    permissionGroup.WriteAccess,
+                    permissionGroup.DeleteAccess,
+                },
+                FileDrop = (FileDropLogModel)fileDrop,
+            });
+
+        public static readonly AuditEventType<SftpAccount, FileDrop> SftpAccountCredentialsGenerated = new AuditEventType<SftpAccount, FileDrop>(
+            8104, "SFTP Account Password Generated", (account, fileDrop) => new
+            {
+                SftpAccount = new SftpAccountLogModel(account),
+                FileDrop = (FileDropLogModel)fileDrop,
+            });
+
+        public enum SftpAuthenticationFailReason
+        {
+            [Display(Description = "The requested SFTP account name was not found")]
+            UserNotFound,
+
+            [Display(Description = "The requested SFTP account name is suspended")]
+            AccountSuspended,
+
+            [Display(Description = "The requested SFTP account has an expired password")]
+            PasswordExpired,
+
+            [Display(Description = "The requested SFTP account credentials are invalid")]
+            AuthenticationFailed,
+
+            [Display(Description = "The related MAP user has an expired password or is suspended")]
+            MapUserBlocked,
+        }
+
+        public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(
+            8105, "Sftp Authentication Failed", (account, reason, fileDropModel, clientAddress) =>
+            {
+                if (reason != SftpAuthenticationFailReason.UserNotFound)
+                {
+                    return new
+                    {
+                        ClientAddress = clientAddress,
+                        Account = new
+                        {
+                            account.Id,
+                            account.UserName,
+                            account.IsSuspended,
+                            PasswordResetDateTimeUtc = account.PasswordResetDateTimeUtc.ToString("u"),
+                        },
+                        Reason = (int)reason,
+                        ReasonDescription = reason.GetDisplayDescriptionString(),
+                        FileDrop = fileDropModel,
+                    };
+                }
+                else
+                {
+                    return new
+                    {
+                        ClientAddress = clientAddress,
+                        Account = new
+                        {
+                            account.UserName,
+                        },
+                        Reason = (int)reason,
+                        ReasonDescription = reason.GetDisplayDescriptionString(),
+                        FileDrop = fileDropModel,
+                    };
+                }
+            }
+);
+
+        public static readonly AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser> SftpDirectoryCreated = new AuditEventType<FileDropDirectory, FileDropLogModel, SftpAccount, Client, ApplicationUser>(
+            8110, "SFTP Directory Created", (fileDropDirectory, fileDropModel, sftpAccount, client, mapUser) => new
+            {
+                FileDropDirectory = (FileDropDirectoryLogModel)fileDropDirectory,
+                FileDrop = fileDropModel,
+                SftpAccount = new SftpAccountLogModel(sftpAccount),
+                Client = new
+                {
+                    client.Id,
+                    client.Name,
+                },
+                MapUser = mapUser != null 
+                    ? new { mapUser.Id, mapUser.UserName, }
+                    : null,
+            });
+
+        public static readonly AuditEventType<FileDropDirectoryLogModel, FileDropDirectoryInventoryModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpDirectoryRemoved = new AuditEventType<FileDropDirectoryLogModel, FileDropDirectoryInventoryModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8111, "SFTP Directory Removed", (fileDropDirectory, DeletedInventory, fileDropModel, sftpAccount, mapUser) => new
+            {
+                FileDropDirectory = fileDropDirectory,
+                DeletedInventory,
+                FileDrop = fileDropModel,
+                SftpAccount = new SftpAccountLogModel(sftpAccount),
+            });
+
+        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileWriteAuthorized = new AuditEventType<SftpFileOperationLogModel>(
+            8112, "SFTP File Upload", (model) => new
+            {
+                model.FileName,
+                model.FileDrop,
+                model.FileDropDirectory,
+                SftpAccount = new SftpAccountLogModel(model.Account),
+            });
+
+        public static readonly AuditEventType<SftpFileOperationLogModel> SftpFileReadAuthorized = new AuditEventType<SftpFileOperationLogModel>(
+            8113, "SFTP File Download", (model) => new
+            {
+                model.FileName,
+                model.FileDrop,
+                model.FileDropDirectory,
+                SftpAccount = new SftpAccountLogModel(model.Account),
+            });
+
+        public static readonly AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser> SftpFileRemoved = new AuditEventType<FileDropFileLogModel, FileDropDirectoryLogModel, FileDropLogModel, SftpAccount, ApplicationUser>(
+            8114, "SFTP File Removed", (fileDropFileModel, fileDropDirectoryModel, fileDropModel, sftpAccount, mapUser) => new
+            {
+                FileName = fileDropFileModel.FileName,
+                FileDropDirectory = fileDropDirectoryModel,
+                FileDrop = fileDropModel,
+                SftpAccount = new SftpAccountLogModel(sftpAccount),
+            });
+
+        public static readonly AuditEventType<SftpRenameLogModel> SftpRename = new AuditEventType<SftpRenameLogModel>(
+            8115, "SFTP File Or Directory Renamed", (model) => new
+            {
+                model.From,
+                model.To,
+                Type = model.IsDirectory ? "Directory" : "File",
+                model.FileDrop,
+                SftpAccount = new SftpAccountLogModel(model.Account),
+            });
+
         #endregion
         #endregion
 

@@ -5,13 +5,15 @@ import * as React from 'react';
 import { getJsonData } from '../../shared';
 import { StatusMonitor } from '../../status-monitor';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
-import { ContentContainer } from '../shared-components/content-container';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import { ContentCard } from './content-card';
 import { ContentItem, ContentItemGroup, ContentItemGroupList, Filterable } from './interfaces';
 
-interface AuthorizedContentState extends ContentItemGroupList, Filterable { }
+interface AuthorizedContentState extends ContentItemGroupList, Filterable {
+  hasLoaded: boolean;
+}
 export class AuthorizedContent extends React.Component<{}, AuthorizedContentState> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -26,6 +28,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       selectedContentURL: null,
       selectedContentType: null,
       filterString: '',
+      hasLoaded: false,
     };
 
     this.statusMonitor.start();
@@ -35,7 +38,12 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
 
   public componentDidMount() {
     getJsonData('/AuthorizedContent/Content')
-    .then((json: ContentItemGroupList) => this.setState(json));
+      .then((json: ContentItemGroupList) => this.setState({
+        selectedContentURL: json.selectedContentURL,
+        itemGroups: json.itemGroups,
+        selectedContentType: json.selectedContentType,
+        hasLoaded: true,
+      }));
     window.onpopstate = () => {
       if (window.history && window.history.pushState) {
         const hashName = location.hash.split('#!/')[1];
@@ -45,7 +53,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
               selectedContentURL: null,
               selectedContentType: null,
             }, () => {
-              const display: null = null;
+              const display: string = null;
               document.getElementById('page-header').style.display = display;
               document.getElementById('page-footer').style.display = display;
               document.getElementById('authorized-content-container').style.display = display;
@@ -91,7 +99,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
   }
 
   public render() {
-    const clientGroups = this.filteredArray().map((client: ContentItemGroup) => {
+    const filteredItemGroups = this.filterItemGroupsArray().map((client: ContentItemGroup) => {
       const clientItems = client.items.map((contentItem: ContentItem) => (
         <ContentCard
           key={contentItem.id.toString()}
@@ -113,27 +121,55 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         </div>
       )
       : null;
+
     return (
       <React.Fragment>
         <NavBar currentView={this.currentView} />
         {contentContainer}
-        <div id="authorized-content-container">
-          <div id="authorized-content-header">
-            <Filter
-              filterText={this.state.filterString}
-              setFilterText={this.setFilterString}
-              placeholderText="Filter content"
-            />
-          </div>
-          <div id="authorized-content-items">
-            {clientGroups}
-          </div>
-        </div>
+        {
+          !this.state.hasLoaded
+            ? <ColumnSpinner />
+            : this.state.itemGroups.length === 0
+              ? (
+                <div className="welcome-text">
+                  <h1>Welcome to Milliman Access Portal!</h1>
+                  <p>
+                    You do not have access to any content.
+                    If you believe that this is incorrect, please contact
+                    <a href="mailto:map.support@milliman.com"> map.support@milliman.com</a>.
+                  </p>
+                </div>
+              ) : (
+                <div id="authorized-content-container">
+                  <div id="authorized-content-header">
+                    <Filter
+                      filterText={this.state.filterString}
+                      setFilterText={this.setFilterString}
+                      placeholderText="Filter content"
+                    />
+                  </div>
+                  <div id="authorized-content-items">
+                    {
+                      filteredItemGroups.length > 0
+                        ? filteredItemGroups
+                        : (
+                          <>
+                            <h3 className="filter-error-msg-header">No Results to Display</h3>
+                            <p className="filter-error-msg">
+                              Your search returned no results.  Please revise and try again.
+                            </p>
+                          </>
+                        )
+                    }
+                  </div>
+                </div>
+              )
+            }
       </React.Fragment>
     );
   }
 
-  private filteredArray() {
+  private filterItemGroupsArray() {
     // Deep copy state
     const groups = JSON.parse(JSON.stringify(this.state.itemGroups)) as ContentItemGroup[];
     return groups.map((itemGroup: ContentItemGroup) => {
