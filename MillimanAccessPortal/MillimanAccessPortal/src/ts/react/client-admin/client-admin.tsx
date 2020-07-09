@@ -4,6 +4,7 @@ import * as AccessActionCreators from './redux/action-creators';
 import { ClientWithStats } from "../models";
 import { AccessState } from "./redux/store";
 import { Dict } from "../shared-components/redux/store";
+import { NavBar } from "../shared-components/navbar";
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface ClientAdminProps {
@@ -11,6 +12,9 @@ interface ClientAdminProps {
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
+  private readonly currentView: string = document
+    .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
   public componentDidMount() {
     this.props.fetchClients({});
   }
@@ -18,6 +22,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   public render() {
     return (
       <>
+        <NavBar currentView={this.currentView} />
         <h3>Client Admin View</h3>
       </>
     );
