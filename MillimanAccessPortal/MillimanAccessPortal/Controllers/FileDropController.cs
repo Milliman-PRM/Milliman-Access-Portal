@@ -709,7 +709,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (!accountNotifications.TryGetValue(newNotificationSetting, out FileDropUserNotificationModel existingValue) || existingValue.IsEnabled != newNotificationSetting.IsEnabled)
                 {
-                    Log.Information($"Updating SftpAccount {account.UserName}, setting for notification type {newNotificationSetting.NotificationType} from {existingValue.IsEnabled} to {newNotificationSetting.IsEnabled} in file drop {fileDrop.Id} ({fileDrop.Name})");
+                    Log.Information($"Updating SftpAccount {account.UserName}, setting for notification type {newNotificationSetting.NotificationType} from {(existingValue != null ? existingValue.IsEnabled.ToString() : "unset")} to {newNotificationSetting.IsEnabled} in file drop {fileDrop.Id} ({fileDrop.Name})");
                 }
                 accountNotifications.Remove(newNotificationSetting);
                 accountNotifications.Add(newNotificationSetting);
