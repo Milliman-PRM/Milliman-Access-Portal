@@ -2,6 +2,12 @@
 
 ## Release Notes
 
+### v1.9.0
+
+- Introduced a new File Drop feature
+- Enhanced the resiliency of interactions between MAP and Qlikview server
+- Fixed a bug that inaccurately displayed the queue order of publication requests in certain circumstances
+
 #### v1.8.1
 
 - Fixed a bug that inaccurately displayed error status for some content items in the Content Access Admin view

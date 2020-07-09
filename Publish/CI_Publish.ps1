@@ -296,6 +296,9 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
+$sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
+$sFTPVersion = "$sFTPVersion-$branchName"
+
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
@@ -428,6 +431,8 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Copying Deployment scripts to target folder"
 
 Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
+Get-ChildItem -path "$rootPath\Publish\*" -include *.template | Copy-Item -Destination "$webBuildTarget"
+
 
 #endregion
 
@@ -547,22 +552,7 @@ $acr_password = (get-azkeyvaultsecret `
     -VaultName $azVaultNameFD `
     -SecretName "acrpass").SecretValueText
 
-$FDShareUrl = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "storage-url").SecretValueText
-
-$FDImageName = "$acr_url/filedropsftp:$TrimmedBranch"
-
-$acr_password_secure = ConvertTo-SecureString $acr_password -AsPlainText -Force
-$FDACRCred = New-Object System.Management.Automation.PSCredential($acr_username, $acr_password_secure)
-
-
-$FDAccountName = $($FDShareUrl).split('/')[2].split('.')[0]
-$FDShareName= $($FDShareUrl).split('/')[-1] # Get the account name from the URL
-$FDResourceGroup = "filedropsftp-$envCommonName"
-$azFileSharePass = (Get-AzStorageAccountKey -ResourceGroupName $FDResourceGroup -AccountName $FDAccountName)[0].Value
-$azFilesharePass_secure = ConvertTo-SecureString $azFilesharePass -AsPlainText -Force
-$FDFileCred = New-Object System.Management.Automation.PSCredential($FDAccountName, $azFilesharePass_secure)
+$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
 
 Set-Location $rootpath
 
@@ -576,21 +566,7 @@ docker push $FDImageName
 
 docker rmi $FDImageName
 
-#trigger Terraform Apply here somehow, to deploy the filedropsftp image into Azure Container Instances
-
-& $rootPath\Publish\DeployContainer.ps1 `
-    -envCommonName $envCommonName `
-    -FDRG "filedropsftp-$envCommonName"
-    -azTenantId $azTenantId `
-    -SPCredential $SPCredential `
-    -azSubscriptionId $azSubscriptionId `
-    -FDImageName $FDImageName `
-    -FDACRCred $FDACRCred `
-    -FDFileName $FDShareName `
-    -FDFileCred $FDFileCred `
-    -azCertPass $azCertPass `
-    -thumbprint $thumbprint
-
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 #endregion
 
 #region Deploy releases to Octopus
@@ -696,5 +672,35 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+
+log_statement "Creating Filedrop Release"
+
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+
+log_statement "Deploying FileDrop release"
+
+octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release deployed successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to deploy Filedrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
 
 #endregion

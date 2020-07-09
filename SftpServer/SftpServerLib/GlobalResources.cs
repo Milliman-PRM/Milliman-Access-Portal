@@ -104,6 +104,8 @@ namespace SftpServerLib
                 SmtpFromName = ApplicationConfiguration.GetValue<string>("SmtpFromName"),
                 SmtpServer = ApplicationConfiguration.GetValue<string>("SmtpServer"),
                 MaximumSendAttempts = ApplicationConfiguration.GetValue("MaximumSendAttempts", 3),
+                EmailDisclaimer = ApplicationConfiguration.GetValue<string>("EmailDisclaimer"),
+                DisclaimerExemptDomainString = ApplicationConfiguration.GetValue<string>("DisclaimerExemptDomainString"),
             });
 
             if (ApplicationConfiguration.AsEnumerable().Any(c => c.Key.Equals("Serilog", StringComparison.InvariantCultureIgnoreCase)))

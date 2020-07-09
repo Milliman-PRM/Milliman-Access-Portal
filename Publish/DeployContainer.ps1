@@ -10,7 +10,7 @@
 #>
 Param(
     [Parameter()]
-    [string]$envCommonName
+    [string]$envCommonName,
     [Parameter()]
     [string]$azTenantId=$env:azTenantId,
     [Parameter()]

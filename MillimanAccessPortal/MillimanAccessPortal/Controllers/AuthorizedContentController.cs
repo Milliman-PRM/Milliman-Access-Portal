@@ -385,13 +385,13 @@ namespace MillimanAccessPortal.Controllers
         /// <summary>
         /// Display the preview report for the identified publication request
         /// </summary>
-        /// <param name="requestId">A ContentPublicationRequest Id, used to display pre-approved content</param>
+        /// <param name="request">A ContentPublicationRequest Id, used to display pre-approved content</param>
         /// <returns></returns>
-        public async Task<IActionResult> PowerBiPreview(Guid requestId)
+        public async Task<IActionResult> PowerBiPreview(Guid request)
         {
             #region Authorization
             var PubRequest = DataContext.ContentPublicationRequest
-                                        .FirstOrDefault(r => r.Id == requestId);
+                                        .FirstOrDefault(r => r.Id == request);
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
                 User, null, new RoleInRootContentItemRequirement(
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
@@ -409,7 +409,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItem contentItem = await DataContext.ContentPublicationRequest
                                                      .Include(r => r.RootContentItem)
                                                         .ThenInclude(c => c.ContentType)
-                                                     .Where(r => r.Id == requestId)
+                                                     .Where(r => r.Id == request)
                                                      .Select(r => r.RootContentItem)
                                                      .SingleOrDefaultAsync();
 

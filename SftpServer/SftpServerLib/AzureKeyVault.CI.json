@@ -1,5 +1,5 @@
 {
-  "AzureVaultName": "https://something.vault.azure.net/",
+  "AzureVaultName": "https://filedropsftpcikv.vault.azure.net/",
   "AzureClientID": "4234bbf4-d523-4f76-b44c-b7c66e37b0d3",
   "AzureCertificateThumbprint": "79B4D2A1849EECB7C433B7B5D28CFC600414DC38"
 }

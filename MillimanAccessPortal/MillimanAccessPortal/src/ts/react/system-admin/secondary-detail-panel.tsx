@@ -21,6 +21,8 @@ interface SecondaryDetailPanelProps {
   checkedContentPublisher: boolean;
   checkedAccessAdmin: boolean;
   checkedContentUser: boolean;
+  checkedFileDropAdmin: boolean;
+  checkedFileDropUser: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
 }
@@ -82,6 +84,20 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             label={'Content Eligible'}
                             checked={this.props.checkedContentUser}
                             onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
+                          />
+                        </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop Admin'}
+                            checked={this.props.checkedFileDropAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropAdmin)}
+                          />
+                        </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop User'}
+                            checked={this.props.checkedFileDropUser}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropUser)}
                           />
                         </div>
                       </div>
@@ -178,6 +194,20 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                             label={'Content Eligible'}
                             checked={this.props.checkedContentUser}
                             onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
+                          />
+                        </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop Admin'}
+                            checked={this.props.checkedFileDropAdmin}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropAdmin)}
+                          />
+                        </div>
+                        <div className="detail-container">
+                          <Toggle
+                            label={'File Drop User'}
+                            checked={this.props.checkedFileDropUser}
+                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropUser)}
                           />
                         </div>
                       </div>

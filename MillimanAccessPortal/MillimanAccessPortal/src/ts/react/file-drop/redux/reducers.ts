@@ -720,6 +720,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: action.response,
   }),
+  SELECT_FILE_DROP: (state) => ({
+    ...state,
+    permissionGroups: null,
+  }),
 });
 
 // ~~~~~~~~~~~~~~~~

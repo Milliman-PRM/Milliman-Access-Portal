@@ -75,6 +75,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   public render() {
     const { selected, modals, pending, activeSelectedClient, data } = this.props;
+    const isFileDropAdmin = data.clients && Object.keys(data.clients).some((client) => {
+      return data.clients[client].canManageFileDrops === true;
+    });
+
     return (
       <>
         <ReduxToastr
@@ -84,7 +88,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           transitionIn="fadeIn"
           transitionOut="fadeOut"
         />
-        <NavBar currentView={this.currentView} />
+        <NavBar currentView={this.currentView} userGuidePath={isFileDropAdmin ? 'FileDropAdmin' : null} />
         {this.renderClientPanel()}
         {selected.client && this.renderFileDropPanel()}
         {selected.fileDrop && this.renderFileDropManagementPanel()}
@@ -147,7 +151,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               </button>
               <button
                 className={'blue-button'}
-                disabled={!pending.createFileDrop.fileDropName}
+                disabled={!pending.createFileDrop.fileDropName.trim()}
                 type="submit"
               >
                 Add
@@ -433,14 +437,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   !card.disabled &&
                   <CardSectionStats>
                     <CardStat
+                      name={'File Drop users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
                       name={'File Drops'}
                       value={entity.fileDropCount}
                       icon={'file-drop'}
-                    />
-                    <CardStat
-                      name={'Users'}
-                      value={entity.userCount}
-                      icon={'user'}
                     />
                   </CardSectionStats>
                 }
@@ -576,7 +580,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.openModifiedFormModal({
                       afterFormModal: {
                         entityToSelect: entity.id,
-                        entityType: 'files',
+                        entityType: 'Select File Drop',
                       },
                     });
                   } else {
@@ -924,7 +928,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <div className="activity-log-table-header">
             <span className="activity-log-header">Activity Log - <strong>Last 30 Days</strong></span>
             <a
-              href={`./FileDrop/DownloadFullActivityLog?=${data.permissionGroups.fileDropId}`}
+              href={`./FileDrop/DownloadFullActivityLog?fileDropId=${data.permissionGroups.fileDropId}`}
               className="download-button button blue-button"
               download={true}
             >
@@ -1109,6 +1113,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         }}
                       />
                     }
+                    <p className="notification-instruction">
+                      Receive an email when a file is uploaded to this File Drop
+                    </p>
                   </ FormSection>
                 }
               </>

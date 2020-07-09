@@ -154,6 +154,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           this.fetchUserClient(RoleEnum.ContentPublisher);
           this.fetchUserClient(RoleEnum.ContentAccessAdmin);
           this.fetchUserClient(RoleEnum.ContentUser);
+          this.fetchUserClient(RoleEnum.FileDropAdmin);
+          this.fetchUserClient(RoleEnum.FileDropUser);
         }
         if (isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended === null) {
           this.fetchSuspendContent();
@@ -184,7 +186,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardText text={entity.name} subtext={entity.code} />
                     <CardSectionStats>
                       <CardStat
-                        name={'Reports'}
+                        name={'Content items'}
                         value={entity.rootContentItemCount}
                         icon={'reports'}
                       />
@@ -209,7 +211,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       />
                       <CardSectionStats>
                         <CardStat
-                          name={'Reports'}
+                          name={'Content items'}
                           value={entity.rootContentItemCount}
                           icon={'reports'}
                         />
@@ -271,7 +273,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardText text={entity.name} subtext={entity.clientName} />
                       <CardSectionStats>
                         <CardStat
-                          name={'Users'}
+                          name={'Users with access'}
                           value={entity.userCount}
                           icon={'user'}
                         />
@@ -462,7 +464,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       icon={'client'}
                     />
                     <CardStat
-                      name={'Reports'}
+                      name={'Content items'}
                       value={entity.rootContentItemCount}
                       icon={'reports'}
                     />
@@ -483,12 +485,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <CardText text={entity.name} subtext={entity.code} />
                   <CardSectionStats>
                     <CardStat
-                      name={'Users'}
+                      name={'Client users'}
                       value={entity.userCount}
                       icon={'user'}
                     />
                     <CardStat
-                      name={'Reports'}
+                      name={'Content items'}
                       value={entity.rootContentItemCount}
                       icon={'reports'}
                     />
@@ -632,6 +634,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedContentPublisher={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentPublisher}
             checkedAccessAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isAccessAdmin}
             checkedContentUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isContentUser}
+            checkedFileDropAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropAdmin}
+            checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushUserClient={this.pushUserClient}
             onPushSuspend={this.pushSuspendContent}
@@ -1030,6 +1034,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           isContentPublisher: null,
           isAccessAdmin: null,
           isContentUser: null,
+          isFileDropAdmin: null,
+          isFileDropUser: null,
         };
       } else if (isRootContentItemDetail(response)) {
         responseWithDefaults = {
@@ -1179,6 +1185,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
         roleAssignment = { isContentUser: response };
+      } else if (role === RoleEnum.FileDropAdmin) {
+        roleAssignment = { isFileDropAdmin: response };
+      } else if (role === RoleEnum.FileDropUser) {
+        roleAssignment = { isFileDropUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,
@@ -1208,6 +1218,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       prevValue = secondaryDetail.isAccessAdmin;
     } else if (role === RoleEnum.ContentUser) {
       prevValue = secondaryDetail.isContentUser;
+    } else if (role === RoleEnum.FileDropAdmin) {
+      prevValue = secondaryDetail.isFileDropAdmin;
+    } else if (role === RoleEnum.FileDropUser) {
+      prevValue = secondaryDetail.isFileDropUser;
     }
     postData('/SystemAdmin/UserClientRoleAssignment', {
       ...this.getFinalQueryFilter(),
@@ -1223,6 +1237,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         roleAssignment = { isAccessAdmin: response };
       } else if (role === RoleEnum.ContentUser) {
         roleAssignment = { isContentUser: response };
+      } else if (role === RoleEnum.FileDropAdmin) {
+        roleAssignment = { isFileDropAdmin: response };
+      } else if (role === RoleEnum.FileDropUser) {
+        roleAssignment = { isFileDropUser: response };
       }
       this.setState((prevState) => ({
         ...prevState,

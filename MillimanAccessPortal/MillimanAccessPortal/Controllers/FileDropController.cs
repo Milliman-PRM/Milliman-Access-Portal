@@ -705,10 +705,14 @@ namespace MillimanAccessPortal.Controllers
 
             #region update the settings
             var accountNotifications = new HashSet<FileDropUserNotificationModel>(account.NotificationSubscriptions, new FileDropUserNotificationModelSameEventComparer());
-            foreach (var notificationSetting in boundModel.Notifications)
+            foreach (var newNotificationSetting in boundModel.Notifications)
             {
-                accountNotifications.Remove(notificationSetting);
-                accountNotifications.Add(notificationSetting);
+                if (!accountNotifications.TryGetValue(newNotificationSetting, out FileDropUserNotificationModel existingValue) || existingValue.IsEnabled != newNotificationSetting.IsEnabled)
+                {
+                    Log.Information($"Updating SftpAccount {account.UserName}, setting for notification type {newNotificationSetting.NotificationType} from {(existingValue != null ? existingValue.IsEnabled.ToString() : "unset")} to {newNotificationSetting.IsEnabled} in file drop {fileDrop.Id} ({fileDrop.Name})");
+                }
+                accountNotifications.Remove(newNotificationSetting);
+                accountNotifications.Add(newNotificationSetting);
             }
             account.NotificationSubscriptions = accountNotifications;
             await _dbContext.SaveChangesAsync();

@@ -311,6 +311,11 @@ namespace MillimanAccessPortal
             });
 
             services.AddResponseCaching();
+            services.AddHsts(options =>
+            {
+                options.MaxAge = TimeSpan.FromDays(365);
+                options.IncludeSubDomains = true;
+            });
 
             services
             .AddControllersWithViews(options => 
@@ -458,10 +463,9 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            // Send header to prevent IE from going into compatibility mode
-            // Should work for internal and external users
             var policyCollection = new HeaderPolicyCollection()
-                .AddCustomHeader("X-UA-Compatible", "IE=Edge");
+                .AddCustomHeader("X-UA-Compatible", "IE=Edge") // Prevents IE from going into compatibility mode, should work for internal and external users
+                .AddCustomHeader("X-Frame-Options", "SAMEORIGIN"); // Prevents clickjacking
             app.UseSecurityHeaders(policyCollection);
 
             // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
@@ -490,16 +494,6 @@ namespace MillimanAccessPortal
             app.UseAuthorization();
 
             app.UseSession();
-
-            app.UseEndpoints(endpoints => 
-            {
-                endpoints.MapControllers();
-                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
-                //endpoints.MapRazorPages();
-            });
-            //Todo: read this: https://github.com/aspnet/Security/issues/1310
-
-            // Add external authentication middleware below. To configure them please see https://go.microsoft.com/fwlink/?LinkID=532715
 
             // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
@@ -537,6 +531,13 @@ namespace MillimanAccessPortal
             app.Use(async (context, next) =>
             {
                 await next();
+            });
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.MapControllers();
+                endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                //endpoints.MapRazorPages();
             });
         }
     }

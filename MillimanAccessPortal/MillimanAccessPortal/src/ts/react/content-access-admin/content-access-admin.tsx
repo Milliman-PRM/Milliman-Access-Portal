@@ -149,14 +149,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionStats>
                   <CardStat
-                    name={'Reports'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                  <CardStat
-                    name={'Users'}
+                    name={'Eligible users'}
                     value={entity.userCount}
                     icon={'user'}
+                  />
+                  <CardStat
+                    name={'Content items'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
                   />
                 </CardSectionStats>
               </CardSectionMain>
@@ -206,14 +206,14 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
               <CardText text={entity.name} subtext={entity.contentTypeName} />
               <CardSectionStats>
                 <CardStat
-                  name={'Selection groups'}
-                  value={entity.selectionGroupCount}
-                  icon={'group'}
-                />
-                <CardStat
                   name={'Assigned users'}
                   value={entity.assignedUserCount}
                   icon={'user'}
+                />
+                <CardStat
+                  name={'Selection groups'}
+                  value={entity.selectionGroupCount}
+                  icon={'group'}
                 />
               </CardSectionStats>
             </CardSectionMain>
@@ -253,8 +253,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       groupToDelete: groupDelete,
     } = this.props;
 
-    const selectedItemStatus = item && items.filter((x) => x.id === item.id)[0].status.requestStatus;
-    const selectedItemIsPublishing = item && isPublicationActive(selectedItemStatus);
+    const itemIsSelectedAndPassesFilter = item && items.filter((x) => x.id === item.id).length > 0;
+    const selectedItemStatus = itemIsSelectedAndPassesFilter &&
+          items.filter((x) => x.id === item.id)[0].status.requestStatus;
+    const selectedItemIsPublishing = itemIsSelectedAndPassesFilter && isPublicationActive(selectedItemStatus);
+
     const expandAllIcon = allExpanded
       ? null
       : (
@@ -573,7 +576,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                 Cancel
               </button>
               <button
-                className={`blue-button${pending.newGroupName ? '' : ' disabled'}`}
+                className={`blue-button${pending.newGroupName.trim() ? '' : ' disabled'}`}
                 type="submit"
               >
                 Add
