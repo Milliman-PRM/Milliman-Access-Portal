@@ -722,6 +722,70 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFolderContents(Guid fileDropId, string canonicalPath)
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            #region Validation
+            if (fileDrop == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            SftpAccount account = await _dbContext.SftpAccount
+                                      //.Include(a => a.ApplicationUser)
+                                      .Include(a => a.FileDropUserPermissionGroup)
+                                          .ThenInclude(g => g.FileDrop)
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => a.FileDropId == fileDropId)
+                                      .SingleOrDefaultAsync();
+
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, account.FileDropUserPermissionGroup.FileDrop.ClientId));
+            if (!userRoleResult.Succeeded || !account.FileDropUserPermissionGroupId.HasValue)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
+            FileDropDirectory thisDirectory = _dbContext.FileDropDirectory
+                                                        .Include(d => d.ChildDirectories)
+                                                        .Include(d => d.Files)
+                                                        .Where(d => d.FileDropId == fileDropId)
+                                                        .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
+                                                        .SingleOrDefault();
+
+            try
+            {
+                var model = new DirectoryContentModel
+                {
+                    ThisDirectory = new FileDropDirectoryModel(thisDirectory),
+                    Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
+                    Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
+                };
+                return Json(model);
+            }
+            catch (ArgumentNullException ex)
+            {
+                Log.Warning(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Requested directory with canonical path {canonicalPath} not found in FileDrop {fileDrop.Name} (Id {fileDrop.Id})");
+                Response.Headers.Add("Warning", "The requested folder was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Error building return model, parameters: canonical path {canonicalPath}, FileDrop {fileDrop.Name} (Id {fileDrop.Id})");
+                Response.Headers.Add("Warning", "Error. Please contact support if this issue continues.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+        }
     }
 
     /// <summary>
