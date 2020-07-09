@@ -1,10 +1,12 @@
-﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, ClientWithStats } from "../../models";
+﻿import { applyMiddleware, createStore } from 'redux';
+import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
-import { createStore, applyMiddleware } from "redux";
+
+import { clientAdmin } from './reducers';
 import sagas from './sagas';
-import { composeWithDevTools } from "redux-devtools-extension";
-import { clientAdmin } from "./reducers";
+
+import { ClientWithEligibleUsers, ClientWithStats } from '../../models';
+import { Dict } from '../../shared-components/redux/store';
 
 /**
  * Entity data returned from the server.

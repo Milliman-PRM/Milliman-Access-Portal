@@ -1,6 +1,7 @@
-﻿import { RequestAccessAction, ResponseAccessAction } from "./actions";
-import { createTakeLatestRequest } from "../../shared-components/redux/sagas";
+﻿import { RequestAccessAction, ResponseAccessAction } from './actions';
 import * as api from './api';
+
+import { createTakeLatestRequest } from '../../shared-components/redux/sagas';
 
 /**
  * Custom effect for handling request actions.

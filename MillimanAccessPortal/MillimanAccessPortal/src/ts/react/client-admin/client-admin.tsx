@@ -1,10 +1,11 @@
-﻿import { connect } from "react-redux";
-import React from "react";
+﻿import * as React from 'react';
+import { connect } from 'react-redux';
+
 import * as AccessActionCreators from './redux/action-creators';
-import { ClientWithStats } from "../models";
-import { AccessState } from "./redux/store";
-import { Dict } from "../shared-components/redux/store";
-import { NavBar } from "../shared-components/navbar";
+import { AccessState } from './redux/store';
+
+import { ClientWithStats } from '../models';
+import { NavBar } from '../shared-components/navbar';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface ClientAdminProps {
@@ -29,13 +30,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 }
 
-
 function mapStateToProps(state: AccessState): ClientAdminProps {
   const { data } = state;
 
   return {
-    clients: null
-  }
+    clients: null,
+  };
 }
 
 export const ConnectedClientAdmin = connect(

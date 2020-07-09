@@ -1,8 +1,10 @@
-﻿import { AccessStateData } from "./store";
-import { combineReducers } from "redux";
-import { createReducerCreator } from "../../shared-components/redux/reducers";
+﻿import { combineReducers } from 'redux';
+
 import { AccessAction } from './actions';
 import * as AccessActions from './actions';
+import { AccessStateData } from './store';
+
+import { createReducerCreator } from '../../shared-components/redux/reducers';
 
 const _initialState: AccessStateData = {
   clients: {},
@@ -25,5 +27,5 @@ const data = createReducer<AccessStateData>(_initialState, {
 });
 
 export const clientAdmin = combineReducers({
-  data
+  data,
 });

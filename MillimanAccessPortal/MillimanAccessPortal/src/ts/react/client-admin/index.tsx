@@ -1,8 +1,14 @@
-﻿import { Provider } from "react-redux";
-import { ConnectedClientAdmin as Root } from "./client-admin";
-import ReactDOM from "react-dom";
-import { store } from "./redux/store";
-import React from "react";
+﻿declare function require(moduleName: string): any;
+
+import * as React from 'react';
+import * as ReactDOM from 'react-dom';
+import { Provider } from 'react-redux';
+
+import { ConnectedClientAdmin as Root } from './client-admin';
+import { store } from './redux/store';
+
+import '../../../images/map-logo.svg';
+import '../../../scss/map.scss';
 
 let ConnectedClientAdmin: typeof Root = require('./client-admin').ConnectedClientAdmin;
 
