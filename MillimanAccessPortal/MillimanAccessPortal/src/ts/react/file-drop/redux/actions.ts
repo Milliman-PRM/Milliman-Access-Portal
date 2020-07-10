@@ -400,6 +400,30 @@ export interface SetFileDropNotificationSettingFailed {
   error: TSError;
 }
 
+
+/**
+ * GET:
+ *   Folder contents for the requested File Drop
+ */
+export interface FetchFolderContents {
+  type: 'FETCH_FOLDER_CONTENTS';
+  request: {
+    fileDropId: Guid;
+    canonicalPath: string;
+  };
+}
+
+/** Close the modal used to confirm navigation away from a modified form */
+export interface FetchFolderContentsSucceeded {
+  type: 'FETCH_FOLDER_CONTENTS_SUCCEEDED';
+}
+
+/** Close the modal used to display the generated password */
+export interface FetchFolderContentsFailed {
+  type: 'FETCH_FOLDER_CONTENTS_FAILED';
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -524,6 +548,7 @@ export type FileDropRequestActions =
   | FetchSettings
   | GenerateNewSftpPassword
   | SetFileDropNotificationSetting
+  | FetchFolderContents
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -541,6 +566,7 @@ export type FileDropSuccessResponseActions =
   | FetchSettingsSucceeded
   | GenerateNewSftpPasswordSucceeded
   | SetFileDropNotificationSettingSucceeded
+  | FetchFolderContentsSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -558,6 +584,7 @@ export type FileDropErrorActions =
   | FetchSettingsFailed
   | GenerateNewSftpPasswordFailed
   | SetFileDropNotificationSettingFailed
+  | FetchFolderContentsFailed
   ;
 
 /** Actions that set filter text */
