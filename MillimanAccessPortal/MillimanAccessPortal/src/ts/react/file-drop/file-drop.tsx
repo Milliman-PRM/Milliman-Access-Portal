@@ -280,7 +280,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   case 'Select File Drop':
                     this.props.selectFileDrop({ id: entityToSelect });
                     if (activeSelectedClient.canManageFileDrops) {
-                      this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.selectFileDropTab({ tab: 'files' });
                       if (selected.fileDrop !== entityToSelect && entityToSelect !== null) {
                         this.props.fetchPermissionGroups({
                           clientId: selected.client,
@@ -587,9 +587,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.selectFileDrop({ id: entity.id });
                     if (activeSelectedClient.canManageFileDrops) {
                       if (selected.fileDrop !== entity.id) {
-                        this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: entity.id });
+                        this.props.fetchFolderContents({ fileDropId: entity.id, canonicalPath: '/' });
                       }
-                      this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.selectFileDropTab({ tab: 'files' });
                     } else {
                       this.props.fetchSettings({ fileDropId: entity.id });
                       this.props.selectFileDropTab({ tab: 'settings' });
@@ -722,7 +722,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       label: string;
     }> = (activeSelectedClient.canManageFileDrops)
       ? [
-        // { id: 'files', label: 'Files' },
+        { id: 'files', label: 'Files' },
         { id: 'permissions', label: 'User Permissions' },
         { id: 'activityLog', label: 'Activity Log' },
         { id: 'settings', label: 'My Settings' },
@@ -747,7 +747,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  // Once we have this implemented, this is where the action would go to fetch the files data
+                  this.props.fetchFolderContents({ fileDropId: selected.fileDrop, canonicalPath: '/' });
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
@@ -767,7 +767,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         {(() => {
           switch (pending.selectedFileDropTab) {
             case 'files':
-              return null;
+              return this.renderFilesTab();
             case 'permissions':
               return this.renderPermissionsTab();
             case 'activityLog':
@@ -779,6 +779,33 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           }
         })()}
       </ContentPanel>
+    );
+  }
+
+  private renderFilesTab() {
+    return (
+      <>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter files or folders...'}
+            setFilterText={() => false}
+            filterText={''}
+          />
+          <ActionIcon
+            label="Add Folder"
+            icon="add"
+            action={() => false}
+          />
+          <ActionIcon
+            label="Add File"
+            icon="add"
+            action={() => false}
+          />
+        </PanelSectionToolbar>
+        <ContentPanelSectionContent>
+          <div className="files-table-container" />
+        </ContentPanelSectionContent>
+      </>
     );
   }
 
