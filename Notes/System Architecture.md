@@ -33,11 +33,9 @@ We utilize multiple Azure products to build the production environment. Most are
 * **Availability Sets** - Management layer for VMs to keep them isolated within the data center. Makes the VMs more resilient to power, hardware, and network failures within the data center.
 
 * **Virtual Machines** - 1 for QlikView Server, 1 for QlikView Publisher, 2 for file server clustering, 2 for domain controllers
-    * An additional virtual machine will be deployed into a VPN-controlled DMZ. This machine will be used as a [jump box](https://en.wikipedia.org/wiki/Jump_server) to access other servers in the infrastructure.
+    * Two additional virtual machines will be deployed into the Bastion-controlled DMZ. These machines will be used as [jump boxes](https://en.wikipedia.org/wiki/Jump_server) to access other servers in the infrastructure.
 
 * **Virtual Networks** - Isolate groups of resources and control which portions of the infrastructure they can access.
-
-* **Virtual Network Gateway** - Create a point-to-site VPN between Milliman and our Azure environment.
 
 * **Network Security Groups** - Network-level security configuration for VMs. Applies Firewall rules to VMs which use the Security Group.
 
@@ -49,11 +47,13 @@ We utilize multiple Azure products to build the production environment. Most are
 
 * **Azure Monitor** - Define and alert on metrics for production systems. Identify issues proactively and notify the infrastructure team.
 
-* **PowerBI Embedded Capacity** - Provides dedicated compute resources for our PowerBI content hosting. 
+* **PowerBI Embedded Capacity** - Provides dedicated compute resources for our PowerBI content hosting.
 
 * **Azure Automation** - Provides update automation & management for Azure VMs
 
-* **Traffic Manager** - Provides dynamic DNS services which allow us to manage MAP's public IPs without coordinating changes with GCS IT. 
+* **Traffic Manager** - Provides dynamic DNS services which allow us to manage MAP's public IPs without coordinating changes with GCS IT.
+
+* **Azure Bastion** - Implemented to replace the point-to-site VPN, Bastion is a fully managed PaaS that allows RDP access directly from the Azure Portal.
 
 ## Other Products/Services Used
 
@@ -87,7 +87,7 @@ VMs in the MAP environment are segmented by function and user access. Throughout
 |Web Server|Host the application via IIS|Available to users over port 443 (HTTPS) only through the application gateway|
 |File Server|Store QVWs and other content to be delivered to end users via the web app|Not available directly to end users. Content will be streamed to users via the web app|
 |Domain Controllers|Authentication to internal (MAP server) resources|Not available to users.|
-|Remote Administration|Secure entry point for system administrators to access private MAP resources.|VPN access is required to connect. No general users will have access.|
+|Remote Administration|Secure entry point for system administrators to access private MAP resources.|Bastion access is required to connect. No general users will have access.|
 
 ### Application availability
 
@@ -101,7 +101,7 @@ Because of their critical role in our infrastructure, we maintain two domain con
 
 ### QlikView Server/Publisher availability
 
-Due to high licensing costs, we will utilize only one VM for QlikView Server and one for QlikView Publisher. 
+Due to high licensing costs, we will utilize only one VM for QlikView Server and one for QlikView Publisher.
 
 In the case that one of the servers fails, we can restore the most recent backup fairly quickly.
 
@@ -155,11 +155,11 @@ VM disks are stored in [encrypted storage accounts](https://docs.microsoft.com/e
 
 Sensitive configuration options are stored in Azure Key Vault and protected by Hardware Security Modules.
 
-### Point-to-Site VPN
+### Azure Bastion
 
-We utilize a [Virtual Network Gateway](https://docs.microsoft.com/en-us/azure/vpn-gateway/vpn-gateway-about-vpngateways) to establish a VPN between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
+We utilize a [Bastion](https://docs.microsoft.com/en-us/azure/bastion/bastion-overview) to establish a RDP connection between individual Milliman computers and our Azure infrastructure. This gateway will ensure traffic between Milliman's network and our infrastructure is encrypted at all times, providing another layer of security for administrative tasks.
 
-Access to the VPN is controlled by the Azure administrators and is only granted on an as-needed basis.
+Access to the Bastion is controlled by the Azure administrators and is only granted on an as-needed basis.
 
 ### Virtual Network Isolation
 
@@ -179,6 +179,7 @@ Specific ports and protocols will be opened to groups of VMs via Network Securit
 |Remote Administration|10.254.6.0/24|All vnets|
 |VPN Gateway|10.254.0.0/22|Remote Administration|
 |Shared infrastructure|10.0.0.0/24|Web servers, Remote Administration|
+|Bastion|10.254.14.0/24|All Vnets|
 
 > The Shared Infrastructure VNET listed above contains VMs and other resources shared with non-MAP infrastructure, such as the SMTP server.
 
@@ -190,7 +191,7 @@ All traffic is allowed to flow between peered virtual networks, as described abo
 
 The table defines rules to be applied both within Network Security Groups as well as the Windows Firewall.
 
-|Server Type|Connections allowed from the Internet|Connections allowed from VPN|
+|Server Type|Connections allowed from the Internet|Connections allowed from Bastion|
 |-----|-----|-----|
 |Domain Controllers|---|---|
 |QlikView Server|HTTPS, through WAF|HTTPS, through WAF|
@@ -209,13 +210,9 @@ Access to VMs in this network should not be granted on a permanent basis to user
 
 ### Remote Desktop access
 
-Remote Desktop access from Milliman will only be allowed to VMs within the Remote Administration virtual network, and only via the Point-to-Site VPN.
+Remote Desktop access from Milliman will only be allowed to VMs within the Remote Administration virtual network, and only via the Bastion.
 
-Non-administrator users will not be allowed to remotely connect to any machines beyond that virtual network unless specifically granted access by the infrastructure team.
-
-Administrators can use these VMs as an entry point and connect from them to VMs in other virtual networks.
-
-These restrictions will be enforced via Group Policy and Network Security Groups.
+Users can be granted and denied permission to access the Bastion via Role assignments in the Azure Portal.
 
 ### File Share Isolation
 
@@ -291,7 +288,7 @@ Administrator-level permissions will be granted only to specialized admin accoun
 
 ### Account Sharing
 
-No shared accounts will be issued. 
+No shared accounts will be issued.
 
 ### Permissions to groups, not Users
 
@@ -372,7 +369,7 @@ We utilize [Uptime.com](https://uptime.com) to check that the application is ava
 
 In order to facilitate appropriate logging of manually executed database changes, we have developed an additional web application accessible from the production web server. No database changes should be executed outside of this application.
 
-Requests to perform these queries must be created as issues in this repository using the `QUERY_REVIEW_TEMPLATE.md` template. 
+Requests to perform these queries must be created as issues in this repository using the `QUERY_REVIEW_TEMPLATE.md` template.
 
 ### Security Measures
 
