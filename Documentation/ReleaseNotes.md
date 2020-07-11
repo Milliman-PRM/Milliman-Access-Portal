@@ -2,7 +2,7 @@
 
 ## Release Notes
 
-#### v1.8.1
+#### v1.9.1
 
 - Fixed a bug that caused the SFTP server configuration file to not deploy in production
 - Enabled configurable logging of internal details
