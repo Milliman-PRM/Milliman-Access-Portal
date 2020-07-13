@@ -412,16 +412,15 @@ export interface FetchFolderContents {
     canonicalPath: string;
   };
 }
-
-/** Close the modal used to confirm navigation away from a modified form */
+/** Action called upon successful return of the FetchFolderContents API call */
 export interface FetchFolderContentsSucceeded {
   type: 'FETCH_FOLDER_CONTENTS_SUCCEEDED';
   response: {};
 }
-
-/** Close the modal used to display the generated password */
+/** Action called upon return of an error from the FetchFolderContents API call */
 export interface FetchFolderContentsFailed {
   type: 'FETCH_FOLDER_CONTENTS_FAILED';
+  error: TSError;
 }
 
 
