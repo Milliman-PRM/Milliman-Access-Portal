@@ -150,6 +150,10 @@ export const generateNewSftpPassword =
 export const setFileDropNotificationSetting =
   createRequestActionCreator<Action.SetFileDropNotificationSetting>('SET_FILE_DROP_NOTIFICATION_SETTING');
 
+/** Get folder contents for a given File Drop */
+export const fetchFolderContents =
+  createRequestActionCreator<Action.FetchFolderContents>('FETCH_FOLDER_CONTENTS');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~

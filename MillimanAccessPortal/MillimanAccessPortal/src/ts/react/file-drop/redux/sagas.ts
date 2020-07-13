@@ -54,6 +54,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_SETTINGS', API.fetchSettings);
   yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
   yield takeLatestRequest('SET_FILE_DROP_NOTIFICATION_SETTING', API.setFileDropNotificationSetting);
+  yield takeLatestRequest('FETCH_FOLDER_CONTENTS', API.fetchFolderContents);
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
@@ -104,6 +105,7 @@ export default function* rootSaga() {
     'FETCH_SETTINGS_FAILED',
     'GENERATE_NEW_SFTP_PASSWORD_FAILED',
     'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED',
+    'FETCH_FOLDER_CONTENTS_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)
