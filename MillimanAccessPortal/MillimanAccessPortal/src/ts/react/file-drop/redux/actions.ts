@@ -416,6 +416,7 @@ export interface FetchFolderContents {
 /** Close the modal used to confirm navigation away from a modified form */
 export interface FetchFolderContentsSucceeded {
   type: 'FETCH_FOLDER_CONTENTS_SUCCEEDED';
+  response: {};
 }
 
 /** Close the modal used to display the generated password */
