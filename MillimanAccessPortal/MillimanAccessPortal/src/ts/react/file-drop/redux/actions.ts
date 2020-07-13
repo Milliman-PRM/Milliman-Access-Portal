@@ -1,7 +1,7 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropNotificationTypeEnum,
-  FileDropSettings, FileDropsReturnModel, FileDropWithStats, Guid,
-  PermissionGroupsChangesModel, PermissionGroupsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
+  FileDropNotificationTypeEnum, FileDropSettings, FileDropsReturnModel, FileDropWithStats,
+  Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -415,7 +415,7 @@ export interface FetchFolderContents {
 /** Action called upon successful return of the FetchFolderContents API call */
 export interface FetchFolderContentsSucceeded {
   type: 'FETCH_FOLDER_CONTENTS_SUCCEEDED';
-  response: {};
+  response: FileDropDirectoryContentModel;
 }
 /** Action called upon return of an error from the FetchFolderContents API call */
 export interface FetchFolderContentsFailed {
