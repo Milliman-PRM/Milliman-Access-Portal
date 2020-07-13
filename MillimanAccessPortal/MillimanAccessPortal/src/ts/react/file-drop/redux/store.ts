@@ -75,6 +75,7 @@ export interface FileDropPendingState {
 export interface FileDropSelectedState {
   client: Guid;
   fileDrop: Guid | 'NEW FILE DROP';
+  fileDropFolder: Guid;
 }
 
 /** State representing raw (unaltered) data returned from the server */
