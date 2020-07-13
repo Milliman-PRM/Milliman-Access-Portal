@@ -747,9 +747,9 @@ namespace MillimanAccessPortal.Controllers
                                       .SingleOrDefaultAsync();
 
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, account.FileDropUserPermissionGroup.FileDrop.ClientId));
-            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, account.FileDropUserPermissionGroup.FileDrop.ClientId));
-            if (!adminRoleResult.Succeeded && (!userRoleResult.Succeeded || !account.FileDropUserPermissionGroupId.HasValue))
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded && (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue))
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
