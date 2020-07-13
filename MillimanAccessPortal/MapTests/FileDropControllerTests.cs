@@ -369,5 +369,45 @@ namespace MapTests
                 #endregion
             }
         }
+
+        [Fact]
+        public async Task GetFolderContents_Invalid()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(99), "/");
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<StatusCodeResult>(response);
+                Assert.Equal(422, result.StatusCode);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task GetFolderContents_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(1), "/");
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(response);
+                #endregion
+            }
+        }
+
     }
 }
