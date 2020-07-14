@@ -1,6 +1,7 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
 import { ClientWithEligibleUsers, ClientWithStats, User, Guid } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
+import { fetchClientDetails } from "./action-creators";
 
 // ~ Page Actions ~
 
@@ -69,10 +70,12 @@ export type FilterAccessAction =
  * An action that makes an Ajax request.
  */
 export type RequestAccessAction =
-  | FetchClients;
+  | FetchClients
+  | FetchClientDetails;
 
 export type ResponseAccessAction =
-  | FetchClientsSucceeded;
+  | FetchClientsSucceeded
+  | FetchClientDetailsSucceeded;
 
 export type PageAccessAction =
   | SelectClient

@@ -2,13 +2,17 @@
 
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
-import { AccessStateData } from './store';
+import { AccessStateData, AccessStateSelected } from './store';
 
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { FilterState } from '../../shared-components/redux/store';
 
-const _initialState: AccessStateData = {
+const _initialData: AccessStateData = {
   clients: {},
+};
+
+const _initialSelected: AccessStateSelected = {
+  client: null,
 };
 
 /**
@@ -18,12 +22,18 @@ const _initialState: AccessStateData = {
  */
 const createReducer = createReducerCreator<AccessAction>();
 
-const data = createReducer<AccessStateData>(_initialState, {
+const data = createReducer<AccessStateData>(_initialData, {
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessActions.FetchClientsSucceeded) => ({
     ...state,
     clients: {
       ...action.response.clients,
     },
+  }),
+});
+
+const selected = createReducer<AccessStateSelected>(_initialSelected, {
+  SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
+    client: action.id === state.client ? null : action.id,
   }),
 });
 
@@ -45,5 +55,6 @@ const filters = combineReducers({
 
 export const clientAdmin = combineReducers({
   data,
+  selected,
   filters,
 });

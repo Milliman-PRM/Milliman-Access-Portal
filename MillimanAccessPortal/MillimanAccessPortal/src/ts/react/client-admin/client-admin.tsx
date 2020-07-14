@@ -51,7 +51,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               key={key}
               selected={false}
               disabled={false}
-              onSelect={null}
+              onSelect={() => {
+                this.props.fetchClientDetails({ clientId: entity.id });
+              }}
               indentation={entity.indent}
             >
               <CardSectionMain>
