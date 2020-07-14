@@ -356,7 +356,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       items: contentItems,
       publications,
       publicationQueue,
-      clients: {
+      clients: {f
         ...state.clients,
         [clientStats.id]: {
           ...state.clients[clientStats.id],

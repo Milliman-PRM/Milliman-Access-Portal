@@ -11,4 +11,4 @@ const createJsonRequestor = createJsonRequestorCreator<RequestAccessAction, Resp
 
 export const fetchClients =
   createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
-    ('GET', '/ClientAdmin/ClientDetail');
+    ('GET', '/ClientAdmin/Clients');

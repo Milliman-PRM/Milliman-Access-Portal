@@ -13,6 +13,12 @@ export interface SelectClient {
   id: Guid;
 }
 
+// ~ Filter Actions ~
+export interface SetFilterTextClient {
+  type: 'SET_FILTER_TEXT_CLIENT';
+  text: string;
+}
+
 // ~ GETs ~
 
 /**
@@ -54,16 +60,23 @@ export interface FetchClientDetailsFailed {
 }
 
 /**
+ * An action that sets filter text for a card column.
+ */
+export type FilterAccessAction =
+  | SetFilterTextClient;
+
+/**
  * An action that makes an Ajax request.
  */
 export type RequestAccessAction =
-  | FetchClients
+  | FetchClients;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded;
 
 export type PageAccessAction =
-  | SelectClient;
+  | SelectClient
+  | SetFilterTextClient;
 
 export type AccessAction =
   | PageAccessAction

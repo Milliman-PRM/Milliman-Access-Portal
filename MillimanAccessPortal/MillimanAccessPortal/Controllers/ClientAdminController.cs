@@ -56,6 +56,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration ApplicationConfig;
         private readonly AccountController _accountController;
+        private readonly ClientAdminQueries _clientAdminQueries;
 
         public ClientAdminController(
             ApplicationDbContext context,
@@ -66,7 +67,8 @@ namespace MillimanAccessPortal.Controllers
             StandardQueries QueryArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
-            AccountController AccountControllerArg
+            AccountController AccountControllerArg,
+            ClientAdminQueries ClientAdminQueriesArg
             )
         {
             DbContext = context;
@@ -78,6 +80,7 @@ namespace MillimanAccessPortal.Controllers
             _userManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             _accountController = AccountControllerArg;
+            _clientAdminQueries = ClientAdminQueriesArg;
         }
 
         // GET: ClientAdmin
@@ -99,6 +102,27 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             return View();
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Clients()
+        {
+            #region Authorization
+            // User must have Admin role to at least 1 Client or ProfitCenter
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
+            if (!Result1.Succeeded &&
+                !Result2.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized as a client admin or profit center admin");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
+
+            return Json(clients);
         }
 
         // GET: ClientAdmin/ClientFamilyList
