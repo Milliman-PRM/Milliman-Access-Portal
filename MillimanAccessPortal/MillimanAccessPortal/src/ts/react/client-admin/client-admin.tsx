@@ -32,26 +32,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     return (
       <>
         <NavBar currentView={this.currentView} />
-        <div
-          id="client-tree"
-          className="admin-panel-container flex-item-12-12 flex-item-for-tablet-up-4-12"
-        >
-          <h3 className="admin-panel-header">Client Tree</h3>
-          <div className="admin-panel-toolbar">
-            <input
-              className="admin-panel-searchbar-tree"
-              type="search"
-              placeholder="Filter Clients"
-            />
-          </div>
-          {this.renderClientPanel()}
-        </div>
+        {this.renderClientPanel()}
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients } = this.props;
+    const { clients, filters } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -69,12 +56,34 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionStats>
+                  <CardStat
+                    name={'Eligible users'}
+                    value={entity.userCount}
+                    icon={'user'}
+                  />
+                  <CardStat
+                    name={'Content items'}
+                    value={entity.contentItemCount}
+                    icon={'reports'}
+                  />
+                </CardSectionStats>
               </CardSectionMain>
             </Card>
           );
         }}
       >
-        <h3>Length = {this.props.clients.length}</h3>
+        <h3 className="admin-panel-header">Clients</h3>
+        <PanelSectionToolbar>
+          <Filter
+            placeholderText={'Filter clients...'}
+            setFilterText={(text) => this.props.setFilterTextClient({ text })}
+            filterText={filters.client.text}
+          />
+          <PanelSectionToolbarButtons>
+            <div id="icons" />
+          </PanelSectionToolbarButtons>
+        </PanelSectionToolbar>
       </CardPanel>
     );
   }
