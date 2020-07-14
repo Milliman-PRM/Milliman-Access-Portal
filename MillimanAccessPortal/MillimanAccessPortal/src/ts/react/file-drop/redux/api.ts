@@ -62,6 +62,10 @@ export const setFileDropNotificationSetting =
     FileDropAction.SetFileDropNotificationSetting, FileDropAction.SetFileDropNotificationSettingSucceeded
   >('POST', '/FileDrop/UpdateAccountSettings');
 
+export const fetchFolderContents =
+  createJsonRequestor<FileDropAction.FetchFolderContents, FileDropAction.FetchFolderContentsSucceeded>
+    ('GET', '/FileDrop/GetFolderContents');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

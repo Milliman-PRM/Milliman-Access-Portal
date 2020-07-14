@@ -609,3 +609,21 @@ export interface FileDropSettings {
 export enum FileDropNotificationTypeEnum {
   FileWritten = 0,
 }
+
+export interface FileDropDirectory {
+  id: Guid;
+  canonicalPath: string;
+  description: string;
+}
+
+export interface FileDropFile {
+  id: Guid;
+  fileName: string;
+  description: string;
+}
+
+export interface FileDropDirectoryContentModel {
+  thisDirectory: FileDropDirectory;
+  directories: FileDropDirectory[];
+  files: FileDropFile[];
+}

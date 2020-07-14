@@ -1,7 +1,7 @@
 import {
-  FileDrop, FileDropClientWithStats, FileDropEvent, FileDropNotificationTypeEnum,
-  FileDropSettings, FileDropsReturnModel, FileDropWithStats, Guid,
-  PermissionGroupsChangesModel, PermissionGroupsReturnModel,
+  FileDrop, FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
+  FileDropNotificationTypeEnum, FileDropSettings, FileDropsReturnModel, FileDropWithStats,
+  Guid, PermissionGroupsChangesModel, PermissionGroupsReturnModel,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -400,6 +400,30 @@ export interface SetFileDropNotificationSettingFailed {
   error: TSError;
 }
 
+
+/**
+ * GET:
+ *   Folder contents for the requested File Drop
+ */
+export interface FetchFolderContents {
+  type: 'FETCH_FOLDER_CONTENTS';
+  request: {
+    fileDropId: Guid;
+    canonicalPath: string;
+  };
+}
+/** Action called upon successful return of the FetchFolderContents API call */
+export interface FetchFolderContentsSucceeded {
+  type: 'FETCH_FOLDER_CONTENTS_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the FetchFolderContents API call */
+export interface FetchFolderContentsFailed {
+  type: 'FETCH_FOLDER_CONTENTS_FAILED';
+  error: TSError;
+}
+
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -524,6 +548,7 @@ export type FileDropRequestActions =
   | FetchSettings
   | GenerateNewSftpPassword
   | SetFileDropNotificationSetting
+  | FetchFolderContents
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -541,6 +566,7 @@ export type FileDropSuccessResponseActions =
   | FetchSettingsSucceeded
   | GenerateNewSftpPasswordSucceeded
   | SetFileDropNotificationSettingSucceeded
+  | FetchFolderContentsSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -558,6 +584,7 @@ export type FileDropErrorActions =
   | FetchSettingsFailed
   | GenerateNewSftpPasswordFailed
   | SetFileDropNotificationSettingFailed
+  | FetchFolderContentsFailed
   ;
 
 /** Actions that set filter text */

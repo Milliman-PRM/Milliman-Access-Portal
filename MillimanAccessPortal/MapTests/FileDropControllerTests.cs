@@ -369,5 +369,48 @@ namespace MapTests
                 #endregion
             }
         }
+
+        [Theory]
+        [InlineData("user8", 99, "/", "The requested file drop was not found")] // file drop not found
+        [InlineData("user1", 1, "/BogusPath", "The requested folder was not found")] // user authorized, bad path
+        public async Task GetFolderContents_Invalid(string userName, int fileDropUidSeed, string canonicalPath, string partialWarningHeader)
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(fileDropUidSeed), canonicalPath);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<StatusCodeResult>(response);
+                Assert.Equal(422, result.StatusCode);
+                Assert.Contains(controller.Response.Headers, h => h.Key == "Warning" && h.Value.Any(v => v.Contains(partialWarningHeader)));
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task GetFolderContents_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(1), "/");
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(response);
+                #endregion
+            }
+        }
+
     }
 }
