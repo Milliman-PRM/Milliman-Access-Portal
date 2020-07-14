@@ -443,12 +443,12 @@ const selected = createReducer<State.FileDropSelectedState>(
     CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
       ...state,
       fileDrop: (action.response.currentFileDropId) ? action.response.currentFileDropId : null,
-      fileDropFilder: null,
+      fileDropFolder: null,
     }),
     CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
-      fileDropFilder: null,
+      fileDropFolder: null,
     }),
     DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
       ...state,
