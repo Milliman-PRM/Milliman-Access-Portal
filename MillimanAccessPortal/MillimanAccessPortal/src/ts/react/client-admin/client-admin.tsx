@@ -170,6 +170,72 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
+                <div className="form-section">
+                  <h4 className="form-section-title">Security Information</h4>
+                  <div className="form-input-container">
+                    <div className="form-input form-input-selectized flex-item-12-12">
+                      <label className="form-input-selectized-title">
+                        Approved Email Domain List <span id="email-domain-limit-label" />
+                      </label>
+                      <div>
+                        <input asp-for="AcceptedEmailDomainList" className="selectize-custom-input" />
+                      </div>
+                    </div>
+                    <div className="form-input form-input-selectized flex-item-12-12">
+                      <label className="form-input-selectized-title">Approved Email Address Exception List</label>
+                      <div>
+                        <input asp-for="AcceptedEmailAddressExceptionList" className="selectize-custom-input" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="form-section">
+                  <h4 className="form-section-title">Billing Information</h4>
+                  <div className="form-input-container">
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
+                      <div>
+                        <input asp-for="ConsultantName" />
+                        <span asp-validation-for="ConsultantName" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
+                      <div>
+                        <input asp-for="ConsultantEmail" />
+                        <span asp-validation-for="ConsultantEmail" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
+                      <div>
+                        <input asp-for="ConsultantOffice" />
+                        <span asp-validation-for="ConsultantOffice" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-dropdown flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
+                      <div>
+                        <select asp-for="ProfitCenterId">
+                          <option value="">Make a Selection</option>
+                        </select>
+                        <span asp-validation-for="ProfitCenterId" className="text-danger" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </form>
           </div>
