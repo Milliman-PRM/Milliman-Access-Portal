@@ -38,6 +38,27 @@ export interface ClientWithStats extends Client {
 export interface ClientWithEligibleUsers extends ClientWithStats {
   eligibleUsers: Guid[];
 }
+export interface ClientDetail {
+  acceptedEmailAddressExceptionList: string[];
+  acceptedEmailDomainList: string[];
+  clientCode: string;
+  consultantEmail: string;
+  consultantName: string;
+  consultantOffice: string;
+  contactEmail: string;
+  contactName: string;
+  contactPhone: string;
+  contactTitle: string;
+  domainListCountLimit: number;
+  id: Guid;
+  name: string;
+  newUserWelcomeText: string;
+  parentClient: string;
+  parentClientId: Guid;
+  profitCenter: ProfitCenter;
+  profitCenterId: Guid;
+}
+
 export interface RootContentItem {
   id: Guid;
   clientId?: Guid;

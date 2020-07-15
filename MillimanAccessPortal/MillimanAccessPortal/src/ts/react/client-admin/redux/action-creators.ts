@@ -4,7 +4,7 @@
 import * as AccessActions from './actions';
 
 // Page actions
-export const selectClients =
+export const selectClient =
   createActionCreator<AccessActions.SelectClient>('SELECT_CLIENT');
 
 // Filter actions

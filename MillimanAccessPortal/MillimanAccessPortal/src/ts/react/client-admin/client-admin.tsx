@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import * as AccessActionCreators from './redux/action-creators';
 import { AccessState, AccessStateFilters, AccessStateSelected } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats } from '../models';
+import { ClientDetail, ClientWithEligibleUsers, ClientWithStats } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
@@ -17,6 +17,7 @@ import { clientEntities } from './redux/selectors';
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider';
 interface ClientAdminProps {
   clients: ClientEntity[];
+  details: ClientDetail;
   selected: AccessStateSelected;
   filters: AccessStateFilters;
 }
@@ -34,13 +35,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       <>
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
-        {this.renderClientDetail()}
+        {this.props.selected.client !== null ? this.renderClientDetail() : null}
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients, filters } = this.props;
+    const { clients, selected, filters } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -51,9 +52,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           return (
             <Card
               key={key}
-              selected={false}
+              selected={entity.id === selected.client}
               disabled={false}
-              onSelect={null}
+              onSelect={() => {
+                this.props.fetchClientDetails({ clientId: entity.id });
+                this.props.selectClient({ id: entity.id });
+              }}
               indentation={entity.indent}
             >
               <CardSectionMain>
@@ -91,6 +95,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
+    const { details } = this.props;
     return (
       <>
         <div
@@ -114,7 +119,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
-                        <input asp-for="Name" />
+                        <input placeholder={details.name} />
                         <span asp-validation-for="Name" className="text-danger" />
                       </div>
                     </div>
@@ -250,6 +255,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
 
   return {
     clients: clientEntities(state),
+    details: data.details,
     selected,
     filters,
   };

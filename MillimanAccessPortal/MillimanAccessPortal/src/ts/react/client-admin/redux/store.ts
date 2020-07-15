@@ -5,7 +5,7 @@ import createSagaMiddleware from 'redux-saga';
 import { clientAdmin } from './reducers';
 import sagas from './sagas';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid } from '../../models';
+import { ClientDetail, ClientWithEligibleUsers, ClientWithStats, Guid } from '../../models';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 
 /**
@@ -13,6 +13,7 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
  */
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
+  details: ClientDetail;
 }
 
 export interface AccessStateSelected {

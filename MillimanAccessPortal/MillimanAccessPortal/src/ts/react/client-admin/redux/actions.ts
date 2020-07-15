@@ -1,5 +1,5 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, ClientWithStats, User, Guid } from "../../models";
+import { ClientWithEligibleUsers, ClientWithStats, User, Guid, ClientDetail } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { fetchClientDetails } from "./action-creators";
 
@@ -53,7 +53,9 @@ export interface FetchClientDetails {
 }
 export interface FetchClientDetailsSucceeded {
   type: 'FETCH_CLIENT_DETAILS_SUCCEEDED';
-  response: {};
+  response: {
+    clientEntity: ClientDetail; 
+  };
 }
 export interface FetchClientDetailsFailed {
   type: 'FETCH_CLIENT_DETAILS_FAILED';
