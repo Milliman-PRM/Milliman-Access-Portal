@@ -9,7 +9,15 @@ import {
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
+import { UploadState } from '../../../upload/Redux/store';
 import sagas from './sagas';
+
+interface FileDropUploadState extends UploadState {
+  clientId: Guid;
+  fileDropId: Guid;
+  folderId: Guid;
+  canceled: boolean;
+}
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Define State Objects
@@ -69,6 +77,7 @@ export interface FileDropPendingState {
   permissionGroupsTab: PermissionGroupsReturnModel;
   permissionGroupsEditMode: boolean;
   afterFormModal: AfterFormModal;
+  uploads: Dict<FileDropUploadState>;
 }
 
 /** State representing user-selected entities */
