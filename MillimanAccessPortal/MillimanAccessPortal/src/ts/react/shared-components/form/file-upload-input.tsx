@@ -6,6 +6,7 @@ import '../../../../images/icons/upload.svg';
 
 import * as React from 'react';
 import { resumableOptions } from '../../../lib-options';
+import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../../models';
 import { StatusMonitor } from '../../../status-monitor';
 import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
@@ -16,31 +17,6 @@ import { ButtonSpinner } from '../button-spinner';
 import forge = require('node-forge');
 import { Guid } from '../../models';
 const resumable = require('resumablejs');
-
-export enum FileUploadStatus {
-  InProgress = 0,
-  Complete = 1,
-  Error = 2,
-}
-
-interface ResumableInfo {
-  ChunkNumber: number;
-  TotalChunks: number;
-  ChunkSize: number;
-  TotalSize: number;
-  FileName: string;
-  UID: string;
-  Checksum: string;
-  Type: string;
-}
-
-interface FileUpload {
-  id: string;
-  initiatedDateTimeUtc: string;
-  clientFileIdentifier: string;
-  status: FileUploadStatus;
-  statusMessage: string;
-}
 
 interface FileUploadInputProps {
   fileExtensions: string[];
