@@ -4,7 +4,9 @@ import '../../../../images/icons/cancel.svg';
 import '../../../../images/icons/delete.svg';
 import '../../../../images/icons/upload.svg';
 
+import forge = require('node-forge');
 import * as React from 'react';
+
 import { resumableOptions } from '../../../lib-options';
 import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../../models';
 import { StatusMonitor } from '../../../status-monitor';
@@ -14,8 +16,6 @@ import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monit
 import { UploadState } from '../../../upload/Redux/store';
 import { ButtonSpinner } from '../button-spinner';
 
-import forge = require('node-forge');
-import { Guid } from '../../models';
 const resumable = require('resumablejs');
 
 interface FileUploadInputProps {
