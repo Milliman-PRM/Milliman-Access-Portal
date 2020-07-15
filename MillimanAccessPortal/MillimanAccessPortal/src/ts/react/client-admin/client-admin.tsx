@@ -2,7 +2,7 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
-import { AccessState, AccessStateFilters } from './redux/store';
+import { AccessState, AccessStateFilters, AccessStateSelected } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
@@ -17,6 +17,7 @@ import { clientEntities } from './redux/selectors';
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider';
 interface ClientAdminProps {
   clients: ClientEntity[];
+  selected: AccessStateSelected;
   filters: AccessStateFilters;
 }
 
@@ -33,6 +34,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       <>
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
+        {this.renderClientDetail()}
       </>
     );
   }
@@ -51,9 +53,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               key={key}
               selected={false}
               disabled={false}
-              onSelect={() => {
-                this.props.fetchClientDetails({ clientId: entity.id });
-              }}
+              onSelect={null}
               indentation={entity.indent}
             >
               <CardSectionMain>
@@ -89,13 +89,102 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       </CardPanel>
     );
   }
+
+  private renderClientDetail() {
+    return (
+      <>
+        <div
+          id="client-info"
+          className="admin-panel-container flex-item-12-12
+                     flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
+        >
+          <h3 className="admin-panel-header">Client Information</h3>
+          <div className="admin-panel-toolbar">
+            <div className="admin-panel-action-icons-container" />
+          </div>
+          <div className="admin-panel-content-container">
+            <form className="admin-panel-content form-disabled">
+              <div className="form-section-container">
+                <div className="form-section">
+                  <h4 className="form-section-title">Client Information</h4>
+                  <div className="form-input-container">
+                    <div
+                      className="form-input form-input-text
+                                 flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12"
+                    >
+                      <label className="form-input-text-title">Client Name *</label>
+                      <div>
+                        <input asp-for="Name" />
+                        <span asp-validation-for="Name" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-3-12"
+                    >
+                      <label className="form-input-text-title">Client Code</label>
+                      <div>
+                        <input asp-for="ClientCode" />
+                        <span asp-validation-for="ClientCode" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-text-title">Primary Client Contact</label>
+                      <div>
+                        <input asp-for="ContactName" />
+                        <span asp-validation-for="ContactName" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-6-12"
+                    >
+                      <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
+                      <div>
+                        <input asp-for="ContactTitle" />
+                        <span asp-validation-for="ContactTitle" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-9-12"
+                    >
+                      <label className="form-input-text-title">Client Contact Email</label>
+                      <div>
+                        <input asp-for="ContactEmail" />
+                        <span asp-validation-for="ContactEmail" className="text-danger" />
+                      </div>
+                    </div>
+                    <div
+                      className="form-input form-input-text flex-item-for-phone-only-12-12
+                                 flex-item-for-tablet-up-3-12"
+                    >
+                      <label className="form-input-text-title">Client Contact Phone</label>
+                      <div>
+                        <input asp-for="ContactPhone" />
+                        <span asp-validation-for="ContactPhone" className="text-danger" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </>
+    );
+  }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, filters } = state;
+  const { data, selected, filters } = state;
 
   return {
     clients: clientEntities(state),
+    selected,
     filters,
   };
 }
