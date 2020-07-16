@@ -120,7 +120,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
-                        <input placeholder={details.clientName} />
+                        <input placeholder={details.clientName} disabled={true} />
                         <span asp-validation-for="Name" className="text-danger" />
                       </div>
                     </div>
@@ -130,7 +130,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Code</label>
                       <div>
-                        <input placeholder={details.clientCode} />
+                        <input placeholder={details.clientCode} disabled={true} />
                         <span asp-validation-for="ClientCode" className="text-danger" />
                       </div>
                     </div>
@@ -140,7 +140,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input placeholder={details.clientContactName} />
+                        <input placeholder={details.clientContactName} disabled={true} />
                         <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
@@ -150,7 +150,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
                       <div>
-                        <input asp-for="ContactTitle" />
+                        <input asp-for="ContactTitle" disabled={true} />
                         <span asp-validation-for="ContactTitle" className="text-danger" />
                       </div>
                     </div>
@@ -160,7 +160,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input placeholder={details.clientContactEmail} />
+                        <input placeholder={details.clientContactEmail} disabled={true} />
                         <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
@@ -170,7 +170,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input placeholder={details.clientContactPhone} />
+                        <input placeholder={details.clientContactPhone} disabled={true}/>
                         <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
@@ -187,6 +187,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <input
                           className="selectize-custom-input"
                           placeholder={details.acceptedEmailDomainList.join(', ')}
+                          disabled={true}
                         />
                       </div>
                     </div>
@@ -196,6 +197,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <input
                           className="selectize-custom-input"
                           placeholder={details.acceptedEmailAddressExceptionList.join(', ')}
+                          disabled={true}
                         />
                       </div>
                     </div>
@@ -210,7 +212,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
-                        <input placeholder={details.consultantName} />
+                        <input placeholder={details.consultantName} disabled={true} />
                         <span asp-validation-for="ConsultantName" className="text-danger" />
                       </div>
                     </div>
@@ -220,7 +222,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
-                        <input asp-for={details.consultantEmail} />
+                        <input asp-for={details.consultantEmail} disabled={true} />
                         <span asp-validation-for="ConsultantEmail" className="text-danger" />
                       </div>
                     </div>
@@ -230,7 +232,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input placeholder={details.office} />
+                        <input placeholder={details.office} disabled={true} />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
@@ -240,7 +242,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
-                        <select asp-for="ProfitCenterId">
+                        <select asp-for="ProfitCenterId" disabled={true}>
                           <option value="">Make a Selection</option>
                           <option>{details.profitCenter}</option>
                         </select>
