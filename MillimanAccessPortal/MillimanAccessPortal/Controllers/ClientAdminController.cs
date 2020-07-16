@@ -32,6 +32,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.SystemAdmin;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -151,9 +152,8 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ClientAdmin/ClientDetail
-        // Intended for access by ajax from Index view
         /// <summary>
-        /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
+        /// Returns details for the requested Client.
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
@@ -186,10 +186,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            // TODO Ditch this
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
             await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
-            return Json(Model);
+            return Json((ClientDetail) ThisClient);
         }
 
         // POST: ClientAdmin/SaveNewUser

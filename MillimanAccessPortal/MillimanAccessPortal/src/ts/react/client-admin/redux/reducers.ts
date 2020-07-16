@@ -6,11 +6,24 @@ import { AccessStateData, AccessStateSelected } from './store';
 
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { FilterState } from '../../shared-components/redux/store';
-import { ClientDetail } from '../../system-admin/interfaces';
 
 const _initialData: AccessStateData = {
   clients: {},
-  details: {} as ClientDetail,
+  details: {
+    id: null,
+    clientName: '',
+    clientCode: '',
+    clientContactName: '',
+    clientContactEmail: '',
+    clientContactPhone: '',
+    domainListCountLimit: 0,
+    acceptedEmailDomainList: [],
+    acceptedEmailAddressExceptionList: [],
+    profitCenter: '',
+    office: '',
+    consultantName: '',
+    consultantEmail: '',
+  },
 };
 
 const _initialSelected: AccessStateSelected = {
@@ -33,7 +46,7 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
-    details: action.response.clientEntity,
+    details: action.response,
   }),
 });
 

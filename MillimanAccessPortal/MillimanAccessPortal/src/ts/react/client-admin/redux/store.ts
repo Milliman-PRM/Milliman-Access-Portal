@@ -5,8 +5,9 @@ import createSagaMiddleware from 'redux-saga';
 import { clientAdmin } from './reducers';
 import sagas from './sagas';
 
-import { ClientDetail, ClientWithEligibleUsers, ClientWithStats, Guid } from '../../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid } from '../../models';
 import { Dict, FilterState } from '../../shared-components/redux/store';
+import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
  * Entity data returned from the server.

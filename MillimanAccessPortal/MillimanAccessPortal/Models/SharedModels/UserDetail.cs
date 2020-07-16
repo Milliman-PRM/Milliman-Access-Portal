@@ -7,7 +7,7 @@
 using MapDbContextLib.Identity;
 using System;
 
-namespace MillimanAccessPortal.Models.SystemAdmin
+namespace MillimanAccessPortal.Models.SharedModels
 {
     public class UserDetail
     {
