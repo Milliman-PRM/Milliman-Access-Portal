@@ -228,7 +228,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     if (nextProps.browseRef && nextProps.browseRef.length > 0) {
       this.resumable.assignBrowse(nextProps.browseRef.map((ref) => ref.current), false);
     }
-    if (nextProps.dragRef.current && nextProps.dragRef.current !== null) {
+    if (nextProps.dragRef && nextProps.dragRef.current) {
       this.resumable.assignDrop(nextProps.dragRef.current);
     }
   }
