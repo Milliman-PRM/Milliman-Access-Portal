@@ -494,6 +494,16 @@ export interface ScheduleSessionCheck {
   delay: number;
 }
 
+// ~~~~~~~~~~~~~~~~~~~
+// File Upload Actions
+// ~~~~~~~~~~~~~~~~~~~
+
+/* Intitialize the first File Upload object after page load */
+export interface IntitializeFirstUploadObject {
+  type: 'INITIALIZE_FIRST_UPLOAD_OBJECT';
+}
+
+
 // ~~~~~~~~~~~~~
 // Action Unions
 // ~~~~~~~~~~~~~
@@ -525,6 +535,7 @@ export type FileDropPageActions =
   | OpenModifiedFormModal
   | CloseModifiedFormModal
   | ClosePasswordNotificationModal
+  | IntitializeFirstUploadObject
   ;
 
 /** Actions that schedule another action */

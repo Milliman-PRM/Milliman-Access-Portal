@@ -5,6 +5,7 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
+import { generateUniqueId } from '../../../generate-unique-identifier';
 import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -405,6 +406,28 @@ const afterFormModal = createReducer<State.AfterFormModal>(_initialAfterFormModa
   CLOSE_MODIFIED_FORM_MODAL: () => _initialAfterFormModal,
 });
 
+const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
+  INITIALIZE_FIRST_UPLOAD_OBJECT: (state) => {
+    if (Object.keys(state).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          clientId: null,
+          fileDropId: null,
+          folderId: null,
+          cancelable: false,
+          canceled: false,
+          checksumProgress: null,
+          uploadProgress: null,
+          errorMsg: null,
+        },
+      };
+    } else {
+      return {};
+    }
+  },
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -416,6 +439,7 @@ const pending = combineReducers({
   permissionGroupsTab,
   permissionGroupsEditMode,
   afterFormModal,
+  uploads: pendingUploads,
 });
 
 // ~~~~~~~~~~~~~~~~

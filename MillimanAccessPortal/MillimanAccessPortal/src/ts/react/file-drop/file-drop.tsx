@@ -69,7 +69,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   public componentDidMount() {
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
-
+    this.props.initializeFirstUploadObject({});
     this.props.fetchClients({});
   }
 
