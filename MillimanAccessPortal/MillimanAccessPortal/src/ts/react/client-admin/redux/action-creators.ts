@@ -6,10 +6,14 @@ import * as AccessActions from './actions';
 // Page actions
 export const selectClient =
   createActionCreator<AccessActions.SelectClient>('SELECT_CLIENT');
+export const selectUser =
+  createActionCreator<AccessActions.SelectUser>('SELECT_USER');
 
 // Filter actions
 export const setFilterTextClient =
   createActionCreator<AccessActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
+export const setFilterTextUser =
+  createActionCreator<AccessActions.SetFilterTextUser>('SET_FILTER_TEXT_USER');
 
 // Data fetches
 export const fetchClients =

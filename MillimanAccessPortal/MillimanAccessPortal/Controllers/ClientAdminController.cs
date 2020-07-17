@@ -186,11 +186,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            // TODO Ditch this
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
             await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
-            return Json((ClientDetail) ThisClient);
+            return Json(Model);
         }
 
         // POST: ClientAdmin/SaveNewUser

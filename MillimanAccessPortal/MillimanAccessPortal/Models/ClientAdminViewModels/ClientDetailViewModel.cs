@@ -15,6 +15,7 @@ using MapCommonLib;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MillimanAccessPortal.DataQueries;
+using MillimanAccessPortal.Models.SharedModels;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
@@ -86,6 +87,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     public class ClientDetailViewModel
     {
         public Client ClientEntity { get; set; }
+        public ClientDetail ClientDetail { get; set; }
         public List<UserInfoModel> EligibleUsers { get; set; } = new List<UserInfoModel>();
         public List<UserInfoModel> AssignedUsers { get; set; } = new List<UserInfoModel>();
         public List<RootContentItem> ContentItems { get; set; } = new List<RootContentItem>();
@@ -99,6 +101,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 throw new MapException("ClientDetailViewModel.GenerateSupportingProperties called with no ClientEntity set");
             }
             #endregion
+
+            this.ClientDetail = (ClientDetail) ClientEntity;
 
             ClientEntity.ParentClient = null;
 

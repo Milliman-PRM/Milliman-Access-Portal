@@ -8,7 +8,7 @@ using MapDbContextLib.Context;
 using System;
 using System.Collections.Generic;
 
-namespace MillimanAccessPortal.Models.SystemAdmin
+namespace MillimanAccessPortal.Models.SharedModels
 {
     public class ClientDetail
     {

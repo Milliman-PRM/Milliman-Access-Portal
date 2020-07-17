@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import * as AccessActionCreators from './redux/action-creators';
 import { AccessState, AccessStateFilters, AccessStateSelected } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, User } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
@@ -19,6 +19,7 @@ type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 |
 interface ClientAdminProps {
   clients: ClientEntity[];
   details: ClientDetail;
+  assignedUsers: User[];
   selected: AccessStateSelected;
   filters: AccessStateFilters;
 }
@@ -37,6 +38,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ? this.renderClientDetail() : null}
+        {this.props.selected.client !== null ? this.renderClientUsers() : null}
       </>
     );
   }
@@ -258,6 +260,45 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       </>
     );
   }
+
+  private renderClientUsers() {
+    const { assignedUsers, selected, filters } = this.props;
+    return (
+      <>
+        <CardPanel
+          entities={assignedUsers}
+          renderEntity={(entity, key) => {
+            return (
+              <Card
+                key={key}
+                selected={entity.id === selected.user}
+                disabled={false}
+                onSelect={() => {
+                  this.props.selectUser({ id: entity.id });
+                }}
+              >
+                <CardSectionMain>
+                  <CardText text={entity.firstName} subtext={entity.userName} />
+                </CardSectionMain>
+              </Card>
+            );
+          }}
+        >
+          <h3 className="admin-panel-header">Client Users</h3>
+          <PanelSectionToolbar>
+            <Filter
+              placeholderText={'Filter users...'}
+              setFilterText={(text) => this.props.setFilterTextUser({ text })}
+              filterText={filters.user.text}
+            />
+            <PanelSectionToolbarButtons>
+              <div id="icons" />
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
+        </CardPanel>
+      </>
+    );
+  }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
@@ -266,6 +307,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
   return {
     clients: clientEntities(state),
     details: data.details,
+    assignedUsers: data.assignedUsers,
     selected,
     filters,
   };

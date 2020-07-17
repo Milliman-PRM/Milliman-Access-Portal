@@ -14,10 +14,18 @@ export interface SelectClient {
   type: 'SELECT_CLIENT';
   id: Guid;
 }
+export interface SelectUser {
+  type: 'SELECT_USER';
+  id: Guid;
+}
 
 // ~ Filter Actions ~
 export interface SetFilterTextClient {
   type: 'SET_FILTER_TEXT_CLIENT';
+  text: string;
+}
+export interface SetFilterTextUser {
+  type: 'SET_FILTER_TEXT_USER';
   text: string;
 }
 
@@ -54,7 +62,10 @@ export interface FetchClientDetails {
 }
 export interface FetchClientDetailsSucceeded {
   type: 'FETCH_CLIENT_DETAILS_SUCCEEDED';
-  response: ClientDetail;
+  response: {
+    clientDetail: ClientDetail;
+    assignedUsers: User[];
+  };
 }
 export interface FetchClientDetailsFailed {
   type: 'FETCH_CLIENT_DETAILS_FAILED';
@@ -65,7 +76,8 @@ export interface FetchClientDetailsFailed {
  * An action that sets filter text for a card column.
  */
 export type FilterAccessAction =
-  | SetFilterTextClient;
+  | SetFilterTextClient
+  | SetFilterTextUser;
 
 /**
  * An action that makes an Ajax request.
@@ -80,7 +92,8 @@ export type ResponseAccessAction =
 
 export type PageAccessAction =
   | SelectClient
-  | SetFilterTextClient;
+  | SelectUser
+  | FilterAccessAction;
 
 export type AccessAction =
   | PageAccessAction

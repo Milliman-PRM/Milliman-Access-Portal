@@ -24,10 +24,12 @@ const _initialData: AccessStateData = {
     consultantName: '',
     consultantEmail: '',
   },
+  assignedUsers: [],
 };
 
 const _initialSelected: AccessStateSelected = {
   client: null,
+  user: null,
 };
 
 /**
@@ -46,13 +48,20 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
-    details: action.response,
+    details: action.response.clientDetail,
+    assignedUsers: action.response.assignedUsers,
   }),
 });
 
 const selected = createReducer<AccessStateSelected>(_initialSelected, {
   SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
+    ...state,
     client: action.id === state.client ? null : action.id,
+    user: null,
+  }),
+  SELECT_USER: (state, action: AccessActions.SelectUser) => ({
+    ...state,
+    user: action.id === state.user ? null : action.id,
   }),
 });
 
@@ -70,6 +79,7 @@ const createFilterReducer = (actionType: FilterAccessAction['type']) =>
 
 const filters = combineReducers({
   client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
+  user: createFilterReducer('SET_FILTER_TEXT_USER'),
 });
 
 export const clientAdmin = combineReducers({
