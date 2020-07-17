@@ -789,8 +789,9 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        [HttpGet]
-        public async Task<IActionResult> ProcessUploadedFile(ProcessUploadedFileModel requestModel)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ProcessUploadedFile([FromBody] ProcessUploadedFileModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
             FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
