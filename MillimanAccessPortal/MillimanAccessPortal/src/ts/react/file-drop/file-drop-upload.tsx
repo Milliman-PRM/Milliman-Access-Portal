@@ -11,16 +11,16 @@ import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../models';
 const resumable = require('resumablejs');
 
 interface FileDropUploadProps {
+  uploadId: string;
   clientId: Guid;
   fileDropId: Guid;
   folderId: Guid;
-  uploadId: string;
   canceled: boolean;
   dragRef?: React.RefObject<HTMLElement>;
-  browseRef?: React.RefObject<HTMLElement>[];
+  browseRef?: Array<React.RefObject<HTMLElement>>;
   beginUpload: (uploadId: string, fileName: string, clientId: Guid, fileDropId: Guid, folderId: Guid) => void;
   cancelFileUpload: (uploadId: string) => void;
-  finalizeUpload: (uploadId: string) => void;
+  finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -54,8 +54,8 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     }));
 
     // Hook up the file upload input
-    this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
-    this.resumable.assignDrop(this.props.dragRef.current);
+    // this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
+    // this.resumable.assignDrop(this.props.dragRef.current);
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
@@ -71,7 +71,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
 
       // Send the filename to the Redux store
       this.props.beginUpload(
-        this.props.uploadId, file.name, this.props.clientId, this.props.fileDropId, this.props.folderId
+        this.props.uploadId, file.name, this.props.clientId, this.props.fileDropId, this.props.folderId,
       );
 
       // Begin the process of creating a checksum and monitoring the progress
@@ -144,7 +144,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
                 if (!this.canceled) {
-                  this.props.finalizeUpload(this.props.uploadId);
+                  // this.props.finalizeUpload(this.props.uploadId);
                 }
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
@@ -222,9 +222,15 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     if (nextProps.canceled === true) {
       this.resumable.cancel();
     }
+    if (nextProps.browseRef && nextProps.browseRef.length > 0) {
+      this.resumable.assignBrowse(nextProps.browseRef.map((ref) => ref.current), false);
+    }
+    if (nextProps.dragRef.current && nextProps.dragRef.current !== null) {
+      this.resumable.assignDrop(nextProps.dragRef.current);
+    }
   }
 
   public render() {
-    return <div />
+    return <div />;
   }
 }
