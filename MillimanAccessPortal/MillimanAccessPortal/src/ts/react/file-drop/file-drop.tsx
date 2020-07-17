@@ -40,6 +40,7 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { FileDropUpload } from './file-drop-upload';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -63,8 +64,17 @@ interface FileDropProps {
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
+  protected dragUploadRef: React.RefObject<HTMLDivElement>;
+  protected browseUploadRef: React.RefObject<HTMLDivElement>;
+
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
+  constructor(props: FileDropProps & typeof FileDropActionCreator) {
+    super(props);
+    this.dragUploadRef = React.createRef();
+    this.browseUploadRef = React.createRef();
+  }
 
   public componentDidMount() {
     this.props.scheduleStatusRefresh({ delay: 0 });
@@ -81,6 +91,36 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     return (
       <>
+        {
+          Object.keys(pending.uploads).map((upload) => {
+            const uploadObject = pending.uploads[upload];
+            return (
+              <FileDropUpload
+                key={upload}
+                uploadId={upload}
+                clientId={uploadObject.clientId}
+                fileDropId={uploadObject.fileDropId}
+                folderId={uploadObject.folderId}
+                canceled={uploadObject.canceled}
+                dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
+                browseRef={[]}
+                // browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
+                beginUpload={(uploadId, fileName) =>
+                  this.props.beginFileUpload({ uploadId, fileName })}
+                cancelFileUpload={(uploadId) =>
+                  this.props.cancelFileUpload({ uploadId })}
+                finalizeUpload={(uploadId, fileName, Guid) =>
+                  this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                setUploadError={(uploadId, errorMsg) =>
+                  this.props.setUploadError({ uploadId, errorMsg })}
+                updateChecksumProgress={(uploadId, progress) =>
+                  this.props.updateChecksumProgress({ uploadId, progress })}
+                updateUploadProgress={(uploadId, progress) =>
+                  this.props.updateUploadProgress({ uploadId, progress })}
+              />
+            );
+          })
+        }
         <ReduxToastr
           timeOut={5000}
           newestOnTop={false}
@@ -803,7 +843,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div className="files-table-container" />
+          <div className="files-table-container" ref={this.dragUploadRef} />
         </ContentPanelSectionContent>
       </>
     );
