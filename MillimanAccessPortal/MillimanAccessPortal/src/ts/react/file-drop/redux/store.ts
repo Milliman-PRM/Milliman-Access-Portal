@@ -12,7 +12,7 @@ import { Dict, FilterState, ModalState } from '../../shared-components/redux/sto
 import { fileDropReducerState } from './reducers';
 import sagas from './sagas';
 
-interface FileDropUploadState extends UploadState {
+export interface FileDropUploadState extends UploadState {
   clientId: Guid;
   fileDropId: Guid;
   folderId: Guid;
