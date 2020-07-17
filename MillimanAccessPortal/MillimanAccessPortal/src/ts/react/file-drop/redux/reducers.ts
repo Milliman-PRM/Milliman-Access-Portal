@@ -6,6 +6,9 @@ import * as Action from './actions';
 import * as State from './store';
 
 import { generateUniqueId } from '../../../generate-unique-identifier';
+import { ProgressSummary } from '../../../upload/progress-monitor';
+import * as UploadActions from '../../../upload/Redux/actions';
+import { PublicationStatus } from '../../../view-models/content-publishing';
 import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -426,6 +429,51 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       return {};
     }
   },
+  BEGIN_FILE_DROP_FILE_UPLOAD: (state, action: Action.BeginFileDropFileUpload) => {
+    const uniqueId = generateUniqueId('FileDropUpload');
+    return {
+      ...state,
+      [action.uploadId]: {
+        ...state[action.uploadId],
+        clientId: action.clientId,
+        fileDropId: action.fileDropId,
+        folderId: action.folderId,
+        fileName: action.fileName,
+        cancelable: true,
+      },
+      [uniqueId]: {
+        clientId: null,
+        fileDropId: null,
+        folderId: null,
+        cancelable: false,
+        canceled: false,
+        checksumProgress: null,
+        uploadProgress: null,
+        errorMsg: null,
+      },
+    };
+  },
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      checksumProgress: action.progress,
+    },
+  }),
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      uploadProgress: action.progress,
+    },
+  }),
+  SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      errorMsg: action.errorMsg,
+    },
+  }),
 });
 
 /** Reducer that combines the pending reducers */
