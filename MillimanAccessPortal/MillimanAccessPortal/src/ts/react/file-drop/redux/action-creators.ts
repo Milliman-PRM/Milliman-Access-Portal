@@ -1,3 +1,4 @@
+import * as UploadActionCreators from '../../../upload/Redux/action-creators';
 import * as Action from './actions';
 
 import { createActionCreator, createRequestActionCreator } from '../../shared-components/redux/action-creators';
@@ -185,3 +186,20 @@ export const scheduleSessionCheck =
 /** Fetch a session check from the server */
 export const fetchSessionCheck =
   createRequestActionCreator<Action.FetchSessionCheck>('FETCH_SESSION_CHECK');
+
+// ~~~~~~~~~~~~~~~~~~~
+// File Upload Actions
+// ~~~~~~~~~~~~~~~~~~~
+
+/** Initialize the first upload object when the page first loads */
+export const initializeFirstUploadObject =
+  createActionCreator<Action.IntitializeFirstUploadObject>('INITIALIZE_FIRST_UPLOAD_OBJECT');
+
+// Upload Action Creators
+export const beginFileUpload = UploadActionCreators.beginFileUpload;
+export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
+export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
+export const setUploadCancelable = UploadActionCreators.setUploadCancelable;
+export const setUploadError = UploadActionCreators.setUploadError;
+export const cancelFileUpload = UploadActionCreators.cancelFileUpload;
+export const finalizeUpload = UploadActionCreators.finalizeUpload;
