@@ -1,3 +1,4 @@
+import { PageUploadAction } from '../../../upload/Redux/actions';
 import {
   FileDrop, FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
   FileDropNotificationTypeEnum, FileDropSettings, FileDropsReturnModel, FileDropWithStats,
@@ -545,6 +546,7 @@ export type FileDropPageActions =
   | CloseModifiedFormModal
   | ClosePasswordNotificationModal
   | IntitializeFirstUploadObject
+  | BeginFileDropFileUpload
   ;
 
 /** Actions that schedule another action */
@@ -620,6 +622,7 @@ export type FileDropActions =
   | FileDropSuccessResponseActions
   | FileDropErrorActions
   | FilterActions
+  | PageUploadAction
   ;
 
 /** An action that opens a modal */
