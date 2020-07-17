@@ -98,9 +98,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <FileDropUpload
                 key={upload}
                 uploadId={upload}
-                clientId={uploadObject.clientId}
-                fileDropId={uploadObject.fileDropId}
-                folderId={uploadObject.folderId}
+                clientId={uploadObject.clientId || selected.client}
+                fileDropId={uploadObject.fileDropId || selected.fileDrop}
+                folderId={uploadObject.folderId || selected.fileDropFolder}
                 canceled={uploadObject.canceled}
                 dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
                 browseRef={[]}
