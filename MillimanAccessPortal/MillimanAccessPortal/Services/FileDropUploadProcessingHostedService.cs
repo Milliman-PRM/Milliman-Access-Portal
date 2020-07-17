@@ -26,16 +26,13 @@ namespace MillimanAccessPortal.Services
         protected ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
         private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
         private readonly IServiceProvider _services;
-        private readonly FileUploadController _fileUploadController;
 
-        internal FileDropUploadProcessingHostedService(
+        public FileDropUploadProcessingHostedService(
             IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg,
-            IServiceProvider servicesArg,
-            FileUploadController fileUploadControllerArg)
+            IServiceProvider servicesArg)
         {
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
             _services = servicesArg;
-            _fileUploadController = fileUploadControllerArg;
         }
 
         protected override Task ExecuteAsync(CancellationToken cancelToken)
@@ -87,7 +84,7 @@ namespace MillimanAccessPortal.Services
                 if (uploadRecord.Status != FileUploadStatus.Complete)
                 {
                     _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
-                    await _fileUploadController.RemoveUploadedFile(uploadRecord.Id);
+                    await RemoveFileUpload(uploadRecord);
 
                     return;
                 }
@@ -122,7 +119,7 @@ namespace MillimanAccessPortal.Services
                     return;
                 }
 
-                bool removeUploadSuccess = await _fileUploadController.RemoveUploadedFile(uploadRecord.Id);
+                bool removeUploadSuccess = await RemoveFileUpload(uploadRecord);
 
                 if (removeUploadSuccess)
                 {
@@ -130,6 +127,30 @@ namespace MillimanAccessPortal.Services
                 }
             }
 
+        }
+
+        private async Task<bool> RemoveFileUpload(FileUpload fileUploadRecord)
+        {
+            if (fileUploadRecord == null || fileUploadRecord.Status == FileUploadStatus.InProgress)
+            {
+                return false;
+            }
+
+            try
+            {
+                using (var scope = _services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    dbContext.FileUpload.Remove(fileUploadRecord);
+                    FileSystemUtil.DeleteFileWithRetry(fileUploadRecord.StoragePath);
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
