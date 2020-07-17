@@ -195,8 +195,10 @@ export const fetchSessionCheck =
 export const initializeFirstUploadObject =
   createActionCreator<Action.IntitializeFirstUploadObject>('INITIALIZE_FIRST_UPLOAD_OBJECT');
 
+export const beginFileDropFileUpload =
+  createActionCreator<Action.BeginFileDropFileUpload>('BEGIN_FILE_DROP_FILE_UPLOAD');
+
 // Upload Action Creators
-export const beginFileUpload = UploadActionCreators.beginFileUpload;
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
 export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
 export const setUploadCancelable = UploadActionCreators.setUploadCancelable;

@@ -503,6 +503,15 @@ export interface IntitializeFirstUploadObject {
   type: 'INITIALIZE_FIRST_UPLOAD_OBJECT';
 }
 
+export interface BeginFileDropFileUpload {
+  type: 'BEGIN_FILE_DROP_FILE_UPLOAD';
+  uploadId: string;
+  clientId: Guid;
+  fileDropId: Guid;
+  folderId: Guid;
+  fileName: string;
+}
+
 
 // ~~~~~~~~~~~~~
 // Action Unions

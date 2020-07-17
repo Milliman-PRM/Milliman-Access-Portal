@@ -19,7 +19,7 @@ interface FileDropUploadProps {
   canceled: boolean;
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: Array<React.RefObject<HTMLElement>>;
-  beginUpload: (uploadId: string, fileName: string, clientId: Guid, fileDropId: Guid, folderId: Guid) => void;
+  beginUpload: (uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeUpload: (uploadId: string, fileName: string, Guid: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
@@ -68,12 +68,12 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       if (!await sniffer.extensionMatchesInitialBytes()) {
         this.props.setUploadError(this.props.uploadId, 'File contents do not match extension.');
         return false;
+        this.props.beginUpload(
+          this.props.uploadId, this.props.clientId, this.props.fileDropId, this.props.folderId, file.name,
+        );
       }
 
       // Send the filename to the Redux store
-      this.props.beginUpload(
-        this.props.uploadId, file.name, this.props.clientId, this.props.fileDropId, this.props.folderId,
-      );
 
       // Begin the process of creating a checksum and monitoring the progress
       const messageDigest = forge.md.sha1.create();
