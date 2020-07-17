@@ -35,8 +35,10 @@ namespace MillimanAccessPortal.Services
             _services = servicesArg;
         }
 
-        protected override Task ExecuteAsync(CancellationToken cancelToken)
+        protected async override Task ExecuteAsync(CancellationToken cancelToken)
         {
+            await Task.Yield();
+
             while (!cancelToken.IsCancellationRequested)
             {
                 // Clean up completed items
@@ -56,8 +58,6 @@ namespace MillimanAccessPortal.Services
                     _runningTasks.TryAdd(taskKvp.Key, processingTask);
                 }
             }
-
-            return Task.CompletedTask;
         }
 
         private async Task ProcessOneUploadAsync(KeyValuePair<Guid, FileDropUploadTask> taskKvp)
