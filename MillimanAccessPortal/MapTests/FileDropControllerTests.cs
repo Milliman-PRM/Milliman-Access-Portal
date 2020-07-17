@@ -40,7 +40,8 @@ namespace MapTests
                 TestResources.FileDropQueries,
                 TestResources.FileSystemTasks,
                 TestResources.UserManager,
-                TestResources.Configuration);
+                TestResources.Configuration,
+                TestResources.FileDropUploadTaskTracker);
 
             try
             {

@@ -373,6 +373,8 @@ namespace MillimanAccessPortal
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddHostedService<QueuedReductionPostProcessingHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
+            services.AddHostedService<FileDropUploadProcessingHostedService>();
+            services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
             services.AddScoped<FileSystemTasks>();
 
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();

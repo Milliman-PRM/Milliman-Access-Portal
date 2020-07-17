@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -35,6 +36,7 @@ namespace MillimanAccessPortal.DataQueries
         private readonly UserQueries _userQueries;
         private readonly IConfiguration _appConfig;
         private readonly IAuditLogger _auditLog;
+        private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
 
         public FileDropQueries(
             ApplicationDbContext dbContextArg,
@@ -42,7 +44,9 @@ namespace MillimanAccessPortal.DataQueries
             HierarchyQueries hierarchyQueries,
             UserQueries userQueries,
             IConfiguration configuration,
-            IAuditLogger auditLog)
+            IAuditLogger auditLog,
+            IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg
+            )
         {
             _dbContext = dbContextArg;
             _clientQueries = clientQueries;
@@ -50,6 +54,7 @@ namespace MillimanAccessPortal.DataQueries
             _userQueries = userQueries;
             _appConfig = configuration;
             _auditLog = auditLog;
+            _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
         }
 
         /// <summary>
@@ -600,6 +605,27 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             return returnModel;
+        }
+
+        internal async Task<FileDropUploadTaskStatus> GetUploadTaskStatusAsync(Guid taskId, Guid fileDropId)
+        {
+            FileDropUploadTask requestedTask = _fileDropUploadTaskTracker.GetExistingTask(taskId);
+
+            if (requestedTask == null)
+            {
+                Log.Information($"GetUploadTaskStatusAsync: requested task with Id {taskId} not found, returning status {FileDropUploadTaskStatus.Unknown}");
+                return FileDropUploadTaskStatus.Unknown;
+            }
+
+            FileDropDirectory directory = await _dbContext.FileDropDirectory.FindAsync(requestedTask.FileDropDirectoryId);
+
+            if (directory.FileDropId != fileDropId)
+            {
+                Log.Warning($"GetUploadTaskStatusAsync: requested task with Id {taskId} does not relate to requested FileDrop {fileDropId}");
+                throw new ApplicationException("An error was encountered.");  // Don't want to be too clear about this
+            }
+
+            return requestedTask.Status;
         }
     }
 }

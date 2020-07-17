@@ -1,4 +1,10 @@
-﻿using System.IO;
+﻿/*
+ * CODE OWNERS: Tom Puckett
+ * OBJECTIVE: File system utility methods that leverage retry logic upon exceptions
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using System.IO;
 
 namespace MapCommonLib
 {
