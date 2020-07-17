@@ -60,54 +60,56 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
-      this.canceled = false;
-      const file: File = resumableFile.file;
+      if (!this.props.cancelable) {
+        this.canceled = false;
+        const file: File = resumableFile.file;
 
-      // Make sure the file matches the expected magic numbers
-      const sniffer = new FileSniffer(file);
-      if (!await sniffer.extensionMatchesInitialBytes()) {
-        this.props.setUploadError(this.props.uploadId, 'File contents do not match extension.');
-        return false;
+        // Make sure the file matches the expected magic numbers
+        const sniffer = new FileSniffer(file);
+        if (!await sniffer.extensionMatchesInitialBytes()) {
+          this.props.setUploadError(this.props.uploadId, 'File contents do not match extension.');
+          return false;
+        }
+
+        // Send the filename to the Redux store
         this.props.beginUpload(
           this.props.uploadId, this.props.clientId, this.props.fileDropId, this.props.folderId, file.name,
         );
+
+        // Begin the process of creating a checksum and monitoring the progress
+        const messageDigest = forge.md.sha1.create();
+        this.scanner = new FileScanner();
+        this.scanner.open(file);
+        this.progressMonitor = new ProgressMonitor(
+          () => this.scanner.progress,
+          this.props.updateChecksumProgress,
+          this.props.uploadId,
+          file.size,
+        );
+        this.progressMonitor.activate();
+
+        // Wait until the scan process is finished then update the checksum
+        try {
+          await this.scanner.scan(messageDigest.update);
+        } catch {
+          // Upload was canceled
+          return;
+        }
+        this.checksum = messageDigest.digest().toHex();
+        this.resumableFormData = { Checksum: this.checksum };
+
+        // Start the monitor for the upload chunking progress
+        this.progressMonitor = new ProgressMonitor(
+          () => this.resumable.progress(),
+          this.props.updateUploadProgress,
+          this.props.uploadId,
+          file.size,
+        );
+        this.progressMonitor.activate();
+
+        // Begin the upload process
+        this.resumable.upload();
       }
-
-      // Send the filename to the Redux store
-
-      // Begin the process of creating a checksum and monitoring the progress
-      const messageDigest = forge.md.sha1.create();
-      this.scanner = new FileScanner();
-      this.scanner.open(file);
-      this.progressMonitor = new ProgressMonitor(
-        () => this.scanner.progress,
-        this.props.updateChecksumProgress,
-        this.props.uploadId,
-        file.size,
-      );
-      this.progressMonitor.activate();
-
-      // Wait until the scan process is finished then update the checksum
-      try {
-        await this.scanner.scan(messageDigest.update);
-      } catch {
-        // Upload was canceled
-        return;
-      }
-      this.checksum = messageDigest.digest().toHex();
-      this.resumableFormData = { Checksum: this.checksum };
-
-      // Start the monitor for the upload chunking progress
-      this.progressMonitor = new ProgressMonitor(
-        () => this.resumable.progress(),
-        this.props.updateUploadProgress,
-        this.props.uploadId,
-        file.size,
-      );
-      this.progressMonitor.activate();
-
-      // Begin the upload process
-      this.resumable.upload();
     });
 
     // Define the process after a file is successfully uploaded
