@@ -1,12 +1,12 @@
-﻿import * as React from 'react';
-import forge = require('node-forge');
+﻿import forge = require('node-forge');
+import * as React from 'react';
 
-import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../models';
 import { resumableOptions } from '../../lib-options';
 import { StatusMonitor } from '../../status-monitor';
 import { FileScanner } from '../../upload/file-scanner';
 import { FileSniffer } from '../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor';
+import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../models';
 
 const resumable = require('resumablejs');
 

@@ -3,13 +3,13 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
+import { UploadState } from '../../../upload/Redux/store';
 import {
   FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
-import { UploadState } from '../../../upload/Redux/store';
 import sagas from './sagas';
 
 interface FileDropUploadState extends UploadState {

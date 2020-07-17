@@ -8,12 +8,12 @@ import forge = require('node-forge');
 import * as React from 'react';
 
 import { resumableOptions } from '../../../lib-options';
-import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../../models';
 import { StatusMonitor } from '../../../status-monitor';
 import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
 import { UploadState } from '../../../upload/Redux/store';
+import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../../models';
 import { ButtonSpinner } from '../button-spinner';
 
 const resumable = require('resumablejs');
