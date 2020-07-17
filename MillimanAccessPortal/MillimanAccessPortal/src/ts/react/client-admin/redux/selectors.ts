@@ -49,17 +49,13 @@ export function filteredClients(state: AccessState) {
  */
 export function filteredUsers(state: AccessState) {
   const filterTextLower = state.filters.user.text.toLowerCase();
-  const filterFunc = (user: User) => (
-    filterTextLower === ''
-    || (user.name && client.name.toLowerCase().indexOf(filterTextLower) !== -1)
-    || (client.code && client.code.toLowerCase().indexOf(filterTextLower) !== -1)
-  );
-  return clientsTree(state).map(({ parent, children }) => ({
-    parent,
-    children: filterFunc(parent)
-      ? children
-      : children.filter((child) => filterFunc(child)),
-  })).filter(({ parent, children }) => filterFunc(parent) || children.length);
+  const filterFunc = (user: User) => {
+    const userFullName = user.firstName + ' ' + user.lastName;
+    return filterTextLower === ''
+      || (userFullName && userFullName.toLowerCase().indexOf(filterTextLower) !== -1)
+      || (user.userName && user.userName.toLowerCase().indexOf(filterTextLower) !== -1);
+  };
+  return state.data.assignedUsers.filter(filterFunc);
 }
 
 interface ClientWithIndent extends ClientWithStats {

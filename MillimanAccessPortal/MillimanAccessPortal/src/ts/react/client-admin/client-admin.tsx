@@ -13,7 +13,7 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
-import { clientEntities } from './redux/selectors';
+import { activeUsers, clientEntities } from './redux/selectors';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider';
 interface ClientAdminProps {
@@ -278,7 +278,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 }}
               >
                 <CardSectionMain>
-                  <CardText text={entity.firstName} subtext={entity.userName} />
+                  <CardText text={`${entity.firstName} ${entity.lastName}`} subtext={entity.userName} />
                 </CardSectionMain>
               </Card>
             );
@@ -307,7 +307,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
   return {
     clients: clientEntities(state),
     details: data.details,
-    assignedUsers: data.assignedUsers,
+    assignedUsers: activeUsers(state),
     selected,
     filters,
   };
