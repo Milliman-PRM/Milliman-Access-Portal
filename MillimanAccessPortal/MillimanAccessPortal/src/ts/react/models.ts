@@ -11,11 +11,17 @@ export interface User {
   lastName: string;
   userName: string;
   email: string;
+  userRoles?: UserRole[];
 }
 export interface UserFull extends User {
   isLocal: boolean;
   phone: string;
   employer: string;
+}
+export interface UserRole {
+  roleEnum: number;
+  roleDisplayValue: string;
+  isAssigned: boolean;
 }
 export interface ProfitCenter {
   id: Guid;

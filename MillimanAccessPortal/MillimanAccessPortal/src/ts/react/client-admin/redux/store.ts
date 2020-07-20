@@ -6,6 +6,7 @@ import { clientAdmin } from './reducers';
 import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, User } from '../../models';
+import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
@@ -31,9 +32,17 @@ export interface AccessStateFilters {
   user: FilterState;
 }
 
+/**
+ * Card attribute collections.
+ */
+export interface AccessStateCardAttributes {
+  user: Dict<CardAttributes>;
+}
+
 export interface AccessState {
   data: AccessStateData;
   selected: AccessStateSelected;
+  cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
 }
 

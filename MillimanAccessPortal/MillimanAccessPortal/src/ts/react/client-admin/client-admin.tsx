@@ -2,15 +2,17 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
-import { AccessState, AccessStateFilters, AccessStateSelected } from './redux/store';
+import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateSelected } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, User } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
+import { CardExpansion } from '../shared-components/card/card-expansion';
 import { CardSectionMain, CardSectionStats, CardText } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
+import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 import { activeUsers, clientEntities } from './redux/selectors';
@@ -22,6 +24,7 @@ interface ClientAdminProps {
   assignedUsers: User[];
   selected: AccessStateSelected;
   filters: AccessStateFilters;
+  cardAttributes: AccessStateCardAttributes;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -262,24 +265,65 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, filters } = this.props;
+    const { assignedUsers, selected, cardAttributes, filters } = this.props;
     return (
       <>
         <CardPanel
           entities={assignedUsers}
           renderEntity={(entity, key) => {
+            const card = cardAttributes.user[entity.id];
             return (
               <Card
                 key={key}
-                selected={entity.id === selected.user}
                 disabled={false}
                 onSelect={() => {
                   this.props.selectUser({ id: entity.id });
+                  (card && card.expanded) ?
+                    this.props.setCollapsedUser({ id: entity.id }) :
+                    this.props.setExpandedUser({ id: entity.id });
                 }}
               >
                 <CardSectionMain>
                   <CardText text={`${entity.firstName} ${entity.lastName}`} subtext={entity.userName} />
                 </CardSectionMain>
+                <CardExpansion
+                  label={'User roles'}
+                  expanded={card && card.expanded}
+                  setExpanded={(value) => value
+                    ? this.props.setExpandedUser({ id: entity.id })
+                    : this.props.setCollapsedUser({ id: entity.id })}
+                >
+                  <Toggle
+                    label={'Client Admin'}
+                    checked={entity.userRoles[0].isAssigned}
+                    onClick={null}
+                  />
+                  <Toggle
+                    label={'Content Access Admin'}
+                    checked={entity.userRoles[1].isAssigned}
+                    onClick={null}
+                  />
+                  <Toggle
+                    label={'Content Publisher'}
+                    checked={entity.userRoles[2].isAssigned}
+                    onClick={null}
+                  />
+                  <Toggle
+                    label={'Content User'}
+                    checked={entity.userRoles[3].isAssigned}
+                    onClick={null}
+                  />
+                  <Toggle
+                    label={'File Drop Admin'}
+                    checked={entity.userRoles[4].isAssigned}
+                    onClick={null}
+                  />
+                  <Toggle
+                    label={'File Drop User'}
+                    checked={entity.userRoles[5].isAssigned}
+                    onClick={null}
+                  />
+                </CardExpansion>
               </Card>
             );
           }}
@@ -302,11 +346,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, filters } = state;
+  const { data, selected, cardAttributes, filters } = state;
 
   return {
     clients: clientEntities(state),
     details: data.details,
+    cardAttributes,
     assignedUsers: activeUsers(state),
     selected,
     filters,

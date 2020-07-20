@@ -19,6 +19,36 @@ export interface SelectUser {
   id: Guid;
 }
 
+/**
+ * Expand the user card specified by id.
+ */
+export interface SetExpandedUser {
+  type: 'SET_EXPANDED_USER';
+  id: Guid;
+}
+
+/**
+ * Collapse the user card specified by id.
+ */
+export interface SetCollapsedUser {
+  type: 'SET_COLLAPSED_USER';
+  id: Guid;
+}
+
+/**
+ * Expand all user cards.
+ */
+export interface SetAllExpandedUser {
+  type: 'SET_ALL_EXPANDED_USER';
+}
+
+/**
+ * Collapse all user cards.
+ */
+export interface SetAllCollapsedUser {
+  type: 'SET_ALL_COLLAPSED_USER';
+}
+
 // ~ Filter Actions ~
 export interface SetFilterTextClient {
   type: 'SET_FILTER_TEXT_CLIENT';
@@ -93,6 +123,10 @@ export type ResponseAccessAction =
 export type PageAccessAction =
   | SelectClient
   | SelectUser
+  | SetCollapsedUser
+  | SetExpandedUser
+  | SetAllCollapsedUser
+  | SetAllExpandedUser
   | FilterAccessAction;
 
 export type AccessAction =

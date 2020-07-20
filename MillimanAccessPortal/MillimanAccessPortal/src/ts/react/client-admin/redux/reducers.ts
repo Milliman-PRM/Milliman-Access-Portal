@@ -1,11 +1,14 @@
-﻿import { combineReducers } from 'redux';
+﻿import * as _ from 'lodash';
+
+import { combineReducers } from 'redux';
 
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
 import { AccessStateData, AccessStateSelected } from './store';
 
+import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState } from '../../shared-components/redux/store';
 
 const _initialData: AccessStateData = {
   clients: {},
@@ -65,6 +68,33 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
   }),
 });
 
+const userCardAttributes = createReducer<Dict<CardAttributes>>({},
+  {
+    SET_EXPANDED_USER: (state, action: AccessActions.SetExpandedUser) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+      },
+    }),
+    SET_COLLAPSED_USER: (state, action: AccessActions.SetCollapsedUser) => ({
+      ...state,
+      [action.id]: {
+        expanded: false,
+      },
+    }),
+    SET_ALL_EXPANDED_USER: (state) =>
+      _.mapValues(state, (group) => ({
+        ...group,
+        expanded: true,
+      })),
+    SET_ALL_COLLAPSED_USER: (state) =>
+      _.mapValues(state, (group) => ({
+        ...group,
+        expanded: false,
+      })),
+  },
+);
+
 /**
  * Create a reducer for a filter
  * @param actionType Single filter action
@@ -77,6 +107,9 @@ const createFilterReducer = (actionType: FilterAccessAction['type']) =>
     }),
   });
 
+const cardAttributes = combineReducers({
+  user: userCardAttributes,
+});
 const filters = combineReducers({
   client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
   user: createFilterReducer('SET_FILTER_TEXT_USER'),
@@ -84,6 +117,7 @@ const filters = combineReducers({
 
 export const clientAdmin = combineReducers({
   data,
+  cardAttributes,
   selected,
   filters,
 });
