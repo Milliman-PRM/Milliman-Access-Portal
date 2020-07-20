@@ -245,6 +245,9 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     if (nextProps.dragRef && nextProps.dragRef.current) {
       this.resumable.assignDrop(nextProps.dragRef.current);
     }
+    if (nextProps.canceled) {
+      this.resumable.cancel();
+    }
   }
 
   public render() {
