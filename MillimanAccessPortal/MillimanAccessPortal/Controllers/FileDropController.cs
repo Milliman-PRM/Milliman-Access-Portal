@@ -819,12 +819,20 @@ namespace MillimanAccessPortal.Controllers
                                                   .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                   .SingleOrDefaultAsync();
 
-            FileDropDirectory directory = await _dbContext.FileDropDirectory.FindAsync(requestModel.FileDropDirectoryId);
+            FileDropDirectory directory = await _dbContext.FileDropDirectory.Include(d => d.Files).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropDirectoryId);
             #region Validation
             if (directory == null || directory.FileDropId != requestModel.FileDropId)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropDirectory with requested Id {requestModel.FileDropDirectoryId} does not belong to FileDrop with requested Id {requestModel.FileDropId}");
                 Response.Headers.Add("Warning", "Error completing the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (directory.Files.Select(f => f.FileName).Contains(requestModel.FileName, StringComparer.InvariantCultureIgnoreCase))
+            {
+                // file already exists
+                await _fileDropUploadTaskTracker.RemoveFileUploadAsync(requestModel.FileUploadId);
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} file name {requestModel.FileName} already exists in the directory");
+                Response.Headers.Add("Warning", "An invalid file name was requested.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -840,7 +848,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // This is where the asynchronous task gets queued
-            Guid taskId = _fileDropUploadTaskTracker.RequestUploadProcessing(requestModel);
+            Guid taskId = _fileDropUploadTaskTracker.RequestUploadProcessing(requestModel, account);
 
             return Json(taskId);
         }
