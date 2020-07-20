@@ -634,6 +634,16 @@ export enum FileUploadStatus {
   Error = 2,
 }
 
+export enum FileDropUploadTaskStatus {
+  Unknown = 0,
+  Requested = 1,
+  FinalizingUpload = 2,
+  ValidatingFile = 3,
+  Copying = 4,
+  Completed = 5,
+  Error = 6,
+}
+
 export interface ResumableInfo {
   ChunkNumber: number;
   TotalChunks: number;
@@ -649,6 +659,6 @@ export interface FileUpload {
   id: string;
   initiatedDateTimeUtc: string;
   clientFileIdentifier: string;
-  status: FileUploadStatus;
+  status: FileUploadStatus | FileDropUploadTaskStatus;
   statusMessage: string;
 }
