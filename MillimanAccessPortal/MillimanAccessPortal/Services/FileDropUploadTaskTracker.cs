@@ -70,11 +70,10 @@ namespace MillimanAccessPortal.Services
         {
             FileDropUploadTask newTask = new FileDropUploadTask(requestModel, FileDropUploadTaskStatus.Requested);
 
-            Guid newId = Guid.NewGuid();
-            _taskDict.AddOrUpdate(newId, newTask, /*impossible*/ (k, v) => throw new ApplicationException("Key already exists while adding FileDropUploadTask to ConcurrentDictionary"));
+            _taskDict.AddOrUpdate(requestModel.FileUploadId, newTask, /*impossible*/ (k, v) => throw new ApplicationException("Key already exists while adding FileDropUploadTask to ConcurrentDictionary"));
             _signal.Set();
 
-            return newId;
+            return requestModel.FileUploadId;
         }
 
         /// <summary>
