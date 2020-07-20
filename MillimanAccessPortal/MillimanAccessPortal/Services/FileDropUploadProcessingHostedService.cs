@@ -18,6 +18,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Serilog;
 using MillimanAccessPortal.Controllers;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Services
 {
@@ -26,13 +27,16 @@ namespace MillimanAccessPortal.Services
         protected ConcurrentDictionary<Guid, Task> _runningTasks = new ConcurrentDictionary<Guid, Task>();
         private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
         private readonly IServiceProvider _services;
+        private readonly IConfiguration _appConfig;
 
         public FileDropUploadProcessingHostedService(
             IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg,
-            IServiceProvider servicesArg)
+            IServiceProvider servicesArg,
+            IConfiguration configArg)
         {
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
             _services = servicesArg;
+            _appConfig = configArg;
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancelToken)
@@ -62,55 +66,70 @@ namespace MillimanAccessPortal.Services
 
         private async Task ProcessOneUploadAsync(KeyValuePair<Guid, FileDropUploadTask> taskKvp)
         {
-            while (taskKvp.Value.Status == FileDropUploadTaskStatus.ValidatingFile)
-            {
-
-            }
+            DateTime stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
 
             using (var scope = _services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                var uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
+                FileUpload uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
 
-                // Wait for uploaded file chunks to be reassembled
-                while (uploadRecord.Status == FileUploadStatus.InProgress && DateTime.UtcNow - uploadRecord.InitiatedDateTimeUtc < TimeSpan.FromSeconds(60))
+                Log.Debug("FileDrop upload task transitioning to FinalizingUpload status");
+                _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.FinalizingUpload);
+                while (uploadRecord.Status == FileUploadStatus.InProgress)
                 {
+                    if (DateTime.UtcNow > stopWaitingAtUtc)
+                    {
+                        _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
+                        await _fileDropUploadTaskTracker.RemoveFileUploadAsync(taskKvp.Key);
+                        return;
+                    }
+                    await Task.Delay(1000);
                     dbContext.Entry(uploadRecord).State = EntityState.Detached;
-                    await Task.Delay(2000);
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
 
-                if (uploadRecord.Status != FileUploadStatus.Complete)
-                {
-                    _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
-                    await RemoveFileUpload(uploadRecord);
-
-                    return;
-                }
-
+                Log.Debug("FileDrop upload task transitioning to ValidatingFile status");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.ValidatingFile);
-
+                stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
                 while (!uploadRecord.VirusScanWindowComplete)
                 {
+                    if (DateTime.UtcNow > stopWaitingAtUtc)
+                    {
+                        _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
+                        await _fileDropUploadTaskTracker.RemoveFileUploadAsync(taskKvp.Key);
+                        return;
+                    }
+                    await Task.Delay(1000);
                     dbContext.Entry(uploadRecord).State = EntityState.Detached;
-                    await Task.Delay(2000);
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
+
+                Log.Debug("FileDrop upload task transitioning to Copying status");
+                _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Copying);
 
                 var destinationDirectoryRecord = await dbContext.FileDropDirectory
                                                                 .Include(d => d.FileDrop)
                                                                 .SingleOrDefaultAsync(d => d.Id == taskKvp.Value.FileDropDirectoryId);
 
-                string targetFullPath = Path.Combine(destinationDirectoryRecord.FileDrop.RootPath, 
+                string targetFullPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), 
+                                                     destinationDirectoryRecord.FileDrop.RootPath, 
                                                      destinationDirectoryRecord.CanonicalFileDropPath.TrimStart('/'), 
                                                      taskKvp.Value.FileName);
-
-                _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Copying);
 
                 try
                 {
                     FileSystemUtil.CopyFileWithRetry(uploadRecord.StoragePath, targetFullPath, false);
+                    FileDropFile newFileRecord = new FileDropFile
+                    {
+                        FileName = taskKvp.Value.FileName,
+                        DirectoryId = destinationDirectoryRecord.Id,
+                        CreatedByAccountId = taskKvp.Value.Account.Id,
+                    };
+
+                    dbContext.FileDropFile.Add(newFileRecord);
+                    await dbContext.SaveChangesAsync();
+                    Log.Information($"ProcessOneUploadAsync success processing uploaded file from {uploadRecord.StoragePath} to {targetFullPath}");
                 }
                 catch (Exception ex)
                 {
@@ -119,7 +138,7 @@ namespace MillimanAccessPortal.Services
                     return;
                 }
 
-                bool removeUploadSuccess = await RemoveFileUpload(uploadRecord);
+                bool removeUploadSuccess = await _fileDropUploadTaskTracker.RemoveFileUploadAsync(uploadRecord);
 
                 if (removeUploadSuccess)
                 {
@@ -127,30 +146,6 @@ namespace MillimanAccessPortal.Services
                 }
             }
 
-        }
-
-        private async Task<bool> RemoveFileUpload(FileUpload fileUploadRecord)
-        {
-            if (fileUploadRecord == null || fileUploadRecord.Status == FileUploadStatus.InProgress)
-            {
-                return false;
-            }
-
-            try
-            {
-                using (var scope = _services.CreateScope())
-                {
-                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    dbContext.FileUpload.Remove(fileUploadRecord);
-                    FileSystemUtil.DeleteFileWithRetry(fileUploadRecord.StoragePath);
-                    await dbContext.SaveChangesAsync();
-                    return true;
-                }
-            }
-            catch
-            {
-                return false;
-            }
         }
     }
 }

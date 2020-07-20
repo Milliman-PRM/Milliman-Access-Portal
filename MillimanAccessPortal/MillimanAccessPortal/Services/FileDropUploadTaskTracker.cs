@@ -4,6 +4,9 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
+using MapDbContextLib.Context;
+using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.Models.FileDropModels;
 using System;
 using System.Collections;
@@ -39,18 +42,21 @@ namespace MillimanAccessPortal.Services
 
         internal string FileName { get; set; }
 
-        internal FileDropUploadTask(ProcessUploadedFileModel requestModel, FileDropUploadTaskStatus status)
+        internal SftpAccount Account { get; set; }
+
+        internal FileDropUploadTask(ProcessUploadedFileModel requestModel, FileDropUploadTaskStatus status, SftpAccount account)
         {
             FileUploadId = requestModel.FileUploadId;
             FileDropDirectoryId = requestModel.FileDropDirectoryId;
             FileName = requestModel.FileName;
             Status = status;
+            Account = account;
         }
     }
 
     public interface IFileDropUploadTaskTracker
     {
-        Guid RequestUploadProcessing(ProcessUploadedFileModel requestModel);
+        Guid RequestUploadProcessing(ProcessUploadedFileModel requestModel, SftpAccount requestingAccount);
 
         FileDropUploadTask GetExistingTask(Guid taskId);
 
@@ -59,18 +65,28 @@ namespace MillimanAccessPortal.Services
         bool RemoveExistingTask(Guid taskId);
 
         void UpdateTaskStatus(Guid taskId, FileDropUploadTaskStatus status, DateTime? completionTimeUtc = null);
+
+        Task<bool> RemoveFileUploadAsync(Guid fileUploadId);
+        Task<bool> RemoveFileUploadAsync(FileUpload fileUploadRecord);
     }
 
     public class FileDropUploadTaskTracker : IFileDropUploadTaskTracker
     {
         private ConcurrentDictionary<Guid, FileDropUploadTask> _taskDict = new ConcurrentDictionary<Guid, FileDropUploadTask>();
         private AutoResetEvent _signal = new AutoResetEvent(false);
+        private readonly IServiceProvider _services;
 
-        public Guid RequestUploadProcessing(ProcessUploadedFileModel requestModel)
+        public FileDropUploadTaskTracker(
+            IServiceProvider servicesArg)
         {
-            FileDropUploadTask newTask = new FileDropUploadTask(requestModel, FileDropUploadTaskStatus.Requested);
+            _services = servicesArg;
+        }
 
-            _taskDict.AddOrUpdate(requestModel.FileUploadId, newTask, /*impossible*/ (k, v) => throw new ApplicationException("Key already exists while adding FileDropUploadTask to ConcurrentDictionary"));
+        public Guid RequestUploadProcessing(ProcessUploadedFileModel requestModel, SftpAccount requestingAccount)
+        {
+            FileDropUploadTask newTask = new FileDropUploadTask(requestModel, FileDropUploadTaskStatus.Requested, requestingAccount);
+
+            _taskDict.AddOrUpdate(requestModel.FileUploadId, newTask, (k, v) => throw new ApplicationException("Key already exists while adding FileDropUploadTask to ConcurrentDictionary"));
             _signal.Set();
 
             return requestModel.FileUploadId;
@@ -112,6 +128,40 @@ namespace MillimanAccessPortal.Services
         {
             _taskDict.TryGetValue(taskId, out FileDropUploadTask task);
             return task;
+        }
+
+        public async Task<bool> RemoveFileUploadAsync(Guid fileUploadId)
+        {
+            using (var scope = _services.CreateScope())
+            {
+                var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var record = await dbContext.FileUpload.FindAsync(fileUploadId);
+                return await RemoveFileUploadAsync(record);
+            }
+        }
+
+        public async Task<bool> RemoveFileUploadAsync(FileUpload fileUploadRecord)
+        {
+            if (fileUploadRecord == null || fileUploadRecord.Status == FileUploadStatus.InProgress)
+            {
+                return false;
+            }
+
+            try
+            {
+                using (var scope = _services.CreateScope())
+                {
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    dbContext.FileUpload.Remove(fileUploadRecord);
+                    FileSystemUtil.DeleteFileWithRetry(fileUploadRecord.StoragePath);
+                    await dbContext.SaveChangesAsync();
+                    return true;
+                }
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }
