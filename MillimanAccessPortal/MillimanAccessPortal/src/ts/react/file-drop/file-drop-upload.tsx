@@ -140,9 +140,23 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       })
         .then((response) => response.json())
         .then((fileGUID: string) => {
+          // Move the file to the File Drop
+          fetch('FileDrop/ProcessUploadedFile', {
+            method: 'POST',
+            headers: Object.assign({}, this.resumableHeaders, {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json',
+            }),
+            body: JSON.stringify({
+              fileUploadId: fileGUID,
+              fileDropId: this.props.fileDropId,
+              fileDropDirectoryId: this.props.folderId,
+              fileName: resumableFile.fileName,
+            }),
+          });
           // Start a monitor that polls for status of asynchronous backend data finalization
           this.statusMonitor = new StatusMonitor<{}>(
-            `/FileUpload/FinalizeUpload?fileUploadId=${fileGUID}`,
+            `/FileDrop/GetFileUploadStatus?taskId=${fileGUID}&FileDropId=${this.props.fileDropId}`,
             (fileUpload: FileUpload) => {
               if (fileUpload.status === FileUploadStatus.Complete) {
                 this.progressMonitor.deactivate();
