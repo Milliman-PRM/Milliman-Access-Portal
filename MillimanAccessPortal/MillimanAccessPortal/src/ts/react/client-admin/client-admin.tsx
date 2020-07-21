@@ -5,11 +5,15 @@ import * as AccessActionCreators from './redux/action-creators';
 import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateSelected } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, User } from '../models';
+import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
+import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
-import { CardSectionMain, CardSectionStats, CardText } from '../shared-components/card/card-sections';
+import {
+  CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
+} from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/form/toggle';
@@ -80,6 +84,23 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon={'reports'}
                   />
                 </CardSectionStats>
+                <CardSectionButtons>
+                  <CardButton
+                    icon="delete"
+                    color={'red'}
+                    onClick={null}
+                  />
+                  <CardButton
+                    icon="edit"
+                    color={'blue'}
+                    onClick={null}
+                  />
+                  <CardButton
+                    icon="add"
+                    color={'green'}
+                    onClick={null}
+                  />
+                </CardSectionButtons>
               </CardSectionMain>
             </Card>
           );
@@ -93,7 +114,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
-            <div id="icons" />
+            <ActionIcon
+              label="Add or create a new client"
+              icon="add"
+              action={() => false}
+            />
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
       </CardPanel>
@@ -273,6 +298,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
+                <div className="form-submission-section">
+                  <div className="button-container button-container-new">
+                    <button type="button" className="button-reset link-button">Reset Form</button>
+                    <button type="button" className="button-submit green-button">Create Client</button>
+                  </div>
+                  <div className="button-container button-container-edit">
+                    <button type="button" className="button-reset link-button">Discard Changes</button>
+                    <button type="button" className="button-submit blue-button">Save Changes</button>
+                  </div>
+                </div>
               </div>
             </form>
           </div>
@@ -303,6 +338,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               >
                 <CardSectionMain>
                   <CardText text={`${entity.firstName} ${entity.lastName}`} subtext={entity.userName} />
+                  <CardSectionButtons>
+                    <CardButton
+                      icon="remove-circle"
+                      color={'red'}
+                      onClick={null}
+                    />
+                  </CardSectionButtons>
                 </CardSectionMain>
                 <CardExpansion
                   label={'User roles'}
@@ -354,7 +396,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               filterText={filters.user.text}
             />
             <PanelSectionToolbarButtons>
-              <div id="icons" />
+              <PanelSectionToolbarButtons>
+                <ActionIcon
+                  label="Expand all user cards"
+                  icon="expand-cards"
+                  action={() => false}
+                />
+                <ActionIcon
+                  label="Add or create a new client"
+                  icon="add"
+                  action={() => false}
+                />
+              </PanelSectionToolbarButtons>
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
         </CardPanel>
