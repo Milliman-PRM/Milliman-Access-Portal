@@ -256,6 +256,23 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
+                <div className="form-section">
+                  <h4 className="form-section-title">New User Welcome Text</h4>
+                  <div className="form-input-container">
+                    <div className="form-input-container form-input form-input-nullable-textarea content-item-flex-1">
+                      <div className="switch-container flex-item-for-phone-only-12-12 content-item-flex-none">
+                        <Toggle
+                          label={'Custom Welcome Text'}
+                          checked={false}
+                          onClick={null}
+                        />
+                      </div>
+                      <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
+                        <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </form>
           </div>
@@ -275,6 +292,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             return (
               <Card
                 key={key}
+                selected={false}
                 disabled={false}
                 onSelect={() => {
                   this.props.selectUser({ id: entity.id });
