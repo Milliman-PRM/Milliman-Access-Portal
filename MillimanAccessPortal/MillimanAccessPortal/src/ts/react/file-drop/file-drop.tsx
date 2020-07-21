@@ -105,7 +105,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 canceled={uploadObject.canceled}
                 dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
                 browseRef={[]}
-                // browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
+                browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
                 beginUpload={(uploadId, clientId, fileDropId, folderId, fileName) =>
                   this.props.beginFileDropFileUpload({ uploadId, clientId, fileDropId, folderId, fileName })}
                 cancelFileUpload={(uploadId) =>
@@ -832,11 +832,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={() => false}
             filterText={''}
           />
-          <ActionIcon
-            label="Add Folder"
-            icon="add"
-            action={() => false}
-          />
+          <div ref={this.browseUploadRef}>
+            <ActionIcon
+              label="Add Folder"
+              icon="add"
+              action={() => false}
+            />
+          </div>
           <ActionIcon
             label="Add File"
             icon="add"
