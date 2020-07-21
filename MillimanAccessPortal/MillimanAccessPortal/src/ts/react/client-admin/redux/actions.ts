@@ -3,6 +3,7 @@ import { ClientWithEligibleUsers, ClientWithStats, User, Guid } from "../../mode
 import { TSError } from "../../shared-components/redux/actions";
 import { fetchClientDetails } from "./action-creators";
 import { ClientDetail } from "../../system-admin/interfaces";
+import { RoleEnum } from "../../shared-components/interfaces";
 
 // ~ Page Actions ~
 
@@ -102,6 +103,24 @@ export interface FetchClientDetailsFailed {
   error: TSError;
 }
 
+export interface SetUserRoleInClient {
+  type: 'SET_USER_ROLE_IN_CLIENT';
+  request: {
+    clientId: Guid;
+    isAssigned: boolean;
+    roleEnum: RoleEnum;
+    userId: Guid;
+  };
+}
+export interface SetUserRoleInClientSucceeded {
+  type: 'SET_USER_ROLE_IN_CLIENT_SUCCEEDED';
+  response: {};
+}
+export interface SetUserRoleInClientFailed {
+  type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
+  error: TSError;
+}
+
 /**
  * An action that sets filter text for a card column.
  */
@@ -114,11 +133,13 @@ export type FilterAccessAction =
  */
 export type RequestAccessAction =
   | FetchClients
-  | FetchClientDetails;
+  | FetchClientDetails
+  | SetUserRoleInClient;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
-  | FetchClientDetailsSucceeded;
+  | FetchClientDetailsSucceeded
+  | SetUserRoleInClientSucceeded;
 
 export type PageAccessAction =
   | SelectClient

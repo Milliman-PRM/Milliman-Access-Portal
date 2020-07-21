@@ -356,7 +356,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <Toggle
                     label={'Client Admin'}
                     checked={entity.userRoles[0].isAssigned}
-                    onClick={null}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      this.props.setUserRoleInClient(
+                        {
+                          clientId: selected.client,
+                          isAssigned: !entity.userRoles[0].isAssigned,
+                          roleEnum: entity.userRoles[0].roleEnum,
+                          userId: entity.id,
+                        },
+                      );
+                    }
+                    }
                   />
                   <Toggle
                     label={'Content Access Admin'}
