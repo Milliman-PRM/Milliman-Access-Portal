@@ -151,6 +151,7 @@ namespace MillimanAccessPortal.DataQueries
                     Code = client.Code,
                     ContentItemCount = client.ContentItemCount,
                     UserCount = client.UserCount,
+                    CanManage = client.CanManage,
                 };
 
                 clientWith.EligibleUsers = await _dbContext.UserRoleInClient
@@ -179,7 +180,7 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             var clients = await SelectClientWhereRoleAsync(user, role);
-            var clientsWithStats = await AddCardStatsAsync(clients);
+            var clientsWithStats = await AddCardStatsAsync(clients, role, user.Id);
             var clientsWithEligibleUsers = await WithEligibleUsersAsync(clientsWithStats);
 
             return clientsWithEligibleUsers;
