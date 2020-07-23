@@ -139,49 +139,72 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
         }),
         body: JSON.stringify(finalizeInfo),
       })
-        .then((response) => response.json())
-        .then((fileGUID: string) => {
-          // Move the file to the File Drop
-          fetch('FileDrop/ProcessUploadedFile', {
-            method: 'POST',
-            headers: Object.assign({}, this.resumableHeaders, {
-              'Accept': 'application/json',
-              'Content-Type': 'application/json',
-            }),
-            body: JSON.stringify({
-              fileUploadId: fileGUID,
-              fileDropId: this.props.fileDropId,
-              fileDropDirectoryId: this.props.folderId,
-              fileName: resumableFile.fileName,
-            }),
-          });
-          // Start a monitor that polls for status of asynchronous backend data finalization
-          this.statusMonitor = new StatusMonitor<{}>(
-            `/FileDrop/GetFileUploadStatus?taskId=${fileGUID}&FileDropId=${this.props.fileDropId}`,
-            (fileUpload: FileUpload) => {
-              if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
-                this.progressMonitor.deactivate();
-                if (!this.canceled) {
-                  // this.props.finalizeUpload(this.props.uploadId);
-                }
-                this.statusMonitor.stop();
-              } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
-                this.props.setUploadError(
-                  this.props.uploadId,
-                  fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
-                );
-                this.statusMonitor.stop();
-              }
-            });
-          setTimeout(() => this.statusMonitor.start(), 1000);
-        })
-        .catch((response) => {
+      .then((response) => {
+        if (!response.ok) {
           // Pass back the error message if something failed
           this.props.setUploadError(
             this.props.uploadId,
-            response.getResponseHeader('Warning') || 'Something went wrong during upload. Please try again.',
+            response.headers.get('Warning') || 'Something went wrong during upload. Please try again.',
           );
+          throw response;
+        }
+        return response.json();
+      })
+      .then((fileGUID: string) => {
+        // Move the file to the File Drop
+        return fetch('FileDrop/ProcessUploadedFile', {
+          method: 'POST',
+          headers: Object.assign({}, this.resumableHeaders, {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+          }),
+          body: JSON.stringify({
+            fileUploadId: fileGUID,
+            fileDropId: this.props.fileDropId,
+            fileDropDirectoryId: this.props.folderId,
+            fileName: resumableFile.fileName,
+          }),
         });
+      })
+      .then((response) => {
+        if (!response.ok) {
+          // Pass back the error message if something failed
+          this.props.setUploadError(
+            this.props.uploadId,
+            response.headers.get('Warning') || 'Something went wrong during upload. Please try again.',
+          );
+          throw response;
+        }
+        return response.json();
+      })
+      .then((fileGUID: string) => {
+        // Start a monitor that polls for status of asynchronous backend data finalization
+        this.statusMonitor = new StatusMonitor<{}>(
+          `/FileDrop/GetFileUploadStatus?taskId=${fileGUID}&FileDropId=${this.props.fileDropId}`,
+          (fileUpload: FileUpload) => {
+            if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
+              this.progressMonitor.deactivate();
+              if (!this.canceled) {
+                // this.props.finalizeUpload(this.props.uploadId);
+              }
+              this.statusMonitor.stop();
+            } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
+              this.props.setUploadError(
+                this.props.uploadId,
+                fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
+              );
+              this.statusMonitor.stop();
+            }
+          });
+        setTimeout(() => this.statusMonitor.start(), 1000);
+      })
+      .catch((response) => {
+        // Pass back the error message if something failed
+        this.props.setUploadError(
+          this.props.uploadId,
+          response.headers.get('Warning') || 'Something went wrong during upload. Please try again.',
+        );
+      });
     });
 
     // Define the process if an upload is canceled
