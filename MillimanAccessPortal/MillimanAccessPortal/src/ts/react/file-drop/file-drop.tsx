@@ -110,8 +110,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.beginFileDropFileUpload({ uploadId, clientId, fileDropId, folderId, fileName })}
                 cancelFileUpload={(uploadId) =>
                   this.props.cancelFileUpload({ uploadId })}
-                finalizeUpload={(uploadId, fileName, Guid) =>
-                  this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                finalizeUpload={(uploadId, fileName, guid) =>
+                  this.props.finalizeUpload({ uploadId, fileName, guid })}
                 setUploadError={(uploadId, errorMsg) =>
                   this.props.setUploadError({ uploadId, errorMsg })}
                 updateChecksumProgress={(uploadId, progress) =>
