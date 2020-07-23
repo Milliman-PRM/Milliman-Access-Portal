@@ -92,6 +92,7 @@ namespace MapTests
         public UserQueries UserQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
+        public ClientAdminQueries ClientAdminQueries { get; set; } = default;
         #endregion
 
         #region Transient registered services
@@ -237,6 +238,7 @@ namespace MapTests
             services.AddScoped<PublicationQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<ClientAdminQueries>();
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
@@ -275,6 +277,7 @@ namespace MapTests
             FileSystemTasks = ScopedServiceProvider.GetService<FileSystemTasks>();
             UploadHelper = ScopedServiceProvider.GetService<IUploadHelper>();
             ClientQueries = ScopedServiceProvider.GetService<ClientQueries>();
+            ClientAdminQueries = ScopedServiceProvider.GetService<ClientAdminQueries>();
             ContentItemQueries = ScopedServiceProvider.GetService<ContentItemQueries>();
             HierarchyQueries = ScopedServiceProvider.GetService<HierarchyQueries>();
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();
