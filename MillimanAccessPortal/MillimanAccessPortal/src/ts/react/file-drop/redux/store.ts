@@ -15,6 +15,7 @@ import sagas from './sagas';
 export interface FileDropUploadState extends UploadState {
   clientId: Guid;
   fileDropId: Guid;
+  fileName: string;
   folderId: Guid;
   canceled: boolean;
 }

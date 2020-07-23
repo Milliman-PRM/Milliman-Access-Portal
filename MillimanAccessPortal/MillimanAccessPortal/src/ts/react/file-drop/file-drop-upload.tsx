@@ -14,6 +14,7 @@ interface FileDropUploadProps {
   uploadId: string;
   clientId: Guid;
   fileDropId: Guid;
+  fileName: string;
   folderId: Guid;
   cancelable: boolean;
   canceled: boolean;
