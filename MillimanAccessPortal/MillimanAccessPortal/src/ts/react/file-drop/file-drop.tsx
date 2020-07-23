@@ -19,6 +19,7 @@ import {
   FileDropEvent,
   FileDropNotificationTypeEnum,
   FileDropWithStats,
+  Guid,
   PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
@@ -28,6 +29,7 @@ import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
+import { CardExpansion } from '../shared-components/card/card-expansion';
 import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -598,6 +600,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           null
         );
     };
+    const activeUploads = (fileDropId: Guid) => {
+      return Object.keys(pending.uploads)
+        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId)
+        .map((uploadId) => <div key={uploadId}>{pending.uploads[uploadId].fileName}</div>);
+    };
 
     return Selector.activeSelectedClient && (
       <>
@@ -700,6 +707,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </CardSectionButtons>
                   }
                 </CardSectionMain>
+                {
+                  activeUploads(entity.id).length > 0 &&
+                  <CardExpansion expanded={true}>
+                    {activeUploads(entity.id)}
+                  </CardExpansion>
+                }
               </Card>
             );
           }}
