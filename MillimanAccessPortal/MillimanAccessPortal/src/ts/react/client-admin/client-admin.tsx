@@ -4,7 +4,7 @@ import { connect } from 'react-redux';
 import * as AccessActionCreators from './redux/action-creators';
 import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateSelected } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats, User } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -337,7 +337,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 }}
               >
                 <CardSectionMain>
-                  <CardText text={`${entity.firstName} ${entity.lastName}`} subtext={entity.userName} />
+                  <CardText
+                    text={
+                      entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
+                    subtext={entity.firstName && entity.lastName ? entity.email : ''}
+                  />
                   <CardSectionButtons>
                     <CardButton
                       icon="remove-circle"
@@ -356,43 +360,32 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <Toggle
                     label={'Client Admin'}
                     checked={entity.userRoles[0].isAssigned}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      this.props.setUserRoleInClient(
-                        {
-                          clientId: selected.client,
-                          isAssigned: !entity.userRoles[0].isAssigned,
-                          roleEnum: entity.userRoles[0].roleEnum,
-                          userId: entity.id,
-                        },
-                      );
-                    }
-                    }
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[0], selected.client, entity.id)}
                   />
                   <Toggle
                     label={'Content Access Admin'}
                     checked={entity.userRoles[1].isAssigned}
-                    onClick={null}
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[1], selected.client, entity.id)}
                   />
                   <Toggle
                     label={'Content Publisher'}
                     checked={entity.userRoles[2].isAssigned}
-                    onClick={null}
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[2], selected.client, entity.id)}
                   />
                   <Toggle
                     label={'Content User'}
                     checked={entity.userRoles[3].isAssigned}
-                    onClick={null}
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[3], selected.client, entity.id)}
                   />
                   <Toggle
                     label={'File Drop Admin'}
                     checked={entity.userRoles[4].isAssigned}
-                    onClick={null}
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[4], selected.client, entity.id)}
                   />
                   <Toggle
                     label={'File Drop User'}
                     checked={entity.userRoles[5].isAssigned}
-                    onClick={null}
+                    onClick={(event) => this.changeUserRole(event, entity.userRoles[5], selected.client, entity.id)}
                   />
                 </CardExpansion>
               </Card>
@@ -424,6 +417,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         </CardPanel>
       </>
     );
+  }
+
+  private changeUserRole(event: React.MouseEvent, entityRole: UserRole, client: Guid, user: Guid) {
+    event.stopPropagation();
+    this.props.setUserRoleInClient({
+      clientId: client,
+      isAssigned: !entityRole.isAssigned,
+      roleEnum: entityRole.roleEnum,
+      userId: user,
+    });
   }
 }
 

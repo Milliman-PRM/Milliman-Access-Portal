@@ -642,21 +642,27 @@ namespace MillimanAccessPortal.Controllers
             #region Build resulting model
             ExistingRecordsForRequestedRole = ExistingRecordsForUserAndClientQuery.ToList();
 
-            List<AssignedRoleInfo> ReturnModel = new List<AssignedRoleInfo>();
+            SetUserRoleInClientResponseModel ReturnModel = new SetUserRoleInClientResponseModel();
+            List<AssignedRoleInfo> Roles = new List<AssignedRoleInfo>();
+
+
             foreach (RoleEnum x in RolesToManage)
             {
                 // UserCreator is currently hidden from the front end
                 if (x == RoleEnum.UserCreator) continue;
-                ReturnModel.Add(new AssignedRoleInfo
+                Roles.Add(new AssignedRoleInfo
                 {
                     RoleEnum = x,
                     RoleDisplayValue = x.GetDisplayNameString(),
                     IsAssigned = ExistingRecordsForRequestedRole.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }
-            string AssignedRolenames = string.Join(", ", ReturnModel.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
+            string AssignedRolenames = string.Join(", ", Roles.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
             Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: result is user {RequestedUser.UserName} has assigned roles <{AssignedRolenames}>");
             #endregion
+
+            ReturnModel.UserId = model.UserId;
+            ReturnModel.Roles = Roles;
 
             return Json(ReturnModel);
         }

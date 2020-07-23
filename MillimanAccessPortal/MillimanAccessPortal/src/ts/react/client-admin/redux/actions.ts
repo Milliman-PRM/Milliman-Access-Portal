@@ -114,7 +114,16 @@ export interface SetUserRoleInClient {
 }
 export interface SetUserRoleInClientSucceeded {
   type: 'SET_USER_ROLE_IN_CLIENT_SUCCEEDED';
-  response: {};
+  response: {
+    userId: Guid;
+    roles: [
+      {
+        isAssigned: boolean;
+        roleDisplayValue: string;
+        roleEnum: RoleEnum;
+      }
+    ];
+  };
 }
 export interface SetUserRoleInClientFailed {
   type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
