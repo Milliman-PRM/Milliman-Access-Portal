@@ -1,0 +1,38 @@
+﻿@import "../../map_modules/variables";
+
+.progress-bars {
+    position: relative;
+    display: block;
+    height: .35em;
+    margin: -.5em 0;
+
+    [class*="progress-bar-"] {
+        position: absolute;
+        width: 0;
+        height: 100%;
+    }
+
+    .progress-easing {
+        transition: 1.0s linear;
+    }
+
+    .progress-bar-checksum {
+        background-color: $blue;
+    }
+
+    .progress-bar-upload {
+        background-color: $green;
+    }
+
+    .progress-bar-error {
+        background-color: $red;
+    }
+}
+
+.status-bar-error-message {
+    display: block;
+    font-size: .9rem;
+    color: $red;
+    margin: .5rem .25rem .25rem;
+    white-space: pre-line;
+}
