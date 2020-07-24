@@ -185,7 +185,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
             if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
               this.progressMonitor.deactivate();
               if (!this.canceled) {
-                // this.props.finalizeUpload(this.props.uploadId);
+                this.props.cancelFileUpload(this.props.uploadId);
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
