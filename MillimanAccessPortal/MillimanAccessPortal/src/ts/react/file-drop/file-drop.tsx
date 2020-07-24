@@ -42,6 +42,7 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUpload } from './file-drop-upload';
 import { PermissionsTable } from './permissions-table';
 
@@ -603,7 +604,27 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const activeUploads = (fileDropId: Guid) => {
       return Object.keys(pending.uploads)
         .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId)
-        .map((uploadId) => <div key={uploadId}>{pending.uploads[uploadId].fileName}</div>);
+        .map((uploadId) => {
+          const upload = pending.uploads[uploadId];
+          return (
+            <div key={uploadId} className="file-drop-card-upload">
+              <div className="filename">
+                {upload.fileName}
+                <ActionIcon
+                  icon={'cancel'}
+                  disabled={!upload.cancelable}
+                  label="Cancel Upload"
+                  action={() => this.props.beginFileDropUploadCancel({ uploadId })}
+                />
+              </div>
+              <UploadStatusBar
+                checksumProgress={upload.checksumProgress}
+                uploadProgress={upload.uploadProgress}
+                errorMsg={upload.errorMsg}
+              />
+            </div>
+          );
+        });
     };
 
     return Selector.activeSelectedClient && (

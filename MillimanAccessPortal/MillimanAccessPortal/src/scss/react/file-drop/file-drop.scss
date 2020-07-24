@@ -122,3 +122,33 @@ table {
     margin: 0;
     padding: 1em;
 }
+
+
+.file-drop-card-upload {
+    //padding: 0 0 .5em;
+    margin-bottom: 1.5em;
+
+    .filename {
+        margin-bottom: .5em;
+    }
+
+    .action-icon-container-inline {
+        float: right;
+
+        .action-icon {
+            height: 1em;
+            width: 1em;
+        }
+    }
+}
+
+.card-body-container {
+
+    &.selected .file-drop-card-upload .action-icon {
+        color: white;
+    }
+
+    .card-expansion-container.maximized {
+        padding: 1em .5em 0;
+    }
+}
