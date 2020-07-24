@@ -198,6 +198,9 @@ export const initializeFirstUploadObject =
 export const beginFileDropFileUpload =
   createActionCreator<Action.BeginFileDropFileUpload>('BEGIN_FILE_DROP_FILE_UPLOAD');
 
+export const beginFileDropUploadCancel =
+  createActionCreator<Action.BeginFileDropUploadCancel>('BEGIN_FILE_DROP_UPLOAD_CANCEL');
+
 // Upload Action Creators
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
 export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
