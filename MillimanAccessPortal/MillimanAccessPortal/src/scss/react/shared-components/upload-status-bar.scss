@@ -5,6 +5,7 @@
     display: block;
     height: .35em;
     margin: -.5em 0;
+    background-color: $white;
 
     [class*="progress-bar-"] {
         position: absolute;
@@ -31,8 +32,9 @@
 
 .status-bar-error-message {
     display: block;
-    font-size: .9rem;
+    font-size: .8rem;
     color: $red;
     margin: .5rem .25rem .25rem;
     white-space: pre-line;
+    font-style: italic;
 }
