@@ -446,18 +446,37 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       [uniqueId]: _initialUpload,
     };
   },
-  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          checksumProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          uploadProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
     ...state,
     [action.uploadId]: {
       ...state[action.uploadId],
-      checksumProgress: action.progress,
-    },
-  }),
-  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => ({
-    ...state,
-    [action.uploadId]: {
-      ...state[action.uploadId],
-      uploadProgress: action.progress,
+      errorMsg: action.errorMsg,
     },
   }),
   BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: UploadActions.BeginFileDropUploadCancel) => ({
@@ -470,10 +489,16 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
   CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
     const uploads = { ...state };
     delete uploads[action.uploadId];
-
-    return {
-      ...uploads,
-    };
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: _initialUpload,
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
   },
 });
 
