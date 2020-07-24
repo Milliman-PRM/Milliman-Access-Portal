@@ -8,7 +8,6 @@ import * as State from './store';
 import { generateUniqueId } from '../../../generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
-import { PublicationStatus } from '../../../view-models/content-publishing';
 import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -102,6 +101,18 @@ const _initialData: State.FileDropDataState = {
   permissionGroups: null,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
+};
+
+const _initialUpload: State.FileDropUploadState = {
+  clientId: null,
+  fileDropId: null,
+  folderId: null,
+  fileName: null,
+  cancelable: false,
+  canceled: false,
+  checksumProgress: ProgressSummary.empty(),
+  uploadProgress: ProgressSummary.empty(),
+  errorMsg: null,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -414,17 +425,7 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
     if (Object.keys(state).length === 0) {
       const uniqueId = generateUniqueId('FileDropUpload');
       return {
-        [uniqueId]: {
-          clientId: null,
-          fileDropId: null,
-          folderId: null,
-          fileName: null,
-          cancelable: false,
-          canceled: false,
-          checksumProgress: null,
-          uploadProgress: null,
-          errorMsg: null,
-        },
+        [uniqueId]: _initialUpload,
       };
     } else {
       return {};
@@ -442,17 +443,7 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
         fileName: action.fileName,
         cancelable: true,
       },
-      [uniqueId]: {
-        clientId: null,
-        fileDropId: null,
-        folderId: null,
-        fileName: null,
-        cancelable: false,
-        canceled: false,
-        checksumProgress: null,
-        uploadProgress: null,
-        errorMsg: null,
-      },
+      [uniqueId]: _initialUpload,
     };
   },
   UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
