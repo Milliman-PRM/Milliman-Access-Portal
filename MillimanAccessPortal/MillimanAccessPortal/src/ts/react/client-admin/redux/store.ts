@@ -24,6 +24,10 @@ export interface AccessStateSelected {
   user: Guid;
 }
 
+export interface AccessStateFormData {
+  details: ClientDetail;
+}
+
 /**
  * All filter state.
  */
@@ -44,6 +48,7 @@ export interface AccessState {
   selected: AccessStateSelected;
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
+  formData: AccessStateFormData;
 }
 
 // Create the store and apply saga middleware

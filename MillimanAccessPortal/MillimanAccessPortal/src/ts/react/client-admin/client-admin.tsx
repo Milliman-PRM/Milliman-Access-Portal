@@ -2,7 +2,7 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
-import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateSelected } from './redux/store';
+import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateFormData, AccessStateSelected } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -25,6 +25,7 @@ type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 |
 interface ClientAdminProps {
   clients: ClientEntity[];
   details: ClientDetail;
+  formData: AccessStateFormData;
   assignedUsers: User[];
   selected: AccessStateSelected;
   filters: AccessStateFilters;
@@ -51,7 +52,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters } = this.props;
+    const { clients, details, selected, filters } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -61,7 +62,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           }
           if (entity === 'new') {
             return (
-              <div className="card-container action-card-container">
+              <div
+                className="card-container action-card-container selected"
+                onClick={() => {
+                  this.props.selectClient({ id: 'new' });
+                  this.props.clearFormData({});
+                }}
+              >
                 <div className="card-body-container card-100 action-card">
                   <h2 className="card-body-primary-text">
                     <svg className="action-card-icon">
@@ -81,6 +88,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               onSelect={() => {
                 this.props.fetchClientDetails({ clientId: entity.id });
                 this.props.selectClient({ id: entity.id });
+                this.props.setFormData({ details }); // Todo not working.
               }}
               indentation={entity.indent}
             >
@@ -140,7 +148,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { details } = this.props;
+    const { formData } = this.props;
     return (
       <>
         <div
@@ -164,7 +172,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
-                        <input placeholder={details.clientName} disabled={true} />
+                        <input placeholder={formData.details.clientName} disabled={true} />
                         <span asp-validation-for="Name" className="text-danger" />
                       </div>
                     </div>
@@ -174,7 +182,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Code</label>
                       <div>
-                        <input placeholder={details.clientCode} disabled={true} />
+                        <input placeholder={formData.details.clientCode} disabled={true} />
                         <span asp-validation-for="ClientCode" className="text-danger" />
                       </div>
                     </div>
@@ -184,7 +192,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input placeholder={details.clientContactName} disabled={true} />
+                        <input placeholder={formData.details.clientContactName} disabled={true} />
                         <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
@@ -204,7 +212,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input placeholder={details.clientContactEmail} disabled={true} />
+                        <input placeholder={formData.details.clientContactEmail} disabled={true} />
                         <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
@@ -214,7 +222,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input placeholder={details.clientContactPhone} disabled={true}/>
+                        <input placeholder={formData.details.clientContactPhone} disabled={true}/>
                         <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
@@ -230,7 +238,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div>
                         <input
                           className="selectize-custom-input"
-                          placeholder={details.acceptedEmailDomainList.join(', ')}
+                          placeholder={formData.details.acceptedEmailDomainList.join(', ')}
                           disabled={true}
                         />
                       </div>
@@ -240,7 +248,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div>
                         <input
                           className="selectize-custom-input"
-                          placeholder={details.acceptedEmailAddressExceptionList.join(', ')}
+                          placeholder={formData.details.acceptedEmailAddressExceptionList.join(', ')}
                           disabled={true}
                         />
                       </div>
@@ -256,7 +264,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
-                        <input placeholder={details.consultantName} disabled={true} />
+                        <input placeholder={formData.details.consultantName} disabled={true} />
                         <span asp-validation-for="ConsultantName" className="text-danger" />
                       </div>
                     </div>
@@ -266,7 +274,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
-                        <input asp-for={details.consultantEmail} disabled={true} />
+                        <input asp-for={formData.details.consultantEmail} disabled={true} />
                         <span asp-validation-for="ConsultantEmail" className="text-danger" />
                       </div>
                     </div>
@@ -276,7 +284,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input placeholder={details.office} disabled={true} />
+                        <input placeholder={formData.details.office} disabled={true} />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
@@ -288,7 +296,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div>
                         <select asp-for="ProfitCenterId" disabled={true}>
                           <option value="">Make a Selection</option>
-                          <option>{details.profitCenter}</option>
+                          <option>{formData.details.profitCenter}</option>
                         </select>
                         <span asp-validation-for="ProfitCenterId" className="text-danger" />
                       </div>
@@ -445,13 +453,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, cardAttributes, filters } = state;
+  const { data, selected, cardAttributes, formData, filters } = state;
 
   return {
     clients: clientEntities(state),
     details: data.details,
     cardAttributes,
     assignedUsers: activeUsers(state),
+    formData,
     selected,
     filters,
   };

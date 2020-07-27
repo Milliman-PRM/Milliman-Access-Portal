@@ -4,7 +4,7 @@ import { combineReducers } from 'redux';
 
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
-import { AccessStateData, AccessStateSelected } from './store';
+import { AccessStateData, AccessStateFormData, AccessStateSelected } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
@@ -28,6 +28,24 @@ const _initialData: AccessStateData = {
     consultantEmail: '',
   },
   assignedUsers: [],
+};
+
+const _initialFormData: AccessStateFormData = {
+  details: {
+    id: null,
+    clientName: '',
+    clientCode: '',
+    clientContactName: '',
+    clientContactEmail: '',
+    clientContactPhone: '',
+    domainListCountLimit: 0,
+    acceptedEmailDomainList: [],
+    acceptedEmailAddressExceptionList: [],
+    profitCenter: '',
+    office: '',
+    consultantName: '',
+    consultantEmail: '',
+  },
 };
 
 const _initialSelected: AccessStateSelected = {
@@ -69,6 +87,50 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
   SELECT_USER: (state, action: AccessActions.SelectUser) => ({
     ...state,
     user: action.id === state.user ? null : action.id,
+  }),
+});
+
+const formData = createReducer<AccessStateFormData>(_initialFormData, {
+  CLEAR_FORM_DATA: () => _initialFormData,
+  SET_FORM_DATA: (state, action: AccessActions.SetFormData) => ({
+    ...state,
+    details: action.details,
+  }),
+  SET_CLIENT_NAME: (state, action: AccessActions.SetClientName) => ({
+
+  }),
+  SET_CLIENT_CODE: (state, action: AccessActions.SetClientCode) => ({
+
+  }),
+  SET_CLIENT_CONTACT_NAME: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_CLIENT_CONTACT_PHONE: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_DOMAIN_LIST_COUNT_LIMIT: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_ACCEPTED_EMAIL_DOMAIN_LIST: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_PROFIT_CENTER: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_OFFICE: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_CONSULTANT_NAME: (state, action: AccessActions.SetClientContactName) => ({
+
+  }),
+  SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetClientContactName) => ({
+
   }),
 });
 
@@ -123,5 +185,6 @@ export const clientAdmin = combineReducers({
   data,
   cardAttributes,
   selected,
+  formData,
   filters,
 });

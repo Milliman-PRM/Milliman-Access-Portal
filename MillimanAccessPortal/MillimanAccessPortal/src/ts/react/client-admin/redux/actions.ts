@@ -1,7 +1,6 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, ClientWithStats, User, Guid } from "../../models";
+import { ClientWithEligibleUsers, User, Guid } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
-import { fetchClientDetails } from "./action-creators";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
 
@@ -58,6 +57,67 @@ export interface SetFilterTextClient {
 export interface SetFilterTextUser {
   type: 'SET_FILTER_TEXT_USER';
   text: string;
+}
+
+// ~ Form Actions ~
+export interface ClearFormData {
+  type: 'CLEAR_FORM_DATA';
+}
+export interface SetFormData {
+  type: 'SET_FORM_DATA';
+  details: ClientDetail;
+}
+export interface SetClientName {
+  type: 'SET_CLIENT_NAME';
+  clientName: string;
+}
+export interface SetClientCode {
+  type: 'SET_CLIENT_CODE';
+  clientCode: string;
+}
+export interface SetClientContactName {
+  type: 'SET_CLIENT_CONTACT_NAME';
+  clientContactName: string;
+}
+export interface SetClientContactTitle {
+  type: 'SET_CLIENT_CONTACT_TITLE';
+  clientContactTitle: string;
+}
+export interface SetClientContactEmail {
+  type: 'SET_CLIENT_CONTACT_EMAIL';
+  clientContactEmail: string;
+}
+export interface SetClientContactPhone {
+  type: 'SET_CLIENT_CONTACT_PHONE';
+  clientContactPhone: string;
+}
+export interface SetDomainListCountLimit {
+  type: 'SET_DOMAIN_LIST_COUNT_LIMIT';
+  domainListCountLimit: number;
+}
+export interface SetAcceptedEmailDomainList {
+  type: 'SET_ACCEPTED_EMAIL_DOMAIN_LIST';
+  acceptedEmailDomainList: string[];
+}
+export interface SetAcceptedEmailAddressExceptionList {
+  type: 'SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST';
+  acceptedEmailAddressAcceptionList: string[];
+}
+export interface SetProfitCenter {
+  type: 'SET_PROFIT_CENTER';
+  profitCenter: string;
+}
+export interface SetOffice {
+  type: 'SET_OFFICE';
+  office: string;
+}
+export interface SetConsultantName {
+  type: 'SET_CONSULTANT_NAME';
+  consultantName: string;
+}
+export interface SetConsultantEmail {
+  type: 'SET_CONSULTANT_EMAIL';
+  consultantEmail: string;
 }
 
 // ~ GETs ~
@@ -137,6 +197,22 @@ export type FilterAccessAction =
   | SetFilterTextClient
   | SetFilterTextUser;
 
+export type FormAction =
+  | ClearFormData
+  | SetFormData
+  | SetClientName
+  | SetClientCode
+  | SetClientContactName
+  | SetClientContactEmail
+  | SetClientContactPhone
+  | SetDomainListCountLimit
+  | SetAcceptedEmailDomainList
+  | SetAcceptedEmailAddressExceptionList
+  | SetProfitCenter
+  | SetOffice
+  | SetConsultantName
+  | SetConsultantEmail;
+
 /**
  * An action that makes an Ajax request.
  */
@@ -157,7 +233,8 @@ export type PageAccessAction =
   | SetExpandedUser
   | SetAllCollapsedUser
   | SetAllExpandedUser
-  | FilterAccessAction;
+  | FilterAccessAction
+  | FormAction;
 
 export type AccessAction =
   | PageAccessAction
