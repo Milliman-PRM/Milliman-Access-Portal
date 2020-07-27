@@ -2,7 +2,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.ClientModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;

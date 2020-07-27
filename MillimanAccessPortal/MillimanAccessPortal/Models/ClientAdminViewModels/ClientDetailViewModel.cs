@@ -15,7 +15,7 @@ using MapCommonLib;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
 using MillimanAccessPortal.DataQueries;
-using MillimanAccessPortal.Models.SharedModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {

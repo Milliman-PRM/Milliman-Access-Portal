@@ -1,5 +1,5 @@
 /*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, Evan Klein
  * OBJECTIVE: MVC controller implementing handlers related to accessing authorized content
  * DEVELOPER NOTES: <What future developers need to know.>
  */

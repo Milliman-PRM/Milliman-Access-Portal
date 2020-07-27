@@ -11,7 +11,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries.EntityQueries;
-using MillimanAccessPortal.Models.ClientModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;

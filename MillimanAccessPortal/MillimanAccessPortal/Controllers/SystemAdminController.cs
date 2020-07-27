@@ -45,7 +45,7 @@ using System.Threading.Tasks;
 
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
-using MillimanAccessPortal.Models.SharedModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 
 namespace MillimanAccessPortal.Controllers
 {
