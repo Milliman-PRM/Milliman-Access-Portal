@@ -17,6 +17,6 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         /// Roles assigned to the user.
         /// </summary>
         [EmitBeforeAfterLog]
-        public List<AssignedRoleInfo> Roles { get; set; }
+        public List<AssignedRoleInfo> Roles { get; set; } = new List<AssignedRoleInfo>();
     }
 }
