@@ -102,7 +102,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
             #endregion
 
-            this.ClientDetail = (ClientDetail) ClientEntity;
+            ClientDetail = (ClientDetail) ClientEntity;
 
             ClientEntity.ParentClient = null;
 
