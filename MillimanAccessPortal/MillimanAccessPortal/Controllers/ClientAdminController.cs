@@ -467,7 +467,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetUserRoleInClient([FromBody] SetUserRoleInClientRequestModel model)
         {
-            Log.Verbose("In ClientAdminController.SetUserRoleInClient action for model {@SetUserRoleInClientRequestModel}", model);
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action for model {{@SetUserRoleInClientRequestModel}}", model);
 
             #region Authorization
             if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, model.ClientId))).Succeeded)
