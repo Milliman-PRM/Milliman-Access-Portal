@@ -66,7 +66,7 @@ interface ClientWithIndent extends ClientWithStats {
  * @param state Redux store
  */
 export function clientEntities(state: AccessState) {
-  const entities: Array<ClientWithIndent | 'divider'> = [];
+  const entities: Array<ClientWithIndent | 'divider' | 'new'> = [];
   activeClients(state).forEach(({ parent, children }) => {
     entities.push({
       ...parent,
@@ -80,7 +80,7 @@ export function clientEntities(state: AccessState) {
     });
     entities.push('divider');
   });
-  entities.pop();  // remove last divider
+  entities.push('new');
   return entities;
 }
 

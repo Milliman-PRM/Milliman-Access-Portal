@@ -21,7 +21,7 @@ import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 import { activeUsers, clientEntities } from './redux/selectors';
 
-type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider';
+type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
   clients: ClientEntity[];
   details: ClientDetail;
@@ -58,6 +58,20 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         renderEntity={(entity, key) => {
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
+          }
+          if (entity === 'new') {
+            return (
+              <div className="card-container action-card-container">
+                <div className="card-body-container card-100 action-card">
+                  <h2 className="card-body-primary-text">
+                    <svg className="action-card-icon">
+                      <use href="#add" />
+                    </svg>
+                    <span>NEW CLIENT</span>
+                  </h2>
+                </div>
+              </div>
+            );
           }
           return (
             <Card
