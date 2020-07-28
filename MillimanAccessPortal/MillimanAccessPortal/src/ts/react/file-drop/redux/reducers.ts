@@ -596,6 +596,12 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
     UPDATE_FILE_DROP_SUCCEEDED: (state) => ({
       ..._.mapValues(state, () => ({ editing: false })),
     }),
+    TOGGLE_FILE_DROP_CARD_EXPANSION: (state, action: Action.ToggleFileDropCardExpansion) => ({
+      ...state,
+      [action.fileDropId]: {
+        expanded: state[action.fileDropId].expanded ? false : true,
+      },
+    }),
   },
 );
 

@@ -518,6 +518,11 @@ export interface BeginFileDropUploadCancel {
   uploadId: string;
 }
 
+export interface ToggleFileDropCardExpansion {
+  type: 'TOGGLE_FILE_DROP_CARD_EXPANSION';
+  fileDropId: Guid;
+}
+
 
 // ~~~~~~~~~~~~~
 // Action Unions
@@ -553,6 +558,7 @@ export type FileDropPageActions =
   | IntitializeFirstUploadObject
   | BeginFileDropFileUpload
   | BeginFileDropUploadCancel
+  | ToggleFileDropCardExpansion
   ;
 
 /** Actions that schedule another action */
