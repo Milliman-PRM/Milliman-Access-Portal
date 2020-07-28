@@ -479,7 +479,7 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       errorMsg: action.errorMsg,
     },
   }),
-  BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: UploadActions.BeginFileDropUploadCancel) => ({
+  BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: Action.BeginFileDropUploadCancel) => ({
     ...state,
     [action.uploadId]: {
       ...state[action.uploadId],
