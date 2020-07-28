@@ -152,3 +152,25 @@ table {
         padding: 1em .5em 0;
     }
 }
+
+.card-status-container .upload-message-container {
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+
+    .upload-notice {
+        flex: 1 0 auto;
+    }
+
+    .expand-icon {
+        flex: none;
+        height: 1em;
+        width: 1em;
+        transition: all .5s ease-in-out;
+
+        &.inverted {
+            transform: rotate(180deg);
+            transition: all .5s ease-in-out;
+        }
+    }
+}

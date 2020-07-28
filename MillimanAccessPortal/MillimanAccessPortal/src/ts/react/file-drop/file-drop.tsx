@@ -1,5 +1,7 @@
 import '../../../scss/react/file-drop/file-drop.scss';
 
+import '../../../images/icons/expand-card.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -640,6 +642,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               )
               ? cardAttributes.fileDrops[entity.id].editing
               : false;
+            const fdActiveUploads = activeUploads(entity.id);
             return (
               <Card
                 key={key}
@@ -666,6 +669,27 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 }}
                 suspended={entity.isSuspended}
+                bannerMessage={fdActiveUploads.length > 0 ? {
+                  level: 'informational',
+                  message: (
+                    <div
+                      className="upload-message-container"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        this.props.toggleFileDropCardExpansion({ fileDropId: entity.id });
+                      }
+                     }
+                    >
+                      <span className="upload-notice">
+                        {`${fdActiveUploads.length} file${fdActiveUploads.length > 1 ? 's' : ''} currently uploading`}
+                      </span>
+                      <svg className={`expand-icon ${cardAttributes.fileDrops[entity.id].expanded ? 'inverted' : ''}`}>
+                        <use xlinkHref={'#expand-card'} />
+                      </svg>
+                    </div>
+                    ),
+                  } : null
+                }
               >
                 <CardSectionMain>
                   {
@@ -729,9 +753,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 </CardSectionMain>
                 {
-                  activeUploads(entity.id).length > 0 &&
+                  fdActiveUploads.length > 0 &&
+                  cardAttributes.fileDrops[entity.id].expanded &&
                   <CardExpansion expanded={true}>
-                    {activeUploads(entity.id)}
+                    {fdActiveUploads}
                   </CardExpansion>
                 }
               </Card>
