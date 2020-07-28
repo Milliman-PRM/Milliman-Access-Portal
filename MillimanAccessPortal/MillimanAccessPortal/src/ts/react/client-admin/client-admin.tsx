@@ -2,7 +2,9 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
-import { AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateFormData, AccessStateSelected } from './redux/store';
+import {
+  AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateFormData, AccessStateSelected,
+} from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -148,7 +150,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData } = this.props;
+    const { formData, selected } = this.props;
     return (
       <>
         <div
@@ -161,7 +163,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <div className="admin-panel-action-icons-container" />
           </div>
           <div className="admin-panel-content-container">
-            <form className="admin-panel-content form-disabled">
+            <form className="admin-panel-content">
               <div className="form-section-container">
                 <div className="form-section">
                   <h4 className="form-section-title">Client Information</h4>
@@ -172,7 +174,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
-                        <input placeholder={formData.details.clientName} disabled={true} />
+                        <input
+                          placeholder={formData.clientName}
+                          onChange={(event) => {
+                            this.props.setClientName({ clientName: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="Name" className="text-danger" />
                       </div>
                     </div>
@@ -182,7 +189,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Code</label>
                       <div>
-                        <input placeholder={formData.details.clientCode} disabled={true} />
+                        <input
+                          placeholder={formData.clientCode}
+                          onChange={(event) => {
+                            this.props.setClientCode({ clientCode: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ClientCode" className="text-danger" />
                       </div>
                     </div>
@@ -192,7 +204,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input placeholder={formData.details.clientContactName} disabled={true} />
+                        <input placeholder={formData.clientContactName} />
                         <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
@@ -202,7 +214,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
                       <div>
-                        <input asp-for="ContactTitle" disabled={true} />
+                        <input asp-for="ContactTitle" />
                         <span asp-validation-for="ContactTitle" className="text-danger" />
                       </div>
                     </div>
@@ -212,7 +224,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input placeholder={formData.details.clientContactEmail} disabled={true} />
+                        <input placeholder={formData.clientContactEmail} />
                         <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
@@ -222,7 +234,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input placeholder={formData.details.clientContactPhone} disabled={true}/>
+                        <input placeholder={formData.clientContactPhone} />
                         <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
@@ -238,8 +250,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div>
                         <input
                           className="selectize-custom-input"
-                          placeholder={formData.details.acceptedEmailDomainList.join(', ')}
-                          disabled={true}
+                          placeholder={formData.acceptedEmailDomainList.join(', ')}
                         />
                       </div>
                     </div>
@@ -248,8 +259,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div>
                         <input
                           className="selectize-custom-input"
-                          placeholder={formData.details.acceptedEmailAddressExceptionList.join(', ')}
-                          disabled={true}
+                          placeholder={formData.acceptedEmailAddressExceptionList.join(', ')}
                         />
                       </div>
                     </div>
@@ -264,7 +274,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
-                        <input placeholder={formData.details.consultantName} disabled={true} />
+                        <input placeholder={formData.consultantName} />
                         <span asp-validation-for="ConsultantName" className="text-danger" />
                       </div>
                     </div>
@@ -274,7 +284,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
-                        <input asp-for={formData.details.consultantEmail} disabled={true} />
+                        <input asp-for={formData.consultantEmail} />
                         <span asp-validation-for="ConsultantEmail" className="text-danger" />
                       </div>
                     </div>
@@ -284,7 +294,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input placeholder={formData.details.office} disabled={true} />
+                        <input placeholder={formData.office} />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
@@ -294,9 +304,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
-                        <select asp-for="ProfitCenterId" disabled={true}>
+                        <select asp-for="ProfitCenterId">
                           <option value="">Make a Selection</option>
-                          <option>{formData.details.profitCenter}</option>
+                          <option>{formData.profitCenter}</option>
                         </select>
                         <span asp-validation-for="ProfitCenterId" className="text-danger" />
                       </div>

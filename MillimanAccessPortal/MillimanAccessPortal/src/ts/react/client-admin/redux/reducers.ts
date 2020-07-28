@@ -31,21 +31,18 @@ const _initialData: AccessStateData = {
 };
 
 const _initialFormData: AccessStateFormData = {
-  details: {
-    id: null,
-    clientName: '',
-    clientCode: '',
-    clientContactName: '',
-    clientContactEmail: '',
-    clientContactPhone: '',
-    domainListCountLimit: 0,
-    acceptedEmailDomainList: [],
-    acceptedEmailAddressExceptionList: [],
-    profitCenter: '',
-    office: '',
-    consultantName: '',
-    consultantEmail: '',
-  },
+  clientName: '',
+  clientCode: '',
+  clientContactName: '',
+  clientContactEmail: '',
+  clientContactPhone: '',
+  domainListCountLimit: 0,
+  acceptedEmailDomainList: [],
+  acceptedEmailAddressExceptionList: [],
+  profitCenter: '',
+  office: '',
+  consultantName: '',
+  consultantEmail: '',
 };
 
 const _initialSelected: AccessStateSelected = {
@@ -94,43 +91,66 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
   SET_FORM_DATA: (state, action: AccessActions.SetFormData) => ({
     ...state,
-    details: action.details,
+    clientName: action.details.clientName,
+    clientCode: action.details.clientCode,
+    clientContactName: action.details.clientContactName,
+    clientContactEmail: action.details.clientContactEmail,
+    clientContactPhone: action.details.clientContactPhone,
+    domainListCountLimit: action.details.domainListCountLimit,
+    acceptedEmailDomainList: action.details.acceptedEmailDomainList,
+    acceptedEmailAddressExceptionList: action.details.acceptedEmailAddressExceptionList,
+    profitCenter: action.details.profitCenter,
+    office: action.details.office,
+    consultantName: action.details.consultantName,
+    consultantEmail: action.details.consultantEmail,
   }),
   SET_CLIENT_NAME: (state, action: AccessActions.SetClientName) => ({
-
+    ...state,
+    clientName: action.clientName,
   }),
   SET_CLIENT_CODE: (state, action: AccessActions.SetClientCode) => ({
-
+    ...state,
+    clientCode: action.clientCode,
   }),
   SET_CLIENT_CONTACT_NAME: (state, action: AccessActions.SetClientContactName) => ({
-
+    ...state,
+    clientContactName: action.clientContactName,
   }),
-  SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_CLIENT_CONTACT_EMAIL: (state, action: AccessActions.SetClientContactEmail) => ({
+    ...state,
+    clientContactEmail: action.clientContactEmail,
   }),
-  SET_CLIENT_CONTACT_PHONE: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_CLIENT_CONTACT_PHONE: (state, action: AccessActions.SetClientContactPhone) => ({
+    ...state,
+    clientContactPhone: action.clientContactPhone,
   }),
-  SET_DOMAIN_LIST_COUNT_LIMIT: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_DOMAIN_LIST_COUNT_LIMIT: (state, action: AccessActions.SetDomainListCountLimit) => ({
+    ...state,
+    domainListCountLimit: action.domainListCountLimit,
   }),
-  SET_ACCEPTED_EMAIL_DOMAIN_LIST: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_ACCEPTED_EMAIL_DOMAIN_LIST: (state, action: AccessActions.SetAcceptedEmailDomainList) => ({
+    ...state,
+    acceptedEmailDomainList: action.acceptedEmailDomainList,
   }),
-  SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST: (state, action: AccessActions.SetAcceptedEmailAddressExceptionList) => ({
+    ...state,
+    acceptedEmailAddressExceptionList: action.acceptedEmailAddressAcceptionList,
   }),
-  SET_PROFIT_CENTER: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_PROFIT_CENTER: (state, action: AccessActions.SetProfitCenter) => ({
+    ...state,
+    profitCenter: action.profitCenter,
   }),
-  SET_OFFICE: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_OFFICE: (state, action: AccessActions.SetOffice) => ({
+    ...state,
+    office: action.office,
   }),
-  SET_CONSULTANT_NAME: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_CONSULTANT_NAME: (state, action: AccessActions.SetConsultantName) => ({
+    ...state,
+    consultantName: action.consultantName,
   }),
-  SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetClientContactName) => ({
-
+  SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetConsultantEmail) => ({
+    ...state,
+    consultantEmail: action.consultantEmail,
   }),
 });
 
