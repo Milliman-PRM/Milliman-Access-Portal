@@ -511,7 +511,7 @@ export interface BeginFileDropFileUpload {
   fileDropId: Guid;
   folderId: Guid;
   fileName: string;
-}t
+}
 
 export interface BeginFileDropUploadCancel {
   type: 'BEGIN_FILE_DROP_UPLOAD_CANCEL';
