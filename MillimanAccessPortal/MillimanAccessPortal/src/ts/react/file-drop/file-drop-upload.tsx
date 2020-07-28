@@ -56,8 +56,12 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     }));
 
     // Hook up the file upload input
-    // this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
-    // this.resumable.assignDrop(this.props.dragRef.current);
+    if (this.props.browseRef && this.props.browseRef.length > 0 && this.props.browseRef[0].current) {
+      this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
+    }
+    if (this.props.dragRef && this.props.dragRef.current) {
+      this.resumable.assignDrop(this.props.dragRef.current);
+    }
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
