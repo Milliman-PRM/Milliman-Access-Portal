@@ -300,16 +300,19 @@ $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse 
 $sFTPVersion = "$sFTPVersion-$branchName"
 
 if($runTests) {
-    log_statement "Performing MAP unit tests"
 
-    Set-Location $rootPath\MillimanAccessPortal\MapTests
+    Start-Job -ScriptBlock {
+        log_statement "Performing MAP unit tests"
 
-    dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+        Set-Location $rootPath\MillimanAccessPortal\MapTests
 
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: One or more MAP xUnit tests failed"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $LASTEXITCODE
+        dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+
+        if ($LASTEXITCODE -ne 0) {
+            log_statement "ERROR: One or more MAP xUnit tests failed"
+            log_statement "errorlevel was $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
     }
 
     log_statement "Peforming Jest tests"
