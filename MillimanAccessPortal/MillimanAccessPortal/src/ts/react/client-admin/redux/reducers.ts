@@ -7,6 +7,7 @@ import * as AccessActions from './actions';
 import { AccessStateData, AccessStateSelected } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
+import { RoleEnum } from '../../shared-components/interfaces';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 
@@ -27,7 +28,24 @@ const _initialData: AccessStateData = {
     consultantName: '',
     consultantEmail: '',
   },
-  assignedUsers: [],
+  assignedUsers: [
+    {
+      id: null,
+      isActivated: false,
+      isSuspended: false,
+      firstName: '',
+      lastName: '',
+      userName: '',
+      email: '',
+      userRoles: {
+        [RoleEnum.Admin]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+        [RoleEnum.ContentAccessAdmin]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+        [RoleEnum.ContentPublisher]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+        [RoleEnum.ContentUser]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+        [RoleEnum.FileDropAdmin]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+        [RoleEnum.FileDropUser]: { roleEnum: 0, roleDisplayValue: '', isAssigned: false },
+      },
+  }],
 };
 
 const _initialSelected: AccessStateSelected = {

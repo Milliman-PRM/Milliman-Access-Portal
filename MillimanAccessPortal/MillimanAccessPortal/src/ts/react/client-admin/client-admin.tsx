@@ -17,6 +17,7 @@ import {
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { Toggle } from '../shared-components/form/toggle';
+import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 import { activeUsers, clientEntities } from './redux/selectors';
@@ -350,44 +351,60 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     />
                   </CardSectionButtons>
                 </CardSectionMain>
-                <CardExpansion
-                  label={'User roles'}
-                  expanded={card && card.expanded}
-                  setExpanded={(value) => value
-                    ? this.props.setExpandedUser({ id: entity.id })
-                    : this.props.setCollapsedUser({ id: entity.id })}
-                >
-                  <Toggle
-                    label={'Client Admin'}
-                    checked={entity.userRoles[0].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[0], selected.client, entity.id)}
-                  />
-                  <Toggle
-                    label={'Content Access Admin'}
-                    checked={entity.userRoles[1].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[1], selected.client, entity.id)}
-                  />
-                  <Toggle
-                    label={'Content Publisher'}
-                    checked={entity.userRoles[2].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[2], selected.client, entity.id)}
-                  />
-                  <Toggle
-                    label={'Content User'}
-                    checked={entity.userRoles[3].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[3], selected.client, entity.id)}
-                  />
-                  <Toggle
-                    label={'File Drop Admin'}
-                    checked={entity.userRoles[4].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[4], selected.client, entity.id)}
-                  />
-                  <Toggle
-                    label={'File Drop User'}
-                    checked={entity.userRoles[5].isAssigned}
-                    onClick={(event) => this.changeUserRole(event, entity.userRoles[5], selected.client, entity.id)}
-                  />
-                </CardExpansion>
+                {Object.keys(entity.userRoles).length > 0 ?
+                  <CardExpansion
+                    label={'User roles'}
+                    expanded={card && card.expanded}
+                    setExpanded={(value) => value
+                      ? this.props.setExpandedUser({ id: entity.id })
+                      : this.props.setCollapsedUser({ id: entity.id })}
+                  >
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.Admin].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.Admin], selected.client, entity.id)
+                      }
+                    />
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentAccessAdmin],
+                                            selected.client, entity.id)
+                      }
+                    />
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentPublisher],
+                                            selected.client, entity.id)
+                      }
+                    />
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.ContentUser].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentUser], selected.client, entity.id)
+                      }
+                    />
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropAdmin],
+                                            selected.client, entity.id)
+                      }
+                    />
+                    <Toggle
+                      label={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
+                      checked={entity.userRoles[RoleEnum.FileDropUser].isAssigned}
+                      onClick={(event) =>
+                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropUser], selected.client, entity.id)
+                      }
+                    />
+                  </CardExpansion> : null}
               </Card>
             );
           }}

@@ -11,7 +11,7 @@ export interface User {
   lastName: string;
   userName: string;
   email: string;
-  userRoles?: UserRole[];
+  userRoles?: Dict<UserRole>;
 }
 export interface UserFull extends User {
   isLocal: boolean;
