@@ -315,31 +315,35 @@ if($runTests) {
         }
     }
 
-    log_statement "Peforming Jest tests"
+    Start-Job -ScriptBlock {
+        log_statement "Peforming Jest tests"
 
-    Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
+        Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
 
-    $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
+        $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
-    $command = "yarn test --ci --reporters='jest-junit'"
-    invoke-expression "&$command"
+        $command = "yarn test --ci --reporters='jest-junit'"
+        invoke-expression "&$command"
 
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: One or more Jest tests failed"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $LASTEXITCODE
+        if ($LASTEXITCODE -ne 0) {
+            log_statement "ERROR: One or more Jest tests failed"
+            log_statement "errorlevel was $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
     }
 
-    log_statement "Performing content publishing unit tests"
+    Start-Job -ScriptBlock {
+        log_statement "Performing content publishing unit tests"
 
-    Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
+        Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-   dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+        dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: One or more content publishing xUnit tests failed"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $LASTEXITCODE
+        if ($LASTEXITCODE -ne 0) {
+            log_statement "ERROR: One or more content publishing xUnit tests failed"
+            log_statement "errorlevel was $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
     }
 }
 #endregion
