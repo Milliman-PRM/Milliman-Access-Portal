@@ -33,7 +33,7 @@ export interface AccessStateFormData {
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
-  profitCenter: string;
+  profitCenterId: string;
   consultantOffice: string;
   consultantName: string;
   consultantEmail: string;

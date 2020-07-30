@@ -34,15 +34,15 @@ const _initialFormData: AccessStateFormData = {
   name: '',
   clientCode: '',
   contactName: '',
-  contactEmail: '',
-  contactPhone: '',
+  contactEmail: null,
+  contactPhone: null,
   domainListCountLimit: 0,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
-  profitCenter: '',
+  profitCenterId: '',
   consultantOffice: '',
   consultantName: '',
-  consultantEmail: '',
+  consultantEmail: null,
 };
 
 const _initialSelected: AccessStateSelected = {
