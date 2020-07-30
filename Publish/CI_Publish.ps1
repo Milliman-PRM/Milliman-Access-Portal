@@ -301,7 +301,7 @@ $sFTPVersion = "$sFTPVersion-$branchName"
 
 if($runTests) {
 
-    Start-Job -ScriptBlock -Name MapTests {
+    Start-Job -Name MapTests -ScriptBlock {
         log_statement "Performing MAP unit tests"
 
         Set-Location $rootPath\MillimanAccessPortal\MapTests
@@ -315,7 +315,7 @@ if($runTests) {
         }
     }
 
-    Start-Job -ScriptBlock -Name JestTests {
+    Start-Job -Name JestTests -ScriptBlock {
         log_statement "Peforming Jest tests"
 
         Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
@@ -332,7 +332,7 @@ if($runTests) {
         }
     }
 
-    Start-Job -ScriptBlock -Name ContentPublishingTests {
+    Start-Job -Name ContentPublishingTests -ScriptBlock  {
         log_statement "Performing content publishing unit tests"
 
         Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
