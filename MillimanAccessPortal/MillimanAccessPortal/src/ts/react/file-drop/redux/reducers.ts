@@ -5,6 +5,9 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
+import { generateUniqueId } from '../../../generate-unique-identifier';
+import { ProgressSummary } from '../../../upload/progress-monitor';
+import * as UploadActions from '../../../upload/Redux/actions';
 import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -98,6 +101,18 @@ const _initialData: State.FileDropDataState = {
   permissionGroups: null,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
+};
+
+const _initialUpload: State.FileDropUploadState = {
+  clientId: null,
+  fileDropId: null,
+  folderId: null,
+  fileName: null,
+  cancelable: false,
+  canceled: false,
+  checksumProgress: ProgressSummary.empty(),
+  uploadProgress: ProgressSummary.empty(),
+  errorMsg: null,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -405,6 +420,88 @@ const afterFormModal = createReducer<State.AfterFormModal>(_initialAfterFormModa
   CLOSE_MODIFIED_FORM_MODAL: () => _initialAfterFormModal,
 });
 
+const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
+  INITIALIZE_FIRST_UPLOAD_OBJECT: (state) => {
+    if (Object.keys(state).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: _initialUpload,
+      };
+    } else {
+      return {};
+    }
+  },
+  BEGIN_FILE_DROP_FILE_UPLOAD: (state, action: Action.BeginFileDropFileUpload) => {
+    const uniqueId = generateUniqueId('FileDropUpload');
+    return {
+      ...state,
+      [action.uploadId]: {
+        ...state[action.uploadId],
+        clientId: action.clientId,
+        fileDropId: action.fileDropId,
+        folderId: action.folderId,
+        fileName: action.fileName,
+        cancelable: true,
+      },
+      [uniqueId]: _initialUpload,
+    };
+  },
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          checksumProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          uploadProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      errorMsg: action.errorMsg,
+    },
+  }),
+  BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: Action.BeginFileDropUploadCancel) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      canceled: true,
+    },
+  }),
+  CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
+    const uploads = { ...state };
+    delete uploads[action.uploadId];
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: _initialUpload,
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
+  },
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -416,6 +513,7 @@ const pending = combineReducers({
   permissionGroupsTab,
   permissionGroupsEditMode,
   afterFormModal,
+  uploads: pendingUploads,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -497,6 +595,12 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
     }),
     UPDATE_FILE_DROP_SUCCEEDED: (state) => ({
       ..._.mapValues(state, () => ({ editing: false })),
+    }),
+    TOGGLE_FILE_DROP_CARD_EXPANSION: (state, action: Action.ToggleFileDropCardExpansion) => ({
+      ...state,
+      [action.fileDropId]: {
+        expanded: state[action.fileDropId].expanded ? false : true,
+      },
     }),
   },
 );

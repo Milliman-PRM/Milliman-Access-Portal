@@ -627,3 +627,38 @@ export interface FileDropDirectoryContentModel {
   directories: FileDropDirectory[];
   files: FileDropFile[];
 }
+
+export enum FileUploadStatus {
+  InProgress = 0,
+  Complete = 1,
+  Error = 2,
+}
+
+export enum FileDropUploadTaskStatus {
+  Unknown = 0,
+  Requested = 1,
+  FinalizingUpload = 2,
+  ValidatingFile = 3,
+  Copying = 4,
+  Completed = 5,
+  Error = 6,
+}
+
+export interface ResumableInfo {
+  ChunkNumber: number;
+  TotalChunks: number;
+  ChunkSize: number;
+  TotalSize: number;
+  FileName: string;
+  UID: string;
+  Checksum: string;
+  Type: string;
+}
+
+export interface FileUpload {
+  id: string;
+  initiatedDateTimeUtc: string;
+  clientFileIdentifier: string;
+  status: FileUploadStatus | FileDropUploadTaskStatus;
+  statusMessage: string;
+}

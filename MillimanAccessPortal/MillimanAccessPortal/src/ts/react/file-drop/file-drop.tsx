@@ -1,5 +1,7 @@
 import '../../../scss/react/file-drop/file-drop.scss';
 
+import '../../../images/icons/expand-card.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -19,6 +21,7 @@ import {
   FileDropEvent,
   FileDropNotificationTypeEnum,
   FileDropWithStats,
+  Guid,
   PermissionGroupsChangesModel,
   PermissionGroupsReturnModel,
 } from '../models';
@@ -28,6 +31,7 @@ import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
+import { CardExpansion } from '../shared-components/card/card-expansion';
 import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -40,6 +44,8 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
+import { UploadStatusBar } from '../shared-components/upload-status-bar';
+import { FileDropUpload } from './file-drop-upload';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -63,13 +69,22 @@ interface FileDropProps {
 }
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
+  protected dragUploadRef: React.RefObject<HTMLDivElement>;
+  protected browseUploadRef: React.RefObject<HTMLDivElement>;
+
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
+  constructor(props: FileDropProps & typeof FileDropActionCreator) {
+    super(props);
+    this.dragUploadRef = React.createRef();
+    this.browseUploadRef = React.createRef();
+  }
 
   public componentDidMount() {
     this.props.scheduleStatusRefresh({ delay: 0 });
     this.props.scheduleSessionCheck({ delay: 0 });
-
+    this.props.initializeFirstUploadObject({});
     this.props.fetchClients({});
   }
 
@@ -81,6 +96,37 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     return (
       <>
+        {
+          Object.keys(pending.uploads).map((upload) => {
+            const uploadObject = pending.uploads[upload];
+            return (
+              <FileDropUpload
+                key={upload}
+                uploadId={upload}
+                clientId={uploadObject.clientId || selected.client}
+                fileDropId={uploadObject.fileDropId || selected.fileDrop}
+                fileName={uploadObject.fileName}
+                folderId={uploadObject.folderId || selected.fileDropFolder}
+                cancelable={uploadObject.cancelable}
+                canceled={uploadObject.canceled}
+                dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
+                browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
+                beginUpload={(uploadId, clientId, fileDropId, folderId, fileName) =>
+                  this.props.beginFileDropFileUpload({ uploadId, clientId, fileDropId, folderId, fileName })}
+                cancelFileUpload={(uploadId) =>
+                  this.props.cancelFileUpload({ uploadId })}
+                finalizeUpload={(uploadId, fileName, guid) =>
+                  this.props.finalizeUpload({ uploadId, fileName, guid })}
+                setUploadError={(uploadId, errorMsg) =>
+                  this.props.setUploadError({ uploadId, errorMsg })}
+                updateChecksumProgress={(uploadId, progress) =>
+                  this.props.updateChecksumProgress({ uploadId, progress })}
+                updateUploadProgress={(uploadId, progress) =>
+                  this.props.updateUploadProgress({ uploadId, progress })}
+              />
+            );
+          })
+        }
         <ReduxToastr
           timeOut={5000}
           newestOnTop={false}
@@ -557,6 +603,31 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           null
         );
     };
+    const activeUploads = (fileDropId: Guid) => {
+      return Object.keys(pending.uploads)
+        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId)
+        .map((uploadId) => {
+          const upload = pending.uploads[uploadId];
+          return (
+            <div key={uploadId} className="file-drop-card-upload">
+              <div className="filename">
+                {upload.fileName}
+                <ActionIcon
+                  icon={'cancel'}
+                  disabled={!upload.cancelable}
+                  label="Cancel Upload"
+                  action={() => this.props.beginFileDropUploadCancel({ uploadId })}
+                />
+              </div>
+              <UploadStatusBar
+                checksumProgress={upload.checksumProgress}
+                uploadProgress={upload.uploadProgress}
+                errorMsg={upload.errorMsg}
+              />
+            </div>
+          );
+        });
+    };
 
     return Selector.activeSelectedClient && (
       <>
@@ -571,6 +642,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               )
               ? cardAttributes.fileDrops[entity.id].editing
               : false;
+            const fdActiveUploads = activeUploads(entity.id);
             return (
               <Card
                 key={key}
@@ -597,6 +669,27 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 }}
                 suspended={entity.isSuspended}
+                bannerMessage={fdActiveUploads.length > 0 ? {
+                  level: 'informational',
+                  message: (
+                    <div
+                      className="upload-message-container"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        this.props.toggleFileDropCardExpansion({ fileDropId: entity.id });
+                      }
+                     }
+                    >
+                      <span className="upload-notice">
+                        {`${fdActiveUploads.length} file${fdActiveUploads.length > 1 ? 's' : ''} currently uploading`}
+                      </span>
+                      <svg className={`expand-icon ${cardAttributes.fileDrops[entity.id].expanded ? 'inverted' : ''}`}>
+                        <use xlinkHref={'#expand-card'} />
+                      </svg>
+                    </div>
+                    ),
+                  } : null
+                }
               >
                 <CardSectionMain>
                   {
@@ -659,6 +752,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     </CardSectionButtons>
                   }
                 </CardSectionMain>
+                {
+                  fdActiveUploads.length > 0 &&
+                  cardAttributes.fileDrops[entity.id].expanded &&
+                  <CardExpansion expanded={true}>
+                    {fdActiveUploads}
+                  </CardExpansion>
+                }
               </Card>
             );
           }}
@@ -791,11 +891,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={() => false}
             filterText={''}
           />
-          <ActionIcon
-            label="Add Folder"
-            icon="add"
-            action={() => false}
-          />
+          <div ref={this.browseUploadRef}>
+            <ActionIcon
+              label="Add Folder"
+              icon="add"
+              action={() => false}
+            />
+          </div>
           <ActionIcon
             label="Add File"
             icon="add"
@@ -803,7 +905,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div className="files-table-container" />
+          <div className="files-table-container" ref={this.dragUploadRef} />
         </ContentPanelSectionContent>
       </>
     );

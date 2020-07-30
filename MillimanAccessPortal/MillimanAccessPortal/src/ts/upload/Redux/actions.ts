@@ -43,7 +43,7 @@ export interface FinalizeUpload {
   type: 'FINALIZE_UPLOAD';
   uploadId: string;
   fileName: string;
-  Guid: string;
+  guid: string;
 }
 
 // ~~ Action unions ~~

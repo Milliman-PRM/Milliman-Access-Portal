@@ -38,6 +38,7 @@ namespace SftpCoreGui
             buttonReportServerState.Enabled = false;
             buttonStorePassword.Enabled = false;
             buttonVerifyPassword.Enabled = false;
+            SetStartStopEnabled();
         }
 
         private void BtnStartStop_Click(object sender, EventArgs e)
@@ -70,6 +71,8 @@ namespace SftpCoreGui
                 buttonReportServerState.Enabled = false;
                 Sender.Text = "Start";
             }
+
+            SetStartStopEnabled();
         }
 
         private void ButtonHashPassword_Click(object sender, EventArgs e)
@@ -149,5 +152,31 @@ namespace SftpCoreGui
             }
         }
 
+        private void textKeyfilePath_TextChanged(object sender, EventArgs e)
+        {
+            SetStartStopEnabled();
+        }
+
+        private void SetStartStopEnabled()
+        {
+            bool enableStart = (File.Exists(textKeyfilePath.Text) && btnStartStop.Text == "Start") || btnStartStop.Text == "Stop"
+                ? true
+                : false;
+
+            btnStartStop.Enabled = enableStart;
+        }
+
+        private void BtnFindKeyFile_Click(object sender, EventArgs e)
+        {
+            if (!File.Exists(openDlgFindKeyFile.FileName))
+            {
+                openDlgFindKeyFile.InitialDirectory = Environment.GetEnvironmentVariable("USERPROFILE") ?? @"C:\";
+            }
+
+            if (openDlgFindKeyFile.ShowDialog() == DialogResult.OK)
+            {
+                textKeyfilePath.Text = openDlgFindKeyFile.FileName;
+            }
+        }
     }
 }

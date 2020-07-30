@@ -32,8 +32,6 @@ using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
 using Newtonsoft.Json.Linq;
-using PowerBiLib;
-using QlikviewLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -59,6 +57,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly FileDropQueries _fileDropQueries;
         private readonly FileSystemTasks _fileSystemTasks;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
@@ -77,7 +76,8 @@ namespace MillimanAccessPortal.Controllers
             FileDropQueries fileDropQueriesArg,
             FileSystemTasks fileSystemTasks,
             UserManager<ApplicationUser> userManagerArg,
-            IConfiguration applicationConfigArg
+            IConfiguration applicationConfigArg,
+            IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg
             )
         {
             _auditLogger = auditLoggerArg;
@@ -87,6 +87,7 @@ namespace MillimanAccessPortal.Controllers
             _fileSystemTasks = fileSystemTasks;
             _userManager = userManagerArg;
             _applicationConfig = applicationConfigArg;
+            _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
         }
 
         /// <summary>
@@ -786,6 +787,117 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Error. Please contact support if this issue continues.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ProcessUploadedFile([FromBody] ProcessUploadedFileModel requestModel)
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            #region Validation
+            if (fileDrop == null)
+            {
+                // file drop not found
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (string.IsNullOrWhiteSpace(requestModel.FileName) || requestModel.FileName.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
+            {
+                // invalid file name
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid file name {requestModel.FileName} specified");
+                Response.Headers.Add("Warning", "An invalid file name was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                  .Where(a => a.FileDropId == requestModel.FileDropId)
+                                                  .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
+                                                  .SingleOrDefaultAsync();
+
+            FileDropDirectory directory = await _dbContext.FileDropDirectory.Include(d => d.Files).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropDirectoryId);
+            #region Validation
+            if (directory == null || directory.FileDropId != requestModel.FileDropId)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropDirectory with requested Id {requestModel.FileDropDirectoryId} does not belong to FileDrop with requested Id {requestModel.FileDropId}");
+                Response.Headers.Add("Warning", "Error completing the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (directory.Files.Select(f => f.FileName).Contains(requestModel.FileName, StringComparer.InvariantCultureIgnoreCase))
+            {
+                // file already exists
+                await _fileDropUploadTaskTracker.RemoveFileUploadAsync(requestModel.FileUploadId);
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} file name {requestModel.FileName} already exists in the directory");
+                Response.Headers.Add("Warning", "An invalid file name was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded || account == null)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
+            // This is where the asynchronous task gets queued
+            Guid taskId = _fileDropUploadTaskTracker.RequestUploadProcessing(requestModel, account);
+
+            return Json(taskId);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetFileUploadStatus(Guid taskId, Guid fileDropId)
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            #region Validation
+            if (fileDrop == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            SftpAccount account = await _dbContext.SftpAccount
+                                      //.Include(a => a.ApplicationUser)
+                                      .Include(a => a.FileDropUserPermissionGroup)
+                                          .ThenInclude(g => g.FileDrop)
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => a.FileDropId == fileDropId)
+                                      .SingleOrDefaultAsync();
+
+            #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded && (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue))
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
+            FileDropUploadTaskStatus returnValue = FileDropUploadTaskStatus.Unknown;
+            try
+            {
+                returnValue = await _fileDropQueries.GetUploadTaskStatusAsync(taskId, fileDropId);
+            }
+            catch (ApplicationException ex)
+            {
+                Response.Headers.Add("Warning", ex.Message);
+            }
+
+            return Json(new { Status = returnValue });
         }
     }
 

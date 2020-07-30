@@ -1,3 +1,4 @@
+import { PageUploadAction } from '../../../upload/Redux/actions';
 import {
   FileDrop, FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
   FileDropNotificationTypeEnum, FileDropSettings, FileDropsReturnModel, FileDropWithStats,
@@ -494,6 +495,35 @@ export interface ScheduleSessionCheck {
   delay: number;
 }
 
+// ~~~~~~~~~~~~~~~~~~~
+// File Upload Actions
+// ~~~~~~~~~~~~~~~~~~~
+
+/* Intitialize the first File Upload object after page load */
+export interface IntitializeFirstUploadObject {
+  type: 'INITIALIZE_FIRST_UPLOAD_OBJECT';
+}
+
+export interface BeginFileDropFileUpload {
+  type: 'BEGIN_FILE_DROP_FILE_UPLOAD';
+  uploadId: string;
+  clientId: Guid;
+  fileDropId: Guid;
+  folderId: Guid;
+  fileName: string;
+}
+
+export interface BeginFileDropUploadCancel {
+  type: 'BEGIN_FILE_DROP_UPLOAD_CANCEL';
+  uploadId: string;
+}
+
+export interface ToggleFileDropCardExpansion {
+  type: 'TOGGLE_FILE_DROP_CARD_EXPANSION';
+  fileDropId: Guid;
+}
+
+
 // ~~~~~~~~~~~~~
 // Action Unions
 // ~~~~~~~~~~~~~
@@ -525,6 +555,10 @@ export type FileDropPageActions =
   | OpenModifiedFormModal
   | CloseModifiedFormModal
   | ClosePasswordNotificationModal
+  | IntitializeFirstUploadObject
+  | BeginFileDropFileUpload
+  | BeginFileDropUploadCancel
+  | ToggleFileDropCardExpansion
   ;
 
 /** Actions that schedule another action */
@@ -600,6 +634,7 @@ export type FileDropActions =
   | FileDropSuccessResponseActions
   | FileDropErrorActions
   | FilterActions
+  | PageUploadAction
   ;
 
 /** An action that opens a modal */

@@ -92,6 +92,7 @@ namespace MapTests
         public UserQueries UserQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
+        public IFileDropUploadTaskTracker FileDropUploadTaskTracker { get; set; } = default;
         #endregion
 
         #region Transient registered services
@@ -249,6 +250,7 @@ namespace MapTests
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddSingleton<IUploadTaskQueue, UploadTaskQueue>();
+            services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
 
             services.AddTransient<IMessageQueue, MessageQueueServices>();
 
@@ -295,6 +297,7 @@ namespace MapTests
             GoLiveTaskQueue = ServiceProvider.GetService<IGoLiveTaskQueue>();
             PublicationPostProcessingTaskQueue = ServiceProvider.GetService<IPublicationPostProcessingTaskQueue>();
             UploadTaskQueue = ServiceProvider.GetService<IUploadTaskQueue>();
+            FileDropUploadTaskTracker = ServiceProvider.GetService<IFileDropUploadTaskTracker>();
             #endregion
         }
 
