@@ -316,11 +316,9 @@ namespace SftpServerLib
         //[Description("Fired when a connection is closed.")]
         internal static void OnDisconnected(object sender, SftpserverDisconnectedEventArgs evtData)
         {
-            var connectionProperties = IpWorksSftpServer._connections[evtData.ConnectionId];
-
-            if (connectionProperties.Account != null)
+            if (IpWorksSftpServer._connections.TryGetValue(evtData.ConnectionId, out var connectionProperties))
             {
-                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account.UserName}>");
+                Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account?.UserName ?? "<unknown>"}>");
             }
             else
             {
