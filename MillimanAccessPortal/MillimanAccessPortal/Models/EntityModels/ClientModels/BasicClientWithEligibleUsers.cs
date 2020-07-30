@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace MillimanAccessPortal.Models.ClientModels
+namespace MillimanAccessPortal.Models.EntityModels.ClientModels
 {
     public class BasicClientWithEligibleUsers : BasicClientWithCardStats
     {

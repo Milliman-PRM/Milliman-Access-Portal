@@ -1,5 +1,5 @@
 /*
- * CODE OWNERS: Tom Puckett
+ * CODE OWNERS: Tom Puckett, Evan Klein
  * OBJECTIVE: MVC controller implementing handlers related to accessing authorized content
  * DEVELOPER NOTES: <What future developers need to know.>
  */
@@ -32,6 +32,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.SystemAdmin;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -151,9 +152,8 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // GET: ClientAdmin/ClientDetail
-        // Intended for access by ajax from Index view
         /// <summary>
-        /// Returns the requested Client and lists of eligible and already assigned users associated with a Client. Requires GET. 
+        /// Returns details for the requested Client.
         /// </summary>
         /// <param name="clientId"></param>
         /// <returns>JsonResult or UnauthorizedResult</returns>
@@ -465,14 +465,14 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SetUserRoleInClient([Bind("ClientId,UserId")]ClientUserAssociationViewModel ClientUserModel, [Bind("RoleEnum,IsAssigned")]AssignedRoleInfo AssignedRoleInfoArg)
+        public async Task<IActionResult> SetUserRoleInClient([FromBody] SetUserRoleInClientRequestModel model)
         {
-            Log.Verbose("In ClientAdminController.SetUserRoleInClient action for model {@ClientUserAssociationViewModel}, {@AssignedRoleInfo}", ClientUserModel, AssignedRoleInfoArg);
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action for model {{@SetUserRoleInClientRequestModel}}", model);
 
             #region Authorization
-            if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientUserModel.ClientId))).Succeeded)
+            if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, model.ClientId))).Succeeded)
             {
-                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: authorization failed for user {User.Identity.Name}, role Admin, client {ClientUserModel.ClientId}");
+                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: authorization failed for user {User.Identity.Name}, role Admin, client {model.ClientId}");
                 Response.Headers.Add("Warning", $"You are not authorized to manage this client");
                 return Unauthorized();
             }
@@ -480,50 +480,50 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // requested user must exist
-            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(ClientUserModel.UserId.ToString());
+            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(model.UserId.ToString());
             if (RequestedUser == null)
             {
-                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {ClientUserModel.UserId} not found");
+                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {model.UserId} not found");
                 Response.Headers.Add("Warning", $"The requested user was not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // requested client must exist
-            Client RequestedClient = await DbContext.Client.FindAsync(ClientUserModel.ClientId);
+            Client RequestedClient = await DbContext.Client.FindAsync(model.ClientId);
             if (RequestedClient == null)
             {
-                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested client ID {ClientUserModel.ClientId} not found");
+                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested client ID {model.ClientId} not found");
                 Response.Headers.Add("Warning", $"The requested client was not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Requested user must be member of requested client
-            Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), ClientUserModel.ClientId.ToString());
+            Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), model.ClientId.ToString());
             if (!(await _userManager.GetUsersForClaimAsync(ClientMembershipClaim)).Contains(RequestedUser))
             {
-                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {ClientUserModel.UserId} not a member of client ID {ClientUserModel.ClientId}");
+                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {model.UserId} not a member of client ID {model.ClientId}");
                 Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // requested role must exist
-            ApplicationRole RequestedRole = (await RoleManager.FindByIdAsync(ApplicationRole.RoleIds[AssignedRoleInfoArg.RoleEnum].ToString()));
+            ApplicationRole RequestedRole = (await RoleManager.FindByIdAsync(ApplicationRole.RoleIds[model.RoleEnum].ToString()));
             if (RequestedRole == null)
             {
-                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested role {AssignedRoleInfoArg.RoleEnum.ToString()} does not exist");
+                Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested role {model.RoleEnum.ToString()} does not exist");
                 Response.Headers.Add("Warning", $"The requested role was not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Don't remove the last client admin
-            if (AssignedRoleInfoArg.RoleEnum == RoleEnum.Admin && !AssignedRoleInfoArg.IsAssigned)
+            if (model.RoleEnum == RoleEnum.Admin && !model.IsAssigned)
             {
-                bool OtherAdminExists = await DbContext.UserRoleInClient.Where(r => r.ClientId == ClientUserModel.ClientId)
+                bool OtherAdminExists = await DbContext.UserRoleInClient.Where(r => r.ClientId == model.ClientId)
                                                                         .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                                                                        .AnyAsync(r => r.UserId != ClientUserModel.UserId);
+                                                                        .AnyAsync(r => r.UserId != model.UserId);
                 if (!OtherAdminExists)
                 {
-                    Log.Debug($"In ClientAdminController.RemoveUserFromClient action: unable to remove requested user {ClientUserModel.UserId} from client {ClientUserModel.ClientId}.  User is the sole client administrator");
+                    Log.Debug($"In ClientAdminController.RemoveUserFromClient action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
                     Response.Headers.Add("Warning", "Cannot remove the last client admin user role from the client");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -537,7 +537,7 @@ namespace MillimanAccessPortal.Controllers
             #region perform the requested action
             List<UserRoleInClient> ExistingRecordsForRequestedRole = await ExistingRecordsForUserAndClientQuery.Where(urc => urc.RoleId == RequestedRole.Id).ToListAsync();
 
-            if (AssignedRoleInfoArg.IsAssigned)
+            if (model.IsAssigned)
             {
                 // Create role assignment, only if it's not already there
                 if (ExistingRecordsForRequestedRole.Count == 0)
@@ -554,7 +554,7 @@ namespace MillimanAccessPortal.Controllers
                     if (RequestedRole.RoleEnum == RoleEnum.ContentAccessAdmin || RequestedRole.RoleEnum == RoleEnum.ContentPublisher)
                     {
                         foreach (var rootContentItem in await DbContext.RootContentItem
-                                                                       .Where(i => i.ClientId == ClientUserModel.ClientId)
+                                                                       .Where(i => i.ClientId == model.ClientId)
                                                                        .ToListAsync())
                         {
                             var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
@@ -594,7 +594,7 @@ namespace MillimanAccessPortal.Controllers
                 {
                     var existingRolesInRootContentItem = await DbContext.UserRoleInRootContentItem
                         .Where(r => r.UserId == RequestedUser.Id)
-                        .Where(r => r.RootContentItem.ClientId == ClientUserModel.ClientId)
+                        .Where(r => r.RootContentItem.ClientId == model.ClientId)
                         .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum)
                         .ToListAsync();
                     DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
@@ -612,18 +612,22 @@ namespace MillimanAccessPortal.Controllers
                     var accountsToReset = await DbContext.SftpAccount
                                                          .Include(a => a.FileDrop)
                                                          .Include(a => a.FileDropUserPermissionGroup)
-                                                         .Where(a => a.FileDrop.ClientId == ClientUserModel.ClientId)
-                                                         .Where(a => a.ApplicationUserId == ClientUserModel.UserId)
+                                                         .Where(a => a.FileDrop.ClientId == model.ClientId)
+                                                         .Where(a => a.ApplicationUserId == model.UserId)
                                                          .ToListAsync();
 
                     accountsToReset.ForEach(a =>
                     {
-                        AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
-                        if (a.FileDropUserPermissionGroup != null && a.FileDropUserPermissionGroup.IsPersonalGroup)
+                        if (a.FileDropUserPermissionGroup != null)
                         {
-                            AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
-                            DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                            if (a.FileDropUserPermissionGroup.IsPersonalGroup)
+                            {
+                                AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                            }
                         }
+
                         a.FileDropUserPermissionGroupId = null;
                     });
                 }
@@ -642,21 +646,25 @@ namespace MillimanAccessPortal.Controllers
             #region Build resulting model
             ExistingRecordsForRequestedRole = ExistingRecordsForUserAndClientQuery.ToList();
 
-            List<AssignedRoleInfo> ReturnModel = new List<AssignedRoleInfo>();
+            SetUserRoleInClientResponseModel ReturnModel = new SetUserRoleInClientResponseModel();
+
+
             foreach (RoleEnum x in RolesToManage)
             {
                 // UserCreator is currently hidden from the front end
                 if (x == RoleEnum.UserCreator) continue;
-                ReturnModel.Add(new AssignedRoleInfo
+                ReturnModel.Roles.Add((int) x, new AssignedRoleInfo
                 {
                     RoleEnum = x,
                     RoleDisplayValue = x.GetDisplayNameString(),
                     IsAssigned = ExistingRecordsForRequestedRole.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }
-            string AssignedRolenames = string.Join(", ", ReturnModel.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
+            string AssignedRolenames = string.Join(", ", ReturnModel.Roles.Values.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
             Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: result is user {RequestedUser.UserName} has assigned roles <{AssignedRolenames}>");
             #endregion
+
+            ReturnModel.UserId = model.UserId;
 
             return Json(ReturnModel);
         }

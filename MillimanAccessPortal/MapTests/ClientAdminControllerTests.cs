@@ -385,13 +385,10 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, userName);
-                var clientUserModel = new ClientUserAssociationViewModel
+                var requestModel = new SetUserRoleInClientRequestModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
                     UserId = TestUtil.MakeTestGuid(1),
-                };
-                var roleModel = new AssignedRoleInfo
-                {
                     RoleEnum = RoleEnum.Admin,
                     IsAssigned = true,
                 };
@@ -399,7 +396,7 @@ namespace MapTests
 
                 #region Act
                 int preCount = TestResources.DbContext.UserRoleInClient.Count();
-                var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+                var view = await controller.SetUserRoleInClient(requestModel);
                 int postCount = TestResources.DbContext.UserRoleInClient.Count();
                 #endregion
 
@@ -419,13 +416,10 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
-                var clientUserModel = new ClientUserAssociationViewModel
+                var requestModel = new SetUserRoleInClientRequestModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
                     UserId = TestUtil.MakeTestGuid(userId),
-                };
-                var roleModel = new AssignedRoleInfo
-                {
                     RoleEnum = RoleEnum.Admin,
                     IsAssigned = true,
                 };
@@ -433,7 +427,7 @@ namespace MapTests
 
                 #region Act
                 int preCount = TestResources.DbContext.UserRoleInClient.Count();
-                var view = await controller.SetUserRoleInClient(clientUserModel, roleModel);
+                var view = await controller.SetUserRoleInClient(requestModel);
                 int postCount = TestResources.DbContext.UserRoleInClient.Count();
                 #endregion
 
@@ -453,18 +447,17 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
-                var clientUserModel = new ClientUserAssociationViewModel
+                var requestModelAdd = new SetUserRoleInClientRequestModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
                     UserId = TestUtil.MakeTestGuid(userId),
-                };
-                var roleModelAdd = new AssignedRoleInfo
-                {
                     RoleEnum = role,
                     IsAssigned = true,
                 };
-                var roleModelRemove = new AssignedRoleInfo
+                var requestModelRemove = new SetUserRoleInClientRequestModel
                 {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
                     RoleEnum = role,
                     IsAssigned = false,
                 };
@@ -472,19 +465,19 @@ namespace MapTests
 
                 #region Act
                 int preAddCount = TestResources.DbContext.UserRoleInClient.Count();
-                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                var viewAdd = await controller.SetUserRoleInClient(requestModelAdd);
                 int postAddCount = TestResources.DbContext.UserRoleInClient.Count();
 
                 int preRemoveCount = postAddCount;
-                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                var viewRemove = await controller.SetUserRoleInClient(requestModelRemove);
                 int postRemoveCount = TestResources.DbContext.UserRoleInClient.Count();
                 #endregion
 
                 #region Assert
                 var addResult = Assert.IsType<JsonResult>(viewAdd);
-                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(addResult.Value);
                 var removeResult = Assert.IsType<JsonResult>(viewRemove);
-                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(removeResult.Value);
                 Assert.Equal(preAddCount + 1, postAddCount);
                 Assert.Equal(preRemoveCount - 1, postRemoveCount);
                 #endregion
@@ -499,18 +492,17 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
-                var clientUserModel = new ClientUserAssociationViewModel
+                var requestModelAdd = new SetUserRoleInClientRequestModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
                     UserId = TestUtil.MakeTestGuid(userId),
-                };
-                var roleModelAdd = new AssignedRoleInfo
-                {
                     RoleEnum = role,
                     IsAssigned = true,
                 };
-                var roleModelRemove = new AssignedRoleInfo
+                var requestModelRemove = new SetUserRoleInClientRequestModel
                 {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
                     RoleEnum = role,
                     IsAssigned = false,
                 };
@@ -518,19 +510,19 @@ namespace MapTests
 
                 #region Act
                 int preAddCount = TestResources.DbContext.UserRoleInClient.Count();
-                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                var viewAdd = await controller.SetUserRoleInClient(requestModelAdd);
                 int postAddCount = TestResources.DbContext.UserRoleInClient.Count();
 
                 int preRemoveCount = postAddCount;
-                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                var viewRemove = await controller.SetUserRoleInClient(requestModelRemove);
                 int postRemoveCount = TestResources.DbContext.UserRoleInClient.Count();
                 #endregion
 
                 #region Assert
                 var addResult = Assert.IsType<JsonResult>(viewAdd);
-                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(addResult.Value);
                 var removeResult = Assert.IsType<JsonResult>(viewRemove);
-                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(removeResult.Value);
                 Assert.Equal(preAddCount + 2, postAddCount);
                 Assert.Equal(preRemoveCount - 2, postRemoveCount);
                 #endregion
@@ -546,18 +538,17 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
-                var clientUserModel = new ClientUserAssociationViewModel
+                var requestModelAdd = new SetUserRoleInClientRequestModel
                 {
                     ClientId = TestUtil.MakeTestGuid(clientId),
                     UserId = TestUtil.MakeTestGuid(userId),
-                };
-                var roleModelAdd = new AssignedRoleInfo
-                {
                     RoleEnum = role,
                     IsAssigned = true,
                 };
-                var roleModelRemove = new AssignedRoleInfo
+                var requestModelRemove = new SetUserRoleInClientRequestModel
                 {
+                    ClientId = TestUtil.MakeTestGuid(clientId),
+                    UserId = TestUtil.MakeTestGuid(userId),
                     RoleEnum = role,
                     IsAssigned = false,
                 };
@@ -568,22 +559,22 @@ namespace MapTests
                 #region Act
                 int preAddCount_Client = TestResources.DbContext.UserRoleInClient.Count();
                 int preAddCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
-                var viewAdd = await controller.SetUserRoleInClient(clientUserModel, roleModelAdd);
+                var viewAdd = await controller.SetUserRoleInClient(requestModelAdd);
                 int postAddCount_Client = TestResources.DbContext.UserRoleInClient.Count();
                 int postAddCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
 
                 int preRemoveCount_Client = postAddCount_Client;
                 int preRemoveCount_Content = postAddCount_Content;
-                var viewRemove = await controller.SetUserRoleInClient(clientUserModel, roleModelRemove);
+                var viewRemove = await controller.SetUserRoleInClient(requestModelRemove);
                 int postRemoveCount_Client = TestResources.DbContext.UserRoleInClient.Count();
                 int postRemoveCount_Content = TestResources.DbContext.UserRoleInRootContentItem.Count();
                 #endregion
 
                 #region Assert
                 var addResult = Assert.IsType<JsonResult>(viewAdd);
-                Assert.IsType<List<AssignedRoleInfo>>(addResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(addResult.Value);
                 var removeResult = Assert.IsType<JsonResult>(viewRemove);
-                Assert.IsType<List<AssignedRoleInfo>>(removeResult.Value);
+                Assert.IsType<SetUserRoleInClientResponseModel>(removeResult.Value);
                 Assert.Equal(preAddCount_Client + 1, postAddCount_Client);
                 Assert.Equal(preRemoveCount_Client - 1, postRemoveCount_Client);
                 Assert.Equal(preAddCount_Content + relatedRootContentItemCount, postAddCount_Content);

@@ -11,11 +11,17 @@ export interface User {
   lastName: string;
   userName: string;
   email: string;
+  userRoles?: Dict<UserRole>;
 }
 export interface UserFull extends User {
   isLocal: boolean;
   phone: string;
   employer: string;
+}
+export interface UserRole {
+  roleEnum: number;
+  roleDisplayValue: string;
+  isAssigned: boolean;
 }
 export interface ProfitCenter {
   id: Guid;
@@ -38,6 +44,7 @@ export interface ClientWithStats extends Client {
 export interface ClientWithEligibleUsers extends ClientWithStats {
   eligibleUsers: Guid[];
 }
+
 export interface RootContentItem {
   id: Guid;
   clientId?: Guid;

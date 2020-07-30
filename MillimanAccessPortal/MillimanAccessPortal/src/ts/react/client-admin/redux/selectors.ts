@@ -1,5 +1,5 @@
 ﻿import * as _ from 'lodash';
-import { ClientWithStats } from '../../models';
+import { ClientWithStats, User } from '../../models';
 import { AccessState } from './store';
 
 /**
@@ -43,6 +43,21 @@ export function filteredClients(state: AccessState) {
   })).filter(({ parent, children }) => filterFunc(parent) || children.length);
 }
 
+/**
+ * Select all users that match the client filter.
+ * @param state Redux store
+ */
+export function filteredUsers(state: AccessState) {
+  const filterTextLower = state.filters.user.text.toLowerCase();
+  const filterFunc = (user: User) => {
+    const userFullName = user.firstName + ' ' + user.lastName;
+    return filterTextLower === ''
+      || (userFullName && userFullName.toLowerCase().indexOf(filterTextLower) !== -1)
+      || (user.userName && user.userName.toLowerCase().indexOf(filterTextLower) !== -1);
+  };
+  return state.data.assignedUsers.filter(filterFunc);
+}
+
 interface ClientWithIndent extends ClientWithStats {
   indent: 1 | 2;
 }
@@ -75,4 +90,8 @@ export function clientEntities(state: AccessState) {
  */
 export function activeClients(state: AccessState) {
   return filteredClients(state);
+}
+
+export function activeUsers(state: AccessState) {
+  return filteredUsers(state);
 }

@@ -12,3 +12,9 @@ const createJsonRequestor = createJsonRequestorCreator<RequestAccessAction, Resp
 export const fetchClients =
   createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
     ('GET', '/ClientAdmin/Clients');
+export const fetchClientDetails =
+  createJsonRequestor<AccessActions.FetchClientDetails, AccessActions.FetchClientDetailsSucceeded>
+    ('GET', '/ClientAdmin/ClientDetail');
+export const setUserRoleInClient =
+  createJsonRequestor<AccessActions.SetUserRoleInClient, AccessActions.SetUserRoleInClientSucceeded>
+    ('POST', '/ClientAdmin/SetUserRoleInClient');
