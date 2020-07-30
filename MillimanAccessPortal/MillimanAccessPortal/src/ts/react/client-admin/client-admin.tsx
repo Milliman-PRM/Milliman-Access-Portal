@@ -175,9 +175,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
                         <input
-                          placeholder={formData.clientName}
+                          placeholder={formData.name}
                           onChange={(event) => {
-                            this.props.setClientName({ clientName: event.target.value });
+                            this.props.setClientName({ name: event.target.value });
                           }}
                         />
                         <span asp-validation-for="Name" className="text-danger" />
@@ -204,7 +204,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input placeholder={formData.clientContactName} />
+                        <input placeholder={formData.contactName} />
                         <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
@@ -224,7 +224,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input placeholder={formData.clientContactEmail} />
+                        <input placeholder={formData.contactEmail} />
                         <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
@@ -234,7 +234,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input placeholder={formData.clientContactPhone} />
+                        <input placeholder={formData.contactPhone} />
                         <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
@@ -294,7 +294,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input placeholder={formData.office} />
+                        <input placeholder={formData.consultantOffice} />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
@@ -333,7 +333,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 <div className="form-submission-section">
                   <div className="button-container button-container-new">
                     <button type="button" className="button-reset link-button">Reset Form</button>
-                    <button type="button" className="button-submit green-button">Create Client</button>
+                    <button
+                      type="button"
+                      className="button-submit green-button"
+                      onClick={() => this.props.saveNewClient(formData)}
+                    >
+                      Create Client
+                    </button>
                   </div>
                   <div className="button-container button-container-edit">
                     <button type="button" className="button-reset link-button">Discard Changes</button>

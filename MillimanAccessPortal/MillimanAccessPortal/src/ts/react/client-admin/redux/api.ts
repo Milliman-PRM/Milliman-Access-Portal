@@ -18,3 +18,6 @@ export const fetchClientDetails =
 export const setUserRoleInClient =
   createJsonRequestor<AccessActions.SetUserRoleInClient, AccessActions.SetUserRoleInClientSucceeded>
     ('POST', '/ClientAdmin/SetUserRoleInClient');
+export const saveNewClient =
+  createJsonRequestor<AccessActions.SaveNewClient, AccessActions.SaveNewClientSucceeded>
+    ('POST', '/ClientAdmin/SaveNewClient');

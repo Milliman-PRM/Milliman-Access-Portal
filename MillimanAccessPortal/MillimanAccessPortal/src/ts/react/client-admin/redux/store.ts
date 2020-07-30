@@ -25,16 +25,16 @@ export interface AccessStateSelected {
 }
 
 export interface AccessStateFormData {
-  clientName: string;
+  name: string;
   clientCode: string;
-  clientContactName: string;
-  clientContactEmail: string;
-  clientContactPhone: string;
+  contactName: string;
+  contactEmail: string;
+  contactPhone: string;
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
   profitCenter: string;
-  office: string;
+  consultantOffice: string;
   consultantName: string;
   consultantEmail: string;
 }

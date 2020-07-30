@@ -786,8 +786,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>BadRequestObjectResult, UnauthorizedResult, </returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        public async Task<IActionResult> SaveNewClient([FromBody] Client Model)
         // Members intentionally not bound: Id
         {
             Log.Verbose("Entered ClientAdminController.SaveNewClient action with parameter {@Client}", Model);

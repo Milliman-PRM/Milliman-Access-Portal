@@ -55,10 +55,12 @@ export const setConsultantName =
 export const setConsultantEmail =
   createActionCreator<AccessActions.SetConsultantEmail>('SET_CONSULTANT_EMAIL');
 
-// Data fetches
+// Data fetches/posts
 export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
 export const fetchClientDetails =
   createRequestActionCreator<AccessActions.FetchClientDetails>('FETCH_CLIENT_DETAILS');
 export const setUserRoleInClient =
   createRequestActionCreator<AccessActions.SetUserRoleInClient>('SET_USER_ROLE_IN_CLIENT');
+export const saveNewClient =
+  createRequestActionCreator<AccessActions.SaveNewClient>('SAVE_NEW_CLIENT');

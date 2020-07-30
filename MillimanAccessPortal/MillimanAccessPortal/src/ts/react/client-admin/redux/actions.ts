@@ -1,8 +1,9 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, User, Guid } from "../../models";
+import { ClientWithEligibleUsers, User, Guid, Client } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
+import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
 
@@ -69,7 +70,7 @@ export interface SetFormData {
 }
 export interface SetClientName {
   type: 'SET_CLIENT_NAME';
-  clientName: string;
+  name: string;
 }
 export interface SetClientCode {
   type: 'SET_CLIENT_CODE';
@@ -109,7 +110,7 @@ export interface SetProfitCenter {
 }
 export interface SetOffice {
   type: 'SET_OFFICE';
-  office: string;
+  consultantOffice: string;
 }
 export interface SetConsultantName {
   type: 'SET_CONSULTANT_NAME';
@@ -163,6 +164,7 @@ export interface FetchClientDetailsFailed {
   error: TSError;
 }
 
+// POSTS
 export interface SetUserRoleInClient {
   type: 'SET_USER_ROLE_IN_CLIENT';
   request: {
@@ -187,6 +189,20 @@ export interface SetUserRoleInClientSucceeded {
 }
 export interface SetUserRoleInClientFailed {
   type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
+  error: TSError;
+}
+export interface SaveNewClient {
+  type: 'SAVE_NEW_CLIENT';
+  request: AccessStateFormData;
+}
+export interface SaveNewClientSucceeded {
+  type: 'SAVE_NEW_CLIENT_SUCCEEDED';
+  response: {
+
+  }
+}
+export interface SaveNewClientFailed {
+  type: 'SAVE_NEW_CLIENT_FAILED';
   error: TSError;
 }
 
@@ -219,12 +235,14 @@ export type FormAction =
 export type RequestAccessAction =
   | FetchClients
   | FetchClientDetails
-  | SetUserRoleInClient;
+  | SetUserRoleInClient
+  | SaveNewClient;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
   | FetchClientDetailsSucceeded
-  | SetUserRoleInClientSucceeded;
+  | SetUserRoleInClientSucceeded
+  | SaveNewClientSucceeded;
 
 export type PageAccessAction =
   | SelectClient
