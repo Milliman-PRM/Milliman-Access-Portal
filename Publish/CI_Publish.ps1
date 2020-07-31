@@ -315,7 +315,7 @@ if($runTests) {
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
         }
-    } -ArgumentList $buildType $rootPath
+    } -ArgumentList $buildType, $rootPath
 
     Start-Job -Name JestTests -ScriptBlock {
         Param($rootPath)
