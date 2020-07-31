@@ -17,7 +17,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
 
         public string Description { get; set; }
 
-        public long Size { get; set; }
+        public string Size { get; set; }
 
         public DateTime? UploadDateTimeUtc { get; set; }
 
@@ -26,7 +26,14 @@ namespace MillimanAccessPortal.Models.FileDropModels
             Id = source.Id;
             FileName = source.FileName;
             Description = source.Description;
-            Size = source.Size;
+            Size = Math.Log(source.Size, 1024) switch
+            {
+                double e when e < 1 => $"{source.Size}  B",
+                double e when e < 2 => $"{source.Size / Math.Pow(1024, 1):F2} kB",
+                double e when e < 3 => $"{source.Size / Math.Pow(1024, 2):F2} MB",
+                double e when e < 4 => $"{source.Size / Math.Pow(1024, 3):F2} GB",
+                _ => $"{source.Size / Math.Pow(1024, 4):F2} TB",
+            };
             UploadDateTimeUtc = source.UploadDateTimeUtc;
         }
     }
