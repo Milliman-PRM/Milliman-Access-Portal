@@ -302,6 +302,8 @@ $sFTPVersion = "$sFTPVersion-$branchName"
 if($runTests) {
 
     Start-Job -Name MapTests -ScriptBlock {
+        Param($buildType, $rootPath)
+        
         log_statement "Performing MAP unit tests"
 
         Set-Location $rootPath\MillimanAccessPortal\MapTests
@@ -313,9 +315,10 @@ if($runTests) {
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
         }
-    }
+    } -ArgumentList $buildType $rootPath
 
     Start-Job -Name JestTests -ScriptBlock {
+        Param($rootPath)
         log_statement "Peforming Jest tests"
 
         Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
@@ -333,6 +336,8 @@ if($runTests) {
     }
 
     Start-Job -Name ContentPublishingTests -ScriptBlock  {
+        Param($buildType, $rootPath)
+        
         log_statement "Performing content publishing unit tests"
 
         Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
@@ -344,7 +349,7 @@ if($runTests) {
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
         }
-    }
+    } -ArgumentList $buildType, $rootPath
 }
 
 Wait-Job -Name MapTests, JestTests, ContentPublishingTests
