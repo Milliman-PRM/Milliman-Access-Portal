@@ -83,6 +83,9 @@ const data = createReducer<AccessStateData>(_initialData, {
     ...state,
     ...state.assignedUsers.find((u) => u.id === action.response.userId).userRoles = action.response.roles,
   }),
+  // DELETE_CLIENT_SUCCEEDED: (state, action: AccessActions.DeleteClientSucceeded) => ({
+  //  ...state,
+  // }),
 });
 
 const selected = createReducer<AccessStateSelected>(_initialSelected, {

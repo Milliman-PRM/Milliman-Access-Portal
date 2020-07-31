@@ -222,6 +222,20 @@ export interface SaveNewClientFailed {
   type: 'SAVE_NEW_CLIENT_FAILED';
   error: TSError;
 }
+export interface DeleteClient {
+  type: 'DELETE_CLIENT';
+  request: Guid;
+}
+export interface DeleteClientSucceeded {
+  type: 'DELETE_CLIENT_SUCCEDED';
+  response: {
+
+  }
+}
+export interface DeleteClientFailed {
+  type: 'DELETE_CLIENT_FAILED';
+  error: TSError;
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -254,14 +268,16 @@ export type RequestAccessAction =
   | FetchProfitCenters
   | FetchClientDetails
   | SetUserRoleInClient
-  | SaveNewClient;
+  | SaveNewClient
+  | DeleteClient;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
   | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
   | SetUserRoleInClientSucceeded
-  | SaveNewClientSucceeded;
+  | SaveNewClientSucceeded
+  | DeleteClientSucceeded;
 
 export type PageAccessAction =
   | SelectClient

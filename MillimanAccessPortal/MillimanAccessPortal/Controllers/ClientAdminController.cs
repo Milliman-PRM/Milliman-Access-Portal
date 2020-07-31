@@ -1199,7 +1199,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteClient(Guid Id)
+        public async Task<IActionResult> DeleteClient([FromBody] Guid Id)
         {
             Log.Verbose($"Entered ClientAdminController.DeleteClient action with client ID {Id}");
 
