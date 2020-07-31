@@ -1,5 +1,5 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, User, Guid, Client } from "../../models";
+import { ClientWithEligibleUsers, User, Guid, Client, ProfitCenter } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
@@ -106,7 +106,7 @@ export interface SetAcceptedEmailAddressExceptionList {
 }
 export interface SetProfitCenter {
   type: 'SET_PROFIT_CENTER';
-  profitCenter: string;
+  profitCenter: ProfitCenter;
 }
 export interface SetOffice {
   type: 'SET_OFFICE';
@@ -139,6 +139,23 @@ export interface FetchClientsSucceeded {
 }
 export interface FetchClientsFailed {
   type: 'FETCH_CLIENTS_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
+ *  profit center the current user has access to; 
+ */
+export interface FetchProfitCenters {
+  type: 'FETCH_PROFIT_CENTERS';
+  request: {};
+}
+export interface FetchProfitCentersSucceeded {
+  type: 'FETCH_PROFIT_CENTERS_SUCCEEDED';
+  response: ProfitCenter[];
+}
+export interface FetchProfitCentersFailed {
+  type: 'FETCH_PROFIT_CENTERS_FAILED';
   error: TSError;
 }
 
@@ -234,12 +251,14 @@ export type FormAction =
  */
 export type RequestAccessAction =
   | FetchClients
+  | FetchProfitCenters
   | FetchClientDetails
   | SetUserRoleInClient
   | SaveNewClient;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
+  | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
   | SetUserRoleInClientSucceeded
   | SaveNewClientSucceeded;

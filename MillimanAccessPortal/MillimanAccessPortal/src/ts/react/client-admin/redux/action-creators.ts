@@ -62,5 +62,7 @@ export const fetchClientDetails =
   createRequestActionCreator<AccessActions.FetchClientDetails>('FETCH_CLIENT_DETAILS');
 export const setUserRoleInClient =
   createRequestActionCreator<AccessActions.SetUserRoleInClient>('SET_USER_ROLE_IN_CLIENT');
+export const fetchProfitCenters =
+  createRequestActionCreator<AccessActions.FetchProfitCenters>('FETCH_PROFIT_CENTERS');
 export const saveNewClient =
   createRequestActionCreator<AccessActions.SaveNewClient>('SAVE_NEW_CLIENT');

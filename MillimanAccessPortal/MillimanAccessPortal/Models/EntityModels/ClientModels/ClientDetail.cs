@@ -21,7 +21,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public int DomainListCountLimit { get; set; }
         public List<string> AcceptedEmailDomainList { get; set; }
         public List<string> AcceptedEmailAddressExceptionList { get; set; }
-        public string ProfitCenter { get; set; }
+        public ProfitCenter ProfitCenter { get; set; }
         public string Office { get; set; }
         public string ConsultantName { get; set; }
         public string ConsultantEmail { get; set; }
@@ -44,7 +44,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 DomainListCountLimit = client.DomainListCountLimit,
                 AcceptedEmailDomainList = client.AcceptedEmailDomainList,
                 AcceptedEmailAddressExceptionList = client.AcceptedEmailAddressExceptionList,
-                ProfitCenter = client.ProfitCenter?.Name,
+                ProfitCenter = client.ProfitCenter,
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,

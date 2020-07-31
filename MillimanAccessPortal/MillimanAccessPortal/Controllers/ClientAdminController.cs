@@ -126,6 +126,44 @@ namespace MillimanAccessPortal.Controllers
             return Json(clients);
         }
 
+        // GET: ClientAdmin/AuthorizedProfitCenters
+        /// <summary>
+        /// Returns the list of profit centers that the user is authorized to administer.
+        /// </summary>
+        /// <param name="userId">Guid of user whose profit centers we want to return.</param>
+        /// <returns>JsonResult of List<AuthorizedProfitCenterModel></returns>
+        [HttpGet]
+        public async Task<IActionResult> AuthorizedProfitCenters(Guid userId)
+        {
+            #region Authorization
+            // User must have Admin role to at least 1 Client or ProfitCenter
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
+            if (!Result1.Succeeded &&
+                !Result2.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized as a client admin or profit center admin");
+                return Unauthorized();
+            }
+            #endregion
+
+            var AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();
+            var currentUser = await _userManager.GetUserAsync(User);
+            foreach (var AuthorizedProfitCenter in (await DbContext.UserRoleInProfitCenter
+                                                                   .Include(urpc => urpc.Role)
+                                                                   .Include(urpc => urpc.ProfitCenter)
+                                                                   .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
+                                                                               && urpc.UserId == currentUser.Id)
+                                                                   .Select(urpc => urpc.ProfitCenter)
+                                                                   .ToListAsync())
+                                                           .Distinct(new IdPropertyComparer<ProfitCenter>()))
+            {
+                AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
+            }
+
+            return Json(AuthorizedProfitCenterList);
+        }
+
         // GET: ClientAdmin/ClientFamilyList
         /// <summary>
         /// Returns the list of Client families that the current user has visibility to (defined by GetClientAdminIndexModelForUser(...)

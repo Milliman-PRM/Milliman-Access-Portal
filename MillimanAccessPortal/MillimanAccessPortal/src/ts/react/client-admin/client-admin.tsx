@@ -6,7 +6,7 @@ import {
   AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateFormData, AccessStateSelected,
 } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, User, UserRole } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -26,6 +26,7 @@ import { activeUsers, clientEntities } from './redux/selectors';
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
   clients: ClientEntity[];
+  profitCenters: ProfitCenter[];
   details: ClientDetail;
   formData: AccessStateFormData;
   assignedUsers: User[];
@@ -39,6 +40,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
+    this.props.fetchProfitCenters({});
     this.props.fetchClients({});
   }
 
@@ -150,7 +152,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, selected } = this.props;
+    const { formData, profitCenters, selected } = this.props;
     return (
       <>
         <div
@@ -304,9 +306,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
-                        <select asp-for="ProfitCenterId">
+                        <select asp-for="ProfitCenterId" placeholder="Make a Selection">
                           <option value="">Make a Selection</option>
-                          <option>{formData.profitCenter}</option>
+                          {profitCenters.map((profitCenter) => (
+                            <option value={profitCenter.id} selected={profitCenter.id === formData.profitCenter.id} >
+                              {profitCenter.name}
+                            </option>
+                            ))
+                          }
                         </select>
                         <span asp-validation-for="ProfitCenterId" className="text-danger" />
                       </div>
@@ -473,6 +480,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
 
   return {
     clients: clientEntities(state),
+    profitCenters: data.profitCenters,
     details: data.details,
     cardAttributes,
     assignedUsers: activeUsers(state),

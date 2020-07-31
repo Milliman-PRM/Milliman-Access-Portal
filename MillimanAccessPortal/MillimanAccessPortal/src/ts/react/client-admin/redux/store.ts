@@ -5,7 +5,7 @@ import createSagaMiddleware from 'redux-saga';
 import { clientAdmin } from './reducers';
 import sagas from './sagas';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, User } from '../../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
@@ -15,6 +15,7 @@ import { ClientDetail } from '../../system-admin/interfaces';
  */
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
+  profitCenters: ProfitCenter[];
   details: ClientDetail;
   assignedUsers: User[];
 }
@@ -33,7 +34,7 @@ export interface AccessStateFormData {
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
-  profitCenterId: string;
+  profitCenter: ProfitCenter;
   consultantOffice: string;
   consultantName: string;
   consultantEmail: string;

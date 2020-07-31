@@ -12,6 +12,7 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 
 const _initialData: AccessStateData = {
   clients: {},
+  profitCenters: [],
   details: {
     id: null,
     clientName: '',
@@ -22,7 +23,12 @@ const _initialData: AccessStateData = {
     domainListCountLimit: 0,
     acceptedEmailDomainList: [],
     acceptedEmailAddressExceptionList: [],
-    profitCenter: '',
+    profitCenter: {
+      id: '',
+      name: '',
+      code: '',
+      office: '',
+    },
     office: '',
     consultantName: '',
     consultantEmail: '',
@@ -39,7 +45,12 @@ const _initialFormData: AccessStateFormData = {
   domainListCountLimit: 0,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
-  profitCenterId: '',
+  profitCenter: {
+    id: '',
+    name: '',
+    code: '',
+    office: '',
+  },
   consultantOffice: '',
   consultantName: '',
   consultantEmail: null,
@@ -63,6 +74,10 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+  }),
+  FETCH_PROFIT_CENTERS_SUCCEEDED: (state, action: AccessActions.FetchProfitCentersSucceeded) => ({
+    ...state,
+    profitCenters: action.response,
   }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,

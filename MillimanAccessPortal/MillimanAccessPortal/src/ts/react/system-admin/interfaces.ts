@@ -1,5 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
-import { SelectionGroup } from '../models';
+import { SelectionGroup, ProfitCenter } from '../models';
 import { Guid } from '../shared-components/interfaces';
 
 export interface NestedList {
@@ -119,7 +119,7 @@ export interface ClientDetail {
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
-  profitCenter: string;
+  profitCenter: ProfitCenter;
   office: string;
   consultantName: string;
   consultantEmail: string;
