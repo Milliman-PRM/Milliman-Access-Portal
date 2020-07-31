@@ -69,7 +69,8 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
         sandboxValues = null;
         break;
       case ContentTypeEnum.Html:
-        sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms allow-popups-to-escape-sandbox';
+        sandboxValues =
+          'allow-scripts allow-popups allow-modals allow-forms allow-popups-to-escape-sandbox allow-downloads';
         break;
       case ContentTypeEnum.Qlikview:
         sandboxValues = null;
