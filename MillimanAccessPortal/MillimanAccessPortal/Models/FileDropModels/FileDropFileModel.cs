@@ -27,13 +27,13 @@ namespace MillimanAccessPortal.Models.FileDropModels
             FileName = source.FileName;
             Description = source.Description;
             Size = Math.Log(source.Size, 1024) switch
-            {
-                double e when e < 1 => $"{source.Size}  B",
-                double e when e < 2 => $"{source.Size / Math.Pow(1024, 1):F2} kB",
-                double e when e < 3 => $"{source.Size / Math.Pow(1024, 2):F2} MB",
-                double e when e < 4 => $"{source.Size / Math.Pow(1024, 3):F2} GB",
-                _ => $"{source.Size / Math.Pow(1024, 4):F2} TB",
-            };
+                {
+                    double e when e < 1 => string.Format("{0,7:###0}  B", source.Size),
+                    double e when e < 2 => string.Format("{0,7:###0.00} kB", source.Size / Math.Pow(1024, 1)),
+                    double e when e < 3 => string.Format("{0,7:###0.00} MB", source.Size / Math.Pow(1024, 2)),
+                    double e when e < 4 => string.Format("{0,7:###0.00} GB", source.Size / Math.Pow(1024, 3)),
+                    _ => string.Format("{0,7:###0.00} TB", source.Size / Math.Pow(1024, 4)),
+                };
             UploadDateTimeUtc = source.UploadDateTimeUtc;
         }
     }
