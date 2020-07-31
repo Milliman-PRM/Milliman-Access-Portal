@@ -67,7 +67,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           if (entity === 'new') {
             return (
               <div
-                className="card-container action-card-container selected"
+                key={key}
+                className="card-container action-card-container"
                 onClick={() => {
                   this.props.selectClient({ id: 'new' });
                   this.props.clearFormData({});
@@ -143,7 +144,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <ActionIcon
               label="Add or create a new client"
               icon="add"
-              action={() => false}
+              action={() => {
+                this.props.selectClient({ id: 'new' });
+                this.props.clearFormData({});
+              }}
             />
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
@@ -152,7 +156,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, profitCenters, selected } = this.props;
+    const { formData, details, profitCenters, selected } = this.props;
     return (
       <>
         <div
@@ -307,6 +311,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
                         <select
+                          value={details.profitCenter.id}
                           onChange={(event) => this.props.setProfitCenter((event.target.value) ? {
                             profitCenterId: event.target.value,
                           } : null)}
@@ -314,8 +319,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           <option value="">Make a Selection</option>
                           {profitCenters.map((profitCenter) => (
                             <option
+                              key={profitCenter.id}
                               value={profitCenter.id}
-                              selected={profitCenter.id === formData.profitCenterId}
                             >
                               {profitCenter.name}
                             </option>

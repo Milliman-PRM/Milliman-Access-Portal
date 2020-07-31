@@ -975,10 +975,10 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
-            ModelToReturn.RelevantClientId = Model.Id;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
 
         // POST: ClientAdmin/EditClient
@@ -1287,9 +1287,10 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ClientAdminController.DeleteClient action: deleted client {ExistingClient.Id}");
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
 
         /// <summary>

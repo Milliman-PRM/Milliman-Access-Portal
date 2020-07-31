@@ -215,8 +215,8 @@ export interface SaveNewClient {
 export interface SaveNewClientSucceeded {
   type: 'SAVE_NEW_CLIENT_SUCCEEDED';
   response: {
-
-  }
+    clients: Dict<ClientWithEligibleUsers>;
+  };
 }
 export interface SaveNewClientFailed {
   type: 'SAVE_NEW_CLIENT_FAILED';
@@ -227,10 +227,10 @@ export interface DeleteClient {
   request: Guid;
 }
 export interface DeleteClientSucceeded {
-  type: 'DELETE_CLIENT_SUCCEDED';
+  type: 'DELETE_CLIENT_SUCCEEDED';
   response: {
-
-  }
+    clients: Dict<ClientWithEligibleUsers>;
+  };
 }
 export interface DeleteClientFailed {
   type: 'DELETE_CLIENT_FAILED';
