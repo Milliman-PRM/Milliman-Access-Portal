@@ -1,5 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
-import { SelectionGroup, ProfitCenter } from '../models';
+import { ProfitCenter, SelectionGroup } from '../models';
 import { Guid } from '../shared-components/interfaces';
 
 export interface NestedList {

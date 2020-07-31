@@ -45,12 +45,7 @@ const _initialFormData: AccessStateFormData = {
   domainListCountLimit: 0,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
-  profitCenter: {
-    id: '',
-    name: '',
-    code: '',
-    office: '',
-  },
+  profitCenterId: '',
   consultantOffice: '',
   consultantName: '',
   consultantEmail: null,
@@ -153,7 +148,7 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   }),
   SET_PROFIT_CENTER: (state, action: AccessActions.SetProfitCenter) => ({
     ...state,
-    profitCenter: action.profitCenter,
+    profitCenterId: action.profitCenterId,
   }),
   SET_OFFICE: (state, action: AccessActions.SetOffice) => ({
     ...state,

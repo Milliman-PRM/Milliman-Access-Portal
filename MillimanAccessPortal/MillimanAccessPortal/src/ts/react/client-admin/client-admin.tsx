@@ -306,10 +306,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
-                        <select asp-for="ProfitCenterId" placeholder="Make a Selection">
+                        <select
+                          onChange={(event) => this.props.setProfitCenter((event.target.value) ? {
+                            profitCenterId: event.target.value,
+                          } : null)}
+                        >
                           <option value="">Make a Selection</option>
                           {profitCenters.map((profitCenter) => (
-                            <option value={profitCenter.id} selected={profitCenter.id === formData.profitCenter.id} >
+                            <option
+                              value={profitCenter.id}
+                              selected={profitCenter.id === formData.profitCenterId}
+                            >
                               {profitCenter.name}
                             </option>
                             ))

@@ -106,7 +106,7 @@ export interface SetAcceptedEmailAddressExceptionList {
 }
 export interface SetProfitCenter {
   type: 'SET_PROFIT_CENTER';
-  profitCenter: ProfitCenter;
+  profitCenterId: Guid;
 }
 export interface SetOffice {
   type: 'SET_OFFICE';
