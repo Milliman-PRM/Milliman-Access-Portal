@@ -30,10 +30,12 @@ export interface AccessStateEdit {
 }
 
 export interface AccessStateFormData {
+  id: Guid;
   name: string;
   clientCode: string;
   contactName: string;
   contactEmail: string;
+  contactTitle: string;
   contactPhone: string;
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];

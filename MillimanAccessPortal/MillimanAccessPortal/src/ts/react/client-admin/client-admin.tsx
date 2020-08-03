@@ -153,6 +153,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               action={() => {
                 this.props.selectClient({ id: 'new' });
                 this.props.clearFormData({});
+                this.props.setEditStatus({ status: true });
               }}
             />
           </PanelSectionToolbarButtons>
@@ -387,7 +388,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       </div> :
                       <div className="button-container button-container-edit">
                         <button type="button" className="button-reset link-button">Discard Changes</button>
-                        <button type="button" className="button-submit blue-button">Save Changes</button>
+                        <button
+                          type="button"
+                          className="button-submit blue-button"
+                          onClick={() => {
+                            this.props.editClient(formData);
+                            this.props.setEditStatus({ status: false });
+                          }}
+                        >
+                          Save Changes
+                        </button>
                       </div>
                     }
                   </div> : null
@@ -493,7 +503,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 <ActionIcon
                   label="Add or create a new client"
                   icon="add"
-                  action={() => false}
+                  action={() => {
+                    this.props.selectClient({ id: 'new' });
+                    this.props.clearFormData({});
+                    this.props.setEditStatus({ status: true });
+                  }}
                 />
               </PanelSectionToolbarButtons>
             </PanelSectionToolbarButtons>

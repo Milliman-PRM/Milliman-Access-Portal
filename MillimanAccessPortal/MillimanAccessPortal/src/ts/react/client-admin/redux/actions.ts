@@ -230,6 +230,20 @@ export interface SaveNewClientFailed {
   type: 'SAVE_NEW_CLIENT_FAILED';
   error: TSError;
 }
+export interface EditClient {
+  type: 'EDIT_CLIENT';
+  request: AccessStateFormData;
+}
+export interface EditClientSucceeded {
+  type: 'EDIT_CLIENT_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithEligibleUsers>;
+  };
+}
+export interface EditClientFailed {
+  type: 'EDIT_CLIENT_FAILED';
+  error: TSError;
+}
 export interface DeleteClient {
   type: 'DELETE_CLIENT';
   request: Guid;
@@ -277,6 +291,7 @@ export type RequestAccessAction =
   | FetchClientDetails
   | SetUserRoleInClient
   | SaveNewClient
+  | EditClient
   | DeleteClient;
 
 export type ResponseAccessAction =
@@ -285,6 +300,7 @@ export type ResponseAccessAction =
   | FetchClientDetailsSucceeded
   | SetUserRoleInClientSucceeded
   | SaveNewClientSucceeded
+  | EditClientSucceeded
   | DeleteClientSucceeded;
 
 export type PageAccessAction =

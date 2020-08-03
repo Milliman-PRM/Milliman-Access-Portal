@@ -825,7 +825,6 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([FromBody] Client Model)
-        // Members intentionally not bound: Id
         {
             Log.Verbose("Entered ClientAdminController.SaveNewClient action with parameter {@Client}", Model);
 
@@ -982,8 +981,6 @@ namespace MillimanAccessPortal.Controllers
         }
 
         // POST: ClientAdmin/EditClient
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
         /// Supports: Edit with no change to parent or ProfitCenter, change of parent if no children
         /// </summary>
@@ -1185,10 +1182,10 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
-            ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
 
         /// <summary>

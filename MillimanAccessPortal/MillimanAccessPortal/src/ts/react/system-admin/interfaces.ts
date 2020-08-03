@@ -111,7 +111,7 @@ export function isUserDetail(detail: PrimaryDetail): detail is UserDetail {
 }
 export interface ClientDetail {
   id: Guid;
-  clientName: string;
+  name: string;
   clientCode: string;
   clientContactName: string;
   clientContactEmail: string;

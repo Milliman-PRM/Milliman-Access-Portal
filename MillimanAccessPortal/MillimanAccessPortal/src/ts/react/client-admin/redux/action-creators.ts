@@ -68,5 +68,7 @@ export const fetchProfitCenters =
   createRequestActionCreator<AccessActions.FetchProfitCenters>('FETCH_PROFIT_CENTERS');
 export const saveNewClient =
   createRequestActionCreator<AccessActions.SaveNewClient>('SAVE_NEW_CLIENT');
+export const editClient =
+  createRequestActionCreator<AccessActions.EditClient>('EDIT_CLIENT');
 export const deleteClient =
   createRequestActionCreator<AccessActions.DeleteClient>('DELETE_CLIENT');

@@ -15,7 +15,7 @@ const _initialData: AccessStateData = {
   profitCenters: [],
   details: {
     id: null,
-    clientName: '',
+    name: '',
     clientCode: '',
     clientContactName: '',
     clientContactEmail: '',
@@ -37,9 +37,11 @@ const _initialData: AccessStateData = {
 };
 
 const _initialFormData: AccessStateFormData = {
+  id: '',
   name: '',
   clientCode: '',
   contactName: '',
+  contactTitle: '',
   contactEmail: null,
   contactPhone: null,
   domainListCountLimit: 0,
@@ -93,6 +95,12 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...action.response.clients,
     },
   }),
+  EDIT_CLIENT_SUCCEEDED: (state, action: AccessActions.EditClientSucceeded) => ({
+    ...state,
+    clients: {
+      ...action.response.clients,
+    },
+  }),
   DELETE_CLIENT_SUCCEEDED: (state, action: AccessActions.DeleteClientSucceeded) => ({
     ...state,
     clients: {
@@ -124,7 +132,8 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
   SET_FORM_DATA: (state, action: AccessActions.SetFormData) => ({
     ...state,
-    clientName: action.details.clientName,
+    id: action.details.id,
+    name: action.details.name,
     clientCode: action.details.clientCode,
     clientContactName: action.details.clientContactName,
     clientContactEmail: action.details.clientContactEmail,
