@@ -76,7 +76,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
         sandboxValues = null;
         break;
       case ContentTypeEnum.PowerBi:
-        sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms allow-same-origin';
+        sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms allow-same-origin allow-downloads';
         break;
       default:
         sandboxValues = '';

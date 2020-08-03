@@ -4,7 +4,7 @@
 
 #### v1.9.2
 
-- Allow HTML content items to generate downloadable reports
+- Allow HTML and Power BI content items to generate downloadable reports
 
 #### v1.9.1
 
