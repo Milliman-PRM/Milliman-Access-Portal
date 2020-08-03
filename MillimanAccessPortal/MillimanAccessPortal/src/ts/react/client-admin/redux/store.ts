@@ -25,6 +25,10 @@ export interface AccessStateSelected {
   user: Guid;
 }
 
+export interface AccessStateEdit {
+  status: boolean;
+}
+
 export interface AccessStateFormData {
   name: string;
   clientCode: string;
@@ -58,6 +62,7 @@ export interface AccessStateCardAttributes {
 export interface AccessState {
   data: AccessStateData;
   selected: AccessStateSelected;
+  edit: AccessStateEdit;
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
   formData: AccessStateFormData;

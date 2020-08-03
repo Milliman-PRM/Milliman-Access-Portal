@@ -21,6 +21,14 @@ export interface SelectUser {
 }
 
 /**
+ * Set whether or not the current form is being edited.
+ */
+export interface SetEditStatus {
+  type: 'SET_EDIT_STATUS';
+  status: boolean;
+}
+
+/**
  * Expand the user card specified by id.
  */
 export interface SetExpandedUser {
@@ -281,6 +289,7 @@ export type ResponseAccessAction =
 
 export type PageAccessAction =
   | SelectClient
+  | SetEditStatus
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser

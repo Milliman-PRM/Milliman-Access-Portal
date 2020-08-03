@@ -3,7 +3,7 @@ import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  AccessState, AccessStateCardAttributes, AccessStateFilters, AccessStateFormData, AccessStateSelected,
+  AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData, AccessStateSelected,
 } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
@@ -31,6 +31,7 @@ interface ClientAdminProps {
   formData: AccessStateFormData;
   assignedUsers: User[];
   selected: AccessStateSelected;
+  edit: AccessStateEdit;
   filters: AccessStateFilters;
   cardAttributes: AccessStateCardAttributes;
 }
@@ -120,7 +121,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <CardButton
                     icon="edit"
                     color={'blue'}
-                    onClick={null}
+                    onClick={() => {
+                      this.props.fetchClientDetails({ clientId: entity.id });
+                      this.props.selectClient({ id: entity.id });
+                      this.props.setFormData({ details }); // Todo not working.
+                      this.props.setEditStatus({ status: true });
+                    }}
                   />
                   <CardButton
                     icon="add"
@@ -156,7 +162,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, details, profitCenters, selected } = this.props;
+    const { formData, details, profitCenters, selected, edit } = this.props;
     return (
       <>
         <div
@@ -165,11 +171,28 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                      flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
         >
           <h3 className="admin-panel-header">Client Information</h3>
-          <div className="admin-panel-toolbar">
-            <div className="admin-panel-action-icons-container" />
-          </div>
+          <PanelSectionToolbar>
+            <PanelSectionToolbarButtons>
+              {!edit.status ?
+                <ActionIcon
+                  label="Edit client details"
+                  icon="edit"
+                  action={() => {
+                    this.props.setEditStatus({ status: true });
+                  }}
+                /> :
+                <ActionIcon
+                  label="Cancel edit"
+                  icon="cancel"
+                  action={() => {
+                    this.props.setEditStatus({ status: false });
+                  }}
+                />
+              }
+            </PanelSectionToolbarButtons>
+          </PanelSectionToolbar>
           <div className="admin-panel-content-container">
-            <form className="admin-panel-content">
+            <form className={`admin-panel-content ${!edit.status ? 'form-disabled' : ''}`}>
               <div className="form-section-container">
                 <div className="form-section">
                   <h4 className="form-section-title">Client Information</h4>
@@ -349,22 +372,26 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
-                <div className="form-submission-section">
-                  <div className="button-container button-container-new">
-                    <button type="button" className="button-reset link-button">Reset Form</button>
-                    <button
-                      type="button"
-                      className="button-submit green-button"
-                      onClick={() => this.props.saveNewClient(formData)}
-                    >
-                      Create Client
-                    </button>
-                  </div>
-                  <div className="button-container button-container-edit">
-                    <button type="button" className="button-reset link-button">Discard Changes</button>
-                    <button type="button" className="button-submit blue-button">Save Changes</button>
-                  </div>
-                </div>
+                {edit.status ?
+                  <div className="form-submission-section">
+                    {selected.client === 'new' ?
+                      <div className="button-container button-container-new">
+                        <button type="button" className="button-reset link-button">Reset Form</button>
+                        <button
+                          type="button"
+                          className="button-submit green-button"
+                          onClick={() => this.props.saveNewClient(formData)}
+                        >
+                          Create Client
+                        </button>
+                      </div> :
+                      <div className="button-container button-container-edit">
+                        <button type="button" className="button-reset link-button">Discard Changes</button>
+                        <button type="button" className="button-submit blue-button">Save Changes</button>
+                      </div>
+                    }
+                  </div> : null
+                }
               </div>
             </form>
           </div>
@@ -488,7 +515,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, cardAttributes, formData, filters } = state;
+  const { data, selected, edit, cardAttributes, formData, filters } = state;
 
   return {
     clients: clientEntities(state),
@@ -498,6 +525,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     assignedUsers: activeUsers(state),
     formData,
     selected,
+    edit,
     filters,
   };
 }

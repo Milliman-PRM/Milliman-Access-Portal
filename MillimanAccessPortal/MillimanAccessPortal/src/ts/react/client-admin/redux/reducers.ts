@@ -4,7 +4,7 @@ import { combineReducers } from 'redux';
 
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
-import { AccessStateData, AccessStateFormData, AccessStateSelected } from './store';
+import { AccessStateData, AccessStateEdit, AccessStateFormData, AccessStateSelected } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
@@ -54,6 +54,10 @@ const _initialFormData: AccessStateFormData = {
 const _initialSelected: AccessStateSelected = {
   client: null,
   user: null,
+};
+
+const _initialEditStatus: AccessStateEdit = {
+  status: false,
 };
 
 /**
@@ -106,6 +110,13 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
   SELECT_USER: (state, action: AccessActions.SelectUser) => ({
     ...state,
     user: action.id === state.user ? null : action.id,
+  }),
+});
+
+const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
+  SET_EDIT_STATUS: (state, action: AccessActions.SetEditStatus) => ({
+    ...state,
+    status: action.status,
   }),
 });
 
@@ -227,6 +238,7 @@ export const clientAdmin = combineReducers({
   data,
   cardAttributes,
   selected,
+  edit,
   formData,
   filters,
 });
