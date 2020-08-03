@@ -300,28 +300,25 @@ $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse 
 $sFTPVersion = "$sFTPVersion-$branchName"
 
 if($runTests) {
-
     Start-Job -Name MapTests -ScriptBlock {
-        Param($buildType, $rootPath)
         
         log_statement "Performing MAP unit tests"
 
-        Set-Location $rootPath\MillimanAccessPortal\MapTests
+        Set-Location $using:rootPath\MillimanAccessPortal\MapTests
 
-        dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\MAP-tests.trx"
+        dotnet test --no-build --configuration $using:buildType "--logger:trx;LogFileName=${using:rootPath}\_test_results\MAP-tests.trx"
 
         if ($LASTEXITCODE -ne 0) {
             log_statement "ERROR: One or more MAP xUnit tests failed"
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
         }
-    } -ArgumentList $buildType, $rootPath
+    }
 
     Start-Job -Name JestTests -ScriptBlock {
-        Param($rootPath)
         log_statement "Peforming Jest tests"
 
-        Set-Location $rootPath\MillimanAccessPortal\MillimanAccessPortal
+        Set-Location $using:rootPath\MillimanAccessPortal\MillimanAccessPortal
 
         $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
@@ -336,20 +333,18 @@ if($runTests) {
     }
 
     Start-Job -Name ContentPublishingTests -ScriptBlock  {
-        Param($buildType, $rootPath)
-        
         log_statement "Performing content publishing unit tests"
 
-        Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
+        Set-Location $using:rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-        dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+        dotnet test --no-build --configuration $using:buildType "--logger:trx;LogFileName=${using:rootPath}\_test_results\CPS-tests.trx"
 
         if ($LASTEXITCODE -ne 0) {
             log_statement "ERROR: One or more content publishing xUnit tests failed"
             log_statement "errorlevel was $LASTEXITCODE"
             exit $LASTEXITCODE
         }
-    } -ArgumentList $buildType, $rootPath
+    }
 }
 
 Wait-Job -Name MapTests, JestTests, ContentPublishingTests
