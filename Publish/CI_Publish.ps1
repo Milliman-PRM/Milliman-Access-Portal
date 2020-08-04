@@ -594,11 +594,11 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-Start-Job -ScriptBlock {
+Start-Job -Name WebAppRelease -ScriptBlock {
     log_statement "Creating web app release"
 
     # Determine appropriate release channel (applies only at the time the release is created)
-    if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+    if ($using:BranchName.ToLower() -like "*pre-release*" -or $using:BranchName.ToLower() -like "*hotfix*")
     {
         $channelName = "Pre-Release"
     }
@@ -607,7 +607,7 @@ Start-Job -ScriptBlock {
         $channelName = "Development"
     }
 
-    octo create-release --project "Milliman Access Portal" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+    octo create-release --project "Milliman Access Portal" --channel $channelName --version $using:webVersion --packageVersion $using:webVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Web application release created successfully"
@@ -620,20 +620,20 @@ Start-Job -ScriptBlock {
     }
 
     log_statement "Determining target environment for web app deployment"
-    $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
+    $projects = (invoke-restmethod $using:octopusURL/api/projects?apikey=$using:octopusAPIKey).items
     $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
-    $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
-    $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
+    $releases = (invoke-restmethod "$using:octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$using:octopusAPIKey").items
+    $BranchRelease = $releases | where {$_.Version -eq "$using:webVersion"}
+    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$using:octopusAPIKey) # Retrieve the actual current channel of the release
     $channelName = $channel.Name
     if ([string]::IsNullOrEmpty($channelName))
     {
         log_statement "ERROR: Failed to determine current channel name"
         exit -42
     }
-    $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
+    $lifecycle = (Invoke-RestMethod $using:octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$using:octopusAPIKey).phases
     $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
-    $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
+    $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $using:octopusURL/api/environments/$($TargetEnvId)?apikey=$using:octopusAPIKey).name} else {"Development"}
     if ($targetEnv){
         log_statement "Deploying to $targetEnv in the $channelName channel"
     }
@@ -645,7 +645,7 @@ Start-Job -ScriptBlock {
 
     log_statement "Deploying web app release"
 
-    octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+    octo deploy-release --project "Milliman Access Portal" --version $using:webVersion --apiKey "$using:octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $using:octopusURL --waitfordeployment --cancelontimeout --progress
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Web application release deployed successfully"
@@ -658,10 +658,10 @@ Start-Job -ScriptBlock {
     }
 }
 
-Start-Job -ScriptBlock {
+Start-Job -Name ContentPublishingRelease -ScriptBlock {
     log_statement "Creating Content Publishing Server release"
 
-    octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+    octo create-release --project "Content Publication Server" --version $using:serviceVersion --packageVersion $using:serviceVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Publishing service application release created successfully"
@@ -674,10 +674,10 @@ Start-Job -ScriptBlock {
     }
 }
 
-Start-Job -ScriptBlock {
+Start-Job -Name MapQueryAdminRelease -ScriptBlock {
     log_statement "Creating MAP Query Admin release"
 
-    octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+    octo create-release --project "MAP Query Admin" --version $using:queryVersion --packageVersion $using:queryVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "MAP Query Admin release created successfully"
@@ -690,10 +690,10 @@ Start-Job -ScriptBlock {
     }
 }
 
-Start-Job -ScriptBlock {
+Start-Job -Name FileDropRelease -ScriptBlock {
     log_statement "Creating Filedrop Release"
 
-    octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+    octo create-release --project "FileDrop Deployment" --channel $using:channelName --version $using:sFTPVersion --packageVersion $using:sFTPVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Filedrop release created successfully"
@@ -708,7 +708,7 @@ Start-Job -ScriptBlock {
 
     log_statement "Deploying FileDrop release"
 
-    octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+    octo deploy-release --project "FileDrop Deployment" --version $using:sFTPVersion --apiKey "$using:octopusAPIKey" --channel=$using:channelName --deployto=$using:targetEnv --server $using:octopusURL --waitfordeployment --cancelontimeout --progress
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Filedrop release deployed successfully"
@@ -721,5 +721,6 @@ Start-Job -ScriptBlock {
     }
 }
 
+Wait-Job -Name WebAppRelease, ContentPublishingRelease, MapQueryAdminRelease, FileDropRelease
 
 #endregion
