@@ -598,7 +598,7 @@ Start-Job -Name WebAppRelease -ScriptBlock {
     log_statement "Creating web app release"
 
     # Determine appropriate release channel (applies only at the time the release is created)
-    if ($using:BranchName.ToLower() -like "*pre-release*" -or $using:BranchName.ToLower() -like "*hotfix*")
+    if (($using:BranchName).ToLower() -like "*pre-release*" -or ($using.BranchName).ToLower() -like "*hotfix*")
     {
         $channelName = "Pre-Release"
     }
