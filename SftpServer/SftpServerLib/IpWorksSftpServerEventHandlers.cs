@@ -336,7 +336,7 @@ namespace SftpServerLib
         }
 
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
-        internal static async void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
+        internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
             Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
 
@@ -348,26 +348,23 @@ namespace SftpServerLib
 
                 if (connection.OpenFileWrites.TryGetValue(evtData.Handle, out Guid fileDropFileId) && evtData.StatusCode == 0)
                 {
+                    connection.OpenFileWrites.Remove(evtData.Handle);
                     string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
 
                     using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
                     {
                         try
                         {
-                            var fileDropFileRecord = await db.FileDropFile.FindAsync(fileDropFileId);
+                            var fileDropFileRecord = db.FileDropFile.Find(fileDropFileId);
                             FileInfo fileInfo = new FileInfo(absoluteFilePath);
 
                             fileDropFileRecord.UploadDateTimeUtc = DateTime.UtcNow;
                             fileDropFileRecord.Size = fileInfo.Length;
-                            await db.SaveChangesAsync();
+                            db.SaveChanges();
                         }
                         catch (Exception ex)
                         {
-                            // TODO Do something reasonable
-                        }
-                        finally
-                        {
-                            connection.OpenFileWrites.Remove(evtData.Handle);
+                            Log.Error(ex, "Failed to update FileDropFile record with time stamp and size in OnFileClose");
                         }
                     }
                 }
@@ -797,9 +794,9 @@ namespace SftpServerLib
             {
                 (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
 
-                if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
+                if (result != AuthorizationResult.Authorized || !connection.WriteAccess || !connection.OpenFileWrites.ContainsKey(evtData.Handle))
                 {
-                    Log.Information($"OnFileWrite event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
+                    Log.Information($"OnFileWrite event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access, or write handle <{evtData.Handle}> is not known");
                     evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                     return;
                 }
