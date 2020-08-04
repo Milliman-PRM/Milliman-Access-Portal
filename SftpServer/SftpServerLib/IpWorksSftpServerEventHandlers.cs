@@ -139,21 +139,17 @@ namespace SftpServerLib
 
             // Documentation for this event is at http://cdn.nsoftware.com/help/IHF/cs/SFTPServer_e_FileOpen.htm
 
-            RequiredAccess requiredAccess = default;
-            switch (evtData.Flags)
+            RequiredAccess requiredAccess = evtData.Flags switch
             {
-                case int flags when (flags & 0x00000002) == 0x00000002:  // SSH_FXF_WRITE (0x00000002)
-                    requiredAccess = RequiredAccess.Write;
-                    break;
-
-                case int flags when (flags & 0x00000001) == 0x00000001:  // SSH_FXF_READ (0x00000001)
-                    requiredAccess = RequiredAccess.Read;
-                    break;
-
-                default:
-                    Log.Warning($"OnFileOpen event invoked for unsupported event data flags value {evtData.Flags:X8}");
-                    evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
-                    return;
+                int flags when (flags & 0x00000001) == 0x00000001 => RequiredAccess.Read,  // SSH_FXF_READ (0x00000001)
+                int flags when (flags & 0x00000002) == 0x00000002 => RequiredAccess.Write, // SSH_FXF_WRITE (0x00000002)
+                _ => RequiredAccess.NoRequirement
+            };
+            if (requiredAccess == RequiredAccess.NoRequirement)
+            {
+                Log.Warning($"OnFileOpen event invoked for unsupported event data flags value {evtData.Flags:X8}");
+                evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                return;
             }
 
             (AuthorizationResult authResult, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, requiredAccess);
@@ -166,30 +162,30 @@ namespace SftpServerLib
 
             connection.LastActivityUtc = DateTime.UtcNow;
 
+            string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
+            string dirPathToFind = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
+            string fileName = Path.GetFileName(evtData.Path);
+
+            FileDropDirectory containingDirectory = default;
+            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            {
+                containingDirectory = db.FileDropDirectory
+                                        .Where(d => d.FileDropId == connection.FileDropId)
+                                        .SingleOrDefault(d => EF.Functions.ILike(dirPathToFind, d.CanonicalFileDropPath));
+            }
+
             if (evtData.BeforeExec)
             {
                 if (authResult == AuthorizationResult.NotAuthorized)
                 {
-                    Log.Information($"OnFileOpen event invoked for file write, but write access is denied for account {evtData.User}");
+                    Log.Information($"OnFileOpen event invoked for file {requiredAccess}, but access is denied for account {evtData.User}");
                     evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                     return;
                 }
 
-                string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
-                string dirPathToFind = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
-                string fileName = Path.GetFileName(evtData.Path);
-
-                FileDropDirectory containingDirectory = default;
-                using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
-                {
-                    containingDirectory = db.FileDropDirectory
-                                            .Where(d => d.FileDropId == connection.FileDropId)
-                                            .SingleOrDefault(d => EF.Functions.ILike(dirPathToFind, d.CanonicalFileDropPath));
-                }
-
                 if (containingDirectory == null)
                 {
-                    Log.Warning($"OnFileOpen event invoked for file write, but containing directory {dirPathToFind} database record was not foundc");
+                    Log.Warning($"OnFileOpen event invoked for file {requiredAccess}, but containing directory {dirPathToFind} database record was not foundc");
                     evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                     return;
                 }
@@ -232,7 +228,59 @@ namespace SftpServerLib
                             };
                             db.FileDropFile.Add(newFileDropFile);
                             db.SaveChanges();
-                            connection.OpenFileWrites.Add(evtData.Handle, newFileDropFile.Id);
+                        }
+                        break;
+
+                    case int flags when (flags & 0x00000001) == 0x00000001  // SSH_FXF_READ (0x00000001)
+                                     && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
+                        // read a file
+
+                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        {
+                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
+                                !File.Exists(absoluteFilePath))
+                            {
+                                Log.Warning($"OnFileOpen event invoked for file read, but file {evtData.Path} or file record not found, account {evtData.User}");
+                                evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
+                                return;
+                            }
+
+                            new AuditLogger().Log(AuditEventType.SftpFileReadAuthorized.ToEvent(
+                                new SftpFileOperationLogModel
+                                {
+                                    FileName = fileName,
+                                    FileDropDirectory = (FileDropDirectoryLogModel)containingDirectory,
+                                    FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName, RootPath = connection.FileDropRootPathAbsolute },
+                                    Account = connection.Account,
+                                    User = connection.MapUser,
+                                }
+                            ), connection.MapUser?.UserName);
+                            Log.Information($"File {evtData.Path} authorized for reading, user {evtData.User}");
+                        }
+                        break;
+
+                    default:
+                        evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
+                        return;
+                }
+            }
+            else
+            {
+                switch (evtData.Flags)
+                {
+                    case int flags when (flags & 0x00000008) == 0x00000008  // SSH_FXF_CREAT (0x00000008)
+                                     && (flags & 0x00000002) == 0x00000002  // SSH_FXF_WRITE (0x00000002)
+                                     && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
+                        // create/write a file
+
+                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        {
+                            Guid fileDropFileId = db.FileDropFile
+                                                    .Where(f => f.DirectoryId == containingDirectory.Id)
+                                                    .Where(f => f.FileName == fileName)
+                                                    .Select(f => f.Id)
+                                                    .Single();
+                            connection.OpenFileWrites.Add(evtData.Handle, fileDropFileId);
 
                             #region Process user notifications for FileWrite event
                             List<SftpAccount> accountsToNotify = db.SftpAccount
@@ -278,28 +326,6 @@ namespace SftpServerLib
                                      && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
                         // read a file
 
-                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
-                        {
-                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
-                                !File.Exists(absoluteFilePath))
-                            {
-                                Log.Warning($"OnFileOpen event invoked for file read, but file {evtData.Path} or file record not found, account {evtData.User}");
-                                evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                return;
-                            }
-
-                            new AuditLogger().Log(AuditEventType.SftpFileReadAuthorized.ToEvent(
-                                new SftpFileOperationLogModel
-                                {
-                                    FileName = fileName,
-                                    FileDropDirectory = (FileDropDirectoryLogModel)containingDirectory,
-                                    FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName, RootPath = connection.FileDropRootPathAbsolute },
-                                    Account = connection.Account,
-                                    User = connection.MapUser,
-                                }
-                            ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for reading, user {evtData.User}");
-                        }
                         break;
 
                     default:
