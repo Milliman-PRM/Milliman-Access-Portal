@@ -224,13 +224,15 @@ namespace SftpServerLib
                                 }
                             }
 
-                            db.FileDropFile.Add(new FileDropFile
+                            FileDropFile newFileDropFile = new FileDropFile
                             {
                                 FileName = fileName,
                                 DirectoryId = containingDirectory.Id,
                                 CreatedByAccountId = connection.Account.Id,
-                            });
+                            };
+                            db.FileDropFile.Add(newFileDropFile);
                             db.SaveChanges();
+                            connection.OpenFileWrites.Add(evtData.Handle, newFileDropFile.Id);
 
                             #region Process user notifications for FileWrite event
                             List<SftpAccount> accountsToNotify = db.SftpAccount
@@ -308,9 +310,42 @@ namespace SftpServerLib
         }
 
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
-        internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
+        internal static async void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
             Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
+
+            (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+            if (result != AuthorizationResult.ConnectionNotFound)
+            {
+                connection.LastActivityUtc = DateTime.UtcNow;
+
+                if (connection.OpenFileWrites.TryGetValue(evtData.Handle, out Guid fileDropFileId) && evtData.StatusCode == 0)
+                {
+                    string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
+
+                    using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                    {
+                        try
+                        {
+                            var fileDropFileRecord = await db.FileDropFile.FindAsync(fileDropFileId);
+                            FileInfo fileInfo = new FileInfo(absoluteFilePath);
+
+                            fileDropFileRecord.UploadDateTimeUtc = DateTime.UtcNow;
+                            fileDropFileRecord.Size = fileInfo.Length;
+                            await db.SaveChangesAsync();
+                        }
+                        catch (Exception ex)
+                        {
+                            // TODO Do something reasonable
+                        }
+                        finally
+                        {
+                            connection.OpenFileWrites.Remove(evtData.Handle);
+                        }
+                    }
+                }
+            }
         }
 
         //[Description("Fired when a connection is closed.")]
@@ -406,7 +441,6 @@ namespace SftpServerLib
         internal static void OnDirList(object sender, SftpserverDirListEventArgs evtData)
         {
             Log.Verbose(GenerateEventArgsLogMessage("DirList", evtData));
-            Log.Warning("TODO: Should there be a read permission check for a directory listing?");
         }
 
         internal static object OnDirCreateLockObj = new object();
