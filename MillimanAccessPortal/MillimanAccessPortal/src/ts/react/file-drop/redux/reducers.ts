@@ -98,6 +98,7 @@ const _initialFileDropSettings: FileDropSettings = {
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
+  fileDropContents: null,
   permissionGroups: null,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
@@ -838,6 +839,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   SELECT_FILE_DROP: (state) => ({
     ...state,
     permissionGroups: null,
+  }),
+  FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
   }),
 });
 
