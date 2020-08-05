@@ -32,7 +32,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net.Mime;
 using System.Threading.Tasks;
 
 
@@ -347,13 +346,7 @@ namespace MillimanAccessPortal.Controllers
 
                     case ContentTypeEnum.FileDownload:
                         Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {requestedContentFile.FullPath}");
-                        var contentDisposition = new ContentDisposition
-                        {
-                            FileName = requestedContentFile.FileOriginalName,
-                            Inline = false,
-                        };
-                        Response.Headers.Add("Content-Disposition", contentDisposition.ToString());
-                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream");
+                        return PhysicalFile(requestedContentFile.FullPath, "application/octet-stream", requestedContentFile.FileOriginalName);
 
                     case ContentTypeEnum.Pdf:
                         Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {requestedContentFile.FullPath}");
