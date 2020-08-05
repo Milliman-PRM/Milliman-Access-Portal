@@ -46,6 +46,7 @@ import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUpload } from './file-drop-upload';
+import { FolderContents } from './folder-contents';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -905,7 +906,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div className="files-table-container" ref={this.dragUploadRef} />
+          <div className="files-table-container" ref={this.dragUploadRef}>
+            {
+              this.props.data.fileDropContents &&
+              <FolderContents
+                directories={this.props.data.fileDropContents.directories}
+                files={this.props.data.fileDropContents.files}
+                fileDropId={this.props.selected.fileDrop}
+                fileDropName={this.props.activeSelectedClient.name}
+                navigateTo={() => false}
+                thisDirectory={this.props.data.fileDropContents.thisDirectory}
+              />
+            }
+          </div>
         </ContentPanelSectionContent>
       </>
     );
