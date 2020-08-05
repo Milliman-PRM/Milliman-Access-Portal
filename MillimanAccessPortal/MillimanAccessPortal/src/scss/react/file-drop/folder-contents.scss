@@ -1,0 +1,18 @@
+﻿@import "../../map_modules/variables";
+
+.folder-content-table {
+
+    .col-actions {
+        text-align: right;
+        
+        .menu-icon {
+            cursor: pointer;
+        }
+    }
+}
+
+.content-type-icon,
+.menu-icon {
+    height: 1em;
+    width: 1em;
+}
