@@ -620,6 +620,8 @@ export interface FileDropFile {
   id: Guid;
   fileName: string;
   description: string;
+  size: string;
+  uploadDateTimeUtc: string;
 }
 
 export interface FileDropDirectoryContentModel {
