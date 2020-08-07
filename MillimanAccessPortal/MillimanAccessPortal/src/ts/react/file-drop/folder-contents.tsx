@@ -55,7 +55,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFolders() {
-    const { directories } = this.props;
+    const { directories, fileDropId, navigateTo } = this.props;
     return directories.map((directory) => {
       const [folderName] = directory.canonicalPath.split('/').slice(-1);
       return (
@@ -65,7 +65,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <use xlinkHref={'#folder'} />
             </svg>
           </td>
-          <td>{folderName}</td>
+          <td>
+            <span onClick={() => navigateTo(fileDropId, directory.canonicalPath)}>
+              {folderName}
+            </span>
+          </td>
           <td />
           <td />
           <td className="col-actions">
