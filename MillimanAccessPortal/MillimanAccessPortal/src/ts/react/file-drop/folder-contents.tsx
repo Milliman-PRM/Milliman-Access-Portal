@@ -19,24 +19,34 @@ interface FolderContentsProps {
 export class FolderContents extends React.Component<FolderContentsProps> {
 
   public renderBreadCrumbs() {
-    const { fileDropId, navigateTo, thisDirectory } = this.props;
+    const { fileDropId, fileDropName, navigateTo, thisDirectory } = this.props;
     const pathDivider = '/';
-    const breadCrumbArray = thisDirectory.canonicalPath.split(pathDivider);
-    return breadCrumbArray.map((folder, i) => {
+    const breadCrumbObjectArray = thisDirectory.canonicalPath.substr(1).split(pathDivider)
+      .map((path, index) => {
+        const breadCrumbPath = index === 0
+          ? pathDivider
+          : thisDirectory.canonicalPath.substr(1).split(pathDivider).slice(0, index).join(pathDivider);
+        const breadCrumbText = index === 0 ? fileDropName : path;
+        return {
+          breadCrumbPath,
+          breadCrumbText,
+        };
+      });
+    return breadCrumbObjectArray.map((folder, i) => {
       return (
         <React.Fragment key={`breadcrumb-${i}`}>
           <span
-            className={`breadcrumb-link${i === breadCrumbArray.length ? ' current' : null}`}
+            className={`breadcrumb-link${i === breadCrumbObjectArray.length ? ' current' : ''}`}
             onClick={
-              i < breadCrumbArray.length
-                ? () => navigateTo(fileDropId, breadCrumbArray.slice(0, i).join(pathDivider))
+              i < breadCrumbObjectArray.length
+                ? () => navigateTo(fileDropId, folder.breadCrumbPath)
                 : null
             }
           >
-            {folder}
+            {folder.breadCrumbText}
           </span>
           {
-            i < breadCrumbArray.length &&
+            i < breadCrumbObjectArray.length &&
             <span className="breadcrumb-divider">{pathDivider}</span>
           }
         </React.Fragment>
