@@ -21,24 +21,32 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   public renderBreadCrumbs() {
     const { fileDropId, fileDropName, navigateTo, thisDirectory } = this.props;
     const pathDivider = '/';
-    const breadCrumbObjectArray = thisDirectory.canonicalPath.substr(1).split(pathDivider)
+    const breadCrumbObjectArray = `${fileDropName}${thisDirectory.canonicalPath}`.split(pathDivider)
       .map((path, index) => {
-        const breadCrumbPath = index === 0
-          ? pathDivider
-          : thisDirectory.canonicalPath.substr(1).split(pathDivider).slice(0, index).join(pathDivider);
+        const breadCrumbPath = [
+          pathDivider,
+          (index !== 0)
+            ? thisDirectory.canonicalPath.substr(1).split(pathDivider).slice(0, index).join(pathDivider)
+            : '',
+        ].join('');
         const breadCrumbText = index === 0 ? fileDropName : path;
-        return {
-          breadCrumbPath,
-          breadCrumbText,
-        };
+        if (path !== '') {
+          return {
+            breadCrumbPath,
+            breadCrumbText,
+          };
+        }
       });
+    if (breadCrumbObjectArray[breadCrumbObjectArray.length - 1] === undefined) {
+      breadCrumbObjectArray.pop();
+    }
     return breadCrumbObjectArray.map((folder, i) => {
       return (
         <React.Fragment key={`breadcrumb-${i}`}>
           <span
-            className={`breadcrumb-link${i === breadCrumbObjectArray.length ? ' current' : ''}`}
+            className={`breadcrumb-link${i + 1 === breadCrumbObjectArray.length ? ' current' : ''}`}
             onClick={
-              i < breadCrumbObjectArray.length
+              i + 1 < breadCrumbObjectArray.length
                 ? () => navigateTo(fileDropId, folder.breadCrumbPath)
                 : null
             }
@@ -46,8 +54,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             {folder.breadCrumbText}
           </span>
           {
-            i < breadCrumbObjectArray.length &&
-            <span className="breadcrumb-divider">{pathDivider}</span>
+            i + 1 < breadCrumbObjectArray.length &&
+            <span className="breadcrumb-divider"> {pathDivider} </span>
           }
         </React.Fragment>
       );
