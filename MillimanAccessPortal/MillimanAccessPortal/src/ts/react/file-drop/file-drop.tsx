@@ -63,6 +63,7 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  activeSelectedFileDrop: FileDropWithStats;
   permissionGroupChangesPending: boolean;
   permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
@@ -916,7 +917,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   directories={this.props.data.fileDropContents.directories}
                   files={this.props.data.fileDropContents.files}
                   fileDropId={this.props.selected.fileDrop}
-                  fileDropName={this.props.activeSelectedClient.name}
+                  fileDropName={this.props.activeSelectedFileDrop.name}
                   navigateTo={(fileDropId, canonicalPath) =>
                     this.props.fetchFolderContents({ fileDropId, canonicalPath })
                   }
@@ -1289,6 +1290,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    activeSelectedFileDrop: Selector.activeSelectedFileDrop(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
     permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),

@@ -115,6 +115,11 @@ export function fileDropEntities(state: FileDropState) {
   return _.sortBy(filteredFileDrops, ['name']);
 }
 
+/** Return the highlighted File Drop if it is visible to the user */
+export function activeSelectedFileDrop(state: FileDropState) {
+  return (state.selected.fileDrop) ? state.data.fileDrops[state.selected.fileDrop] : null;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Permission Group Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
