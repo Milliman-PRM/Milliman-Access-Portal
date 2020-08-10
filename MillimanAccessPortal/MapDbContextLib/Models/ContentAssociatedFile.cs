@@ -6,6 +6,7 @@
  */
 
 using MapCommonLib;
+using Serilog;
 using System;
 using System.ComponentModel;
 
@@ -40,7 +41,17 @@ namespace MapDbContextLib.Models
         /// <returns>true if the stored checksum matches the file content</returns>
         public bool ValidateChecksum()
         {
-            return Checksum == GlobalFunctions.GetFileChecksum(FullPath).ToLower();
+            (string fileChecksum, long length) = GlobalFunctions.GetFileChecksum(FullPath);
+
+            if (Checksum.Equals(fileChecksum, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+            else
+            {
+                Log.Warning($"Checksums do not match: file checksum is {fileChecksum}, length is {length}");
+                return false;
+            }
         }
     }
 }
