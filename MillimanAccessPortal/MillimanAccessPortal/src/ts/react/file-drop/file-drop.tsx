@@ -906,21 +906,25 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div className="files-table-container" ref={this.dragUploadRef}>
-            {
-              this.props.data.fileDropContents &&
-              <FolderContents
-                directories={this.props.data.fileDropContents.directories}
-                files={this.props.data.fileDropContents.files}
-                fileDropId={this.props.selected.fileDrop}
-                fileDropName={this.props.activeSelectedClient.name}
-                navigateTo={(fileDropId, canonicalPath) =>
-                  this.props.fetchFolderContents({ fileDropId, canonicalPath })
-                }
-                thisDirectory={this.props.data.fileDropContents.thisDirectory}
-              />
-            }
-          </div>
+          <ContentPanelForm
+            readOnly={false}
+          >
+            <div className="files-table-container" ref={this.dragUploadRef}>
+              {
+                this.props.data.fileDropContents &&
+                <FolderContents
+                  directories={this.props.data.fileDropContents.directories}
+                  files={this.props.data.fileDropContents.files}
+                  fileDropId={this.props.selected.fileDrop}
+                  fileDropName={this.props.activeSelectedClient.name}
+                  navigateTo={(fileDropId, canonicalPath) =>
+                    this.props.fetchFolderContents({ fileDropId, canonicalPath })
+                  }
+                  thisDirectory={this.props.data.fileDropContents.thisDirectory}
+                />
+              }
+            </div>
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
