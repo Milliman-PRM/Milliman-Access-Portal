@@ -30,7 +30,7 @@ export interface AccessStateEdit {
 }
 
 export interface AccessStateFormData {
-  id: Guid;
+  id?: Guid;
   name: string;
   clientCode: string;
   contactName: string;
@@ -44,6 +44,8 @@ export interface AccessStateFormData {
   consultantOffice: string;
   consultantName: string;
   consultantEmail: string;
+  newUserWelcomeText: string;
+  parentClientId: Guid;
 }
 
 /**

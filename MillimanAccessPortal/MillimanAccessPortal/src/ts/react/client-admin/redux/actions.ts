@@ -86,7 +86,7 @@ export interface SetClientCode {
 }
 export interface SetClientContactName {
   type: 'SET_CLIENT_CONTACT_NAME';
-  clientContactName: string;
+  contactName: string;
 }
 export interface SetClientContactTitle {
   type: 'SET_CLIENT_CONTACT_TITLE';
@@ -272,6 +272,7 @@ export type FormAction =
   | SetClientName
   | SetClientCode
   | SetClientContactName
+  | SetClientContactTitle
   | SetClientContactEmail
   | SetClientContactPhone
   | SetDomainListCountLimit

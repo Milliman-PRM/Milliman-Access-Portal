@@ -18,6 +18,7 @@ const _initialData: AccessStateData = {
     name: '',
     clientCode: '',
     clientContactName: '',
+    clientContactTitle: '',
     clientContactEmail: '',
     clientContactPhone: '',
     domainListCountLimit: 0,
@@ -42,15 +43,17 @@ const _initialFormData: AccessStateFormData = {
   clientCode: '',
   contactName: '',
   contactTitle: '',
-  contactEmail: null,
-  contactPhone: null,
+  contactEmail: '',
+  contactPhone: '',
   domainListCountLimit: 0,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
   consultantOffice: '',
   consultantName: '',
-  consultantEmail: null,
+  consultantEmail: '',
+  newUserWelcomeText: '',
+  parentClientId: '',
 };
 
 const _initialSelected: AccessStateSelected = {
@@ -135,16 +138,17 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
     id: action.details.id,
     name: action.details.name,
     clientCode: action.details.clientCode,
-    clientContactName: action.details.clientContactName,
-    clientContactEmail: action.details.clientContactEmail,
-    clientContactPhone: action.details.clientContactPhone,
+    contactName: action.details.clientContactName,
+    contactTitle: action.details.clientContactTitle,
+    contactEmail: action.details.clientContactEmail ? action.details.clientContactEmail : null,
+    contactPhone: action.details.clientContactPhone ? action.details.clientContactPhone : null,
     domainListCountLimit: action.details.domainListCountLimit,
     acceptedEmailDomainList: action.details.acceptedEmailDomainList,
     acceptedEmailAddressExceptionList: action.details.acceptedEmailAddressExceptionList,
-    profitCenter: action.details.profitCenter,
+    profitCenterId: action.details.profitCenter.id,
     office: action.details.office,
     consultantName: action.details.consultantName,
-    consultantEmail: action.details.consultantEmail,
+    consultantEmail: action.details.consultantEmail ? action.details.consultantEmail : null,
   }),
   SET_CLIENT_NAME: (state, action: AccessActions.SetClientName) => ({
     ...state,
@@ -156,15 +160,19 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   }),
   SET_CLIENT_CONTACT_NAME: (state, action: AccessActions.SetClientContactName) => ({
     ...state,
-    contactName: action.clientContactName,
+    contactName: action.contactName,
+  }),
+  SET_CLIENT_CONTACT_TITLE: (state, action: AccessActions.SetClientContactTitle) => ({
+    ...state,
+    contactTitle: action.clientContactTitle,
   }),
   SET_CLIENT_CONTACT_EMAIL: (state, action: AccessActions.SetClientContactEmail) => ({
     ...state,
-    contactEmail: action.clientContactEmail,
+    contactEmail: action.clientContactEmail ? action.clientContactEmail : null,
   }),
   SET_CLIENT_CONTACT_PHONE: (state, action: AccessActions.SetClientContactPhone) => ({
     ...state,
-    contactPhone: action.clientContactPhone,
+    contactPhone: action.clientContactPhone ? action.clientContactPhone : null,
   }),
   SET_DOMAIN_LIST_COUNT_LIMIT: (state, action: AccessActions.SetDomainListCountLimit) => ({
     ...state,
@@ -192,7 +200,7 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   }),
   SET_CONSULTANT_EMAIL: (state, action: AccessActions.SetConsultantEmail) => ({
     ...state,
-    consultantEmail: action.consultantEmail,
+    consultantEmail: action.consultantEmail ? action.consultantEmail : null,
   }),
 });
 

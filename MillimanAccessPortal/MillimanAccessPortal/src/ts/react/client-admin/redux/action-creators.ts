@@ -38,6 +38,8 @@ export const setClientCode =
   createActionCreator<AccessActions.SetClientCode>('SET_CLIENT_CODE');
 export const setClientContactName =
   createActionCreator<AccessActions.SetClientContactName>('SET_CLIENT_CONTACT_NAME');
+export const setClientContactTitle =
+  createActionCreator<AccessActions.SetClientContactTitle>('SET_CLIENT_CONTACT_TITLE');
 export const setClientContactEmail =
   createActionCreator<AccessActions.SetClientContactEmail>('SET_CLIENT_CONTACT_EMAIL');
 export const setClientContactPhone =

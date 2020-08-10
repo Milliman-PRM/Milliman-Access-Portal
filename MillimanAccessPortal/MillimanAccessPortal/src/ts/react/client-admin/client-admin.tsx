@@ -6,7 +6,7 @@ import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData, AccessStateSelected,
 } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
+import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -205,7 +205,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title">Client Name *</label>
                       <div>
                         <input
-                          placeholder={formData.name}
+                          value={formData.name}
                           onChange={(event) => {
                             this.props.setClientName({ name: event.target.value });
                           }}
@@ -222,10 +222,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <input
                           placeholder={formData.clientCode}
                           onChange={(event) => {
-                            this.props.setClientCode({ clientCode: event.target.value });
+                            this.props.setClientCode({ clientCode: event.currentTarget.value });
                           }}
                         />
-                        <span asp-validation-for="ClientCode" className="text-danger" />
+                        <span className="text-danger" />
                       </div>
                     </div>
                     <div
@@ -234,7 +234,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input placeholder={formData.contactName} />
+                        <input
+                          value={formData.contactName}
+                          onClick={(event) => {
+                            this.props.setClientContactName({ contactName: event.currentTarget.value });
+                          }}
+                        />
                         <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
@@ -244,7 +249,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
                       <div>
-                        <input asp-for="ContactTitle" />
+                        <input
+                          onChange={(event) => {
+                            this.props.setClientContactTitle({ clientContactTitle: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ContactTitle" className="text-danger" />
                       </div>
                     </div>
@@ -254,7 +263,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input placeholder={formData.contactEmail} />
+                        <input
+                          onChange={(event) => {
+                            this.props.setClientContactEmail({ clientContactEmail: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
@@ -264,7 +277,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input placeholder={formData.contactPhone} />
+                        <input
+                          onChange={(event) => {
+                            this.props.setClientContactPhone({ clientContactPhone: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
@@ -304,7 +321,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
-                        <input placeholder={formData.consultantName} />
+                        <input
+                          onChange={(event) => {
+                            this.props.setConsultantName({ consultantName: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ConsultantName" className="text-danger" />
                       </div>
                     </div>
@@ -314,7 +335,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
-                        <input asp-for={formData.consultantEmail} />
+                        <input
+                          onChange={(event) => {
+                            this.props.setConsultantEmail({ consultantEmail: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ConsultantEmail" className="text-danger" />
                       </div>
                     </div>
@@ -324,7 +349,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     >
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input placeholder={formData.consultantOffice} />
+                        <input
+                          onChange={(event) => {
+                            this.props.setOffice({ consultantOffice: event.target.value });
+                          }}
+                        />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
@@ -368,7 +397,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         />
                       </div>
                       <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
-                        <textarea id="NewUserWelcomeText" name="NewUserWelcomeText" />
+                        <textarea
+                          id="NewUserWelcomeText"
+                          name="NewUserWelcomeText"
+                          onChange={() => {
+                            return false;
+                          }}
+                        />
                       </div>
                     </div>
                   </div>

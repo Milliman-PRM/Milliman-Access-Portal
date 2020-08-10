@@ -988,7 +988,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
+        public async Task<IActionResult> EditClient([FromBody][Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
                                               "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
         {
             Log.Verbose("Entered ClientAdminController.EditClient action with model {@Client}", Model);
@@ -1006,10 +1006,8 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest("Client cannot have itself as a parent Client");
             }
 
-            // Query for the existing record to be modified
-            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
-
             // Client must exist
+            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
             if (ExistingClientRecord == null)
             {
                 Log.Warning("In ClientAdminController.EditClient action: referenced client not found");
@@ -1157,7 +1155,11 @@ namespace MillimanAccessPortal.Controllers
                     ExistingClientRecord.ClientCode = Model.ClientCode;
                     ExistingClientRecord.ContactName = Model.ContactName;
                     ExistingClientRecord.ContactTitle = Model.ContactTitle;
-                    ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                    
+                    if (ExistingClientRecord.ContactEmail != Model.ContactEmail && !(ModelState.Keys.Contains("ContactEmail") && ModelState["ContactEmail"].Errors.Any()))
+                    {
+                        ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                    }
                     ExistingClientRecord.ContactPhone = Model.ContactPhone;
                     ExistingClientRecord.ConsultantName = Model.ConsultantName;
                     ExistingClientRecord.ConsultantEmail = Model.ConsultantEmail;

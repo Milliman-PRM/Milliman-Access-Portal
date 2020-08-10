@@ -114,6 +114,7 @@ export interface ClientDetail {
   name: string;
   clientCode: string;
   clientContactName: string;
+  clientContactTitle: string;
   clientContactEmail: string;
   clientContactPhone: string;
   domainListCountLimit: number;
