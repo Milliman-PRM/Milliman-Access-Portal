@@ -91,8 +91,15 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files } = this.props;
+    const { files, fileDropId } = this.props;
+    const { canonicalPath: path } = this.props.thisDirectory;
     return files.map((file) => {
+      const fileDownloadURL = [
+        './FileDrop/DownloadFile?',
+        `FileDropId=${fileDropId}&`,
+        `FileDropFileId=${file.id}&`,
+        `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
+      ].join('');
       return (
         <tr key={file.id}>
           <td className="file-icon">
@@ -100,7 +107,14 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <use xlinkHref={'#file'} />
             </svg>
           </td>
-          <td>{file.fileName}</td>
+          <td>
+            <a
+              href={encodeURI(fileDownloadURL)}
+              download={true}
+            >
+              {file.fileName}
+            </a>
+          </td>
           <td>{file.size}</td>
           <td>{file.uploadDateTimeUtc}</td>
           <td className="col-actions">
