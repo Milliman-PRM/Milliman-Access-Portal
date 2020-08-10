@@ -597,7 +597,7 @@ if ($LASTEXITCODE -ne 0) {
 Start-Job -Name WebAppRelease -ScriptBlock {
     log_statement "Creating web app release"
 
-    # Determine appropriate release channel (applies only at the time the release is created)
+    # Determine appropriate release chanjunel (applies only at the time the release is created)
     if (($using:BranchName).ToLower() -like "*pre-release*" -or ($using.BranchName).ToLower() -like "*hotfix*")
     {
         $channelName = "Pre-Release"
@@ -624,7 +624,7 @@ Start-Job -Name WebAppRelease -ScriptBlock {
     $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
     $releases = (invoke-restmethod "$using:octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$using:octopusAPIKey").items
     $BranchRelease = $releases | where {$_.Version -eq "$using:webVersion"}
-    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$using:octopusAPIKey) # Retrieve the actual current channel of the release
+    $channel = (Invoke-RestMethod $using:octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$using:octopusAPIKey) # Retrieve the actual current channel of the release
     $channelName = $channel.Name
     if ([string]::IsNullOrEmpty($channelName))
     {
@@ -691,9 +691,12 @@ Start-Job -Name MapQueryAdminRelease -ScriptBlock {
 }
 
 Start-Job -Name FileDropRelease -ScriptBlock {
+    $channel = (Invoke-RestMethod $using:octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$using:octopusAPIKey) # Retrieve the actual current channel of the release
+    $channelName = $channel.Name
+
     log_statement "Creating Filedrop Release"
 
-    octo create-release --project "FileDrop Deployment" --channel $using:channelName --version $using:sFTPVersion --packageVersion $using:sFTPVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
+    octo create-release --project "FileDrop Deployment" --channel $channelName --version $using:sFTPVersion --packageVersion $using:sFTPVersion --ignoreexisting --apiKey "$using:octopusAPIKey" --server $using:octopusURL
 
     if ($LASTEXITCODE -eq 0) {
         log_statement "Filedrop release created successfully"
