@@ -74,7 +74,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </svg>
           </td>
           <td>
-            <span onClick={() => navigateTo(fileDropId, directory.canonicalPath)}>
+            <span
+              className="folder"
+              onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+            >
               {folderName}
             </span>
           </td>
@@ -111,6 +114,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             <a
               href={encodeURI(fileDownloadURL)}
               download={true}
+              className="file-download"
             >
               {file.fileName}
             </a>
@@ -131,7 +135,9 @@ export class FolderContents extends React.Component<FolderContentsProps> {
 
     return (
       <div>
-        {this.renderBreadCrumbs()}
+        <div className="breadcrumb-container">
+          {this.renderBreadCrumbs()}
+        </div>
         <table className="folder-content-table">
           <thead>
             <tr>
