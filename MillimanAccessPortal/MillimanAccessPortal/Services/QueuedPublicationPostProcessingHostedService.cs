@@ -190,10 +190,18 @@ namespace MillimanAccessPortal.Services
                 // Validate the existence and checksum of each successfully reduced file
                 foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
                 {
-                    if (!File.Exists(relatedTask.ResultFilePath) ||
-                        relatedTask.ReducedContentChecksum.ToLower() != GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath).ToLower())
+                    if (File.Exists(relatedTask.ResultFilePath))
                     {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), validation failed for file {relatedTask.ResultFilePath}";
+                        (string checksum, long length) = GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath);
+                        if (!relatedTask.ReducedContentChecksum.Equals(checksum))
+                        {
+                            string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), length {length}, checksum {checksum} found for file {relatedTask.ResultFilePath}";
+                            throw new ApplicationException(Msg);
+                        }
+                    }
+                    else
+                    {
+                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {relatedTask.ResultFilePath}";
                         throw new ApplicationException(Msg);
                     }
                 }

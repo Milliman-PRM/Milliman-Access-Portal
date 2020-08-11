@@ -5,18 +5,15 @@
  *                  and that is not one of the standard "related" files (icon, release notes, user guide). 
  */
 
-using MapCommonLib;
 using System;
 using System.ComponentModel;
 
 namespace MapDbContextLib.Models
 {
-    public class ContentAssociatedFile
+    public class ContentAssociatedFile : VerifyableFileBase
     {
         [ReadOnly(true)]
         public Guid Id { get; set; } // = Guid.NewGuid();
-
-        public string FullPath { get; set; } = string.Empty;
 
         public string DisplayName { get; set; } = string.Empty;
 
@@ -26,21 +23,16 @@ namespace MapDbContextLib.Models
 
         public ContentAssociatedFileType FileType { get; set; } = ContentAssociatedFileType.Unknown;
 
-        private string _Checksum = null;
         public string Checksum
         {
             get { return _Checksum; }
-            set { _Checksum = value?.ToLower(); }
+            set { _Checksum = value; }
         }
 
-
-        /// <summary>
-        /// Validates the bytes of a file agains the stored checksum property of this ContentAssociatedFile instance
-        /// </summary>
-        /// <returns>true if the stored checksum matches the file content</returns>
-        public bool ValidateChecksum()
+        public string FullPath
         {
-            return Checksum == GlobalFunctions.GetFileChecksum(FullPath).ToLower();
+            get { return _FullPath; }
+            set { _FullPath = value; }
         }
     }
 }

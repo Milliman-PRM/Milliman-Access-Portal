@@ -193,7 +193,7 @@ namespace MapTests
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
-                ThisGroup.ReducedContentChecksum = GlobalFunctions.GetFileChecksum(TestFileTargetPath);
+                ThisGroup.ReducedContentChecksum = GlobalFunctions.GetFileChecksum(TestFileTargetPath).checksum;
                 ThisGroup.ContentInstanceUrl = $@"{ThisItem.Id}\{FileName}";
 
                 #endregion
@@ -442,7 +442,7 @@ namespace MapTests
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
             {
-                new MapDbContextLib.Models.ContentRelatedFile { Checksum = GlobalFunctions.GetFileChecksum(UserGuideTestPath), FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
+                new MapDbContextLib.Models.ContentRelatedFile { Checksum = GlobalFunctions.GetFileChecksum(UserGuideTestPath).checksum, FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
             };
                 #endregion
 
