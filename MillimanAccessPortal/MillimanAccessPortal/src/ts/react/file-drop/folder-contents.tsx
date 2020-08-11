@@ -4,6 +4,7 @@ import '../../../images/icons/file.svg';
 import '../../../images/icons/folder.svg';
 import '../../../images/icons/menu.svg';
 
+import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 
@@ -120,7 +121,20 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </a>
           </td>
           <td>{file.size}</td>
-          <td>{file.uploadDateTimeUtc}</td>
+          <td
+            className="col-date-modified"
+            title={
+              file.uploadDateTimeUtc
+                ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
+                : null
+            }
+          >
+            {
+              file.uploadDateTimeUtc
+                ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
+                : null
+            }
+          </td>
           <td className="col-actions">
             <svg className="menu-icon">
               <use xlinkHref={'#menu'} />
