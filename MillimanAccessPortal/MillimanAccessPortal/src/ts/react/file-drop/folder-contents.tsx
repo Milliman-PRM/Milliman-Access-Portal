@@ -82,8 +82,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {folderName}
             </span>
           </td>
-          <td />
-          <td />
+          <td className="col-file-size" />
+          <td className="col-date-modified" />
           <td className="col-actions">
             <svg className="menu-icon">
               <use xlinkHref={'#menu'} />
@@ -120,7 +120,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {file.fileName}
             </a>
           </td>
-          <td>{file.size}</td>
+          <td className="col-file-size">{file.size}</td>
           <td
             className="col-date-modified"
             title={
@@ -156,7 +156,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           <thead>
             <tr>
               <th className="col-name" colSpan={2}>Name</th>
-              <th className="col-size">Size</th>
+              <th className="col-file-size">Size</th>
               <th className="col-date-modified">Date Modified</th>
               <th className="col-actions">Actions</th>
             </tr>
