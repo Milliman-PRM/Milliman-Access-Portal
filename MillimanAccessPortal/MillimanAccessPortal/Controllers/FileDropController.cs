@@ -939,6 +939,8 @@ namespace MillimanAccessPortal.Controllers
                                                   .SingleOrDefaultAsync();
 
             FileDropFile fileRecord = await _dbContext.FileDropFile.Include(f => f.Directory).SingleOrDefaultAsync(d => d.Id == FileDropFileId);
+            string fullFilePathFromDb = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath, fileRecord.Directory.CanonicalFileDropPath.TrimStart('/'), fileRecord.FileName);
+
             #region Validation
             if (fileRecord?.Directory == null || fileRecord.Directory.FileDropId != fileDrop.Id)
             {
@@ -947,14 +949,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Error completing the request.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            string filePathFromDb = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileRecord.Directory.CanonicalFileDropPath, fileRecord.FileName);
-            if (filePathFromDb != CanonicalFilePath)
+            if (fileRecord.FileName != Path.GetFileName(CanonicalFilePath))
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} the requested file name {CanonicalFilePath} does not match the path component strings built from the database");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} the requested file name {Path.GetFileName(CanonicalFilePath)} does not match the name {fileRecord.FileName} in the database");
                 Response.Headers.Add("Warning", "An invalid file name was requested.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (!System.IO.File.Exists(CanonicalFilePath))
+            if (!System.IO.File.Exists(fullFilePathFromDb))
             {
                 // file at requested path not found in storage
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} file name {CanonicalFilePath} not found");
@@ -975,14 +976,13 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {CanonicalFilePath}");
-                return PhysicalFile(CanonicalFilePath, "application/octet-stream", Path.GetFileName(CanonicalFilePath));
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {fullFilePathFromDb}");
+                return PhysicalFile(fullFilePathFromDb, "application/octet-stream", Path.GetFileName(CanonicalFilePath));
             }
             catch (Exception ex)
             {
-                string ErrMsg = $"Failed to return requested file {CanonicalFilePath}";
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: {ErrMsg}");
-                Response.Headers.Add("Warning", ErrMsg);
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Failed to return requested file {Path.GetFileName(fullFilePathFromDb)}");
+                Response.Headers.Add("Warning", $"Failed to return requested file {Path.GetFileName(CanonicalFilePath)}");
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
         }
