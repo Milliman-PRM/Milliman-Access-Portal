@@ -76,4 +76,16 @@
             text-decoration: none;
         }
     }
+
+    .file-upload-row {
+        margin-bottom: 1em;
+
+        .action-icon-container-inline {
+            float: right;
+        }
+    }
+
+    .progress-bars {
+        margin-bottom: .5em;
+    }
 }
