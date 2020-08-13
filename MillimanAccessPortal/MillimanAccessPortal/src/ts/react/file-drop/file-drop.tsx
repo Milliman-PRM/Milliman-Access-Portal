@@ -64,6 +64,7 @@ interface FileDropProps {
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
   activeSelectedFileDrop: FileDropWithStats;
+  activeSelectedFileDropFolderUploads: State.FileDropUploadState[];
   permissionGroupChangesPending: boolean;
   permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
@@ -1291,6 +1292,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
     activeSelectedFileDrop: Selector.activeSelectedFileDrop(state),
+    activeSelectedFileDropFolderUploads: Selector.activeSelectedFileDropFolderUploads(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
     permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
