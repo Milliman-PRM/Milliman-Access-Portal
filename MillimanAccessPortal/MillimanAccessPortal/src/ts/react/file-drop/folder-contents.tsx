@@ -7,6 +7,7 @@ import '../../../images/icons/menu.svg';
 import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
+import { ActionIcon } from '../shared-components/action-icon';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUploadState } from './redux/store';
 
@@ -18,6 +19,7 @@ interface FolderContentsProps {
   fileDropName: string;
   fileDropId: Guid;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
+  beginFileDropUploadCancel: (uploadId: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -174,6 +176,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             <td colSpan={4}>
               <div className="file-upload-row">
                 {file.fileName}
+                <ActionIcon
+                  icon={'cancel'}
+                  disabled={!file.cancelable}
+                  label="Cancel Upload"
+                  action={() => this.props.beginFileDropUploadCancel(file.uploadId)}
+                />
               </div>
               <div>
                 <UploadStatusBar

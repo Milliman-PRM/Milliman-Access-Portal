@@ -923,6 +923,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   navigateTo={(fileDropId, canonicalPath) =>
                     this.props.fetchFolderContents({ fileDropId, canonicalPath })
                   }
+                  beginFileDropUploadCancel={(uploadId) =>
+                    this.props.beginFileDropUploadCancel({ uploadId })
+                  }
                   thisDirectory={this.props.data.fileDropContents.thisDirectory}
                 />
               }
