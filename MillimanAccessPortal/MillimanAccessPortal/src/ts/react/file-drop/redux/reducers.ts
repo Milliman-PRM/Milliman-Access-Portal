@@ -105,6 +105,7 @@ const _initialData: State.FileDropDataState = {
 };
 
 const _initialUpload: State.FileDropUploadState = {
+  uploadId: null,
   clientId: null,
   fileDropId: null,
   folderId: null,
@@ -426,7 +427,10 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
     if (Object.keys(state).length === 0) {
       const uniqueId = generateUniqueId('FileDropUpload');
       return {
-        [uniqueId]: _initialUpload,
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
       };
     } else {
       return {};
@@ -444,7 +448,10 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
         fileName: action.fileName,
         cancelable: true,
       },
-      [uniqueId]: _initialUpload,
+      [uniqueId]: {
+        ..._initialUpload,
+        uploadId: uniqueId,
+      },
     };
   },
   UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
@@ -493,7 +500,10 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
     if (Object.keys(uploads).length === 0) {
       const uniqueId = generateUniqueId('FileDropUpload');
       return {
-        [uniqueId]: _initialUpload,
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
       };
     } else {
       return {

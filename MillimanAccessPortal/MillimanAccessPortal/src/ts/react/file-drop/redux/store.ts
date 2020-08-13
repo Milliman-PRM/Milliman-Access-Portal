@@ -14,6 +14,7 @@ import { fileDropReducerState } from './reducers';
 import sagas from './sagas';
 
 export interface FileDropUploadState extends UploadState {
+  uploadId: string;
   clientId: Guid;
   fileDropId: Guid;
   fileName: string;
