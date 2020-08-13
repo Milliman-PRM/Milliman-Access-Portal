@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using MapDbContextLib.Context;
 using Npgsql;
 using Prm.EmailQueue;
+using Prm.SerilogCustomization;
 using Serilog;
 using System.Diagnostics;
 using System.Linq;
@@ -58,6 +59,7 @@ namespace MillimanAccessPortal
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()
                     .ReadFrom.Configuration(Configuration)
+                    .Enrich.With<UtcTimestampEnricher>()
                     .CreateLogger();
                 #endregion
 
