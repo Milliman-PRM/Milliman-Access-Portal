@@ -7,11 +7,14 @@ import '../../../images/icons/menu.svg';
 import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
+import { UploadStatusBar } from '../shared-components/upload-status-bar';
+import { FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
   directories: FileDropDirectory[];
   files: FileDropFile[];
+  activeUploads: FileDropUploadState[];
   fileDropName: string;
   fileDropId: Guid;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
@@ -95,53 +98,94 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId } = this.props;
+    const { files, fileDropId, activeUploads } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
-    return files.map((file) => {
-      const fileDownloadURL = [
-        './FileDrop/DownloadFile?',
-        `FileDropId=${fileDropId}&`,
-        `FileDropFileId=${file.id}&`,
-        `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
-      ].join('');
-      return (
-        <tr key={file.id}>
-          <td className="file-icon">
-            <svg className="content-type-icon">
-              <use xlinkHref={'#file'} />
-            </svg>
-          </td>
-          <td>
-            <a
-              href={encodeURI(fileDownloadURL)}
-              download={true}
-              className="file-download"
+    const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
+    const baseArrayWithFiles = baseAllFilesArray.concat(files);
+    const baseArrayWithAllFiles = baseArrayWithFiles.concat(activeUploads);
+    const sortedAllFiles = baseArrayWithAllFiles.sort((a, b) => {
+      const fileA = a.fileName.toUpperCase();
+      const fileB = b.fileName.toUpperCase();
+      let comparison = 0;
+      if (fileA > fileB) {
+        comparison = 1;
+      } else if (fileA < fileB) {
+        comparison = -1;
+      }
+      return comparison;
+    });
+
+    const isFile = (file: any): file is FileDropFile => file.id !== undefined;
+
+    return sortedAllFiles.map((file) => {
+      if (isFile(file)) {
+        const fileDownloadURL = [
+          './FileDrop/DownloadFile?',
+          `FileDropId=${fileDropId}&`,
+          `FileDropFileId=${file.id}&`,
+          `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
+        ].join('');
+        return (
+          <tr key={file.id}>
+            <td className="file-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#file'} />
+              </svg>
+            </td>
+            <td>
+              <a
+                href={encodeURI(fileDownloadURL)}
+                download={true}
+                className="file-download"
+              >
+                {file.fileName}
+              </a>
+            </td>
+            <td className="col-file-size">{file.size}</td>
+            <td
+              className="col-date-modified"
+              title={
+                file.uploadDateTimeUtc
+                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
+                  : null
+              }
             >
-              {file.fileName}
-            </a>
-          </td>
-          <td className="col-file-size">{file.size}</td>
-          <td
-            className="col-date-modified"
-            title={
-              file.uploadDateTimeUtc
-                ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
-                : null
-            }
-          >
-            {
-              file.uploadDateTimeUtc
-                ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
-                : null
-            }
-          </td>
-          <td className="col-actions">
-            <svg className="menu-icon">
-              <use xlinkHref={'#menu'} />
-            </svg>
-          </td>
-        </tr >
-      );
+              {
+                file.uploadDateTimeUtc
+                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
+                  : null
+              }
+            </td>
+            <td className="col-actions">
+              <svg className="menu-icon">
+                <use xlinkHref={'#menu'} />
+              </svg>
+            </td>
+          </tr >
+        );
+      } else {
+        return (
+          <tr key={file.fileName}>
+            <td className="file-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#file'} />
+              </svg>
+            </td>
+            <td colSpan={4}>
+              <div className="file-upload-row">
+                {file.fileName}
+              </div>
+              <div>
+                <UploadStatusBar
+                  checksumProgress={file.checksumProgress}
+                  uploadProgress={file.uploadProgress}
+                  errorMsg={file.errorMsg}
+                />
+              </div>
+            </td>
+          </tr>
+        );
+      }
     });
   }
 

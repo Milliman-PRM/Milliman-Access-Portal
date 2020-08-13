@@ -917,6 +917,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 <FolderContents
                   directories={this.props.data.fileDropContents.directories}
                   files={this.props.data.fileDropContents.files}
+                  activeUploads={this.props.activeSelectedFileDropFolderUploads}
                   fileDropId={this.props.selected.fileDrop}
                   fileDropName={this.props.activeSelectedFileDrop.name}
                   navigateTo={(fileDropId, canonicalPath) =>
