@@ -511,6 +511,23 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       };
     }
   },
+  FINALIZE_FILE_DROP_UPLOAD: (state, action: Action.FinalizeFileDropUpload) => {
+    const uploads = { ...state };
+    delete uploads[action.uploadId];
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
+  },
 });
 
 /** Reducer that combines the pending reducers */
