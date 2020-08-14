@@ -120,12 +120,17 @@ export function activeSelectedFileDrop(state: FileDropState) {
   return (state.selected.fileDrop) ? state.data.fileDrops[state.selected.fileDrop] : null;
 }
 
+/** Return the actively selected File Drop Folder */
+export function activeSelectedFileDropFolder(state: FileDropState) {
+  return state.selected.fileDropFolder.folderId;
+}
+
 /** Return the active file uploads for the currently selected File Drop folder */
 export function activeSelectedFileDropFolderUploads(state: FileDropState) {
   const { uploads } = state.pending;
-  if (state.selected.fileDropFolder) {
+  if (state.selected.fileDropFolder.folderId) {
     const selectedFolderUploads = Object.keys(uploads).filter((upload) => {
-      return uploads[upload].folderId === state.selected.fileDropFolder;
+      return uploads[upload].folderId === state.selected.fileDropFolder.folderId;
     });
     return selectedFolderUploads.map((uploadId) => {
       return uploads[uploadId];
