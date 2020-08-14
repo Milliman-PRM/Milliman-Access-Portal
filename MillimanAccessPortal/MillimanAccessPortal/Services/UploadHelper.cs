@@ -214,8 +214,8 @@ namespace MillimanAccessPortal.Services
             }
 
             // Compute and compare checksum
-            var computedChecksum = GlobalFunctions.GetFileChecksum(concatenationFilePath);
-            if (!Info.Checksum.Equals(computedChecksum, StringComparison.OrdinalIgnoreCase))
+            var checksumInfo = GlobalFunctions.GetFileChecksum(concatenationFilePath);
+            if (!Info.Checksum.Equals(checksumInfo.checksum, StringComparison.OrdinalIgnoreCase))
             {
                 throw new FileUploadException(StatusCodes.Status409Conflict, "Checksums do not match.");
             }
