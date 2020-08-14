@@ -19,6 +19,7 @@ export interface FileDropUploadState extends UploadState {
   fileDropId: Guid;
   fileName: string;
   folderId: Guid;
+  canonicalPath: string;
   canceled: boolean;
 }
 

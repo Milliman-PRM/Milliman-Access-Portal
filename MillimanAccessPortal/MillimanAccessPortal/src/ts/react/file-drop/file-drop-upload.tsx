@@ -16,6 +16,7 @@ interface FileDropUploadProps {
   fileDropId: Guid;
   fileName: string;
   folderId: Guid;
+  canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
   dragRef?: React.RefObject<HTMLElement>;

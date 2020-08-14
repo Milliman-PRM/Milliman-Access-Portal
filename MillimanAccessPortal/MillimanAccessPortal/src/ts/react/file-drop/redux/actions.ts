@@ -510,6 +510,7 @@ export interface BeginFileDropFileUpload {
   clientId: Guid;
   fileDropId: Guid;
   folderId: Guid;
+  canonicalPath: string;
   fileName: string;
 }
 
