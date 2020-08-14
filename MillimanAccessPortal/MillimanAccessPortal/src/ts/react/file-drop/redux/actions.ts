@@ -527,6 +527,9 @@ export interface ToggleFileDropCardExpansion {
 export interface FinalizeFileDropUpload {
   type: 'FINALIZE_FILE_DROP_UPLOAD';
   uploadId: string;
+  fileDropId: Guid;
+  folderId: Guid;
+  canonicalPath: string;
 }
 
 
