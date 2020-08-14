@@ -22,7 +22,7 @@ interface FileDropUploadProps {
   browseRef?: Array<React.RefObject<HTMLElement>>;
   beginUpload: (uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, fileName: string) => void;
   cancelFileUpload: (uploadId: string) => void;
-  finalizeUpload: (uploadId: string, fileName: string, guid: string) => void;
+  finalizeFileDropUpload: (uploadId: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -189,7 +189,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
             if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
               this.progressMonitor.deactivate();
               if (!this.canceled) {
-                this.props.cancelFileUpload(this.props.uploadId);
+                this.props.finalizeFileDropUpload(this.props.uploadId);
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
