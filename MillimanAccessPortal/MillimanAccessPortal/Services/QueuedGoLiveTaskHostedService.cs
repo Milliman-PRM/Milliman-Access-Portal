@@ -174,12 +174,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     // Reductions that will result in inactive selection groups have no result file
                     if (!string.IsNullOrWhiteSpace(ThisTask.ResultFilePath))
                     {
-                        var currentChecksum = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath).ToLower();
-                        if (currentChecksum != ThisTask.ReducedContentChecksum.ToLower())
+                        var (checksum, length) = GlobalFunctions.GetFileChecksum(ThisTask.ResultFilePath);
+                        if (!checksum.Equals(ThisTask.ReducedContentChecksum, StringComparison.OrdinalIgnoreCase))
                         {
                             Log.Error($"In QueueGoLiveTaskHostedService.ExecuteAsync action: " +
                                 $"for selection group {relatedSelectionGroup.Id}, " +
-                                $"reduced content file {ThisTask.ResultFilePath} failed checksum validation, aborting");
+                                $"reduced content file {ThisTask.ResultFilePath} of length {length} failed checksum validation, aborting");
                             auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
                                 publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName);
                             await FailGoLiveAsync(dbContext, publicationRequest,
