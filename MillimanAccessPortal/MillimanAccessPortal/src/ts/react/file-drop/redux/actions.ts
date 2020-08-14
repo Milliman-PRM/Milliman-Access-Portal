@@ -523,6 +523,11 @@ export interface ToggleFileDropCardExpansion {
   fileDropId: Guid;
 }
 
+export interface FinalizeFileDropUpload {
+  type: 'FINALIZE_FILE_DROP_UPLOAD';
+  uploadId: string;
+}
+
 
 // ~~~~~~~~~~~~~
 // Action Unions
@@ -559,6 +564,7 @@ export type FileDropPageActions =
   | BeginFileDropFileUpload
   | BeginFileDropUploadCancel
   | ToggleFileDropCardExpansion
+  | FinalizeFileDropUpload
   ;
 
 /** Actions that schedule another action */
