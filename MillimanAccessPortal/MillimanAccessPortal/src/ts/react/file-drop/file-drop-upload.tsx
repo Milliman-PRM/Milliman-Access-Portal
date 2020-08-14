@@ -80,7 +80,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
         }
 
         // Send the upload info to the Redux store
-        beginUpload(
+        this.props.beginUpload(
           this.props.uploadId, this.props.clientId, this.props.fileDropId, this.props.folderId,
           this.props.canonicalPath, file.name,
         );
