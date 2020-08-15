@@ -235,7 +235,7 @@ namespace MillimanAccessPortal
                             }
                             catch (Exception ex)
                             {
-                                Log.Information(ex, ex.Message);
+                                Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
                                 _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
@@ -249,7 +249,20 @@ namespace MillimanAccessPortal
                     #endregion
                 });
             }
-            authenticationBuilder.AddIdentityCookies();
+            authenticationBuilder.AddIdentityCookies(builder =>
+            {
+                builder.TwoFactorUserIdCookie.Configure(options =>
+                {
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(5);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+                });
+                builder.ApplicationCookie.Configure(options =>
+                {
+                    options.LoginPath = "/Account/LogIn";
+                    options.LogoutPath = "/Account/LogOut";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                });
+            });
 
             #endregion
 
@@ -287,15 +300,6 @@ namespace MillimanAccessPortal
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
-            });
-
-            // Cookie settings
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.LoginPath = "/Account/LogIn";
-                options.LogoutPath = "/Account/LogOut";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                options.SlidingExpiration = true;
             });
 
             services.Configure<QlikviewConfig>(Configuration);

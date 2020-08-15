@@ -4,11 +4,15 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Threading.Tasks;
+using AuditLogLib;
+using AuditLogLib.Event;
+using AuditLogLib.Services;
+using AuditLogLib.Models;
+using MapCommonLib;
+using MapCommonLib.ActionFilters;
+using MapDbContextLib.Identity;
+using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.WsFederation;
@@ -17,24 +21,20 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Session;
-using MapDbContextLib.Identity;
-using MapDbContextLib.Context;
-using MapDbContextLib.Models;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SharedModels;
 using MillimanAccessPortal.Services;
-using AuditLogLib;
-using AuditLogLib.Event;
-using AuditLogLib.Services;
-using AuditLogLib.Models;
 using MillimanAccessPortal.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using MapCommonLib;
-using MapCommonLib.ActionFilters;
 using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -258,48 +258,38 @@ namespace MillimanAccessPortal.Controllers
                     return Ok();
                 }
 
-                var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
-                if (result.Succeeded)
+                Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
+                switch (result)
                 {
-                    SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+                    case var r when r.RequiresTwoFactor:
+                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { ReturnUrl = returnUrl, model.RememberMe }));
+                        return Ok();
 
-                    // Provide the location that should be navigated to (or fall back on default route)
-                    Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
-                    return Ok();
-                }
-                else
-                {
-                    var lockoutMessage = "This account has been locked out, please try again later.";
-                    if (result.RequiresTwoFactor)
-                    {
-                        return RedirectToAction(nameof(SendCode), new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
-                    }
-                    else if (result.IsLockedOut)
-                    {
-                        ModelState.AddModelError(string.Empty, "User account is locked out.");
+                    case var r when r.Succeeded:
+                        SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+
+                        // Provide the location that should be navigated to (or fall back on default route)
+                        Response.Headers.Add("NavigateTo", returnUrl ?? "/");
+                        return Ok();
+
+                    case var r when r.IsLockedOut:
                         Log.Information($"User {model.Username} account locked out");
                         _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
-                        Response.Headers.Add("Warning", lockoutMessage);
+                        Response.Headers.Add("Warning", "This account has been locked out, please try again later.");
                         return Ok();
-                    }
-                    else
-                    {
-                        // Log differently, but return the same model
-                        if (result.IsNotAllowed)
-                        {
-                            Log.Information($"User {model.Username} login not allowed");
-                            _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
-                        }
-                        else
-                        {
-                            Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                            _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
-                        }
+
+                    case var r when r.IsNotAllowed:
+                        Log.Information($"User {model.Username} login not allowed");
+                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
-                    }
-                }
 
+                    default:
+                        Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
+                        Response.Headers.Add("Warning", "Invalid login attempt.");
+                        return Ok();
+                }
             }
 
             // If we got this far, something failed, redisplay form
@@ -513,7 +503,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (remoteError != null)
             {
-                Log.Error("Error during remote authentication");
+                Log.Error($"Error during remote authentication: {remoteError}");
                 return RedirectToAction(nameof(Login));
             }
 
@@ -1259,6 +1249,51 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} action completed for user: {@User}, assigned elements: {{@Elements}}", User.Identity.Name, string.Join(", ", NavBarElements.Select(e => e.Label)));
 
             return Json(NavBarElements);
+        }
+
+
+        //
+        // GET: /Account/LoginStepTwo
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> LoginStepTwo(string returnUrl = null, bool rememberMe = false)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
+
+            //var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            //if (user == null)
+            //{
+            //    return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
+            //}
+            //var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
+            //var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
+            //return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
+
+            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                // TODO more
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (!(await _userManager.GetValidTwoFactorProvidersAsync(user)).Contains(TokenOptions.DefaultEmailProvider))
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}, the required two factor token provider ({TokenOptions.DefaultEmailProvider}) is not available for user {user.UserName}");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
+
+            // TODO temporary
+            Console.WriteLine($"Your 2 factor code is {token}");
+            System.Diagnostics.Debug.WriteLine($"Your 2 factor code is {token}");
+
+            // TODO Convert this to html, looking like the prototype
+            var message = "Your security code is: " + token;
+            _messageSender.QueueEmail(user.Email, "Security Code", message);
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return RedirectToAction(nameof(VerifyCode), new { Provider = TokenOptions.DefaultEmailProvider, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         //
