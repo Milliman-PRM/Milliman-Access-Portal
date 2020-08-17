@@ -57,6 +57,9 @@
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="src\ts\login-step-two.tsx" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
@@ -139,6 +142,9 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
+  </ItemGroup>
+  <ItemGroup>
+    <TypeScriptCompile Include="src\ts\react\login-step-two\login-step-two.tsx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="BuildTimeProperties.cs">
