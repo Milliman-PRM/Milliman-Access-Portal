@@ -43,7 +43,7 @@ To better track upcoming work, it is important to create release Milestones for 
 
 ### Release Planning and Prioritization
 
-There are many factors to take into account when planning for an upcoming release of the application. In general, feature releases are built around one or two main features, with several smaller enhancements and bug fixes added to round out the work.  These smaller parts of the release should be chosen based on priority, proximity or relationship to other work in the release, and the availability of development resources during the duration of the release cycle.  Finally, it is generally preferable to keep releases small to keep turnaround time manageable.
+There are many factors to take into account when planning for an upcoming release of the application. In general, feature releases are built around one or two main features, with several smaller enhancements and bug fixes added to round out the work.  These smaller parts of the release should be chosen based on priority, proximity or relationship to other work in the release, and the availability of development resources during the duration of the release cycle.  It is generally preferable to keep releases small to keep turnaround time manageable.  A significant architectural modification such as conversion to a new major version of ASP.NET should be strongly considered for release as its own version, separate from feature development, to manage schedule risk associated with a potentially unpredictable work scope. 
 
 #### Defining Requirements
 
@@ -74,6 +74,10 @@ These tests will be run as part of the CI process, and no Pull Request should be
 The purpose of a Pull Request is to act as a channel for collaboration and review before the changes are merged back into the code base.  In the spirit of collaboration Pull Requests should be opened early in the life cycle of a new branch.  Opening branches early allows you to identify and bring in collaborators early, which can help make your work better and reviews faster.
 
 When opening a new Pull Request, you should first give it a name that helps to describe what the Pull Request is for.  Second, in the description of Pull Request, you should describe the problem that the Pull Request is meant to address and any other relevant information necessary to understand the changes.  Below the description you should create a checklist that lists all of the major tasks necessary to complete the work required to address the stated issue.  The last check in the task list should be a definition of done, which is a simple statement that describes when the work is truly done.  Additionally, if there are any open Issues related to the work being done in the Pull Request, then they should all be tagged at the bottom of the Pull Request description.  Finally, you should add your collaborators to the Pull Request, tag the issue with any appropriate labels, assign it to the MAP Kanboard project, and then specify the correct milestone.
+
+#### Deployment Logic
+
+Changes to infrastructure and scripts that implement and execute the deployment of MAP components to any runtime environment are considered part of the product, and are to occur using requirements, implementation, and verification (QA) processes, similar to any other elements of the product.  
 
 ### Pre-release / User Acceptance Testing (UAT)
 
