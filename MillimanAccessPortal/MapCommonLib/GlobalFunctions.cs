@@ -42,13 +42,13 @@ namespace MapCommonLib
             }
         }
 
-        public static string GetFileChecksum(string FilePath)
+        public static (string checksum, long length) GetFileChecksum(string FilePath)
         {
             using (Stream concatStream = File.OpenRead(FilePath))
             using (HashAlgorithm hashAlgorithm = new SHA1Managed())
             {
                 byte[] checksumBytes = hashAlgorithm.ComputeHash(concatStream);
-                return BitConverter.ToString(checksumBytes).Replace("-", "");
+                return (BitConverter.ToString(checksumBytes).Replace("-", ""), concatStream.Length);
             }
         }
 
