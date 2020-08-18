@@ -1,0 +1,91 @@
+﻿@import "../../map_modules/variables";
+
+.breadcrumb-container {
+    margin-top: -.5em;
+    margin-bottom: 1em;
+
+    .breadcrumb-link {
+        &.current {
+            font-weight: bold;
+        }
+
+        &:not(.current) {
+            color: $blue;
+            background-color: transparent;
+            cursor: pointer;
+
+            &:hover, &:active {
+                color: darken( $blue, 15% );
+                text-decoration: none;
+            }
+        }
+    }
+}
+
+.folder-content-table {
+
+    .col-actions {
+        text-align: right;
+
+        .menu-icon {
+            cursor: pointer;
+        }
+    }
+
+    .file-icon,
+    .folder-icon {
+        width: 2em;
+    }
+
+    .content-type-icon,
+    .menu-icon {
+        height: 1.25em;
+        width: 1.25em;
+    }
+
+    .col-file-size {
+        width: 5em;
+        text-align: right;
+    }
+
+    .col-date-modified {
+        width: 7em;
+        text-align: right;
+    }
+
+    .col-actions {
+        width: 5em;
+    }
+
+    tr {
+        border-bottom: 1px solid $grey;
+
+        td {
+            padding: .5em 0;
+        }
+    }
+
+    .folder,
+    .file-download {
+        color: $blue;
+        background-color: transparent;
+        cursor: pointer;
+
+        &:hover, &:active {
+            color: darken( $blue, 15% );
+            text-decoration: none;
+        }
+    }
+
+    .file-upload-row {
+        margin-bottom: 1em;
+
+        .action-icon-container-inline {
+            float: right;
+        }
+    }
+
+    .progress-bars {
+        margin-bottom: .5em;
+    }
+}

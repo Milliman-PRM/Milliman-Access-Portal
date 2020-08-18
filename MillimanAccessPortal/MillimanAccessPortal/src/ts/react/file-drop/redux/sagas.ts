@@ -1,4 +1,4 @@
-import { select, takeLatest } from 'redux-saga/effects';
+import { put, select, takeLatest } from 'redux-saga/effects';
 
 import * as ActionCreator from './action-creators';
 import * as Action from './actions';
@@ -55,6 +55,17 @@ export default function* rootSaga() {
   yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
   yield takeLatestRequest('SET_FILE_DROP_NOTIFICATION_SETTING', API.setFileDropNotificationSetting);
   yield takeLatestRequest('FETCH_FOLDER_CONTENTS', API.fetchFolderContents);
+
+  // Refresh the File Drop Folder contents if the upload that just finished was in the active File Drop folder
+  yield takeLatest('FINALIZE_FILE_DROP_UPLOAD', function*(action: Action.FinalizeFileDropUpload) {
+    const activeFileDropFolder = yield select(Selector.activeSelectedFileDropFolder);
+    if (action.folderId === activeFileDropFolder) {
+      yield put(ActionCreator.fetchFolderContents({
+        canonicalPath: action.canonicalPath,
+        fileDropId: action.fileDropId,
+      }));
+    }
+  });
 
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);

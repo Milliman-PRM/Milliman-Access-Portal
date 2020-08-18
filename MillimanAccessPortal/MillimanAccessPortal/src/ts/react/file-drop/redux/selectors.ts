@@ -6,7 +6,7 @@ import {
   PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
 } from '../../models';
 import { Dict } from '../../shared-components/redux/store';
-import { FileDropState } from './store';
+import { FileDropState, FileDropUploadState } from './store';
 
 // ~~~~~~~~~~
 // Interfaces
@@ -113,6 +113,31 @@ export function fileDropEntities(state: FileDropState) {
     )
   ));
   return _.sortBy(filteredFileDrops, ['name']);
+}
+
+/** Return the highlighted File Drop if it is visible to the user */
+export function activeSelectedFileDrop(state: FileDropState) {
+  return (state.selected.fileDrop) ? state.data.fileDrops[state.selected.fileDrop] : null;
+}
+
+/** Return the actively selected File Drop Folder */
+export function activeSelectedFileDropFolder(state: FileDropState) {
+  return state.selected.fileDropFolder.folderId;
+}
+
+/** Return the active file uploads for the currently selected File Drop folder */
+export function activeSelectedFileDropFolderUploads(state: FileDropState) {
+  const { uploads } = state.pending;
+  if (state.selected.fileDropFolder.folderId) {
+    const selectedFolderUploads = Object.keys(uploads).filter((upload) => {
+      return uploads[upload].folderId === state.selected.fileDropFolder.folderId;
+    });
+    return selectedFolderUploads.map((uploadId) => {
+      return uploads[uploadId];
+    });
+  } else {
+    return [];
+  }
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~

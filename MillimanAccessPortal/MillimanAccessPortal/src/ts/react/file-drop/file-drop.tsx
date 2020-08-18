@@ -46,6 +46,7 @@ import { NavBar } from '../shared-components/navbar';
 import { TabRow } from '../shared-components/tab-row';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUpload } from './file-drop-upload';
+import { FolderContents } from './folder-contents';
 import { PermissionsTable } from './permissions-table';
 
 type ClientEntity = (FileDropClientWithStats & { indent: 1 | 2 }) | 'divider';
@@ -62,6 +63,8 @@ interface FileDropProps {
   filters: State.FileDropFilterState;
   modals: State.FileDropModals;
   activeSelectedClient: FileDropClientWithStats;
+  activeSelectedFileDrop: FileDropWithStats;
+  activeSelectedFileDropFolderUploads: State.FileDropUploadState[];
   permissionGroupChangesPending: boolean;
   permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
@@ -106,17 +109,20 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 clientId={uploadObject.clientId || selected.client}
                 fileDropId={uploadObject.fileDropId || selected.fileDrop}
                 fileName={uploadObject.fileName}
-                folderId={uploadObject.folderId || selected.fileDropFolder}
+                folderId={uploadObject.folderId || selected.fileDropFolder.folderId}
+                canonicalPath={uploadObject.canonicalPath || selected.fileDropFolder.canonicalPath}
                 cancelable={uploadObject.cancelable}
                 canceled={uploadObject.canceled}
                 dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
                 browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
-                beginUpload={(uploadId, clientId, fileDropId, folderId, fileName) =>
-                  this.props.beginFileDropFileUpload({ uploadId, clientId, fileDropId, folderId, fileName })}
+                beginUpload={(uploadId, clientId, fileDropId, folderId, canonicalPath, fileName) =>
+                  this.props.beginFileDropFileUpload({
+                    uploadId, clientId, fileDropId, folderId, canonicalPath, fileName,
+                  })}
                 cancelFileUpload={(uploadId) =>
                   this.props.cancelFileUpload({ uploadId })}
-                finalizeUpload={(uploadId, fileName, guid) =>
-                  this.props.finalizeUpload({ uploadId, fileName, guid })}
+                finalizeFileDropUpload={(uploadId, fileDropId, folderId, canonicalPath) =>
+                  this.props.finalizeFileDropUpload({ uploadId, fileDropId, folderId, canonicalPath })}
                 setUploadError={(uploadId, errorMsg) =>
                   this.props.setUploadError({ uploadId, errorMsg })}
                 updateChecksumProgress={(uploadId, progress) =>
@@ -905,7 +911,29 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
-          <div className="files-table-container" ref={this.dragUploadRef} />
+          <ContentPanelForm
+            readOnly={false}
+          >
+            <div className="files-table-container" ref={this.dragUploadRef}>
+              {
+                this.props.data.fileDropContents &&
+                <FolderContents
+                  directories={this.props.data.fileDropContents.directories}
+                  files={this.props.data.fileDropContents.files}
+                  activeUploads={this.props.activeSelectedFileDropFolderUploads}
+                  fileDropId={this.props.selected.fileDrop}
+                  fileDropName={this.props.activeSelectedFileDrop.name}
+                  navigateTo={(fileDropId, canonicalPath) =>
+                    this.props.fetchFolderContents({ fileDropId, canonicalPath })
+                  }
+                  beginFileDropUploadCancel={(uploadId) =>
+                    this.props.beginFileDropUploadCancel({ uploadId })
+                  }
+                  thisDirectory={this.props.data.fileDropContents.thisDirectory}
+                />
+              }
+            </div>
+          </ContentPanelForm>
         </ContentPanelSectionContent>
       </>
     );
@@ -1050,14 +1078,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               }
             }
           />
-
           <PanelSectionToolbarButtons />
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <div className="activity-log-table-header">
             <span className="activity-log-header">Activity Log - <strong>Last 30 Days</strong></span>
             <a
-              href={`./FileDrop/DownloadFullActivityLog?fileDropId=${data.permissionGroups.fileDropId}`}
+              href={`./FileDrop/DownloadFullActivityLog?fileDropId=${this.props.activeSelectedFileDrop.id}`}
               className="download-button button blue-button"
               download={true}
             >
@@ -1122,7 +1149,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderSettingsTab() {
     const { fileDrop } = this.props.selected;
-    const { fileDrops } = this.props;
     const { fileDropSettings } = this.props.data;
     const uploadNotification = fileDropSettings && fileDropSettings.notifications
       ? fileDropSettings.notifications.filter((x) =>
@@ -1271,6 +1297,8 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     filters,
     modals,
     activeSelectedClient: Selector.activeSelectedClient(state),
+    activeSelectedFileDrop: Selector.activeSelectedFileDrop(state),
+    activeSelectedFileDropFolderUploads: Selector.activeSelectedFileDropFolderUploads(state),
     permissionGroupChangesPending: Selector.permissionGroupChangesPending(state),
     permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),

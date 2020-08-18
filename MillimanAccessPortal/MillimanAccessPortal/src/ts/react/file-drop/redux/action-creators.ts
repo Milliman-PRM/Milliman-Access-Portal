@@ -204,10 +204,12 @@ export const beginFileDropUploadCancel =
 export const toggleFileDropCardExpansion =
   createActionCreator<Action.ToggleFileDropCardExpansion>('TOGGLE_FILE_DROP_CARD_EXPANSION');
 
+export const finalizeFileDropUpload =
+  createActionCreator<Action.FinalizeFileDropUpload>('FINALIZE_FILE_DROP_UPLOAD');
+
 // Upload Action Creators
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
 export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
 export const setUploadCancelable = UploadActionCreators.setUploadCancelable;
 export const setUploadError = UploadActionCreators.setUploadError;
 export const cancelFileUpload = UploadActionCreators.cancelFileUpload;
-export const finalizeUpload = UploadActionCreators.finalizeUpload;

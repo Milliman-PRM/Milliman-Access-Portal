@@ -899,6 +899,93 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(new { Status = returnValue });
         }
+
+        [HttpGet]
+        public async Task<IActionResult> DownloadFile(Guid FileDropId, Guid FileDropFileId, string CanonicalFilePath)
+        {
+            if (FileDropId == null || FileDropFileId == null || CanonicalFilePath == null || ModelState.ErrorCount > 0)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid ModelState, errors are: {string.Join("; ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+                Response.Headers.Add("Warning", "Invalid request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(FileDropId);
+            #region Validation
+            if (fileDrop == null)
+            {
+                // file drop not found
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {FileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (string.IsNullOrWhiteSpace(CanonicalFilePath) || 
+                Path.GetInvalidPathChars().Any(c => Path.GetDirectoryName(CanonicalFilePath).Contains(c)) ||
+                Path.GetInvalidFileNameChars().Any(c => Path.GetFileName(CanonicalFilePath).Contains(c)) )
+            {
+                // invalid file name
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid canonical path <{CanonicalFilePath}> specified");
+                Response.Headers.Add("Warning", "An invalid file path was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            SftpAccount account = await _dbContext.SftpAccount
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                  .Where(a => a.FileDropId == FileDropId)
+                                                  .Where(a => a.FileDropUserPermissionGroup.ReadAccess)
+                                                  .SingleOrDefaultAsync();
+
+            FileDropFile fileRecord = await _dbContext.FileDropFile.Include(f => f.Directory).SingleOrDefaultAsync(d => d.Id == FileDropFileId);
+            string fullFilePathFromDb = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath, fileRecord.Directory.CanonicalFileDropPath.TrimStart('/'), fileRecord.FileName);
+
+            #region Validation
+            if (fileRecord?.Directory == null || fileRecord.Directory.FileDropId != fileDrop.Id)
+            {
+                // file path string inconsistent with database records
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropFile with requested Id {FileDropFileId} does not belong to FileDrop with requested Id {FileDropId}");
+                Response.Headers.Add("Warning", "Error completing the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (fileRecord.FileName != Path.GetFileName(CanonicalFilePath))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} the requested file name {Path.GetFileName(CanonicalFilePath)} does not match the name {fileRecord.FileName} in the database");
+                Response.Headers.Add("Warning", "An invalid file name was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (!System.IO.File.Exists(fullFilePathFromDb))
+            {
+                // file at requested path not found in storage
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} file name {CanonicalFilePath} not found");
+                Response.Headers.Add("Warning", "An invalid file name was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded || account == null)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {fullFilePathFromDb}");
+                return PhysicalFile(fullFilePathFromDb, "application/octet-stream", Path.GetFileName(CanonicalFilePath));
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Failed to return requested file {Path.GetFileName(fullFilePathFromDb)}");
+                Response.Headers.Add("Warning", $"Failed to return requested file {Path.GetFileName(CanonicalFilePath)}");
+                return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
     }
 
     /// <summary>

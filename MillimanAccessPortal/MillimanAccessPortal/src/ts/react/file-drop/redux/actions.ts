@@ -510,6 +510,7 @@ export interface BeginFileDropFileUpload {
   clientId: Guid;
   fileDropId: Guid;
   folderId: Guid;
+  canonicalPath: string;
   fileName: string;
 }
 
@@ -521,6 +522,14 @@ export interface BeginFileDropUploadCancel {
 export interface ToggleFileDropCardExpansion {
   type: 'TOGGLE_FILE_DROP_CARD_EXPANSION';
   fileDropId: Guid;
+}
+
+export interface FinalizeFileDropUpload {
+  type: 'FINALIZE_FILE_DROP_UPLOAD';
+  uploadId: string;
+  fileDropId: Guid;
+  folderId: Guid;
+  canonicalPath: string;
 }
 
 
@@ -559,6 +568,7 @@ export type FileDropPageActions =
   | BeginFileDropFileUpload
   | BeginFileDropUploadCancel
   | ToggleFileDropCardExpansion
+  | FinalizeFileDropUpload
   ;
 
 /** Actions that schedule another action */

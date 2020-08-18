@@ -5,7 +5,8 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
 import {
-  FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent, FileDropSettings,
+  FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -13,10 +14,12 @@ import { fileDropReducerState } from './reducers';
 import sagas from './sagas';
 
 export interface FileDropUploadState extends UploadState {
+  uploadId: string;
   clientId: Guid;
   fileDropId: Guid;
   fileName: string;
   folderId: Guid;
+  canonicalPath: string;
   canceled: boolean;
 }
 
@@ -85,13 +88,17 @@ export interface FileDropPendingState {
 export interface FileDropSelectedState {
   client: Guid;
   fileDrop: Guid | 'NEW FILE DROP';
-  fileDropFolder: Guid;
+  fileDropFolder: {
+    folderId: Guid;
+    canonicalPath: string;
+  };
 }
 
 /** State representing raw (unaltered) data returned from the server */
 export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
+  fileDropContents: FileDropDirectoryContentModel;
   permissionGroups: PermissionGroupsReturnModel;
   activityLogEvents: FileDropEvent[];
   fileDropSettings: FileDropSettings;

@@ -16,13 +16,16 @@ interface FileDropUploadProps {
   fileDropId: Guid;
   fileName: string;
   folderId: Guid;
+  canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: Array<React.RefObject<HTMLElement>>;
-  beginUpload: (uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, fileName: string) => void;
+  beginUpload: (
+    uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, canonicalPath: string, fileName: string,
+  ) => void;
   cancelFileUpload: (uploadId: string) => void;
-  finalizeUpload: (uploadId: string, fileName: string, guid: string) => void;
+  finalizeFileDropUpload: (uploadId: string, fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -76,9 +79,10 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
           return false;
         }
 
-        // Send the filename to the Redux store
+        // Send the upload info to the Redux store
         this.props.beginUpload(
-          this.props.uploadId, this.props.clientId, this.props.fileDropId, this.props.folderId, file.name,
+          this.props.uploadId, this.props.clientId, this.props.fileDropId, this.props.folderId,
+          this.props.canonicalPath, file.name,
         );
 
         // Begin the process of creating a checksum and monitoring the progress
@@ -189,7 +193,9 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
             if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
               this.progressMonitor.deactivate();
               if (!this.canceled) {
-                this.props.cancelFileUpload(this.props.uploadId);
+                this.props.finalizeFileDropUpload(
+                  this.props.uploadId, this.props.fileDropId, this.props.folderId, this.props.canonicalPath,
+                );
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {

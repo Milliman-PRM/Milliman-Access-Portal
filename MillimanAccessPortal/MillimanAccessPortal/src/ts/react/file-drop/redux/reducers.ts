@@ -98,15 +98,18 @@ const _initialFileDropSettings: FileDropSettings = {
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
+  fileDropContents: null,
   permissionGroups: null,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
 };
 
 const _initialUpload: State.FileDropUploadState = {
+  uploadId: null,
   clientId: null,
   fileDropId: null,
   folderId: null,
+  canonicalPath: null,
   fileName: null,
   cancelable: false,
   canceled: false,
@@ -425,7 +428,10 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
     if (Object.keys(state).length === 0) {
       const uniqueId = generateUniqueId('FileDropUpload');
       return {
-        [uniqueId]: _initialUpload,
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
       };
     } else {
       return {};
@@ -440,10 +446,14 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
         clientId: action.clientId,
         fileDropId: action.fileDropId,
         folderId: action.folderId,
+        canonicalPath: action.canonicalPath,
         fileName: action.fileName,
         cancelable: true,
       },
-      [uniqueId]: _initialUpload,
+      [uniqueId]: {
+        ..._initialUpload,
+        uploadId: uniqueId,
+      },
     };
   },
   UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
@@ -492,7 +502,27 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
     if (Object.keys(uploads).length === 0) {
       const uniqueId = generateUniqueId('FileDropUpload');
       return {
-        [uniqueId]: _initialUpload,
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
+  },
+  FINALIZE_FILE_DROP_UPLOAD: (state, action: Action.FinalizeFileDropUpload) => {
+    const uploads = { ...state };
+    delete uploads[action.uploadId];
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
       };
     } else {
       return {
@@ -525,42 +555,66 @@ const selected = createReducer<State.FileDropSelectedState>(
   {
     client: null,
     fileDrop: null,
-    fileDropFolder: null,
+    fileDropFolder: {
+      folderId: null,
+      canonicalPath: null,
+    },
   },
   {
     SELECT_CLIENT: (state, action: Action.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
       fileDrop: null,
-      fileDropFolder: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     SELECT_FILE_DROP: (state, action: Action.SelectFileDrop) => ({
       ...state,
       fileDrop: action.id === state.fileDrop ? null : action.id,
-      fileDropFolder: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
       ...state,
       fileDrop: (action.response.currentFileDropId) ? action.response.currentFileDropId : null,
-      fileDropFolder: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
-      fileDropFolder: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
       ...state,
       fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
-      fileDropFolder: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDropFolder,
+      fileDropFolder: (state.fileDrop === action.response.currentFileDropId) ? {
+        folderId: null,
+        canonicalPath: null,
+      } : state.fileDropFolder,
     }),
     OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
-      fileDropFolder: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
       ...state,
-      fileDropFolder: action.response.thisDirectory.id,
+      fileDropFolder: {
+        folderId: action.response.thisDirectory.id,
+        canonicalPath: action.response.thisDirectory.canonicalPath,
+      },
     }),
   },
 );
@@ -838,6 +892,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   SELECT_FILE_DROP: (state) => ({
     ...state,
     permissionGroups: null,
+  }),
+  FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
   }),
 });
 
