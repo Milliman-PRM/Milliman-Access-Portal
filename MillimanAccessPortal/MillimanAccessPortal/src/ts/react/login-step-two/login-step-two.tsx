@@ -1,6 +1,7 @@
 ﻿import '../../../scss/react/login/login-step-two.scss';
 
 import * as React from 'react';
+import * as Yup from 'yup';
 
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
@@ -17,6 +18,12 @@ interface LoginStepTwoFormState extends BaseFormState {
 }
 
 export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
+
+  protected schema = Yup.object({
+    code: Yup.string()
+      .required()
+      .label('Code'),
+  });
 
   private usernameInput: string | React.RefObject<{}> | any;
   private codeInput: string | React.RefObject<{}> | any;
@@ -106,12 +113,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    postData('/Account/VerifyCode', this.state.data, true)
-      .then((response) => {
-        if (response) {
-          return;
-        }
-      });
+    postData('/Account/VerifyCode', this.state.data, true);
   }
 
   private focusCodeInput() {
