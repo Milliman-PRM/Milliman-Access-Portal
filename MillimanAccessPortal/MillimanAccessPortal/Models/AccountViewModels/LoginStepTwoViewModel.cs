@@ -9,9 +9,14 @@ namespace MillimanAccessPortal.Models.AccountViewModels
     public class LoginStepTwoViewModel
     {
         [Required]
-        public string Username { get; set; }
+        public string Provider { get; set; }
 
         [Required]
-        public string Code { get; set; }
+        public string Username { get; set; }
+
+        public string ReturnUrl { get; set; }
+
+        [Required]
+        public Boolean RememberMe { get; set; }
     }
 }

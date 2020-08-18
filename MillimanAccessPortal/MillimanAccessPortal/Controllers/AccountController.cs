@@ -97,14 +97,6 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        // GET: /Account/LoginStepTwo
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> LoginStepTwo(string returnUrl = null)
-        {
-            return View();
-        }
-
         //
         // POST: /Account/IsLocalAccount
         [HttpPost]
@@ -270,9 +262,9 @@ namespace MillimanAccessPortal.Controllers
                 switch (result)
                 {
                     case var r when r.RequiresTwoFactor:
-                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { ReturnUrl = returnUrl, model.RememberMe }));
+                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { TokenOptions.DefaultEmailProvider, model.Username, returnUrl, model.RememberMe }));
                         return Ok();
-
+ 
                     case var r when r.Succeeded:
                         SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
@@ -1264,7 +1256,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/LoginStepTwo
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> LoginStepTwo(string returnUrl = null, bool rememberMe = false)
+        public async Task<ActionResult> LoginStepTwo(string provider = null, string username = null, string returnUrl = null, bool rememberMe = false)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
 
@@ -1301,8 +1293,10 @@ namespace MillimanAccessPortal.Controllers
             _messageSender.QueueEmail(user.Email, "Security Code", message);
 
             ViewData["ReturnUrl"] = returnUrl;
-            return RedirectToAction(nameof(VerifyCode), new { Provider = TokenOptions.DefaultEmailProvider, ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }
+            return View(new LoginStepTwoViewModel { Provider = TokenOptions.DefaultEmailProvider, Username = username, ReturnUrl = returnUrl, RememberMe = rememberMe });
+        }        
+
+        // POST: /Account/LoginStepTwo
 
         //
         // GET: /Account/SendCode

@@ -5,12 +5,15 @@ import * as React from 'react';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
 
+import { postData } from '../../shared';
+
 import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
 
 interface LoginStepTwoFormState extends BaseFormState {
   awaitingLogin: boolean;
   loginWarning: string;
+  username: string;
 }
 
 export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
@@ -21,10 +24,19 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   public constructor(props: {}) {
     super(props);
 
+    const params = new URLSearchParams(window.location.search);
+
     this.state = {
       awaitingLogin: false,
       loginWarning: null,
-      data: { username: '', code: '' },
+      username: params.get('Username'),
+      data: {
+        provider: params.get('DefaultEmailProvider'),
+        code: '',
+        returnUrl: params.get('returnUrl'),
+        rememberBrowser: 'false',
+        rememberMe: 'false',
+      },
       errors: {},
       formIsValid: false,
     };
@@ -53,7 +65,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               label={null}
               type="text"
               ref={this.usernameInput}
-              value={'eklein217@gmail.com'}
+              value={this.state.username}
               onChange={() => false}
               error={''}
               readOnly={true}
@@ -64,8 +76,8 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               label="Authentication code"
               type="text"
               ref={this.codeInput}
-              value={''}
-              onChange={() => false}
+              value={this.state.data.code}
+              onChange={this.handleChange}
               error={''}
             />
             <div className="button-container">
@@ -80,7 +92,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                 type="submit"
                 disabled={false}
                 className="blue-button"
-                onClick={() => false}
+                onClick={this.handleSubmit}
               >
                 Log in
               </button>
@@ -89,6 +101,17 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
         </div>
       </>
     );
+  }
+
+  protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    postData('/Account/VerifyCode', this.state.data, true)
+      .then((response) => {
+        if (response) {
+          return;
+        }
+      });
   }
 
   private focusCodeInput() {
