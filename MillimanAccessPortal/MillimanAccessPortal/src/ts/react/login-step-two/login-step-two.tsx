@@ -2,12 +2,39 @@
 
 import * as React from 'react';
 
+import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
 
 import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
 
-export class LoginStepTwo extends React.Component {
+interface LoginStepTwoFormState extends BaseFormState {
+  awaitingLogin: boolean;
+  loginWarning: string;
+}
+
+export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
+
+  private usernameInput: string | React.RefObject<{}> | any;
+  private codeInput: string | React.RefObject<{}> | any;
+
+  public constructor(props: {}) {
+    super(props);
+
+    this.state = {
+      awaitingLogin: false,
+      loginWarning: null,
+      data: { username: '', code: '' },
+      errors: {},
+      formIsValid: false,
+    };
+
+    this.usernameInput = React.createRef<HTMLInputElement>();
+    this.codeInput = React.createRef<HTMLInputElement>();
+
+    this.focusCodeInput = this.focusCodeInput.bind(this);
+  }
+
   public render() {
     return (
       <>
@@ -25,6 +52,7 @@ export class LoginStepTwo extends React.Component {
               name="username"
               label={null}
               type="text"
+              ref={this.usernameInput}
               value={'eklein217@gmail.com'}
               onChange={() => false}
               error={''}
@@ -35,6 +63,7 @@ export class LoginStepTwo extends React.Component {
               name="code"
               label="Authentication code"
               type="text"
+              ref={this.codeInput}
               value={''}
               onChange={() => false}
               error={''}
@@ -60,5 +89,9 @@ export class LoginStepTwo extends React.Component {
         </div>
       </>
     );
+  }
+
+  private focusCodeInput() {
+    this.codeInput.current.focus();
   }
 }
