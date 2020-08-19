@@ -63,7 +63,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               <use xlinkHref={'#map-logo'} />
             </svg>
           </div>
-          <form>
+          <form onSubmit={this.handleSubmit} >
             <h3>Enter your authentication code</h3>
             <p>Check your email to view your authentication code.</p>
             <label htmlFor="username">Username</label>
@@ -99,7 +99,6 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                 type="submit"
                 disabled={false}
                 className="blue-button"
-                onClick={this.handleSubmit}
               >
                 Log in
               </button>
@@ -113,7 +112,12 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    postData('/Account/VerifyCode', this.state.data, true);
+    postData('/Account/LoginStepTwo', this.state.data, true)
+      .then((response) => {
+        if (response) {
+          window.location.replace(this.state.data.returnUrl);
+        }
+      });
   }
 
   private focusCodeInput() {

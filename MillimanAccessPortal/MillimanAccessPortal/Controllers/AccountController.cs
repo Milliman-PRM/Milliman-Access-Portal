@@ -1294,7 +1294,42 @@ namespace MillimanAccessPortal.Controllers
 
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginStepTwoViewModel { Provider = TokenOptions.DefaultEmailProvider, Username = username, ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }        
+        }
+
+        //
+        // POST: /Account/LoginStepTwo
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LoginStepTwo(VerifyCodeViewModel model)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
+
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // The following code protects for brute force attacks against the two factor codes.
+            // If a user enters incorrect codes for a specified amount of time then the user account
+            // will be locked out for a specified amount of time.
+            var result = await _signInManager.TwoFactorSignInAsync(model.Provider, model.Code, model.RememberMe, model.RememberBrowser);
+            if (result.Succeeded)
+            {
+                return RedirectToLocal(model.ReturnUrl);
+            }
+            if (result.IsLockedOut)
+            {
+                Log.Debug("User account locked out.");
+                var lockoutMessage = "This account has been locked out, please try again later.";
+                return View("UserMessage", new UserMessageModel(lockoutMessage));
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Invalid code.");
+                return View(model);
+            }
+        }
 
         // POST: /Account/LoginStepTwo
 
