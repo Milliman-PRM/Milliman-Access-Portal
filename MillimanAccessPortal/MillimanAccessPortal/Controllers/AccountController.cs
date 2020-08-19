@@ -1339,8 +1339,6 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        // POST: /Account/LoginStepTwo
-
         //
         // GET: /Account/SendCode
         [HttpGet]
