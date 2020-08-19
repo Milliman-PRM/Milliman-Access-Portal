@@ -55,6 +55,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   }
 
   public render() {
+    const { formIsValid, errors } = this.state;
     return (
       <>
         <div className="form-content-container">
@@ -69,7 +70,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
             <label htmlFor="username">Username</label>
             <Input
               name="username"
-              label={null}
+              label="Username"
               type="text"
               ref={this.usernameInput}
               value={this.state.username}
@@ -84,20 +85,22 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               type="text"
               ref={this.codeInput}
               value={this.state.data.code}
-              onChange={this.handleChange}
-              error={''}
+              onChange={this.handleChange && this.handleWhiteSpace}
+              error={errors.code}
             />
             <div className="button-container">
-              <button
-                type="button"
-                className="white-button"
-                onClick={() => false}
-              >
-                Forgot password
-              </button>
+              <a href="/Account/ForgotPassword" className="link-button">
+                <button
+                  type="button"
+                  className="white-button"
+                  onClick={() => false}
+                >
+                    Forgot password
+                </button>
+              </a>
               <button
                 type="submit"
-                disabled={false}
+                disabled={!formIsValid}
                 className="blue-button"
               >
                 Log in
@@ -112,11 +115,27 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    const errors = { ...this.state.errors };
+    const errorMessage = await this.validateProperty({ name: 'code', value: this.state.data.code });
+    if (errorMessage) {
+      errors.code = errorMessage.code;
+      this.setState({ errors });
+      return;
+    } else {
+      delete errors.username;
+    }
+
     postData('/Account/LoginStepTwo', this.state.data, true)
       .then((response) => {
         if (response) {
           window.location.replace(this.state.data.returnUrl);
         }
+      })
+      .catch(() => {
+        errors.code = 'An error occurred.';
+        this.setState({ errors }, () => {
+          this.focusCodeInput();
+        });
       });
   }
 
