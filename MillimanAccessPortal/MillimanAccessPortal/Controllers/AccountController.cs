@@ -97,14 +97,6 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
-        // GET: /Account/LoginStepTwo
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> LoginStepTwo(string returnUrl = null)
-        {
-            return View();
-        }
-
         //
         // POST: /Account/IsLocalAccount
         [HttpPost]

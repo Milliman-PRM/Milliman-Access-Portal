@@ -1,6 +1,7 @@
 ﻿#login-logo-container {
   padding: .5em;
   width: 100%;
+  max-width: 28.125em;
 
   #login-logo {
     width: 100%;
@@ -10,4 +11,13 @@
       width: 100%;
     }
   }
+}
+
+footer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: transparent;
+  z-index: 20;
 }
