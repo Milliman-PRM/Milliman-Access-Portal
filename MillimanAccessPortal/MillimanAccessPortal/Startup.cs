@@ -37,7 +37,6 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
-using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
 using PowerBiLib;
 using Prm.EmailQueue;
@@ -45,11 +44,9 @@ using QlikviewLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -107,7 +104,7 @@ namespace MillimanAccessPortal
 
             if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
-                Log.Error("Multiple configured WsFederation schemes have the same name");
+                Log.Error("Multiple configured authentication schemes have the same name");
             }
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
@@ -191,7 +188,7 @@ namespace MillimanAccessPortal
 
                                 if (_applicationUser == null)
                                 {
-                                    Log.Warning($"External login succeeded but username {identity.Name} is not in our Identity database");
+                                    Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
                                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder
@@ -230,7 +227,35 @@ namespace MillimanAccessPortal
                                 }
                                 else
                                 {
-                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                    if (_applicationUser.TwoFactorEnabled)
+                                    {
+                                        // This technique duplicates code in inaccessible method SignInManager<TUser>.SignInOrTwoFactorAsync().  We shouldn't 
+                                        // need to do that. There may be a better way to integrate WsFederation using standard external login logic of Identity.
+                                        var userId = await _signInManager.UserManager.GetUserIdAsync(_applicationUser);
+                                        ClaimsIdentity signInIdentity = new ClaimsIdentity( 
+                                            new [] { new Claim(ClaimTypes.AuthenticationMethod, TokenOptions.DefaultEmailProvider), 
+                                                     new Claim(ClaimTypes.Name, userId)}, 
+                                            IdentityConstants.TwoFactorUserIdScheme);
+                                        ClaimsPrincipal signInClaimsPrincipal = new ClaimsPrincipal(signInIdentity);
+
+                                        await _signInManager.Context.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, signInClaimsPrincipal);
+
+                                        UriBuilder twoFactorUriBuilder = new UriBuilder
+                                        {
+                                            Host = context.Request.Host.Host,
+                                            Scheme = context.Request.Scheme,
+                                            Port = context.Request.Host.Port ?? -1,
+                                            Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
+                                            Query = System.Web.HttpUtility.UrlEncode($"returnUrl={context.ReturnUri}&scheme={context.Scheme.Name}"),
+                                        };
+
+                                        context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        await _signInManager.SignInAsync(_applicationUser, false);
+                                    }
                                 }
                             }
                             catch (Exception ex)
