@@ -1256,18 +1256,10 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/LoginStepTwo
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> LoginStepTwo(string username = null, string returnUrl = null, bool rememberMe = false)
+        public async Task<ActionResult> LoginStepTwo(string scheme, string username = null, string returnUrl = null, bool rememberMe = false)
         {
+#warning TODO Pass the user's auth scheme through the subsequent redirects so it can be logged in the VerifyCode POST action
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
-
-            //var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            //if (user == null)
-            //{
-            //    return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
-            //}
-            //var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
-            //var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
-            //return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
 
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
@@ -1426,6 +1418,8 @@ namespace MillimanAccessPortal.Controllers
             var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
             if (result.Succeeded)
             {
+                SignInCommon(User.Identity.Name, "");
+
                 return RedirectToLocal(model.ReturnUrl);
             }
             if (result.IsLockedOut)
