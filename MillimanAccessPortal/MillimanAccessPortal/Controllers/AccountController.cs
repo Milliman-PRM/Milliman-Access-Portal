@@ -262,7 +262,7 @@ namespace MillimanAccessPortal.Controllers
                 switch (result)
                 {
                     case var r when r.RequiresTwoFactor:
-                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { TokenOptions.DefaultEmailProvider, model.Username, returnUrl, model.RememberMe }));
+                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, returnUrl, model.RememberMe }));
                         return Ok();
  
                     case var r when r.Succeeded:
@@ -1256,7 +1256,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/LoginStepTwo
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> LoginStepTwo(string provider = null, string username = null, string returnUrl = null, bool rememberMe = false)
+        public async Task<ActionResult> LoginStepTwo(string username = null, string returnUrl = null, bool rememberMe = false)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
 
@@ -1293,7 +1293,7 @@ namespace MillimanAccessPortal.Controllers
             _messageSender.QueueEmail(user.Email, "Security Code", message);
 
             ViewData["ReturnUrl"] = returnUrl;
-            return View(new LoginStepTwoViewModel { Provider = TokenOptions.DefaultEmailProvider, Username = username, ReturnUrl = returnUrl, RememberMe = rememberMe });
+            return View(new LoginStepTwoViewModel { Username = user.UserName, ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         //
@@ -1313,7 +1313,7 @@ namespace MillimanAccessPortal.Controllers
             // The following code protects for brute force attacks against the two factor codes.
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorSignInAsync(model.Provider, model.Code, model.RememberMe, model.RememberBrowser);
+            var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
             if (result.Succeeded)
             {
                 return RedirectToLocal(model.ReturnUrl);
@@ -1403,7 +1403,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error")));
             }
-            return View(new VerifyCodeViewModel { Provider = provider, ReturnUrl = returnUrl, RememberMe = rememberMe });
+            return View(new VerifyCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe });
         }
 
         //
@@ -1423,7 +1423,7 @@ namespace MillimanAccessPortal.Controllers
             // The following code protects for brute force attacks against the two factor codes.
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorSignInAsync(model.Provider, model.Code, model.RememberMe, model.RememberBrowser);
+            var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
             if (result.Succeeded)
             {
                 return RedirectToLocal(model.ReturnUrl);

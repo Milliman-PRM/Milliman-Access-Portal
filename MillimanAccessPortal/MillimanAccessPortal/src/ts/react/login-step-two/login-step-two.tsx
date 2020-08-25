@@ -38,11 +38,10 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
       loginWarning: null,
       username: params.get('Username'),
       data: {
-        provider: params.get('DefaultEmailProvider'),
         code: '',
         returnUrl: params.get('returnUrl'),
         rememberBrowser: 'false',
-        rememberMe: 'false',
+        rememberMe: params.get('RememberMe'),
       },
       errors: {},
       formIsValid: false,
@@ -85,7 +84,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               type="text"
               ref={this.codeInput}
               value={this.state.data.code}
-              onChange={this.handleChange && this.handleWhiteSpace}
+              onChange={this.handleChange}
               error={errors.code}
             />
             <div className="button-container">
@@ -122,10 +121,10 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
       this.setState({ errors });
       return;
     } else {
-      delete errors.username;
+      this.setState({ errors: {} });
     }
 
-    postData('/Account/LoginStepTwo', this.state.data, true)
+    postData(window.location.href, this.state.data, true)
       .then((response) => {
         if (response) {
           window.location.replace(this.state.data.returnUrl);
