@@ -49,6 +49,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MillimanAccessPortal
 {
@@ -246,7 +247,7 @@ namespace MillimanAccessPortal
                                             Scheme = context.Request.Scheme,
                                             Port = context.Request.Host.Port ?? -1,
                                             Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
-                                            Query = System.Web.HttpUtility.UrlEncode($"returnUrl={context.ReturnUri}&scheme={context.Scheme.Name}"),
+                                            Query = $"returnUrl=/&scheme={HttpUtility.UrlEncode(context.Scheme.Name)}",
                                         };
 
                                         context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);
