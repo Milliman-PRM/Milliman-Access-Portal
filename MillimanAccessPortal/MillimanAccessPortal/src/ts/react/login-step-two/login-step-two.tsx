@@ -88,13 +88,13 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               error={errors.code}
             />
             <div className="button-container">
-              <a href="/Account/ForgotPassword" className="link-button">
+              <a href={'/Account/Login?ReturnUrl=' + this.state.data.returnUrl} className="link-button">
                 <button
                   type="button"
                   className="white-button"
                   onClick={() => false}
                 >
-                    Forgot password
+                    Cancel
                 </button>
               </a>
               <button
@@ -129,9 +129,8 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
         if (response) {
           window.location.replace(this.state.data.returnUrl);
         }
-      })
-      .catch(() => {
-        errors.code = 'An error occurred.';
+      }).catch((error) => {
+        errors.code = error.userMessage;
         this.setState({ errors }, () => {
           this.focusCodeInput();
         });
