@@ -1395,7 +1395,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error")));
             }
-            return View(new VerifyCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe });
+            string scheme = await IsUserAccountLocal(user.UserName)
+                ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
+                : GetExternalAuthenticationScheme(user.UserName).Name;
+            return View(new VerifyCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe, Scheme = scheme });
         }
 
         //
@@ -1412,26 +1415,33 @@ namespace MillimanAccessPortal.Controllers
                 return View(model);
             }
 
+            ApplicationUser user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+            if (user == null)
+            {
+                return View("UserMessage", new UserMessageModel("The submitted code is invalid. Codes are valid for 5 minutes. Please login again."));
+            }
+
             // The following code protects for brute force attacks against the two factor codes.
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
             var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
-            if (result.Succeeded)
+            switch (result)
             {
-                SignInCommon(User.Identity.Name, "");
+                case var r when r.Succeeded:
+                    SignInCommon(HttpContext.User.Identity.Name, model.Scheme);
+                    return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
-                return RedirectToLocal(model.ReturnUrl);
-            }
-            if (result.IsLockedOut)
-            {
-                Log.Debug("User account locked out.");
-                var lockoutMessage = "This account has been locked out, please try again later.";
-                return View("UserMessage", new UserMessageModel(lockoutMessage));
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Invalid code.");
-                return View(model);
+                case var r when r.IsLockedOut:
+                    Log.Debug("User account locked out.");
+                    return View("UserMessage", new UserMessageModel("This account has been locked out, please try again later."));
+
+                case var r when r.IsNotAllowed:
+                    Log.Debug("User account not allowed.");
+                    return View("UserMessage", new UserMessageModel("Login failed, please try again later."));
+
+                default:
+                    ModelState.AddModelError(string.Empty, "Invalid code.");
+                    return View(model);
             }
         }
 

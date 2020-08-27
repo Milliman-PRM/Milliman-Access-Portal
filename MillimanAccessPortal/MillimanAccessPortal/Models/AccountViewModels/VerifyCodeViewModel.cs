@@ -13,6 +13,8 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         public string ReturnUrl { get; set; }
 
+        public string Scheme { get; set; }
+
         [Display(Name = "Remember this browser?")]
         public bool RememberBrowser { get; set; }
 

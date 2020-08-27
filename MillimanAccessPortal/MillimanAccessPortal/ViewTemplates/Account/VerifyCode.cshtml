@@ -8,6 +8,7 @@
 <form asp-controller="Account" asp-action="VerifyCode" asp-route-returnurl="@Model.ReturnUrl" method="post" class="form-horizontal">
     <div asp-validation-summary="All" class="text-danger"></div>
     <input asp-for="RememberMe" type="hidden" />
+    <input asp-for="Scheme" type="hidden" />
     <h4>@ViewData["Status"]</h4>
     <hr />
     <div class="form-group">
