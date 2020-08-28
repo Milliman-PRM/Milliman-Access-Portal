@@ -247,7 +247,7 @@ namespace MillimanAccessPortal
                                             Scheme = context.Request.Scheme,
                                             Port = context.Request.Host.Port ?? -1,
                                             Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
-                                            Query = $"returnUrl=/&scheme={HttpUtility.UrlEncode(context.Scheme.Name)}",
+                                            Query = $"returnUrl=/&Username={_applicationUser.UserName}&RememberMe=false",
                                         };
 
                                         context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);

@@ -1,8 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/*
+ * CODE OWNERS: Evan Klein, Tom Puckett
+ * OBJECTIVE: <What and WHY.>
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
@@ -11,9 +13,12 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         [Required]
         public string Username { get; set; }
 
+        public string Code { get; set; }
+
         public string ReturnUrl { get; set; }
 
-        [Required]
-        public Boolean RememberMe { get; set; }
+        public string UserMessage { get; set; } = null;
+
+        public bool RememberMe { get; set; } = false;
     }
 }

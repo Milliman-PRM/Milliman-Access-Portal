@@ -1256,7 +1256,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/LoginStepTwo
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult> LoginStepTwo(string scheme, string username = null, string returnUrl = null, bool rememberMe = false)
+        public async Task<ActionResult> LoginStepTwo(string username = null, string returnUrl = null, bool rememberMe = false)
         {
 #warning TODO Pass the user's auth scheme through the subsequent redirects so it can be logged in the VerifyCode POST action
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
@@ -1293,120 +1293,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> LoginStepTwo(VerifyCodeViewModel model)
-        {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
-
-            if (!ModelState.IsValid)
-            {
-                return View(model);
-            }
-
-            // The following code protects for brute force attacks against the two factor codes.
-            // If a user enters incorrect codes for a specified amount of time then the user account
-            // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
-            if (result.Succeeded)
-            {
-                return RedirectToLocal(model.ReturnUrl);
-            }
-            if (result.IsLockedOut)
-            {
-                Log.Debug("User account locked out.");
-                var lockoutMessage = "This account has been locked out, please try again later.";
-                return View("UserMessage", new UserMessageModel(lockoutMessage));
-            }
-            else
-            {
-                ModelState.AddModelError(string.Empty, "Invalid code.");
-                return View(model);
-            }
-        }
-
-        //
-        // GET: /Account/SendCode
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<ActionResult> SendCode(string returnUrl = null, bool rememberMe = false)
-        {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
-
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
-            }
-            var userFactors = await _userManager.GetValidTwoFactorProvidersAsync(user);
-            var factorOptions = userFactors.Select(purpose => new SelectListItem { Text = purpose, Value = purpose }).ToList();
-            return View(new SendCodeViewModel { Providers = factorOptions, ReturnUrl = returnUrl, RememberMe = rememberMe });
-        }
-
-        //
-        // POST: /Account/SendCode
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendCode(SendCodeViewModel model)
-        {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
-
-            if (!ModelState.IsValid)
-            {
-                return View();
-            }
-
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
-            }
-
-            // Generate the token and send it
-            var code = await _userManager.GenerateTwoFactorTokenAsync(user, model.SelectedProvider);
-            if (string.IsNullOrWhiteSpace(code))
-            {
-                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Error")));
-            }
-
-            var message = "Your security code is: " + code;
-            if (model.SelectedProvider == "Email")
-            {
-                _messageSender.QueueEmail(await _userManager.GetEmailAsync(user), "Security Code", message);
-            }
-            else if (model.SelectedProvider == "Phone")
-            {
-                _messageSender.QueueSms(await _userManager.GetPhoneNumberAsync(user), message);
-            }
-
-            return RedirectToAction(nameof(VerifyCode), new { Provider = model.SelectedProvider, ReturnUrl = model.ReturnUrl, RememberMe = model.RememberMe });
-        }
-
-        //
-        // GET: /Account/VerifyCode
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> VerifyCode(string provider, bool rememberMe, string returnUrl = null)
-        {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
-
-            // Require that the user has already logged in via username/password or external login
-            var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-            if (user == null)
-            {
-                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Two Factor Verification Error")));
-            }
-            string scheme = await IsUserAccountLocal(user.UserName)
-                ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
-                : GetExternalAuthenticationScheme(user.UserName).Name;
-            return View(new VerifyCodeViewModel { ReturnUrl = returnUrl, RememberMe = rememberMe, Scheme = scheme });
-        }
-
-        //
-        // POST: /Account/VerifyCode
-        [HttpPost]
-        [AllowAnonymous]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> VerifyCode(VerifyCodeViewModel model)
+        public async Task<IActionResult> LoginStepTwo(LoginStepTwoViewModel model)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
 
@@ -1424,24 +1311,29 @@ namespace MillimanAccessPortal.Controllers
             // The following code protects for brute force attacks against the two factor codes.
             // If a user enters incorrect codes for a specified amount of time then the user account
             // will be locked out for a specified amount of time.
-            var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, model.RememberBrowser);
+            var result = await _signInManager.TwoFactorSignInAsync(TokenOptions.DefaultEmailProvider, model.Code, model.RememberMe, false);
             switch (result)
             {
                 case var r when r.Succeeded:
-                    SignInCommon(HttpContext.User.Identity.Name, model.Scheme);
+                    string scheme = await IsUserAccountLocal(user.UserName)
+                        ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
+                        : GetExternalAuthenticationScheme(user.UserName).Name;
+                    SignInCommon(HttpContext.User.Identity.Name, scheme);
                     return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
                 case var r when r.IsLockedOut:
-                    Log.Debug("User account locked out.");
-                    return View("UserMessage", new UserMessageModel("This account has been locked out, please try again later."));
+                    Log.Debug($"User {user.UserName} account locked out while checking two factor code.");
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "This account has been locked out, please try again later." }));
+                    return Ok();
 
                 case var r when r.IsNotAllowed:
                     Log.Debug("User account not allowed.");
                     return View("UserMessage", new UserMessageModel("Login failed, please try again later."));
 
                 default:
-                    ModelState.AddModelError(string.Empty, "Invalid code.");
-                    return View(model);
+                    model.UserMessage = "The submitted code was incorrect, please try again";
+                    model.Code = null;
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity, model);
             }
         }
 
