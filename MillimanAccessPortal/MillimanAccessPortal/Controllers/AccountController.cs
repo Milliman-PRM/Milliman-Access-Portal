@@ -1331,9 +1331,8 @@ namespace MillimanAccessPortal.Controllers
                     return View("UserMessage", new UserMessageModel("Login failed, please try again later."));
 
                 default:
-                    model.UserMessage = "The submitted code was incorrect, please try again";
-                    model.Code = null;
-                    return StatusCode(StatusCodes.Status422UnprocessableEntity, model);
+                    Response.Headers.Add("Warning", $"The submitted code was incorrect, please try again.");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
         }
 

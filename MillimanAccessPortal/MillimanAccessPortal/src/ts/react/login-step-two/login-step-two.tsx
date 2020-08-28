@@ -127,10 +127,11 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
     postData(window.location.href, this.state.data, true)
       .then((response) => {
         if (response) {
-          window.location.replace(this.state.data.returnUrl);
+          const redirectUrl = response.headers.get('NavigateTo');
+          window.location.replace(redirectUrl || this.state.data.returnUrl);
         }
       }).catch((error) => {
-        errors.code = error.userMessage;
+        errors.code = error.message;
         this.setState({ errors }, () => {
           this.focusCodeInput();
         });
