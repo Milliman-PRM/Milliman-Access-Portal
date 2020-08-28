@@ -16,9 +16,5 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Code { get; set; }
 
         public string ReturnUrl { get; set; }
-
-        public string UserMessage { get; set; } = null;
-
-        public bool RememberMe { get; set; } = false;
     }
 }
