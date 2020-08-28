@@ -1,3 +1,4 @@
+import '../../../images/icons/client-access-review.svg';
 import '../../../images/icons/client.svg';
 import '../../../images/icons/content-access.svg';
 import '../../../images/icons/content-grid.svg';

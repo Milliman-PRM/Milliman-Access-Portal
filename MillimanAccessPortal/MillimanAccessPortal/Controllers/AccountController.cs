@@ -1216,6 +1216,16 @@ namespace MillimanAccessPortal.Controllers
                     View = "ClientAdmin",
                     Icon = "client",
                 });
+                // TODO: Add the correcto controller once it exists
+                // TODO: Consider whether we should change the criteria for showing this (i.e. Client Admin for at least 1 Client)
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Review Client Access",
+                    URL = nameof(ClientAdminController).Replace("Controller", ""),
+                    View = "ClientAccessReview",
+                    Icon = "client-access-review",
+                });
             }
 
             // Conditionally add the Content Publishing Element
