@@ -1228,6 +1228,8 @@ namespace MillimanAccessPortal.Controllers
                     URL = nameof(ClientAccessReviewController).Replace("Controller", ""),
                     View = "ClientAccessReview",
                     Icon = "client-access-review",
+                    // TODO: Replace this hard-coded value with a count of Clients that need review
+                    BadgeNumber = 3,
                 });
             }
 

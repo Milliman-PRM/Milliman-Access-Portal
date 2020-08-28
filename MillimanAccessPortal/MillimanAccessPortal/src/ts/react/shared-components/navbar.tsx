@@ -70,6 +70,10 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <svg className="nav-element-icon">
               <use xlinkHref={`#${element.icon}`} />
             </svg>
+            {
+              element.badgeNumber &&
+              <div className="badge">{element.badgeNumber}</div>
+            }
           </div>
         </a>
       );
