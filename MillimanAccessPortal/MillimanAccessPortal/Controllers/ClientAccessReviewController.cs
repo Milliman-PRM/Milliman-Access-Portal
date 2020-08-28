@@ -37,37 +37,28 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAccessReviewController : Controller
     {
-        private readonly ApplicationDbContext DbContext;
         private readonly IAuditLogger AuditLogger;
         private readonly IAuthorizationService AuthorizationService;
-        private readonly IMessageQueue MessageQueueService;
-        private readonly RoleManager<ApplicationRole> RoleManager;
-        private readonly StandardQueries Queries;
-        private readonly UserManager<ApplicationUser> _userManager;
         private readonly IConfiguration ApplicationConfig;
-        private readonly AccountController _accountController;
+        private readonly ApplicationDbContext DbContext;
+        private readonly ContentAccessAdminQueries _accessAdminQueries;
+        private readonly UserManager<ApplicationUser> UserManager;
 
         public ClientAccessReviewController(
-            ApplicationDbContext context,
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            IMessageQueue MessageQueueServiceArg,
-            RoleManager<ApplicationRole> RoleManagerArg,
-            StandardQueries QueryArg,
+            ApplicationDbContext DbContextArg,
+            ContentAccessAdminQueries accessAdminQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IConfiguration ApplicationConfigArg,
-            AccountController AccountControllerArg
+            IConfiguration ApplicationConfigArg
             )
         {
-            DbContext = context;
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
-            MessageQueueService = MessageQueueServiceArg;
-            RoleManager = RoleManagerArg;
-            Queries = QueryArg;
-            _userManager = UserManagerArg;
+            DbContext = DbContextArg;
+            _accessAdminQueries = accessAdminQueriesArg;
+            UserManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
-            _accountController = AccountControllerArg;
         }
 
         // GET: ClientAccessReview
@@ -90,27 +81,27 @@ namespace MillimanAccessPortal.Controllers
             return View();
         }
 
-        // GET: ClientAccessReview/ClientFamilyList
         /// <summary>
-        /// Returns the list of Client families that the current user has visibility to (defined by GetClientAdminIndexModelForUser(...)
+        /// GET clients authorized to the current user
         /// </summary>
-        /// <returns>JsonResult or UnauthorizedResult</returns>
         [HttpGet]
-        public async Task<IActionResult> ClientFamilyList()
+        public async Task<IActionResult> Clients()
         {
             #region Authorization
-            // User must have Admin role to at least 1 Client or ProfitCenter
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
-            if (!Result.Succeeded)
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            if (!roleResult.Succeeded)
             {
-                Response.Headers.Add("Warning", $"You are not authorized as a Client Admin");
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
                 return Unauthorized();
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            var currentUser = await UserManager.GetUserAsync(User);
+            // TODO: Use the correct query to return the right clients
+            var clients = await _accessAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
     }
 }
