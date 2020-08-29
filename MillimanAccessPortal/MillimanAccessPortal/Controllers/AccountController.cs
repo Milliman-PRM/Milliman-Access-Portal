@@ -1221,6 +1221,18 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Client Access Review Element
             if (ClientAdminResult1.Succeeded)
             {
+                List<Guid> myClientIds = (await DbContext.UserRoleInClient
+                                                         .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                         .Select(urc => urc.ClientId)
+                                                         .Distinct()
+                                                         .ToListAsync());
+                DateTime countableDueTime = DateTime.UtcNow + TimeSpan.FromDays(_configuration.GetValue("ClientReviewEarlyWarningDays", 14));
+                int numClientsDue = (await DbContext.Client
+                                                    .Where(c => myClientIds.Contains(c.Id))
+                                                    .Where(c => c.ReviewDueDateTimeUtc < countableDueTime)
+                                                    .CountAsync());
+
                 NavBarElements.Add(new NavBarElementModel
                 {
                     Order = order++,
@@ -1228,8 +1240,7 @@ namespace MillimanAccessPortal.Controllers
                     URL = nameof(ClientAccessReviewController).Replace("Controller", ""),
                     View = "ClientAccessReview",
                     Icon = "client-access-review",
-                    // TODO: Replace this hard-coded value with a count of Clients that need review
-                    BadgeNumber = 3,
+                    BadgeNumber = numClientsDue,
                 });
             }
 
