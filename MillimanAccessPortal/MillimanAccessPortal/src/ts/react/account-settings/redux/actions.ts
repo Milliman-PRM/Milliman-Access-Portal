@@ -97,6 +97,20 @@ export interface UpdateAccountFailed {
   type: 'UPDATE_ACCOUNT_FAILED';
   error: TSError;
 }
+export interface RequestPasswordReset {
+  type: 'REQUEST_PASSWORD_RESET';
+  request: {};
+}
+export interface RequestPasswordResetSucceeded {
+  type: 'REQUEST_PASSWORD_RESET_SUCCEEDED';
+  response: {
+    successMessage: string;
+  };
+}
+export interface RequestPasswordResetFailed {
+  type: 'REQUEST_PASSWORD_RESET_FAILED';
+  error: TSError;
+}
 
 /**
  * Validate the user section
@@ -157,6 +171,7 @@ export type ScheduleAccountAction =
 export type RequestAccountAction =
   | FetchUser
   | UpdateAccount
+  | RequestPasswordReset
   | FetchSessionCheck
   ;
 
@@ -166,6 +181,7 @@ export type RequestAccountAction =
 export type ResponseAccountAction =
   | FetchUserSucceeded
   | UpdateAccountSucceeded
+  | RequestPasswordResetSucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -175,6 +191,7 @@ export type ResponseAccountAction =
 export type ErrorAccountAction =
   | FetchUserFailed
   | UpdateAccountFailed
+  | RequestPasswordResetFailed
   | FetchSessionCheckFailed
   ;
 

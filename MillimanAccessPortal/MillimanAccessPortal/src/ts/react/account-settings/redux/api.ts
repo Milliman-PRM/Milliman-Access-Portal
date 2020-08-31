@@ -71,6 +71,10 @@ export const updateAccount =
   createJsonRequestor<AccountActions.UpdateAccount, AccountActions.UpdateAccountSucceeded>
   ('POST', '/Account/UpdateAccount');
 
+export const requestPasswordReset =
+  createJsonRequestor<AccountActions.RequestPasswordReset, AccountActions.RequestPasswordResetSucceeded>
+  ('POST', '/Account/RequestPasswordResetForExistingUser');
+
 export const validateUserInput = async (value: UserInputState, inputName: string) => {
   if (inputName) {
     return await userSchema.validateAt(inputName, value);

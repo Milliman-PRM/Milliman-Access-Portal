@@ -898,6 +898,38 @@ namespace MillimanAccessPortal.Controllers
             return View("UserMessage", new UserMessageModel(passwordConfirmationMessage));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestPasswordResetForExistingUser()
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action");
+            var user = await _userManager.GetUserAsync(User);
+            if (user != null)
+            {
+                if (await IsUserAccountLocal(user.UserName))
+                {
+                    await RequestPasswordReset(user, PasswordResetRequestReason.UserInitiated, Request.Scheme, Request.Host);
+                    Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{user.Email}> reset succeeded");
+                }
+                else
+                {
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{user.Email}> is not local.");
+                    // TODO audit log reset password for non-local
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+            else
+            {
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{user.Email}> not found");
+                _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(user.Email));
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} post action: success");
+            string successMessage = $"Password reset email sent.";
+            return Json(new { successMessage });
+        }
+
         /// <summary>
         /// A controller action that initiates a password reset
         /// </summary>

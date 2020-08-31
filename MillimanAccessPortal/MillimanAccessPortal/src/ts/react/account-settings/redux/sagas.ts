@@ -6,8 +6,8 @@ import {
 } from '../../shared-components/redux/sagas';
 import * as AccountActionCreators from './action-creators';
 import {
-    AccountAction, ErrorAccountAction, RequestAccountAction, ResponseAccountAction,
-    ValidationAccountAction, ValidationResultAccountAction,
+  AccountAction, ErrorAccountAction, RequestAccountAction, RequestPasswordResetFailed, RequestPasswordResetSucceeded,
+  ResponseAccountAction, ValidationAccountAction, ValidationResultAccountAction,
 } from './actions';
 import * as api from './api';
 
@@ -40,6 +40,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_USER', api.fetchUser);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
   yield takeLatestRequest('UPDATE_ACCOUNT', api.updateAccount);
+  yield takeLatestRequest('REQUEST_PASSWORD_RESET', api.requestPasswordReset);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccountActionCreators.fetchSessionCheck({}));
@@ -49,10 +50,13 @@ export default function* rootSaga() {
 
   // Toasts
   yield takeEveryToast('UPDATE_ACCOUNT_SUCCEEDED', 'Your account has been updated.');
+  yield takeEveryToast<RequestPasswordResetSucceeded>('REQUEST_PASSWORD_RESET_SUCCEEDED',
+    ({ successMessage }) => successMessage);
   yield takeEveryToast<ErrorAccountAction>([
     'FETCH_USER_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'UPDATE_ACCOUNT_FAILED',
+    'REQUEST_PASSWORD_RESET_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)

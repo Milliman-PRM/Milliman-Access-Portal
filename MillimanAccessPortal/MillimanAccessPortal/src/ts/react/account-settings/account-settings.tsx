@@ -67,8 +67,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <form autoComplete="off" className="admin-panel-content">
           {this.renderInformationSection()}
-          {this.renderPasswordSection()}
-          {this.renderSubmissionSection()}
+          {this.renderPasswordResetButton()}
         </form>
       </div>
     );
@@ -302,6 +301,27 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
         </div>
       </div>
     );
+  }
+
+  private renderPasswordResetButton() {
+    const { isLocal } = this.props;
+    return isLocal ?
+      (
+        <div className="form-submission-section">
+          <div className="button-container button-container-update">
+            <button
+              className="button-submit blue-button"
+              onClick={(event: React.FormEvent) => {
+                event.preventDefault();
+                this.props.requestPasswordReset({});
+              }}
+            >
+              Send Password Reset Email
+            </button>
+          </div>
+        </div>
+      )
+      : null;
   }
 
   private renderResetButton() {
