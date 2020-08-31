@@ -16,7 +16,9 @@ namespace MapDbContextLib.Context
     public enum ConfiguredValueKeys
     {
         UserAgreementText,
+        ClientReviewRenewalPeriodDays,
         ClientReviewEarlyWarningDays,
+        ClientReviewGracePeriodDays,
     }
 
     public class NameValueConfiguration

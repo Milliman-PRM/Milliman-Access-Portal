@@ -12,9 +12,9 @@ namespace MillimanAccessPortal.Migrations
                 $"DECLARE {Environment.NewLine}" +
                 $"  earlyWarningDays int;{Environment.NewLine}  cmd text;{Environment.NewLine}  result text; {Environment.NewLine}" +
                 $"BEGIN {Environment.NewLine}" +
-                $"  SELECT \"Value\" INTO earlyWarningDays FROM \"NameValueConfiguration\" WHERE \"Key\" = 'ClientReviewEarlyWarningDays'; {Environment.NewLine}" +
+                $"  SELECT \"Value\" INTO earlyWarningDays FROM \"NameValueConfiguration\" WHERE \"Key\" = 'ClientReviewRenewalPeriodDays'; {Environment.NewLine}" +
                 $"  IF earlyWarningDays IS NULL THEN {Environment.NewLine}" +
-                $"    RAISE 'ClientReviewEarlyWarningDays key not found in table ClientReviewEarlyWarningDays'; {Environment.NewLine}" +
+                $"    RAISE 'ClientReviewEarlyWarningDays key not found in table ClientReviewRenewalPeriodDays'; {Environment.NewLine}" +
                 $"  END IF; {Environment.NewLine}" +
                 $"  cmd := 'SELECT now() at time zone ''utc'' + ''' || earlyWarningDays || ' d''::interval'; {Environment.NewLine}" +
                 $"  EXECUTE cmd INTO result; {Environment.NewLine}" +

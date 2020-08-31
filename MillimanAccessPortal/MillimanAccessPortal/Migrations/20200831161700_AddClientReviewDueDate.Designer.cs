@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200829001021_AddClientReviewDueDate")]
+    [Migration("20200831161700_AddClientReviewDueDate")]
     partial class AddClientReviewDueDate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
