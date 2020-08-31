@@ -37,28 +37,28 @@ namespace MillimanAccessPortal.Controllers
 {
     public class ClientAccessReviewController : Controller
     {
-        private readonly IAuditLogger AuditLogger;
-        private readonly IAuthorizationService AuthorizationService;
-        private readonly IConfiguration ApplicationConfig;
-        private readonly ApplicationDbContext DbContext;
+        private readonly IAuditLogger _auditLogger;
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IConfiguration _applicationConfig;
         private readonly ContentAccessAdminQueries _accessAdminQueries;
-        private readonly UserManager<ApplicationUser> UserManager;
+        private readonly ClientAccessReviewQueries _clientAccessReviewQueries;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ClientAccessReviewController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            ApplicationDbContext DbContextArg,
             ContentAccessAdminQueries accessAdminQueriesArg,
+            ClientAccessReviewQueries ClientAccessReviewQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg
             )
         {
-            AuditLogger = AuditLoggerArg;
-            AuthorizationService = AuthorizationServiceArg;
-            DbContext = DbContextArg;
+            _auditLogger = AuditLoggerArg;
+            _authorizationService = AuthorizationServiceArg;
             _accessAdminQueries = accessAdminQueriesArg;
-            UserManager = UserManagerArg;
-            ApplicationConfig = ApplicationConfigArg;
+            _clientAccessReviewQueries = ClientAccessReviewQueriesArg;
+            _userManager = UserManagerArg;
+            _applicationConfig = ApplicationConfigArg;
         }
 
         // GET: ClientAccessReview
@@ -70,7 +70,7 @@ namespace MillimanAccessPortal.Controllers
         {
             #region Authorization
             // User must have Admin role to at least 1 Client OR to at least 1 ProfitCenter
-            AuthorizationResult Result = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
             if (!Result.Succeeded)
             {
                 Response.Headers.Add("Warning", $"You are not authorized to the Client Access Review page.");
@@ -88,7 +88,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Clients()
         {
             #region Authorization
-            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -97,11 +97,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await UserManager.GetUserAsync(User);
-            // TODO: Use the correct query to return the right clients
-            var clients = await _accessAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var model = await _clientAccessReviewQueries.GetClientModelAsync(currentUser);
 
-            return Json(clients);
+            return Json(model);
         }
     }
 }
