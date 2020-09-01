@@ -9,7 +9,7 @@ const createJsonRequestor = createJsonRequestorCreator<RequestAccessReviewAction
 
 export const fetchGlobalData =
   createJsonRequestor<AccessReviewActions.FetchGlobalData, AccessReviewActions.FetchGlobalDataSucceeded>
-    ('GET', '/ClientAccessReview/FetchGlobalData');
+    ('GET', '/ClientAccessReview/PageGlobalData');
 
 export const fetchClients =
   createJsonRequestor<AccessReviewActions.FetchClients, AccessReviewActions.FetchClientsSucceeded>

@@ -86,7 +86,7 @@ namespace MillimanAccessPortal.Controllers
         /// GET the configured time period values for review warnings
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> FetchGlobalData()
+        public async Task<IActionResult> PageGlobalData()
         {
             #region Authorization
             var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
