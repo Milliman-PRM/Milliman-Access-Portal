@@ -41,7 +41,11 @@ namespace MapDbContextLib.Context
 
                 if (dbRecord == null)
                 {
-                    Db.NameValueConfiguration.Add(new NameValueConfiguration { Key = key.ToString(), Value = "This configuration item has not been set." });
+                    Db.NameValueConfiguration.Add(new NameValueConfiguration 
+                    { 
+                        Key = key.ToString(), 
+                        Value = configValue ?? $"A value has not been set for required configuration key <{key}>." 
+                    });
                 }
                 else if (configValue != null && dbRecord.Value != configValue)
                 {
