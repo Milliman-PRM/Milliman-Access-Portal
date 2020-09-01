@@ -1,6 +1,4 @@
-import {
-    ClientWithEligibleUsers, ClientWithStats,
-} from '../../models';
+import { ClientWithReviewDate } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -56,8 +54,8 @@ export interface FetchClients {
 export interface FetchClientsSucceeded {
   type: 'FETCH_CLIENTS_SUCCEEDED';
   response: {
-    clients: Dict<ClientWithEligibleUsers>;
-    parentClients: Dict<ClientWithStats>;
+    clients: Dict<ClientWithReviewDate>;
+    parentClients: Dict<ClientWithReviewDate>;
   };
 }
 export interface FetchClientsFailed {

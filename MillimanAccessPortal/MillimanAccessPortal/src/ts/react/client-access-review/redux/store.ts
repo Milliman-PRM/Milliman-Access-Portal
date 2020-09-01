@@ -3,7 +3,7 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
-import { ClientWithStats, Guid } from '../../models';
+import { ClientWithReviewDate, Guid } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { clientAccessReview } from './reducers';
@@ -26,7 +26,7 @@ export interface PendingDataState {
  */
 export interface AccessReviewStateData {
   globalData: AccessReviewGlobalData;
-  clients: Dict<ClientWithStats>;
+  clients: Dict<ClientWithReviewDate>;
 }
 
 /**

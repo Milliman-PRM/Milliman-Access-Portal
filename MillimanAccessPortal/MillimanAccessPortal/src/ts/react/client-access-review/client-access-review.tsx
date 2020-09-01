@@ -86,18 +86,6 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Eligible users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                  <CardStat
-                    name={'Content items'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                </CardSectionStats>
               </CardSectionMain>
             </Card>
           );
