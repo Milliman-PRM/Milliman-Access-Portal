@@ -95,7 +95,6 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
       ...action.response.clients,
       ...action.response.parentClients,
     },
-    users: action.response.users,
   }),
 });
 
@@ -106,8 +105,6 @@ const selected = createReducer<AccessReviewStateSelected>(
   {
     SELECT_CLIENT: (state, action: AccessReviewActions.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
-      item: null,
-      group: null,
     }),
   },
 );

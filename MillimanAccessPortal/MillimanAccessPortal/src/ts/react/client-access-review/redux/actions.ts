@@ -1,8 +1,5 @@
 import {
-    ClientWithEligibleUsers, ClientWithStats, ContentPublicationRequest, ContentReductionTask,
-    ContentType, Guid, PublicationQueueDetails, ReductionField, ReductionFieldValue,
-    ReductionQueueDetails, RootContentItem, RootContentItemWithStats, SelectionGroup,
-    SelectionGroupWithAssignedUsers, User,
+    ClientWithEligibleUsers, ClientWithStats, User,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -60,7 +57,6 @@ export interface FetchClientsSucceeded {
   response: {
     clients: Dict<ClientWithEligibleUsers>;
     parentClients: Dict<ClientWithStats>;
-    users: Dict<User>;
   };
 }
 export interface FetchClientsFailed {
