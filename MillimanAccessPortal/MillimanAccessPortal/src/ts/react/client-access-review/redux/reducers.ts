@@ -10,6 +10,10 @@ import { AccessReviewAction, FilterAccessReviewAction } from './actions';
 import { AccessReviewStateData, AccessReviewStateSelected, PendingDataState } from './store';
 
 const _initialData: AccessReviewStateData = {
+  globalData: {
+    clientReviewEarlyWarningDays: null,
+    clientReviewGracePeriodDays: null,
+  },
   clients: {},
 };
 
@@ -81,10 +85,10 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
 });
 
 const data = createReducer<AccessReviewStateData>(_initialData, {
-  // FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessReviewActions.FetchGlobalDataSucceeded) => ({
-  //   ...state,
-  //   contentTypes: action.response.contentTypes,
-  // }),
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessReviewActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    globalData: action.response,
+  }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessReviewActions.FetchClientsSucceeded) => ({
     ...state,
     clients: {

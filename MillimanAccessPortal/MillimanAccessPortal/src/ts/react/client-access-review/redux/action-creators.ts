@@ -10,10 +10,8 @@ export const setFilterTextClient =
   createActionCreator<AccessReviewActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 
 // Data fetches
-
-// TODO: Decide whether this is needed
-// export const fetchGlobalData =
-//   createRequestActionCreator<AccessReviewActions.FetchGlobalData>('FETCH_GLOBAL_DATA');
+export const fetchGlobalData =
+  createRequestActionCreator<AccessReviewActions.FetchGlobalData>('FETCH_GLOBAL_DATA');
 export const fetchClients =
   createRequestActionCreator<AccessReviewActions.FetchClients>('FETCH_CLIENTS');
 export const fetchSessionCheck =

@@ -7,10 +7,9 @@ import * as AccessReviewActions from './actions';
  */
 const createJsonRequestor = createJsonRequestorCreator<RequestAccessReviewAction, ResponseAccessReviewAction>();
 
-// TODO: Decide whether this is needed
-// export const fetchGlobalData =
-//   createJsonRequestor<AccessReviewActions.FetchGlobalData, AccessReviewActions.FetchGlobalDataSucceeded>
-//     ('GET', '/ClientAccessReview/PageGlobalData');
+export const fetchGlobalData =
+  createJsonRequestor<AccessReviewActions.FetchGlobalData, AccessReviewActions.FetchGlobalDataSucceeded>
+    ('GET', '/ClientAccessReview/FetchGlobalData');
 
 export const fetchClients =
   createJsonRequestor<AccessReviewActions.FetchClients, AccessReviewActions.FetchClientsSucceeded>

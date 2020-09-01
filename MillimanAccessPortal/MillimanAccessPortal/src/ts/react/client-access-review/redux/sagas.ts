@@ -29,8 +29,7 @@ const takeEveryToast = createTakeEveryToast<AccessReviewAction, ResponseAccessRe
  */
 export default function* rootSaga() {
   // API requests
-  // TODO: Decide whether this is needed
-  // yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
+  yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
 
   // Scheduled actions
@@ -41,7 +40,7 @@ export default function* rootSaga() {
 
   // Toasts
   yield takeEveryToast<ErrorAccessReviewAction>([
-    // 'FETCH_GLOBAL_DATA_FAILED',
+    'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'

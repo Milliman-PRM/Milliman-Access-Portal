@@ -9,6 +9,11 @@ import { Dict, FilterState, ModalState } from '../../shared-components/redux/sto
 import { clientAccessReview } from './reducers';
 import sagas from './sagas';
 
+export interface AccessReviewGlobalData {
+  clientReviewEarlyWarningDays: number;
+  clientReviewGracePeriodDays: number;
+}
+
 /**
  * Flags indicating whether the page is waiting on new data for an entity type.
  */
@@ -20,6 +25,7 @@ export interface PendingDataState {
  * Entity data returned from the server.
  */
 export interface AccessReviewStateData {
+  globalData: AccessReviewGlobalData;
   clients: Dict<ClientWithStats>;
 }
 

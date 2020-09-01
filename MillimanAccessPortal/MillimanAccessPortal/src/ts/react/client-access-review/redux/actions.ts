@@ -6,6 +6,7 @@ import {
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
+import { AccessReviewGlobalData } from './store';
 
 // ~~ Page actions ~~
 
@@ -28,25 +29,22 @@ export interface SetFilterTextClient {
 
 // ~~ Server actions ~~
 
-// TODO: Decide whether this is needed
-// /**
-//  * GET:
-//  *   Information on Content Types and Associated Content Types.
-//  */
-// export interface FetchGlobalData {
-//   type: 'FETCH_GLOBAL_DATA';
-//   request: {};
-// }
-// export interface FetchGlobalDataSucceeded {
-//   type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
-//   response: {
-//     contentTypes: Dict<ContentType>;
-//   };
-// }
-// export interface FetchGlobalDataFailed {
-//   type: 'FETCH_GLOBAL_DATA_FAILED';
-//   error: TSError;
-// }
+/**
+ * GET:
+ *   Information on Content Types and Associated Content Types.
+ */
+export interface FetchGlobalData {
+  type: 'FETCH_GLOBAL_DATA';
+  request: {};
+}
+export interface FetchGlobalDataSucceeded {
+  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
+  response: AccessReviewGlobalData;
+}
+export interface FetchGlobalDataFailed {
+  type: 'FETCH_GLOBAL_DATA_FAILED';
+  error: TSError;
+}
 
 /**
  * GET:
@@ -117,7 +115,7 @@ export type ScheduleAccessReviewAction =
  * An action that makes an Ajax request.
  */
 export type RequestAccessReviewAction =
-  // | FetchGlobalData
+  | FetchGlobalData
   | FetchClients
   | FetchSessionCheck
   ;
@@ -126,7 +124,7 @@ export type RequestAccessReviewAction =
  * An action that marks the succesful response of an Ajax request.
  */
 export type ResponseAccessReviewAction =
-  // | FetchGlobalDataSucceeded
+  | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchSessionCheckSucceeded
   ;
@@ -135,7 +133,7 @@ export type ResponseAccessReviewAction =
  * An action that marks the errored response of an Ajax request.
  */
 export type ErrorAccessReviewAction =
-  // | FetchGlobalDataFailed
+  | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchSessionCheckFailed
   ;

@@ -40,8 +40,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
-    // TODO: Decide whether this is needed for anything
-    // this.props.fetchGlobalData({});
+    this.props.fetchGlobalData({});
     this.props.fetchClients({});
     this.props.scheduleSessionCheck({ delay: 0 });
     // TODO: Implement Unload Alert properly
