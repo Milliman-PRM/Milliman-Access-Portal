@@ -412,6 +412,7 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", PhoneNumber = "3171234567" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", PhoneNumber = "1234567890" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", PhoneNumber = "1234567890" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "AdminOfChildClient", Email = "AdminOfChildClient@example.com", Employer = "example", FirstName = "FN7", LastName = "LN7", PhoneNumber = "1234567890" });
             DbContext.ApplicationUser.Load();
             #endregion
 
@@ -467,6 +468,8 @@ namespace MapTests
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(6) },
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.UserCreator).Id, UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(13), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(14), ClientId=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
                     });
             #endregion
 

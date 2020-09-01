@@ -99,5 +99,97 @@ namespace MapTests
             }
         }
 
+        /// <summary>
+        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// </summary>
+        [Fact]
+        public async Task Clients_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "test1");
+                #endregion
+
+                #region Act
+                var view = await controller.Clients();
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// </summary>
+        [Fact]
+        public async Task Clients_Valid()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "AdminOfChildClient");
+                #endregion
+
+                #region Act
+                var view = await controller.Clients();
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<JsonResult>(view);
+                var model = Assert.IsType<ClientReviewClientsModel>(result.Value);
+                Assert.Equal(2, model.Clients.Count);
+                Assert.Single(model.ParentClients);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// </summary>
+        [Fact]
+        public async Task Index_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "test1");
+                #endregion
+
+                #region Act
+                var view = await controller.Index();
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// </summary>
+        [Fact]
+        public async Task Index_Valid()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "AdminOfChildClient");
+                #endregion
+
+                #region Act
+                var view = await controller.Index();
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<ViewResult>(view);
+                Assert.Null(result.ViewName);
+                #endregion
+            }
+        }
+
     }
 }
