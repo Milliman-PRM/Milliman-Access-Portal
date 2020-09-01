@@ -32,8 +32,8 @@
 
         .card-body-container {
             background-color: $light-grey;
-            color: $dark-grey;
-            border: 2px solid $dark-grey;
+            color: $grey;
+            border: 2px solid $grey;
 
             &[selected] {
                 border: 2px solid $blue;
