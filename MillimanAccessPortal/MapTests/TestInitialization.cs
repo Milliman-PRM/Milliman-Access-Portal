@@ -82,6 +82,7 @@ namespace MapTests
         public IAuthenticationSchemeProvider AuthenticationSchemeProvider { get; private set; } = default;
         public StandardQueries StandardQueries { get; set; } = default;
         public ContentAccessAdminQueries ContentAccessAdminQueries { get; set; } = default;
+        public ClientAccessReviewQueries ClientAccessReviewQueries { get; set; } = default;
         public ContentPublishingAdminQueries ContentPublishingAdminQueries { get; set; } = default;
         public FileDropQueries FileDropQueries { get; set; } = default;
         public ClientQueries ClientQueries { get; set; } = default;
@@ -225,6 +226,7 @@ namespace MapTests
             //services.AddScoped<ApplicationDbContext, MockableMapDbContext>();
             services.AddScoped<StandardQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
             services.AddScoped<FileDropQueries>();
             services.AddScoped<FileSystemTasks>();
@@ -270,6 +272,7 @@ namespace MapTests
             AuthenticationSchemeProvider = ScopedServiceProvider.GetService<IAuthenticationSchemeProvider>();
             StandardQueries = ScopedServiceProvider.GetService<StandardQueries>();
             ContentAccessAdminQueries = ScopedServiceProvider.GetService<ContentAccessAdminQueries>();
+            ClientAccessReviewQueries = ScopedServiceProvider.GetService<ClientAccessReviewQueries>();
             ContentPublishingAdminQueries = ScopedServiceProvider.GetService<ContentPublishingAdminQueries>();
             FileDropQueries = ScopedServiceProvider.GetService<FileDropQueries>();
             FileSystemTasks = ScopedServiceProvider.GetService<FileSystemTasks>();
@@ -410,15 +413,6 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", PhoneNumber = "1234567890" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", PhoneNumber = "1234567890" });
             DbContext.ApplicationUser.Load();
-            #endregion
-
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
-                });
-            */
             #endregion
 
             #region Initialize ProfitCenters
