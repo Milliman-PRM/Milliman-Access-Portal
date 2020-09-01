@@ -32,6 +32,7 @@ using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
+using MillimanAccessPortal.Models.ClientAccessReview;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -79,6 +80,31 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             return View();
+        }
+
+        /// <summary
+        /// GET the configured time period values for review warnings
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> FetchGlobalData()
+        {
+            #region Authorization
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var GlobalData = new ClientReviewGlobalDataModel
+            {
+                ClientReviewEarlyWarningDays = _applicationConfig.GetValue("ClientReviewEarlyWarningDays", 14),
+                ClientReviewGracePeriodDays = _applicationConfig.GetValue("ClientReviewGracePeriodDays", 14),
+            };
+
+            return Json(GlobalData);
         }
 
         /// <summary>

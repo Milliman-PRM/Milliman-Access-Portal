@@ -24,4 +24,11 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         /// </summary>
         public Dictionary<Guid, ClientReviewModel> ParentClients { get; set; }
     }
+
+    public class ClientReviewGlobalDataModel
+    {
+        public int ClientReviewEarlyWarningDays { get; set; }
+
+        public int ClientReviewGracePeriodDays { get; set; }
+    }
 }
