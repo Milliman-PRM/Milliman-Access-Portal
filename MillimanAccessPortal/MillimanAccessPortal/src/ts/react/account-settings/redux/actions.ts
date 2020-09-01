@@ -1,7 +1,7 @@
 import { ValidationError } from 'yup';
 
 import { UserFull } from '../../models';
-import { PasswordInputState, UserInputState } from './api';
+import { UserInputState } from './api';
 
 export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
 
@@ -11,14 +11,8 @@ type UserInputName =
   | 'phone'
   | 'employer'
   ;
-type PasswordInputName =
-  | 'current'
-  | 'new'
-  | 'confirm'
-  ;
 type InputName =
   | UserInputName
-  | PasswordInputName
   ;
 
 /**
@@ -86,7 +80,6 @@ export interface UpdateAccount {
   type: 'UPDATE_ACCOUNT';
   request: {
     user?: UserInputState,
-    password?: PasswordInputState,
   };
 }
 export interface UpdateAccountSucceeded {
@@ -127,25 +120,6 @@ export interface ValidateInputUserSucceeded {
 }
 export interface ValidateInputUserFailed {
   type: 'VALIDATE_INPUT_USER_FAILED';
-  result: ValidationError;
-  inputName?: UserInputName;
-}
-
-/**
- * Validate the password section
- */
-export interface ValidateInputPassword {
-  type: 'VALIDATE_INPUT_PASSWORD';
-  value: PasswordInputState;
-  inputName?: PasswordInputName;
-}
-export interface ValidateInputPasswordSucceeded {
-  type: 'VALIDATE_INPUT_PASSWORD_SUCCEEDED';
-  result: any;
-  inputName?: UserInputName;
-}
-export interface ValidateInputPasswordFailed {
-  type: 'VALIDATE_INPUT_PASSWORD_FAILED';
   result: ValidationError;
   inputName?: UserInputName;
 }
@@ -200,7 +174,6 @@ export type ErrorAccountAction =
  */
 export type ValidationAccountAction =
   | ValidateInputUser
-  | ValidateInputPassword
   ;
 
 /**
@@ -209,8 +182,6 @@ export type ValidationAccountAction =
 export type ValidationResultAccountAction =
   | ValidateInputUserSucceeded
   | ValidateInputUserFailed
-  | ValidateInputPasswordSucceeded
-  | ValidateInputPasswordFailed
   ;
 
 /**

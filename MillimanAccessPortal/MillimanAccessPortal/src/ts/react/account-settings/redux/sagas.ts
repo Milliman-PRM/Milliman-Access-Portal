@@ -66,5 +66,4 @@ export default function* rootSaga() {
 
   // Validation
   yield takeLatestValidation('VALIDATE_INPUT_USER', api.validateUserInput);
-  yield takeLatestValidation('VALIDATE_INPUT_PASSWORD', api.validatePasswordInput);
 }

@@ -1520,46 +1520,6 @@ namespace MillimanAccessPortal.Controllers
                     user.PhoneNumber = model.User.Phone;
                     user.Employer = model.User.Employer;
                 }
-                if (model.Password != null)
-                {
-                    bool currentPasswordIsCorrect = await _userManager.CheckPasswordAsync(user, model.Password.Current);
-                    if (!currentPasswordIsCorrect)
-                    {
-                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} Current Password incorrect");
-                        Response.Headers.Add("warning", "The Current Password provided was incorrect");
-                        return BadRequest();
-                    }
-
-                    if (model.Password.New != model.Password.Confirm)
-                    {
-                        Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} New Password != Confirm Password");
-                        Response.Headers.Add("warning", "New Password and Confirm Password must match");
-                        return BadRequest();
-                    }
-
-                    IdentityResult result = await _userManager
-                        .ChangePasswordAsync(user, model.Password.Current, model.Password.New);
-
-                    if (!result.Succeeded)
-                    {
-                        Log.Warning("Failed to change password " +
-                                   $"for user {user.UserName}, aborting");
-                        return BadRequest();
-                    }
-
-                    // Save password hash in history
-                    user.PasswordHistoryObj = user.PasswordHistoryObj
-                        .Append(new PreviousPassword(model.Password.New)).ToList();
-                    user.LastPasswordChangeDateTimeUtc = DateTime.UtcNow;
-                    var addHistoryResult = await _userManager.UpdateAsync(user);
-
-                    if (!addHistoryResult.Succeeded)
-                    {
-                        Log.Warning("Failed to save password history or update password timestamp " +
-                                   $"for user {user.UserName}, aborting");
-                        return BadRequest();
-                    }
-                }
 
                 await DbContext.SaveChangesAsync();
                 txn.Commit();

@@ -29,27 +29,19 @@ const _initialValidation: AccountStateForm = {
   lastName: { valid: true },
   phone: { valid: true },
   employer: { valid: true },
-  current: { valid: true },
-  new: { valid: true },
-  confirm: { valid: true },
 };
 const _initialPendingInputs: PendingInputState = {
   firstName: null,
   lastName: null,
   phone: null,
   employer: null,
-  current: null,
-  new: null,
-  confirm: null,
 };
 const _initialPendingRequests: PendingRequestState = {
   fetchUser: true,
   update: false,
-  validatePassword: false,
 };
 const _initialPendingValidation: PendingValidationState = {
   user: false,
-  password: false,
 };
 
 /**

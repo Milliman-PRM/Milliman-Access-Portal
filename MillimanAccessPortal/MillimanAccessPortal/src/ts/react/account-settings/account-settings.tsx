@@ -9,7 +9,7 @@ import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import { UpdateAccount } from './redux/actions';
 import {
-    allPasswordInputsModified, allPasswordInputsValid, allUserInputsValid, anyPasswordInputModified,
+    allPasswordInputsValid, allUserInputsValid,
     anyUserInputModified, inputProps, updateProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
@@ -21,22 +21,15 @@ interface AccountSettingsProps {
     lastName: string;
     phone: string;
     employer: string;
-    currentPassword: string;
-    newPassword: string;
-    confirmPassword: string;
   };
   valid: {
     firstName: ValidationState;
     lastName: ValidationState;
     phone: ValidationState;
     employer: ValidationState;
-    currentPassword: ValidationState;
-    newPassword: ValidationState;
-    confirmPassword: ValidationState;
   };
   updateData: UpdateAccount['request'];
   isLocal: boolean;
-  anyPasswordInputModified: boolean;
   discardButtonEnabled: boolean;
   submitButtonEnabled: boolean;
 }
@@ -64,10 +57,10 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
 
   private renderAccountSettingsForm() {
     return (
-      <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
+      <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-7-12">
         <form autoComplete="off" className="admin-panel-content">
           {this.renderInformationSection()}
-          {this.renderPasswordResetButton()}
+          {this.renderSubmissionSection()}
         </form>
       </div>
     );
@@ -181,6 +174,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     );
   }
 
+  /*
   private renderPasswordSection() {
     const { isLocal } = this.props;
     const { currentPassword, newPassword, confirmPassword } = this.props.inputs;
@@ -277,6 +271,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     )
     : null;
   }
+  */
 
   private renderSubmissionSection() {
     const { submitButtonEnabled } = this.props;
@@ -287,8 +282,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           <button
             type="submit"
             className="button-submit blue-button"
-            disabled={(submitButtonEnabled &&
-              (this.props.inputs.newPassword === this.props.inputs.confirmPassword)) ? false : true}
+            disabled={!submitButtonEnabled}
             onClick={(event: React.FormEvent) => {
               event.preventDefault();
               if (submitButtonEnabled) {
@@ -298,6 +292,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           >
             Update Account
           </button>
+          {this.renderPasswordResetButton()}
         </div>
       </div>
     );
@@ -307,27 +302,22 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
     const { isLocal } = this.props;
     return isLocal ?
       (
-        <div className="form-submission-section">
-          <div className="button-container button-container-update">
-            <button
-              className="button-submit blue-button"
-              onClick={(event: React.FormEvent) => {
-                event.preventDefault();
-                this.props.requestPasswordReset({});
-              }}
-            >
-              Send Password Reset Email
-            </button>
-          </div>
-        </div>
+        <button
+          className="button-submit blue-button"
+          onClick={(event: React.FormEvent) => {
+            event.preventDefault();
+            this.props.requestPasswordReset({});
+          }}
+        >
+          Send Password Reset Email
+        </button>
       )
       : null;
   }
 
   private renderResetButton() {
     const { discardButtonEnabled } = this.props;
-    return discardButtonEnabled
-    ? (
+    return discardButtonEnabled ? (
       <button
         type="button"
         className="button-reset link-button"
@@ -335,8 +325,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
       >
         Discard Changes
       </button>
-    )
-    : null;
+    ) : null;
   }
 }
 
@@ -345,13 +334,9 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
     inputs: inputProps(state),
     valid: validProps(state),
     updateData: updateProps(state),
-    anyPasswordInputModified: anyPasswordInputModified(state),
-    discardButtonEnabled: anyUserInputModified(state) || anyPasswordInputModified(state),
-    submitButtonEnabled: (anyUserInputModified(state) || anyPasswordInputModified(state))
-      && (anyUserInputModified(state) ? allUserInputsValid(state) : true)
-      && (anyPasswordInputModified(state)
-        ? allPasswordInputsModified(state) && allPasswordInputsValid(state)
-        : true),
+    discardButtonEnabled: anyUserInputModified(state),
+    submitButtonEnabled: (anyUserInputModified(state) &&
+      (anyUserInputModified(state) ? allUserInputsValid(state) : true)),
     isLocal: state.data.user.isLocal,
   };
 }

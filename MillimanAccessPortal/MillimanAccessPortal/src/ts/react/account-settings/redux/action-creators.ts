@@ -21,5 +21,3 @@ export const requestPasswordReset =
 
 export const validateInputUser =
   createActionCreator<AccountActions.ValidateInputUser>('VALIDATE_INPUT_USER');
-export const validateInputPassword =
-  createActionCreator<AccountActions.ValidateInputPassword>('VALIDATE_INPUT_PASSWORD');
