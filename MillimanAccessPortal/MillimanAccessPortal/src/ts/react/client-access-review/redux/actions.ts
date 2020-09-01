@@ -1,6 +1,7 @@
 import {
-    ClientWithEligibleUsers, ClientWithStats, User,
+    ClientWithEligibleUsers, ClientWithStats,
 } from '../../models';
+import { Guid } from '../../shared-components/interfaces';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
 import { AccessReviewGlobalData } from './store';
