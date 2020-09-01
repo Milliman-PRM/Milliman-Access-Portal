@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Npgsql;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -53,24 +54,33 @@ namespace MapTests
                 throw new ApplicationException("Database configuration is incomplete or not found");
             }
 
-            Npgsql.NpgsqlConnectionStringBuilder cxnStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder
+            NpgsqlConnectionStringBuilder cxnStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder
             {
                 Database = Guid.NewGuid().ToString(),
                 Port = int.Parse(DbConfig["DbPort"]),
                 Host = DbConfig["DbHost"],
                 Username = DbConfig["DbUser"],
                 Password = DbConfig["DbPass"],
-                SslMode = Npgsql.SslMode.Prefer,
+                SslMode = SslMode.Prefer,
             };
 
             ConnectionString = cxnStringBuilder.ConnectionString;
             #endregion
 
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            builder.UseNpgsql(ConnectionString, o => o.SetPostgresVersion(9, 6));
+            builder.UseNpgsql(ConnectionString, o => 
+            { 
+                o.SetPostgresVersion(9, 6); 
+                o.MigrationsAssembly("MillimanAccessPortal"); 
+            });
             using (ApplicationDbContext db = new ApplicationDbContext(builder.Options))
             {
-                db.Database.EnsureCreated();
+                db.Database.Migrate();
+                using (var connection = (NpgsqlConnection)db.Database.GetDbConnection())
+                {
+                    connection.Open();
+                    connection.ReloadTypes();
+                }
             }
         }
 
