@@ -633,7 +633,6 @@ namespace MapTests
                         LastName = NewLastName,
                         Phone = NewPhone,
                     },
-                    Password = null,
                 };
                 #endregion
 
@@ -648,79 +647,6 @@ namespace MapTests
                 Assert.Equal(NewFirstName, UserRecord.FirstName);
                 Assert.Equal(NewLastName, UserRecord.LastName);
                 Assert.Equal(NewPhone, UserRecord.PhoneNumber);
-                #endregion
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountPOSTWorksForPasswordChange()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
-            {
-                #region Arrange
-                AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword,
-                        Current = CurrentPassword,
-                    }
-                };
-                #endregion
-
-                #region Act
-                var view = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
-                #endregion
-
-                #region Assert
-                Assert.IsType<JsonResult>(view);
-                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, NewPassword));
-                #endregion
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountPOSTFailsForWrongCurrentPassword()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
-            {
-                #region Arrange
-                AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword,
-                        Current = CurrentPassword + "X",
-                    }
-                };
-                #endregion
-
-                #region Act
-                var view = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
-                #endregion
-
-                #region Assert
-                Assert.IsType<BadRequestResult>(view);
                 #endregion
             }
         }
@@ -789,43 +715,6 @@ namespace MapTests
                     default:
                         throw new NotImplementedException($"Unsupported return type <{expectedType.Name}> expected. This unit test needs work.");
                 }
-                #endregion
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountPOSTFailsForWrongMismatchedPassword()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
-            {
-                #region Arrange
-                AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword + "X",
-                        Current = CurrentPassword,
-                    }
-                };
-                #endregion
-
-                #region Act
-                var result = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
-                #endregion
-
-                #region Assert
-                Assert.IsType<BadRequestResult>(result);
-                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, CurrentPassword));
                 #endregion
             }
         }
