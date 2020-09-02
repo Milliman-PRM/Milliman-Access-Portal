@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { AccountState, AccountStateForm, PendingInputState } from './store';
+import { AccountState, PendingInputState } from './store';
 
 /**
  * Select input values pending submission.

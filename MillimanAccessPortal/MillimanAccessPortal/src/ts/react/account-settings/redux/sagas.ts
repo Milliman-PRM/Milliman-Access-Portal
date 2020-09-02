@@ -6,7 +6,7 @@ import {
 } from '../../shared-components/redux/sagas';
 import * as AccountActionCreators from './action-creators';
 import {
-  AccountAction, ErrorAccountAction, RequestAccountAction, RequestPasswordResetFailed, RequestPasswordResetSucceeded,
+  AccountAction, ErrorAccountAction, RequestAccountAction, RequestPasswordResetSucceeded,
   ResponseAccountAction, ValidationAccountAction, ValidationResultAccountAction,
 } from './actions';
 import * as api from './api';
