@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { ClientWithEligibleUsers, ClientWithStats } from '../../models';
+import { ClientWithReviewDate } from '../../models';
 import { AccessReviewState } from './store';
 
 // Utility functions
@@ -11,11 +11,11 @@ import { AccessReviewState } from './store';
  */
 export function clientsTree(state: AccessReviewState) {
   const clients = _.toArray(state.data.clients);
-  const parentGroups: { [id: string]: ClientWithStats[] } = clients.reduce((groups, cur) =>
+  const parentGroups: { [id: string]: ClientWithReviewDate[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
-    {} as { [id: string]: ClientWithStats[] });
+    {} as { [id: string]: ClientWithReviewDate[] });
   const iteratees = ['name', 'code'];
   const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
     parent: c,
@@ -29,7 +29,7 @@ export function clientsTree(state: AccessReviewState) {
  */
 export function filteredClients(state: AccessReviewState) {
   const filterTextLower = state.filters.client.text.toLowerCase();
-  const filterFunc = (client: ClientWithStats) => (
+  const filterFunc = (client: ClientWithReviewDate) => (
     filterTextLower === ''
     || (client.name && client.name.toLowerCase().indexOf(filterTextLower) !== -1)
     || (client.code && client.code.toLowerCase().indexOf(filterTextLower) !== -1)
@@ -49,7 +49,7 @@ export function activeClients(state: AccessReviewState) {
   return filteredClients(state);
 }
 
-interface ClientWithIndent extends ClientWithStats {
+interface ClientWithIndent extends ClientWithReviewDate {
   indent: 1 | 2;
 }
 
@@ -80,7 +80,7 @@ export function clientEntities(state: AccessReviewState) {
  */
 export function selectedClient(state: AccessReviewState) {
   return state.selected.client
-    ? state.data.clients[state.selected.client] as ClientWithEligibleUsers
+    ? state.data.clients[state.selected.client] as ClientWithReviewDate
     : null;
 }
 
