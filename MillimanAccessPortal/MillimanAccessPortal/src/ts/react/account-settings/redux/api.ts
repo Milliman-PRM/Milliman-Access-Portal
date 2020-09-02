@@ -1,7 +1,5 @@
 import * as yup from 'yup';
 
-import { postJsonData } from '../../../shared';
-import { PasswordValidation } from '../../models';
 import { createJsonRequestorCreator } from '../../shared-components/redux/api';
 import { RequestAccountAction, ResponseAccountAction } from './actions';
 import * as AccountActions from './actions';
