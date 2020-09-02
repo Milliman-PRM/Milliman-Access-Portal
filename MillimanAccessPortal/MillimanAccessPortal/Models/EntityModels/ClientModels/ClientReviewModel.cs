@@ -17,9 +17,9 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
     {
         public DateTime ReviewDueDateTimeUtc { get; set; }
 
-        public ClientReviewModel(Client c) : base(c)
+        public ClientReviewModel(Client c, int reviewPeriodDays) : base(c)
         {
-            ReviewDueDateTimeUtc = c.ReviewDueDateTimeUtc;
+            ReviewDueDateTimeUtc = c.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays);
         }
     }
 }

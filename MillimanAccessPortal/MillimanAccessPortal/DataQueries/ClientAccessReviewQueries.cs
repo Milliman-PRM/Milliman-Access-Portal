@@ -11,6 +11,7 @@ using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ClientAccessReview;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -20,17 +21,20 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ClientQueries _clientQueries;
         private readonly ContentItemQueries _contentItemQueries;
         private readonly UserQueries _userQueries;
+        private readonly IConfiguration _appConfig;
 
         public ClientAccessReviewQueries(
             ClientQueries clientQueriesArg,
             ContentItemQueries contentItemQueriesArg,
             UserQueries userQueriesArg,
-            ApplicationDbContext dbContextArg)
+            ApplicationDbContext dbContextArg,
+            IConfiguration appConfigArg)
         {
             _clientQueries = clientQueriesArg;
             _contentItemQueries = contentItemQueriesArg;
             _userQueries = userQueriesArg;
             _dbContext = dbContextArg;
+            _appConfig = appConfigArg;
         }
 
         public async Task<ClientReviewClientsModel> GetClientModelAsync(ApplicationUser user)
@@ -41,7 +45,7 @@ namespace MillimanAccessPortal.DataQueries
                                            .OrderBy(r => r.Client.Name)
                                            .Select(c => c.Client)
                                            .ToListAsync())
-                                           .ConvertAll(c => new ClientReviewModel(c));
+                                           .ConvertAll(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")));
             var clientIds = clients.Select(c => c.Id).ToList();
             var parentIds = clients.Where(c => c.ParentId.HasValue)
                                    .Select(c => c.ParentId.Value)
@@ -50,7 +54,7 @@ namespace MillimanAccessPortal.DataQueries
             var parents = await _dbContext.Client
                                           .Where(c => parentIds.Contains(c.Id))
                                           .OrderBy(c => c.Name)
-                                          .Select(c => new ClientReviewModel(c))
+                                          .Select(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
                                           .ToListAsync();
 
             return new ClientReviewClientsModel

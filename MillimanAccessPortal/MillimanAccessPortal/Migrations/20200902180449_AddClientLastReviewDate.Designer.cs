@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200831161700_AddClientReviewDueDate")]
-    partial class AddClientReviewDueDate
+    [Migration("20200902180449_AddClientLastReviewDate")]
+    partial class AddClientLastReviewDate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -105,6 +105,11 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(3);
 
+                    b.Property<DateTime>("LastReviewDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -117,11 +122,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("ProfitCenterId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ReviewDueDateTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("default_client_review_due()");
 
                     b.HasKey("Id");
 

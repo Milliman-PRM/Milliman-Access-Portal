@@ -1227,10 +1227,12 @@ namespace MillimanAccessPortal.Controllers
                                                          .Select(urc => urc.ClientId)
                                                          .Distinct()
                                                          .ToListAsync());
-                DateTime countableDueTime = DateTime.UtcNow + TimeSpan.FromDays(_configuration.GetValue("ClientReviewEarlyWarningDays", 14));
+                DateTime countableLastReviewTime = DateTime.UtcNow 
+                                                    - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays")) 
+                                                    + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
                                                     .Where(c => myClientIds.Contains(c.Id))
-                                                    .Where(c => c.ReviewDueDateTimeUtc < countableDueTime)
+                                                    .Where(c => c.LastReviewDateTimeUtc < countableLastReviewTime)
                                                     .CountAsync());
 
                 NavBarElements.Add(new NavBarElementModel

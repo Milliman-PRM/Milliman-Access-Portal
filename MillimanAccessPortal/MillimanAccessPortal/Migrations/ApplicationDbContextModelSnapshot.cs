@@ -103,6 +103,11 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(3);
 
+                    b.Property<DateTime>("LastReviewDateTimeUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValueSql("now() at time zone 'utc'");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
@@ -115,11 +120,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<Guid>("ProfitCenterId")
                         .HasColumnType("uuid");
-
-                    b.Property<DateTime>("ReviewDueDateTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("default_client_review_due()");
 
                     b.HasKey("Id");
 

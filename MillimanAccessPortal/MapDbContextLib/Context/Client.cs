@@ -75,7 +75,7 @@ namespace MapDbContextLib.Context
         public Client ParentClient { get; set; }
 
         [Required]
-        public DateTime ReviewDueDateTimeUtc { get; set; }
+        public DateTime LastReviewDateTimeUtc { get; set; }
 
         [Required]
         [ForeignKey("ProfitCenter")]
