@@ -4,16 +4,13 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import { setUnloadAlert } from '../../unload-alerts';
-import { Client, ClientWithStats } from '../models';
+import { Client, ClientWithReviewDate } from '../models';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
-import {
-    CardSectionMain, CardSectionStats, CardText,
-} from '../shared-components/card/card-sections';
-import { CardStat } from '../shared-components/card/card-stat';
+import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
@@ -23,7 +20,7 @@ import {
     AccessReviewStatePending, AccessReviewStateSelected,
 } from './redux/store';
 
-type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
+type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
 
 interface ClientAccessReviewProps {
   clients: ClientEntity[];
