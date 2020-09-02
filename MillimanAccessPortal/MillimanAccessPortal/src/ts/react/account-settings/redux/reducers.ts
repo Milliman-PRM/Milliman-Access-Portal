@@ -102,18 +102,6 @@ const pendingValidation = createReducer<PendingValidationState>(_initialPendingV
     ...state,
     user: false,
   }),
-  VALIDATE_INPUT_PASSWORD: (state) => ({
-    ...state,
-    password: true,
-  }),
-  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state) => ({
-    ...state,
-    password: false,
-  }),
-  VALIDATE_INPUT_PASSWORD_FAILED: (state) => ({
-    ...state,
-    password: false,
-  }),
 }));
 const pending = combineReducers({
   inputs: pendingInputs,
@@ -144,32 +132,6 @@ const form = createReducer<AccountStateForm>(_initialValidation, ({
       },
     },
   VALIDATE_INPUT_USER_FAILED: (state, action: AccountActions.ValidateInputUserFailed) => ({
-    ...state,
-    [action.result.path]: {
-      valid: false,
-      message: action.result.message,
-    },
-  }),
-  VALIDATE_INPUT_PASSWORD_SUCCEEDED: (state, { inputName }: AccountActions.ValidateInputPasswordSucceeded) => inputName
-    ? {
-      ...state,
-      [inputName]: {
-        valid: true,
-      },
-    }
-    : {
-      ...state,
-      current: {
-        valid: true,
-      },
-      new: {
-        valid: true,
-      },
-      confirm: {
-        valid: true,
-      },
-    },
-  VALIDATE_INPUT_PASSWORD_FAILED: (state, action: AccountActions.ValidateInputPasswordFailed) => ({
     ...state,
     [action.result.path]: {
       valid: false,
