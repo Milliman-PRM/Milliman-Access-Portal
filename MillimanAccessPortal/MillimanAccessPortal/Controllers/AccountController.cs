@@ -1290,30 +1290,42 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> LoginStepTwo(string username = null, string returnUrl = null)
         {
-#warning TODO Pass the user's auth scheme through the subsequent redirects so it can be logged in the VerifyCode POST action
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
 
+            string provider = TokenOptions.DefaultEmailProvider;
+
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+
+            #region validation
             if (user == null)
             {
-                // TODO more
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}, request for unknown user, or two factor user identity cookie was not provided");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!(await _userManager.GetValidTwoFactorProvidersAsync(user)).Contains(TokenOptions.DefaultEmailProvider))
+            if (!user.UserName.Equals(username, StringComparison.OrdinalIgnoreCase))
             {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}, the required two factor token provider ({TokenOptions.DefaultEmailProvider}) is not available for user {user.UserName}");
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}, provided user name does not match the account identity in the two factor cookie");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            var token = await _userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
+            if (!(await _userManager.GetValidTwoFactorProvidersAsync(user)).Contains(provider))
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}, the required two factor token provider ({provider}) is not available for user {user.UserName}");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, provider);
 
             // TODO temporary
-            Console.WriteLine($"Your 2 factor code is {token}");
-            System.Diagnostics.Debug.WriteLine($"Your 2 factor code is {token}");
+            //Console.WriteLine($"Your 2 factor code is {token}");
+            //System.Diagnostics.Debug.WriteLine($"Your 2 factor code is {token}");
 
             // TODO Convert this to html, looking like the prototype
-            var message = "Your security code is: " + token;
+            var message = $"Your two factor security code for login to Milliman Access Portal is: {token}{Environment.NewLine}{Environment.NewLine}" +
+                $"This code will be valid for 5 minutes from the time it was first requested";
+
             _messageSender.QueueEmail(user.Email, "Security Code", message);
 
             ViewData["ReturnUrl"] = returnUrl;
@@ -1347,6 +1359,7 @@ namespace MillimanAccessPortal.Controllers
             switch (result)
             {
                 case var r when r.Succeeded:
+                    // This gets logged during SignInCommon()
                     string scheme = await IsUserAccountLocal(user.UserName)
                         ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
                         : GetExternalAuthenticationScheme(user.UserName).Name;
@@ -1354,15 +1367,16 @@ namespace MillimanAccessPortal.Controllers
                     return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
                 case var r when r.IsLockedOut:
-                    Log.Debug($"User {user.UserName} account locked out while checking two factor code.");
+                    Log.Information($"User {user.UserName} account locked out while checking two factor code.");
                     Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "This account has been locked out, please try again later." }));
                     return Ok();
 
                 case var r when r.IsNotAllowed:
-                    Log.Debug("User account not allowed.");
+                    Log.Information("User account not allowed.");
                     return View("UserMessage", new UserMessageModel("Login failed, please try again later."));
 
                 default:
+                    Log.Information($"User {user.UserName} provided incorrect two-factor code.  Prompting again.");
                     Response.Headers.Add("Warning", $"The submitted code was incorrect, please try again.");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
