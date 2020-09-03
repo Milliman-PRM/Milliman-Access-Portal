@@ -103,11 +103,6 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(3);
 
-                    b.Property<DateTime>("LastReviewDateTimeUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("text");
