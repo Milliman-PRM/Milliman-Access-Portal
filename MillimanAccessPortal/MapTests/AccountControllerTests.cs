@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -102,6 +103,7 @@ namespace MapTests
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user2");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "EnableAccount" }, { "controller", "Account" } });
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user2");
                 string TestCode = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
                 string TestUserId = TestUtil.MakeTestGuid(2).ToString();
@@ -148,6 +150,7 @@ namespace MapTests
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "EnableAccount" }, { "controller", "Account" } });
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 string NewToken = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
                 string NewPass = "TestPassword1!";
@@ -715,6 +718,27 @@ namespace MapTests
                     default:
                         throw new NotImplementedException($"Unsupported return type <{expectedType.Name}> expected. This unit test needs work.");
                 }
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task LoginStepTwo_ErrorWithout2FACookie()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
+            {
+                #region Arrange
+                AccountController controller = GetController(TestResources, "user1");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "LoginStepTwo" }, { "controller", "Account" } });
+                #endregion
+
+                #region Act
+                var result = await controller.LoginStepTwo("test1", "%2F");
+                #endregion
+
+                #region Assert
+                var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+                Assert.Equal(StatusCodes.Status422UnprocessableEntity, statusCodeResult.StatusCode);
                 #endregion
             }
         }
