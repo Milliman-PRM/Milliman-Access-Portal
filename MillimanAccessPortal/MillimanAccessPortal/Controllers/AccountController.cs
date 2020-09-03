@@ -1318,10 +1318,6 @@ namespace MillimanAccessPortal.Controllers
 
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, provider);
 
-            // TODO temporary
-            //Console.WriteLine($"Your 2 factor code is {token}");
-            //System.Diagnostics.Debug.WriteLine($"Your 2 factor code is {token}");
-
             // TODO Convert this to html, looking like the prototype
             var message = $"Your two factor security code for login to Milliman Access Portal is: {token}{Environment.NewLine}{Environment.NewLine}" +
                 $"This code will be valid for 5 minutes from the time it was first requested";
