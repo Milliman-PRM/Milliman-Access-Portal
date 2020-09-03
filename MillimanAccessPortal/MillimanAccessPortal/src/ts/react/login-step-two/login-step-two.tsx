@@ -63,47 +63,47 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               <use xlinkHref={'#map-logo'} />
             </svg>
           </div>
-          <form onSubmit={this.handleSubmit} >
-            <h3>Enter your authentication code</h3>
-            <p>Check your email to view your authentication code.</p>
-            <label htmlFor="username">Username</label>
-            <Input
-              name="username"
-              label="Username"
-              type="text"
-              ref={this.usernameInput}
-              value={this.state.username}
-              onChange={() => false}
-              error={''}
-              readOnly={true}
-            />
-            <label htmlFor="code">Authentication Code</label>
-            <Input
-              name="code"
-              label="Authentication code"
-              type="text"
-              ref={this.codeInput}
-              value={this.state.data.code}
-              onChange={this.handleChange}
-              error={errors.code}
-            />
-            <div className="button-container">
-              <a href={'/Account/Login?ReturnUrl=' + this.state.data.returnUrl} className="link-button">
+          <form className="login-step-two-form" onSubmit={this.handleSubmit}>
+            <div className="form-contents">
+              <h3>Enter your authentication code</h3>
+              <p>Check your email to view your authentication code.</p>
+              <Input
+                name="username"
+                label="Username"
+                type="text"
+                ref={this.usernameInput}
+                value={this.state.username}
+                onChange={() => false}
+                error={''}
+                readOnly={true}
+              />
+              <Input
+                name="code"
+                label="Authentication code"
+                type="text"
+                ref={this.codeInput}
+                value={this.state.data.code}
+                onChange={this.handleChange}
+                error={errors.code}
+              />
+              <div className="button-container">
+                <a href={'/Account/Login?ReturnUrl=' + this.state.data.returnUrl} className="link-button">
+                  <button
+                    type="button"
+                    className="link-button"
+                    onClick={() => false}
+                  >
+                      Cancel
+                  </button>
+                </a>
                 <button
-                  type="button"
-                  className="white-button"
-                  onClick={() => false}
+                  type="submit"
+                  disabled={!formIsValid}
+                  className="blue-button"
                 >
-                    Cancel
+                  Log in
                 </button>
-              </a>
-              <button
-                type="submit"
-                disabled={!formIsValid}
-                className="blue-button"
-              >
-                Log in
-              </button>
+              </div>
             </div>
           </form>
         </div>
