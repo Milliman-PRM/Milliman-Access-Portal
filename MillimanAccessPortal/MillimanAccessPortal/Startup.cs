@@ -354,6 +354,7 @@ namespace MillimanAccessPortal
 
             services.AddScoped<FileDropQueries>();
             services.AddScoped<ClientQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentItemQueries>();
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();

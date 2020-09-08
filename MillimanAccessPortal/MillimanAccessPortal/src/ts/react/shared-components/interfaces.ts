@@ -23,6 +23,7 @@ export interface NavBarElement {
   url: string;
   view: string;
   icon: string;
+  badgeNumber?: number;
 }
 
 export interface ContentContainerProps {

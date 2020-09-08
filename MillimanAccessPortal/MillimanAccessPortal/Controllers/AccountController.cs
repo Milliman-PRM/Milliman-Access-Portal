@@ -1218,6 +1218,34 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
+            // Conditionally add the Client Access Review Element
+            if (ClientAdminResult1.Succeeded)
+            {
+                List<Guid> myClientIds = (await DbContext.UserRoleInClient
+                                                         .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                         .Select(urc => urc.ClientId)
+                                                         .Distinct()
+                                                         .ToListAsync());
+                DateTime countableLastReviewTime = DateTime.UtcNow 
+                                                    - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays")) 
+                                                    + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
+                int numClientsDue = (await DbContext.Client
+                                                    .Where(c => myClientIds.Contains(c.Id))
+                                                    .Where(c => c.LastReviewDateTimeUtc < countableLastReviewTime)
+                                                    .CountAsync());
+
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Review Client Access",
+                    URL = nameof(ClientAccessReviewController).Replace("Controller", ""),
+                    View = "ClientAccessReview",
+                    Icon = "client-access-review",
+                    BadgeNumber = numClientsDue,
+                });
+            }
+
             // Conditionally add the Content Publishing Element
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (ContentPublishResult.Succeeded)
