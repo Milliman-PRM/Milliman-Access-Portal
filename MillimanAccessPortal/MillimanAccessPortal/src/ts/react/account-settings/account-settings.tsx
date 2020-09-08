@@ -210,7 +210,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
             this.props.requestPasswordReset({});
           }}
         >
-          Reset Password
+          Update Password
         </button>
       )
       : null;
