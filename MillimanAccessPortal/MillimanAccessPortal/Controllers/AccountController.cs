@@ -1232,7 +1232,7 @@ namespace MillimanAccessPortal.Controllers
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
                                                     .Where(c => myClientIds.Contains(c.Id))
-                                                    .Where(c => c.LastReviewDateTimeUtc < countableLastReviewTime)
+                                                    .Where(c => c.LastAccessReview.LastReviewDateTimeUtc < countableLastReviewTime)
                                                     .CountAsync());
 
                 NavBarElements.Add(new NavBarElementModel

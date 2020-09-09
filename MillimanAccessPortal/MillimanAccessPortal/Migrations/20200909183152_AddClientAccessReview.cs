@@ -1,23 +1,24 @@
-﻿using System;
+﻿using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class AddClientLastReviewDate : Migration
+    public partial class AddClientAccessReview : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<DateTime>(
-                name: "LastReviewDateTimeUtc",
+            migrationBuilder.AddColumn<ClientAccessReview>(
+                name: "LastAccessReview",
                 table: "Client",
+                type: "jsonb",
                 nullable: false,
-                defaultValueSql: "now() at time zone 'utc'");
+                defaultValueSql: "jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "LastReviewDateTimeUtc",
+                name: "LastAccessReview",
                 table: "Client");
         }
     }

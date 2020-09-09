@@ -100,7 +100,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.Property(x => x.DomainListCountLimit).HasDefaultValue(GlobalFunctions.DefaultClientDomainListCountLimit);
-                b.Property(x => x.LastReviewDateTimeUtc).HasDefaultValueSql($"now() at time zone 'utc'");
+                b.Property(x => x.LastAccessReview).HasDefaultValueSql("jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
             });
             builder.Entity<UserRoleInClient>(b =>
             {
