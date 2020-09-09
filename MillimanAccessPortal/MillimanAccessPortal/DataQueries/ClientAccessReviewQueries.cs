@@ -9,9 +9,11 @@ using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ClientAccessReview;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -62,6 +64,42 @@ namespace MillimanAccessPortal.DataQueries
                 Clients = clients.ToDictionary(c => c.Id),
                 ParentClients = parents.ToDictionary(p => p.Id),
             };
+        }
+
+        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId)
+        {
+            Client client = await _dbContext.Client
+                                            .Include(c => c.ProfitCenter)
+                                            .Where(c => c.Id == clientId)
+                                            .Where(c => c.Id == clientId)
+                                            .Where(c => c.Id == clientId)
+                                            .SingleOrDefaultAsync();
+            List<ApplicationUser> clientAdmins = await _dbContext.UserRoleInClient
+                                                                 .Where(urc => urc.ClientId == clientId)
+                                                                 .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                                 .Select(urc => urc.User)
+                                                                 .ToListAsync();
+            List<ApplicationUser> profitCenterAdmins = await _dbContext.UserRoleInProfitCenter
+                                                                       .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
+                                                                       .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
+                                                                       .Select(urp => urp.User)
+                                                                       .ToListAsync();
+
+            var returnModel = new ClientSummaryModel
+            {
+                ClientName = client.Name,
+                ClientCode = client.ClientCode,
+                AssignedProfitCenter = client.ProfitCenter.Name,
+                LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
+                LastReviewedBy = client.LastAccessReview.UserName,
+                PrimaryContactName = client.ContactName,
+                PrimaryContactEmail = client.ContactEmail,
+                ReviewDueDate = client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
+            };
+            clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add(new ClientActorModel { UserName = ca.UserName, UserEmail = ca.Email }));
+            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add(new ClientActorModel { UserName = pca.UserName, UserEmail = pca.Email }));
+
+            return returnModel;
         }
     }
 }

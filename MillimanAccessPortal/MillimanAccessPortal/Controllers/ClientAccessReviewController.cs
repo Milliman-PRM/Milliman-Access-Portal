@@ -93,7 +93,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                Response.Headers.Add("Warning", "You are not authorized to the Client Access Review page.");
                 return Unauthorized();
             }
             #endregion
@@ -118,13 +118,35 @@ namespace MillimanAccessPortal.Controllers
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to administer content access.");
+                Response.Headers.Add("Warning", "You are not authorized to the Client Access Review page.");
                 return Unauthorized();
             }
             #endregion
 
             var currentUser = await _userManager.GetUserAsync(User);
             var model = await _clientAccessReviewQueries.GetClientModelAsync(currentUser);
+
+            return Json(model);
+        }
+
+        /// <summary>
+        /// GET client 
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> ClientSummary(Guid ClientId)
+        {
+            #region Authorization
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to the Client Access Review page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            var model = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
 
             return Json(model);
         }
