@@ -15,6 +15,18 @@ const _initialData: AccessReviewStateData = {
     clientReviewGracePeriodDays: null,
   },
   clients: {},
+  selectedClientSummary: {
+    clientName: '',
+    clientCode: '',
+    reviewDueDate: '',
+    lastReviewDate: '',
+    lastReviewedBy: '',
+    primaryContactName: '',
+    primaryContactEmail: '',
+    assignedProfitCenter: '',
+    clientAdmins: [],
+    profitCenterAdmins: [],
+  },
 };
 
 const _initialPendingData: PendingDataState = {
@@ -95,6 +107,10 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
       ...action.response.clients,
       ...action.response.parentClients,
     },
+  }),
+  FETCH_CLIENT_SUMMARY_SUCCEEDED: (state, action: AccessReviewActions.FetchClientSummarySucceeded) => ({
+    ...state,
+    selectedClientSummary: action.response,
   }),
 });
 

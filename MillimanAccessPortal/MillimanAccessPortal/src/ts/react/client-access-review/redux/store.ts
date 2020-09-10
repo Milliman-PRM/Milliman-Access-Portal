@@ -9,6 +9,24 @@ import { Dict, FilterState, ModalState } from '../../shared-components/redux/sto
 import { clientAccessReview } from './reducers';
 import sagas from './sagas';
 
+export interface ClientSummaryModel {
+  clientName: string;
+  clientCode: string;
+  reviewDueDate: string;
+  lastReviewDate: string;
+  lastReviewedBy: string;
+  primaryContactName: string;
+  primaryContactEmail: string;
+  assignedProfitCenter: string;
+  clientAdmins: ClientActorModel[];
+  profitCenterAdmins: ClientActorModel[];
+}
+
+export interface ClientActorModel {
+  userName: string;
+  userEmail: string;
+}
+
 export interface AccessReviewGlobalData {
   clientReviewEarlyWarningDays: number;
   clientReviewGracePeriodDays: number;
@@ -27,6 +45,7 @@ export interface PendingDataState {
 export interface AccessReviewStateData {
   globalData: AccessReviewGlobalData;
   clients: Dict<ClientWithReviewDate>;
+  selectedClientSummary: ClientSummaryModel;
 }
 
 /**

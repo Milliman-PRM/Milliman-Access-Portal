@@ -78,6 +78,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               disabled={card.disabled}
               onSelect={() => {
                 this.props.selectClient({ id: entity.id });
+                if (entity.id !== selected.client) {
+                  this.props.fetchClientSummary({ clientId: entity.id });
+                }
               }}
               indentation={entity.indent}
             >

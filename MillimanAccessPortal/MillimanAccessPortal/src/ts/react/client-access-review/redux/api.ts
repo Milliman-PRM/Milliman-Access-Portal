@@ -15,6 +15,10 @@ export const fetchClients =
   createJsonRequestor<AccessReviewActions.FetchClients, AccessReviewActions.FetchClientsSucceeded>
     ('GET', '/ClientAccessReview/Clients');
 
+export const fetchClientSummary =
+  createJsonRequestor<AccessReviewActions.FetchClientSummary, AccessReviewActions.FetchClientSummarySucceeded>
+    ('GET', '/ClientAccessReview/ClientSummary');
+
 export const fetchSessionCheck =
   createJsonRequestor<AccessReviewActions.FetchSessionCheck, AccessReviewActions.FetchSessionCheckSucceeded>
   ('GET', '/Account/SessionStatus');
