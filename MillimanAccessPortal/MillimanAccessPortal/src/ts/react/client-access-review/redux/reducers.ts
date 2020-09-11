@@ -31,6 +31,7 @@ const _initialData: AccessReviewStateData = {
 
 const _initialPendingData: PendingDataState = {
   clients: false,
+  clientSummary: false,
 };
 
 /**
@@ -93,6 +94,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENTS_FAILED: (state) => ({
     ...state,
     clients: false,
+  }),
+  FETCH_CLIENT_SUMMARY: (state) => ({
+    ...state,
+    clientSummary: true,
+  }),
+  FETCH_CLIENT_SUMMARY_SUCCEEDED: (state) => ({
+    ...state,
+    clientSummary: false,
+  }),
+  FETCH_CLIENT_SUMMARY_FAILED: (state) => ({
+    ...state,
+    clientSummary: false,
   }),
 });
 

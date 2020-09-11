@@ -17,13 +17,14 @@ import * as ClientAccessReviewActionCreators from './redux/action-creators';
 import { activeSelectedClient, clientEntities } from './redux/selectors';
 import {
     AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
-    AccessReviewStatePending, AccessReviewStateSelected,
+    AccessReviewStatePending, AccessReviewStateSelected, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
 
 interface ClientAccessReviewProps {
   clients: ClientEntity[];
+  clientSummary: ClientSummaryModel;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
   pending: AccessReviewStatePending;
@@ -45,6 +46,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   public render() {
+    const { clientSummary, pending, selected } = this.props;
     return (
       <>
         <ReduxToastr
@@ -56,6 +58,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
+        {
+          selected.client
+          && !pending.data.clientSummary
+          && clientSummary.clientName
+          && this.renderClientSummaryPanel()
+        }
       </>
     );
   }
@@ -105,12 +113,19 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
       </CardPanel>
     );
   }
+
+  private renderClientSummaryPanel() {
+    return (
+      <div>Client Summary Panel</div>
+    );
+  }
 }
 
 function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
-  const { selected, cardAttributes, filters, modals, pending } = state;
+  const { selected, cardAttributes, filters, modals, pending, data } = state;
   return {
     clients: clientEntities(state),
+    clientSummary: data.selectedClientSummary,
     selected,
     cardAttributes,
     pending,
