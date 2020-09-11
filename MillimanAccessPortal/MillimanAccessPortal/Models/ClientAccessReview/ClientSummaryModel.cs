@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapDbContextLib.Context;
+using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,7 +29,25 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
 
     public class ClientActorModel
     {
-        public string UserName { get; set; }
+        public string Name { get; set; }
         public string UserEmail { get; set; }
+
+        public ClientActorModel(ApplicationUser user)
+        {
+            UserEmail = user.Email;
+            Name = $"{user.FirstName} {user.LastName}";
+        }
+
+        public ClientActorModel(SftpAccount account)
+        {
+            Name = $"{account.UserName}";
+        }
+
+        public ClientActorModel(ClientActorReviewModel user)
+        {
+            UserEmail = user.UserEmail;
+            Name = user.Name;
+        }
+
     }
 }
