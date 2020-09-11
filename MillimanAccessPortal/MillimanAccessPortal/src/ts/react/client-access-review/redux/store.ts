@@ -37,6 +37,7 @@ export interface AccessReviewGlobalData {
  */
 export interface PendingDataState {
   clients: boolean;
+  clientSummary: boolean;
 }
 
 /**
