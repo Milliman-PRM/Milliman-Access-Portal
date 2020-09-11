@@ -1,3 +1,6 @@
+import '../../../scss/react/client-access-review/client-access-review.scss';
+
+import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 import { connect } from 'react-redux';
@@ -11,6 +14,7 @@ import {
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
 import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
+import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
@@ -115,8 +119,90 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientSummaryPanel() {
+    const { clientSummary, pending } = this.props;
     return (
-      <div>Client Summary Panel</div>
+      <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
+        {pending.data.clientSummary && <ColumnSpinner />}
+        <h3 className="admin-panel-header">Client Access Review Summary</h3>
+        <div className="client-summary-container">
+          <div className="client-summary-header">
+            <div className="client-summary-title">
+              <span className="client-name">{clientSummary.clientName}</span>
+              <span className="client-code">{clientSummary.clientCode}</span>
+            </div>
+          </div>
+          <div className="client-summary-details-container">
+            <div className="client-summary-detail-column">
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Review due date</span>
+                <h2>{moment.utc(clientSummary.reviewDueDate).format('MMM DD, YYYY')}</h2>
+              </div>
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Last review date</span>
+                <span className="client-summary-detail">
+                  {moment.utc(clientSummary.lastReviewDate).format('MMM DD, YYYY')}
+                </span>
+              </div>
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Last review by</span>
+                <span className="client-summary-detail-name">{clientSummary.lastReviewedBy}</span>
+              </div>
+            </div>
+            <div className="client-summary-detail-column">
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Primary contact</span>
+                <span className="client-summary-detail-name">{clientSummary.primaryContactName}</span>
+                <span className="client-summary-detail-email">
+                  {clientSummary.primaryContactEmail ? clientSummary.primaryContactEmail : '(None assigned)'}
+                </span>
+              </div>
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Client Admins</span>
+                <ul className="client-summary-list">
+                  {
+                    clientSummary.clientAdmins.map((admin) => {
+                      return (
+                        <li className="client-summary-list-item" key={admin.userEmail}>
+                          <div className="client-summary-user-list-container">
+                            <span className="client-summary-detail-name">{admin.name}</span>
+                            <span className="client-summary-detail-email">{admin.userEmail}</span>
+                          </div>
+                        </li>
+                      );
+                    })
+                  }
+                </ul>
+              </div>
+            </div>
+            <div className="client-summary-detail-column">
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Profit center</span>
+                <span className="client-summary-detail">{clientSummary.assignedProfitCenter}</span>
+              </div>
+              <div className="client-summary-detail-section">
+                <span className="client-detail-label">Profit Center Admins</span>
+                <ul className="client-summary-list">
+                  {
+                    clientSummary.profitCenterAdmins.map((admin) => {
+                      return (
+                        <li className="client-summary-list-item" key={admin.userEmail}>
+                          <div className="client-summary-user-list-container">
+                            <span className="client-summary-detail-name">{admin.name}</span>
+                            <span className="client-summary-detail-email">{admin.userEmail}</span>
+                          </div>
+                        </li>
+                      );
+                    })
+                  }
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div className="button-container">
+          <button className="blue-button">Begin Review</button>
+        </div>
+      </div>
     );
   }
 }
