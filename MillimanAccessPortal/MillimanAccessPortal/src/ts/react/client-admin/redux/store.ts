@@ -11,6 +11,14 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
+ * Flags indicating whether the page is waiting on new data for an entity type.
+ */
+export interface PendingDataState {
+  clients: boolean;
+  details: boolean;
+}
+
+/**
  * Entity data returned from the server.
  */
 export interface AccessStateData {
@@ -70,6 +78,7 @@ export interface AccessState {
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
   formData: AccessStateFormData;
+  pending: PendingDataState;
 }
 
 // Create the store and apply saga middleware

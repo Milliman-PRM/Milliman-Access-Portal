@@ -304,6 +304,16 @@ export type ResponseAccessAction =
   | EditClientSucceeded
   | DeleteClientSucceeded;
 
+/**
+* An action that marks the errored response of an Ajax request.
+*/
+export type ErrorAccessAction =
+  | FetchClientsFailed
+  | FetchProfitCentersFailed
+  | FetchClientDetailsFailed
+  ;
+
+
 export type PageAccessAction =
   | SelectClient
   | SetEditStatus
@@ -318,4 +328,5 @@ export type PageAccessAction =
 export type AccessAction =
   | PageAccessAction
   | RequestAccessAction
-  | ResponseAccessAction;
+  | ResponseAccessAction
+  | ErrorAccessAction;

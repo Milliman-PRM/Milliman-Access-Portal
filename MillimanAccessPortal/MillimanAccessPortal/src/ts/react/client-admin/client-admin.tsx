@@ -3,7 +3,8 @@ import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData, AccessStateSelected,
+  AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
+  AccessStateSelected, PendingDataState,
 } from './redux/store';
 
 import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
@@ -13,6 +14,8 @@ import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-compo
 import { Card } from '../shared-components/card/card';
 import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
+import { ColumnSpinner } from '../shared-components/column-spinner';
+
 import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -25,6 +28,7 @@ import { activeUsers, clientEntities } from './redux/selectors';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
+  pending: PendingDataState;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
   details: ClientDetail;
@@ -50,17 +54,25 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       <>
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
-        {this.props.selected.client !== null ? this.renderClientDetail() : null}
+        {this.props.selected.client !== null ?
+          <div>
+            {this.props.pending.details ?
+              <ColumnSpinner />
+              : this.renderClientDetail()
+            }
+          </div> : null
+        }
         {this.props.selected.client !== null ? this.renderClientUsers() : null}
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients, details, selected, filters } = this.props;
+    const { clients, details, selected, filters, pending } = this.props;
     return (
       <CardPanel
         entities={clients}
+        loading={pending.clients}
         renderEntity={(entity, key) => {
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
@@ -92,9 +104,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client}
               disabled={false}
               onSelect={() => {
-                this.props.fetchClientDetails({ clientId: entity.id });
                 this.props.selectClient({ id: entity.id });
-                this.props.setFormData({ details }); // Todo not working.
+                this.props.fetchClientDetails({ clientId: entity.id });
               }}
               indentation={entity.indent}
             >
@@ -564,7 +575,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending } = state;
 
   return {
     clients: clientEntities(state),
@@ -576,6 +587,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     selected,
     edit,
     filters,
+    pending,
   };
 }
 
