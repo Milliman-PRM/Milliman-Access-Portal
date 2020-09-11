@@ -176,6 +176,7 @@ namespace MapDbContextLib.Context
             builder.Entity<FileDropUserPermissionGroup>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.HasOne(x => x.FileDrop).WithMany(d => d.PermissionGroups).OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<SftpAccount>(b =>
             {
