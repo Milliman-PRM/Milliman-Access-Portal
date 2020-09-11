@@ -140,6 +140,13 @@ namespace MillimanAccessPortal.DataQueries
                                                                        .Select(urp => urp.User)
                                                                        .ToListAsync();
 
+            List<FileDrop> fileDrops = await _dbContext.FileDrop
+                                                       .Include(d => d.PermissionGroups)
+                                                           .ThenInclude(g => g.SftpAccounts)
+                                                               .ThenInclude(a => a.ApplicationUser)
+                                                       .Where(d => d.ClientId == client.Id)
+                                                       .ToListAsync();
+
             var returnModel = new ClientAccessReviewModel
             {
                 Id = client.Id,
@@ -188,6 +195,21 @@ namespace MillimanAccessPortal.DataQueries
                 });
 
                 returnModel.ContentItems.Add(contentModel);
+            });
+            fileDrops.ForEach(d =>
+            {
+                ClientFileDropModel fileDropModel = new ClientFileDropModel { FileDropName = d.Name };
+                foreach (FileDropUserPermissionGroup group in d.PermissionGroups)
+                {
+                    fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel 
+                    {
+                        PermissionGroupName = group.Name,
+                        Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
+                        AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => new ClientActorModel(a.ApplicationUser)).ToList(),
+                        AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => new ClientActorModel(a)).ToList(),
+                    });
+                }
+                returnModel.FileDrops.Add(fileDropModel);
             });
 
             return returnModel;
