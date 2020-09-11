@@ -31,22 +31,26 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     {
         public string Name { get; set; }
         public string UserEmail { get; set; }
+        public bool IsSuspended { get; set; }
 
         public ClientActorModel(ApplicationUser user)
         {
             UserEmail = user.Email;
             Name = $"{user.FirstName} {user.LastName}";
+            IsSuspended = user.IsSuspended;
         }
 
         public ClientActorModel(SftpAccount account)
         {
             Name = $"{account.UserName}";
+            IsSuspended = account.IsSuspended;
         }
 
         public ClientActorModel(ClientActorReviewModel user)
         {
             UserEmail = user.UserEmail;
             Name = user.Name;
+            IsSuspended = user.IsSuspended;
         }
 
     }

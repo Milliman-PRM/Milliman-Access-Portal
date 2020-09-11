@@ -45,12 +45,14 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     {
         public string ContentItemName { get; set; }
         public string ContentType { get; set; }
+        public bool IsSuspended { get; set; }
         public DateTime? LastPublishedDate { get; set; }
         public List<ClientContentItemSelectionGroupModel> SelectionGroups { get; set; } = new List<ClientContentItemSelectionGroupModel>();
     }
     public class ClientContentItemSelectionGroupModel
     {
         public string SelectionGroupName { get; set; }
+        public bool IsSuspended { get; set; }
         public List<ClientActorModel> AuthorizedUsers { get; set; } = new List<ClientActorModel>();
     }
     public class ClientFileDropModel

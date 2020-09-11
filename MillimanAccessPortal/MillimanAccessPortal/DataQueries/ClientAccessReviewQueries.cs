@@ -166,6 +166,7 @@ namespace MillimanAccessPortal.DataQueries
                 {
                     ContentItemName = c.ContentName,
                     ContentType = c.ContentType.TypeEnum.GetDisplayNameString(),
+                    IsSuspended = c.IsSuspended,
                     LastPublishedDate = _dbContext.ContentPublicationRequest
                                                   .Where(r => r.RootContentItemId == c.Id)
                                                   .Where(r => r.RequestStatus == PublicationStatus.Confirmed)
@@ -175,7 +176,11 @@ namespace MillimanAccessPortal.DataQueries
                 };
                 relatedGroups.ForEach(g =>
                 {
-                    var groupModel = new ClientContentItemSelectionGroupModel { SelectionGroupName = g.GroupName };
+                    var groupModel = new ClientContentItemSelectionGroupModel 
+                    { 
+                        SelectionGroupName = g.GroupName, 
+                        IsSuspended = g.IsSuspended 
+                    };
                     groupModel.AuthorizedUsers.AddRange(_dbContext.UserInSelectionGroup
                                                                   .Where(usg => usg.SelectionGroupId == g.Id)
                                                                   .Select(usg => new ClientActorModel(usg.User)));
