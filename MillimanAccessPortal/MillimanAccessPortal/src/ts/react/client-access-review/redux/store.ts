@@ -23,7 +23,7 @@ export interface ClientSummaryModel {
 }
 
 export interface ClientActorModel {
-  userName: string;
+  name: string;
   userEmail: string;
 }
 
