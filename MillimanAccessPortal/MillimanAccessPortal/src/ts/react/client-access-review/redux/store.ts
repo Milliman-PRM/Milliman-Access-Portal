@@ -9,6 +9,11 @@ import { Dict, FilterState, ModalState } from '../../shared-components/redux/sto
 import { clientAccessReview } from './reducers';
 import sagas from './sagas';
 
+export interface AccessReviewGlobalData {
+  clientReviewEarlyWarningDays: number;
+  clientReviewGracePeriodDays: number;
+}
+
 export interface ClientSummaryModel {
   clientName: string;
   clientCode: string;
@@ -27,9 +32,55 @@ export interface ClientActorModel {
   userEmail: string;
 }
 
-export interface AccessReviewGlobalData {
-  clientReviewEarlyWarningDays: number;
-  clientReviewGracePeriodDays: number;
+export interface ClientAccessReviewModel {
+  id: Guid;
+  clientName: string;
+  clientCode: string;
+  clientAdmins: ClientActorModel[];
+  assignedProfitCenterName: string;
+  profitCenterAdmins: ClientActorModel[];
+  approvedEmailDomainList: string[];
+  approvedEmailExceptionList: string[];
+  memberUsers: ClientActorReviewModel[];
+  contentItems: ClientContentItemModel[];
+  fileDrops: ClientFileDropModel[];
+  attestationLanguage: string;
+  clientAccessReviewId: Guid;
+}
+
+interface ClientActorReviewModel extends ClientActorModel {
+  lastLoginDate?: string;
+  clientUserRoles: Dict<boolean>;
+}
+
+interface ClientContentItemModel {
+  contentType: string;
+  contentItemName: string;
+  isSuspended: boolean;
+  lastPublishedDate: string;
+  selectionGroups: ClientContentItemSelectionGroupModel[];
+}
+
+interface ClientContentItemSelectionGroupModel {
+  selectionGroupName: string;
+  isSuspended: boolean;
+  authorizedUsers: ClientActorModel[];
+}
+
+interface ClientFileDropModel {
+  fileDropName: string;
+  permissionGroups: ClientFileDropPermissionGroupModel[];
+}
+
+interface ClientFileDropPermissionGroupModel {
+  permissionGroupName: string;
+  permissions: {
+    read: boolean;
+    write: boolean;
+    delete: boolean;
+  };
+  authorizedMapUsers: ClientActorModel[];
+  authorizedServiceAccounts: ClientActorModel[];
 }
 
 /**
