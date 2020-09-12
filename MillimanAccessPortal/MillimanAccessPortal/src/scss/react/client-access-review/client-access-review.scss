@@ -6,11 +6,11 @@
     background-color: $white;
 
     &.warning {
-        border-left: 2px solid $orange;
+        border-left: 5px solid $orange;
     }
 
     &.late {
-        border-left: 2px solid $red;
+        border-left: 5px solid $red;
     }
 
     .client-summary-header {
