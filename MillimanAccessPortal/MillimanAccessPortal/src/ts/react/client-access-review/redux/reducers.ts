@@ -15,23 +15,14 @@ const _initialData: AccessReviewStateData = {
     clientReviewGracePeriodDays: null,
   },
   clients: {},
-  selectedClientSummary: {
-    clientName: '',
-    clientCode: '',
-    reviewDueDate: '',
-    lastReviewDate: '',
-    lastReviewedBy: '',
-    primaryContactName: '',
-    primaryContactEmail: '',
-    assignedProfitCenter: '',
-    clientAdmins: [],
-    profitCenterAdmins: [],
-  },
+  selectedClientSummary: null,
+  clientAccessReview: null,
 };
 
 const _initialPendingData: PendingDataState = {
   clients: false,
   clientSummary: false,
+  clientAccessReview: false,
 };
 
 /**
@@ -107,6 +98,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clientSummary: false,
   }),
+  FETCH_CLIENT_REVIEW: (state) => ({
+    ...state,
+    clientAccessReview: true,
+  }),
+  FETCH_CLIENT_REVIEW_SUCCEEDED: (state) => ({
+    ...state,
+    clientAccessReview: false,
+  }),
+  FETCH_CLIENT_REVIEW_FAILED: (state) => ({
+    ...state,
+    clientAccessReview: false,
+  }),
 });
 
 const data = createReducer<AccessReviewStateData>(_initialData, {
@@ -124,6 +127,11 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
   FETCH_CLIENT_SUMMARY_SUCCEEDED: (state, action: AccessReviewActions.FetchClientSummarySucceeded) => ({
     ...state,
     selectedClientSummary: action.response,
+    clientAccessReview: null,
+  }),
+  FETCH_CLIENT_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.FetchClientReviewSucceeded) => ({
+    ...state,
+    clientAccessReview: action.response,
   }),
 });
 
