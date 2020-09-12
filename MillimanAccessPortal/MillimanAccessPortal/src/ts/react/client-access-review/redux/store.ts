@@ -89,6 +89,7 @@ interface ClientFileDropPermissionGroupModel {
 export interface PendingDataState {
   clients: boolean;
   clientSummary: boolean;
+  clientAccessReview: boolean;
 }
 
 /**
@@ -98,6 +99,7 @@ export interface AccessReviewStateData {
   globalData: AccessReviewGlobalData;
   clients: Dict<ClientWithReviewDate>;
   selectedClientSummary: ClientSummaryModel;
+  clientAccessReview: ClientAccessReviewModel;
 }
 
 /**
