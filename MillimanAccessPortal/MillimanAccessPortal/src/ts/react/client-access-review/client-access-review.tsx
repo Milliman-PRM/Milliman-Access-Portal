@@ -119,7 +119,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientSummaryPanel() {
-    const { clientSummary, pending } = this.props;
+    const { clientSummary, pending, selected } = this.props;
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientSummary && <ColumnSpinner />}
@@ -200,7 +200,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           </div>
         </div>
         <div className="button-container">
-          <button className="blue-button">Begin Review</button>
+          <button
+            className="blue-button"
+            onClick={() => this.props.fetchClientReview({ clientId: selected.client })}
+          >
+            Begin Review
+          </button>
         </div>
       </div>
     );
