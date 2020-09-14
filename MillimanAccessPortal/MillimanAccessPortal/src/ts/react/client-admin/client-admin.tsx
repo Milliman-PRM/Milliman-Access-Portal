@@ -133,9 +133,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon="edit"
                     color={'blue'}
                     onClick={() => {
-                      this.props.fetchClientDetails({ clientId: entity.id });
                       this.props.selectClient({ id: entity.id });
-                      this.props.setFormData({ details }); // Todo not working.
+                      this.props.fetchClientDetails({ clientId: entity.id });
                       this.props.setEditStatus({ status: true });
                     }}
                   />
@@ -179,8 +178,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       <>
         <div
           id="client-info"
-          className="admin-panel-container flex-item-12-12
-                     flex-item-for-tablet-up-4-12 flex-item-for-desktop-up-6-12"
+          className="admin-panel-container"
         >
           <h3 className="admin-panel-header">Client Information</h3>
           <PanelSectionToolbar>
@@ -203,7 +201,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
-          <div className="admin-panel-content-container">
+          <div className="admin-panel-content-container" style={{ overflow: 'scroll' }}>
             <form className={`admin-panel-content ${!edit.status ? 'form-disabled' : ''}`}>
               <div className="form-section-container">
                 <div className="form-section">
@@ -261,6 +259,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
                       <div>
                         <input
+                          value={formData.contactTitle}
                           onChange={(event) => {
                             this.props.setClientContactTitle({ clientContactTitle: event.target.value });
                           }}
@@ -275,6 +274,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title">Client Contact Email</label>
                       <div>
                         <input
+                          value={formData.contactEmail}
                           onChange={(event) => {
                             this.props.setClientContactEmail({ clientContactEmail: event.target.value });
                           }}
@@ -289,6 +289,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
                         <input
+                          value={formData.contactPhone}
                           onChange={(event) => {
                             this.props.setClientContactPhone({ clientContactPhone: event.target.value });
                           }}
@@ -333,6 +334,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
                         <input
+                          value={formData.consultantName}
                           onChange={(event) => {
                             this.props.setConsultantName({ consultantName: event.target.value });
                           }}
@@ -347,6 +349,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
                         <input
+                          value={formData.consultantEmail}
                           onChange={(event) => {
                             this.props.setConsultantEmail({ consultantEmail: event.target.value });
                           }}
@@ -361,8 +364,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
                         <input
+                          value={formData.office}
                           onChange={(event) => {
-                            this.props.setOffice({ consultantOffice: event.target.value });
+                            this.props.setOffice({ office: event.target.value });
                           }}
                         />
                         <span asp-validation-for="ConsultantOffice" className="text-danger" />

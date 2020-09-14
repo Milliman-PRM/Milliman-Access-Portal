@@ -49,7 +49,7 @@ export interface AccessStateFormData {
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
   profitCenterId: Guid;
-  consultantOffice: string;
+  office: string;
   consultantName: string;
   consultantEmail: string;
   newUserWelcomeText: string;

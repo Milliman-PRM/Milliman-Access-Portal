@@ -167,8 +167,9 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
+    details: action.response.clientDetail,
     id: action.response.clientDetail.id,
-    name: action.response.clientDetail.name,
+    name: action.response.clientDetail.name || action.response.clientDetail.clientName,
     clientCode: action.response.clientDetail.clientCode,
     contactName: action.response.clientDetail.clientContactName,
     contactTitle: action.response.clientDetail.clientContactTitle,

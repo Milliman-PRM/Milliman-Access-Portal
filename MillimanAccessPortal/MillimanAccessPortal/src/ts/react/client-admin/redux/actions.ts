@@ -118,7 +118,7 @@ export interface SetProfitCenter {
 }
 export interface SetOffice {
   type: 'SET_OFFICE';
-  consultantOffice: string;
+  office: string;
 }
 export interface SetConsultantName {
   type: 'SET_CONSULTANT_NAME';
