@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200914170614_AddClientAccessReview")]
+    [Migration("20200914193422_AddClientAccessReview")]
     partial class AddClientAccessReview
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -676,6 +676,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<bool>("IsSuspended")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<HashSet<FileDropUserNotificationModel>>("NotificationSubscriptions")
                         .HasColumnType("jsonb");

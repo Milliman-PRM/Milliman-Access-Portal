@@ -675,6 +675,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("IsSuspended")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<HashSet<FileDropUserNotificationModel>>("NotificationSubscriptions")
                         .HasColumnType("jsonb");
 

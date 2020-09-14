@@ -854,6 +854,9 @@ namespace SftpServerLib
                         connection.FileDropRootPathAbsolute = absoluteFileDropRootPath;
                         connection.MapUserIsSso = userIsSso;
 
+                        userAccount.LastLoginUtc = DateTime.UtcNow;
+                        db.SaveChanges();
+
                         evtData.Accept = true;
 
                         Log.Information($"Acount <{userAccount.UserName}> authenticated on connection {evtData.ConnectionId} from remote host <{clientAddress}>, FileDrop <{userAccount.FileDrop.Name}>, access: " +

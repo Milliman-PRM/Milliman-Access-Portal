@@ -8,6 +8,11 @@ namespace MillimanAccessPortal.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.AddColumn<DateTime>(
+                name: "LastLoginUtc",
+                table: "SftpAccount",
+                nullable: true);
+
             migrationBuilder.AddColumn<ClientAccessReview>(
                 name: "LastAccessReview",
                 table: "Client",
@@ -23,6 +28,10 @@ namespace MillimanAccessPortal.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "LastLoginUtc",
+                table: "SftpAccount");
+
             migrationBuilder.DropColumn(
                 name: "LastAccessReview",
                 table: "Client");
