@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20200909183152_AddClientAccessReview")]
+    [Migration("20200914170614_AddClientAccessReview")]
     partial class AddClientAccessReview
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -881,6 +881,9 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(null);
 
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
@@ -1127,7 +1130,7 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
-                        .WithMany()
+                        .WithMany("PermissionGroups")
                         .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

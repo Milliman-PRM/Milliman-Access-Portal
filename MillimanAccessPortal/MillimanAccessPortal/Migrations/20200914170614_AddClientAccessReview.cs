@@ -1,4 +1,5 @@
-﻿using MapDbContextLib.Context;
+﻿using System;
+using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MillimanAccessPortal.Migrations
@@ -13,6 +14,11 @@ namespace MillimanAccessPortal.Migrations
                 type: "jsonb",
                 nullable: false,
                 defaultValueSql: "jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "LastLoginUtc",
+                table: "AspNetUsers",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -20,6 +26,10 @@ namespace MillimanAccessPortal.Migrations
             migrationBuilder.DropColumn(
                 name: "LastAccessReview",
                 table: "Client");
+
+            migrationBuilder.DropColumn(
+                name: "LastLoginUtc",
+                table: "AspNetUsers");
         }
     }
 }

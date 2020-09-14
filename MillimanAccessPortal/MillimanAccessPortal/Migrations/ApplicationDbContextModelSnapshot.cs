@@ -879,6 +879,9 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("boolean")
                         .HasDefaultValue(null);
 
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<string>("LastName")
                         .HasColumnType("text");
 
@@ -1125,7 +1128,7 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
-                        .WithMany()
+                        .WithMany("PermissionGroups")
                         .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
