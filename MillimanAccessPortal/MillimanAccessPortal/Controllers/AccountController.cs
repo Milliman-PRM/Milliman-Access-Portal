@@ -261,7 +261,7 @@ namespace MillimanAccessPortal.Controllers
                 var result = await _signInManager.PasswordSignInAsync(model.Username, model.Password, model.RememberMe, lockoutOnFailure: true);
                 if (result.Succeeded)
                 {
-                    SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+                    await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                     // Provide the location that should be navigated to (or fall back on default route)
                     Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
@@ -311,13 +311,15 @@ namespace MillimanAccessPortal.Controllers
         /// Does everything that is common to externally and internally signed in users
         /// </summary>
         [NonAction]
-        private void SignInCommon(string userName, string scheme)
+        private async Task SignInCommon(ApplicationUser user, string scheme)
         {
             try
             {
+                user.LastLoginUtc = DateTime.UtcNow;
+                await DbContext.SaveChangesAsync();
                 HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
-                Log.Information($"User {userName} logged in with scheme {scheme}");
-                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+                Log.Information($"User {user.UserName} logged in with scheme {scheme}");
+                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), user.UserName, HttpContext.Session.Id);
             }
             catch (Exception ex)
             {
@@ -500,7 +502,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
@@ -517,7 +519,8 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationScheme(HttpContext.User.Identity.Name)?.Name);
+            var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
+            await SignInCommon(user, GetExternalAuthenticationScheme(user.UserName)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);

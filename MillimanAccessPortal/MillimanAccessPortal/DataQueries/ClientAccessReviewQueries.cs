@@ -112,19 +112,17 @@ namespace MillimanAccessPortal.DataQueries
             IEnumerable<ClientActorReviewModel> memberUsers = (await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("ClientMembership", client.Id.ToString())))
                 .Select(u => 
                 {
-                    Task<DateTime?> LastLoginTask = AuditLogLib.AuditLogger.GetUserLastLogin(u.UserName);
-                    Task<List<RoleEnum>> authorizedRolesTask = _dbContext.UserRoleInClient
-                                                                         .Where(urc => urc.UserId == u.Id)
-                                                                         .Where(urc => urc.ClientId == client.Id)
-                                                                         .Select(urc => urc.Role.RoleEnum)
-                                                                         .ToListAsync();
-                    Task.WaitAll(LastLoginTask, authorizedRolesTask);
+                    List<RoleEnum> authorizedRoles = _dbContext.UserRoleInClient
+                                                               .Where(urc => urc.UserId == u.Id)
+                                                               .Where(urc => urc.ClientId == client.Id)
+                                                               .Select(urc => urc.Role.RoleEnum)
+                                                               .ToList();
                     return new ClientActorReviewModel(u)
                     {
-                        LastLoginDate = LastLoginTask.Result,
+                        LastLoginDate = u.LastLoginUtc,
                         ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
                                               .OfType<RoleEnum>()
-                                              .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRolesTask.Result.Contains(r)))
+                                              .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
                                               .ToDictionary(p => p.Key, p => p.Value),
                     };
                 });
