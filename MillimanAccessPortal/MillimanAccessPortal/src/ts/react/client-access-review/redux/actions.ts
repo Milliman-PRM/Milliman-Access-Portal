@@ -2,7 +2,7 @@ import { ClientWithReviewDate } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
-import { AccessReviewGlobalData, ClientSummaryModel } from './store';
+import { AccessReviewGlobalData, ClientAccessReviewModel, ClientSummaryModel } from './store';
 
 // ~~ Page actions ~~
 
@@ -83,6 +83,25 @@ export interface FetchClientSummaryFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   All data necessary to perform a client access review
+ */
+export interface FetchClientReview {
+  type: 'FETCH_CLIENT_REVIEW';
+  request: {
+    clientId: Guid;
+  };
+}
+export interface FetchClientReviewSucceeded {
+  type: 'FETCH_CLIENT_REVIEW_SUCCEEDED';
+  response: ClientAccessReviewModel;
+}
+export interface FetchClientReviewFailed {
+  type: 'FETCH_CLIENT_REVIEW_FAILED';
+  error: TSError;
+}
+
 // ~~ Session Checks ~~ //
 
 /**
@@ -133,6 +152,7 @@ export type RequestAccessReviewAction =
   | FetchGlobalData
   | FetchClients
   | FetchClientSummary
+  | FetchClientReview
   | FetchSessionCheck
   ;
 
@@ -143,6 +163,7 @@ export type ResponseAccessReviewAction =
   | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
   | FetchClientSummarySucceeded
+  | FetchClientReviewSucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -153,6 +174,7 @@ export type ErrorAccessReviewAction =
   | FetchGlobalDataFailed
   | FetchClientsFailed
   | FetchClientSummaryFailed
+  | FetchClientReviewFailed
   | FetchSessionCheckFailed
   ;
 

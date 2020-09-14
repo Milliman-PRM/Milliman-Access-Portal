@@ -16,6 +16,8 @@ export const fetchClients =
   createRequestActionCreator<AccessReviewActions.FetchClients>('FETCH_CLIENTS');
 export const fetchClientSummary =
   createRequestActionCreator<AccessReviewActions.FetchClientSummary>('FETCH_CLIENT_SUMMARY');
+export const fetchClientReview =
+  createRequestActionCreator<AccessReviewActions.FetchClientReview>('FETCH_CLIENT_REVIEW');
 export const fetchSessionCheck =
   createRequestActionCreator<AccessReviewActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 

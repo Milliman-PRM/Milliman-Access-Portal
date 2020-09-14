@@ -32,6 +32,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_CLIENT_SUMMARY', api.fetchClientSummary);
+  yield takeLatestRequest('FETCH_CLIENT_REVIEW', api.fetchClientReview);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessReviewActionCreators.fetchSessionCheck({}));
@@ -44,6 +45,7 @@ export default function* rootSaga() {
     'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
     'FETCH_CLIENT_SUMMARY_FAILED',
+    'FETCH_CLIENT_REVIEW_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)
