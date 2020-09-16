@@ -166,8 +166,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var currentUser = await _userManager.GetUserAsync(User);
-            var model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
+            ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
+            _auditLogger.Log(AuditEventType.ClientAccessReviewPresented.ToEvent(ClientId, model));
 
             return Json(model);
         }

@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Unit tests for actions in the ClientReviewController
+ * OBJECTIVE: Unit tests for actions in the ClientAccessReviewController
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

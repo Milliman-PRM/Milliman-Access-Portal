@@ -1216,6 +1216,23 @@ namespace AuditLogLib.Event
             });
 
         #endregion
+
+        #region Client Access Review [9000 - 9999]
+        public static readonly AuditEventType<Guid, object> ClientAccessReviewPresented = new AuditEventType<Guid, object>(
+            9001, "Client Access Review Presented", (clientId, reviewModel) => new
+            {
+                ClientId = clientId,
+                Model = reviewModel,
+            });
+
+        public static readonly AuditEventType<Guid> ClientAccessReviewApproved = new AuditEventType<Guid>(
+            9002, "Client Access Review Approved", (clientAccessReviewId) => new
+            {
+                ClientAccessReviewId = clientAccessReviewId,
+            });
+
+        #endregion
+
         #endregion
 
         private readonly Func<object> logObjectTransform;
