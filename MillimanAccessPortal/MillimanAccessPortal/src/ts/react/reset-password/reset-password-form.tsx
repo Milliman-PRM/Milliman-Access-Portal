@@ -78,6 +78,10 @@ export class ResetPasswordForm extends Form<{}, ResetPasswordState> {
     const serverSideErrorMessage = document
       .querySelector('input[name="__Message"]')
       .getAttribute('value');
+    validatePassword({ proposedPassword: '' })
+      .catch(() => {
+        location.reload(true);
+      });
     this.setState({
       requestVerificationToken,
       data: {
