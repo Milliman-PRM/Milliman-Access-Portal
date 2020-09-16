@@ -299,6 +299,7 @@ namespace MapTests
                 Assert.Contains("FN7 LN7", model.ClientAdmins.Select(u => u.Name));
                 Assert.Contains("Client Admin1", model.ClientAdmins.Select(u => u.Name));
                 Assert.Equal("Profit Center 1", model.AssignedProfitCenterName);
+                Assert.NotNull(model.AttestationLanguage);
                 Assert.Equal(expectedAttestationLanguage, model.AttestationLanguage);
                 #endregion
             }
