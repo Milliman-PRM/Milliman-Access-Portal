@@ -1225,9 +1225,10 @@ namespace AuditLogLib.Event
                 Model = reviewModel,
             });
 
-        public static readonly AuditEventType<Guid> ClientAccessReviewApproved = new AuditEventType<Guid>(
-            9002, "Client Access Review Approved", (clientAccessReviewId) => new
+        public static readonly AuditEventType<Guid, Guid> ClientAccessReviewApproved = new AuditEventType<Guid, Guid>(
+            9002, "Client Access Review Approved", (clientId, clientAccessReviewId) => new
             {
+                ClientId = clientId,
                 ClientAccessReviewId = clientAccessReviewId,
             });
 

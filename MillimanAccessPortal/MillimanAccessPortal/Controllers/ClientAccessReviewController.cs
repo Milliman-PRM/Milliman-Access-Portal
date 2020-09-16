@@ -6,33 +6,18 @@
 
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
-using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Security.Claims;
-using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
-using MapCommonLib;
 using MillimanAccessPortal.DataQueries;
-using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
-using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MillimanAccessPortal.Authorization;
-using MillimanAccessPortal.Services;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
-using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.ClientAccessReview;
+using Microsoft.AspNetCore.Http;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -41,14 +26,12 @@ namespace MillimanAccessPortal.Controllers
         private readonly IAuditLogger _auditLogger;
         private readonly IAuthorizationService _authorizationService;
         private readonly IConfiguration _applicationConfig;
-        private readonly ContentAccessAdminQueries _accessAdminQueries;
         private readonly ClientAccessReviewQueries _clientAccessReviewQueries;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public ClientAccessReviewController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
-            ContentAccessAdminQueries accessAdminQueriesArg,
             ClientAccessReviewQueries ClientAccessReviewQueriesArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg
@@ -56,7 +39,6 @@ namespace MillimanAccessPortal.Controllers
         {
             _auditLogger = AuditLoggerArg;
             _authorizationService = AuthorizationServiceArg;
-            _accessAdminQueries = accessAdminQueriesArg;
             _clientAccessReviewQueries = ClientAccessReviewQueriesArg;
             _userManager = UserManagerArg;
             _applicationConfig = ApplicationConfigArg;
@@ -171,5 +153,37 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(model);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ApproveClientAccessReview(Guid ClientId, Guid ReviewId)
+        {
+            #region Authorization
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to the Client Access Review page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            try
+            {
+                var model = await _clientAccessReviewQueries.ApproveClientAccessReviewAsync(currentUser, ClientId);
+
+                _auditLogger.Log(AuditEventType.ClientAccessReviewApproved.ToEvent(ClientId, ReviewId));
+
+                return Json(model);
+            }
+            catch (ApplicationException ex)
+            {
+                Log.Information(ex, $"Action {ControllerContext.ActionDescriptor.DisplayName}, query failed for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+        }
+
     }
 }

@@ -212,5 +212,19 @@ namespace MillimanAccessPortal.DataQueries
 
             return returnModel;
         }
+
+        public async Task<ClientReviewClientsModel> ApproveClientAccessReviewAsync(ApplicationUser currentUser, Guid clientId)
+        {
+            Client client = await _dbContext.Client.FindAsync(clientId);
+            if (client == null)
+            {
+                throw new ApplicationException("Requested client not found");
+            }
+
+            client.LastAccessReview = new ClientAccessReview { LastReviewDateTimeUtc = DateTime.UtcNow, UserName = currentUser.UserName };
+            await _dbContext.SaveChangesAsync();
+
+            return await GetClientModelAsync(currentUser);
+        }
     }
 }
