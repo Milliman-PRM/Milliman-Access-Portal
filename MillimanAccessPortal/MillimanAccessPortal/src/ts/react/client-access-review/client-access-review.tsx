@@ -17,11 +17,13 @@ import { CardSectionMain, CardText } from '../shared-components/card/card-sectio
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
+import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
 import { activeSelectedClient, clientEntities } from './redux/selectors';
 import {
     AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
-    AccessReviewStatePending, AccessReviewStateSelected, ClientSummaryModel,
+    AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel, ClientAccessReviewProgress,
+    ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -29,6 +31,7 @@ type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
 interface ClientAccessReviewProps {
   clients: ClientEntity[];
   clientSummary: ClientSummaryModel;
+  clientAccessReview: ClientAccessReviewModel;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
   pending: AccessReviewStatePending;
@@ -50,7 +53,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   public render() {
-    const { clientSummary, pending, selected } = this.props;
+    const { clientAccessReview, clientSummary, pending, selected } = this.props;
     return (
       <>
         <ReduxToastr
@@ -65,8 +68,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         {
           selected.client
           && !pending.data.clientSummary
-          && clientSummary.clientName
+          && clientSummary
+          && clientAccessReview === null
           && this.renderClientSummaryPanel()
+        }
+        {
+          selected.client
+          && !pending.data.clientAccessReview
+          && clientAccessReview
+          && this.renderClientAccessReviewPanel()
         }
       </>
     );
@@ -210,6 +220,45 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
       </div>
     );
   }
+
+  private renderClientAccessReviewPanel() {
+    const { clientAccessReview, pending } = this.props;
+    return (
+      <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
+        {pending.data.clientAccessReview && <ColumnSpinner />}
+        <h3 className="admin-panel-header">Client Access Review Summary</h3>
+        <div className="client-summary-container">
+          <div className="client-summary-header">
+            <div className="client-summary-title">
+              <span className="client-name">{clientAccessReview.clientName}</span>
+              <span className="client-code">{clientAccessReview.clientCode}</span>
+              <span className="client-code">Review the Client information to proceed</span>
+              <ProgressIndicator
+                progressObjects={{
+                  [ClientAccessReviewProgress.clientReview]: {
+                    label: 'Client Review',
+                  },
+                  [ClientAccessReviewProgress.userRoles]: {
+                    label: 'User Roles',
+                  },
+                  [ClientAccessReviewProgress.contentAccess]: {
+                    label: 'Content Access',
+                  },
+                  [ClientAccessReviewProgress.fileDropAccess]: {
+                    label: 'File Drop Access',
+                  },
+                  [ClientAccessReviewProgress.attestations]: {
+                    label: 'Attestations',
+                  },
+                }}
+                currentStep={ClientAccessReviewProgress.userRoles}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }
 
 function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
@@ -217,6 +266,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
   return {
     clients: clientEntities(state),
     clientSummary: data.selectedClientSummary,
+    clientAccessReview: data.clientAccessReview,
     selected,
     cardAttributes,
     pending,
