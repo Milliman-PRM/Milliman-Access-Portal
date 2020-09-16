@@ -83,6 +83,14 @@ interface ClientFileDropPermissionGroupModel {
   authorizedServiceAccounts: ClientActorModel[];
 }
 
+export enum ClientAccessReviewProgress {
+  clientReview = 0,
+  userRoles = 1,
+  contentAccess = 2,
+  fileDropAccess = 3,
+  attestations = 4,
+}
+
 /**
  * Flags indicating whether the page is waiting on new data for an entity type.
  */
@@ -121,6 +129,7 @@ export interface AccessReviewStateCardAttributes {
  */
 export interface AccessReviewStatePending {
   data: PendingDataState;
+  clientAccessReviewProgress: ClientAccessReviewProgress;
   statusTries: number;
 }
 
