@@ -18,6 +18,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string ClientContactName { get; set; }
         public string ClientContactEmail { get; set; }
         public string ClientContactPhone { get; set; }
+        public string ClientContactTitle { get; set; }
         public int DomainListCountLimit { get; set; }
         public List<string> AcceptedEmailDomainList { get; set; }
         public List<string> AcceptedEmailAddressExceptionList { get; set; }
@@ -41,6 +42,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 ClientContactName = client.ContactName,
                 ClientContactEmail = client.ContactEmail,
                 ClientContactPhone = client.ContactPhone,
+                ClientContactTitle = client.ContactTitle,
                 DomainListCountLimit = client.DomainListCountLimit,
                 AcceptedEmailDomainList = client.AcceptedEmailDomainList,
                 AcceptedEmailAddressExceptionList = client.AcceptedEmailAddressExceptionList,

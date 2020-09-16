@@ -179,6 +179,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         <div
           id="client-info"
           className="admin-panel-container"
+          style={{ height: '100%' }}
         >
           <h3 className="admin-panel-header">Client Information</h3>
           <PanelSectionToolbar>
@@ -201,7 +202,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
-          <div className="admin-panel-content-container" style={{ overflow: 'scroll' }}>
+          <div className="admin-panel-content-container" style={{ overflowY: 'scroll' }}>
             <form className={`admin-panel-content ${!edit.status ? 'form-disabled' : ''}`}>
               <div className="form-section-container">
                 <div className="form-section">
