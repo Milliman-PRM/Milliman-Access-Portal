@@ -1,0 +1,40 @@
+﻿@import "../../map_modules/variables";
+
+.progress-indicator-container {
+    margin: .5em 0;
+    padding: 1.5em 3em;
+    display: flex;
+    flex-flow: row wrap;
+    justify-content: space-between;
+    border-top: 1px solid darken($light-grey, 10%);
+    border-bottom: 1px solid darken($light-grey, 10%);
+
+    .progress-step-container {
+        flex: 1 0 auto;
+        display: flex;
+        flex-flow: row nowrap;
+        margin: 0;
+        padding: 1em 0 0;
+
+        &.progress-step-complete,
+        &.progress-step-active {
+            border-top: 2px solid $blue;
+        }
+
+        &.progress-step-pending {
+            border-top: 2px solid darken($light-grey, 10%);
+        }
+
+        .progress-indicator-icon {
+            flex: 0 0 auto;
+            color: $blue;
+            height: 1.5em;
+            width: 1.5em;
+            margin: 0 .75em 0 0;
+        }
+
+        .progress-label {
+            flex: 1 0 auto;
+        }
+    }
+}
