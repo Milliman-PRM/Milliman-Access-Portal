@@ -122,10 +122,6 @@ export interface AccessReviewStateCardAttributes {
 export interface AccessReviewStatePending {
   data: PendingDataState;
   statusTries: number;
-  isMaster: boolean;
-  selections: Dict<{ selected: boolean }>;
-  newGroupName: string;
-  deleteGroup: Guid;
 }
 
 /**
