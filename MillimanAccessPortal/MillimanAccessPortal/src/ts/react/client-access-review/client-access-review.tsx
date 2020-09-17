@@ -32,6 +32,7 @@ interface ClientAccessReviewProps {
   clients: ClientEntity[];
   clientSummary: ClientSummaryModel;
   clientAccessReview: ClientAccessReviewModel;
+  clientAccessReviewProgress: ClientAccessReviewProgress;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
   pending: AccessReviewStatePending;
@@ -222,7 +223,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientAccessReviewPanel() {
-    const { clientAccessReview, pending } = this.props;
+    const { clientAccessReview, clientAccessReviewProgress, pending } = this.props;
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -251,9 +252,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     label: 'Attestations',
                   },
                 }}
-                currentStep={ClientAccessReviewProgress.userRoles}
+                currentStep={clientAccessReviewProgress}
               />
             </div>
+            <button className="link-button" onClick={() => this.props.goToPreviousAccessReviewStep({})}>
+              Back
+            </button>
+            <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
+              Continue
+            </button>
           </div>
         </div>
       </div>
@@ -267,6 +274,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     clients: clientEntities(state),
     clientSummary: data.selectedClientSummary,
     clientAccessReview: data.clientAccessReview,
+    clientAccessReviewProgress: pending.clientAccessReviewProgress,
     selected,
     cardAttributes,
     pending,
