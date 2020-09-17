@@ -23,6 +23,20 @@ export interface SetFilterTextClient {
   text: string;
 }
 
+/**
+ * Go to the next step of the Client Access Review.
+ */
+export interface GoToNextAccessReviewStep {
+  type: 'GO_TO_NEXT_ACCESS_REVIEW_STEP';
+}
+
+/**
+ * Go to the previous step of the Client Access Review.
+ */
+export interface GoToPreviousAccessReviewStep {
+  type: 'GO_TO_PREVIOUS_ACCESS_REVIEW_STEP';
+}
+
 // ~~ Server actions ~~
 
 /**
@@ -136,6 +150,8 @@ export interface ScheduleSessionCheck {
 export type PageAccessReviewAction =
   | SelectClient
   | SetFilterTextClient
+  | GoToNextAccessReviewStep
+  | GoToPreviousAccessReviewStep
   ;
 
 /**
