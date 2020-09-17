@@ -57,7 +57,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?
-          <div>
+          <div style={{ width: '100%' }}>
             {this.props.pending.details ?
               <ColumnSpinner />
               : this.renderClientDetail()
@@ -70,7 +70,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, details, selected, filters, pending } = this.props;
+    const { clients, selected, filters, pending } = this.props;
     return (
       <CardPanel
         entities={clients}
