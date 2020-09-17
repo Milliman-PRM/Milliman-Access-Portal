@@ -9,6 +9,11 @@ export const selectClient =
 export const setFilterTextClient =
   createActionCreator<AccessReviewActions.SetFilterTextClient>('SET_FILTER_TEXT_CLIENT');
 
+export const goToNextAccessReviewStep =
+  createActionCreator<AccessReviewActions.GoToNextAccessReviewStep>('GO_TO_NEXT_ACCESS_REVIEW_STEP');
+export const goToPreviousAccessReviewStep =
+  createActionCreator<AccessReviewActions.GoToPreviousAccessReviewStep>('GO_TO_PREVIOUS_ACCESS_REVIEW_STEP');
+
 // Data fetches
 export const fetchGlobalData =
   createRequestActionCreator<AccessReviewActions.FetchGlobalData>('FETCH_GLOBAL_DATA');

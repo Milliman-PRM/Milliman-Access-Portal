@@ -7,7 +7,9 @@ import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as AccessReviewActions from './actions';
 import { AccessReviewAction, FilterAccessReviewAction } from './actions';
-import { AccessReviewStateData, AccessReviewStateSelected, PendingDataState } from './store';
+import {
+  AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress, PendingDataState,
+} from './store';
 
 const _initialData: AccessReviewStateData = {
   globalData: {
@@ -112,6 +114,12 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 
+const reviewProgress = createReducer<ClientAccessReviewProgress>(0, {
+  FETCH_CLIENT_SUMMARY_SUCCEEDED: () => 0,
+  GO_TO_NEXT_ACCESS_REVIEW_STEP: (state) => (state < ClientAccessReviewProgress.attestations) ? state + 1 : state,
+  GO_TO_PREVIOUS_ACCESS_REVIEW_STEP: (state) => (state > ClientAccessReviewProgress.clientReview) ? state - 1 : state,
+});
+
 const data = createReducer<AccessReviewStateData>(_initialData, {
   FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessReviewActions.FetchGlobalDataSucceeded) => ({
     ...state,
@@ -152,6 +160,7 @@ const cardAttributes = combineReducers({
 
 const pending = combineReducers({
   data: pendingData,
+  clientAccessReviewProgress: reviewProgress,
 });
 
 const filters = combineReducers({
