@@ -25,7 +25,7 @@ export interface SelectUser {
  */
 export interface SetEditStatus {
   type: 'SET_EDIT_STATUS';
-  status: boolean;
+  disabled: boolean;
 }
 
 /**
@@ -72,8 +72,8 @@ export interface SetFilterTextUser {
 export interface ClearFormData {
   type: 'CLEAR_FORM_DATA';
 }
-export interface SetFormData {
-  type: 'SET_FORM_DATA';
+export interface ResetFormData {
+  type: 'RESET_FORM_DATA';
   details: ClientDetail;
 }
 export interface SetClientName {
@@ -118,7 +118,7 @@ export interface SetProfitCenter {
 }
 export interface SetOffice {
   type: 'SET_OFFICE';
-  office: string;
+  consultantOffice: string;
 }
 export interface SetConsultantName {
   type: 'SET_CONSULTANT_NAME';
@@ -126,6 +126,27 @@ export interface SetConsultantName {
 }
 export interface SetConsultantEmail {
   type: 'SET_CONSULTANT_EMAIL';
+  consultantEmail: string;
+}
+
+// ~ Checking validity of form items ~
+export interface ResetValidity {
+  type: 'RESET_VALIDITY';
+}
+export interface CheckClientNameValidity {
+  type: 'CHECK_CLIENT_NAME_VALIDITY';
+  name: string;
+}
+export interface CheckProfitCenterValidity {
+  type: 'CHECK_PROFIT_CENTER_VALIDITY';
+  profitCenterId: Guid;
+}
+export interface CheckClientContactEmailValidity {
+  type: 'CHECK_CLIENT_CONTACT_EMAIL_VALIDITY';
+  clientContactEmail: string;
+}
+export interface CheckConsultantEmailValidity {
+  type: 'CHECK_CONSULTANT_EMAIL_VALIDITY';
   consultantEmail: string;
 }
 
@@ -268,7 +289,7 @@ export type FilterAccessAction =
 
 export type FormAction =
   | ClearFormData
-  | SetFormData
+  | ResetFormData
   | SetClientName
   | SetClientCode
   | SetClientContactName
@@ -282,6 +303,13 @@ export type FormAction =
   | SetOffice
   | SetConsultantName
   | SetConsultantEmail;
+
+export type ValidityAction =
+  | ResetValidity
+  | CheckClientNameValidity
+  | CheckProfitCenterValidity
+  | CheckClientContactEmailValidity
+  | CheckConsultantEmailValidity;
 
 /**
  * An action that makes an Ajax request.
@@ -323,7 +351,8 @@ export type PageAccessAction =
   | SetAllCollapsedUser
   | SetAllExpandedUser
   | FilterAccessAction
-  | FormAction;
+  | FormAction
+  | ValidityAction;
 
 export type AccessAction =
   | PageAccessAction

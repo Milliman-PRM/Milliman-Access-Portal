@@ -4,10 +4,10 @@ import { connect } from 'react-redux';
 import * as AccessActionCreators from './redux/action-creators';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
-  AccessStateSelected, PendingDataState,
+  AccessStateSelected, AccessStateValid, PendingDataState,
 } from './redux/store';
 
-import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -21,6 +21,7 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
+import { Input } from '../shared-components/form/input';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
@@ -38,6 +39,7 @@ interface ClientAdminProps {
   edit: AccessStateEdit;
   filters: AccessStateFilters;
   cardAttributes: AccessStateCardAttributes;
+  valid: AccessStateValid;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -62,7 +64,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             }
           </div> : null
         }
-        {this.props.selected.client !== null ? this.renderClientUsers() : null}
+        {this.props.selected.client !== null && !this.props.pending.details  ? this.renderClientUsers() : null}
       </>
     );
   }
@@ -85,6 +87,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 onClick={() => {
                   this.props.selectClient({ id: 'new' });
                   this.props.clearFormData({});
+                  this.props.setEditStatus({ disabled: false });
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -106,6 +109,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               onSelect={() => {
                 this.props.selectClient({ id: entity.id });
                 this.props.fetchClientDetails({ clientId: entity.id });
+                this.props.setEditStatus({ disabled: true });
               }}
               indentation={entity.indent}
             >
@@ -125,21 +129,23 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </CardSectionStats>
                 <CardSectionButtons>
                   <CardButton
-                    icon="delete"
+                    icon={'delete'}
                     color={'red'}
                     onClick={() => this.props.deleteClient(entity.id)}
                   />
                   <CardButton
-                    icon="edit"
+                    icon={'edit'}
                     color={'blue'}
                     onClick={() => {
-                      this.props.selectClient({ id: entity.id });
+                      if (selected.client !== entity.id) {
+                        this.props.selectClient({ id: entity.id });
+                      }
                       this.props.fetchClientDetails({ clientId: entity.id });
-                      this.props.setEditStatus({ status: true });
+                      this.props.setEditStatus({ disabled: false });
                     }}
                   />
                   <CardButton
-                    icon="add"
+                    icon={'add'}
                     color={'green'}
                     onClick={null}
                   />
@@ -163,7 +169,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               action={() => {
                 this.props.selectClient({ id: 'new' });
                 this.props.clearFormData({});
-                this.props.setEditStatus({ status: true });
+                this.props.setEditStatus({ disabled: false });
               }}
             />
           </PanelSectionToolbarButtons>
@@ -173,7 +179,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, details, profitCenters, selected, edit } = this.props;
+    const { formData, profitCenters, details, selected, edit, valid } = this.props;
     return (
       <>
         <div
@@ -184,26 +190,26 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <h3 className="admin-panel-header">Client Information</h3>
           <PanelSectionToolbar>
             <PanelSectionToolbarButtons>
-              {!edit.status ?
+              {edit.disabled ?
                 <ActionIcon
                   label="Edit client details"
                   icon="edit"
                   action={() => {
-                    this.props.setEditStatus({ status: true });
+                    this.props.setEditStatus({ disabled: false });
                   }}
                 /> :
                 <ActionIcon
                   label="Cancel edit"
                   icon="cancel"
                   action={() => {
-                    this.props.setEditStatus({ status: false });
+                    this.props.setEditStatus({ disabled: true });
                   }}
                 />
               }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
           <div className="admin-panel-content-container" style={{ overflowY: 'scroll' }}>
-            <form className={`admin-panel-content ${!edit.status ? 'form-disabled' : ''}`}>
+            <form className={`admin-panel-content ${edit.disabled ? 'form-disabled' : ''}`}>
               <div className="form-section-container">
                 <div className="form-section">
                   <h4 className="form-section-title">Client Information</h4>
@@ -212,90 +218,116 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       className="form-input form-input-text
                                  flex-item-for-phone-only-12-12 flex-item-for-tablet-up-9-12"
                     >
-                      <label className="form-input-text-title">Client Name *</label>
                       <div>
-                        <input
+                        <Input
+                          name="clientName"
+                          label="Client Name *"
+                          type="text"
                           value={formData.name}
                           onChange={(event) => {
-                            this.props.setClientName({ name: event.target.value });
+                            this.props.setClientName({ name: event.currentTarget.value });
+                            this.props.checkClientNameValidity({ name: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={valid.name.valid ? null : valid.name.message}
                         />
-                        <span asp-validation-for="Name" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-3-12"
                     >
-                      <label className="form-input-text-title">Client Code</label>
                       <div>
-                        <input
-                          placeholder={formData.clientCode}
+                        <Input
+                          name="clientCode"
+                          label="Client Code"
+                          type="text"
+                          value={formData.clientCode}
                           onChange={(event) => {
                             this.props.setClientCode({ clientCode: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-text-title">Primary Client Contact</label>
                       <div>
-                        <input
+                        <Input
+                          name="contactName"
+                          label="Client Contact Name"
+                          type="text"
                           value={formData.contactName}
-                          onClick={(event) => {
+                          onChange={(event) => {
                             this.props.setClientContactName({ contactName: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span asp-validation-for="ContactName" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-text-title" asp-for="ContactTitle">Client Contact Title</label>
                       <div>
-                        <input
+                        <Input
+                          name="clientContactTitle"
+                          label="Client Contact Title"
+                          type="text"
                           value={formData.contactTitle}
                           onChange={(event) => {
-                            this.props.setClientContactTitle({ clientContactTitle: event.target.value });
+                            this.props.setClientContactTitle({ clientContactTitle: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span asp-validation-for="ContactTitle" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-9-12"
                     >
-                      <label className="form-input-text-title">Client Contact Email</label>
                       <div>
-                        <input
+                        <Input
+                          name="contactEmail"
+                          label="Client Contact Email"
+                          type="text"
                           value={formData.contactEmail}
                           onChange={(event) => {
-                            this.props.setClientContactEmail({ clientContactEmail: event.target.value });
+                            this.props.checkContactEmailValidity({ clientContactEmail: event.currentTarget.value });
+                            this.props.setClientContactEmail({ clientContactEmail: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={valid.clientContactEmail.valid ? null : valid.clientContactEmail.message}
                         />
-                        <span asp-validation-for="ContactEmail" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-3-12"
                     >
-                      <label className="form-input-text-title">Client Contact Phone</label>
                       <div>
-                        <input
+                        <Input
+                          name="contactPhone"
+                          label="Client Contact Phone"
+                          type="text"
                           value={formData.contactPhone}
                           onChange={(event) => {
-                            this.props.setClientContactPhone({ clientContactPhone: event.target.value });
+                            this.props.setClientContactPhone({ clientContactPhone: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span asp-validation-for="ContactPhone" className="text-danger" />
                       </div>
                     </div>
                   </div>
@@ -304,22 +336,38 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <h4 className="form-section-title">Security Information</h4>
                   <div className="form-input-container">
                     <div className="form-input form-input-selectized flex-item-12-12">
-                      <label className="form-input-selectized-title">
-                        Approved Email Domain List <span id="email-domain-limit-label" />
-                      </label>
                       <div>
-                        <input
-                          className="selectize-custom-input"
-                          placeholder={formData.acceptedEmailDomainList.join(', ')}
+                        <Input
+                          name="approvedEmailDomainList"
+                          label="Approved Email Domain List"
+                          type="text"
+                          value={formData.acceptedEmailDomainList.join(', ')}
+                          onChange={(event) => {
+                            this.props.setAcceptedEmailDomainList({
+                              acceptedEmailDomainList: event.currentTarget.value.split(', '),
+                            });
+                          }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
                       </div>
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
-                      <label className="form-input-selectized-title">Approved Email Address Exception List</label>
                       <div>
-                        <input
-                          className="selectize-custom-input"
-                          placeholder={formData.acceptedEmailAddressExceptionList.join(', ')}
+                        <Input
+                          name="approvedEmailAddressExceptionList"
+                          label="Approved Email Address Exception List"
+                          type="text"
+                          value={formData.acceptedEmailAddressExceptionList}
+                          onChange={(event) => {
+                            this.props.setAcceptedEmailAddressExceptionList({
+                              acceptedEmailAddressAcceptionList: event.currentTarget.value.split(', '),
+                            });
+                          }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
                       </div>
                     </div>
@@ -332,45 +380,58 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-text-title" asp-for="ConsultantName">Primary Consultant</label>
                       <div>
-                        <input
+                        <Input
+                          name="consultantName"
+                          label="Primary Consultant"
+                          type="text"
                           value={formData.consultantName}
                           onChange={(event) => {
-                            this.props.setConsultantName({ consultantName: event.target.value });
+                            this.props.setConsultantName({ consultantName: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span asp-validation-for="ConsultantName" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-text-title" asp-for="ConsultantEmail">Consultant Email</label>
                       <div>
-                        <input
+                        <Input
+                          name="consultantEmail"
+                          label="Consultant Email"
+                          type="text"
                           value={formData.consultantEmail}
                           onChange={(event) => {
-                            this.props.setConsultantEmail({ consultantEmail: event.target.value });
+                            this.props.checkConsultantEmailValidity({ consultantEmail: event.currentTarget.value });
+                            this.props.setConsultantEmail({ consultantEmail: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={valid.consultantEmail.valid ? null : valid.consultantEmail.message}
                         />
-                        <span asp-validation-for="ConsultantEmail" className="text-danger" />
                       </div>
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-text-title" asp-for="ConsultantOffice">Office</label>
                       <div>
-                        <input
-                          value={formData.office}
+                        <Input
+                          name="office"
+                          label="Office"
+                          type="text"
+                          value={formData.consultantOffice}
                           onChange={(event) => {
-                            this.props.setOffice({ office: event.target.value });
+                            this.props.setOffice({ consultantOffice: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
+                          onBlur={() => { return; }}
+                          error={null}
                         />
-                        <span asp-validation-for="ConsultantOffice" className="text-danger" />
                       </div>
                     </div>
                     <div
@@ -380,10 +441,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
                         <select
-                          value={details.profitCenter.id}
-                          onChange={(event) => this.props.setProfitCenter((event.target.value) ? {
-                            profitCenterId: event.target.value,
-                          } : null)}
+                          disabled={edit.disabled}
+                          value={formData.profitCenterId}
+                          onChange={(event) => {
+                            const profitCenterId = event.currentTarget.value ? event.currentTarget.value : null;
+                            this.props.checkProfitCenterValidity({ profitCenterId });
+                            this.props.setProfitCenter({ profitCenterId });
+                          }}
                         >
                           <option value="">Make a Selection</option>
                           {profitCenters.map((profitCenter) => (
@@ -396,7 +460,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             ))
                           }
                         </select>
-                        <span asp-validation-for="ProfitCenterId" className="text-danger" />
+                        <span style={{fontSize: '0.9rem', color: 'red' }}>{valid.profitCenter.message}</span>
                       </div>
                     </div>
                   </div>
@@ -424,27 +488,57 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
-                {edit.status ?
+                {!edit.disabled ?
                   <div className="form-submission-section">
                     {selected.client === 'new' ?
                       <div className="button-container button-container-new">
-                        <button type="button" className="button-reset link-button">Reset Form</button>
                         <button
                           type="button"
+                          className="button-reset link-button"
+                          onClick={() => {
+                            this.props.resetValidity({});
+                            this.props.clearFormData({});
+                          }}
+                        >
+                          Reset Form
+                        </button>
+                        <button
+                          disabled={!formData.name || !formData.profitCenterId || !this.isFormValid(valid)}
+                          type="button"
                           className="button-submit green-button"
-                          onClick={() => this.props.saveNewClient(formData)}
+                          onClick={() => {
+                            // Check validity of fields in case user forgot to fill one out, since errors won't display
+                            // initially.
+                            this.props.checkClientNameValidity({ name: formData.name });
+                            this.props.checkProfitCenterValidity({ profitCenterId: formData.profitCenterId });
+
+                            if (this.isFormValid(valid)) {
+                              this.props.saveNewClient(formData);
+                            }
+                          }}
                         >
                           Create Client
                         </button>
+
                       </div> :
                       <div className="button-container button-container-edit">
-                        <button type="button" className="button-reset link-button">Discard Changes</button>
+                        <button
+                          type="button"
+                          className="button-reset link-button"
+                          onClick={() => {
+                            this.props.resetValidity({});
+                            this.props.resetFormData({ details });
+                          }}
+                        >
+                          Discard Changes
+                        </button>
                         <button
                           type="button"
                           className="button-submit blue-button"
+                          disabled={!this.isFormValid(valid)}
                           onClick={() => {
                             this.props.editClient(formData);
-                            this.props.setEditStatus({ status: false });
+                            this.props.setEditStatus({ disabled: true });
                           }}
                         >
                           Save Changes
@@ -557,7 +651,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   action={() => {
                     this.props.selectClient({ id: 'new' });
                     this.props.clearFormData({});
-                    this.props.setEditStatus({ status: true });
+                    this.props.setEditStatus({ disabled: false });
                   }}
                 />
               </PanelSectionToolbarButtons>
@@ -577,10 +671,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       userId: user,
     });
   }
+
+  private isFormValid(valid: AccessStateValid) {
+    return valid.name.valid &&
+           valid.profitCenter.valid &&
+           valid.clientContactEmail.valid &&
+           valid.consultantEmail.valid;
+  }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters, pending } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending, valid } = state;
 
   return {
     clients: clientEntities(state),
@@ -593,6 +694,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     edit,
     filters,
     pending,
+    valid,
   };
 }
 

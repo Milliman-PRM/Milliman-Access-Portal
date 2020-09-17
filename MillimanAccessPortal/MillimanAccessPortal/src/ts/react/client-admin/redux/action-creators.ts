@@ -30,8 +30,8 @@ export const setFilterTextUser =
 // Form Actions
 export const clearFormData =
   createActionCreator<AccessActions.ClearFormData>('CLEAR_FORM_DATA');
-export const setFormData =
-  createActionCreator<AccessActions.SetFormData>('SET_FORM_DATA');
+export const resetFormData =
+  createActionCreator<AccessActions.ResetFormData>('RESET_FORM_DATA');
 export const setClientName =
   createActionCreator<AccessActions.SetClientName>('SET_CLIENT_NAME');
 export const setClientCode =
@@ -58,6 +58,18 @@ export const setConsultantName =
   createActionCreator<AccessActions.SetConsultantName>('SET_CONSULTANT_NAME');
 export const setConsultantEmail =
   createActionCreator<AccessActions.SetConsultantEmail>('SET_CONSULTANT_EMAIL');
+
+// Validity Actions
+export const resetValidity =
+  createActionCreator<AccessActions.ResetValidity>('RESET_VALIDITY');
+export const checkClientNameValidity =
+  createActionCreator<AccessActions.CheckClientNameValidity>('CHECK_CLIENT_NAME_VALIDITY');
+export const checkProfitCenterValidity =
+  createActionCreator<AccessActions.CheckProfitCenterValidity>('CHECK_PROFIT_CENTER_VALIDITY');
+export const checkContactEmailValidity =
+  createActionCreator<AccessActions.CheckClientContactEmailValidity>('CHECK_CLIENT_CONTACT_EMAIL_VALIDITY');
+export const checkConsultantEmailValidity =
+  createActionCreator<AccessActions.CheckConsultantEmailValidity>('CHECK_CONSULTANT_EMAIL_VALIDITY');
 
 // Data fetches/posts
 export const fetchClients =

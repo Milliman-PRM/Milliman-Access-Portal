@@ -1,14 +1,20 @@
 ﻿import * as _ from 'lodash';
+import * as Yup from 'yup';
 
 import { combineReducers } from 'redux';
 
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
-import { AccessStateData, AccessStateEdit, AccessStateFormData, AccessStateSelected, PendingDataState } from './store';
+import {
+  AccessStateData, AccessStateEdit, AccessStateFormData,
+  AccessStateSelected, AccessStateValid, PendingDataState,
+} from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
+
+const emailRegex = /\S+@\S+\.\S+/;
 
 const _initialPendingData: PendingDataState = {
   clients: false,
@@ -61,13 +67,20 @@ const _initialFormData: AccessStateFormData = {
   parentClientId: '',
 };
 
+const _initialValidation: AccessStateValid = {
+  name: { valid: true },
+  profitCenter: { valid: true },
+  clientContactEmail: { valid: true },
+  consultantEmail: { valid: true },
+};
+
 const _initialSelected: AccessStateSelected = {
   client: null,
   user: null,
 };
 
 const _initialEditStatus: AccessStateEdit = {
-  status: false,
+  disabled: true,
 };
 
 /**
@@ -159,7 +172,7 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
   SET_EDIT_STATUS: (state, action: AccessActions.SetEditStatus) => ({
     ...state,
-    status: action.status,
+    disabled: action.disabled,
   }),
 });
 
@@ -181,15 +194,15 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
     acceptedEmailDomainList: action.response.clientDetail.acceptedEmailDomainList,
     acceptedEmailAddressExceptionList: action.response.clientDetail.acceptedEmailAddressExceptionList,
     profitCenterId: action.response.clientDetail.profitCenter.id,
-    office: action.response.clientDetail.office,
+    consultantOffice: action.response.clientDetail.office,
     consultantName: action.response.clientDetail.consultantName,
     consultantEmail: action.response.clientDetail.consultantEmail ?
                      action.response.clientDetail.consultantEmail : null,
   }),
-  SET_FORM_DATA: (state, action: AccessActions.SetFormData) => ({
+  RESET_FORM_DATA: (state, action: AccessActions.ResetFormData) => ({
     ...state,
     id: action.details.id,
-    name: action.details.name,
+    name: action.details.name || action.details.clientName,
     clientCode: action.details.clientCode,
     contactName: action.details.clientContactName,
     contactTitle: action.details.clientContactTitle,
@@ -199,7 +212,7 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
     acceptedEmailDomainList: action.details.acceptedEmailDomainList,
     acceptedEmailAddressExceptionList: action.details.acceptedEmailAddressExceptionList,
     profitCenterId: action.details.profitCenter.id,
-    office: action.details.office,
+    consultantOffice: action.details.office,
     consultantName: action.details.consultantName,
     consultantEmail: action.details.consultantEmail ? action.details.consultantEmail : null,
   }),
@@ -257,6 +270,42 @@ const formData = createReducer<AccessStateFormData>(_initialFormData, {
   }),
 });
 
+const valid = createReducer<AccessStateValid>(_initialValidation, {
+  RESET_VALIDITY: () => _initialValidation,
+  CHECK_CLIENT_NAME_VALIDITY: (state, action: AccessActions.CheckClientNameValidity) => ({
+    ...state,
+    name: {
+      valid: action.name.trim() ? true : false,
+      message: action.name.trim() ? null : 'Client Name is a required field.',
+    },
+  }),
+  CHECK_PROFIT_CENTER_VALIDITY: (state, action: AccessActions.CheckProfitCenterValidity) => ({
+    ...state,
+    profitCenter: {
+      valid: action.profitCenterId ? true : false,
+      message: action.profitCenterId ? null : 'Profit Center is a required field.',
+    },
+  }),
+  CHECK_CLIENT_CONTACT_EMAIL_VALIDITY: (state, action: AccessActions.CheckClientContactEmailValidity) => ({
+    ...state,
+    clientContactEmail: {
+      valid: (!action.clientContactEmail.trim() || emailRegex.test(action.clientContactEmail))
+        ? true : false,
+      message: (!action.clientContactEmail.trim() || emailRegex.test(action.clientContactEmail))
+        ? null : 'The Client Contact Email field is not a valid e-mail address.',
+    },
+  }),
+  CHECK_CONSULTANT_EMAIL_VALIDITY: (state, action: AccessActions.CheckConsultantEmailValidity) => ({
+    ...state,
+      consultantEmail: {
+      valid: (!action.consultantEmail.trim() || emailRegex.test(action.consultantEmail))
+        ? true : false,
+      message: (!action.consultantEmail.trim() || emailRegex.test(action.consultantEmail))
+        ? null : 'The Consultant Email field is not a valid e-mail address.',
+    },
+  }),
+});
+
 const userCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
     SET_EXPANDED_USER: (state, action: AccessActions.SetExpandedUser) => ({
@@ -310,6 +359,7 @@ export const clientAdmin = combineReducers({
   selected,
   edit,
   formData,
+  valid,
   filters,
   pending,
 });

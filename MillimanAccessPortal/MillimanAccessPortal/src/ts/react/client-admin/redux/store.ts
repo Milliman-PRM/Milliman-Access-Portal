@@ -18,6 +18,11 @@ export interface PendingDataState {
   details: boolean;
 }
 
+export interface ValidationState {
+  valid: boolean;
+  message?: string;
+}
+
 /**
  * Entity data returned from the server.
  */
@@ -34,7 +39,12 @@ export interface AccessStateSelected {
 }
 
 export interface AccessStateEdit {
-  status: boolean;
+  disabled: boolean;
+}
+
+export interface ValidationState {
+  valid: boolean;
+  message?: string;
 }
 
 export interface AccessStateFormData {
@@ -49,11 +59,18 @@ export interface AccessStateFormData {
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
   profitCenterId: Guid;
-  office: string;
+  consultantOffice: string;
   consultantName: string;
   consultantEmail: string;
   newUserWelcomeText: string;
   parentClientId: Guid;
+}
+
+export interface AccessStateValid {
+  name: ValidationState;
+  profitCenter: ValidationState;
+  clientContactEmail: ValidationState;
+  consultantEmail: ValidationState;
 }
 
 /**
@@ -79,6 +96,7 @@ export interface AccessState {
   filters: AccessStateFilters;
   formData: AccessStateFormData;
   pending: PendingDataState;
+  valid: AccessStateValid;
 }
 
 // Create the store and apply saga middleware
