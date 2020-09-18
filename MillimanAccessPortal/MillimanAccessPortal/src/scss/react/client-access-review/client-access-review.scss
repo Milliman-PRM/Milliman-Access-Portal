@@ -4,6 +4,7 @@
     margin: 0;
     padding: 1em;
     background-color: $white;
+    overflow: auto;
 
     &.warning {
         border-left: 5px solid $orange;
@@ -47,7 +48,7 @@
     .client-summary-detail-section {
         margin: 0;
         padding: 0;
-        margin-bottom: 1rem;
+        margin-bottom: 2.5rem;
 
         .client-detail-label,
         .client-summary-detail,
@@ -86,4 +87,8 @@
 .button-container {
     padding: 1em;
     text-align: right;
+
+    .align-left {
+        float: left;
+    }
 }
