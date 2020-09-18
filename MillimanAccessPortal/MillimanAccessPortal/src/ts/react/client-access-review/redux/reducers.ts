@@ -118,6 +118,7 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>(0, {
   FETCH_CLIENT_SUMMARY_SUCCEEDED: () => 0,
   GO_TO_NEXT_ACCESS_REVIEW_STEP: (state) => (state < ClientAccessReviewProgress.attestations) ? state + 1 : state,
   GO_TO_PREVIOUS_ACCESS_REVIEW_STEP: (state) => (state > ClientAccessReviewProgress.clientReview) ? state - 1 : state,
+  CANCEL_CLIENT_ACCESS_REVIEW: () => 0,
 });
 
 const data = createReducer<AccessReviewStateData>(_initialData, {
@@ -140,6 +141,10 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
   FETCH_CLIENT_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.FetchClientReviewSucceeded) => ({
     ...state,
     clientAccessReview: action.response,
+  }),
+  CANCEL_CLIENT_ACCESS_REVIEW: (state) => ({
+    ...state,
+    clientAccessReview: null,
   }),
 });
 

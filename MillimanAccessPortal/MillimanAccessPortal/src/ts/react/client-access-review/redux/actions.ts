@@ -37,6 +37,13 @@ export interface GoToPreviousAccessReviewStep {
   type: 'GO_TO_PREVIOUS_ACCESS_REVIEW_STEP';
 }
 
+/**
+ * Cancel the current Client Access Review.
+ */
+export interface CancelClientAccessReview {
+  type: 'CANCEL_CLIENT_ACCESS_REVIEW';
+}
+
 // ~~ Server actions ~~
 
 /**
@@ -152,6 +159,7 @@ export type PageAccessReviewAction =
   | SetFilterTextClient
   | GoToNextAccessReviewStep
   | GoToPreviousAccessReviewStep
+  | CancelClientAccessReview
   ;
 
 /**
