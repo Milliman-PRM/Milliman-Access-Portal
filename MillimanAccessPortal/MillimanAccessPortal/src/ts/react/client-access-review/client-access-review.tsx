@@ -262,6 +262,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Back
                 </button>
               }
+              <button className="link-button" onClick={() => this.props.cancelClientAccessReview({})}>
+                Cancel
+              </button>
               {
                 clientAccessReviewProgress !== ClientAccessReviewProgress.attestations ? (
                     <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
