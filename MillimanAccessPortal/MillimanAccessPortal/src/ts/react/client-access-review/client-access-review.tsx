@@ -255,6 +255,150 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 currentStep={clientAccessReviewProgress}
               />
             </div>
+            {
+              clientAccessReviewProgress === ClientAccessReviewProgress.clientReview &&
+              <div className="client-summary-details-container">
+                <div className="client-summary-detail-column">
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Client name</span>
+                    <span className="client-summary-detail">{clientAccessReview.clientName}</span>
+                  </div>
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Client code</span>
+                    <span className="client-summary-detail">{clientAccessReview.clientCode}</span>
+                  </div>
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Client Admins</span>
+                    <ul className="client-summary-list">
+                      {
+                        clientAccessReview.clientAdmins.map((admin) => {
+                          return (
+                            <li className="client-summary-list-item" key={admin.userEmail}>
+                              <div className="client-summary-user-list-container">
+                                <span className="client-summary-detail-name">{admin.name}</span>
+                                <span className="client-summary-detail-email">{admin.userEmail}</span>
+                              </div>
+                            </li>
+                          );
+                        })
+                      }
+                    </ul>
+                  </div>
+                </div>
+                <div className="client-summary-detail-column">
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Profit Center</span>
+                    <span className="client-summary-detail">{clientAccessReview.assignedProfitCenterName}</span>
+                  </div>
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Profit Center Admins</span>
+                    <ul className="client-summary-list">
+                      {
+                        clientAccessReview.profitCenterAdmins.map((admin) => {
+                          return (
+                            <li className="client-summary-list-item" key={admin.userEmail}>
+                              <div className="client-summary-user-list-container">
+                                <span className="client-summary-detail-name">{admin.name}</span>
+                                <span className="client-summary-detail-email">{admin.userEmail}</span>
+                              </div>
+                            </li>
+                          );
+                        })
+                      }
+                    </ul>
+                  </div>
+                </div>
+                <div className="client-summary-detail-column">
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Approved email domain list</span>
+                    <ul className="client-summary-list">
+                      {
+                        clientAccessReview.approvedEmailDomainList.map((domain, index) => {
+                          return (
+                            <li className="client-summary-list-item" key={index}>
+                              <div className="client-summary-user-list-container">
+                                <span className="client-summary-detail">{domain}</span>
+                              </div>
+                            </li>
+                          );
+                        })
+                      }
+                    </ul>
+                  </div>
+                  <div className="client-summary-detail-section">
+                    <span className="client-detail-label">Email address exception list</span>
+                    {
+                      clientAccessReview.approvedEmailExceptionList.length > 0 ? (
+                        <ul className="client-summary-list">
+                          {
+                            clientAccessReview.approvedEmailExceptionList.map((email, index) => {
+                              return (
+                                <li className="client-summary-list-item" key={index}>
+                                  <div className="client-summary-user-list-container">
+                                    <span className="client-summary-detail">{email}</span>
+                                  </div>
+                                </li>
+                              );
+                            })
+                          }
+                        </ul>
+                      ) : (
+                          <span className="client-summary-detail">N/A</span>
+                        )
+                    }
+                  </div>
+                </div>
+              </div>
+            }
+            {
+              clientAccessReviewProgress === ClientAccessReviewProgress.userRoles &&
+              <div className="client-summary-details-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th colSpan={2} />
+                      <th colSpan={6}>Roles</th>
+                    </tr>
+                    <tr>
+                      <th>User Name<br />Email</th>
+                      <th>Last Login</th>
+                      <th>Client Admin</th>
+                      <th>Content Publisher</th>
+                      <th>Content Access Admin</th>
+                      <th>Content User</th>
+                      <th>File Drop Admin</th>
+                      <th>File Drop User</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {
+                      clientAccessReview.memberUsers.map((user) => {
+                        return (
+                          <tr key={user.userEmail}>
+                            <td>
+                              <span className="client-summary-detail-name">{user.name}</span><br />
+                              <span className="client-summary-detail-email">{user.userEmail}</span></td>
+                            <td>
+                              {
+                                user.lastLoginDate
+                                  ? moment.utc(user.lastLoginDate).format('MMM DD, YYYY')
+                                  : 'n/a'
+                              }
+                            </td>
+                            <td>{user.clientUserRoles.Admin ? 'X' : ''}</td>
+                            <td>{user.clientUserRoles.ContentPublisher ? 'X' : ''}</td>
+                            <td>{user.clientUserRoles.ContentAccessAdmin ? 'X' : ''}</td>
+                            <td>{user.clientUserRoles.ContentUser ? 'X' : ''}</td>
+                            <td>{user.clientUserRoles.FileDropAdmin ? 'X' : ''}</td>
+                            <td>{user.clientUserRoles.FileDropUser ? 'X' : ''}</td>
+                          </tr>
+                        );
+                      })
+                    }
+                  </tbody>
+                </table>
+              </div>
+            }
             <div className="button-container">
               {
                 clientAccessReviewProgress !== 0 &&
