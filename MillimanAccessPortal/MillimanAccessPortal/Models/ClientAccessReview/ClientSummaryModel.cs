@@ -19,7 +19,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public string ClientCode { get; set; }
         public DateTime ReviewDueDate { get; set; }
         public DateTime LastReviewDate { get; set; }
-        public string LastReviewedBy { get; set; }
+        public ClientActorModel LastReviewedBy { get; set; }
         public string PrimaryContactName { get; set; }
         public string PrimaryContactEmail { get; set; }
         public string AssignedProfitCenter {get;set;}
@@ -33,25 +33,45 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public string UserEmail { get; set; }
         public bool IsSuspended { get; set; }
 
-        public ClientActorModel(ApplicationUser user)
+        public static explicit operator ClientActorModel(ApplicationUser user)
         {
-            UserEmail = user.Email;
-            Name = $"{user.FirstName} {user.LastName}";
-            IsSuspended = user.IsSuspended;
+            if (user == null)
+            {
+                return null;
+            }
+            else
+            {
+                return new ClientActorModel
+                {
+                    UserEmail = user.Email,
+                    Name = $"{user.FirstName} {user.LastName}",
+                    IsSuspended = user.IsSuspended,
+                };
+            }
         }
 
-        public ClientActorModel(SftpAccount account)
+        public static explicit operator ClientActorModel(SftpAccount account)
         {
-            Name = $"{account.UserName}";
-            IsSuspended = account.IsSuspended;
+            if (account == null)
+            {
+                return null;
+            }
+            else
+            {
+                return new ClientActorModel
+                {
+                    Name = account.UserName,
+                    IsSuspended = account.IsSuspended,
+                };
+            }
         }
 
-        public ClientActorModel(ClientActorReviewModel user)
-        {
-            UserEmail = user.UserEmail;
-            Name = user.Name;
-            IsSuspended = user.IsSuspended;
-        }
+        //public ClientActorModel(ClientActorReviewModel user)
+        //{
+        //    UserEmail = user.UserEmail;
+        //    Name = user.Name;
+        //    IsSuspended = user.IsSuspended;
+        //}
 
     }
 }

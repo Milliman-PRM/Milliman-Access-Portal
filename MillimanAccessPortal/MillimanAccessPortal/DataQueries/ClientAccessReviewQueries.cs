@@ -87,19 +87,22 @@ namespace MillimanAccessPortal.DataQueries
                                                                        .Select(urp => urp.User)
                                                                        .ToListAsync();
 
+            ApplicationUser lastApprover = await _userManager.FindByNameAsync(client.LastAccessReview.UserName);
             var returnModel = new ClientSummaryModel
             {
                 ClientName = client.Name,
                 ClientCode = client.ClientCode,
                 AssignedProfitCenter = client.ProfitCenter.Name,
                 LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
-                LastReviewedBy = client.LastAccessReview.UserName,
+                LastReviewedBy = lastApprover == null
+                    ? new ClientActorModel { Name = client.LastAccessReview.UserName }
+                    : (ClientActorModel)lastApprover,
                 PrimaryContactName = client.ContactName,
                 PrimaryContactEmail = client.ContactEmail,
                 ReviewDueDate = client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
             };
-            clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add(new ClientActorModel(ca)));
-            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add(new ClientActorModel(pca)));
+            clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add((ClientActorModel)ca));
+            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
 
             return returnModel;
         }
@@ -117,14 +120,12 @@ namespace MillimanAccessPortal.DataQueries
                                                                .Where(urc => urc.ClientId == client.Id)
                                                                .Select(urc => urc.Role.RoleEnum)
                                                                .ToList();
-                    return new ClientActorReviewModel(u)
-                    {
-                        LastLoginDate = u.LastLoginUtc,
-                        ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
-                                              .OfType<RoleEnum>()
-                                              .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
-                                              .ToDictionary(p => p.Key, p => p.Value),
-                    };
+                    var memberModel = (ClientActorReviewModel)u;
+                    memberModel.ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
+                                                      .OfType<RoleEnum>()
+                                                      .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
+                                                      .ToDictionary(p => p.Key, p => p.Value);
+                    return memberModel;
                 });
 
             List<RootContentItem> contentItems = await _dbContext.RootContentItem
@@ -152,7 +153,7 @@ namespace MillimanAccessPortal.DataQueries
                 ClientCode = client.ClientCode,
                 ClientAdmins = memberUsers.Where(m => m.ClientUserRoles.ContainsKey(RoleEnum.Admin))
                                           .Where(m => m.ClientUserRoles[RoleEnum.Admin])
-                                          .Select(m => new ClientActorModel(m))
+                                          .Select(m => (ClientActorModel)m)
                                           .ToList(),
                 AssignedProfitCenterName = client.ProfitCenter.Name,
                 AttestationLanguage = _appConfig.GetValue<string>("ClientReviewAttestationLanguage"),
@@ -160,7 +161,7 @@ namespace MillimanAccessPortal.DataQueries
             };
             returnModel.ApprovedEmailDomainList.AddRange(client.AcceptedEmailDomainList);
             returnModel.ApprovedEmailExceptionList.AddRange(client.AcceptedEmailAddressExceptionList);
-            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add(new ClientActorModel(pca)));
+            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
             returnModel.MemberUsers.AddRange(memberUsers);
             contentItems.ForEach(c =>
             {
@@ -188,7 +189,7 @@ namespace MillimanAccessPortal.DataQueries
                     };
                     groupModel.AuthorizedUsers.AddRange(_dbContext.UserInSelectionGroup
                                                                   .Where(usg => usg.SelectionGroupId == g.Id)
-                                                                  .Select(usg => new ClientActorModel(usg.User)));
+                                                                  .Select(usg => (ClientActorModel)usg.User));
                     contentModel.SelectionGroups.Add(groupModel);
                 });
 
@@ -203,8 +204,8 @@ namespace MillimanAccessPortal.DataQueries
                     {
                         PermissionGroupName = group.Name,
                         Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
-                        AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => new ClientActorModel(a.ApplicationUser)).ToList(),
-                        AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => new ClientActorModel(a)).ToList(),
+                        AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
+                        AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a).ToList(),
                     });
                 }
                 returnModel.FileDrops.Add(fileDropModel);

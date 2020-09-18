@@ -33,14 +33,41 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public DateTime? LastLoginDate { get; set; }
         public Dictionary<RoleEnum, bool> ClientUserRoles { get; set; }
 
-        public ClientActorReviewModel(ApplicationUser user)
-            :base(user)
-        {}
+        /// <summary>
+        /// Does not set the ClientUserRoles property
+        /// </summary>
+        /// <param name="user"></param>
+        public static explicit operator ClientActorReviewModel(ApplicationUser user)
+        {
+            var baseModel = (ClientActorModel)user;
 
-        public ClientActorReviewModel(SftpAccount account)
-            : base(account)
-        {}
+            return new ClientActorReviewModel()
+            {
+                Name = baseModel.Name,
+                UserEmail = baseModel.UserEmail,
+                IsSuspended = baseModel.IsSuspended,
+                LastLoginDate = user.LastLoginUtc,
+            };
+        }
+
+        /// <summary>
+        /// Does not set the ClientUserRoles property
+        /// </summary>
+        /// <param name="account"></param>
+        public static explicit operator ClientActorReviewModel(SftpAccount account)
+        {
+            var baseModel = (ClientActorModel)account;
+
+            return new ClientActorReviewModel()
+            {
+                Name = baseModel.Name,
+                UserEmail = baseModel.UserEmail,
+                IsSuspended = baseModel.IsSuspended,
+                LastLoginDate = account.LastLoginUtc,
+            };
+        }
     }
+
     public class ClientContentItemModel
     {
         public string ContentItemName { get; set; }
@@ -68,86 +95,3 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public List<ClientActorModel> AuthorizedServiceAccounts { get; set; } = new List<ClientActorModel>();
     }
 }
-
-/*
-Response: {
-    //Id: Guid,
-    //ClientName: string,
-    //ClientCode: string,
-    //ClientAdmins: [
-    //   {
-    //        UserName: string,
-    //        UserEmail: string,
-    //    },
-    //],
-    //AssignedProfitCenter: string,
-    //ProfitCenterAdmins: [
-    //    {
-    //        UserName: string,
-    //        UserEmail: string,
-    //    },
-    //],
-    //ApprovedEmailDomainList: [string],
-    //ApprovedEmailExceptionList: [string],
-    //UserRoles: [
-    //    {
-    //        UserName: string,
-    //        UserEmail: string,
-    //        LastLoginDate: datetime,
-    //        Roles: {
-    //            ClientAdmin: boolean,
-    //            ContentPublisher: boolean,
-    //            ContentAccessAdmin: boolean,
-    //            ContentUser: boolean,
-    //            FileDropAdmin: boolean,
-    //            FileDropUser: boolean,
-    //        },
-    //    },
-    //],
-    //AuthorizedContentUsers: {
-    //    UserId: {
-    //        UserName: string,
-    //        UserEmail: string,
-    //    },
-    //},
-    //ContentItems: [
-    //    {
-    //        ContentItemName: string,
-    //        ContentType: string,
-    //        LastPublishedDate: datetime,
-    //        SelectionGroups: [
-    //            {
-    //                SelectionGroupName: string,
-    //                AuthorizedUsers: [Guid]
-    //            }
-    //        ]
-    //    },
-    //],
-    //AuthorizedFileDropUsers: {
-    //    UserId: {
-    //        UserName: string,
-    //        UserEmail: string,
-    //        Admin: boolean,
-    //    },
-    //},
-    FileDrops: [
-        {
-            FileDropName: string,
-            PermissionGroups: [
-                {
-                    PermissionGroupName: string,
-                    Permissions: {
-                        Read: boolean,
-                        Write: boolean,
-                        Delete: boolean,
-                    },
-                    Users: [Guid],
-                },
-            ],
-        },
-    ],
-    Attestation: string,
-    ReviewId: Guid,
-}
-}
-*/

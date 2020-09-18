@@ -38,7 +38,6 @@ namespace MapTests
             ClientAccessReviewController testController = new ClientAccessReviewController(
                 testResources.AuditLogger,
                 testResources.AuthorizationService,
-                testResources.ContentAccessAdminQueries,
                 testResources.ClientAccessReviewQueries,
                 testResources.UserManager,
                 testResources.Configuration);
