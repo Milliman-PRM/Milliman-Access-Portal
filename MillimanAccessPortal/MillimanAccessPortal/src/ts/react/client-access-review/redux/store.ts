@@ -50,7 +50,15 @@ export interface ClientAccessReviewModel {
 
 interface ClientActorReviewModel extends ClientActorModel {
   lastLoginDate?: string;
-  clientUserRoles: Dict<boolean>;
+  clientUserRoles: {
+    Admin: boolean;
+    ContentAccessAdmin: boolean;
+    ContentPublisher: boolean;
+    ContentUser: boolean;
+    FileDropAdmin: boolean;
+    FileDropUser: boolean;
+    UserCreator: boolean;
+  };
 }
 
 interface ClientContentItemModel {
