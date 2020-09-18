@@ -255,12 +255,25 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 currentStep={clientAccessReviewProgress}
               />
             </div>
-            <button className="link-button" onClick={() => this.props.goToPreviousAccessReviewStep({})}>
-              Back
-            </button>
-            <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
-              Continue
-            </button>
+            <div className="button-container">
+              {
+                clientAccessReviewProgress !== 0 &&
+                <button className="link-button align-left" onClick={() => this.props.goToPreviousAccessReviewStep({})}>
+                  Back
+                </button>
+              }
+              {
+                clientAccessReviewProgress !== ClientAccessReviewProgress.attestations ? (
+                    <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
+                      Continue
+                    </button>
+                  ) : (
+                    <button className="blue-button" onClick={() => false}>
+                      Complete Review
+                    </button>
+                  )
+              }
+            </div>
           </div>
         </div>
       </div>
