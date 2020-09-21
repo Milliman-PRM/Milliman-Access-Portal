@@ -47,8 +47,7 @@ export interface ValidationState {
   message?: string;
 }
 
-export interface AccessStateFormData {
-  id?: Guid;
+export interface AccessStateBaseFormData {
   name: string;
   clientCode: string;
   contactName: string;
@@ -64,6 +63,10 @@ export interface AccessStateFormData {
   consultantEmail: string;
   newUserWelcomeText: string;
   parentClientId: Guid;
+}
+
+export interface AccessStateFormData extends AccessStateBaseFormData {
+  id?: Guid;
 }
 
 export interface AccessStateValid {
@@ -94,7 +97,7 @@ export interface AccessState {
   edit: AccessStateEdit;
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
-  formData: AccessStateFormData;
+  formData: AccessStateBaseFormData;
   pending: PendingDataState;
   valid: AccessStateValid;
 }

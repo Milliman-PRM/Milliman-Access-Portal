@@ -192,6 +192,9 @@ export interface FetchProfitCentersFailed {
  * GET:
  *   details for a client that can be viewed or changed by a client admin;
  */
+export interface ResetClientDetails {
+  type: 'RESET_CLIENT_DETAILS';
+}
 export interface FetchClientDetails {
   type: 'FETCH_CLIENT_DETAILS';
   request: {
@@ -352,7 +355,9 @@ export type PageAccessAction =
   | SetAllExpandedUser
   | FilterAccessAction
   | FormAction
-  | ValidityAction;
+  | ValidityAction
+  | ResetClientDetails
+  ;
 
 export type AccessAction =
   | PageAccessAction

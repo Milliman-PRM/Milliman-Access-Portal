@@ -6,13 +6,14 @@ import { combineReducers } from 'redux';
 import { AccessAction, FilterAccessAction } from './actions';
 import * as AccessActions from './actions';
 import {
-  AccessStateData, AccessStateEdit, AccessStateFormData,
+  AccessStateBaseFormData, AccessStateData, AccessStateEdit, AccessStateFormData,
   AccessStateSelected, AccessStateValid, PendingDataState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
+import { ClientDetail } from '../../system-admin/interfaces';
 
 const emailRegex = /\S+@\S+\.\S+/;
 
@@ -21,48 +22,49 @@ const _initialPendingData: PendingDataState = {
   details: false,
 };
 
+const initialDetails: ClientDetail = {
+  id: null,
+  name: '',
+  clientCode: '',
+  clientContactName: '',
+  clientContactTitle: '',
+  clientContactEmail: null,
+  clientContactPhone: null,
+  domainListCountLimit: 0,
+  acceptedEmailDomainList: [],
+  acceptedEmailAddressExceptionList: [],
+  profitCenter: {
+    id: '',
+    name: '',
+    code: '',
+    office: '',
+  },
+  office: '',
+  consultantName: '',
+  consultantEmail: null,
+};
+
 const _initialData: AccessStateData = {
   clients: {},
   profitCenters: [],
-  details: {
-    id: null,
-    name: '',
-    clientCode: '',
-    clientContactName: '',
-    clientContactTitle: '',
-    clientContactEmail: '',
-    clientContactPhone: '',
-    domainListCountLimit: 0,
-    acceptedEmailDomainList: [],
-    acceptedEmailAddressExceptionList: [],
-    profitCenter: {
-      id: '',
-      name: '',
-      code: '',
-      office: '',
-    },
-    office: '',
-    consultantName: '',
-    consultantEmail: '',
-  },
+  details: initialDetails,
   assignedUsers: [],
 };
 
-const _initialFormData: AccessStateFormData = {
-  id: '',
+const _initialFormData: AccessStateBaseFormData = {
   name: '',
   clientCode: '',
   contactName: '',
   contactTitle: '',
-  contactEmail: '',
-  contactPhone: '',
+  contactEmail: null,
+  contactPhone: null,
   domainListCountLimit: 0,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
   consultantOffice: '',
   consultantName: '',
-  consultantEmail: '',
+  consultantEmail: null,
   newUserWelcomeText: '',
   parentClientId: '',
 };
@@ -128,6 +130,10 @@ const data = createReducer<AccessStateData>(_initialData, {
     ...state,
     profitCenters: action.response,
   }),
+  RESET_CLIENT_DETAILS: (state) => ({
+    ...state,
+    details: initialDetails,
+  }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
     details: action.response.clientDetail,
@@ -176,7 +182,7 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
   }),
 });
 
-const formData = createReducer<AccessStateFormData>(_initialFormData, {
+const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,

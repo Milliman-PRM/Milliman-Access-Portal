@@ -2,7 +2,6 @@
 import * as api from './api';
 
 import { createTakeLatestRequest } from '../../shared-components/redux/sagas';
-import { setFormData } from './action-creators';
 
 /**
  * Custom effect for handling request actions.

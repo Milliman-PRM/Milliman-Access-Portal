@@ -85,6 +85,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
+                  this.props.resetClientDetails({});
                   this.props.selectClient({ id: 'new' });
                   this.props.clearFormData({});
                   this.props.setEditStatus({ disabled: false });
@@ -195,6 +196,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   label="Edit client details"
                   icon="edit"
                   action={() => {
+                    this.props.selectClient({ id: })
                     this.props.setEditStatus({ disabled: false });
                   }}
                 /> :
@@ -300,7 +302,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactEmail"
                           label="Client Contact Email"
                           type="text"
-                          value={formData.contactEmail}
+                          value={formData.contactEmail ? formData.contactEmail : ''}
                           onChange={(event) => {
                             this.props.checkContactEmailValidity({ clientContactEmail: event.currentTarget.value });
                             this.props.setClientContactEmail({ clientContactEmail: event.currentTarget.value });
@@ -320,7 +322,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactPhone"
                           label="Client Contact Phone"
                           type="text"
-                          value={formData.contactPhone}
+                          value={formData.contactPhone ? formData.contactPhone : ''}
                           onChange={(event) => {
                             this.props.setClientContactPhone({ clientContactPhone: event.currentTarget.value });
                           }}
@@ -404,7 +406,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="consultantEmail"
                           label="Consultant Email"
                           type="text"
-                          value={formData.consultantEmail}
+                          value={formData.consultantEmail ? formData.consultantEmail : ''}
                           onChange={(event) => {
                             this.props.checkConsultantEmailValidity({ consultantEmail: event.currentTarget.value });
                             this.props.setConsultantEmail({ consultantEmail: event.currentTarget.value });
@@ -494,6 +496,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div className="button-container button-container-new">
                         <button
                           type="button"
+                          disabled={!this.isFormModified(formData, details)}
                           className="button-reset link-button"
                           onClick={() => {
                             this.props.resetValidity({});
@@ -503,7 +506,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           Reset Form
                         </button>
                         <button
-                          disabled={!formData.name || !formData.profitCenterId || !this.isFormValid(valid)}
+                          disabled={!this.isFormModified(formData, details) ||
+                            (this.isFormModified(formData, details) && (!this.isFormValid(valid)
+                              || formData.name.trim() === '' || formData.profitCenterId === ''))
+                          }
                           type="button"
                           className="button-submit green-button"
                           onClick={() => {
@@ -514,6 +520,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 
                             if (this.isFormValid(valid)) {
                               this.props.saveNewClient(formData);
+                              this.props.setEditStatus({ disabled: true });
+                              this.props.selectClient({ id: '' });
                             }
                           }}
                         >
@@ -523,6 +531,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       </div> :
                       <div className="button-container button-container-edit">
                         <button
+                          disabled={!this.isFormModified(formData, details)}
                           type="button"
                           className="button-reset link-button"
                           onClick={() => {
@@ -535,7 +544,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <button
                           type="button"
                           className="button-submit blue-button"
-                          disabled={!this.isFormValid(valid)}
+                          disabled={!this.isFormModified(formData, details) ||
+                            (this.isFormModified(formData, details) && !this.isFormValid(valid))
+                          }
                           onClick={() => {
                             this.props.editClient(formData);
                             this.props.setEditStatus({ disabled: true });
@@ -677,6 +688,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
            valid.profitCenter.valid &&
            valid.clientContactEmail.valid &&
            valid.consultantEmail.valid;
+  }
+
+  private isFormModified(formData: AccessStateFormData, detail: ClientDetail) {
+    return formData.name !== detail.name ||
+      formData.clientCode !== detail.clientCode ||
+      formData.contactName !== detail.clientContactName ||
+      formData.contactTitle !== detail.clientContactTitle ||
+      formData.contactEmail !== detail.clientContactEmail ||
+      formData.contactPhone !== detail.clientContactPhone ||
+      // TODO: Wait on remaining email adding code
+      // formData.acceptedEmailDomainList !== detail.acceptedEmailDomainList ||
+      // formData.acceptedEmailAddressExceptionList !== detail.acceptedEmailAddressExceptionList ||
+      formData.consultantName !== detail.consultantName ||
+      formData.consultantEmail !== detail.consultantEmail ||
+      formData.consultantOffice !== detail.office ||
+      formData.profitCenterId !== detail.profitCenter.id;
   }
 }
 
