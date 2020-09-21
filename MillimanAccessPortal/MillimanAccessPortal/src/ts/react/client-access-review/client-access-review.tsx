@@ -136,48 +136,48 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         {pending.data.clientSummary && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
         <div className="client-summary-container">
-          <div className="client-summary-header">
-            <div className="client-summary-title">
+          <div className="header">
+            <div className="title">
               <span className="client-name">{clientSummary.clientName}</span>
               <span className="client-code">{clientSummary.clientCode}</span>
             </div>
           </div>
-          <div className="client-summary-details-container">
-            <div className="client-summary-detail-column">
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Review due date</span>
+          <div className="details-container">
+            <div className="detail-column">
+              <div className="detail-section">
+                <span className="detail-label">Review due date</span>
                 <h2>{moment.utc(clientSummary.reviewDueDate).format('MMM DD, YYYY')}</h2>
               </div>
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Last review date</span>
-                <span className="client-summary-detail">
+              <div className="detail-section">
+                <span className="detail-label">Last review date</span>
+                <span className="detail-value">
                   {moment.utc(clientSummary.lastReviewDate).format('MMM DD, YYYY')}
                 </span>
               </div>
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Last review by</span>
-                <span className="client-summary-detail-name">{clientSummary.lastReviewedBy.name}</span>
-                <span className="client-summary-detail-email">{clientSummary.lastReviewedBy.userEmail}</span>
+              <div className="detail-section">
+                <span className="detail-label">Last review by</span>
+                <span className="detail-value-name">{clientSummary.lastReviewedBy.name}</span>
+                <span className="detail-value-email">{clientSummary.lastReviewedBy.userEmail}</span>
               </div>
             </div>
-            <div className="client-summary-detail-column">
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Primary contact</span>
-                <span className="client-summary-detail-name">{clientSummary.primaryContactName}</span>
-                <span className="client-summary-detail-email">
+            <div className="detail-column">
+              <div className="detail-section">
+                <span className="detail-label">Primary contact</span>
+                <span className="detail-value-name">{clientSummary.primaryContactName}</span>
+                <span className="detail-value-email">
                   {clientSummary.primaryContactEmail ? clientSummary.primaryContactEmail : '(None assigned)'}
                 </span>
               </div>
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Client Admins</span>
-                <ul className="client-summary-list">
+              <div className="detail-section">
+                <span className="detail-label">Client Admins</span>
+                <ul className="detail-list">
                   {
                     clientSummary.clientAdmins.map((admin) => {
                       return (
-                        <li className="client-summary-list-item" key={admin.userEmail}>
-                          <div className="client-summary-user-list-container">
-                            <span className="client-summary-detail-name">{admin.name}</span>
-                            <span className="client-summary-detail-email">{admin.userEmail}</span>
+                        <li className="detail-list-item" key={admin.userEmail}>
+                          <div className="list-container">
+                            <span className="detail-value-name">{admin.name}</span>
+                            <span className="detail-value-email">{admin.userEmail}</span>
                           </div>
                         </li>
                       );
@@ -186,21 +186,21 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 </ul>
               </div>
             </div>
-            <div className="client-summary-detail-column">
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Profit center</span>
-                <span className="client-summary-detail">{clientSummary.assignedProfitCenter}</span>
+            <div className="detail-column">
+              <div className="detail-section">
+                <span className="detail-label">Profit center</span>
+                <span className="detail-value">{clientSummary.assignedProfitCenter}</span>
               </div>
-              <div className="client-summary-detail-section">
-                <span className="client-detail-label">Profit Center Admins</span>
-                <ul className="client-summary-list">
+              <div className="detail-section">
+                <span className="detail-label">Profit Center Admins</span>
+                <ul className="detail-list">
                   {
                     clientSummary.profitCenterAdmins.map((admin) => {
                       return (
-                        <li className="client-summary-list-item" key={admin.userEmail}>
-                          <div className="client-summary-user-list-container">
-                            <span className="client-summary-detail-name">{admin.name}</span>
-                            <span className="client-summary-detail-email">{admin.userEmail}</span>
+                        <li className="detail-list-item" key={admin.userEmail}>
+                          <div className="list-container">
+                            <span className="detail-value-name">{admin.name}</span>
+                            <span className="detail-value-email">{admin.userEmail}</span>
                           </div>
                         </li>
                       );
@@ -229,9 +229,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
-        <div className="client-summary-container">
-          <div className="client-summary-header">
-            <div className="client-summary-title">
+        <div className="client-review-container">
+          <div className="header">
+            <div className="title">
               <span className="client-name">{clientAccessReview.clientName}</span>
               <span className="client-code">{clientAccessReview.clientCode}</span>
               <span className="client-code">Review the Client information to proceed</span>
@@ -258,26 +258,26 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             </div>
             {
               clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.clientReview &&
-              <div className="client-summary-details-container">
-                <div className="client-summary-detail-column">
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Client name</span>
-                    <span className="client-summary-detail">{clientAccessReview.clientName}</span>
+              <div className="details-container">
+                <div className="detail-column">
+                  <div className="detail-section">
+                    <span className="detail-label">Client name</span>
+                    <span className="detail-value">{clientAccessReview.clientName}</span>
                   </div>
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Client code</span>
-                    <span className="client-summary-detail">{clientAccessReview.clientCode}</span>
+                  <div className="detail-section">
+                    <span className="detail-label">Client code</span>
+                    <span className="detail-value">{clientAccessReview.clientCode}</span>
                   </div>
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Client Admins</span>
-                    <ul className="client-summary-list">
+                  <div className="detail-section">
+                    <span className="detail-label">Client Admins</span>
+                    <ul className="detail-list">
                       {
                         clientAccessReview.clientAdmins.map((admin) => {
                           return (
-                            <li className="client-summary-list-item" key={admin.userEmail}>
-                              <div className="client-summary-user-list-container">
-                                <span className="client-summary-detail-name">{admin.name}</span>
-                                <span className="client-summary-detail-email">{admin.userEmail}</span>
+                            <li className="detail-list-item" key={admin.userEmail}>
+                              <div className="list-container">
+                                <span className="detail-value-name">{admin.name}</span>
+                                <span className="detail-value-email">{admin.userEmail}</span>
                               </div>
                             </li>
                           );
@@ -286,21 +286,21 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     </ul>
                   </div>
                 </div>
-                <div className="client-summary-detail-column">
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Profit Center</span>
-                    <span className="client-summary-detail">{clientAccessReview.assignedProfitCenterName}</span>
+                <div className="detail-column">
+                  <div className="detail-section">
+                    <span className="detail-label">Profit Center</span>
+                    <span className="detail-value">{clientAccessReview.assignedProfitCenterName}</span>
                   </div>
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Profit Center Admins</span>
-                    <ul className="client-summary-list">
+                  <div className="detail-section">
+                    <span className="detail-label">Profit Center Admins</span>
+                    <ul className="detail-list">
                       {
                         clientAccessReview.profitCenterAdmins.map((admin) => {
                           return (
-                            <li className="client-summary-list-item" key={admin.userEmail}>
-                              <div className="client-summary-user-list-container">
-                                <span className="client-summary-detail-name">{admin.name}</span>
-                                <span className="client-summary-detail-email">{admin.userEmail}</span>
+                            <li className="detail-list-item" key={admin.userEmail}>
+                              <div className="list-container">
+                                <span className="detail-value-name">{admin.name}</span>
+                                <span className="detail-value-email">{admin.userEmail}</span>
                               </div>
                             </li>
                           );
@@ -309,16 +309,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     </ul>
                   </div>
                 </div>
-                <div className="client-summary-detail-column">
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Approved email domain list</span>
-                    <ul className="client-summary-list">
+                <div className="detail-column">
+                  <div className="detail-section">
+                    <span className="detail-label">Approved email domain list</span>
+                    <ul className="detail-list">
                       {
                         clientAccessReview.approvedEmailDomainList.map((domain, index) => {
                           return (
-                            <li className="client-summary-list-item" key={index}>
-                              <div className="client-summary-user-list-container">
-                                <span className="client-summary-detail">{domain}</span>
+                            <li className="detail-list-item" key={index}>
+                              <div className="list-container">
+                                <span className="detail-value">{domain}</span>
                               </div>
                             </li>
                           );
@@ -326,17 +326,17 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                       }
                     </ul>
                   </div>
-                  <div className="client-summary-detail-section">
-                    <span className="client-detail-label">Email address exception list</span>
+                  <div className="detail-section">
+                    <span className="detail-label">Email address exception list</span>
                     {
                       clientAccessReview.approvedEmailExceptionList.length > 0 ? (
-                        <ul className="client-summary-list">
+                        <ul className="detail-list">
                           {
                             clientAccessReview.approvedEmailExceptionList.map((email, index) => {
                               return (
-                                <li className="client-summary-list-item" key={index}>
-                                  <div className="client-summary-user-list-container">
-                                    <span className="client-summary-detail">{email}</span>
+                                <li className="detail-list-item" key={index}>
+                                  <div className="list-container">
+                                    <span className="detail-value">{email}</span>
                                   </div>
                                 </li>
                               );
@@ -344,7 +344,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           }
                         </ul>
                       ) : (
-                          <span className="client-summary-detail">N/A</span>
+                          <span className="detail-value">N/A</span>
                         )
                     }
                   </div>
@@ -353,8 +353,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             }
             {
               clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.userRoles &&
-              <div className="client-summary-details-container">
-                <table>
+              <div className="details-container">
                   <thead>
                     <tr>
                       <th colSpan={2} />
@@ -377,8 +376,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                         return (
                           <tr key={user.userEmail}>
                             <td>
-                              <span className="client-summary-detail-name">{user.name}</span><br />
-                              <span className="client-summary-detail-email">{user.userEmail}</span></td>
+                              <span className="detail-value-name">{user.name}</span><br />
+                              <span className="detail-value-email">{user.userEmail}</span></td>
                             <td>
                               {
                                 user.lastLoginDate

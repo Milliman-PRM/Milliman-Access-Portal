@@ -1,6 +1,7 @@
 ﻿@import "../../map_modules/variables";
 
-.client-summary-container {
+.client-summary-container,
+.client-review-container {
     margin: 0;
     padding: 1em;
     background-color: $white;
@@ -14,7 +15,7 @@
         border-left: 5px solid $red;
     }
 
-    .client-summary-header {
+    .header {
         width: 100%;
 
         .client-name,
@@ -35,49 +36,49 @@
         }
     }
 
-    .client-summary-details-container {
+    .details-container {
         display: flex;
         flex-flow: row wrap;
         justify-content: space-between;
 
-        .client-summary-detail-column {
+        .detail-column {
             flex: 1 0 auto;
         }
     }
 
-    .client-summary-detail-section {
+    .detail-section {
         margin: 0;
         padding: 0;
         margin-bottom: 2.5rem;
 
-        .client-detail-label,
-        .client-summary-detail,
-        .client-summary-detail-name,
-        .client-summary-detail-email {
+        .detail-label,
+        .detail-value,
+        .detail-value-name,
+        .detail-value-email {
             display: block;
         }
 
-        .client-detail-label {
+        .detail-label {
             font-size: .75em;
         }
 
-        .client-summary-detail {
+        .detail-value {
             font-size: 1.25em;
         }
 
-        .client-summary-detail-name {
+        .detail-value-name {
             font-weight: bold;
         }
 
-        .client-summary-detail-email {
+        .detail-value-email {
             font-size: .9em;
         }
 
-        .client-summary-list {
+        .detail-list {
             padding-left: 1em;
             list-style: square;
 
-            .client-summary-user-list-container {
+            .list-container {
                 margin-bottom: .25em;
             }
         }
