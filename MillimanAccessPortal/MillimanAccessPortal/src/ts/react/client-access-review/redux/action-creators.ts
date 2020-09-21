@@ -14,7 +14,7 @@ export const goToNextAccessReviewStep =
 export const goToPreviousAccessReviewStep =
   createActionCreator<AccessReviewActions.GoToPreviousAccessReviewStep>('GO_TO_PREVIOUS_ACCESS_REVIEW_STEP');
 export const cancelClientAccessReview =
-  createActionCreator<AccessReviewAction.CancelClientAccessReview>('CANCEL_CLIENT_ACCESS_REVIEW');
+  createActionCreator<AccessReviewActions.CancelClientAccessReview>('CANCEL_CLIENT_ACCESS_REVIEW');
 
 // Data fetches
 export const fetchGlobalData =
