@@ -70,6 +70,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
 
     public class ClientContentItemModel
     {
+        public Guid Id { get; set; }
         public string ContentItemName { get; set; }
         public string ContentType { get; set; }
         public bool IsSuspended { get; set; }
@@ -84,6 +85,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     }
     public class ClientFileDropModel
     {
+        public Guid Id { get; set; }
         public string FileDropName { get; set; }
         public List<ClientFileDropPermissionGroupModel> PermissionGroups { get; set; } = new List<ClientFileDropPermissionGroupModel>();
     }

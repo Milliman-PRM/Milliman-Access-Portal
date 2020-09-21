@@ -170,6 +170,7 @@ namespace MillimanAccessPortal.DataQueries
                                               .ToList();
                 var contentModel = new ClientContentItemModel
                 {
+                    Id = c.Id,
                     ContentItemName = c.ContentName,
                     ContentType = c.ContentType.TypeEnum.GetDisplayNameString(),
                     IsSuspended = c.IsSuspended,
@@ -197,7 +198,7 @@ namespace MillimanAccessPortal.DataQueries
             });
             fileDrops.ForEach(d =>
             {
-                ClientFileDropModel fileDropModel = new ClientFileDropModel { FileDropName = d.Name };
+                ClientFileDropModel fileDropModel = new ClientFileDropModel { Id = d.Id, FileDropName = d.Name };
                 foreach (FileDropUserPermissionGroup group in d.PermissionGroups)
                 {
                     fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel 
