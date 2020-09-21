@@ -19,7 +19,7 @@ export interface ClientSummaryModel {
   clientCode: string;
   reviewDueDate: string;
   lastReviewDate: string;
-  lastReviewedBy: string;
+  lastReviewedBy: ClientActorModel;
   primaryContactName: string;
   primaryContactEmail: string;
   assignedProfitCenter: string;
