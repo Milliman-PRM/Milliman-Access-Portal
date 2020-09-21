@@ -156,7 +156,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               </div>
               <div className="client-summary-detail-section">
                 <span className="client-detail-label">Last review by</span>
-                <span className="client-summary-detail-name">{clientSummary.lastReviewedBy}</span>
+                <span className="client-summary-detail-name">{clientSummary.lastReviewedBy.name}</span>
+                <span className="client-summary-detail-email">{clientSummary.lastReviewedBy.userEmail}</span>
               </div>
             </div>
             <div className="client-summary-detail-column">
