@@ -62,6 +62,7 @@ interface ClientActorReviewModel extends ClientActorModel {
 }
 
 interface ClientContentItemModel {
+  id: Guid;
   contentType: string;
   contentItemName: string;
   isSuspended: boolean;
@@ -76,6 +77,7 @@ interface ClientContentItemSelectionGroupModel {
 }
 
 interface ClientFileDropModel {
+  id: Guid;
   fileDropName: string;
   permissionGroups: ClientFileDropPermissionGroupModel[];
 }
