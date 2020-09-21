@@ -91,7 +91,7 @@ interface ClientFileDropPermissionGroupModel {
   authorizedServiceAccounts: ClientActorModel[];
 }
 
-export enum ClientAccessReviewProgress {
+export enum ClientAccessReviewProgressEnum {
   clientReview = 0,
   userRoles = 1,
   contentAccess = 2,

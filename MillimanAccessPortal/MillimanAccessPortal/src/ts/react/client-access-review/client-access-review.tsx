@@ -23,7 +23,7 @@ import { activeSelectedClient, clientEntities } from './redux/selectors';
 import {
     AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
     AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel, ClientAccessReviewProgress,
-    ClientSummaryModel,
+    ClientAccessReviewProgressEnum, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -236,19 +236,19 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               <span className="client-code">Review the Client information to proceed</span>
               <ProgressIndicator
                 progressObjects={{
-                  [ClientAccessReviewProgress.clientReview]: {
+                  [ClientAccessReviewProgressEnum.clientReview]: {
                     label: 'Client Review',
                   },
-                  [ClientAccessReviewProgress.userRoles]: {
+                  [ClientAccessReviewProgressEnum.userRoles]: {
                     label: 'User Roles',
                   },
-                  [ClientAccessReviewProgress.contentAccess]: {
+                  [ClientAccessReviewProgressEnum.contentAccess]: {
                     label: 'Content Access',
                   },
-                  [ClientAccessReviewProgress.fileDropAccess]: {
+                  [ClientAccessReviewProgressEnum.fileDropAccess]: {
                     label: 'File Drop Access',
                   },
-                  [ClientAccessReviewProgress.attestations]: {
+                  [ClientAccessReviewProgressEnum.attestations]: {
                     label: 'Attestations',
                   },
                 }}
@@ -256,7 +256,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               />
             </div>
             {
-              clientAccessReviewProgress === ClientAccessReviewProgress.clientReview &&
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.clientReview &&
               <div className="client-summary-details-container">
                 <div className="client-summary-detail-column">
                   <div className="client-summary-detail-section">
@@ -351,7 +351,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               </div>
             }
             {
-              clientAccessReviewProgress === ClientAccessReviewProgress.userRoles &&
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.userRoles &&
               <div className="client-summary-details-container">
                 <table>
                   <thead>
@@ -410,7 +410,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 Cancel
               </button>
               {
-                clientAccessReviewProgress !== ClientAccessReviewProgress.attestations ? (
+                clientAccessReviewProgress.step !== ClientAccessReviewProgressEnum.attestations ? (
                     <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
                       Continue
                     </button>
