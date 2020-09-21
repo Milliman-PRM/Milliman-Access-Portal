@@ -101,6 +101,12 @@ export enum ClientAccessReviewProgressEnum {
   attestations = 4,
 }
 
+export interface ClientAccessReviewProgress {
+  step: ClientAccessReviewProgressEnum;
+  contentItemConfirmations: Dict<boolean>;
+  fileDropConfirmations: Dict<boolean>;
+}
+
 /**
  * Flags indicating whether the page is waiting on new data for an entity type.
  */

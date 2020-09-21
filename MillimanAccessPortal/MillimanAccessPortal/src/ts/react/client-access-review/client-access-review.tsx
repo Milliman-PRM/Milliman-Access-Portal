@@ -252,7 +252,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     label: 'Attestations',
                   },
                 }}
-                currentStep={clientAccessReviewProgress}
+                currentStep={clientAccessReviewProgress.step}
               />
             </div>
             {
@@ -401,7 +401,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             }
             <div className="button-container">
               {
-                clientAccessReviewProgress !== 0 &&
+                clientAccessReviewProgress.step !== 0 &&
                 <button className="link-button align-left" onClick={() => this.props.goToPreviousAccessReviewStep({})}>
                   Back
                 </button>

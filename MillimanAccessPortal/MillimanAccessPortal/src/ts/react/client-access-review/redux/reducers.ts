@@ -8,7 +8,8 @@ import { Dict, FilterState } from '../../shared-components/redux/store';
 import * as AccessReviewActions from './actions';
 import { AccessReviewAction, FilterAccessReviewAction } from './actions';
 import {
-  AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress, PendingDataState,
+  AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress,
+  ClientAccessReviewProgressEnum, PendingDataState,
 } from './store';
 
 const _initialData: AccessReviewStateData = {
@@ -114,11 +115,39 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 
-const reviewProgress = createReducer<ClientAccessReviewProgress>(0, {
-  FETCH_CLIENT_SUMMARY_SUCCEEDED: () => 0,
-  GO_TO_NEXT_ACCESS_REVIEW_STEP: (state) => (state < ClientAccessReviewProgress.attestations) ? state + 1 : state,
-  GO_TO_PREVIOUS_ACCESS_REVIEW_STEP: (state) => (state > ClientAccessReviewProgress.clientReview) ? state - 1 : state,
-  CANCEL_CLIENT_ACCESS_REVIEW: () => 0,
+const reviewProgress = createReducer<ClientAccessReviewProgress>({
+    step: 0,
+    contentItemConfirmations: null,
+    fileDropConfirmations: null,
+}, {
+  FETCH_CLIENT_REVIEW_SUCCEEDED: (_state, action: AccessReviewActions.FetchClientReviewSucceeded) => {
+    const contentItemConfirmations: Dict<boolean> = {};
+    action.response.contentItems.map((ci) => {
+      contentItemConfirmations[ci.id] = false;
+    });
+    const fileDropConfirmations: Dict<boolean> = {};
+    action.response.fileDrops.map((fd) => {
+      contentItemConfirmations[fd.id] = false;
+    });
+    return {
+      step: 0,
+      contentItemConfirmations,
+      fileDropConfirmations,
+    };
+  },
+  GO_TO_NEXT_ACCESS_REVIEW_STEP: (state) => ({
+    ...state,
+    step: (state.step < ClientAccessReviewProgressEnum.attestations) ? state.step + 1 : state.step,
+  }),
+  GO_TO_PREVIOUS_ACCESS_REVIEW_STEP: (state) => ({
+    ...state,
+    step: (state.step > ClientAccessReviewProgressEnum.clientReview) ? state.step - 1 : state.step,
+  }),
+  CANCEL_CLIENT_ACCESS_REVIEW: () => ({
+    step: 0,
+    contentItemConfirmations: null,
+    fileDropConfirmations: null,
+  }),
 });
 
 const data = createReducer<AccessReviewStateData>(_initialData, {
