@@ -468,6 +468,107 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               clientAccessReview.contentItems.length === 0 &&
               <span className="content-message">No Content Items</span>
             }
+            {
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.fileDropAccess &&
+                clientAccessReview.fileDrops.length ? (
+                  clientAccessReview.fileDrops.map((fd) => {
+                    return (
+                      <div className="details-container" key={fd.id}>
+                        <span className="detail-title">{fd.fileDropName}</span>
+                        <table className="access-review-table">
+                          <thead>
+                            <tr>
+                              <th colSpan={2} />
+                              <th colSpan={3} className="center-text header-cell">Permissions</th>
+                            </tr>
+                            <tr>
+                              <th className="name-column">Name</th>
+                              <th className="email-column">Email</th>
+                              <th className="permission-column center-text">Download</th>
+                              <th className="permission-column center-text">Upload</th>
+                              <th className="permission-column center-text">Delete</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {
+                              fd.permissionGroups.map((pg) => {
+                                if (pg.isPersonalGroup) {
+                                  return (
+                                    <tr className="table-row-divider">
+                                      <td className="detail-value-name">
+                                        {
+                                          pg.authorizedMapUsers.length > 0 ?
+                                            pg.authorizedMapUsers[0].name :
+                                            pg.authorizedServiceAccounts[0].name
+                                        }
+                                      </td>
+                                      <td>
+                                        {
+                                          pg.authorizedMapUsers.length > 0 ?
+                                            pg.authorizedMapUsers[0].userEmail :
+                                            pg.authorizedServiceAccounts[0].userEmail
+                                        }
+                                      </td>
+                                      <td className="center-text">{pg.permissions.Read ? 'X' : null}</td>
+                                      <td className="center-text">{pg.permissions.Write ? 'X' : null}</td>
+                                      <td className="center-text">{pg.permissions.Delete ? 'X' : null}</td>
+                                    </tr>
+                                  );
+                                } else {
+                                  const authUsers =
+                                    pg.authorizedMapUsers.length + pg.authorizedServiceAccounts.length;
+                                  return (
+                                    <React.Fragment key={pg.permissionGroupName}>
+                                      <tr>
+                                        <td className="detail-value-name">{pg.permissionGroupName}</td>
+                                        <td />
+                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                          {pg.permissions.Read ? 'X' : null}
+                                        </td>
+                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                          {pg.permissions.Write ? 'X' : null}
+                                        </td>
+                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                          {pg.permissions.Delete ? 'X' : null}
+                                        </td>
+                                      </tr>
+                                      {
+                                        pg.authorizedMapUsers.map((user, index) => {
+                                          return (
+                                            <tr
+                                              key={user.userEmail}
+                                              className={
+                                                index === authUsers - 1 ? 'table-row-divider' : null
+                                              }
+                                            >
+                                              <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{user.name}</td>
+                                              <td>{user.userEmail}</td>
+                                            </tr>
+                                          );
+                                        })
+                                      }
+                                    </React.Fragment>
+                                  );
+                                }
+                              })
+                            }
+                          </tbody>
+                        </table>
+                        <Checkbox
+                          name={`'${fd.fileDropName}' Permission Groups are as expected`}
+                          selected={clientAccessReviewProgress.fileDropConfirmations[fd.id]}
+                          onChange={() => this.props.toggleFileDropReviewStatus({ fileDropId: fd.id })}
+                          readOnly={false}
+                        />
+                      </div>
+                    );
+                  })
+                ) : null
+            }
+            {
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.fileDropAccess &&
+              clientAccessReview.fileDrops.length === 0 &&
+              <span className="content-message">No File Drops</span>
             }
             <div className="button-container">
               {
