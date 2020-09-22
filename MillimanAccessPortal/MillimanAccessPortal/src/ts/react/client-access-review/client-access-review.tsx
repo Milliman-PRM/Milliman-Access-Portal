@@ -20,7 +20,7 @@ import { Checkbox } from '../shared-components/form/checkbox';
 import { NavBar } from '../shared-components/navbar';
 import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
-import { activeSelectedClient, clientEntities } from './redux/selectors';
+import { activeSelectedClient, clientEntities, continueButtonIsActive } from './redux/selectors';
 import {
     AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
     AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel, ClientAccessReviewProgress,
@@ -40,6 +40,7 @@ interface ClientAccessReviewProps {
   filters: AccessReviewStateFilters;
   modals: AccessReviewStateModals;
   activeSelectedClient: Client;
+  continueButtonActive: boolean;
 }
 
 class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeof ClientAccessReviewActionCreators> {
@@ -227,7 +228,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientAccessReviewPanel() {
-    const { clientAccessReview, clientAccessReviewProgress, pending } = this.props;
+    const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -488,6 +489,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                       this.props.goToNextAccessReviewStep({});
                       this.clientReviewContainer.current.scrollTo(0, 0);
                     }}
+                    disabled={!continueButtonActive}
                   >
                     Continue
                   </button>
@@ -518,6 +520,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     filters,
     modals,
     activeSelectedClient: activeSelectedClient(state),
+    continueButtonActive: continueButtonIsActive(state),
   };
 }
 

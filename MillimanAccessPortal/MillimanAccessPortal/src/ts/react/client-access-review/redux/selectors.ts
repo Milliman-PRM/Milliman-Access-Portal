@@ -1,7 +1,7 @@
 import * as _ from 'lodash';
 
 import { ClientWithReviewDate } from '../../models';
-import { AccessReviewState } from './store';
+import { AccessReviewState, ClientAccessReviewProgressEnum } from './store';
 
 // Utility functions
 
@@ -97,4 +97,33 @@ export function activeSelectedClient(state: AccessReviewState) {
  */
 export function remainingStatusRefreshAttempts(state: AccessReviewState) {
   return state.pending.statusTries;
+}
+
+/**
+ * Define whether the Continue button is active or not
+ */
+export function continueButtonIsActive(state: AccessReviewState) {
+  const { step, contentItemConfirmations, fileDropConfirmations } = state.pending.clientAccessReviewProgress;
+  let buttonIsActive = false;
+  switch (step) {
+    case ClientAccessReviewProgressEnum.clientReview:
+      buttonIsActive = true;
+      break;
+    case ClientAccessReviewProgressEnum.userRoles:
+      buttonIsActive = true;
+      break;
+    case ClientAccessReviewProgressEnum.contentAccess:
+      if (Object.keys(contentItemConfirmations).length === 0 ||
+        Object.keys(contentItemConfirmations).every((ci) => contentItemConfirmations[ci] === true)) {
+        buttonIsActive = true;
+      }
+      break;
+    case ClientAccessReviewProgressEnum.fileDropAccess:
+      if (Object.keys(fileDropConfirmations).length === 0 ||
+        Object.keys(fileDropConfirmations).every((fd) => fileDropConfirmations[fd] === true)) {
+        buttonIsActive = true;
+      }
+      break;
+  }
+  return buttonIsActive;
 }
