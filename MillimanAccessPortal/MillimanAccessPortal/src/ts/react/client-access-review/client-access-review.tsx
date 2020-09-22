@@ -16,6 +16,7 @@ import { Card } from '../shared-components/card/card';
 import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { NavBar } from '../shared-components/navbar';
 import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
@@ -401,6 +402,65 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   </tbody>
                 </table>
               </div>
+            }
+            {
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.contentAccess &&
+              clientAccessReview.contentItems.length ? (
+                clientAccessReview.contentItems.map((ci) => {
+                  return (
+                    <div className="details-container" key={ci.id}>
+                      <span className="detail-title">{ci.contentItemName}</span>
+                      <table className="access-review-table">
+                        <thead>
+                          <tr>
+                            <th>Selection Group</th>
+                            <th>User</th>
+                            <th>Email</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {
+                            ci.selectionGroups.map((sg) => {
+                              return (
+                                <React.Fragment key={sg.selectionGroupName}>
+                                  {
+                                    sg.authorizedUsers.map((user, index) => {
+                                      return (
+                                        <tr
+                                          key={user.userEmail}
+                                          className={index === sg.authorizedUsers.length - 1 ? 'last-of-group' : null}
+                                        >
+                                          {
+                                            index === 0 ? (
+                                              <td rowSpan={sg.authorizedUsers.length} className="last-of-group">
+                                                {sg.selectionGroupName}
+                                              </td>
+                                            ) : null
+                                          }
+                                          <td>{user.name}</td>
+                                          <td>{user.userEmail}</td>
+                                        </tr>
+                                      );
+                                    })
+                                  }
+                                </React.Fragment>
+                              );
+                            })
+                          }
+                        </tbody>
+                      </table>
+                      <Checkbox
+                        name={`'${ci.contentItemName}' Selection Groups are as expected`}
+                        selected={clientAccessReviewProgress.contentItemConfirmations[ci.id]}
+                        onChange={() => this.props.toggleContentItemReviewStatus({ contentItemId: ci.id })}
+                        readOnly={false}
+                      />
+                    </div>
+                  );
+                })
+              ) : (
+                <span>No Content Items</span>
+              )
             }
             <div className="button-container">
               {
