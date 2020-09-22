@@ -99,6 +99,10 @@
             }
         }
 
+        .last-of-group {
+            border-bottom: 1px solid $light-grey;
+        }
+
         .center-text {
             text-align: center;
         }
