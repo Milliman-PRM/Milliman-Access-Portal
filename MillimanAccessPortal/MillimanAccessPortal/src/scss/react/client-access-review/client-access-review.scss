@@ -57,10 +57,10 @@
             font-size: 1.25em;
             font-weight: bold;
         }
-        
-        .detail-label, 
-        .detail-value, 
-        .detail-value-name, 
+
+        .detail-label,
+        .detail-value,
+        .detail-value-name,
         .detail-value-email {
             display: block;
         }
@@ -104,6 +104,18 @@
 
             .role-column {
                 width: 10%;
+            }
+
+            .name-column {
+                width: 25%;
+            }
+
+            .email-column {
+                width: 30%;
+            }
+
+            .permission-column {
+                width: 15%;
             }
         }
 
