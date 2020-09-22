@@ -38,6 +38,22 @@ export interface GoToPreviousAccessReviewStep {
 }
 
 /**
+ * Toggle the provided Content Item review status.
+ */
+export interface ToggleContentItemReviewStatus {
+  type: 'TOGGLE_CONTENT_ITEM_REVIEW_STATUS';
+  contentItemId: Guid;
+}
+
+/**
+ * Toggle the provided File Drop review status.
+ */
+export interface ToggleFileDropReviewStatus {
+  type: 'TOGGLE_FILE_DROP_REVIEW_STATUS';
+  fileDropId: Guid;
+}
+
+/**
  * Cancel the current Client Access Review.
  */
 export interface CancelClientAccessReview {
@@ -159,6 +175,8 @@ export type PageAccessReviewAction =
   | SetFilterTextClient
   | GoToNextAccessReviewStep
   | GoToPreviousAccessReviewStep
+  | ToggleContentItemReviewStatus
+  | ToggleFileDropReviewStatus
   | CancelClientAccessReview
   ;
 

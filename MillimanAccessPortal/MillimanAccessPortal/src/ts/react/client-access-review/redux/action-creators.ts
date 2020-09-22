@@ -13,6 +13,10 @@ export const goToNextAccessReviewStep =
   createActionCreator<AccessReviewActions.GoToNextAccessReviewStep>('GO_TO_NEXT_ACCESS_REVIEW_STEP');
 export const goToPreviousAccessReviewStep =
   createActionCreator<AccessReviewActions.GoToPreviousAccessReviewStep>('GO_TO_PREVIOUS_ACCESS_REVIEW_STEP');
+export const toggleContentItemReviewStatus =
+  createActionCreator<AccessReviewActions.ToggleContentItemReviewStatus>('TOGGLE_CONTENT_ITEM_REVIEW_STATUS');
+export const toggleFileDropReviewStatus =
+  createActionCreator<AccessReviewActions.ToggleFileDropReviewStatus>('TOGGLE_FILE_DROP_REVIEW_STATUS');
 export const cancelClientAccessReview =
   createActionCreator<AccessReviewActions.CancelClientAccessReview>('CANCEL_CLIENT_ACCESS_REVIEW');
 
