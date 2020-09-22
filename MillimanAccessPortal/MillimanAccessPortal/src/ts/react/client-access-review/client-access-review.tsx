@@ -461,9 +461,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     </div>
                   );
                 })
-              ) : (
-                <span>No Content Items</span>
-              )
+              ) : null
+            }
+            {
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.contentAccess &&
+              clientAccessReview.contentItems.length === 0 &&
+              <span className="content-message">No Content Items</span>
+            }
             }
             <div className="button-container">
               {
