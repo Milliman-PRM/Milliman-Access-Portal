@@ -83,6 +83,36 @@
             }
         }
     }
+
+    .access-review-table {
+        width: 100%;
+
+        thead {
+            background-color: $light-grey;
+
+            .header-cell {
+                border-bottom: 1px solid $charcoal;
+            }
+
+            .role-column {
+                width: 10%;
+            }
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+        .detail-value-name {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .detail-value-email {
+            font-size: .9em;
+            font-style: italic;
+        }
+    }
 }
 
 .button-container {

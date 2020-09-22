@@ -354,20 +354,21 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             {
               clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.userRoles &&
               <div className="details-container">
+                <table className="access-review-table">
                   <thead>
                     <tr>
                       <th colSpan={2} />
-                      <th colSpan={6}>Roles</th>
+                      <th colSpan={6} className="center-text header-cell">Roles</th>
                     </tr>
                     <tr>
                       <th>User Name<br />Email</th>
                       <th>Last Login</th>
-                      <th>Client Admin</th>
-                      <th>Content Publisher</th>
-                      <th>Content Access Admin</th>
-                      <th>Content User</th>
-                      <th>File Drop Admin</th>
-                      <th>File Drop User</th>
+                      <th className="role-column center-text">Client Admin</th>
+                      <th className="role-column center-text">Content Publisher</th>
+                      <th className="role-column center-text">Content Access Admin</th>
+                      <th className="role-column center-text">Content User</th>
+                      <th className="role-column center-text">File Drop Admin</th>
+                      <th className="role-column center-text">File Drop User</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -385,12 +386,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                   : 'n/a'
                               }
                             </td>
-                            <td>{user.clientUserRoles.Admin ? 'X' : ''}</td>
-                            <td>{user.clientUserRoles.ContentPublisher ? 'X' : ''}</td>
-                            <td>{user.clientUserRoles.ContentAccessAdmin ? 'X' : ''}</td>
-                            <td>{user.clientUserRoles.ContentUser ? 'X' : ''}</td>
-                            <td>{user.clientUserRoles.FileDropAdmin ? 'X' : ''}</td>
-                            <td>{user.clientUserRoles.FileDropUser ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.Admin ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.ContentPublisher ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.ContentAccessAdmin ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.ContentUser ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.FileDropAdmin ? 'X' : ''}</td>
+                            <td className="center-text">{user.clientUserRoles.FileDropUser ? 'X' : ''}</td>
                           </tr>
                         );
                       })
