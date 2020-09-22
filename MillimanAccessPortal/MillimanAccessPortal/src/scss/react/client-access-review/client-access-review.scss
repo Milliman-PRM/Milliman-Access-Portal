@@ -143,6 +143,15 @@
             margin-bottom: .5em;
         }
     }
+
+    .attestation-block {
+        padding: 1em 5em;
+        
+        .attestation {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+    }
 }
 
 .button-container {
