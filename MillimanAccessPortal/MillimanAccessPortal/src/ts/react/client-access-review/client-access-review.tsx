@@ -378,7 +378,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     {
                       clientAccessReview.memberUsers.map((user) => {
                         return (
-                          <tr key={user.userEmail}>
+                          <tr key={user.userEmail} className="table-row-divider">
                             <td>
                               <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
                               <span className="detail-value-email">{user.userEmail}</span></td>
@@ -428,11 +428,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                       return (
                                         <tr
                                           key={user.userEmail}
-                                          className={index === sg.authorizedUsers.length - 1 ? 'last-of-group' : null}
+                                          className={
+                                            index === sg.authorizedUsers.length - 1 ? 'table-row-divider' : null
+                                          }
                                         >
                                           {
                                             index === 0 ? (
-                                              <td rowSpan={sg.authorizedUsers.length} className="last-of-group">
+                                              <td rowSpan={sg.authorizedUsers.length} className="table-row-divider">
                                                 {sg.selectionGroupName}
                                               </td>
                                             ) : null
