@@ -86,9 +86,9 @@ interface ClientFileDropPermissionGroupModel {
   permissionGroupName: string;
   isPersonalGroup: boolean;
   permissions: {
-    read: boolean;
-    write: boolean;
-    delete: boolean;
+    Read: boolean;
+    Write: boolean;
+    Delete: boolean;
   };
   authorizedMapUsers: ClientActorModel[];
   authorizedServiceAccounts: ClientActorModel[];
