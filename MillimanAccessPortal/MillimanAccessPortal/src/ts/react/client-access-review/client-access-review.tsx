@@ -570,6 +570,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               clientAccessReview.fileDrops.length === 0 &&
               <span className="content-message">No File Drops</span>
             }
+            {
+              clientAccessReviewProgress.step === ClientAccessReviewProgressEnum.attestations &&
+              clientAccessReview.attestationLanguage &&
+              <div
+                className="attestation-block"
+                dangerouslySetInnerHTML={{
+                  __html: clientAccessReview.attestationLanguage,
+                }}
+              />
+            }
             <div className="button-container">
               {
                 clientAccessReviewProgress.step !== 0 &&
