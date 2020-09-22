@@ -143,6 +143,20 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>({
     ...state,
     step: (state.step > ClientAccessReviewProgressEnum.clientReview) ? state.step - 1 : state.step,
   }),
+  TOGGLE_CONTENT_ITEM_REVIEW_STATUS: (state, action: AccessReviewActions.ToggleContentItemReviewStatus) => ({
+    ...state,
+    contentItemConfirmations: {
+      ...state.contentItemConfirmations,
+      [action.contentItemId]: !state.contentItemConfirmations[action.contentItemId],
+    },
+  }),
+  TOGGLE_FILE_DROP_REVIEW_STATUS: (state, action: AccessReviewActions.ToggleFileDropReviewStatus) => ({
+    ...state,
+    fileDropConfirmations: {
+      ...state.fileDropConfirmations,
+      [action.fileDropId]: !state.fileDropConfirmations[action.fileDropId],
+    },
+  }),
   CANCEL_CLIENT_ACCESS_REVIEW: () => ({
     step: 0,
     contentItemConfirmations: null,
