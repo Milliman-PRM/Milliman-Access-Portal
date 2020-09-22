@@ -127,7 +127,7 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>({
     });
     const fileDropConfirmations: Dict<boolean> = {};
     action.response.fileDrops.map((fd) => {
-      contentItemConfirmations[fd.id] = false;
+      fileDropConfirmations[fd.id] = false;
     });
     return {
       step: 0,
