@@ -44,6 +44,7 @@ interface ClientAccessReviewProps {
 class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeof ClientAccessReviewActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+  private clientReviewContainer: React.RefObject<HTMLDivElement>;
 
   public componentDidMount() {
     this.props.fetchGlobalData({});
@@ -51,6 +52,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
     this.props.scheduleSessionCheck({ delay: 0 });
     // TODO: Implement Unload Alert properly
     setUnloadAlert(() => false);
+    this.clientReviewContainer = React.createRef<HTMLDivElement>();
   }
 
   public render() {
@@ -229,7 +231,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
-        <div className="client-review-container">
+        <div className="client-review-container" ref={this.clientReviewContainer}>
           <div className="header">
             <div className="title">
               <span className="client-name">{clientAccessReview.clientName}</span>
@@ -403,7 +405,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             <div className="button-container">
               {
                 clientAccessReviewProgress.step !== 0 &&
-                <button className="link-button align-left" onClick={() => this.props.goToPreviousAccessReviewStep({})}>
+                <button
+                  className="link-button align-left"
+                  onClick={() => {
+                    this.props.goToPreviousAccessReviewStep({});
+                    this.clientReviewContainer.current.scrollTo(0, 0);
+                  }}
+                >
                   Back
                 </button>
               }
@@ -412,9 +420,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               </button>
               {
                 clientAccessReviewProgress.step !== ClientAccessReviewProgressEnum.attestations ? (
-                    <button className="blue-button" onClick={() => this.props.goToNextAccessReviewStep({})}>
-                      Continue
-                    </button>
+                  <button
+                    className="blue-button"
+                    onClick={() => {
+                      this.props.goToNextAccessReviewStep({});
+                      this.clientReviewContainer.current.scrollTo(0, 0);
+                    }}
+                  >
+                    Continue
+                  </button>
                   ) : (
                     <button className="blue-button" onClick={() => false}>
                       Complete Review
