@@ -379,7 +379,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                         return (
                           <tr key={user.userEmail}>
                             <td>
-                              <span className="detail-value-name">{user.name}</span><br />
+                              <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
                               <span className="detail-value-email">{user.userEmail}</span></td>
                             <td>
                               {
