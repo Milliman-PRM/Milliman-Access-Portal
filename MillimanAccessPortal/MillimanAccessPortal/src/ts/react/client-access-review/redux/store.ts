@@ -84,6 +84,7 @@ interface ClientFileDropModel {
 
 interface ClientFileDropPermissionGroupModel {
   permissionGroupName: string;
+  isPersonalGroup: boolean;
   permissions: {
     read: boolean;
     write: boolean;

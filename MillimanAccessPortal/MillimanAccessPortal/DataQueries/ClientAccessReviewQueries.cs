@@ -204,6 +204,7 @@ namespace MillimanAccessPortal.DataQueries
                     fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel 
                     {
                         PermissionGroupName = group.Name,
+                        IsPersonalGroup = group.IsPersonalGroup,
                         Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
                         AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
                         AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a).ToList(),

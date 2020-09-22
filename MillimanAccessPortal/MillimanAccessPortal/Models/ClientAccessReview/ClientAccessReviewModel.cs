@@ -92,6 +92,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     public class ClientFileDropPermissionGroupModel
     {
         public string PermissionGroupName { get; set; }
+        public bool IsPersonalGroup { get; set; }
         public Dictionary<string, bool> Permissions { get; set; } = new Dictionary<string, bool>();
         public List<ClientActorModel> AuthorizedMapUsers { get; set; } = new List<ClientActorModel>();
         public List<ClientActorModel> AuthorizedServiceAccounts { get; set; } = new List<ClientActorModel>();
