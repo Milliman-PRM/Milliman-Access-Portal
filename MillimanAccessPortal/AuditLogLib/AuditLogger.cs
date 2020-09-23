@@ -237,18 +237,5 @@ namespace AuditLogLib
                                                                                   : ActivityEventModel.Names.Empty))
                                       .ToList();
         }
-
-        public static async Task<DateTime?> GetUserLastLogin(string userName)
-        {
-            using (AuditLogDbContext auditDb = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
-            {
-                AuditEvent record = await auditDb.AuditEvent
-                                                 .Where(e => e.EventCode == 1001)
-                                                 .Where(e => EF.Functions.ILike(e.User, userName))
-                                                 .OrderByDescending(e => e.Id)
-                                                 .FirstOrDefaultAsync();
-                return record?.TimeStampUtc;
-            }
-        }
     }
 }
