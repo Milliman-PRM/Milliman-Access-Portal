@@ -1,5 +1,7 @@
 import '../../../scss/react/client-access-review/client-access-review.scss';
 
+import '../../../images/icons/checkmark.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -390,12 +392,24 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                   : 'n/a'
                               }
                             </td>
-                            <td className="center-text">{user.clientUserRoles.Admin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentPublisher ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentAccessAdmin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentUser ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.FileDropAdmin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.FileDropUser ? 'X' : ''}</td>
+                            <td className="center-text">
+                              {user.clientUserRoles.Admin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentPublisher ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentAccessAdmin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentUser ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.FileDropAdmin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.FileDropUser ? this.renderCheckmark() : ''}
+                            </td>
                           </tr>
                         );
                       })
@@ -509,9 +523,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                             pg.authorizedServiceAccounts[0].userEmail
                                         }
                                       </td>
-                                      <td className="center-text">{pg.permissions.Read ? 'X' : null}</td>
-                                      <td className="center-text">{pg.permissions.Write ? 'X' : null}</td>
-                                      <td className="center-text">{pg.permissions.Delete ? 'X' : null}</td>
+                                      <td className="center-text">
+                                        {pg.permissions.Read ? this.renderCheckmark() : null}
+                                      </td>
+                                      <td className="center-text">
+                                        {pg.permissions.Write ? this.renderCheckmark() : null}
+                                      </td>
+                                      <td className="center-text">
+                                        {pg.permissions.Delete ? this.renderCheckmark() : null}
+                                      </td>
                                     </tr>
                                   );
                                 } else {
@@ -523,13 +543,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         <td className="detail-value-name">{pg.permissionGroupName}</td>
                                         <td />
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Read ? 'X' : null}
+                                          {pg.permissions.Read ? this.renderCheckmark() : null}
                                         </td>
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Write ? 'X' : null}
+                                          {pg.permissions.Write ? this.renderCheckmark() : null}
                                         </td>
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Delete ? 'X' : null}
+                                          {pg.permissions.Delete ? this.renderCheckmark() : null}
                                         </td>
                                       </tr>
                                       {
@@ -626,6 +646,14 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           </div>
         </div>
       </div>
+    );
+  }
+
+  private renderCheckmark() {
+    return (
+      <svg className="checkmark">
+        <use xlinkHref={'#checkmark'} />
+      </svg>
     );
   }
 }
