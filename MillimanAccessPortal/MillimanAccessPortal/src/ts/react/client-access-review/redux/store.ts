@@ -115,6 +115,7 @@ export interface PendingDataState {
   clients: boolean;
   clientSummary: boolean;
   clientAccessReview: boolean;
+  approveAccessReview: boolean;
 }
 
 /**
