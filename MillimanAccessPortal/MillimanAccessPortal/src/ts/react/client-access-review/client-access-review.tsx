@@ -150,12 +150,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             <div className="detail-column">
               <div className="detail-section">
                 <span className="detail-label">Review due date</span>
-                <h2>{moment.utc(clientSummary.reviewDueDate).format('MMM DD, YYYY')}</h2>
+                <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
               </div>
               <div className="detail-section">
                 <span className="detail-label">Last review date</span>
                 <span className="detail-value">
-                  {moment.utc(clientSummary.lastReviewDate).format('MMM DD, YYYY')}
+                  {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
                 </span>
               </div>
               <div className="detail-section">
@@ -386,7 +386,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                             <td>
                               {
                                 user.lastLoginDate
-                                  ? moment.utc(user.lastLoginDate).format('MMM DD, YYYY')
+                                  ? moment.utc(user.lastLoginDate).local().format('MMM DD, YYYY')
                                   : 'n/a'
                               }
                             </td>
