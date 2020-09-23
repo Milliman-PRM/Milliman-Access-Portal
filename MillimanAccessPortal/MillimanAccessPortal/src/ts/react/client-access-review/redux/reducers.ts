@@ -26,6 +26,7 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   clientSummary: false,
   clientAccessReview: false,
+  approveAccessReview: false,
 };
 
 /**
@@ -69,9 +70,13 @@ const createFilterReducer = (actionType: FilterAccessReviewAction['type']) =>
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
-    FETCH_CLIENTS_SUCCEEDED: (__, { response }: AccessReviewActions.FetchClientsSucceeded) => ({
-      ..._.mapValues(response.clients, () => ({ disabled: false })),
-      ..._.mapValues(response.parentClients, () => ({ disabled: true })),
+    FETCH_CLIENTS_SUCCEEDED: (__, action: AccessReviewActions.FetchClientsSucceeded) => ({
+      ..._.mapValues(action.response.clients, () => ({ disabled: false })),
+      ..._.mapValues(action.response.parentClients, () => ({ disabled: true })),
+    }),
+    APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (__, action: AccessReviewActions.ApproveClientAccessReviewSucceeded) => ({
+      ..._.mapValues(action.response.clients, () => ({ disabled: false })),
+      ..._.mapValues(action.response.parentClients, () => ({ disabled: true })),
     }),
   },
 );
@@ -112,6 +117,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENT_REVIEW_FAILED: (state) => ({
     ...state,
     clientAccessReview: false,
+  }),
+  APPROVE_CLIENT_ACCESS_REVIEW: (state) => ({
+    ...state,
+    approveAccessReview: true,
+  }),
+  APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (state) => ({
+    ...state,
+    approveAccessReview: false,
+  }),
+  APPROVE_CLIENT_ACCESS_REVIEW_FAILED: (state) => ({
+    ...state,
+    approveAccessReview: false,
   }),
 });
 
@@ -162,6 +179,11 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>({
     contentItemConfirmations: null,
     fileDropConfirmations: null,
   }),
+  APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: () => ({
+    step: 0,
+    contentItemConfirmations: null,
+    fileDropConfirmations: null,
+  }),
 });
 
 const data = createReducer<AccessReviewStateData>(_initialData, {
@@ -188,6 +210,13 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
   CANCEL_CLIENT_ACCESS_REVIEW: (state) => ({
     ...state,
     clientAccessReview: null,
+  }),
+  APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.ApproveClientAccessReviewSucceeded) => ({
+    ...state,
+    clients: {
+      ...action.response.clients,
+      ...action.response.parentClients,
+    },
   }),
 });
 
