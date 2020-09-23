@@ -119,6 +119,10 @@
             }
         }
 
+        tr {
+            height: 2rem;
+        }
+
         .table-row-divider {
             border-bottom: 1px solid $grey;
         }
@@ -152,7 +156,7 @@
 
     .attestation-block {
         padding: 1em 5em;
-        
+
         .attestation {
             font-size: 1.1em;
             font-weight: bold;
