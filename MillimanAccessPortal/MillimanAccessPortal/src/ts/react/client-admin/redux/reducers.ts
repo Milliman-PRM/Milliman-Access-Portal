@@ -3,16 +3,16 @@ import * as Yup from 'yup';
 
 import { combineReducers } from 'redux';
 
-import { AccessAction, FilterAccessAction } from './actions';
+import { AccessAction, CloseModalAction, FilterAccessAction, OpenModalAction } from './actions';
 import * as AccessActions from './actions';
 import {
-  AccessStateBaseFormData, AccessStateData, AccessStateEdit, AccessStateFormData,
+  AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingDataState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 const emailRegex = /\S+@\S+\.\S+/;
@@ -91,6 +91,31 @@ const _initialEditStatus: AccessStateEdit = {
  * @param handlers Actions and their state transformations
  */
 const createReducer = createReducerCreator<AccessAction>();
+
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<OpenModalAction['type']>,
+  closeActions: Array<CloseModalAction['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
 
 const pending = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENTS: (state) => ({
@@ -365,6 +390,13 @@ const userCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+const modals = combineReducers({
+  deleteClient: createModalReducer(['OPEN_DELETE_CLIENT_MODAL'], [
+    'CLOSE_DELETE_CLIENT_MODAL',
+    'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
+  ]),
+});
+
 /**
  * Create a reducer for a filter
  * @param actionType Single filter action
@@ -392,6 +424,7 @@ export const clientAdmin = combineReducers({
   edit,
   formData,
   valid,
+  modals,
   filters,
   pending,
 });

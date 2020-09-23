@@ -1,10 +1,12 @@
 ﻿import * as React from 'react';
+import * as Modal from 'react-modal';
+
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
-  AccessStateSelected, AccessStateValid, PendingDataState,
+  AccessStateModals, AccessStateSelected, AccessStateValid, PendingDataState,
 } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
@@ -41,6 +43,7 @@ interface ClientAdminProps {
   filters: AccessStateFilters;
   cardAttributes: AccessStateCardAttributes;
   valid: AccessStateValid;
+  modals: AccessStateModals;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -134,8 +137,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon={'delete'}
                     color={'red'}
                     onClick={() => {
-                      this.props.deleteClient(entity.id);
-                      this.props.selectClient({ id: null });
+                      this.props.openDeleteClientModal({ id: entity.id });
                     }}
                   />
                   <CardButton
@@ -179,6 +181,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             />
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
+        {this.renderModals()}
       </CardPanel>
     );
   }
@@ -698,6 +701,24 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     );
   }
 
+  private renderModals() {
+    const { modals } = this.props;
+    return (
+      <>
+        <Modal
+          isOpen={modals.deleteClient.isOpen}
+          onRequestClose={() => this.props.closeDeleteClientModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3>Delete modal.</h3>
+        </Modal>
+      </>
+    );
+  }
+
   private changeUserRole(event: React.MouseEvent, entityRole: UserRole, client: Guid, user: Guid) {
     event.stopPropagation();
     this.props.setUserRoleInClient({
@@ -737,7 +758,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters, pending, valid } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals } = state;
 
   return {
     clients: clientEntities(state),
@@ -751,6 +772,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     filters,
     pending,
     valid,
+    modals,
   };
 }
 

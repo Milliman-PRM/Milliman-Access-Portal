@@ -1,7 +1,8 @@
-﻿import {
+﻿import * as AccessActions from './actions';
+
+import {
     createActionCreator, createRequestActionCreator,
 } from '../../shared-components/redux/action-creators';
-import * as AccessActions from './actions';
 
 // Page actions
 export const selectClient =
@@ -60,6 +61,16 @@ export const setConsultantName =
   createActionCreator<AccessActions.SetConsultantName>('SET_CONSULTANT_NAME');
 export const setConsultantEmail =
   createActionCreator<AccessActions.SetConsultantEmail>('SET_CONSULTANT_EMAIL');
+
+// Modal Actions
+export const openDeleteClientModal =
+  createActionCreator<AccessActions.OpenDeleteClientModal>('OPEN_DELETE_CLIENT_MODAL');
+export const closeDeleteClientModal =
+  createActionCreator<AccessActions.CloseDeleteClientModal>('CLOSE_DELETE_CLIENT_MODAL');
+export const openDeleteClientConfirmationModal =
+  createActionCreator<AccessActions.OpenDeleteClientConfirmationModal>('OPEN_DELETE_CLIENT_CONFIRMATION_MODAL');
+export const closeDeleteClientConfirmationModal =
+  createActionCreator<AccessActions.CloseDeleteClientConfirmationModal>('CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL');
 
 // Validity Actions
 export const resetValidity =

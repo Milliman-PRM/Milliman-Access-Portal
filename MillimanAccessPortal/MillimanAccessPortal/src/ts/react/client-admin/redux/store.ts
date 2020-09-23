@@ -7,7 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
@@ -91,6 +91,13 @@ export interface AccessStateCardAttributes {
   user: Dict<CardAttributes>;
 }
 
+/**
+ * All modal state.
+ */
+export interface AccessStateModals {
+  deleteClient: ModalState;
+}
+
 export interface AccessState {
   data: AccessStateData;
   selected: AccessStateSelected;
@@ -100,6 +107,7 @@ export interface AccessState {
   formData: AccessStateBaseFormData;
   pending: PendingDataState;
   valid: AccessStateValid;
+  modals: AccessStateModals;
 }
 
 // Create the store and apply saga middleware

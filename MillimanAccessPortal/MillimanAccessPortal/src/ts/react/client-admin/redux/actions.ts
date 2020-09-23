@@ -278,6 +278,21 @@ export interface DeleteClientFailed {
   error: TSError;
 }
 
+// Modals
+export interface OpenDeleteClientModal {
+  type: 'OPEN_DELETE_CLIENT_MODAL';
+  id: Guid;
+}
+export interface OpenDeleteClientConfirmationModal {
+  type: 'OPEN_DELETE_CLIENT_CONFIRMATION_MODAL';
+}
+export interface CloseDeleteClientModal {
+  type: 'CLOSE_DELETE_CLIENT_MODAL';
+}
+export interface CloseDeleteClientConfirmationModal {
+  type: 'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL';
+}
+
 /**
  * An action that sets filter text for a card column.
  */
@@ -358,4 +373,15 @@ export type AccessAction =
   | PageAccessAction
   | RequestAccessAction
   | ResponseAccessAction
-  | ErrorAccessAction;
+  | ErrorAccessAction
+  ;
+
+export type OpenModalAction =
+  | OpenDeleteClientModal
+  | OpenDeleteClientConfirmationModal
+  ;
+
+export type CloseModalAction =
+  | CloseDeleteClientModal
+  | CloseDeleteClientConfirmationModal
+  ;
