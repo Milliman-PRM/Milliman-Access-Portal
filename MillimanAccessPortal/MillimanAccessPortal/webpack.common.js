@@ -19,6 +19,7 @@ module.exports = {
     'file-drop': './src/ts/react/file-drop/index.tsx',
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
+    'login-step-two': './src/ts/react/login-step-two/index.tsx',
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
@@ -203,6 +204,12 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'Login.cshtml.template'),
       inject: false,
       chunks: [ 'commons', 'login' ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Account', 'LoginStepTwo.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'LoginStepTwo.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'login-step-two' ],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'SystemAdmin', 'Index.cshtml'),

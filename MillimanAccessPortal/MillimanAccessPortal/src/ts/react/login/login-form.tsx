@@ -196,8 +196,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           }, () => {
             this.focusUsernameInput();
           });
-        })
-          ;
+        });
     });
   }
 
