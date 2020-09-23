@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
+using MillimanAccessPortal.Models.ContentAccessAdmin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -835,7 +836,7 @@ namespace MapTests
 
                 #region Assert
                 JsonResult result = Assert.IsType<JsonResult>(view);
-                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                Assert.IsType<SaveNewClientResponseModel>(result.Value);
 
                 int afterCount = TestResources.DbContext.Client.Count();
                 Assert.Equal<int>(expectedAfterCount, afterCount);
@@ -1069,7 +1070,7 @@ namespace MapTests
 
                 #region Assert
                 JsonResult result = Assert.IsType<JsonResult>(view);
-                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                Assert.IsType<ClientsResponseModel>(result.Value);
 
                 #region Check that all updated data now matches
                 Client resultClient = TestResources.DbContext.Client.Single(c => c.Id == testClient.Id);
@@ -1182,7 +1183,7 @@ namespace MapTests
 
                 #region Assert
                 JsonResult result = Assert.IsType<JsonResult>(view);
-                Assert.IsType<ClientAdminIndexViewModel>(result.Value);
+                Assert.IsType<ClientsResponseModel>(result.Value);
 
                 int clientPostCount = TestResources.DbContext.Client.Count();
                 int claimsPostCount = TestResources.DbContext.UserClaims.Count();
