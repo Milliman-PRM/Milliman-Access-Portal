@@ -139,6 +139,29 @@ export interface FetchClientReviewFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Send approval of a client access review
+ */
+export interface ApproveClientAccessReview {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW';
+  request: {
+    clientId: Guid;
+    reviewId: Guid;
+  };
+}
+export interface ApproveClientAccessReviewSucceeded {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithReviewDate>;
+    parentClients: Dict<ClientWithReviewDate>;
+  };
+}
+export interface ApproveClientAccessReviewFailed {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW_FAILED';
+  error: TSError;
+}
+
 // ~~ Session Checks ~~ //
 
 /**
@@ -195,6 +218,7 @@ export type RequestAccessReviewAction =
   | FetchClients
   | FetchClientSummary
   | FetchClientReview
+  | ApproveClientAccessReview
   | FetchSessionCheck
   ;
 
@@ -206,6 +230,7 @@ export type ResponseAccessReviewAction =
   | FetchClientsSucceeded
   | FetchClientSummarySucceeded
   | FetchClientReviewSucceeded
+  | ApproveClientAccessReviewSucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -217,11 +242,12 @@ export type ErrorAccessReviewAction =
   | FetchClientsFailed
   | FetchClientSummaryFailed
   | FetchClientReviewFailed
+  | ApproveClientAccessReviewFailed
   | FetchSessionCheckFailed
   ;
 
 /**
- * An action available to the content access administration page.
+ * An action available to the client access review page.
  */
 export type AccessReviewAction =
   | PageAccessReviewAction

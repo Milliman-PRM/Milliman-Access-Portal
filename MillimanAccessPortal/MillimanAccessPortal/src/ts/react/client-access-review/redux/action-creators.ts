@@ -32,5 +32,9 @@ export const fetchClientReview =
 export const fetchSessionCheck =
   createRequestActionCreator<AccessReviewActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 
+// Data posts
+export const approveClientAccessReview =
+  createRequestActionCreator<AccessReviewActions.ApproveClientAccessReview>('APPROVE_CLIENT_ACCESS_REVIEW');
+
 export const scheduleSessionCheck =
   createActionCreator<AccessReviewActions.ScheduleSessionCheck>('SCHEDULE_SESSION_CHECK');
