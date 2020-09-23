@@ -609,7 +609,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     Continue
                   </button>
                   ) : (
-                    <button className="blue-button" onClick={() => false}>
+                    <button
+                      className="blue-button"
+                      onClick={() => {
+                        this.props.approveClientAccessReview({
+                          clientId: clientAccessReview.id,
+                          reviewId: clientAccessReview.clientAccessReviewId,
+                        });
+                      }}
+                    >
                       Complete Review
                     </button>
                   )
