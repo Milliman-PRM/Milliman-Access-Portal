@@ -196,7 +196,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   label="Edit client details"
                   icon="edit"
                   action={() => {
-                    this.props.selectClient({ id: })
+                    this.props.resetValidity({});
                     this.props.setEditStatus({ disabled: false });
                   }}
                 /> :
@@ -205,6 +205,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   icon="cancel"
                   action={() => {
                     this.props.setEditStatus({ disabled: true });
+                    this.props.resetFormData({ details });
+                    this.props.resetValidity({});
                   }}
                 />
               }
@@ -519,9 +521,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             this.props.checkProfitCenterValidity({ profitCenterId: formData.profitCenterId });
 
                             if (this.isFormValid(valid)) {
+                              this.props.resetValidity({});
                               this.props.saveNewClient(formData);
                               this.props.setEditStatus({ disabled: true });
-                              this.props.selectClient({ id: '' });
                             }
                           }}
                         >
@@ -548,8 +550,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             (this.isFormModified(formData, details) && !this.isFormValid(valid))
                           }
                           onClick={() => {
-                            this.props.editClient(formData);
-                            this.props.setEditStatus({ disabled: true });
+                            this.editClient(formData).then(() => {
+                              this.props.resetValidity({});
+                              this.props.setEditStatus({ disabled: true });
+                              this.props.fetchClientDetails({ clientId: details.id });
+                            });
                           }}
                         >
                           Save Changes
@@ -704,6 +709,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       formData.consultantEmail !== detail.consultantEmail ||
       formData.consultantOffice !== detail.office ||
       formData.profitCenterId !== detail.profitCenter.id;
+  }
+
+  private async editClient(formData: AccessStateFormData) {
+    return await this.props.editClient(formData);
   }
 }
 

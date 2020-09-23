@@ -33,6 +33,7 @@ using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -975,9 +976,18 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
+            var clientResponseModel = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
+            Client newClient = await DbContext.Client
+                                   .Include(c => c.ProfitCenter)
+                                   .FirstOrDefaultAsync(c => c.Id == Model.Id);
 
-            return Json(clients);
+            SaveNewClientResponseModel ReturnModel = new SaveNewClientResponseModel
+            {
+              NewClient = (ClientDetail) newClient,
+              Clients = clientResponseModel.Clients,
+            };
+
+            return Json(ReturnModel);
         }
 
         // POST: ClientAdmin/EditClient

@@ -148,6 +148,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    details: action.response.newClient,
   }),
   EDIT_CLIENT_SUCCEEDED: (state, action: AccessActions.EditClientSucceeded) => ({
     ...state,
@@ -173,6 +174,11 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     user: action.id === state.user ? null : action.id,
   }),
+  SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
+    ...state,
+    client: action.response.newClient.id,
+    user: null,
+  }),
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
@@ -188,7 +194,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     ...state,
     details: action.response.clientDetail,
     id: action.response.clientDetail.id,
-    name: action.response.clientDetail.name || action.response.clientDetail.clientName,
+    name: action.response.clientDetail.name,
     clientCode: action.response.clientDetail.clientCode,
     contactName: action.response.clientDetail.clientContactName,
     contactTitle: action.response.clientDetail.clientContactTitle,
@@ -205,10 +211,30 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantEmail: action.response.clientDetail.consultantEmail ?
                      action.response.clientDetail.consultantEmail : null,
   }),
+  SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
+    ...state,
+    id: action.response.newClient.id,
+    name: action.response.newClient.name,
+    clientCode: action.response.newClient.clientCode,
+    contactName: action.response.newClient.clientContactName,
+    contactTitle: action.response.newClient.clientContactTitle,
+    contactEmail: action.response.newClient.clientContactEmail ?
+      action.response.newClient.clientContactEmail : null,
+    contactPhone: action.response.newClient.clientContactPhone ?
+      action.response.newClient.clientContactPhone : null,
+    domainListCountLimit: action.response.newClient.domainListCountLimit,
+    acceptedEmailDomainList: action.response.newClient.acceptedEmailDomainList,
+    acceptedEmailAddressExceptionList: action.response.newClient.acceptedEmailAddressExceptionList,
+    profitCenterId: action.response.newClient.profitCenter.id,
+    consultantOffice: action.response.newClient.office,
+    consultantName: action.response.newClient.consultantName,
+    consultantEmail: action.response.newClient.consultantEmail ?
+      action.response.newClient.consultantEmail : null,
+  }),
   RESET_FORM_DATA: (state, action: AccessActions.ResetFormData) => ({
     ...state,
     id: action.details.id,
-    name: action.details.name || action.details.clientName,
+    name: action.details.name,
     clientCode: action.details.clientCode,
     contactName: action.details.clientContactName,
     contactTitle: action.details.clientContactTitle,

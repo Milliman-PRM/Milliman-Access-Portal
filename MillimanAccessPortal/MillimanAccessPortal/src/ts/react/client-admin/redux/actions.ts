@@ -248,6 +248,7 @@ export interface SaveNewClientSucceeded {
   type: 'SAVE_NEW_CLIENT_SUCCEEDED';
   response: {
     clients: Dict<ClientWithEligibleUsers>;
+    newClient: ClientDetail;
   };
 }
 export interface SaveNewClientFailed {
