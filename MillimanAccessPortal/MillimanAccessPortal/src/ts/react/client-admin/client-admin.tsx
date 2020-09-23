@@ -132,7 +132,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <CardButton
                     icon={'delete'}
                     color={'red'}
-                    onClick={() => this.props.deleteClient(entity.id)}
+                    onClick={() => {
+                      this.props.deleteClient(entity.id);
+                      this.props.selectClient({ id: null });
+                    }}
                   />
                   <CardButton
                     icon={'edit'}
