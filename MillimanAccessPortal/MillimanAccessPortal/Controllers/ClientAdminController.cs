@@ -712,7 +712,7 @@ namespace MillimanAccessPortal.Controllers
         /// Removes a requested user from a requested Client. Requires POST. 
         /// </summary>
         /// <param name="Model"></param>
-        /// <returns>BadRequestObjectResult, UnauthorizedResult, OkResult</returns>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, ClientDetailViewModel</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveUserFromClient(ClientUserAssociationViewModel Model, bool AllowZeroAdmins = false)
@@ -826,7 +826,7 @@ namespace MillimanAccessPortal.Controllers
         /// Saves a new client object
         /// </summary>
         /// <param name="Model">Type Client</param>
-        /// <returns>BadRequestObjectResult, UnauthorizedResult, </returns>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, SaveNewClientResponseModel</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveNewClient([FromBody] Client Model)

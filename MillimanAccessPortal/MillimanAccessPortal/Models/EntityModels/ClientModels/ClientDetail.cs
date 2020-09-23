@@ -51,7 +51,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 DomainListCountLimit = client.DomainListCountLimit,
                 AcceptedEmailDomainList = client.AcceptedEmailDomainList,
                 AcceptedEmailAddressExceptionList = client.AcceptedEmailAddressExceptionList,
-                ProfitCenter = client.ProfitCenter,             
+                ProfitCenter = client.ProfitCenter,
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,

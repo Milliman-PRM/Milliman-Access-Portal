@@ -53,9 +53,6 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         /// </summary>
         [EmitBeforeAfterLog]
         public string ConsultantEmail { get; set; }
-
-        // Name, ClientCode, ContactName, ContactTitle, ContactEmail, ContactPhone, ConsultantName, ConsultantEmail," +
-        // "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText"
     }
 }
 
