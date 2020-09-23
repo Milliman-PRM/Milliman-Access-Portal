@@ -414,6 +414,12 @@
     text-align: right;
 }
 
+.button-left {
+    float: left;
+    margin-left: 0px;
+    padding-left: 0.5em !important;
+}
+
 .form-element-container,
 .button-container {
     position: relative;

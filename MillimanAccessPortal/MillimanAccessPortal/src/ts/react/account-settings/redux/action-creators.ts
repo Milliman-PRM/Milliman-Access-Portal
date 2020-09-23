@@ -16,8 +16,8 @@ export const fetchSessionCheck =
   createRequestActionCreator<AccountActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 export const updateAccount =
   createRequestActionCreator<AccountActions.UpdateAccount>('UPDATE_ACCOUNT');
+export const requestPasswordReset =
+  createRequestActionCreator<AccountActions.RequestPasswordReset>('REQUEST_PASSWORD_RESET');
 
 export const validateInputUser =
   createActionCreator<AccountActions.ValidateInputUser>('VALIDATE_INPUT_USER');
-export const validateInputPassword =
-  createActionCreator<AccountActions.ValidateInputPassword>('VALIDATE_INPUT_PASSWORD');
