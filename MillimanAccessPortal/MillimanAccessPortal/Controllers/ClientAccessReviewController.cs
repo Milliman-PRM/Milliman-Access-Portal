@@ -156,7 +156,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ApproveClientAccessReview(Guid ClientId, Guid ReviewId)
+        public async Task<IActionResult> ApproveClientAccessReview([FromBody] ApproveClientAccessReviewModel ReviewModel)
         {
             #region Authorization
             var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
@@ -171,9 +171,9 @@ namespace MillimanAccessPortal.Controllers
             var currentUser = await _userManager.GetUserAsync(User);
             try
             {
-                var model = await _clientAccessReviewQueries.ApproveClientAccessReviewAsync(currentUser, ClientId);
+                var model = await _clientAccessReviewQueries.ApproveClientAccessReviewAsync(currentUser, ReviewModel.ClientId);
 
-                _auditLogger.Log(AuditEventType.ClientAccessReviewApproved.ToEvent(ClientId, ReviewId));
+                _auditLogger.Log(AuditEventType.ClientAccessReviewApproved.ToEvent(ReviewModel.ClientId, ReviewModel.ReviewId));
 
                 return Json(model);
             }
