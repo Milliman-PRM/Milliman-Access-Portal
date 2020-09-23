@@ -266,7 +266,7 @@ namespace MillimanAccessPortal.Controllers
                         return Ok();
  
                     case var r when r.Succeeded:
-                        SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+                        await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                         // Provide the location that should be navigated to (or fall back on default route)
                         Response.Headers.Add("NavigateTo", returnUrl ?? "/");
@@ -1392,7 +1392,7 @@ namespace MillimanAccessPortal.Controllers
                     string scheme = await IsUserAccountLocal(user.UserName)
                         ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
                         : GetExternalAuthenticationScheme(user.UserName).Name;
-                    SignInCommon(HttpContext.User.Identity.Name, scheme);
+                    await SignInCommon(user, scheme);
                     return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
                 case var r when r.IsLockedOut:
