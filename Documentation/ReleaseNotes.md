@@ -2,12 +2,16 @@
 
 ## Release Notes
 
+#### v1.9.1
+
+- Fixed a bug that caused the SFTP server configuration file to not deploy in production
+- Enabled configurable logging of internal details
+
 ### v1.9.0
 
-- Added a new file drop administration UI and corresponding SFTP server application
+- Introduced a new File Drop feature
+- Enhanced the resiliency of interactions between MAP and Qlikview server
 - Fixed a bug that inaccurately displayed the queue order of publication requests in certain circumstances
-- Enhanced the resiliency of interactions between MAP and Qlikview server when Qlikview fails to respond
-- Migrated all code projects to version 3.1 of .NET runtime and ASP.NET architecture
 
 #### v1.8.1
 

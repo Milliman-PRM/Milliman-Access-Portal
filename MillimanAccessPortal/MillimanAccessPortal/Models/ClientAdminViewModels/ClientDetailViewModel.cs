@@ -44,7 +44,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public bool IsSuspended { get; set; } = false;
-        public List<AssignedRoleInfo> UserRoles { get; set; } = new List<AssignedRoleInfo>();
+        public Dictionary<int, AssignedRoleInfo> UserRoles { get; set; } = new Dictionary<int, AssignedRoleInfo>();
 
         public static explicit operator UserInfoModel(ApplicationUser U)
         {
@@ -176,12 +176,12 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 // Query user details
                 foreach (UserInfoModel assignedUser in AssignedUsers)
                 {
-                    assignedUser.UserRoles = (await Queries.GetUserRolesForClientAsync(assignedUser.Id, ClientEntity.Id))
+                    var assignedUserRoles = (await Queries.GetUserRolesForClientAsync(assignedUser.Id, ClientEntity.Id))
                         .Where(ur => RolesToManage.Contains(ur.RoleEnum))
                         .ToList();
 
                     // any roles that were not found need to be included with IsAssigned=false
-                    assignedUser.UserRoles.AddRange(RolesToManage.Except(assignedUser.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                    assignedUserRoles.AddRange(RolesToManage.Except(assignedUserRoles.Select(ur => ur.RoleEnum)).Select(re =>
                         new AssignedRoleInfo
                         {
                             RoleEnum = re,
@@ -189,14 +189,14 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                             IsAssigned = false
                         }));
 
-                    assignedUser.UserRoles = assignedUser.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
+                    assignedUser.UserRoles = assignedUserRoles.ToDictionary(ur => (int) ur.RoleEnum);
                 }
                 foreach (UserInfoModel eligibleUser in EligibleUsers)
                 {
-                    eligibleUser.UserRoles = await Queries.GetUserRolesForClientAsync(eligibleUser.Id, ClientEntity.Id);
+                    var eligibleUserRoles = await Queries.GetUserRolesForClientAsync(eligibleUser.Id, ClientEntity.Id);
 
                     // any roles that were not found need to be included with IsAssigned=false
-                    eligibleUser.UserRoles.AddRange(RolesToManage.Except(eligibleUser.UserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                    eligibleUserRoles.AddRange(RolesToManage.Except(eligibleUserRoles.Select(ur => ur.RoleEnum)).Select(re =>
                         new AssignedRoleInfo
                         {
                             RoleEnum = re,
@@ -204,7 +204,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                             IsAssigned = false
                         }));
 
-                    eligibleUser.UserRoles = eligibleUser.UserRoles.OrderBy(ur => ur.RoleEnum).ToList();
+                    eligibleUser.UserRoles = eligibleUserRoles.ToDictionary(ur => (int) ur.RoleEnum);
                 }
             }
 

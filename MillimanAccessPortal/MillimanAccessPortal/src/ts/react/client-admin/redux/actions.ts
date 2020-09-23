@@ -1,5 +1,5 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, User, Guid, Client, ProfitCenter } from "../../models";
+import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
@@ -227,13 +227,7 @@ export interface SetUserRoleInClientSucceeded {
   type: 'SET_USER_ROLE_IN_CLIENT_SUCCEEDED';
   response: {
     userId: Guid;
-    roles: [
-      {
-        isAssigned: boolean;
-        roleDisplayValue: string;
-        roleEnum: RoleEnum;
-      }
-    ];
+    roles: Dict<UserRole>;
   };
 }
 export interface SetUserRoleInClientFailed {

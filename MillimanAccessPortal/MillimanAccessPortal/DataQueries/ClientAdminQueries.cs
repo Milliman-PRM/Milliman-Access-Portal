@@ -17,25 +17,13 @@ namespace MillimanAccessPortal.DataQueries
     public class ClientAdminQueries
     {
         private readonly ClientQueries _clientQueries;
-        private readonly ContentItemQueries _contentItemQueries;
-        private readonly HierarchyQueries _hierarchyQueries;
-        private readonly SelectionGroupQueries _selectionGroupQueries;
-        private readonly PublicationQueries _publicationQueries;
         private readonly UserQueries _userQueries;
 
         public ClientAdminQueries(
             ClientQueries clientQueries,
-            ContentItemQueries contentItemQueries,
-            HierarchyQueries hierarchyQueries,
-            SelectionGroupQueries selectionGroupQueries,
-            PublicationQueries publicationQueries,
             UserQueries userQueries)
         {
             _clientQueries = clientQueries;
-            _contentItemQueries = contentItemQueries;
-            _hierarchyQueries = hierarchyQueries;
-            _selectionGroupQueries = selectionGroupQueries;
-            _publicationQueries = publicationQueries;
             _userQueries = userQueries;
         }
 

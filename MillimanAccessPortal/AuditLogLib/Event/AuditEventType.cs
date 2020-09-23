@@ -1079,15 +1079,17 @@ namespace AuditLogLib.Event
             8103, "SFTP Account Removed From Permission Group", (account, permissionGroup, fileDrop) => new
             {
                 SftpAccount = new SftpAccountLogModel(account),
-                PermissionGroup = new
-                {
-                    permissionGroup.Id,
-                    permissionGroup.Name,
-                    permissionGroup.IsPersonalGroup,
-                    permissionGroup.ReadAccess,
-                    permissionGroup.WriteAccess,
-                    permissionGroup.DeleteAccess,
-                },
+                PermissionGroup = permissionGroup == null
+                ? null
+                : new
+                    {
+                        permissionGroup.Id,
+                        permissionGroup.Name,
+                        permissionGroup.IsPersonalGroup,
+                        permissionGroup.ReadAccess,
+                        permissionGroup.WriteAccess,
+                        permissionGroup.DeleteAccess,
+                    },
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 

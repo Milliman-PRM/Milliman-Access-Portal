@@ -657,12 +657,16 @@ namespace MillimanAccessPortal.Controllers
 
                     accountsToReset.ForEach(a =>
                     {
-                        AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
-                        if (a.FileDropUserPermissionGroup != null && a.FileDropUserPermissionGroup.IsPersonalGroup)
+                        if (a.FileDropUserPermissionGroup != null)
                         {
-                            AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
-                            DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                            if (a.FileDropUserPermissionGroup.IsPersonalGroup)
+                            {
+                                AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                            }
                         }
+
                         a.FileDropUserPermissionGroupId = null;
                     });
                 }
@@ -688,14 +692,14 @@ namespace MillimanAccessPortal.Controllers
             {
                 // UserCreator is currently hidden from the front end
                 if (x == RoleEnum.UserCreator) continue;
-                ReturnModel.Roles.Add(new AssignedRoleInfo
+                ReturnModel.Roles.Add((int) x, new AssignedRoleInfo
                 {
                     RoleEnum = x,
                     RoleDisplayValue = x.GetDisplayNameString(),
                     IsAssigned = ExistingRecordsForRequestedRole.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
                 });
             }
-            string AssignedRolenames = string.Join(", ", ReturnModel.Roles.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
+            string AssignedRolenames = string.Join(", ", ReturnModel.Roles.Values.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
             Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: result is user {RequestedUser.UserName} has assigned roles <{AssignedRolenames}>");
             #endregion
 
