@@ -353,6 +353,8 @@ export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed
+  | SaveNewClientFailed
+  | EditClientFailed
   | DeleteClientFailed
   ;
 

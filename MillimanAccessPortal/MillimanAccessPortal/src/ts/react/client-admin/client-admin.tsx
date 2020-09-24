@@ -2,6 +2,7 @@
 import * as Modal from 'react-modal';
 
 import { connect } from 'react-redux';
+import ReduxToastr from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
@@ -59,6 +60,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   public render() {
     return (
       <>
+        <ReduxToastr
+          timeOut={5000}
+          newestOnTop={false}
+          position="bottom-right"
+          transitionIn="fadeIn"
+          transitionOut="fadeOut"
+        />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?

@@ -1,6 +1,7 @@
 ﻿import * as _ from 'lodash';
 import * as Yup from 'yup';
 
+import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { AccessAction, CloseModalAction, FilterAccessAction, OpenModalAction } from './actions';
@@ -463,4 +464,5 @@ export const clientAdmin = combineReducers({
   modals,
   filters,
   pending,
+  toastr: toastrReducer,
 });
