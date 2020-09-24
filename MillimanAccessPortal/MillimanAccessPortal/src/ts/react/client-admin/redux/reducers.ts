@@ -104,7 +104,7 @@ const createReducer = createReducerCreator<AccessAction>();
  */
 const createModalReducer = (
   openActions: Array<OpenModalAction['type']>,
-  closeActions: Array<CloseModalAction['type']>,
+  closeActions: Array<AccessAction['type']>,
 ) => {
   const handlers: Handlers<ModalState, any> = {};
   openActions.forEach((action) => {
@@ -418,10 +418,13 @@ const userCardAttributes = createReducer<Dict<CardAttributes>>({},
 const modals = combineReducers({
   deleteClient: createModalReducer(['OPEN_DELETE_CLIENT_MODAL'], [
     'CLOSE_DELETE_CLIENT_MODAL',
+    'OPEN_DELETE_CLIENT_CONFIRMATION_MODAL',
     'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
   ]),
   deleteClientConfirmation: createModalReducer(['OPEN_DELETE_CLIENT_CONFIRMATION_MODAL'], [
     'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
+    'DELETE_CLIENT_SUCCEEDED',
+    'DELETE_CLIENT_FAILED',
   ]),
 });
 
