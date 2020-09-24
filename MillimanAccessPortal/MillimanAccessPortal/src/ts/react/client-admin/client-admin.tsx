@@ -6,7 +6,7 @@ import { connect } from 'react-redux';
 import * as AccessActionCreators from './redux/action-creators';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
-  AccessStateModals, AccessStateSelected, AccessStateValid, PendingDataState,
+  AccessStateModals, AccessStatePending, AccessStateSelected, AccessStateValid,
 } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
@@ -18,6 +18,7 @@ import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -32,7 +33,7 @@ import { activeUsers, clientEntities } from './redux/selectors';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
-  pending: PendingDataState;
+  pending: AccessStatePending;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
   details: ClientDetail;
@@ -62,13 +63,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?
           <div style={{ width: '100%' }}>
-            {this.props.pending.details ?
+            {this.props.pending.data.details ?
               <ColumnSpinner />
               : this.renderClientDetail()
             }
           </div> : null
         }
-        {this.props.selected.client !== null && !this.props.pending.details  ? this.renderClientUsers() : null}
+        {this.props.selected.client !== null && !this.props.pending.data.details  ? this.renderClientUsers() : null}
       </>
     );
   }
@@ -78,7 +79,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     return (
       <CardPanel
         entities={clients}
-        loading={pending.clients}
+        loading={pending.data.clients}
         renderEntity={(entity, key) => {
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
@@ -137,7 +138,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon={'delete'}
                     color={'red'}
                     onClick={() => {
-                      this.props.openDeleteClientModal({ id: entity.id });
+                      this.props.openDeleteClientModal({ id: entity.id, name: entity.name });
                     }}
                   />
                   <CardButton
@@ -702,7 +703,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals } = this.props;
+    const { modals, pending } = this.props;
     return (
       <>
         <Modal
@@ -713,7 +714,66 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
-          <h3>Delete modal.</h3>
+          <h2 className="title red">Delete Client</h2>
+          <span className="modal-text">Delete <strong>{pending.deleteClient.name}</strong>?</span>
+          <span className="modal-text">This action <u><strong>cannot</strong></u> be undone.</span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.openDeleteClientConfirmationModal({});
+            }}
+          >
+            <div className="button-container">
+              <button className="link-button" type="button" onClick={() => this.props.closeDeleteClientModal({})}>
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Delete
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.deleteClientConfirmation.isOpen}
+          onRequestClose={() => this.props.closeDeleteClientConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Delete Client</h2>
+          <span className="modal-text">
+            Please confirm the deletion of <strong>{pending.deleteClient.name}</strong>.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.deleteClient(pending.deleteClient.id);
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDeleteClientConfirmationModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Delete
+                {this.props.pending.data.clients
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
         </Modal>
       </>
     );

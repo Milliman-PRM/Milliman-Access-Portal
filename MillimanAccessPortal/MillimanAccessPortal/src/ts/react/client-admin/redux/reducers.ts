@@ -5,9 +5,10 @@ import { combineReducers } from 'redux';
 
 import { AccessAction, CloseModalAction, FilterAccessAction, OpenModalAction } from './actions';
 import * as AccessActions from './actions';
+
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
-  AccessStateSelected, AccessStateValid, PendingDataState,
+  AccessStateSelected, AccessStateValid, PendingDataState, PendingDeleteClientState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -20,6 +21,10 @@ const emailRegex = /\S+@\S+\.\S+/;
 const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
+};
+const _initialPendingDeleteClient: PendingDeleteClientState = {
+  id: null,
+  name: null,
 };
 
 const initialDetails: ClientDetail = {
@@ -117,7 +122,7 @@ const createModalReducer = (
   return createReducer<ModalState>({ isOpen: false }, handlers);
 };
 
-const pending = createReducer<PendingDataState>(_initialPendingData, {
+const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
@@ -141,6 +146,26 @@ const pending = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENT_DETAILS_FAILED: (state) => ({
     ...state,
     details: false,
+  }),
+  DELETE_CLIENT: (state) => ({
+    ...state,
+    clients: true,
+  }),
+  DELETE_CLIENT_SUCCEEDED: (state) => ({
+    ...state,
+    clients: false,
+  }),
+  DELETE_CLIENT_FAILED: (state) => ({
+    ...state,
+    clients: false,
+  }),
+});
+
+const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
+  OPEN_DELETE_CLIENT_MODAL: (state, action: AccessActions.OpenDeleteClientModal) => ({
+    ...state,
+    id: action.id,
+    name: action.name,
   }),
 });
 
@@ -395,6 +420,14 @@ const modals = combineReducers({
     'CLOSE_DELETE_CLIENT_MODAL',
     'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
   ]),
+  deleteClientConfirmation: createModalReducer(['OPEN_DELETE_CLIENT_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
+  ]),
+});
+
+const pending = combineReducers({
+  data: pendingData,
+  deleteClient: pendingDeleteClient,
 });
 
 /**

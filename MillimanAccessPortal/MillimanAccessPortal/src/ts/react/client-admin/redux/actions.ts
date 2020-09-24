@@ -3,7 +3,7 @@ import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, U
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
-import { AccessStateFormData } from "./store";
+import { AccessStateFormData, PendingDeleteClientState } from "./store";
 
 // ~ Page Actions ~
 
@@ -282,6 +282,7 @@ export interface DeleteClientFailed {
 export interface OpenDeleteClientModal {
   type: 'OPEN_DELETE_CLIENT_MODAL';
   id: Guid;
+  name: string;
 }
 export interface OpenDeleteClientConfirmationModal {
   type: 'OPEN_DELETE_CLIENT_CONFIRMATION_MODAL';
@@ -352,8 +353,8 @@ export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed
+  | DeleteClientFailed
   ;
-
 
 export type PageAccessAction =
   | SelectClient
@@ -367,6 +368,10 @@ export type PageAccessAction =
   | FormAction
   | ValidityAction
   | ResetClientDetails
+  | OpenDeleteClientModal
+  | CloseDeleteClientModal
+  | OpenDeleteClientConfirmationModal
+  | CloseDeleteClientConfirmationModal
   ;
 
 export type AccessAction =

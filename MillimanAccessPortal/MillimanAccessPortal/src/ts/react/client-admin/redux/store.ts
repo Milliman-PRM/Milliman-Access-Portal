@@ -18,6 +18,14 @@ export interface PendingDataState {
   details: boolean;
 }
 
+/**
+ * Flags indicating whether the page is waiting on user input/confirmation to delete a client.
+ */
+export interface PendingDeleteClientState {
+  id: Guid;
+  name: string;
+}
+
 export interface ValidationState {
   valid: boolean;
   message?: string;
@@ -92,10 +100,19 @@ export interface AccessStateCardAttributes {
 }
 
 /**
+ * All pending state.
+ */
+export interface AccessStatePending {
+  data: PendingDataState;
+  deleteClient: PendingDeleteClientState;
+}
+
+/**
  * All modal state.
  */
 export interface AccessStateModals {
   deleteClient: ModalState;
+  deleteClientConfirmation: ModalState;
 }
 
 export interface AccessState {
@@ -105,7 +122,7 @@ export interface AccessState {
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
   formData: AccessStateBaseFormData;
-  pending: PendingDataState;
+  pending: AccessStatePending;
   valid: AccessStateValid;
   modals: AccessStateModals;
 }
