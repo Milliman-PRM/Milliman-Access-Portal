@@ -30,3 +30,6 @@ export const editClient =
 export const deleteClient =
   createJsonRequestor<AccessActions.DeleteClient, AccessActions.DeleteClientSucceeded>
     ('DELETE', '/ClientAdmin/DeleteClient');
+export const saveNewClientUser =
+  createJsonRequestor<AccessActions.SaveNewClient, AccessActions.SaveNewClientSucceeded>
+    ('POST', '/ClientAdmin/SaveNewUser');

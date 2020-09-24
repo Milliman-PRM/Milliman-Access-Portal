@@ -4,12 +4,12 @@ import * as Yup from 'yup';
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
-import { AccessAction, CloseModalAction, FilterAccessAction, OpenModalAction } from './actions';
+import { AccessAction, FilterAccessAction, OpenModalAction } from './actions';
 import * as AccessActions from './actions';
 
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
-  AccessStateSelected, AccessStateValid, PendingDataState, PendingDeleteClientState,
+  AccessStateSelected, AccessStateValid, PendingDataState, PendingCreateClientUserState, PendingDeleteClientState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -26,6 +26,11 @@ const _initialPendingData: PendingDataState = {
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
   name: null,
+};
+const _initialPendingCreateClientUser: PendingCreateClientUserState = {
+  memberOfClientId: null,
+  userName: null,
+  email: null,
 };
 
 const initialDetails: ClientDetail = {
@@ -167,6 +172,13 @@ const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPend
     ...state,
     id: action.id,
     name: action.name,
+  }),
+});
+
+const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_initialPendingCreateClientUser, {
+  OPEN_CREATE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenCreateClientUserModal) => ({
+    ...state,
+    memberOfClientId: action.clientId,
   }),
 });
 
@@ -427,11 +439,15 @@ const modals = combineReducers({
     'DELETE_CLIENT_SUCCEEDED',
     'DELETE_CLIENT_FAILED',
   ]),
+  createClientUser: createModalReducer(['OPEN_CREATE_CLIENT_USER_MODAL'], [
+    'CLOSE_CREATE_CLIENT_USER_MODAL',
+  ]),
 });
 
 const pending = combineReducers({
   data: pendingData,
   deleteClient: pendingDeleteClient,
+  createClientUser: pendingCreateClientUser,
 });
 
 /**

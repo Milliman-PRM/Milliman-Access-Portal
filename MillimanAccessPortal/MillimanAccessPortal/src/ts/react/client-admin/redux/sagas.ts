@@ -30,6 +30,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('SAVE_NEW_CLIENT', api.saveNewClient);
   yield takeLatestRequest('EDIT_CLIENT', api.editClient);
   yield takeLatestRequest('DELETE_CLIENT', api.deleteClient);
+  yield takeLatestRequest('SAVE_NEW_CLIENT_USER', api.saveNewClient);
 
   // Toasts
   yield takeEveryToast('SAVE_NEW_CLIENT_SUCCEEDED', 'Created new client.');

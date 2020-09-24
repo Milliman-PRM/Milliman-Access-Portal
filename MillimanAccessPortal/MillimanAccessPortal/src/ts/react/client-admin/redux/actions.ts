@@ -277,6 +277,24 @@ export interface DeleteClientFailed {
   type: 'DELETE_CLIENT_FAILED';
   error: TSError;
 }
+export interface SaveNewClientUser {
+  type: 'SAVE_NEW_CLIENT_USER';
+  request: {
+    memberOfClientId: Guid;
+    userName: string;
+    email: string;
+  };
+}
+export interface SaveNewClientUserSucceeded {
+  type: 'SAVE_NEW_CLIENT_USER_SUCCEEDED';
+  response: {
+    client: Dict<ClientWithEligibleUsers>;
+  };
+}
+export interface SaveNewClientUserFailed {
+  type: 'SAVE_NEW_CLIENT_USER_FAILED';
+  error: TSError;
+}
 
 // Modals
 export interface OpenDeleteClientModal {
@@ -292,6 +310,13 @@ export interface CloseDeleteClientModal {
 }
 export interface CloseDeleteClientConfirmationModal {
   type: 'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL';
+}
+export interface OpenCreateClientUserModal {
+  type: 'OPEN_CREATE_CLIENT_USER_MODAL';
+  clientId: Guid;
+}
+export interface CloseCreateClientUserModal {
+  type: 'CLOSE_CREATE_CLIENT_USER_MODAL';
 }
 
 /**
@@ -335,7 +360,10 @@ export type RequestAccessAction =
   | SetUserRoleInClient
   | SaveNewClient
   | EditClient
-  | DeleteClient;
+  | DeleteClient
+  | SaveNewClient
+  | SaveNewClientUser
+  ;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
@@ -344,7 +372,9 @@ export type ResponseAccessAction =
   | SetUserRoleInClientSucceeded
   | SaveNewClientSucceeded
   | EditClientSucceeded
-  | DeleteClientSucceeded;
+  | DeleteClientSucceeded
+  | SaveNewClientSucceeded
+  ;
 
 /**
 * An action that marks the errored response of an Ajax request.
@@ -356,6 +386,7 @@ export type ErrorAccessAction =
   | SaveNewClientFailed
   | EditClientFailed
   | DeleteClientFailed
+  | SaveNewClientFailed
   ;
 
 export type PageAccessAction =
@@ -374,6 +405,8 @@ export type PageAccessAction =
   | CloseDeleteClientModal
   | OpenDeleteClientConfirmationModal
   | CloseDeleteClientConfirmationModal
+  | OpenCreateClientUserModal
+  | CloseCreateClientUserModal
   ;
 
 export type AccessAction =
@@ -386,9 +419,5 @@ export type AccessAction =
 export type OpenModalAction =
   | OpenDeleteClientModal
   | OpenDeleteClientConfirmationModal
-  ;
-
-export type CloseModalAction =
-  | CloseDeleteClientModal
-  | CloseDeleteClientConfirmationModal
+  | OpenCreateClientUserModal
   ;

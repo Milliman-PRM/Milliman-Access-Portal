@@ -694,12 +694,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   action={() => false}
                 />
                 <ActionIcon
-                  label="Add or create a new client"
+                  label="Add or create a new client user"
                   icon="add"
                   action={() => {
-                    this.props.selectClient({ id: 'new' });
-                    this.props.clearFormData({});
-                    this.props.setEditStatus({ disabled: false });
+                    this.props.openCreateClientUserModal({ clientId: selected.client });
                   }}
                 />
               </PanelSectionToolbarButtons>

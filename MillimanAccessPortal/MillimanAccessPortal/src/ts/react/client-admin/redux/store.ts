@@ -25,6 +25,11 @@ export interface PendingDeleteClientState {
   id: Guid;
   name: string;
 }
+export interface PendingCreateClientUserState {
+  memberOfClientId: Guid;
+  userName: string;
+  email: string;
+}
 
 export interface ValidationState {
   valid: boolean;
@@ -105,6 +110,7 @@ export interface AccessStateCardAttributes {
 export interface AccessStatePending {
   data: PendingDataState;
   deleteClient: PendingDeleteClientState;
+  createClientUser: PendingCreateClientUserState;
 }
 
 /**
@@ -113,6 +119,7 @@ export interface AccessStatePending {
 export interface AccessStateModals {
   deleteClient: ModalState;
   deleteClientConfirmation: ModalState;
+  createClient: ModalState;
 }
 
 export interface AccessState {
