@@ -266,7 +266,7 @@ namespace MillimanAccessPortal.Controllers
                         return Ok();
  
                     case var r when r.Succeeded:
-                        SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+                        await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                         // Provide the location that should be navigated to (or fall back on default route)
                         Response.Headers.Add("NavigateTo", returnUrl ?? "/");
@@ -301,13 +301,15 @@ namespace MillimanAccessPortal.Controllers
         /// Does everything that is common to externally and internally signed in users
         /// </summary>
         [NonAction]
-        private void SignInCommon(string userName, string scheme)
+        private async Task SignInCommon(ApplicationUser user, string scheme)
         {
             try
             {
+                user.LastLoginUtc = DateTime.UtcNow;
+                await DbContext.SaveChangesAsync();
                 HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
-                Log.Information($"User {userName} logged in with scheme {scheme}");
-                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+                Log.Information($"User {user.UserName} logged in with scheme {scheme}");
+                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), user.UserName, HttpContext.Session.Id);
             }
             catch (Exception ex)
             {
@@ -490,7 +492,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
@@ -507,7 +509,8 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationScheme(HttpContext.User.Identity.Name)?.Name);
+            var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
+            await SignInCommon(user, GetExternalAuthenticationScheme(user.UserName)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -1254,7 +1257,7 @@ namespace MillimanAccessPortal.Controllers
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
                                                     .Where(c => myClientIds.Contains(c.Id))
-                                                    .Where(c => c.LastReviewDateTimeUtc < countableLastReviewTime)
+                                                    .Where(c => c.LastAccessReview.LastReviewDateTimeUtc < countableLastReviewTime)
                                                     .CountAsync());
 
                 NavBarElements.Add(new NavBarElementModel
@@ -1389,7 +1392,7 @@ namespace MillimanAccessPortal.Controllers
                     string scheme = await IsUserAccountLocal(user.UserName)
                         ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
                         : GetExternalAuthenticationScheme(user.UserName).Name;
-                    SignInCommon(HttpContext.User.Identity.Name, scheme);
+                    await SignInCommon(user, scheme);
                     return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
                 case var r when r.IsLockedOut:

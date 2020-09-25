@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Unit tests for actions in the ClientReviewController
+ * OBJECTIVE: Unit tests for actions in the ClientAccessReviewController
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
@@ -10,7 +10,7 @@ using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ClientAccessReview;
 using System;
 using System.Collections.Generic;
-using System.Text;
+using System.Linq;
 using System.Threading.Tasks;
 using TestResourcesLib;
 using Xunit;
@@ -38,7 +38,6 @@ namespace MapTests
             ClientAccessReviewController testController = new ClientAccessReviewController(
                 testResources.AuditLogger,
                 testResources.AuthorizationService,
-                testResources.ContentAccessAdminQueries,
                 testResources.ClientAccessReviewQueries,
                 testResources.UserManager,
                 testResources.Configuration);
@@ -51,7 +50,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// Checks that the PageGlobalData action enforces authorization
         /// </summary>
         [Fact]
         public async Task PageGlobalData_Unauthorized()
@@ -100,7 +99,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// Checks that the Clients action enforces authorization
         /// </summary>
         [Fact]
         public async Task Clients_Unauthorized()
@@ -122,7 +121,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// Checks that the Clients action returns the appropriate type and properties
         /// </summary>
         [Fact]
         public async Task Clients_Valid()
@@ -147,7 +146,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// Checks that the Index action enforces authorization
         /// </summary>
         [Fact]
         public async Task Index_Unauthorized()
@@ -169,7 +168,7 @@ namespace MapTests
         }
 
         /// <summary>
-        /// Checks that the contents of the PageGlobalData action reflect the application configuration
+        /// Checks that the Index action returns the expected type and characteristics
         /// </summary>
         [Fact]
         public async Task Index_Valid()
@@ -187,6 +186,120 @@ namespace MapTests
                 #region Assert
                 var result = Assert.IsType<ViewResult>(view);
                 Assert.Null(result.ViewName);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the ClientSummary action enforces authorization
+        /// </summary>
+        [Fact]
+        public async Task ClientSummary_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "test1");
+                Guid clientId = TestUtil.MakeTestGuid(1);
+                #endregion
+
+                #region Act
+                var view = await controller.ClientSummary(clientId);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the ClientSummary action returns the expected type and characteristics
+        /// </summary>
+        [Fact]
+        public async Task ClientSummary_Valid()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "AdminOfChildClient");
+                Guid clientId = TestUtil.MakeTestGuid(2);
+                #endregion
+
+                #region Act
+                var view = await controller.ClientSummary(clientId);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<JsonResult>(view);
+                var model = Assert.IsType<ClientSummaryModel>(result.Value);
+                Assert.Equal("Name2", model.ClientName);
+                Assert.Equal("ClientCode2", model.ClientCode);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the BeginClientAccessReview action enforces authorization
+        /// </summary>
+        [Fact]
+        public async Task BeginClientAccessReview_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "test1");
+                Guid clientId = TestUtil.MakeTestGuid(1);
+                #endregion
+
+                #region Act
+                var view = await controller.BeginClientAccessReview(clientId);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(view);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Checks that the BeginClientAccessReview action returns the expected type and characteristics
+        /// </summary>
+        [Fact]
+        public async Task BeginClientAccessReview_Valid()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAccessReviewController controller = await GetControllerForUser(TestResources, "AdminOfChildClient");
+                Guid clientId = TestUtil.MakeTestGuid(7);
+                string expectedAttestationLanguage = TestResources.Configuration.GetValue<string>("ClientReviewAttestationLanguage");
+                #endregion
+
+                #region Act
+                var view = await controller.BeginClientAccessReview(clientId);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<JsonResult>(view);
+                var model = Assert.IsType<ClientAccessReviewModel>(result.Value);
+                Assert.Equal("Name7", model.ClientName);
+                Assert.Equal("ClientCode7", model.ClientCode);
+                Assert.Equal(2, model.MemberUsers.Count);
+                Assert.Contains("FN7 LN7", model.MemberUsers.Select(u => u.Name));
+                Assert.Contains("Client Admin1", model.MemberUsers.Select(u => u.Name));
+                Assert.Single(model.ProfitCenterAdmins);
+                Assert.Equal("Client Admin1", model.ProfitCenterAdmins[0].Name);
+                Assert.Single(model.ContentItems);
+                Assert.Equal("RootContent 6", model.ContentItems[0].ContentItemName);
+                Assert.Single(model.FileDrops);
+                Assert.Equal("Client 7 File Drop 1", model.FileDrops[0].FileDropName);
+                Assert.Equal(2, model.ClientAdmins.Count);
+                Assert.Contains("FN7 LN7", model.ClientAdmins.Select(u => u.Name));
+                Assert.Contains("Client Admin1", model.ClientAdmins.Select(u => u.Name));
+                Assert.Equal("Profit Center 1", model.AssignedProfitCenterName);
+                Assert.NotNull(model.AttestationLanguage);
+                Assert.Equal(expectedAttestationLanguage, model.AttestationLanguage);
                 #endregion
             }
         }

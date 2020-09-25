@@ -103,10 +103,11 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("integer")
                         .HasDefaultValue(3);
 
-                    b.Property<DateTime>("LastReviewDateTimeUtc")
+                    b.Property<ClientAccessReview>("LastAccessReview")
+                        .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValueSql("now() at time zone 'utc'");
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -674,6 +675,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("IsSuspended")
                         .HasColumnType("boolean");
 
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
+
                     b.Property<HashSet<FileDropUserNotificationModel>>("NotificationSubscriptions")
                         .HasColumnType("jsonb");
 
@@ -877,6 +881,9 @@ namespace MillimanAccessPortal.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
                         .HasDefaultValue(null);
+
+                    b.Property<DateTime?>("LastLoginUtc")
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("LastName")
                         .HasColumnType("text");
@@ -1124,7 +1131,7 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.FileDrop", "FileDrop")
-                        .WithMany()
+                        .WithMany("PermissionGroups")
                         .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

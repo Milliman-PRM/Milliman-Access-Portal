@@ -2,7 +2,7 @@ import { ClientWithReviewDate } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
-import { AccessReviewGlobalData } from './store';
+import { AccessReviewGlobalData, ClientAccessReviewModel, ClientSummaryModel } from './store';
 
 // ~~ Page actions ~~
 
@@ -21,6 +21,43 @@ export interface SelectClient {
 export interface SetFilterTextClient {
   type: 'SET_FILTER_TEXT_CLIENT';
   text: string;
+}
+
+/**
+ * Go to the next step of the Client Access Review.
+ */
+export interface GoToNextAccessReviewStep {
+  type: 'GO_TO_NEXT_ACCESS_REVIEW_STEP';
+}
+
+/**
+ * Go to the previous step of the Client Access Review.
+ */
+export interface GoToPreviousAccessReviewStep {
+  type: 'GO_TO_PREVIOUS_ACCESS_REVIEW_STEP';
+}
+
+/**
+ * Toggle the provided Content Item review status.
+ */
+export interface ToggleContentItemReviewStatus {
+  type: 'TOGGLE_CONTENT_ITEM_REVIEW_STATUS';
+  contentItemId: Guid;
+}
+
+/**
+ * Toggle the provided File Drop review status.
+ */
+export interface ToggleFileDropReviewStatus {
+  type: 'TOGGLE_FILE_DROP_REVIEW_STATUS';
+  fileDropId: Guid;
+}
+
+/**
+ * Cancel the current Client Access Review.
+ */
+export interface CancelClientAccessReview {
+  type: 'CANCEL_CLIENT_ACCESS_REVIEW';
 }
 
 // ~~ Server actions ~~
@@ -63,6 +100,68 @@ export interface FetchClientsFailed {
   error: TSError;
 }
 
+/**
+ * GET:
+ *   A summary of the selected client for previewing before starting
+ *   an access review
+ */
+export interface FetchClientSummary {
+  type: 'FETCH_CLIENT_SUMMARY';
+  request: {
+    clientId: Guid;
+  };
+}
+export interface FetchClientSummarySucceeded {
+  type: 'FETCH_CLIENT_SUMMARY_SUCCEEDED';
+  response: ClientSummaryModel;
+}
+export interface FetchClientSummaryFailed {
+  type: 'FETCH_CLIENT_SUMMARY_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
+ *   All data necessary to perform a client access review
+ */
+export interface FetchClientReview {
+  type: 'FETCH_CLIENT_REVIEW';
+  request: {
+    clientId: Guid;
+  };
+}
+export interface FetchClientReviewSucceeded {
+  type: 'FETCH_CLIENT_REVIEW_SUCCEEDED';
+  response: ClientAccessReviewModel;
+}
+export interface FetchClientReviewFailed {
+  type: 'FETCH_CLIENT_REVIEW_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Send approval of a client access review
+ */
+export interface ApproveClientAccessReview {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW';
+  request: {
+    clientId: Guid;
+    reviewId: Guid;
+  };
+}
+export interface ApproveClientAccessReviewSucceeded {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithReviewDate>;
+    parentClients: Dict<ClientWithReviewDate>;
+  };
+}
+export interface ApproveClientAccessReviewFailed {
+  type: 'APPROVE_CLIENT_ACCESS_REVIEW_FAILED';
+  error: TSError;
+}
+
 // ~~ Session Checks ~~ //
 
 /**
@@ -97,6 +196,11 @@ export interface ScheduleSessionCheck {
 export type PageAccessReviewAction =
   | SelectClient
   | SetFilterTextClient
+  | GoToNextAccessReviewStep
+  | GoToPreviousAccessReviewStep
+  | ToggleContentItemReviewStatus
+  | ToggleFileDropReviewStatus
+  | CancelClientAccessReview
   ;
 
 /**
@@ -112,6 +216,9 @@ export type ScheduleAccessReviewAction =
 export type RequestAccessReviewAction =
   | FetchGlobalData
   | FetchClients
+  | FetchClientSummary
+  | FetchClientReview
+  | ApproveClientAccessReview
   | FetchSessionCheck
   ;
 
@@ -121,6 +228,9 @@ export type RequestAccessReviewAction =
 export type ResponseAccessReviewAction =
   | FetchGlobalDataSucceeded
   | FetchClientsSucceeded
+  | FetchClientSummarySucceeded
+  | FetchClientReviewSucceeded
+  | ApproveClientAccessReviewSucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -130,11 +240,14 @@ export type ResponseAccessReviewAction =
 export type ErrorAccessReviewAction =
   | FetchGlobalDataFailed
   | FetchClientsFailed
+  | FetchClientSummaryFailed
+  | FetchClientReviewFailed
+  | ApproveClientAccessReviewFailed
   | FetchSessionCheckFailed
   ;
 
 /**
- * An action available to the content access administration page.
+ * An action available to the client access review page.
  */
 export type AccessReviewAction =
   | PageAccessReviewAction

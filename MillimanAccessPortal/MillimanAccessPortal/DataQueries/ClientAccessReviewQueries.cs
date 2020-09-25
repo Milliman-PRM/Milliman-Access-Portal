@@ -9,9 +9,12 @@ using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ClientAccessReview;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Identity;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -22,19 +25,22 @@ namespace MillimanAccessPortal.DataQueries
         private readonly ContentItemQueries _contentItemQueries;
         private readonly UserQueries _userQueries;
         private readonly IConfiguration _appConfig;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public ClientAccessReviewQueries(
             ClientQueries clientQueriesArg,
             ContentItemQueries contentItemQueriesArg,
             UserQueries userQueriesArg,
             ApplicationDbContext dbContextArg,
-            IConfiguration appConfigArg)
+            IConfiguration appConfigArg,
+            UserManager<ApplicationUser> userManagerArg)
         {
             _clientQueries = clientQueriesArg;
             _contentItemQueries = contentItemQueriesArg;
             _userQueries = userQueriesArg;
             _dbContext = dbContextArg;
             _appConfig = appConfigArg;
+            _userManager = userManagerArg;
         }
 
         public async Task<ClientReviewClientsModel> GetClientModelAsync(ApplicationUser user)
@@ -62,6 +68,166 @@ namespace MillimanAccessPortal.DataQueries
                 Clients = clients.ToDictionary(c => c.Id),
                 ParentClients = parents.ToDictionary(p => p.Id),
             };
+        }
+
+        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId)
+        {
+            Client client = await _dbContext.Client
+                                            .Include(c => c.ProfitCenter)
+                                            .Where(c => c.Id == clientId)
+                                            .SingleOrDefaultAsync();
+            List<ApplicationUser> clientAdmins = await _dbContext.UserRoleInClient
+                                                                 .Where(urc => urc.ClientId == clientId)
+                                                                 .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                                 .Select(urc => urc.User)
+                                                                 .ToListAsync();
+            List<ApplicationUser> profitCenterAdmins = await _dbContext.UserRoleInProfitCenter
+                                                                       .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
+                                                                       .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
+                                                                       .Select(urp => urp.User)
+                                                                       .ToListAsync();
+
+            ApplicationUser lastApprover = await _userManager.FindByNameAsync(client.LastAccessReview.UserName);
+            var returnModel = new ClientSummaryModel
+            {
+                ClientName = client.Name,
+                ClientCode = client.ClientCode,
+                AssignedProfitCenter = client.ProfitCenter.Name,
+                LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
+                LastReviewedBy = lastApprover == null  // Usually null indicates the username is the default "N/A", indicating no previous review
+                    ? new ClientActorModel { Name = client.LastAccessReview.UserName }  // This avoids potential null reference exception in the ClientActorModel cast operator
+                    : (ClientActorModel)lastApprover,
+                PrimaryContactName = client.ContactName,
+                PrimaryContactEmail = client.ContactEmail,
+                ReviewDueDate = client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
+            };
+            clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add((ClientActorModel)ca));
+            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
+
+            return returnModel;
+        }
+
+        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId)
+        {
+            Client client = await _dbContext.Client
+                                            .Include(c => c.ProfitCenter)
+                                            .SingleOrDefaultAsync(c => c.Id == clientId);
+            IEnumerable<ClientActorReviewModel> memberUsers = (await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("ClientMembership", client.Id.ToString())))
+                .Select(u => 
+                {
+                    List<RoleEnum> authorizedRoles = _dbContext.UserRoleInClient
+                                                               .Where(urc => urc.UserId == u.Id)
+                                                               .Where(urc => urc.ClientId == client.Id)
+                                                               .Select(urc => urc.Role.RoleEnum)
+                                                               .ToList();
+                    var memberModel = (ClientActorReviewModel)u;
+                    memberModel.ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
+                                                      .OfType<RoleEnum>()
+                                                      .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
+                                                      .ToDictionary(p => p.Key, p => p.Value);
+                    return memberModel;
+                });
+
+            List<RootContentItem> contentItems = await _dbContext.RootContentItem
+                                                                 .Include(c => c.ContentType)
+                                                                 .Where(c => c.ClientId == client.Id)
+                                                                 .ToListAsync();
+
+            List<ApplicationUser> profitCenterAdmins = await _dbContext.UserRoleInProfitCenter
+                                                                       .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
+                                                                       .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
+                                                                       .Select(urp => urp.User)
+                                                                       .ToListAsync();
+
+            List<FileDrop> fileDrops = await _dbContext.FileDrop
+                                                       .Include(d => d.PermissionGroups)
+                                                           .ThenInclude(g => g.SftpAccounts)
+                                                               .ThenInclude(a => a.ApplicationUser)
+                                                       .Where(d => d.ClientId == client.Id)
+                                                       .ToListAsync();
+
+            var returnModel = new ClientAccessReviewModel
+            {
+                Id = client.Id,
+                ClientName = client.Name,
+                ClientCode = client.ClientCode,
+                ClientAdmins = memberUsers.Where(m => m.ClientUserRoles.ContainsKey(RoleEnum.Admin))
+                                          .Where(m => m.ClientUserRoles[RoleEnum.Admin])
+                                          .Select(m => (ClientActorModel)m)
+                                          .ToList(),
+                AssignedProfitCenterName = client.ProfitCenter.Name,
+                AttestationLanguage = _appConfig.GetValue<string>("ClientReviewAttestationLanguage"),
+                ClientAccessReviewId = Guid.NewGuid(),
+            };
+            returnModel.ApprovedEmailDomainList.AddRange(client.AcceptedEmailDomainList);
+            returnModel.ApprovedEmailExceptionList.AddRange(client.AcceptedEmailAddressExceptionList);
+            profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
+            returnModel.MemberUsers.AddRange(memberUsers);
+            contentItems.ForEach(c =>
+            {
+                var relatedGroups = _dbContext.SelectionGroup
+                                              .Where(g => g.RootContentItemId == c.Id)
+                                              .ToList();
+                var contentModel = new ClientContentItemModel
+                {
+                    Id = c.Id,
+                    ContentItemName = c.ContentName,
+                    ContentType = c.ContentType.TypeEnum.GetDisplayNameString(),
+                    IsSuspended = c.IsSuspended,
+                    LastPublishedDate = _dbContext.ContentPublicationRequest
+                                                  .Where(r => r.RootContentItemId == c.Id)
+                                                  .Where(r => r.RequestStatus == PublicationStatus.Confirmed)
+                                                  .OrderByDescending(r => r.CreateDateTimeUtc)
+                                                  .FirstOrDefault()
+                                                  ?.CreateDateTimeUtc,
+                };
+                relatedGroups.ForEach(g =>
+                {
+                    var groupModel = new ClientContentItemSelectionGroupModel 
+                    { 
+                        SelectionGroupName = g.GroupName, 
+                        IsSuspended = g.IsSuspended 
+                    };
+                    groupModel.AuthorizedUsers.AddRange(_dbContext.UserInSelectionGroup
+                                                                  .Where(usg => usg.SelectionGroupId == g.Id)
+                                                                  .Select(usg => (ClientActorModel)usg.User));
+                    contentModel.SelectionGroups.Add(groupModel);
+                });
+
+                returnModel.ContentItems.Add(contentModel);
+            });
+            fileDrops.ForEach(d =>
+            {
+                ClientFileDropModel fileDropModel = new ClientFileDropModel { Id = d.Id, FileDropName = d.Name };
+                foreach (FileDropUserPermissionGroup group in d.PermissionGroups)
+                {
+                    fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel 
+                    {
+                        PermissionGroupName = group.Name,
+                        IsPersonalGroup = group.IsPersonalGroup,
+                        Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
+                        AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
+                        AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a).ToList(),
+                    });
+                }
+                returnModel.FileDrops.Add(fileDropModel);
+            });
+
+            return returnModel;
+        }
+
+        public async Task<ClientReviewClientsModel> ApproveClientAccessReviewAsync(ApplicationUser currentUser, Guid clientId)
+        {
+            Client client = await _dbContext.Client.FindAsync(clientId);
+            if (client == null)
+            {
+                throw new ApplicationException("Requested client not found");
+            }
+
+            client.LastAccessReview = new ClientAccessReview { LastReviewDateTimeUtc = DateTime.UtcNow, UserName = currentUser.UserName };
+            await _dbContext.SaveChangesAsync();
+
+            return await GetClientModelAsync(currentUser);
         }
     }
 }

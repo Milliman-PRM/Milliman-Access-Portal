@@ -14,11 +14,108 @@ export interface AccessReviewGlobalData {
   clientReviewGracePeriodDays: number;
 }
 
+export interface ClientSummaryModel {
+  clientName: string;
+  clientCode: string;
+  reviewDueDate: string;
+  lastReviewDate: string;
+  lastReviewedBy: ClientActorModel;
+  primaryContactName: string;
+  primaryContactEmail: string;
+  assignedProfitCenter: string;
+  clientAdmins: ClientActorModel[];
+  profitCenterAdmins: ClientActorModel[];
+}
+
+export interface ClientActorModel {
+  name: string;
+  userEmail: string;
+}
+
+export interface ClientAccessReviewModel {
+  id: Guid;
+  clientName: string;
+  clientCode: string;
+  clientAdmins: ClientActorModel[];
+  assignedProfitCenterName: string;
+  profitCenterAdmins: ClientActorModel[];
+  approvedEmailDomainList: string[];
+  approvedEmailExceptionList: string[];
+  memberUsers: ClientActorReviewModel[];
+  contentItems: ClientContentItemModel[];
+  fileDrops: ClientFileDropModel[];
+  attestationLanguage: string;
+  clientAccessReviewId: Guid;
+}
+
+interface ClientActorReviewModel extends ClientActorModel {
+  lastLoginDate?: string;
+  clientUserRoles: {
+    Admin: boolean;
+    ContentAccessAdmin: boolean;
+    ContentPublisher: boolean;
+    ContentUser: boolean;
+    FileDropAdmin: boolean;
+    FileDropUser: boolean;
+    UserCreator: boolean;
+  };
+}
+
+interface ClientContentItemModel {
+  id: Guid;
+  contentType: string;
+  contentItemName: string;
+  isSuspended: boolean;
+  lastPublishedDate: string;
+  selectionGroups: ClientContentItemSelectionGroupModel[];
+}
+
+interface ClientContentItemSelectionGroupModel {
+  selectionGroupName: string;
+  isSuspended: boolean;
+  authorizedUsers: ClientActorModel[];
+}
+
+interface ClientFileDropModel {
+  id: Guid;
+  fileDropName: string;
+  permissionGroups: ClientFileDropPermissionGroupModel[];
+}
+
+interface ClientFileDropPermissionGroupModel {
+  permissionGroupName: string;
+  isPersonalGroup: boolean;
+  permissions: {
+    Read: boolean;
+    Write: boolean;
+    Delete: boolean;
+  };
+  authorizedMapUsers: ClientActorModel[];
+  authorizedServiceAccounts: ClientActorModel[];
+}
+
+export enum ClientAccessReviewProgressEnum {
+  clientReview = 0,
+  userRoles = 1,
+  contentAccess = 2,
+  fileDropAccess = 3,
+  attestations = 4,
+}
+
+export interface ClientAccessReviewProgress {
+  step: ClientAccessReviewProgressEnum;
+  contentItemConfirmations: Dict<boolean>;
+  fileDropConfirmations: Dict<boolean>;
+}
+
 /**
  * Flags indicating whether the page is waiting on new data for an entity type.
  */
 export interface PendingDataState {
   clients: boolean;
+  clientSummary: boolean;
+  clientAccessReview: boolean;
+  approveAccessReview: boolean;
 }
 
 /**
@@ -27,6 +124,8 @@ export interface PendingDataState {
 export interface AccessReviewStateData {
   globalData: AccessReviewGlobalData;
   clients: Dict<ClientWithReviewDate>;
+  selectedClientSummary: ClientSummaryModel;
+  clientAccessReview: ClientAccessReviewModel;
 }
 
 /**
@@ -48,11 +147,8 @@ export interface AccessReviewStateCardAttributes {
  */
 export interface AccessReviewStatePending {
   data: PendingDataState;
+  clientAccessReviewProgress: ClientAccessReviewProgress;
   statusTries: number;
-  isMaster: boolean;
-  selections: Dict<{ selected: boolean }>;
-  newGroupName: string;
-  deleteGroup: Guid;
 }
 
 /**

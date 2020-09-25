@@ -12,8 +12,6 @@
  */
 
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
@@ -35,37 +33,6 @@ namespace MillimanAccessPortal
 
             var contextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString, b => b.MigrationsAssembly("MillimanAccessPortal"));
             ApplicationDbContext newContext = new ApplicationDbContext(contextOptionsBuilder.Options);
-
-            # region Database initialization for configuration dependent migrationss
-            Dictionary<string, Type> mandatoryTypedConfigs = new Dictionary<string, Type>
-            {
-                { "ClientReviewRenewalPeriodDays", typeof(int) },
-                { "ClientReviewGracePeriodDays", typeof(int) },
-                { "ClientReviewEarlyWarningDays", typeof(int) },
-            };
-
-            foreach (string key in mandatoryTypedConfigs.Keys)
-            {
-                dynamic configValue = cfg.GetValue(mandatoryTypedConfigs[key], key);
-                if (configValue == null)
-                {
-                    throw new ApplicationException($"Required parameter \"{key}\" is missing from application configuration");
-                }
-                string typedConfigValue = Convert.ChangeType(configValue, typeof(string));
-
-                NameValueConfiguration record = newContext.NameValueConfiguration.SingleOrDefault(c => c.Key == key);
-                if (record == null)
-                {
-                    record = new NameValueConfiguration { Key = key, Value = typedConfigValue };
-                    newContext.Add(record);
-                }
-                else if (record.Value != typedConfigValue)
-                {
-                    record.Value = typedConfigValue;
-                }
-            }
-            newContext.SaveChanges();
-            #endregion
 
             return newContext;
         }
