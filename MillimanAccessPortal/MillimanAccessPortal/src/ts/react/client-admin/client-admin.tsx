@@ -621,7 +621,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     />
                   </CardSectionButtons>
                 </CardSectionMain>
-                {Object.keys(entity.userRoles).length > 0 ?
+                {entity.userRoles && Object.keys(entity.userRoles).length > 0 ?
                   <CardExpansion
                     label={'User roles'}
                     expanded={card && card.expanded}
@@ -773,6 +773,58 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Delete
+                {this.props.pending.data.clients
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.createClientUser.isOpen}
+          onRequestClose={() => this.props.closeCreateClientUserModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Add User</h2>
+          <span className="modal-text text-muted">
+            Please provide a valid email address.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.saveNewClientUser({
+                memberOfClientId: pending.createClientUser.memberOfClientId,
+                email: pending.createClientUser.email,
+                userName: pending.createClientUser.userName,
+              });
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Email"
+              onChange={(event) => this.props.setCreateClientUserModalEmail({
+                email: event.target.value,
+              })}
+              value={this.props.pending.createClientUser.email}
+              autoFocus={true}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeCreateClientUserModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Add User
                 {this.props.pending.data.clients
                   ? <ButtonSpinner version="circle" />
                   : null

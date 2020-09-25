@@ -9,7 +9,7 @@ import * as AccessActions from './actions';
 
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
-  AccessStateSelected, AccessStateValid, PendingDataState, PendingCreateClientUserState, PendingDeleteClientState,
+  AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState, PendingDeleteClientState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -22,6 +22,7 @@ const emailRegex = /\S+@\S+\.\S+/;
 const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
+  clientUsers: false,
 };
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
@@ -165,6 +166,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clients: false,
   }),
+  SAVE_NEW_CLIENT_USER: (state) => ({
+    ...state,
+    clientUsers: true,
+  }),
+  SAVE_NEW_CLIENT_SUCCEEDED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+  SAVE_NEW_CLIENT_USER_FAILED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
 });
 
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
@@ -179,6 +192,13 @@ const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_ini
   OPEN_CREATE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenCreateClientUserModal) => ({
     ...state,
     memberOfClientId: action.clientId,
+    email: null,
+    userName: null,
+  }),
+  SET_CREATE_CLIENT_USER_EMAIL: (state, action: AccessActions.SetCreateClientUserModalEmail) => ({
+    ...state,
+    email: action.email,
+    userName: action.email,
   }),
 });
 
@@ -224,6 +244,10 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+  }),
+  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
+    ...state,
+    assignedUsers: state.assignedUsers.concat(action.response),
   }),
 });
 
@@ -441,6 +465,8 @@ const modals = combineReducers({
   ]),
   createClientUser: createModalReducer(['OPEN_CREATE_CLIENT_USER_MODAL'], [
     'CLOSE_CREATE_CLIENT_USER_MODAL',
+    'SAVE_NEW_CLIENT_USER_SUCCEEDED',
+    'SAVE_NEW_CLIENT_USER_FAILED',
   ]),
 });
 

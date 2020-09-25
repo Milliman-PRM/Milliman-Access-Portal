@@ -287,9 +287,7 @@ export interface SaveNewClientUser {
 }
 export interface SaveNewClientUserSucceeded {
   type: 'SAVE_NEW_CLIENT_USER_SUCCEEDED';
-  response: {
-    client: Dict<ClientWithEligibleUsers>;
-  };
+  response: User;
 }
 export interface SaveNewClientUserFailed {
   type: 'SAVE_NEW_CLIENT_USER_FAILED';
@@ -317,6 +315,10 @@ export interface OpenCreateClientUserModal {
 }
 export interface CloseCreateClientUserModal {
   type: 'CLOSE_CREATE_CLIENT_USER_MODAL';
+}
+export interface SetCreateClientUserModalEmail {
+  type: 'SET_CREATE_CLIENT_USER_EMAIL';
+  email: string;
 }
 
 /**
@@ -374,6 +376,7 @@ export type ResponseAccessAction =
   | EditClientSucceeded
   | DeleteClientSucceeded
   | SaveNewClientSucceeded
+  | SaveNewClientUserSucceeded
   ;
 
 /**
@@ -387,6 +390,7 @@ export type ErrorAccessAction =
   | EditClientFailed
   | DeleteClientFailed
   | SaveNewClientFailed
+  | SaveNewClientUserFailed
   ;
 
 export type PageAccessAction =
@@ -407,6 +411,7 @@ export type PageAccessAction =
   | CloseDeleteClientConfirmationModal
   | OpenCreateClientUserModal
   | CloseCreateClientUserModal
+  | SetCreateClientUserModalEmail
   ;
 
 export type AccessAction =

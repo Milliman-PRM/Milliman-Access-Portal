@@ -16,6 +16,7 @@ import { ClientDetail } from '../../system-admin/interfaces';
 export interface PendingDataState {
   clients: boolean;
   details: boolean;
+  clientUsers: boolean;
 }
 
 /**
@@ -119,7 +120,7 @@ export interface AccessStatePending {
 export interface AccessStateModals {
   deleteClient: ModalState;
   deleteClientConfirmation: ModalState;
-  createClient: ModalState;
+  createClientUser: ModalState;
 }
 
 export interface AccessState {

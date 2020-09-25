@@ -75,6 +75,8 @@ export const openCreateClientUserModal =
   createActionCreator<AccessActions.OpenCreateClientUserModal>('OPEN_CREATE_CLIENT_USER_MODAL');
 export const closeCreateClientUserModal =
   createActionCreator<AccessActions.CloseCreateClientUserModal>('CLOSE_CREATE_CLIENT_USER_MODAL');
+export const setCreateClientUserModalEmail =
+  createActionCreator<AccessActions.SetCreateClientUserModalEmail>('SET_CREATE_CLIENT_USER_EMAIL');
 
 // Validity Actions
 export const resetValidity =

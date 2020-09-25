@@ -234,7 +234,7 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
+        public async Task<ActionResult> SaveNewUser([FromBody][Bind("MemberOfClientId,UserName,Email")]ApplicationUserViewModel Model)
         {
             Log.Verbose($"In ClientAdminController.SaveNewUser action request to add user {(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : Model.UserName) ?? "<Unspecified>"} to clientId {Model.MemberOfClientId}");
 
