@@ -9,7 +9,8 @@ import * as AccessActions from './actions';
 
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
-  AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState, PendingDeleteClientState,
+  AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
+  PendingDeleteClientState, PendingRemoveClientUserState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -32,6 +33,11 @@ const _initialPendingCreateClientUser: PendingCreateClientUserState = {
   memberOfClientId: null,
   userName: null,
   email: null,
+};
+const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
+  clientId: null,
+  userId: null,
+  name: null,
 };
 
 const initialDetails: ClientDetail = {
@@ -199,6 +205,15 @@ const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_ini
     ...state,
     email: action.email,
     userName: action.email,
+  }),
+});
+
+const pendingRemoveClientUser = createReducer<PendingRemoveClientUserState>(_initialPendingRemoveClientUser, {
+  OPEN_REMOVE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenRemoveClientUserModal) => ({
+    ...state,
+    clientId: action.clientId,
+    userId: action.userId,
+    name: action.userId,
   }),
 });
 
@@ -468,12 +483,16 @@ const modals = combineReducers({
     'SAVE_NEW_CLIENT_USER_SUCCEEDED',
     'SAVE_NEW_CLIENT_USER_FAILED',
   ]),
+  removeClientUser: createModalReducer(['OPEN_REMOVE_CLIENT_USER_MODAL'], [
+    'CLOSE_REMOVE_CLIENT_USER_MODAL',
+  ]),
 });
 
 const pending = combineReducers({
   data: pendingData,
   deleteClient: pendingDeleteClient,
   createClientUser: pendingCreateClientUser,
+  removeClientUser: pendingRemoveClientUser,
 });
 
 /**

@@ -31,6 +31,11 @@ export interface PendingCreateClientUserState {
   userName: string;
   email: string;
 }
+export interface PendingRemoveClientUserState {
+  clientId: Guid;
+  userId: Guid;
+  name: string;
+}
 
 export interface ValidationState {
   valid: boolean;
@@ -112,6 +117,7 @@ export interface AccessStatePending {
   data: PendingDataState;
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
+  removeClientUser: PendingRemoveClientUserState;
 }
 
 /**
@@ -121,6 +127,7 @@ export interface AccessStateModals {
   deleteClient: ModalState;
   deleteClientConfirmation: ModalState;
   createClientUser: ModalState;
+  removeClientUser: ModalState;
 }
 
 export interface AccessState {

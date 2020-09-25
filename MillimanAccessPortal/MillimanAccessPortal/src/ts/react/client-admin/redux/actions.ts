@@ -293,6 +293,21 @@ export interface SaveNewClientUserFailed {
   type: 'SAVE_NEW_CLIENT_USER_FAILED';
   error: TSError;
 }
+export interface RemoveClientUser {
+  type: 'REMOVE_CLIENT_USER';
+  request: {
+    clientId: Guid;
+    userId: Guid;
+  };
+}
+export interface RemoveClientUserSucceeded {
+  type: 'REMOVE_CLIENT_USER_SUCCEEDED';
+  response: Dict<Client>; // CHANGE
+}
+export interface RemoveClientUserFailed {
+  type: 'REMOVE_CLIENT_USER_FAILED';
+  error: TSError;
+}
 
 // Modals
 export interface OpenDeleteClientModal {
@@ -319,6 +334,15 @@ export interface CloseCreateClientUserModal {
 export interface SetCreateClientUserModalEmail {
   type: 'SET_CREATE_CLIENT_USER_EMAIL';
   email: string;
+}
+export interface OpenRemoveClientUserModal {
+  type: 'OPEN_REMOVE_CLIENT_USER_MODAL';
+  clientId: string;
+  userId: string;
+  name: string;
+}
+export interface CloseRemoveClientUserModal {
+  type: 'CLOSE_REMOVE_CLIENT_USER_MODAL';
 }
 
 /**
@@ -365,6 +389,7 @@ export type RequestAccessAction =
   | DeleteClient
   | SaveNewClient
   | SaveNewClientUser
+  | RemoveClientUser
   ;
 
 export type ResponseAccessAction =
@@ -377,6 +402,7 @@ export type ResponseAccessAction =
   | DeleteClientSucceeded
   | SaveNewClientSucceeded
   | SaveNewClientUserSucceeded
+  | RemoveClientUserSucceeded
   ;
 
 /**
@@ -391,6 +417,7 @@ export type ErrorAccessAction =
   | DeleteClientFailed
   | SaveNewClientFailed
   | SaveNewClientUserFailed
+  | RemoveClientUserFailed
   ;
 
 export type PageAccessAction =
@@ -412,6 +439,8 @@ export type PageAccessAction =
   | OpenCreateClientUserModal
   | CloseCreateClientUserModal
   | SetCreateClientUserModalEmail
+  | OpenRemoveClientUserModal
+  | CloseRemoveClientUserModal
   ;
 
 export type AccessAction =
@@ -425,4 +454,5 @@ export type OpenModalAction =
   | OpenDeleteClientModal
   | OpenDeleteClientConfirmationModal
   | OpenCreateClientUserModal
+  | OpenRemoveClientUserModal
   ;

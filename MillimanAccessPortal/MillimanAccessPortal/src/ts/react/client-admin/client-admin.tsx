@@ -617,7 +617,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     <CardButton
                       icon="remove-circle"
                       color={'red'}
-                      onClick={null}
+                      onClick={() => this.props.openRemoveUserFromClientModal({
+                        clientId: selected.client,
+                        userId: entity.id,
+                        name: entity.firstName && entity.lastName ?
+                          `${entity.firstName} ${entity.lastName}` : entity.email,
+                      })}
                     />
                   </CardSectionButtons>
                 </CardSectionMain>
@@ -825,6 +830,48 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Add User
+                {this.props.pending.data.clients
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.removeClientUser.isOpen}
+          onRequestClose={() => this.props.closeRemoveUserFromClientModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Remove User</h2>
+          <span className="modal-text">
+            Remove <strong>{pending.removeClientUser.name}</strong> from the selected client?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.removeClientUser({
+                clientId: pending.removeClientUser.clientId,
+                userId: pending.removeClientUser.userId,
+              })
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeRemoveUserFromClientModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Remove
                 {this.props.pending.data.clients
                   ? <ButtonSpinner version="circle" />
                   : null
