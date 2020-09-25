@@ -1,7 +1,5 @@
 import * as yup from 'yup';
 
-import { postJsonData } from '../../../shared';
-import { PasswordValidation } from '../../models';
 import { createJsonRequestorCreator } from '../../shared-components/redux/api';
 import { RequestAccountAction, ResponseAccountAction } from './actions';
 import * as AccountActions from './actions';
@@ -20,45 +18,14 @@ export type UserInputState = Pick<PendingInputState,
   | 'phone'
   | 'employer'
   >;
-export type PasswordInputState = Pick<PendingInputState,
-  | 'current'
-  | 'new'
-  | 'confirm'
-  >;
 
-const validatePassword = async (requestModel: { proposedPassword: string }) =>
-  await postJsonData<PasswordValidation>('/Account/CheckPasswordValidity2', requestModel);
-
-let msg: string = null;
 const userSchema = yup.object<UserInputState>({
   firstName: yup.string().required('This field is required'),
   lastName: yup.string().required('This field is required'),
   phone: yup.string(),
   employer: yup.string(),
 });
-const passwordSchema = (values: PasswordInputState) => {
-  return yup.object<PasswordInputState>({
-    current: yup.string()
-      .required('This field is required'),
-    new: yup.string()
-      .test('new-password-is-valid', () => msg, (value) =>
-        validatePassword({ proposedPassword: value })
-          .then((response) => {
-            msg = response.messages
-              ? response.messages.join('\r\n')
-              : null;
-            return response.valid;
-          }))
-      .required('This field is required'),
-    confirm: yup.string()
-      .test(
-        'confirm-password-matches-new',
-        'Does not match new password',
-        () => values.confirm === values.new,
-      )
-      .required('This field is required'),
-  }).notRequired();
-};
+
 export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
   ('GET', '/Account/AccountSettings2');
@@ -71,16 +38,13 @@ export const updateAccount =
   createJsonRequestor<AccountActions.UpdateAccount, AccountActions.UpdateAccountSucceeded>
   ('POST', '/Account/UpdateAccount');
 
+export const requestPasswordReset =
+  createJsonRequestor<AccountActions.RequestPasswordReset, AccountActions.RequestPasswordResetSucceeded>
+  ('POST', '/Account/RequestPasswordResetForExistingUser');
+
 export const validateUserInput = async (value: UserInputState, inputName: string) => {
   if (inputName) {
     return await userSchema.validateAt(inputName, value);
   }
   return await userSchema.validate(value);
-};
-
-export const validatePasswordInput = async (value: PasswordInputState, inputName: string) => {
-  if (inputName) {
-    return await passwordSchema(value).validateAt(inputName, value);
-  }
-  return await passwordSchema(value).validate(value);
 };

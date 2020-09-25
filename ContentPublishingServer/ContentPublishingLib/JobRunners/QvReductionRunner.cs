@@ -535,7 +535,7 @@ namespace ContentPublishingLib.JobRunners
             string CopyDestinationPath = Path.Combine(ApplicationDataExchangeFolder, Path.GetFileName(ReducedFile));
 
             FileSystemUtil.CopyFileWithRetry(ReducedFile, CopyDestinationPath, true);
-            JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath);
+            JobDetail.Result.ReducedContentFileChecksum = GlobalFunctions.GetFileChecksum(CopyDestinationPath).checksum;
             JobDetail.Result.ReducedContentFilePath = CopyDestinationPath;
 
             Log.Information($"QvReductionRunner.DistributeReducedContent() reduction Task {JobDetail.TaskId} completed DistributeReducedContent");

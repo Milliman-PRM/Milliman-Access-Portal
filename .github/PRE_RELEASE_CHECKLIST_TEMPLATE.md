@@ -26,6 +26,7 @@ Completed by: ___________
 - [ ] Fill in the Release Version above and name this pull request "Pre-Release - MAP vX.X.X" to match the release version
 - [ ] Prepare formal UAT document
 - [ ] Complete the testing checklist
+- [ ] Complete the deployment checklist
 - [ ] Create issues for any bugs found, prioritize them, and add to release milestone
 - [ ] Address all remaining issues to complete the release milestone
 - [ ] Check that issues have been resolved in staging
