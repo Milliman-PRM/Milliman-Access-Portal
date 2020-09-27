@@ -3,10 +3,13 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Guid } from '../../shared-components/interfaces';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import * as AccessReviewActions from './actions';
-import { AccessReviewAction, FilterAccessReviewAction } from './actions';
+import {
+  AccessReviewAction, CloseAccessReviewModalAction, FilterAccessReviewAction, OpenAccessReviewModalAction,
+} from './actions';
 import {
   AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress,
   ClientAccessReviewProgressEnum, PendingDataState,
@@ -48,25 +51,25 @@ const createFilterReducer = (actionType: FilterAccessReviewAction['type']) =>
 /**
  * Create a reducer for a modal
  */
-// const createModalReducer = (
-//   openActions: Array<OpenAccessReviewAction['type']>,
-//   closeActions: Array<AccessReviewAction['type']>,
-// ) => {
-//   const handlers: Handlers<ModalState, any> = {};
-//   openActions.forEach((action) => {
-//     handlers[action] = (state) => ({
-//       ...state,
-//       isOpen: true,
-//     });
-//   });
-//   closeActions.forEach((action) => {
-//     handlers[action] = (state) => ({
-//       ...state,
-//       isOpen: false,
-//     });
-//   });
-//   return createReducer<ModalState>({ isOpen: false }, handlers);
-// };
+const createModalReducer = (
+  openActions: Array<OpenAccessReviewModalAction['type']>,
+  closeActions: Array<CloseAccessReviewModalAction['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
@@ -186,6 +189,14 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>({
   }),
 });
 
+const pendingClientSelection = createReducer<Guid>(null, {
+  OPEN_LEAVING_ACTIVE_REVIEW_MODAL: (_state, action: AccessReviewActions.OpenLeavingActiveReviewModal) => {
+    return (action.clientId) ? action.clientId : null;
+  },
+  CLOSE_LEAVING_ACTIVE_REVIEW_MODAL: () => null,
+  SELECT_CLIENT: () => null,
+});
+
 const data = createReducer<AccessReviewStateData>(_initialData, {
   FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessReviewActions.FetchGlobalDataSucceeded) => ({
     ...state,
@@ -238,19 +249,18 @@ const cardAttributes = combineReducers({
 const pending = combineReducers({
   data: pendingData,
   clientAccessReviewProgress: reviewProgress,
+  pendingClientSelection,
 });
 
 const filters = combineReducers({
   client: createFilterReducer('SET_FILTER_TEXT_CLIENT'),
 });
 
-// const modals = combineReducers({
-//   leaveActiveReview: createModalReducer([ 'OPEN_ADD_GROUP_MODAL' ], [
-//     'CLOSE_ADD_GROUP_MODAL',
-//     'CREATE_GROUP_SUCCEEDED',
-//     'CREATE_GROUP_FAILED',
-//   ]),
-// });
+const modals = combineReducers({
+  leaveActiveReview: createModalReducer([ 'OPEN_LEAVING_ACTIVE_REVIEW_MODAL' ], [
+    'CLOSE_LEAVING_ACTIVE_REVIEW_MODAL',
+  ]),
+});
 
 export const clientAccessReview = combineReducers({
   data,
@@ -258,6 +268,6 @@ export const clientAccessReview = combineReducers({
   cardAttributes,
   pending,
   filters,
-  // modals,
+  modals,
   toastr: toastrReducer,
 });
