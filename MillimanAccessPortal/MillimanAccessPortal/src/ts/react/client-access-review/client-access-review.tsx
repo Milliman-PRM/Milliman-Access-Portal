@@ -24,9 +24,9 @@ import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
 import { activeSelectedClient, clientEntities, continueButtonIsActive } from './redux/selectors';
 import {
-    AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
-    AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel, ClientAccessReviewProgress,
-    ClientAccessReviewProgressEnum, ClientSummaryModel,
+  AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
+  AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -36,6 +36,7 @@ interface ClientAccessReviewProps {
   clientSummary: ClientSummaryModel;
   clientAccessReview: ClientAccessReviewModel;
   clientAccessReviewProgress: ClientAccessReviewProgress;
+  globalData: AccessReviewGlobalData;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
   pending: AccessReviewStatePending;
@@ -90,7 +91,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, cardAttributes } = this.props;
+    const { clients, selected, filters, globalData, pending, cardAttributes } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -100,6 +101,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             return <div className="hr" key={key} />;
           }
           const card = cardAttributes.client[entity.id];
+          const daysUntilDue =
+            moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
+          const notificationType = Math.abs(daysUntilDue) > globalData.clientReviewGracePeriodDays ?
+            'error' :
+            'informational';
           return (
             <Card
               key={key}
@@ -112,6 +118,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 }
               }}
               indentation={entity.indent}
+              bannerMessage={!card.disabled &&
+                daysUntilDue < globalData.clientReviewEarlyWarningDays ? {
+                  level: notificationType,
+                  message: (
+                    <div className="review-due-container">
+                      <span className="needs-review">Needs Review:&nbsp;</span>
+                      Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                    </div>
+                  ),
+                } : null}
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
@@ -665,6 +681,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     clientSummary: data.selectedClientSummary,
     clientAccessReview: data.clientAccessReview,
     clientAccessReviewProgress: pending.clientAccessReviewProgress,
+    globalData: data.globalData,
     selected,
     cardAttributes,
     pending,
