@@ -61,7 +61,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   public render() {
-    const { clientAccessReview, clientSummary, pending, selected } = this.props;
+    const { clientAccessReview, clientSummary, pending, selected, modals } = this.props;
     return (
       <>
         <ReduxToastr
@@ -86,12 +86,53 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           && clientAccessReview
           && this.renderClientAccessReviewPanel()
         }
+        <Modal
+          isOpen={modals.leaveActiveReview.isOpen}
+          onRequestClose={() => this.props.closeLeavingActiveReviewModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Leave Client Access Review</h3>
+          <span className="modal-text">
+            Do you want to leave the active Client Access Review
+          </span>
+          <span className="modal-text">
+            All progress will be lost.
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeLeavingActiveReviewModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (pending.pendingClientSelection) {
+                  this.props.selectClient({ id: pending.pendingClientSelection });
+                  if (pending.pendingClientSelection !== selected.client) {
+                    this.props.fetchClientSummary({ clientId: pending.pendingClientSelection });
+                  }
+                } else {
+                  this.props.cancelClientAccessReview({});
+                }
+                this.props.closeLeavingActiveReviewModal({});
+              }}
+            >
+              Leave Review
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, globalData, pending, cardAttributes } = this.props;
+    const { clients, selected, filters, globalData, pending, cardAttributes, clientAccessReview } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -112,9 +153,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                this.props.selectClient({ id: entity.id });
-                if (entity.id !== selected.client) {
-                  this.props.fetchClientSummary({ clientId: entity.id });
+                if (clientAccessReview === null) {
+                  this.props.selectClient({ id: entity.id });
+                  if (entity.id !== selected.client) {
+                    this.props.fetchClientSummary({ clientId: entity.id });
+                  }
+                } else {
+                  this.props.openLeavingActiveReviewModal({ clientId: entity.id });
                 }
               }}
               indentation={entity.indent}
@@ -629,7 +674,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Back
                 </button>
               }
-              <button className="link-button" onClick={() => this.props.cancelClientAccessReview({})}>
+              <button
+                className="link-button"
+                onClick={() => {
+                  this.props.openLeavingActiveReviewModal({ clientId: null });
+                }}
+              >
                 Cancel
               </button>
               {
