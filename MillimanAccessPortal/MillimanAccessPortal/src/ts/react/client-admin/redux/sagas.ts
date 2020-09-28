@@ -38,6 +38,7 @@ export default function* rootSaga() {
   yield takeEveryToast('EDIT_CLIENT_SUCCEEDED', 'Updated client');
   yield takeEveryToast('DELETE_CLIENT_SUCCEEDED', 'Deleted client');
   yield takeEveryToast('SAVE_NEW_CLIENT_USER_SUCCEEDED', 'User successfully added');
+  yield takeEveryToast('REMOVE_CLIENT_USER_SUCCEEDED', 'User successfully removed');
   yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_PROFIT_CENTERS_FAILED',
@@ -46,6 +47,7 @@ export default function* rootSaga() {
     'EDIT_CLIENT_FAILED',
     'DELETE_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_USER_FAILED',
+    'REMOVE_CLIENT_USER_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

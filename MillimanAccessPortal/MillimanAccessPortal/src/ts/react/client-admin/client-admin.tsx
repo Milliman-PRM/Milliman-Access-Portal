@@ -856,7 +856,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
-              })
+              });
             }}
           >
             <div className="button-container">

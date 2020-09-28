@@ -213,7 +213,7 @@ const pendingRemoveClientUser = createReducer<PendingRemoveClientUserState>(_ini
     ...state,
     clientId: action.clientId,
     userId: action.userId,
-    name: action.userId,
+    name: action.name,
   }),
 });
 
@@ -263,6 +263,11 @@ const data = createReducer<AccessStateData>(_initialData, {
   SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
     ...state,
     assignedUsers: state.assignedUsers.concat(action.response),
+  }),
+  REMOVE_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.RemoveClientUserSucceeded) => ({
+    ...state,
+    details: action.response.clientDetail,
+    assignedUsers: action.response.assignedUsers,
   }),
 });
 
@@ -485,6 +490,8 @@ const modals = combineReducers({
   ]),
   removeClientUser: createModalReducer(['OPEN_REMOVE_CLIENT_USER_MODAL'], [
     'CLOSE_REMOVE_CLIENT_USER_MODAL',
+    'REMOVE_CLIENT_USER_SUCCEEDED',
+    'REMOVE_CLIENT_USER_FAILED',
   ]),
 });
 

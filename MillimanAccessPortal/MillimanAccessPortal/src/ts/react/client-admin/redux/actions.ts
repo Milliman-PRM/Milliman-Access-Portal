@@ -302,7 +302,10 @@ export interface RemoveClientUser {
 }
 export interface RemoveClientUserSucceeded {
   type: 'REMOVE_CLIENT_USER_SUCCEEDED';
-  response: Dict<Client>; // CHANGE
+  response: {
+    clientDetail: ClientDetail;
+    assignedUsers: User[];
+  };
 }
 export interface RemoveClientUserFailed {
   type: 'REMOVE_CLIENT_USER_FAILED';
