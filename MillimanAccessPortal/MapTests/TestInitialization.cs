@@ -92,6 +92,7 @@ namespace MapTests
         public UserQueries UserQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
+        public IUrlHelper UrlHelper { get; set; } = default;
         public IFileDropUploadTaskTracker FileDropUploadTaskTracker { get; set; } = default;
         #endregion
 
@@ -229,7 +230,7 @@ namespace MapTests
             services.AddScoped<ContentPublishingAdminQueries>();
             services.AddScoped<FileDropQueries>();
             services.AddScoped<FileSystemTasks>();
-            services.AddScoped<IAuditLogger> (p => MockAuditLogger.New().Object);
+            services.AddScoped<IAuditLogger>(p => MockAuditLogger.New().Object);
             services.AddScoped<IUploadHelper, UploadHelper>();
             services.AddScoped<ClientQueries>();
             services.AddScoped<ContentItemQueries>();
@@ -320,7 +321,9 @@ namespace MapTests
                 TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(newIdentity));
             }
 
-            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
+            ControllerContext returnVal =  GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
+
+            return returnVal;
         }
 
         /// <summary>
@@ -328,13 +331,19 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsClaimsPrincipal">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        public static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
+        public ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ControllerContext returnVal = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal, },
+                HttpContext = new DefaultHttpContext() 
+                { 
+                    User = UserAsClaimsPrincipal,
+                    RequestServices = ScopedServiceProvider,
+                },
                 ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" }
             };
+
+            SignInManager.Context = returnVal.HttpContext;
 
             if (requestUriBuilder != null)
             {
@@ -786,7 +795,7 @@ namespace MapTests
             #endregion
 
             #region Initialize Users
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com", TwoFactorEnabled = true });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com", EmailConfirmed = true });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s=>s.Type==AuthenticationType.Default).Id });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Name == "prmtest").Id });
