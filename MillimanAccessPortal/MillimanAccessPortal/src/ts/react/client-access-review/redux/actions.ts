@@ -75,6 +75,13 @@ export interface CloseLeavingActiveReviewModal {
   type: 'CLOSE_LEAVING_ACTIVE_REVIEW_MODAL';
 }
 
+/**
+ * Re-render the NavBar to update its contents
+ */
+export interface UpdateNavBar {
+  type: 'UPDATE_NAV_BAR';
+}
+
 // ~~ Server actions ~~
 
 /**
@@ -218,6 +225,7 @@ export type PageAccessReviewAction =
   | CancelClientAccessReview
   | OpenLeavingActiveReviewModal
   | CloseAccessReviewModalAction
+  | UpdateNavBar
   ;
 
 /**

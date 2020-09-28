@@ -23,6 +23,8 @@ export const openLeavingActiveReviewModal =
   createActionCreator<AccessReviewActions.OpenLeavingActiveReviewModal>('OPEN_LEAVING_ACTIVE_REVIEW_MODAL');
 export const closeLeavingActiveReviewModal =
   createActionCreator<AccessReviewActions.CloseLeavingActiveReviewModal>('CLOSE_LEAVING_ACTIVE_REVIEW_MODAL');
+export const updateNavBar =
+  createActionCreator<AccessReviewActions.UpdateNavBar>('UPDATE_NAV_BAR');
 
 // Data fetches
 export const fetchGlobalData =
