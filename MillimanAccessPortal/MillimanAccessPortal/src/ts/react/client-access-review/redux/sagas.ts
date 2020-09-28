@@ -34,6 +34,9 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENT_SUMMARY', api.fetchClientSummary);
   yield takeLatestRequest('FETCH_CLIENT_REVIEW', api.fetchClientReview);
   yield takeLatestRequest('APPROVE_CLIENT_ACCESS_REVIEW', api.approvedClientAccessReview);
+  yield takeLatestSchedule('APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED',
+    () => AccessReviewActionCreators.updateNavBar({}),
+  );
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessReviewActionCreators.fetchSessionCheck({}));
