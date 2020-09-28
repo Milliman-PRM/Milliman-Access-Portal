@@ -70,7 +70,10 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           transitionIn="fadeIn"
           transitionOut="fadeOut"
         />
-        <NavBar currentView={this.currentView} />
+        <NavBar
+          currentView={this.currentView}
+          updateNavBarElements={this.props.pending.navBarRenderInt}
+        />
         {this.renderClientPanel()}
         {
           selected.client
