@@ -197,6 +197,10 @@ const pendingClientSelection = createReducer<Guid>(null, {
   SELECT_CLIENT: () => null,
 });
 
+const navBarRenderInt = createReducer<number>(0, {
+  UPDATE_NAV_BAR: (state) => state + 1,
+});
+
 const data = createReducer<AccessReviewStateData>(_initialData, {
   FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessReviewActions.FetchGlobalDataSucceeded) => ({
     ...state,
@@ -250,6 +254,7 @@ const pending = combineReducers({
   data: pendingData,
   clientAccessReviewProgress: reviewProgress,
   pendingClientSelection,
+  navBarRenderInt,
 });
 
 const filters = combineReducers({
