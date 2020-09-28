@@ -2,6 +2,7 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
+import { activeUsers, clientEntities, isEmailAddressValid, isStringNotEmpty } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
   AccessStateSelected, AccessStateValid, PendingDataState,
@@ -26,7 +27,6 @@ import { Toggle } from '../shared-components/form/toggle';
 import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
-import { activeUsers, clientEntities } from './redux/selectors';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
@@ -234,11 +234,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           value={formData.name}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'name', value: event.currentTarget.value });
-                            this.props.checkClientNameValidity({ name: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={valid.name.valid ? null : valid.name.message}
+                          onBlur={() => {
+                            this.props.setValidityForField({
+                              field: 'name',
+                              valid: isStringNotEmpty(formData.name),
+                            });
+                          }}
+                          error={valid.name ? '' : 'Client Name * is a required field.'}
                         />
                       </div>
                     </div>
@@ -310,12 +314,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactEmail ? formData.contactEmail : ''}
                           onChange={(event) => {
-                            this.props.checkContactEmailValidity({ clientContactEmail: event.currentTarget.value });
                             this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={valid.clientContactEmail.valid ? null : valid.clientContactEmail.message}
+                          onBlur={() => {
+                            this.props.setValidityForField({
+                              field: 'contactEmail',
+                              valid: isEmailAddressValid(formData.contactEmail),
+                            });
+                          }}
+                          error={valid.contactEmail ? null : 'Client contact email is not valid.'}
                         />
                       </div>
                     </div>
@@ -419,15 +427,19 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.consultantEmail ? formData.consultantEmail : ''}
                           onChange={(event) => {
-                            this.props.checkConsultantEmailValidity({ consultantEmail: event.currentTarget.value });
                             this.props.setFormFieldValue({
                               field: 'consultantEmail',
                               value: event.currentTarget.value,
                             });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={valid.consultantEmail.valid ? null : valid.consultantEmail.message}
+                          onBlur={() => {
+                            this.props.setValidityForField({
+                              field: 'consultantEmail',
+                              valid: isEmailAddressValid(formData.consultantEmail),
+                            });
+                          }}
+                          error={valid.consultantEmail ? null : 'Consultant email address is invalid.'}
                         />
                       </div>
                     </div>
@@ -464,8 +476,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           value={formData.profitCenterId}
                           onChange={(event) => {
                             const profitCenterId = event.currentTarget.value ? event.currentTarget.value : null;
-                            this.props.checkProfitCenterValidity({ profitCenterId });
                             this.props.setFormFieldValue({ field: 'profitCenterId', value: profitCenterId });
+                            this.props.setValidityForField({
+                              field: 'profitCenterId',
+                              valid: isStringNotEmpty(formData.profitCenterId),
+                            });
                           }}
                         >
                           <option value="">Make a Selection</option>
@@ -479,7 +494,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             ))
                           }
                         </select>
-                        <span style={{fontSize: '0.9rem', color: 'red' }}>{valid.profitCenter.message}</span>
+                        {valid.profitCenterId ? null :
+                          <span style={{ fontSize: '0.9rem', color: 'red' }}>Profit center is required.</span>
+                        }
                       </div>
                     </div>
                   </div>
@@ -532,8 +549,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           onClick={() => {
                             // Check validity of fields in case user forgot to fill one out, since errors won't display
                             // initially.
-                            this.props.checkClientNameValidity({ name: formData.name });
-                            this.props.checkProfitCenterValidity({ profitCenterId: formData.profitCenterId });
+                            this.props.setValidityForField({ field: 'name', valid: isStringNotEmpty(formData.name) });
+                            this.props.setValidityForField({
+                              field: 'profitCenterId',
+                              valid: isStringNotEmpty(formData.profitCenterId),
+                            });
 
                             if (this.isFormValid(valid)) {
                               this.props.resetValidity({});
@@ -720,10 +740,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private isFormValid(valid: AccessStateValid) {
-    return valid.name.valid &&
-           valid.profitCenter.valid &&
-           valid.clientContactEmail.valid &&
-           valid.consultantEmail.valid;
+    return valid.name &&
+           valid.profitCenterId &&
+           valid.contactEmail  &&
+           valid.consultantEmail;
   }
 
   private isFormModified(formData: AccessStateFormData, detail: ClientDetail) {

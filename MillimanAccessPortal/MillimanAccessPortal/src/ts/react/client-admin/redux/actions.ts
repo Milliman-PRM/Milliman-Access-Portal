@@ -86,21 +86,10 @@ export interface SetFormFieldValue {
 export interface ResetValidity {
   type: 'RESET_VALIDITY';
 }
-export interface CheckClientNameValidity {
-  type: 'CHECK_CLIENT_NAME_VALIDITY';
-  name: string;
-}
-export interface CheckProfitCenterValidity {
-  type: 'CHECK_PROFIT_CENTER_VALIDITY';
-  profitCenterId: Guid;
-}
-export interface CheckClientContactEmailValidity {
-  type: 'CHECK_CLIENT_CONTACT_EMAIL_VALIDITY';
-  clientContactEmail: string;
-}
-export interface CheckConsultantEmailValidity {
-  type: 'CHECK_CONSULTANT_EMAIL_VALIDITY';
-  consultantEmail: string;
+export interface SetValidityForField {
+  type: 'SET_VALIDITY_FOR_FIELD';
+  field: string;
+  valid: boolean;
 }
 
 // ~ GETs ~
@@ -236,7 +225,8 @@ export interface DeleteClientFailed {
  */
 export type FilterAccessAction =
   | SetFilterTextClient
-  | SetFilterTextUser;
+  | SetFilterTextUser
+  ;
 
 export type FormAction =
   | ClearFormData
@@ -246,10 +236,8 @@ export type FormAction =
 
 export type ValidityAction =
   | ResetValidity
-  | CheckClientNameValidity
-  | CheckProfitCenterValidity
-  | CheckClientContactEmailValidity
-  | CheckConsultantEmailValidity;
+  | SetValidityForField
+  ;
 
 /**
  * An action that makes an Ajax request.
@@ -261,7 +249,8 @@ export type RequestAccessAction =
   | SetUserRoleInClient
   | SaveNewClient
   | EditClient
-  | DeleteClient;
+  | DeleteClient
+  ;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
@@ -270,7 +259,8 @@ export type ResponseAccessAction =
   | SetUserRoleInClientSucceeded
   | SaveNewClientSucceeded
   | EditClientSucceeded
-  | DeleteClientSucceeded;
+  | DeleteClientSucceeded
+  ;
 
 /**
 * An action that marks the errored response of an Ajax request.

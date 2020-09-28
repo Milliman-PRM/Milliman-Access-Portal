@@ -2,6 +2,15 @@
 import { ClientWithStats, User } from '../../models';
 import { AccessState } from './store';
 
+export function isStringNotEmpty(value: string): boolean {
+  return value !== null && value.trim() !== '';
+}
+
+export function isEmailAddressValid(email: string): boolean {
+  const emailRegex = /\S+@\S+\.\S+/;
+  return isStringNotEmpty(email) && emailRegex.test(email);
+}
+
 /**
  * Select all clients as a tree
  *

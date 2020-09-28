@@ -18,11 +18,6 @@ export interface PendingDataState {
   details: boolean;
 }
 
-export interface ValidationState {
-  valid: boolean;
-  message?: string;
-}
-
 /**
  * Entity data returned from the server.
  */
@@ -44,7 +39,6 @@ export interface AccessStateEdit {
 
 export interface ValidationState {
   valid: boolean;
-  message?: string;
 }
 
 export interface AccessStateBaseFormData {
@@ -70,10 +64,10 @@ export interface AccessStateFormData extends AccessStateBaseFormData {
 }
 
 export interface AccessStateValid {
-  name: ValidationState;
-  profitCenter: ValidationState;
-  clientContactEmail: ValidationState;
-  consultantEmail: ValidationState;
+  name: boolean;
+  profitCenterId: boolean;
+  contactEmail: boolean;
+  consultantEmail: boolean;
 }
 
 /**

@@ -40,14 +40,8 @@ export const setFormFieldValue =
 // Validity Actions
 export const resetValidity =
   createActionCreator<AccessActions.ResetValidity>('RESET_VALIDITY');
-export const checkClientNameValidity =
-  createActionCreator<AccessActions.CheckClientNameValidity>('CHECK_CLIENT_NAME_VALIDITY');
-export const checkProfitCenterValidity =
-  createActionCreator<AccessActions.CheckProfitCenterValidity>('CHECK_PROFIT_CENTER_VALIDITY');
-export const checkContactEmailValidity =
-  createActionCreator<AccessActions.CheckClientContactEmailValidity>('CHECK_CLIENT_CONTACT_EMAIL_VALIDITY');
-export const checkConsultantEmailValidity =
-  createActionCreator<AccessActions.CheckConsultantEmailValidity>('CHECK_CONSULTANT_EMAIL_VALIDITY');
+export const setValidityForField =
+  createActionCreator<AccessActions.SetValidityForField>('SET_VALIDITY_FOR_FIELD');
 
 // Data fetches/posts
 export const fetchClients =

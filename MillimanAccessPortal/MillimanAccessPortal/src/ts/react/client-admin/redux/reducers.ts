@@ -15,8 +15,6 @@ import { createReducerCreator } from '../../shared-components/redux/reducers';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
-const emailRegex = /\S+@\S+\.\S+/;
-
 const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
@@ -70,10 +68,10 @@ const _initialFormData: AccessStateBaseFormData = {
 };
 
 const _initialValidation: AccessStateValid = {
-  name: { valid: true },
-  profitCenter: { valid: true },
-  clientContactEmail: { valid: true },
-  consultantEmail: { valid: true },
+  name: true,
+  profitCenterId: true,
+  contactEmail: true,
+  consultantEmail: true,
 };
 
 const _initialSelected: AccessStateSelected = {
@@ -256,37 +254,9 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
 
 const valid = createReducer<AccessStateValid>(_initialValidation, {
   RESET_VALIDITY: () => _initialValidation,
-  CHECK_CLIENT_NAME_VALIDITY: (state, action: AccessActions.CheckClientNameValidity) => ({
+  SET_VALIDITY_FOR_FIELD: (state, action: AccessActions.SetValidityForField) => ({
     ...state,
-    name: {
-      valid: action.name.trim() ? true : false,
-      message: action.name.trim() ? null : 'Client Name is a required field.',
-    },
-  }),
-  CHECK_PROFIT_CENTER_VALIDITY: (state, action: AccessActions.CheckProfitCenterValidity) => ({
-    ...state,
-    profitCenter: {
-      valid: action.profitCenterId ? true : false,
-      message: action.profitCenterId ? null : 'Profit Center is a required field.',
-    },
-  }),
-  CHECK_CLIENT_CONTACT_EMAIL_VALIDITY: (state, action: AccessActions.CheckClientContactEmailValidity) => ({
-    ...state,
-    clientContactEmail: {
-      valid: (!action.clientContactEmail.trim() || emailRegex.test(action.clientContactEmail))
-        ? true : false,
-      message: (!action.clientContactEmail.trim() || emailRegex.test(action.clientContactEmail))
-        ? null : 'The Client Contact Email field is not a valid e-mail address.',
-    },
-  }),
-  CHECK_CONSULTANT_EMAIL_VALIDITY: (state, action: AccessActions.CheckConsultantEmailValidity) => ({
-    ...state,
-      consultantEmail: {
-      valid: (!action.consultantEmail.trim() || emailRegex.test(action.consultantEmail))
-        ? true : false,
-      message: (!action.consultantEmail.trim() || emailRegex.test(action.consultantEmail))
-        ? null : 'The Consultant Email field is not a valid e-mail address.',
-    },
+    [action.field]: action.valid,
   }),
 });
 
