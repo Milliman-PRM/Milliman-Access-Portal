@@ -233,7 +233,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.name}
                           onChange={(event) => {
-                            this.props.setClientName({ name: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'name', value: event.currentTarget.value });
                             this.props.checkClientNameValidity({ name: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
@@ -253,7 +253,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.clientCode}
                           onChange={(event) => {
-                            this.props.setClientCode({ clientCode: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'clientCode', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -272,7 +272,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactName}
                           onChange={(event) => {
-                            this.props.setClientContactName({ contactName: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'contactName', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -291,7 +291,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactTitle}
                           onChange={(event) => {
-                            this.props.setClientContactTitle({ clientContactTitle: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'contactTitle', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -311,7 +311,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           value={formData.contactEmail ? formData.contactEmail : ''}
                           onChange={(event) => {
                             this.props.checkContactEmailValidity({ clientContactEmail: event.currentTarget.value });
-                            this.props.setClientContactEmail({ clientContactEmail: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -330,7 +330,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactPhone ? formData.contactPhone : ''}
                           onChange={(event) => {
-                            this.props.setClientContactPhone({ clientContactPhone: event.currentTarget.value });
+                            this.props.setFormFieldValue({ field: 'contactPhone', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -351,8 +351,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.acceptedEmailDomainList.join(', ')}
                           onChange={(event) => {
-                            this.props.setAcceptedEmailDomainList({
-                              acceptedEmailDomainList: event.currentTarget.value.split(', '),
+                            this.props.setFormFieldValue({
+                              field: 'acceptedEmailDomainList',
+                              value: event.currentTarget.value.split(', '),
                             });
                           }}
                           readOnly={edit.disabled}
@@ -369,8 +370,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.acceptedEmailAddressExceptionList}
                           onChange={(event) => {
-                            this.props.setAcceptedEmailAddressExceptionList({
-                              acceptedEmailAddressAcceptionList: event.currentTarget.value.split(', '),
+                            this.props.setFormFieldValue({
+                              field: 'approvedEmailAddressExceptionList',
+                              value: event.currentTarget.value.split(', '),
                             });
                           }}
                           readOnly={edit.disabled}
@@ -395,7 +397,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.consultantName}
                           onChange={(event) => {
-                            this.props.setConsultantName({ consultantName: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'consultantName',
+                              value: event.currentTarget.value,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -415,7 +420,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           value={formData.consultantEmail ? formData.consultantEmail : ''}
                           onChange={(event) => {
                             this.props.checkConsultantEmailValidity({ consultantEmail: event.currentTarget.value });
-                            this.props.setConsultantEmail({ consultantEmail: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'consultantEmail',
+                              value: event.currentTarget.value,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -434,7 +442,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.consultantOffice}
                           onChange={(event) => {
-                            this.props.setOffice({ consultantOffice: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'consultantOffice',
+                              value: event.currentTarget.value,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -454,7 +465,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           onChange={(event) => {
                             const profitCenterId = event.currentTarget.value ? event.currentTarget.value : null;
                             this.props.checkProfitCenterValidity({ profitCenterId });
-                            this.props.setProfitCenter({ profitCenterId });
+                            this.props.setFormFieldValue({ field: 'profitCenterId', value: profitCenterId });
                           }}
                         >
                           <option value="">Make a Selection</option>

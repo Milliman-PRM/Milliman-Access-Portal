@@ -76,57 +76,10 @@ export interface ResetFormData {
   type: 'RESET_FORM_DATA';
   details: ClientDetail;
 }
-export interface SetClientName {
-  type: 'SET_CLIENT_NAME';
-  name: string;
-}
-export interface SetClientCode {
-  type: 'SET_CLIENT_CODE';
-  clientCode: string;
-}
-export interface SetClientContactName {
-  type: 'SET_CLIENT_CONTACT_NAME';
-  contactName: string;
-}
-export interface SetClientContactTitle {
-  type: 'SET_CLIENT_CONTACT_TITLE';
-  clientContactTitle: string;
-}
-export interface SetClientContactEmail {
-  type: 'SET_CLIENT_CONTACT_EMAIL';
-  clientContactEmail: string;
-}
-export interface SetClientContactPhone {
-  type: 'SET_CLIENT_CONTACT_PHONE';
-  clientContactPhone: string;
-}
-export interface SetDomainListCountLimit {
-  type: 'SET_DOMAIN_LIST_COUNT_LIMIT';
-  domainListCountLimit: number;
-}
-export interface SetAcceptedEmailDomainList {
-  type: 'SET_ACCEPTED_EMAIL_DOMAIN_LIST';
-  acceptedEmailDomainList: string[];
-}
-export interface SetAcceptedEmailAddressExceptionList {
-  type: 'SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST';
-  acceptedEmailAddressAcceptionList: string[];
-}
-export interface SetProfitCenter {
-  type: 'SET_PROFIT_CENTER';
-  profitCenterId: Guid;
-}
-export interface SetOffice {
-  type: 'SET_OFFICE';
-  consultantOffice: string;
-}
-export interface SetConsultantName {
-  type: 'SET_CONSULTANT_NAME';
-  consultantName: string;
-}
-export interface SetConsultantEmail {
-  type: 'SET_CONSULTANT_EMAIL';
-  consultantEmail: string;
+export interface SetFormFieldValue {
+  type: 'SET_FORM_FIELD_VALUE';
+  field: string;
+  value: string | string[] | Guid;
 }
 
 // ~ Checking validity of form items ~
@@ -288,19 +241,8 @@ export type FilterAccessAction =
 export type FormAction =
   | ClearFormData
   | ResetFormData
-  | SetClientName
-  | SetClientCode
-  | SetClientContactName
-  | SetClientContactTitle
-  | SetClientContactEmail
-  | SetClientContactPhone
-  | SetDomainListCountLimit
-  | SetAcceptedEmailDomainList
-  | SetAcceptedEmailAddressExceptionList
-  | SetProfitCenter
-  | SetOffice
-  | SetConsultantName
-  | SetConsultantEmail;
+  | SetFormFieldValue
+  ;
 
 export type ValidityAction =
   | ResetValidity
@@ -358,4 +300,5 @@ export type AccessAction =
   | PageAccessAction
   | RequestAccessAction
   | ResponseAccessAction
-  | ErrorAccessAction;
+  | ErrorAccessAction
+  ;
