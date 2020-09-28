@@ -55,8 +55,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
     this.props.fetchGlobalData({});
     this.props.fetchClients({});
     this.props.scheduleSessionCheck({ delay: 0 });
-    // TODO: Implement Unload Alert properly
-    setUnloadAlert(() => false);
+    setUnloadAlert(() => this.props.clientAccessReview !== null);
     this.clientReviewContainer = React.createRef<HTMLDivElement>();
   }
 
