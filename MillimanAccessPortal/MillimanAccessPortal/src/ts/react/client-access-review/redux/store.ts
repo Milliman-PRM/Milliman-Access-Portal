@@ -150,6 +150,7 @@ export interface AccessReviewStatePending {
   clientAccessReviewProgress: ClientAccessReviewProgress;
   pendingClientSelection: Guid;
   statusTries: number;
+  navBarRenderInt: number;
 }
 
 /**
