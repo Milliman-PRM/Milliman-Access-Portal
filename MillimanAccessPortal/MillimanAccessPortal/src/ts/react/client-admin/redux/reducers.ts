@@ -182,6 +182,18 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clientUsers: false,
   }),
+  REMOVE_CLIENT_USER: (state) => ({
+    ...state,
+    clientUsers: true,
+  }),
+  REMOVE_CLIENT_USER_SUCCEEDED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+  REMOVE_CLIENT_USER_FAILED: (state) => ({
+    ...state,
+    clientUsers: false,
+  })
 });
 
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {

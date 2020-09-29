@@ -864,7 +864,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Add User
-                {this.props.pending.data.clients
+                {this.props.pending.data.clientUsers
                   ? <ButtonSpinner version="circle" />
                   : null
                 }
@@ -906,7 +906,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Remove
-                {this.props.pending.data.clients
+                {this.props.pending.data.clientUsers
                   ? <ButtonSpinner version="circle" />
                   : null
                 }
@@ -948,10 +948,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Reset
-                {this.props.pending.data.clients
-                  ? <ButtonSpinner version="circle" />
-                  : null
-                }
               </button>
             </div>
           </form>
