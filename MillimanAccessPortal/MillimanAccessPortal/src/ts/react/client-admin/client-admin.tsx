@@ -588,8 +588,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="button"
                           className="button-reset link-button"
                           onClick={() => {
-                            this.props.resetValidity({});
-                            this.props.resetFormData({ details });
+                            this.props.openDiscardEditModal({});
                           }}
                         >
                           Discard Changes
@@ -749,7 +748,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending } = this.props;
+    const { modals, pending, details } = this.props;
     return (
       <>
         <Modal
@@ -907,6 +906,48 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Remove
+                {this.props.pending.data.clients
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEdit.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Reset Form</h2>
+          <span className="modal-text text-muted">
+            Would you liek to reset the form?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.resetValidity({});
+              this.props.resetFormData({ details });
+              this.props.closeDiscardEditModal({});
+              this.props.setEditStatus({ disabled: true });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Reset
                 {this.props.pending.data.clients
                   ? <ButtonSpinner version="circle" />
                   : null

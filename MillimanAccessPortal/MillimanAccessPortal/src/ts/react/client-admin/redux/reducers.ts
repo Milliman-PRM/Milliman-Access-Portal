@@ -415,6 +415,9 @@ const modals = combineReducers({
     'REMOVE_CLIENT_USER_SUCCEEDED',
     'REMOVE_CLIENT_USER_FAILED',
   ]),
+  discardEdit: createModalReducer(['OPEN_DISCARD_EDIT_MODAL'], [
+    'CLOSE_DISCARD_EDIT_MODAL',
+  ]),
 });
 
 const pending = combineReducers({

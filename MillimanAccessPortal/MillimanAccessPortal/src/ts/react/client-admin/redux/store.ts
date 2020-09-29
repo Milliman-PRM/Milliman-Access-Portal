@@ -122,6 +122,7 @@ export interface AccessStateModals {
   deleteClientConfirmation: ModalState;
   createClientUser: ModalState;
   removeClientUser: ModalState;
+  discardEdit: ModalState;
 }
 
 export interface AccessState {

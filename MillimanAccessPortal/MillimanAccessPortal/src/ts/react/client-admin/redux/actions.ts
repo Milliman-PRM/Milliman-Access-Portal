@@ -289,6 +289,12 @@ export interface OpenRemoveClientUserModal {
 export interface CloseRemoveClientUserModal {
   type: 'CLOSE_REMOVE_CLIENT_USER_MODAL';
 }
+export interface OpenDiscardEditModal {
+  type: 'OPEN_DISCARD_EDIT_MODAL';
+}
+export interface CloseDiscardEditModal {
+  type: 'CLOSE_DISCARD_EDIT_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -372,6 +378,8 @@ export type PageAccessAction =
   | SetCreateClientUserModalEmail
   | OpenRemoveClientUserModal
   | CloseRemoveClientUserModal
+  | OpenDiscardEditModal
+  | CloseDiscardEditModal
   ;
 
 export type AccessAction =
@@ -386,4 +394,5 @@ export type OpenModalAction =
   | OpenDeleteClientConfirmationModal
   | OpenCreateClientUserModal
   | OpenRemoveClientUserModal
+  | OpenDiscardEditModal
   ;

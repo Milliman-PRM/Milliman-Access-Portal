@@ -54,11 +54,13 @@ export const closeCreateClientUserModal =
 export const setCreateClientUserModalEmail =
   createActionCreator<AccessActions.SetCreateClientUserModalEmail>('SET_CREATE_CLIENT_USER_EMAIL');
 export const openRemoveUserFromClientModal =
-  createActionCreator<AccessActions.OpenRemoveClientUserModal>
-    ('OPEN_REMOVE_CLIENT_USER_MODAL');
+  createActionCreator<AccessActions.OpenRemoveClientUserModal>('OPEN_REMOVE_CLIENT_USER_MODAL');
 export const closeRemoveUserFromClientModal =
-  createActionCreator<AccessActions.CloseRemoveClientUserModal>
-    ('CLOSE_REMOVE_CLIENT_USER_MODAL');
+  createActionCreator<AccessActions.CloseRemoveClientUserModal>('CLOSE_REMOVE_CLIENT_USER_MODAL');
+export const openDiscardEditModal =
+  createActionCreator<AccessActions.OpenDiscardEditModal>('OPEN_DISCARD_EDIT_MODAL');
+export const closeDiscardEditModal =
+  createActionCreator<AccessActions.CloseDiscardEditModal>('CLOSE_DISCARD_EDIT_MODAL');
 
 // Validity Actions
 export const resetValidity =
