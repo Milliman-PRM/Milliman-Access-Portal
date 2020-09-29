@@ -232,6 +232,7 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
       ...action.response.clients,
       ...action.response.parentClients,
     },
+    clientAccessReview: null,
   }),
 });
 
