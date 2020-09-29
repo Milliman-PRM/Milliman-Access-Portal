@@ -240,13 +240,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             this.props.setFormFieldValue({ field: 'name', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => {
+                          onBlur={(event: React.FormEvent<HTMLInputElement>) => {
                             this.props.setValidityForField({
                               field: 'name',
-                              valid: isStringNotEmpty(formData.name),
+                              valid: isStringNotEmpty(event.currentTarget.value),
                             });
                           }}
-                          error={valid.name ? '' : 'Client Name * is a required field.'}
+                          error={valid.name ? '' : 'Client Name is a required field.'}
                         />
                       </div>
                     </div>
@@ -321,10 +321,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => {
+                          onBlur={(event: React.FormEvent<HTMLInputElement>) => {
                             this.props.setValidityForField({
                               field: 'contactEmail',
-                              valid: isEmailAddressValid(formData.contactEmail),
+                              valid: isEmailAddressValid(event.currentTarget.value),
                             });
                           }}
                           error={valid.contactEmail ? null : 'Client contact email is not valid.'}
@@ -437,10 +437,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             });
                           }}
                           readOnly={edit.disabled}
-                          onBlur={() => {
+                          onBlur={(event: React.FormEvent<HTMLInputElement>) => {
                             this.props.setValidityForField({
                               field: 'consultantEmail',
-                              valid: isEmailAddressValid(formData.consultantEmail),
+                              valid: isEmailAddressValid(event.currentTarget.value),
                             });
                           }}
                           error={valid.consultantEmail ? null : 'Consultant email address is invalid.'}
