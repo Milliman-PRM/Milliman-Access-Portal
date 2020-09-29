@@ -7,11 +7,6 @@ import { UserFull } from '../../models';
 import { accountSettings } from './reducers';
 import sagas from './sagas';
 
-export interface AccountStatePassword {
-  current: string;
-  new: string;
-  confirm: string;
-}
 export type PendingInputState =
   & Pick<UserFull, Exclude<keyof UserFull,
     | 'isActivated'
@@ -20,16 +15,13 @@ export type PendingInputState =
     | 'id'
     | 'email'
     | 'userName'
-    >>
-  & AccountStatePassword;
+  >>;
 export interface PendingRequestState {
   fetchUser: boolean;
   update: boolean;
-  validatePassword: boolean;
 }
 export interface PendingValidationState {
   user: boolean;
-  password: boolean;
 }
 
 export interface ValidationState {

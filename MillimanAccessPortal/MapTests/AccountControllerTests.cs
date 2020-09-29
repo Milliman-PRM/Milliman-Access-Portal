@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
@@ -102,6 +103,7 @@ namespace MapTests
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user2");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "EnableAccount" }, { "controller", "Account" } });
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user2");
                 string TestCode = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
                 string TestUserId = TestUtil.MakeTestGuid(2).ToString();
@@ -148,6 +150,7 @@ namespace MapTests
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "EnableAccount" }, { "controller", "Account" } });
                 ApplicationUser user = await TestResources.UserManager.FindByNameAsync("user1");
                 string NewToken = await TestResources.UserManager.GenerateEmailConfirmationTokenAsync(user);
                 string NewPass = "TestPassword1!";
@@ -633,7 +636,6 @@ namespace MapTests
                         LastName = NewLastName,
                         Phone = NewPhone,
                     },
-                    Password = null,
                 };
                 #endregion
 
@@ -648,79 +650,6 @@ namespace MapTests
                 Assert.Equal(NewFirstName, UserRecord.FirstName);
                 Assert.Equal(NewLastName, UserRecord.LastName);
                 Assert.Equal(NewPhone, UserRecord.PhoneNumber);
-                #endregion
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountPOSTWorksForPasswordChange()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
-            {
-                #region Arrange
-                AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword,
-                        Current = CurrentPassword,
-                    }
-                };
-                #endregion
-
-                #region Act
-                var view = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
-                #endregion
-
-                #region Assert
-                Assert.IsType<JsonResult>(view);
-                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, NewPassword));
-                #endregion
-            }
-        }
-
-        [Fact]
-        public async Task UpdateAccountPOSTFailsForWrongCurrentPassword()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
-            {
-                #region Arrange
-                AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword,
-                        Current = CurrentPassword + "X",
-                    }
-                };
-                #endregion
-
-                #region Act
-                var view = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
-                #endregion
-
-                #region Assert
-                Assert.IsType<BadRequestResult>(view);
                 #endregion
             }
         }
@@ -794,38 +723,22 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task UpdateAccountPOSTFailsForWrongMismatchedPassword()
+        public async Task LoginStepTwo_ErrorWithout2FACookie()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Account))
             {
                 #region Arrange
                 AccountController controller = GetController(TestResources, "user1");
-                var AppUser = await TestResources.UserManager.GetUserAsync(controller.ControllerContext.HttpContext.User);
-
-                string CurrentPassword = "QWERqwer1234!@$#";
-                string NewPassword = "Abcd!@#$1234";
-                await TestResources.UserManager.AddPasswordAsync(AppUser, CurrentPassword);
-
-                UpdateAccountModel model = new UpdateAccountModel
-                {
-                    User = null,
-                    Password = new UpdateAccountModel.PasswordModel
-                    {
-                        New = NewPassword,
-                        Confirm = NewPassword + "X",
-                        Current = CurrentPassword,
-                    }
-                };
+                MockRouter.AddToController(controller, new Dictionary<string, string>() { { "action", "LoginStepTwo" }, { "controller", "Account" } });
                 #endregion
 
                 #region Act
-                var result = await controller.UpdateAccount(model);
-                var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
+                var result = await controller.LoginStepTwo("test1", "%2F");
                 #endregion
 
                 #region Assert
-                Assert.IsType<BadRequestResult>(result);
-                Assert.True(await TestResources.UserManager.CheckPasswordAsync(UserRecord, CurrentPassword));
+                var statusCodeResult = Assert.IsType<StatusCodeResult>(result);
+                Assert.Equal(StatusCodes.Status422UnprocessableEntity, statusCodeResult.StatusCode);
                 #endregion
             }
         }

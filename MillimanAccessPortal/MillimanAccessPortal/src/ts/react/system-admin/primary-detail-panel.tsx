@@ -152,7 +152,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Billing Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Prof. Center</span>
-                      <span className="detail-value">{clientDetail.profitCenter}</span>
+                      <span className="detail-value">{clientDetail.profitCenter.name}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Office</span>

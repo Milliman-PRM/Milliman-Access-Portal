@@ -147,21 +147,9 @@ namespace MillimanAccessPortal.Controllers
                 return Unauthorized();
             }
             #endregion
-
-            var AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();
+            
             var currentUser = await _userManager.GetUserAsync(User);
-            foreach (var AuthorizedProfitCenter in (await DbContext.UserRoleInProfitCenter
-                                                                   .Include(urpc => urpc.Role)
-                                                                   .Include(urpc => urpc.ProfitCenter)
-                                                                   .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
-                                                                               && urpc.UserId == currentUser.Id)
-                                                                   .Select(urpc => urpc.ProfitCenter)
-                                                                   .ToListAsync())
-                                                           .Distinct(new IdPropertyComparer<ProfitCenter>()))
-            {
-                AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
-            }
-
+            var AuthorizedProfitCenterList = await _clientAdminQueries.GetAuthorizedProfitCentersListAsync(currentUser);
             return Json(AuthorizedProfitCenterList);
         }
 
@@ -980,18 +968,8 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
             var currentUser = await _userManager.GetUserAsync(User);
-            var clientResponseModel = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
-            Client newClient = await DbContext.Client
-                                   .Include(c => c.ProfitCenter)
-                                   .FirstOrDefaultAsync(c => c.Id == Model.Id);
-
-            SaveNewClientResponseModel ReturnModel = new SaveNewClientResponseModel
-            {
-              NewClient = (ClientDetail) newClient,
-              Clients = clientResponseModel.Clients,
-            };
-
-            return Json(ReturnModel);
+            var returnModel = await _clientAdminQueries.GetNewClientResponseModelAsync(currentUser, Model.Id);
+            return Json(returnModel);
         }
 
         // POST: ClientAdmin/EditClient
@@ -1002,10 +980,11 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditClient([FromBody][Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        public async Task<IActionResult> EditClient([FromBody]Client Model)
         {
             Log.Verbose("Entered ClientAdminController.EditClient action with model {@Client}", Model);
+
+            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             #region Preliminary Validation
             if (Model.Id == null || Model.Id == Guid.Empty)
@@ -1021,7 +1000,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Client must exist
-            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
             if (ExistingClientRecord == null)
             {
                 Log.Warning("In ClientAdminController.EditClient action: referenced client not found");

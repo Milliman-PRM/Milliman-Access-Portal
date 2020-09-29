@@ -76,78 +76,20 @@ export interface ResetFormData {
   type: 'RESET_FORM_DATA';
   details: ClientDetail;
 }
-export interface SetClientName {
-  type: 'SET_CLIENT_NAME';
-  name: string;
-}
-export interface SetClientCode {
-  type: 'SET_CLIENT_CODE';
-  clientCode: string;
-}
-export interface SetClientContactName {
-  type: 'SET_CLIENT_CONTACT_NAME';
-  contactName: string;
-}
-export interface SetClientContactTitle {
-  type: 'SET_CLIENT_CONTACT_TITLE';
-  clientContactTitle: string;
-}
-export interface SetClientContactEmail {
-  type: 'SET_CLIENT_CONTACT_EMAIL';
-  clientContactEmail: string;
-}
-export interface SetClientContactPhone {
-  type: 'SET_CLIENT_CONTACT_PHONE';
-  clientContactPhone: string;
-}
-export interface SetDomainListCountLimit {
-  type: 'SET_DOMAIN_LIST_COUNT_LIMIT';
-  domainListCountLimit: number;
-}
-export interface SetAcceptedEmailDomainList {
-  type: 'SET_ACCEPTED_EMAIL_DOMAIN_LIST';
-  acceptedEmailDomainList: string[];
-}
-export interface SetAcceptedEmailAddressExceptionList {
-  type: 'SET_ACCEPTED_EMAIL_ADDRESS_EXCEPTION_LIST';
-  acceptedEmailAddressAcceptionList: string[];
-}
-export interface SetProfitCenter {
-  type: 'SET_PROFIT_CENTER';
-  profitCenterId: Guid;
-}
-export interface SetOffice {
-  type: 'SET_OFFICE';
-  consultantOffice: string;
-}
-export interface SetConsultantName {
-  type: 'SET_CONSULTANT_NAME';
-  consultantName: string;
-}
-export interface SetConsultantEmail {
-  type: 'SET_CONSULTANT_EMAIL';
-  consultantEmail: string;
+export interface SetFormFieldValue {
+  type: 'SET_FORM_FIELD_VALUE';
+  field: string;
+  value: string | string[] | Guid;
 }
 
 // ~ Checking validity of form items ~
 export interface ResetValidity {
   type: 'RESET_VALIDITY';
 }
-export interface CheckClientNameValidity {
-  type: 'CHECK_CLIENT_NAME_VALIDITY';
-  name: string;
-}
-export interface CheckProfitCenterValidity {
-  type: 'CHECK_PROFIT_CENTER_VALIDITY';
-  profitCenterId: Guid;
-}
-export interface CheckClientContactEmailValidity {
-  type: 'CHECK_CLIENT_CONTACT_EMAIL_VALIDITY';
-  clientContactEmail: string;
-}
-export interface CheckConsultantEmailValidity {
-  type: 'CHECK_CONSULTANT_EMAIL_VALIDITY';
-  consultantEmail: string;
+export interface SetValidityForField {
+  type: 'SET_VALIDITY_FOR_FIELD';
+  field: string;
+  valid: boolean;
 }
 
 // ~ GETs ~
@@ -353,31 +295,19 @@ export interface CloseRemoveClientUserModal {
  */
 export type FilterAccessAction =
   | SetFilterTextClient
-  | SetFilterTextUser;
+  | SetFilterTextUser
+  ;
 
 export type FormAction =
   | ClearFormData
   | ResetFormData
-  | SetClientName
-  | SetClientCode
-  | SetClientContactName
-  | SetClientContactTitle
-  | SetClientContactEmail
-  | SetClientContactPhone
-  | SetDomainListCountLimit
-  | SetAcceptedEmailDomainList
-  | SetAcceptedEmailAddressExceptionList
-  | SetProfitCenter
-  | SetOffice
-  | SetConsultantName
-  | SetConsultantEmail;
+  | SetFormFieldValue
+  ;
 
 export type ValidityAction =
   | ResetValidity
-  | CheckClientNameValidity
-  | CheckProfitCenterValidity
-  | CheckClientContactEmailValidity
-  | CheckConsultantEmailValidity;
+  | SetValidityForField
+  ;
 
 /**
  * An action that makes an Ajax request.
@@ -390,7 +320,6 @@ export type RequestAccessAction =
   | SaveNewClient
   | EditClient
   | DeleteClient
-  | SaveNewClient
   | SaveNewClientUser
   | RemoveClientUser
   ;
@@ -403,7 +332,6 @@ export type ResponseAccessAction =
   | SaveNewClientSucceeded
   | EditClientSucceeded
   | DeleteClientSucceeded
-  | SaveNewClientSucceeded
   | SaveNewClientUserSucceeded
   | RemoveClientUserSucceeded
   ;

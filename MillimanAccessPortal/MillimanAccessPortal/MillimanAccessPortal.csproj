@@ -16,7 +16,7 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.9.1</Version>
+    <Version>1.9.3</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <LangVersion>latest</LangVersion>
@@ -43,6 +43,7 @@
     <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.11.0" />
     <PackageReference Include="nsoftware.IPWorksSSH" Version="20.0.7397" />
     <PackageReference Include="Prm.EmailQueue" Version="2.0.0" />
+    <PackageReference Include="Prm.SerilogCustomization" Version="1.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
     <PackageReference Include="Serilog.Sinks.RollingFile" Version="3.3.0" />
@@ -57,6 +58,7 @@
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <None Remove="src\ts\login-step-two.tsx" />
     <None Remove="src\ts\react\client-admin\client-admin.tsx" />
     <None Remove="src\ts\react\client-admin\index.tsx" />
     <None Remove="src\ts\react\client-admin\redux\action-creators.ts" />
@@ -151,6 +153,7 @@
     <Service Include="{508349b6-6b84-4df5-91f0-309beebad82d}" />
   </ItemGroup>
   <ItemGroup>
+    <TypeScriptCompile Include="src\ts\react\login-step-two\login-step-two.tsx" />
     <TypeScriptCompile Include="src\ts\react\client-admin\client-admin.tsx" />
     <TypeScriptCompile Include="src\ts\react\client-admin\index.tsx" />
     <TypeScriptCompile Include="src\ts\react\client-admin\redux\action-creators.ts" />

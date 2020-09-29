@@ -1,11 +1,14 @@
-﻿using MapCommonLib.ActionFilters;
-using MapDbContextLib.Context;
-using MillimanAccessPortal.Models.ContentAccessAdmin;
+﻿/*
+ * CODE OWNERS: Evan Klein
+ * OBJECTIVE: Response model for delivering a list of all active clients for an authorized user, as well as
+ * the client details for the newly created client.
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using MapCommonLib.ActionFilters;
 using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {

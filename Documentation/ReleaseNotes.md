@@ -2,6 +2,15 @@
 
 ## Release Notes
 
+#### v1.9.3
+
+- Added a workaround for an uncommon problem where a user password reset cannot be submitted
+- Modified the MAP application log to use event time stamps with UTC time zone
+
+#### v1.9.2
+
+- Allow HTML and Power BI content items to generate downloadable reports
+
 #### v1.9.1
 
 - Fixed a bug that caused the SFTP server configuration file to not deploy in production

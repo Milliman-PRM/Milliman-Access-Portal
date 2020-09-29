@@ -64,9 +64,7 @@ export class Form<TProps, TState extends BaseFormState> extends React.Component<
     const { data, errors } = Object.assign({}, this.state);
     this.validate();
 
-    if (!errorMessage) {
-      delete errors[input.name];
-    }
+    delete errors[input.name];
 
     data[input.name] = input.value;
 
