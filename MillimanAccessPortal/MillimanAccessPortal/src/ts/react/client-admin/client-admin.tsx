@@ -2,7 +2,10 @@
 import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
-import { activeUsers, clientEntities, isEmailAddressValid, isStringNotEmpty } from './redux/selectors';
+import {
+  activeUsers, clientEntities, isEmailAddressValid, isFormModified,
+  isFormValid, isStringNotEmpty,
+} from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
   AccessStateSelected, AccessStateValid, PendingDataState,
@@ -23,6 +26,7 @@ import {
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
 import { Input } from '../shared-components/form/input';
+import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
@@ -469,34 +473,29 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       className="form-input form-input-dropdown flex-item-for-phone-only-12-12
                                  flex-item-for-tablet-up-6-12"
                     >
-                      <label className="form-input-dropdown-title" asp-for="ProfitCenterId">Profit Center *</label>
                       <div>
-                        <select
-                          disabled={edit.disabled}
+                        <DropDown
+                          name="profitCenterId"
+                          label="Profit Center *"
+                          placeholderText="Select a profit center..."
+                          values={profitCenters.map((pc) => {
+                            return {
+                              selectionValue: pc.id,
+                              selectionLabel: pc.name,
+                            };
+                          })}
                           value={formData.profitCenterId}
-                          onChange={(event) => {
-                            const profitCenterId = event.currentTarget.value ? event.currentTarget.value : null;
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                            const profitCenterId = target.value ? target.value : null;
                             this.props.setFormFieldValue({ field: 'profitCenterId', value: profitCenterId });
                             this.props.setValidityForField({
                               field: 'profitCenterId',
-                              valid: isStringNotEmpty(formData.profitCenterId),
+                              valid: isStringNotEmpty(profitCenterId),
                             });
                           }}
-                        >
-                          <option value="">Make a Selection</option>
-                          {profitCenters.map((profitCenter) => (
-                            <option
-                              key={profitCenter.id}
-                              value={profitCenter.id}
-                            >
-                              {profitCenter.name}
-                            </option>
-                            ))
-                          }
-                        </select>
-                        {valid.profitCenterId ? null :
-                          <span style={{ fontSize: '0.9rem', color: 'red' }}>Profit center is required.</span>
-                        }
+                          readOnly={edit.disabled}
+                          error={valid.profitCenterId ? null : 'Profit center is a required field.'}
+                        />
                       </div>
                     </div>
                   </div>
@@ -530,7 +529,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div className="button-container button-container-new">
                         <button
                           type="button"
-                          disabled={!this.isFormModified(formData, details)}
+                          disabled={!isFormModified(formData, details)}
                           className="button-reset link-button"
                           onClick={() => {
                             this.props.resetValidity({});
@@ -540,8 +539,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           Reset Form
                         </button>
                         <button
-                          disabled={!this.isFormModified(formData, details) ||
-                            (this.isFormModified(formData, details) && (!this.isFormValid(valid)
+                          disabled={!isFormModified(formData, details) ||
+                            (isFormModified(formData, details) && (!isFormValid(valid)
                               || formData.name.trim() === '' || formData.profitCenterId === ''))
                           }
                           type="button"
@@ -555,7 +554,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               valid: isStringNotEmpty(formData.profitCenterId),
                             });
 
-                            if (this.isFormValid(valid)) {
+                            if (isFormValid(valid)) {
                               this.props.resetValidity({});
                               this.props.saveNewClient(formData);
                               this.props.setEditStatus({ disabled: true });
@@ -568,7 +567,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       </div> :
                       <div className="button-container button-container-edit">
                         <button
-                          disabled={!this.isFormModified(formData, details)}
+                          disabled={!isFormModified(formData, details)}
                           type="button"
                           className="button-reset link-button"
                           onClick={() => {
@@ -581,8 +580,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <button
                           type="button"
                           className="button-submit blue-button"
-                          disabled={!this.isFormModified(formData, details) ||
-                            (this.isFormModified(formData, details) && !this.isFormValid(valid))
+                          disabled={!isFormModified(formData, details) ||
+                            (isFormModified(formData, details) && !isFormValid(valid))
                           }
                           onClick={() => {
                             this.editClient(formData).then(() => {
@@ -737,29 +736,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       roleEnum: entityRole.roleEnum,
       userId: user,
     });
-  }
-
-  private isFormValid(valid: AccessStateValid) {
-    return valid.name &&
-           valid.profitCenterId &&
-           valid.contactEmail  &&
-           valid.consultantEmail;
-  }
-
-  private isFormModified(formData: AccessStateFormData, detail: ClientDetail) {
-    return formData.name !== detail.name ||
-      formData.clientCode !== detail.clientCode ||
-      formData.contactName !== detail.clientContactName ||
-      formData.contactTitle !== detail.clientContactTitle ||
-      formData.contactEmail !== detail.clientContactEmail ||
-      formData.contactPhone !== detail.clientContactPhone ||
-      // TODO: Wait on remaining email adding code
-      // formData.acceptedEmailDomainList !== detail.acceptedEmailDomainList ||
-      // formData.acceptedEmailAddressExceptionList !== detail.acceptedEmailAddressExceptionList ||
-      formData.consultantName !== detail.consultantName ||
-      formData.consultantEmail !== detail.consultantEmail ||
-      formData.consultantOffice !== detail.office ||
-      formData.profitCenterId !== detail.profitCenter.id;
   }
 
   private async editClient(formData: AccessStateFormData) {
