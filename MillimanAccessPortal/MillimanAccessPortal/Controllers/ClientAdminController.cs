@@ -980,10 +980,11 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditClient([FromBody][Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        public async Task<IActionResult> EditClient([FromBody]Client Model)
         {
             Log.Verbose("Entered ClientAdminController.EditClient action with model {@Client}", Model);
+
+            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             #region Preliminary Validation
             if (Model.Id == null || Model.Id == Guid.Empty)
@@ -999,7 +1000,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Client must exist
-            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
             if (ExistingClientRecord == null)
             {
                 Log.Warning("In ClientAdminController.EditClient action: referenced client not found");
