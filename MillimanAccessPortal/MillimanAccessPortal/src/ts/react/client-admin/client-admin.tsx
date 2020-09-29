@@ -62,14 +62,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?
-          <div style={{ width: '100%' }}>
+          <div
+            className="admin-panel-container
+                       flex-item-12-12 flex-item-for-tablet-up-6-12 flex-item-for-desktop-up-6-12"
+          >
             {this.props.pending.details ?
               <ColumnSpinner />
               : this.renderClientDetail()
             }
           </div> : null
         }
-        {this.props.selected.client !== null && !this.props.pending.details  ? this.renderClientUsers() : null}
+        {this.props.selected.client !== null && !this.props.pending.details && this.props.edit.disabled
+          ? this.renderClientUsers() : null}
       </>
     );
   }
