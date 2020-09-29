@@ -25,7 +25,7 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
-import { Input } from '../shared-components/form/input';
+import { Input, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { RoleEnum } from '../shared-components/interfaces';
@@ -215,6 +215,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     this.props.setEditStatus({ disabled: true });
                     this.props.resetFormData({ details });
                     this.props.resetValidity({});
+
+                    if (selected.client === 'new') { this.props.selectClient({ id: null }); }
                   }}
                 />
               }
@@ -309,7 +311,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
-                                 flex-item-for-tablet-up-9-12"
+                                 flex-item-for-tablet-up-6-12"
                     >
                       <div>
                         <Input
@@ -333,7 +335,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                     <div
                       className="form-input form-input-text flex-item-for-phone-only-12-12
-                                 flex-item-for-tablet-up-3-12"
+                                 flex-item-for-tablet-up-6-12"
                     >
                       <div>
                         <Input
@@ -512,12 +514,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         />
                       </div>
                       <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
-                        <textarea
-                          id="NewUserWelcomeText"
+                        <TextAreaInput
+                          label={null}
                           name="NewUserWelcomeText"
                           onChange={() => {
                             return false;
                           }}
+                          error={null}
+                          value={null}
+                          readOnly={edit.disabled}
                         />
                       </div>
                     </div>
