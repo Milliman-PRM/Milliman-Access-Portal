@@ -66,12 +66,5 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
             }
         }
 
-        //public ClientActorModel(ClientActorReviewModel user)
-        //{
-        //    UserEmail = user.UserEmail;
-        //    Name = user.Name;
-        //    IsSuspended = user.IsSuspended;
-        //}
-
     }
 }

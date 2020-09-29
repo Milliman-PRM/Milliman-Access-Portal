@@ -32,6 +32,12 @@ const _initialPendingData: PendingDataState = {
   approveAccessReview: false,
 };
 
+const _initialClientAccessReviewProgress: ClientAccessReviewProgress = {
+  step: 0,
+  contentItemConfirmations: null,
+  fileDropConfirmations: null,
+};
+
 /**
  * Create reducers for a subtree of the redux store
  */
@@ -135,11 +141,7 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 
-const reviewProgress = createReducer<ClientAccessReviewProgress>({
-    step: 0,
-    contentItemConfirmations: null,
-    fileDropConfirmations: null,
-}, {
+const reviewProgress = createReducer<ClientAccessReviewProgress>(_initialClientAccessReviewProgress, {
   FETCH_CLIENT_REVIEW_SUCCEEDED: (_state, action: AccessReviewActions.FetchClientReviewSucceeded) => {
     const contentItemConfirmations: Dict<boolean> = {};
     action.response.contentItems.map((ci) => {
@@ -178,14 +180,10 @@ const reviewProgress = createReducer<ClientAccessReviewProgress>({
     },
   }),
   CANCEL_CLIENT_ACCESS_REVIEW: () => ({
-    step: 0,
-    contentItemConfirmations: null,
-    fileDropConfirmations: null,
+    ..._initialClientAccessReviewProgress,
   }),
   APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: () => ({
-    step: 0,
-    contentItemConfirmations: null,
-    fileDropConfirmations: null,
+    ..._initialClientAccessReviewProgress,
   }),
 });
 

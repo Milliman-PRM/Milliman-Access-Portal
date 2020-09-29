@@ -94,8 +94,8 @@ namespace MillimanAccessPortal.DataQueries
                 ClientCode = client.ClientCode,
                 AssignedProfitCenter = client.ProfitCenter.Name,
                 LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
-                LastReviewedBy = lastApprover == null
-                    ? new ClientActorModel { Name = client.LastAccessReview.UserName }
+                LastReviewedBy = lastApprover == null  // Usually null indicates the username is the default "N/A", indicating no previous review
+                    ? new ClientActorModel { Name = client.LastAccessReview.UserName }  // This avoids potential null reference exception in the ClientActorModel cast operator
                     : (ClientActorModel)lastApprover,
                 PrimaryContactName = client.ContactName,
                 PrimaryContactEmail = client.ContactEmail,
