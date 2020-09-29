@@ -1,5 +1,6 @@
-import { takeLatest } from 'redux-saga/effects';
+import { select, takeLatest } from 'redux-saga/effects';
 
+import { ClientWithReviewDate } from '../../models';
 import {
     createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
 } from '../../shared-components/redux/sagas';
@@ -8,6 +9,7 @@ import {
     AccessReviewAction, ErrorAccessReviewAction, RequestAccessReviewAction, ResponseAccessReviewAction,
 } from './actions';
 import * as api from './api';
+import { selectedClient } from './selectors';
 
 /**
  * Custom effect for handling request actions.
@@ -34,6 +36,10 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENT_SUMMARY', api.fetchClientSummary);
   yield takeLatestRequest('FETCH_CLIENT_REVIEW', api.fetchClientReview);
   yield takeLatestRequest('APPROVE_CLIENT_ACCESS_REVIEW', api.approvedClientAccessReview);
+  yield takeLatestSchedule('APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED', function*() {
+    const client: ClientWithReviewDate = yield select(selectedClient);
+    return AccessReviewActionCreators.fetchClientSummary({ clientId: client.id });
+  });
   yield takeLatestSchedule('APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED',
     () => AccessReviewActionCreators.updateNavBar({}),
   );
