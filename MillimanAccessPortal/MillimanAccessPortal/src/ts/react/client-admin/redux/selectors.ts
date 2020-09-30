@@ -5,57 +5,37 @@ import { ClientWithStats, User } from '../../models';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
- * Returns whether or not a string is considered valid by the client-admin form.
- *
- * @param value string to be tested
- */
-export function isStringNotEmpty(value: string): boolean {
-  return value !== null && value.trim() !== '';
-}
-
-/**
- * Returns whether a valid email address is non-empty and also a valid email address.
- *
- * @param email email address to be tested
- */
-export function isEmailAddressValid(email: string): boolean {
-  const emailRegex = /\S+@\S+\.\S+/;
-  return email.trim() === '' || email === null || emailRegex.test(email);
-}
-
-/**
  * Determines whether the form has the necessary fields filled out in order to submit.
  *
- * @param valid state of all necessary fields and whether their current input is valid or not.
+ * @param state Redux store.
  */
-export function isFormValid(valid: AccessStateValid) {
-  return valid.name &&
-    valid.profitCenterId &&
-    valid.contactEmail &&
-    valid.consultantEmail;
+export function isFormValid(state: AccessState) {
+  return state.valid.name &&
+    state.valid.profitCenterId &&
+    state.valid.contactEmail &&
+    state.valid.consultantEmail;
 }
 
 /**
  * Determines whether any of the form data returned from the backend has been modified in order to determine
  * if the user should be allowed to submit the form.
  *
- * @param formData the form data that may/may not have been modified by the user.
- * @param detail the initial data returned from the server from the last FetchClientDetail call.
+ * @param state Redux store.
  */
-export function isFormModified(formData: AccessStateFormData, detail: ClientDetail) {
-  return formData.name !== detail.name ||
-    formData.clientCode !== detail.clientCode ||
-    formData.contactName !== detail.clientContactName ||
-    formData.contactTitle !== detail.clientContactTitle ||
-    formData.contactEmail !== detail.clientContactEmail ||
-    formData.contactPhone !== detail.clientContactPhone ||
+export function isFormModified(state: AccessState) {
+  return state.formData.name !== state.data.details.name ||
+    state.formData.clientCode !== state.data.details.clientCode ||
+    state.formData.contactName !== state.data.details.clientContactName ||
+    state.formData.contactTitle !== state.data.details.clientContactTitle ||
+    state.formData.contactEmail !== state.data.details.clientContactEmail ||
+    state.formData.contactPhone !== state.data.details.clientContactPhone ||
     // TODO: Wait on remaining email adding code
-    // formData.acceptedEmailDomainList !== detail.acceptedEmailDomainList ||
-    // formData.acceptedEmailAddressExceptionList !== detail.acceptedEmailAddressExceptionList ||
-    formData.consultantName !== detail.consultantName ||
-    formData.consultantEmail !== detail.consultantEmail ||
-    formData.consultantOffice !== detail.office ||
-    formData.profitCenterId !== detail.profitCenter.id;
+    // state.formData.acceptedEmailDomainList !== state.data.details.acceptedEmailDomainList ||
+    // state.formData.acceptedEmailAddressExceptionList !== state.data.details.acceptedEmailAddressExceptionList ||
+    state.formData.consultantName !== state.data.details.consultantName ||
+    state.formData.consultantEmail !== state.data.details.consultantEmail ||
+    state.formData.consultantOffice !== state.data.details.office ||
+    state.formData.profitCenterId !== state.data.details.profitCenter.id;
 }
 
 /**

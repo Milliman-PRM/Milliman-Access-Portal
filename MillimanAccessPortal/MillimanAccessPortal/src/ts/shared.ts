@@ -672,3 +672,12 @@ export function postJsonData<TResponse = any>(url: string = '', data: object = {
     return response.json() as Promise<TResponse>;
   });
 }
+
+export function isStringNotEmpty(value: string): boolean {
+  return value !== null && value.trim() !== '';
+}
+
+export function isEmailAddressValid(email: string): boolean {
+  const emailRegex = /\S+@\S+\.\S+/;
+  return email.trim() === '' || email === null || emailRegex.test(email);
+}

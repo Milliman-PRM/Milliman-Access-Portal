@@ -3,8 +3,7 @@ import { connect } from 'react-redux';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, clientEntities, isEmailAddressValid, isFormModified,
-  isFormValid, isStringNotEmpty,
+  activeUsers, clientEntities, isFormModified, isFormValid,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -32,6 +31,8 @@ import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
+import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
+
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
   pending: PendingDataState;
@@ -45,6 +46,8 @@ interface ClientAdminProps {
   filters: AccessStateFilters;
   cardAttributes: AccessStateCardAttributes;
   valid: AccessStateValid;
+  formModified: boolean;
+  formValid: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -194,7 +197,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, profitCenters, details, selected, edit, valid } = this.props;
+    const { formData, profitCenters, details, selected, edit, valid, formModified, formValid } = this.props;
     return (
       <>
         <div
@@ -538,7 +541,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div className="button-container button-container-new">
                         <button
                           type="button"
-                          disabled={!isFormModified(formData, details)}
+                          disabled={!formModified}
                           className="button-reset link-button"
                           onClick={() => {
                             this.props.resetValidity({});
@@ -548,8 +551,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           Reset Form
                         </button>
                         <button
-                          disabled={!isFormModified(formData, details) ||
-                            (isFormModified(formData, details) && (!isFormValid(valid)
+                          disabled={!formModified ||
+                            (formModified && (!formValid
                               || formData.name.trim() === '' || formData.profitCenterId === ''))
                           }
                           type="button"
@@ -563,7 +566,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               valid: isStringNotEmpty(formData.profitCenterId),
                             });
 
-                            if (isFormValid(valid)) {
+                            if (formValid) {
                               this.props.resetValidity({});
                               this.props.saveNewClient(formData);
                               this.props.setEditStatus({ disabled: true });
@@ -576,7 +579,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       </div> :
                       <div className="button-container button-container-edit">
                         <button
-                          disabled={!isFormModified(formData, details)}
+                          disabled={!formModified}
                           type="button"
                           className="button-reset link-button"
                           onClick={() => {
@@ -589,8 +592,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         <button
                           type="button"
                           className="button-submit blue-button"
-                          disabled={!isFormModified(formData, details) ||
-                            (isFormModified(formData, details) && !isFormValid(valid))
+                          disabled={!formModified ||
+                            (formModified && !formValid)
                           }
                           onClick={() => {
                             this.editClient(formData).then(() => {
@@ -768,6 +771,8 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     filters,
     pending,
     valid,
+    formModified: isFormModified(state),
+    formValid: isFormValid(state),
   };
 }
 
