@@ -122,7 +122,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               onSelect={() => {
                 this.props.selectClient({ id: entity.id });
                 this.props.fetchClientDetails({ clientId: entity.id });
-                this.props.setEditStatus({ disabled: true });
               }}
               indentation={entity.indent}
             >
@@ -219,9 +218,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   label="Cancel edit"
                   icon="cancel"
                   action={() => {
-                    this.props.setEditStatus({ disabled: true });
                     this.props.resetFormData({ details });
                     this.props.resetValidity({});
+                    this.props.setEditStatus({ disabled: true });
 
                     if (selected.client === 'new') { this.props.selectClient({ id: null }); }
                   }}

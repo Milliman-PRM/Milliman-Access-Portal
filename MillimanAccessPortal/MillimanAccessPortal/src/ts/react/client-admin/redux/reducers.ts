@@ -184,6 +184,7 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     ...state,
     disabled: action.disabled,
   }),
+  SELECT_CLIENT: () => _initialEditStatus,
 });
 
 const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
