@@ -254,6 +254,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
 
 const valid = createReducer<AccessStateValid>(_initialValidation, {
   RESET_VALIDITY: () => _initialValidation,
+  SELECT_CLIENT: () => _initialValidation,
   SET_VALIDITY_FOR_FIELD: (state, action: AccessActions.SetValidityForField) => ({
     ...state,
     [action.field]: action.valid,

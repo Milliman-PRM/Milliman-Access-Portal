@@ -123,7 +123,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 this.props.selectClient({ id: entity.id });
                 this.props.fetchClientDetails({ clientId: entity.id });
                 this.props.setEditStatus({ disabled: true });
-                this.props.resetValidity({});
               }}
               indentation={entity.indent}
             >
@@ -213,7 +212,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   label="Edit client details"
                   icon="edit"
                   action={() => {
-                    this.props.resetValidity({});
                     this.props.setEditStatus({ disabled: false });
                   }}
                 /> :
@@ -727,10 +725,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   label="Add or create a new client"
                   icon="add"
                   action={() => {
-                    this.props.selectClient({ id: 'new' });
-                    this.props.clearFormData({});
-                    this.props.setEditStatus({ disabled: false });
-                    this.props.resetValidity({});
+                    return false; // Code checked in for this in client-admin-toast-modals
                   }}
                 />
               </PanelSectionToolbarButtons>
