@@ -404,6 +404,7 @@ namespace MillimanAccessPortal
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddHostedService<QueuedReductionPostProcessingHostedService>();
+            services.AddHostedService <SystemMaintenanceHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
 
