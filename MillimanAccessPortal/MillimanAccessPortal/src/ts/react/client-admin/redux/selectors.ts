@@ -20,7 +20,7 @@ export function isStringNotEmpty(value: string): boolean {
  */
 export function isEmailAddressValid(email: string): boolean {
   const emailRegex = /\S+@\S+\.\S+/;
-  return isStringNotEmpty(email) && emailRegex.test(email);
+  return email.trim() === '' || email === null || emailRegex.test(email);
 }
 
 /**

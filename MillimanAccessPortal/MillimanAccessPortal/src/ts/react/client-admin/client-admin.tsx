@@ -243,15 +243,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.name}
                           onChange={(event) => {
-                            this.props.setFormFieldValue({ field: 'name', value: event.currentTarget.value });
-                          }}
-                          readOnly={edit.disabled}
-                          onBlur={(event: React.FormEvent<HTMLInputElement>) => {
                             this.props.setValidityForField({
                               field: 'name',
                               valid: isStringNotEmpty(event.currentTarget.value),
                             });
+                            this.props.setFormFieldValue({ field: 'name', value: event.currentTarget.value });
                           }}
+                          readOnly={edit.disabled}
                           error={valid.name ? '' : 'Client Name is a required field.'}
                         />
                       </div>
