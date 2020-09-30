@@ -91,6 +91,7 @@ namespace MapTests
         public SelectionGroupQueries SelectionGroupQueries { get; set; } = default;
         public PublicationQueries PublicationQueries { get; set; } = default;
         public UserQueries UserQueries { get; set; } = default;
+        public AuthorizedContentQueries AuthorizedContentQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
         public IUrlHelper UrlHelper { get; set; } = default;
@@ -238,7 +239,7 @@ namespace MapTests
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
-            services.AddScoped<PublicationQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
             services.AddScoped<UserQueries>();
 
             string fileUploadPath = Path.GetTempPath();
@@ -284,6 +285,7 @@ namespace MapTests
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();
             PublicationQueries = ScopedServiceProvider.GetService<PublicationQueries>();
             UserQueries = ScopedServiceProvider.GetService<UserQueries>();
+            AuthorizedContentQueries = ScopedServiceProvider.GetService<AuthorizedContentQueries>();
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
             QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
             PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();

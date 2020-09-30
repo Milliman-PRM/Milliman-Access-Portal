@@ -390,6 +390,7 @@ namespace MillimanAccessPortal
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
 
             //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
             services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
