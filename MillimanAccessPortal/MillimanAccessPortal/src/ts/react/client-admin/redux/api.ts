@@ -12,9 +12,21 @@ const createJsonRequestor = createJsonRequestorCreator<RequestAccessAction, Resp
 export const fetchClients =
   createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
     ('GET', '/ClientAdmin/Clients');
+export const fetchProfitCenters =
+  createJsonRequestor<AccessActions.FetchProfitCenters, AccessActions.FetchProfitCentersSucceeded>
+    ('GET', '/ClientAdmin/AuthorizedProfitCenters');
 export const fetchClientDetails =
   createJsonRequestor<AccessActions.FetchClientDetails, AccessActions.FetchClientDetailsSucceeded>
     ('GET', '/ClientAdmin/ClientDetail');
 export const setUserRoleInClient =
   createJsonRequestor<AccessActions.SetUserRoleInClient, AccessActions.SetUserRoleInClientSucceeded>
     ('POST', '/ClientAdmin/SetUserRoleInClient');
+export const saveNewClient =
+  createJsonRequestor<AccessActions.SaveNewClient, AccessActions.SaveNewClientSucceeded>
+    ('POST', '/ClientAdmin/SaveNewClient');
+export const editClient =
+  createJsonRequestor<AccessActions.EditClient, AccessActions.EditClientSucceeded>
+    ('POST', '/ClientAdmin/EditClient');
+export const deleteClient =
+  createJsonRequestor<AccessActions.DeleteClient, AccessActions.DeleteClientSucceeded>
+    ('DELETE', '/ClientAdmin/DeleteClient');

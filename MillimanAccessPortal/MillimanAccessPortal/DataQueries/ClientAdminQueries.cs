@@ -8,6 +8,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using MillimanAccessPortal.Models.ClientAdminViewModels;
+using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -16,13 +19,16 @@ namespace MillimanAccessPortal.DataQueries
     /// </summary>
     public class ClientAdminQueries
     {
-        private readonly ClientQueries _clientQueries;
+    private readonly ApplicationDbContext _dbContext;
+    private readonly ClientQueries _clientQueries;
         private readonly UserQueries _userQueries;
 
         public ClientAdminQueries(
+            ApplicationDbContext dbContext,
             ClientQueries clientQueries,
             UserQueries userQueries)
         {
+            _dbContext = dbContext;
             _clientQueries = clientQueries;
             _userQueries = userQueries;
         }
@@ -48,5 +54,38 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
+        public async Task<List<AuthorizedProfitCenterModel>> GetAuthorizedProfitCentersListAsync(ApplicationUser user)
+        {
+            List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList = new List<AuthorizedProfitCenterModel>();
+            foreach (var AuthorizedProfitCenter in (await _dbContext.UserRoleInProfitCenter
+                                                       .Include(urpc => urpc.Role)
+                                                       .Include(urpc => urpc.ProfitCenter)
+                                                       .Where(urpc => urpc.Role.RoleEnum == RoleEnum.Admin
+                                                                   && urpc.UserId == user.Id)
+                                                       .Select(urpc => urpc.ProfitCenter)
+                                                       .ToListAsync())
+                                               .Distinct(new IdPropertyComparer<ProfitCenter>()))
+            {
+              AuthorizedProfitCenterList.Add(new AuthorizedProfitCenterModel(AuthorizedProfitCenter));
+            }
+
+            return AuthorizedProfitCenterList;
+        }
+
+        public async Task<SaveNewClientResponseModel> GetNewClientResponseModelAsync(ApplicationUser user, Guid clientId)
+        {
+            var clientResponseModel = await this.GetAuthorizedClientsModelAsync(user);
+            Client newClient = await _dbContext.Client
+                                   .Include(c => c.ProfitCenter)
+                                   .FirstOrDefaultAsync(c => c.Id == clientId);
+
+            SaveNewClientResponseModel ReturnModel = new SaveNewClientResponseModel
+            {
+              NewClient = (ClientDetail) newClient,
+              Clients = clientResponseModel.Clients,
+            };
+
+            return ReturnModel;
+        }
     }
 }

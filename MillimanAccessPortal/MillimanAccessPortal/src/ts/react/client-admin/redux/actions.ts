@@ -1,9 +1,9 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, ClientWithStats, User, Guid, UserRole } from "../../models";
+import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
-import { fetchClientDetails } from "./action-creators";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
+import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
 
@@ -18,6 +18,14 @@ export interface SelectClient {
 export interface SelectUser {
   type: 'SELECT_USER';
   id: Guid;
+}
+
+/**
+ * Set whether or not the current form is being edited.
+ */
+export interface SetEditStatus {
+  type: 'SET_EDIT_STATUS';
+  disabled: boolean;
 }
 
 /**
@@ -60,6 +68,30 @@ export interface SetFilterTextUser {
   text: string;
 }
 
+// ~ Form Actions ~
+export interface ClearFormData {
+  type: 'CLEAR_FORM_DATA';
+}
+export interface ResetFormData {
+  type: 'RESET_FORM_DATA';
+  details: ClientDetail;
+}
+export interface SetFormFieldValue {
+  type: 'SET_FORM_FIELD_VALUE';
+  field: string;
+  value: string | string[] | Guid;
+}
+
+// ~ Checking validity of form items ~
+export interface ResetValidity {
+  type: 'RESET_VALIDITY';
+}
+export interface SetValidityForField {
+  type: 'SET_VALIDITY_FOR_FIELD';
+  field: string;
+  valid: boolean;
+}
+
 // ~ GETs ~
 
 /**
@@ -83,8 +115,28 @@ export interface FetchClientsFailed {
 
 /**
  * GET:
+ *  profit center the current user has access to; 
+ */
+export interface FetchProfitCenters {
+  type: 'FETCH_PROFIT_CENTERS';
+  request: {};
+}
+export interface FetchProfitCentersSucceeded {
+  type: 'FETCH_PROFIT_CENTERS_SUCCEEDED';
+  response: ProfitCenter[];
+}
+export interface FetchProfitCentersFailed {
+  type: 'FETCH_PROFIT_CENTERS_FAILED';
+  error: TSError;
+}
+
+/**
+ * GET:
  *   details for a client that can be viewed or changed by a client admin;
  */
+export interface ResetClientDetails {
+  type: 'RESET_CLIENT_DETAILS';
+}
 export interface FetchClientDetails {
   type: 'FETCH_CLIENT_DETAILS';
   request: {
@@ -103,6 +155,7 @@ export interface FetchClientDetailsFailed {
   error: TSError;
 }
 
+// POSTS
 export interface SetUserRoleInClient {
   type: 'SET_USER_ROLE_IN_CLIENT';
   request: {
@@ -123,37 +176,119 @@ export interface SetUserRoleInClientFailed {
   type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
   error: TSError;
 }
+export interface SaveNewClient {
+  type: 'SAVE_NEW_CLIENT';
+  request: AccessStateFormData;
+}
+export interface SaveNewClientSucceeded {
+  type: 'SAVE_NEW_CLIENT_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithEligibleUsers>;
+    newClient: ClientDetail;
+  };
+}
+export interface SaveNewClientFailed {
+  type: 'SAVE_NEW_CLIENT_FAILED';
+  error: TSError;
+}
+export interface EditClient {
+  type: 'EDIT_CLIENT';
+  request: AccessStateFormData;
+}
+export interface EditClientSucceeded {
+  type: 'EDIT_CLIENT_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithEligibleUsers>;
+  };
+}
+export interface EditClientFailed {
+  type: 'EDIT_CLIENT_FAILED';
+  error: TSError;
+}
+export interface DeleteClient {
+  type: 'DELETE_CLIENT';
+  request: Guid;
+}
+export interface DeleteClientSucceeded {
+  type: 'DELETE_CLIENT_SUCCEEDED';
+  response: {
+    clients: Dict<ClientWithEligibleUsers>;
+  };
+}
+export interface DeleteClientFailed {
+  type: 'DELETE_CLIENT_FAILED';
+  error: TSError;
+}
 
 /**
  * An action that sets filter text for a card column.
  */
 export type FilterAccessAction =
   | SetFilterTextClient
-  | SetFilterTextUser;
+  | SetFilterTextUser
+  ;
+
+export type FormAction =
+  | ClearFormData
+  | ResetFormData
+  | SetFormFieldValue
+  ;
+
+export type ValidityAction =
+  | ResetValidity
+  | SetValidityForField
+  ;
 
 /**
  * An action that makes an Ajax request.
  */
 export type RequestAccessAction =
   | FetchClients
+  | FetchProfitCenters
   | FetchClientDetails
-  | SetUserRoleInClient;
+  | SetUserRoleInClient
+  | SaveNewClient
+  | EditClient
+  | DeleteClient
+  ;
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
+  | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
-  | SetUserRoleInClientSucceeded;
+  | SetUserRoleInClientSucceeded
+  | SaveNewClientSucceeded
+  | EditClientSucceeded
+  | DeleteClientSucceeded
+  ;
+
+/**
+* An action that marks the errored response of an Ajax request.
+*/
+export type ErrorAccessAction =
+  | FetchClientsFailed
+  | FetchProfitCentersFailed
+  | FetchClientDetailsFailed
+  ;
+
 
 export type PageAccessAction =
   | SelectClient
+  | SetEditStatus
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser
   | SetAllCollapsedUser
   | SetAllExpandedUser
-  | FilterAccessAction;
+  | FilterAccessAction
+  | FormAction
+  | ValidityAction
+  | ResetClientDetails
+  ;
 
 export type AccessAction =
   | PageAccessAction
   | RequestAccessAction
-  | ResponseAccessAction;
+  | ResponseAccessAction
+  | ErrorAccessAction
+  ;

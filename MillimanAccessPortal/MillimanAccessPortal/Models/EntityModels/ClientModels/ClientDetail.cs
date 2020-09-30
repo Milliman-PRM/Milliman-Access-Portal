@@ -13,15 +13,16 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
     public class ClientDetail
     {
         public Guid Id { get; set; }
-        public string ClientName { get; set; }
+        public string Name { get; set; }
         public string ClientCode { get; set; }
         public string ClientContactName { get; set; }
         public string ClientContactEmail { get; set; }
         public string ClientContactPhone { get; set; }
+        public string ClientContactTitle { get; set; }
         public int DomainListCountLimit { get; set; }
         public List<string> AcceptedEmailDomainList { get; set; }
         public List<string> AcceptedEmailAddressExceptionList { get; set; }
-        public string ProfitCenter { get; set; }
+        public ProfitCenter ProfitCenter { get; set; }
         public string Office { get; set; }
         public string ConsultantName { get; set; }
         public string ConsultantEmail { get; set; }
@@ -33,18 +34,24 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 return null;
             }
 
+            if (client.ProfitCenter == null)
+            {
+              
+            }
+
             return new ClientDetail
             {
                 Id = client.Id,
-                ClientName = client.Name,
+                Name = client.Name,
                 ClientCode = client.ClientCode,
                 ClientContactName = client.ContactName,
                 ClientContactEmail = client.ContactEmail,
                 ClientContactPhone = client.ContactPhone,
+                ClientContactTitle = client.ContactTitle,
                 DomainListCountLimit = client.DomainListCountLimit,
                 AcceptedEmailDomainList = client.AcceptedEmailDomainList,
                 AcceptedEmailAddressExceptionList = client.AcceptedEmailAddressExceptionList,
-                ProfitCenter = client.ProfitCenter?.Name,
+                ProfitCenter = client.ProfitCenter,
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,

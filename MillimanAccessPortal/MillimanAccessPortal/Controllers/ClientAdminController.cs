@@ -33,6 +33,7 @@ using MillimanAccessPortal.Services;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -124,6 +125,32 @@ namespace MillimanAccessPortal.Controllers
             var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
             return Json(clients);
+        }
+
+        // GET: ClientAdmin/AuthorizedProfitCenters
+        /// <summary>
+        /// Returns the list of profit centers that the user is authorized to administer.
+        /// </summary>
+        /// <param name="userId">Guid of user whose profit centers we want to return.</param>
+        /// <returns>JsonResult of List<AuthorizedProfitCenterModel></returns>
+        [HttpGet]
+        public async Task<IActionResult> AuthorizedProfitCenters(Guid userId)
+        {
+            #region Authorization
+            // User must have Admin role to at least 1 Client or ProfitCenter
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
+            if (!Result1.Succeeded &&
+                !Result2.Succeeded)
+            {
+                Response.Headers.Add("Warning", $"You are not authorized as a client admin or profit center admin");
+                return Unauthorized();
+            }
+            #endregion
+            
+            var currentUser = await _userManager.GetUserAsync(User);
+            var AuthorizedProfitCenterList = await _clientAdminQueries.GetAuthorizedProfitCentersListAsync(currentUser);
+            return Json(AuthorizedProfitCenterList);
         }
 
         // GET: ClientAdmin/ClientFamilyList
@@ -673,7 +700,7 @@ namespace MillimanAccessPortal.Controllers
         /// Removes a requested user from a requested Client. Requires POST. 
         /// </summary>
         /// <param name="Model"></param>
-        /// <returns>BadRequestObjectResult, UnauthorizedResult, OkResult</returns>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, ClientDetailViewModel</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveUserFromClient(ClientUserAssociationViewModel Model, bool AllowZeroAdmins = false)
@@ -787,12 +814,10 @@ namespace MillimanAccessPortal.Controllers
         /// Saves a new client object
         /// </summary>
         /// <param name="Model">Type Client</param>
-        /// <returns>BadRequestObjectResult, UnauthorizedResult, </returns>
+        /// <returns>BadRequestObjectResult, UnauthorizedResult, SaveNewClientResponseModel</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveNewClient([Bind("Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                                 "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
-        // Members intentionally not bound: Id
+        public async Task<IActionResult> SaveNewClient([FromBody] Client Model)
         {
             Log.Verbose("Entered ClientAdminController.SaveNewClient action with parameter {@Client}", Model);
 
@@ -942,15 +967,12 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
             AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(CurrentApplicationUser, _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
-            ModelToReturn.RelevantClientId = Model.Id;
-
-            return Json(ModelToReturn);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var returnModel = await _clientAdminQueries.GetNewClientResponseModelAsync(currentUser, Model.Id);
+            return Json(returnModel);
         }
 
         // POST: ClientAdmin/EditClient
-        // To protect from overposting attacks, please enable the specific properties you want to bind to, for 
-        // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         /// <summary>
         /// Supports: Edit with no change to parent or ProfitCenter, change of parent if no children
         /// </summary>
@@ -958,10 +980,11 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EditClient([Bind("Id,Name,ClientCode,ContactName,ContactTitle,ContactEmail,ContactPhone,ConsultantName,ConsultantEmail," +
-                                              "ConsultantOffice,AcceptedEmailDomainList,AcceptedEmailAddressExceptionList,ParentClientId,ProfitCenterId,NewUserWelcomeText")] Client Model)
+        public async Task<IActionResult> EditClient([FromBody]Client Model)
         {
             Log.Verbose("Entered ClientAdminController.EditClient action with model {@Client}", Model);
+
+            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             #region Preliminary Validation
             if (Model.Id == null || Model.Id == Guid.Empty)
@@ -975,9 +998,6 @@ namespace MillimanAccessPortal.Controllers
                 Log.Debug("In ClientAdminController.EditClient action: model client references itself as parent client");
                 return BadRequest("Client cannot have itself as a parent Client");
             }
-
-            // Query for the existing record to be modified
-            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             // Client must exist
             if (ExistingClientRecord == null)
@@ -1127,7 +1147,11 @@ namespace MillimanAccessPortal.Controllers
                     ExistingClientRecord.ClientCode = Model.ClientCode;
                     ExistingClientRecord.ContactName = Model.ContactName;
                     ExistingClientRecord.ContactTitle = Model.ContactTitle;
-                    ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                    
+                    if (ExistingClientRecord.ContactEmail != Model.ContactEmail && !(ModelState.Keys.Contains("ContactEmail") && ModelState["ContactEmail"].Errors.Any()))
+                    {
+                        ExistingClientRecord.ContactEmail = Model.ContactEmail;
+                    }
                     ExistingClientRecord.ContactPhone = Model.ContactPhone;
                     ExistingClientRecord.ConsultantName = Model.ConsultantName;
                     ExistingClientRecord.ConsultantEmail = Model.ConsultantEmail;
@@ -1152,10 +1176,10 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
-            ModelToReturn.RelevantClientId = ExistingClientRecord.Id;
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
 
         /// <summary>
@@ -1166,7 +1190,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteClient(Guid Id)
+        public async Task<IActionResult> DeleteClient([FromBody] Guid Id)
         {
             Log.Verbose($"Entered ClientAdminController.DeleteClient action with client ID {Id}");
 
@@ -1254,9 +1278,10 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ClientAdminController.DeleteClient action: deleted client {ExistingClient.Id}");
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            var currentUser = await _userManager.GetUserAsync(User);
+            var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
-            return Json(ModelToReturn);
+            return Json(clients);
         }
 
         /// <summary>

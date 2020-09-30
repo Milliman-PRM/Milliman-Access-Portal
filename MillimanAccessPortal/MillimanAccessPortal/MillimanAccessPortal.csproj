@@ -78,7 +78,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="Views\" />
     <Folder Include="wwwroot\" />
     <Folder Include="wwwroot\js\" /> 
   </ItemGroup>

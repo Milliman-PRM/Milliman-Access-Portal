@@ -5,16 +5,25 @@ import createSagaMiddleware from 'redux-saga';
 import { clientAdmin } from './reducers';
 import sagas from './sagas';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, User } from '../../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
+
+/**
+ * Flags indicating whether the page is waiting on new data for an entity type.
+ */
+export interface PendingDataState {
+  clients: boolean;
+  details: boolean;
+}
 
 /**
  * Entity data returned from the server.
  */
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
+  profitCenters: ProfitCenter[];
   details: ClientDetail;
   assignedUsers: User[];
 }
@@ -22,6 +31,43 @@ export interface AccessStateData {
 export interface AccessStateSelected {
   client: Guid;
   user: Guid;
+}
+
+export interface AccessStateEdit {
+  disabled: boolean;
+}
+
+export interface ValidationState {
+  valid: boolean;
+}
+
+export interface AccessStateBaseFormData {
+  name: string;
+  clientCode: string;
+  contactName: string;
+  contactEmail: string;
+  contactTitle: string;
+  contactPhone: string;
+  domainListCountLimit: number;
+  acceptedEmailDomainList: string[];
+  acceptedEmailAddressExceptionList: string[];
+  profitCenterId: Guid;
+  consultantOffice: string;
+  consultantName: string;
+  consultantEmail: string;
+  newUserWelcomeText: string;
+  parentClientId: Guid;
+}
+
+export interface AccessStateFormData extends AccessStateBaseFormData {
+  id?: Guid;
+}
+
+export interface AccessStateValid {
+  name: boolean;
+  profitCenterId: boolean;
+  contactEmail: boolean;
+  consultantEmail: boolean;
 }
 
 /**
@@ -42,8 +88,12 @@ export interface AccessStateCardAttributes {
 export interface AccessState {
   data: AccessStateData;
   selected: AccessStateSelected;
+  edit: AccessStateEdit;
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
+  formData: AccessStateBaseFormData;
+  pending: PendingDataState;
+  valid: AccessStateValid;
 }
 
 // Create the store and apply saga middleware

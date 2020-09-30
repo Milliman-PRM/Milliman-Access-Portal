@@ -1,6 +1,42 @@
 ﻿import * as _ from 'lodash';
+import { AccessState, AccessStateFormData, AccessStateValid } from './store';
+
 import { ClientWithStats, User } from '../../models';
-import { AccessState } from './store';
+import { ClientDetail } from '../../system-admin/interfaces';
+
+/**
+ * Determines whether the form has the necessary fields filled out in order to submit.
+ *
+ * @param state Redux store.
+ */
+export function isFormValid(state: AccessState) {
+  return state.valid.name &&
+    state.valid.profitCenterId &&
+    state.valid.contactEmail &&
+    state.valid.consultantEmail;
+}
+
+/**
+ * Determines whether any of the form data returned from the backend has been modified in order to determine
+ * if the user should be allowed to submit the form.
+ *
+ * @param state Redux store.
+ */
+export function isFormModified(state: AccessState) {
+  return state.formData.name !== state.data.details.name ||
+    state.formData.clientCode !== state.data.details.clientCode ||
+    state.formData.contactName !== state.data.details.clientContactName ||
+    state.formData.contactTitle !== state.data.details.clientContactTitle ||
+    state.formData.contactEmail !== state.data.details.clientContactEmail ||
+    state.formData.contactPhone !== state.data.details.clientContactPhone ||
+    // TODO: Wait on remaining email adding code
+    // state.formData.acceptedEmailDomainList !== state.data.details.acceptedEmailDomainList ||
+    // state.formData.acceptedEmailAddressExceptionList !== state.data.details.acceptedEmailAddressExceptionList ||
+    state.formData.consultantName !== state.data.details.consultantName ||
+    state.formData.consultantEmail !== state.data.details.consultantEmail ||
+    state.formData.consultantOffice !== state.data.details.office ||
+    state.formData.profitCenterId !== state.data.details.profitCenter.id;
+}
 
 /**
  * Select all clients as a tree
@@ -66,7 +102,7 @@ interface ClientWithIndent extends ClientWithStats {
  * @param state Redux store
  */
 export function clientEntities(state: AccessState) {
-  const entities: Array<ClientWithIndent | 'divider'> = [];
+  const entities: Array<ClientWithIndent | 'divider' | 'new'> = [];
   activeClients(state).forEach(({ parent, children }) => {
     entities.push({
       ...parent,
@@ -80,7 +116,7 @@ export function clientEntities(state: AccessState) {
     });
     entities.push('divider');
   });
-  entities.pop();  // remove last divider
+  entities.push('new');
   return entities;
 }
 
