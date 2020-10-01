@@ -106,9 +106,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 ItemGroups = clients.Select(c =>
                 {
-                    bool clientAccessReviewIsExpired = DateTime.UtcNow > c.LastAccessReview.LastReviewDateTimeUtc
-                                            + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"))
-                                            + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewGracePeriodDays"));
+                    bool clientAccessReviewIsExpired = DateTime.UtcNow > c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
 
                     ContentItemGroup ContentItemGroupModel = new ContentItemGroup
                     {

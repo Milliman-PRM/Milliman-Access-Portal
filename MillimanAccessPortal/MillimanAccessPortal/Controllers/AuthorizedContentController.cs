@@ -282,8 +282,7 @@ namespace MillimanAccessPortal.Controllers
 
             // The related client must not be past due for periodic client access review
             if (DateTime.UtcNow > selectionGroup.RootContentItem.Client.LastAccessReview.LastReviewDateTimeUtc
-                                + TimeSpan.FromDays(ApplicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays"))
-                                + TimeSpan.FromDays(ApplicationConfig.GetValue<int>("ClientReviewGracePeriodDays")))
+                                + TimeSpan.FromDays(ApplicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
             {
                 // TODO email client admins?
                 Log.Warning($"From {ControllerContext.ActionDescriptor.DisplayName}: Request for content of client {selectionGroup.RootContentItem.Client.Id} ({selectionGroup.RootContentItem.Client.Name}) with expired client access review");

@@ -83,7 +83,6 @@ namespace MillimanAccessPortal.Controllers
             var GlobalData = new ClientAccessReviewGlobalDataModel
             {
                 ClientReviewEarlyWarningDays = _applicationConfig.GetValue<int>("ClientReviewEarlyWarningDays"),
-                ClientReviewGracePeriodDays = _applicationConfig.GetValue<int>("ClientReviewGracePeriodDays"),
             };
 
             return Json(GlobalData);

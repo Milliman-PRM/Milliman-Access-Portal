@@ -48,7 +48,6 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
 
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
-                TimeSpan clientReviewGracePeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewGracePeriodDays"));
 
                 List<UserRoleInClient> adminRoleAssignments = dbContext.UserRoleInClient
                                                                        .Include(urc => urc.User)
@@ -66,12 +65,12 @@ namespace MillimanAccessPortal.Services
                                                                        .Distinct(new IdPropertyComparer<Client>())
                                                                        .ToList();
 
-                    List<Client> expiringClients = clientsToVerify.Where(c => DateTime.UtcNow > c.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays + clientReviewGracePeriodDays)
+                    List<Client> expiringClients = clientsToVerify.Where(c => DateTime.UtcNow > c.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays)
                                                                   .ToList();
 
                     // this is intended as a place to filter the expiring client so that notifications are sent only on certain days (e.g. 14 days before, 7, 2, 1) but that 
                     // might not make sense when we are combining notifications for clients with various expirations.  Discuss...
-                    expiringClients = expiringClients.Where(c => ).ToList();  
+                    //expiringClients = expiringClients.Where(c => ).ToList();  
 
                     if (expiringClients.Any())
                     {
