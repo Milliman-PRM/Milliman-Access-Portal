@@ -81,7 +81,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             className="admin-panel-container
                        flex-item-12-12 flex-item-for-tablet-up-6-12 flex-item-for-desktop-up-6-12"
           >
-            {this.props.pending.details ?
+            {this.props.pending.data.details ?
               <ColumnSpinner />
               : this.renderClientDetail()
             }
