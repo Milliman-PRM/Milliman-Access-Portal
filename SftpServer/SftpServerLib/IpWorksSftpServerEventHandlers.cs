@@ -124,6 +124,11 @@ namespace SftpServerLib
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
 
+            if (connection != null)
+            {
+                connection.LastActivityUtc = DateTime.UtcNow;
+            }
+
             if (result != AuthorizationResult.Authorized || !connection.ReadAccess)
             {
                 Log.Information($"OnFileRead event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Read access");
@@ -732,6 +737,11 @@ namespace SftpServerLib
             if (evtData.BeforeExec)
             {
                 (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
+
+                if (connection != null)
+                {
+                    connection.LastActivityUtc = DateTime.UtcNow;
+                }
 
                 if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
                 {
