@@ -149,7 +149,7 @@ CREATE TABLE public."UserInSelectionGroup"
    REFERENCES public."Users" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "FK_UserInSelectionGroup_SelectionGroup_SelectionGroupId" FOREIGN KEY ("SelectionGroupId")
-   REFERENCES map."SelectionGroup" ("Id") MATCH SIMPLE
+   REFERENCES public."SelectionGroup" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "UNIQUE_User_SelectionGroup_Current" UNIQUE ("UserId", "SelectionGroupId", "EndDate")
 );
