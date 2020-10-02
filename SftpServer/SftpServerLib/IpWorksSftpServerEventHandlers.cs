@@ -796,6 +796,9 @@ namespace SftpServerLib
                                                         .ThenInclude(d => d.Client)
                                                 .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
 
+                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
+                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
+
                     if (userAccount == null)
                     {
                         evtData.Accept = false;
@@ -813,6 +816,14 @@ namespace SftpServerLib
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        return;
+                    }
+
+                    if (DateTime.UtcNow > clientReviewDeadline)
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The access review deadline for the client related to the requested file drop is exceeded");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.ClientAccessReviewDeadlineMissed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
 
@@ -858,6 +869,7 @@ namespace SftpServerLib
                         connection.FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name;
                         connection.ClientId = userAccount.FileDropId;
                         connection.ClientName = userAccount.FileDropUserPermissionGroup.FileDrop.Client.Name;
+                        connection.ClientAccessReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
                         connection.ReadAccess = userAccount.FileDropUserPermissionGroup.ReadAccess;
                         connection.WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess;
                         connection.DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess;
@@ -909,6 +921,7 @@ namespace SftpServerLib
                               .Include(a => a.ApplicationUser)
                               .Include(a => a.FileDropUserPermissionGroup)
                                   .ThenInclude(p => p.FileDrop)
+                                    .ThenInclude(d => d.Client)
                               .Where(a => currentConnectedAccountIds.Contains(a.Id));
 
                 foreach (SftpAccount connectedAccount in query)
@@ -938,6 +951,12 @@ namespace SftpServerLib
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
+                        }
+                        else if (DateTime.UtcNow > connection.ClientAccessReviewDeadline)
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the client access review deadline has passed");
                         }
 
                         else if (connectedAccount.ApplicationUserId.HasValue && 
