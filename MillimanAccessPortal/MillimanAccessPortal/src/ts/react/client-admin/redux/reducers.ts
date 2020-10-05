@@ -44,6 +44,7 @@ const initialDetails: ClientDetail = {
 
 const _initialData: AccessStateData = {
   clients: {},
+  parentClients: {},
   profitCenters: [],
   details: initialDetails,
   assignedUsers: [],
@@ -77,6 +78,7 @@ const _initialValidation: AccessStateValid = {
 const _initialSelected: AccessStateSelected = {
   client: null,
   user: null,
+  readonly: false,
 };
 
 const _initialEditStatus: AccessStateEdit = {
@@ -123,6 +125,9 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    parentClients: {
+      ...action.response.parentClients,
+    },
   }),
   FETCH_PROFIT_CENTERS_SUCCEEDED: (state, action: AccessActions.FetchProfitCentersSucceeded) => ({
     ...state,
@@ -167,6 +172,7 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     client: action.id === state.client ? null : action.id,
     user: null,
+    readonly: action.readonly,
   }),
   SELECT_USER: (state, action: AccessActions.SelectUser) => ({
     ...state,

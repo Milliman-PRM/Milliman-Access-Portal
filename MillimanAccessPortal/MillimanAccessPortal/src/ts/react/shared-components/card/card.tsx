@@ -5,6 +5,7 @@ import { CardStatus } from './card-status';
 
 export interface CardAttributes {
   disabled?: boolean;
+  readonly?: boolean;
   expanded?: boolean;
   editing?: boolean;
   profitCenterModalOpen?: boolean;
@@ -14,6 +15,7 @@ export interface CardProps {
   onSelect: () => void;
   activated: boolean;
   disabled: boolean;
+  readonly: boolean;
   selected: boolean;
   suspended: boolean;
   inactive: boolean;
@@ -26,6 +28,7 @@ export class Card extends React.Component<CardProps> {
   public static defaultProps = {
     activated: true,
     disabled: false,
+    readonly: false,
     suspended: false,
     inactive: false,
     locked: false,
@@ -40,11 +43,13 @@ export class Card extends React.Component<CardProps> {
   };
 
   public render() {
-    const { indentation, disabled, selected, suspended, inactive, locked, onSelect, status, children } = this.props;
+    const { indentation, disabled, readonly, selected, suspended,
+      inactive, locked, onSelect, status, children } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
-      + (disabled ? ' card-disabled' : '');
+      + (disabled ? ' card-disabled' : '')
+      + (readonly ? ' card-readonly' : '');
     const cardBodyClass = 'card-body-container'
       + (selected ? ' selected' : '')
       + (locked ? ' locked' : suspended ? ' suspended' : inactive ? ' inactive' : '');

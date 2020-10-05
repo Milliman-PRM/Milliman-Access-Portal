@@ -23,6 +23,7 @@ export interface PendingDataState {
  */
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
+  parentClients: Dict<ClientWithStats>;
   profitCenters: ProfitCenter[];
   details: ClientDetail;
   assignedUsers: User[];
@@ -31,6 +32,7 @@ export interface AccessStateData {
 export interface AccessStateSelected {
   client: Guid;
   user: Guid;
+  readonly: boolean;
 }
 
 export interface AccessStateEdit {
