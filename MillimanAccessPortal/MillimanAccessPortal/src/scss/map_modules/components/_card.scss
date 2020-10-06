@@ -72,7 +72,7 @@
       color: $dark-grey;
       border: 2px solid $dark-grey;
 
-      &[selected] {
+      &.selected {
         border: 2px solid $blue;
         background-color: $light-grey;
         color: $dark-grey;
