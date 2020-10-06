@@ -17,6 +17,7 @@ export interface CardTextProps {
   textSuffix: string;
   subtext: string;
   editing: boolean;
+  isNewChild: boolean;
   setText: (text: string) => void;
 }
 export class CardText extends React.Component<CardTextProps> {
@@ -24,10 +25,11 @@ export class CardText extends React.Component<CardTextProps> {
     textSuffix: '',
     subtitle: '',
     editing: false,
+    isNewChild: false,
     setText: (): null => null,
   };
   public render() {
-    const { text, textSuffix, subtext, editing, setText } = this.props;
+    const { text, textSuffix, subtext, editing, isNewChild, setText } = this.props;
     return (
       <div className="card-body-primary-container">
         <h2 className="card-body-primary-text">
@@ -39,6 +41,15 @@ export class CardText extends React.Component<CardTextProps> {
                 onClick={(event) => event.stopPropagation()}
               />
               : text + (textSuffix ? ` ${textSuffix}` : '')
+          }
+          {
+            isNewChild ?
+              <div>
+                <span>New Sub-Client</span>
+                <svg className="new-child-icon">
+                  <use href="#expand-card" />
+                </svg>
+              </div> : null
           }
         </h2>
         <p className="card-body-secondary-text">{subtext}</p>

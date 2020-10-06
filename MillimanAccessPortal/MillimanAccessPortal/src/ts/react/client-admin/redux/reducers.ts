@@ -77,6 +77,7 @@ const _initialValidation: AccessStateValid = {
 
 const _initialSelected: AccessStateSelected = {
   client: null,
+  parent: null,
   user: null,
   readonly: false,
 };
@@ -165,6 +166,21 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...action.response.clients,
     },
   }),
+  SELECT_NEW_SUB_CLIENT: (state, action: AccessActions.SelectNewSubClient) => ({
+    ...state,
+    clients: {
+      ...state.clients,
+      ['child']: {
+        id: null,
+        parentId: action.parentId,
+        name: null,
+        code: null,
+        contentItemCount: 0,
+        userCount: 0,
+        canManage: true,
+      },
+    },
+  }),
 });
 
 const selected = createReducer<AccessStateSelected>(_initialSelected, {
@@ -173,6 +189,13 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     client: action.id === state.client ? null : action.id,
     user: null,
     readonly: action.readonly,
+  }),
+  SELECT_NEW_SUB_CLIENT: (state, action: AccessActions.SelectNewSubClient) => ({
+    ...state,
+    client: 'child',
+    parent: action.parentId,
+    user: null,
+    readonly: false,
   }),
   SELECT_USER: (state, action: AccessActions.SelectUser) => ({
     ...state,
@@ -191,6 +214,9 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     disabled: action.disabled,
   }),
   SELECT_CLIENT: () => _initialEditStatus,
+  SELECT_NEW_SUB_CLIENT: () => ({
+    disabled: false,
+  }),
 });
 
 const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
@@ -262,6 +288,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
 const valid = createReducer<AccessStateValid>(_initialValidation, {
   RESET_VALIDITY: () => _initialValidation,
   SELECT_CLIENT: () => _initialValidation,
+  SELECT_NEW_SUB_CLIENT: () => _initialValidation,
   SET_VALIDITY_FOR_FIELD: (state, action: AccessActions.SetValidityForField) => ({
     ...state,
     [action.field]: action.valid,

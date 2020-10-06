@@ -1,8 +1,7 @@
 ﻿import * as _ from 'lodash';
-import { AccessState, AccessStateFormData, AccessStateValid } from './store';
+import { AccessState } from './store';
 
 import { ClientWithStats, User } from '../../models';
-import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
  * Determines whether the form has the necessary fields filled out in order to submit.

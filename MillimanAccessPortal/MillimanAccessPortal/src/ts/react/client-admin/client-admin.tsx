@@ -127,7 +127,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               indentation={entity.indent}
             >
               <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
+                <CardText
+                  text={entity.name}
+                  isNewChild={entity.parentId !== null}
+                  subtext={entity.code}
+                />
                 <CardSectionStats>
                   <CardStat
                     name={'Eligible users'}
@@ -142,14 +146,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </CardSectionStats>
                 {entity.canManage ?
                   <CardSectionButtons>
-                    <CardButton
-                      icon={'delete'}
-                      color={'red'}
-                      onClick={() => {
+                    {!this.clientHasChildren(clients, entity.id) ?
+                      <CardButton
+                        icon={'delete'}
+                        color={'red'}
+                        onClick={() => {
                         this.props.deleteClient(entity.id);
                         this.props.selectClient({ id: null });
-                      }}
-                    />
+                        }}
+                      /> : null
+                    }
                     <CardButton
                       icon={'edit'}
                       color={'blue'}
@@ -166,7 +172,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <CardButton
                         icon={'add'}
                         color={'green'}
-                        onClick={null}
+                        onClick={() => {
+                          this.props.selectNewSubClient({ parentId: entity.id });
+                        }}
                       /> : null
                     }
                   </CardSectionButtons>
@@ -758,6 +766,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 
   private async editClient(formData: AccessStateFormData) {
     return await this.props.editClient(formData);
+  }
+
+  private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
+    return clients.filter((c) => {
+      if (c === 'divider' || c === 'new' || c === 'child') {
+        return false;
+      } else if (c.parentId === clientId) {
+        return true;
+      }
+      return false;
+    }).length > 0;
   }
 }
 

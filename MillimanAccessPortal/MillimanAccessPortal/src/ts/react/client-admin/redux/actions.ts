@@ -16,6 +16,10 @@ export interface SelectClient {
   id: Guid;
   readonly?: boolean;
 }
+export interface SelectNewSubClient {
+  type: 'SELECT_NEW_SUB_CLIENT';
+  parentId: Guid;
+}
 export interface SelectUser {
   type: 'SELECT_USER';
   id: Guid;
@@ -293,9 +297,9 @@ export type ErrorAccessAction =
   | FetchClientDetailsFailed
   ;
 
-
 export type PageAccessAction =
   | SelectClient
+  | SelectNewSubClient
   | SetEditStatus
   | SelectUser
   | SetCollapsedUser

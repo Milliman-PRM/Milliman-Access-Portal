@@ -31,6 +31,7 @@ export interface AccessStateData {
 
 export interface AccessStateSelected {
   client: Guid;
+  parent: Guid;
   user: Guid;
   readonly: boolean;
 }
