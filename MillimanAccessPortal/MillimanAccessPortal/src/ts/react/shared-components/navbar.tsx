@@ -21,6 +21,9 @@ import { NavBarElement } from './interfaces';
 export interface NavBarProps {
   currentView: string;
   userGuidePath?: string;
+  // Note: Use this optional prop to decide whether or not to update the navbar elements.
+  // If this number changes, then it should retrigger the call to the backend to update the elements.
+  updateNavBarElements?: number;
 }
 
 export interface NavBarState {
@@ -48,16 +51,26 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     this.closeUserGuide = this.closeUserGuide.bind(this);
   }
 
-  public componentDidMount() {
+  public fetchNavBarElements() {
     getJsonData('/Account/NavBarElements')
-    .then((response) => {
-      this.setState({
-        navBarElements: response,
+      .then((response) => {
+        this.setState({
+          navBarElements: response,
+        });
+      })
+      .catch((e) => {
+        throw new Error(e);
       });
-    })
-    .catch((e) => {
-      throw new Error(e);
-    });
+  }
+
+  public componentDidMount() {
+    this.fetchNavBarElements();
+  }
+
+  public componentDidUpdate(prevProps: NavBarProps) {
+    if (this.props.updateNavBarElements !== prevProps.updateNavBarElements) {
+      this.fetchNavBarElements();
+    }
   }
 
   public render() {

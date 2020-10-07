@@ -1,5 +1,7 @@
 import '../../../scss/react/client-access-review/client-access-review.scss';
 
+import '../../../images/icons/checkmark.svg';
+
 import * as moment from 'moment';
 import * as React from 'react';
 import * as Modal from 'react-modal';
@@ -22,9 +24,9 @@ import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
 import { activeSelectedClient, clientEntities, continueButtonIsActive } from './redux/selectors';
 import {
-    AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters, AccessReviewStateModals,
-    AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel, ClientAccessReviewProgress,
-    ClientAccessReviewProgressEnum, ClientSummaryModel,
+  AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
+  AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -34,6 +36,7 @@ interface ClientAccessReviewProps {
   clientSummary: ClientSummaryModel;
   clientAccessReview: ClientAccessReviewModel;
   clientAccessReviewProgress: ClientAccessReviewProgress;
+  globalData: AccessReviewGlobalData;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
   pending: AccessReviewStatePending;
@@ -52,13 +55,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
     this.props.fetchGlobalData({});
     this.props.fetchClients({});
     this.props.scheduleSessionCheck({ delay: 0 });
-    // TODO: Implement Unload Alert properly
-    setUnloadAlert(() => false);
+    setUnloadAlert(() => this.props.clientAccessReview !== null);
     this.clientReviewContainer = React.createRef<HTMLDivElement>();
   }
 
   public render() {
-    const { clientAccessReview, clientSummary, pending, selected } = this.props;
+    const { clientAccessReview, clientSummary, pending, selected, modals } = this.props;
     return (
       <>
         <ReduxToastr
@@ -68,7 +70,10 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           transitionIn="fadeIn"
           transitionOut="fadeOut"
         />
-        <NavBar currentView={this.currentView} />
+        <NavBar
+          currentView={this.currentView}
+          updateNavBarElements={this.props.pending.navBarRenderInt}
+        />
         {this.renderClientPanel()}
         {
           selected.client
@@ -83,12 +88,53 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           && clientAccessReview
           && this.renderClientAccessReviewPanel()
         }
+        <Modal
+          isOpen={modals.leaveActiveReview.isOpen}
+          onRequestClose={() => this.props.closeLeavingActiveReviewModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Leave Client Access Review</h3>
+          <span className="modal-text">
+            Do you want to leave the active Client Access Review?
+          </span>
+          <span className="modal-text">
+            All progress will be lost.
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeLeavingActiveReviewModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (pending.pendingClientSelection) {
+                  this.props.selectClient({ id: pending.pendingClientSelection });
+                  if (pending.pendingClientSelection !== selected.client) {
+                    this.props.fetchClientSummary({ clientId: pending.pendingClientSelection });
+                  }
+                } else {
+                  this.props.cancelClientAccessReview({});
+                }
+                this.props.closeLeavingActiveReviewModal({});
+              }}
+            >
+              Leave Review
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, cardAttributes } = this.props;
+    const { clients, selected, filters, globalData, pending, cardAttributes, clientAccessReview } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -98,18 +144,37 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             return <div className="hr" key={key} />;
           }
           const card = cardAttributes.client[entity.id];
+          const daysUntilDue =
+            moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
+          const notificationType = Math.abs(daysUntilDue) > globalData.clientReviewGracePeriodDays ?
+            'error' :
+            'informational';
           return (
             <Card
               key={key}
               selected={selected.client === entity.id}
               disabled={card.disabled}
               onSelect={() => {
-                this.props.selectClient({ id: entity.id });
-                if (entity.id !== selected.client) {
-                  this.props.fetchClientSummary({ clientId: entity.id });
+                if (clientAccessReview === null) {
+                  this.props.selectClient({ id: entity.id });
+                  if (entity.id !== selected.client) {
+                    this.props.fetchClientSummary({ clientId: entity.id });
+                  }
+                } else {
+                  this.props.openLeavingActiveReviewModal({ clientId: entity.id });
                 }
               }}
               indentation={entity.indent}
+              bannerMessage={!card.disabled &&
+                daysUntilDue < globalData.clientReviewEarlyWarningDays ? {
+                  level: notificationType,
+                  message: (
+                    <div className="review-due-container">
+                      <span className="needs-review">Needs Review:&nbsp;</span>
+                      Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                    </div>
+                  ),
+                } : null}
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
@@ -390,12 +455,24 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                   : 'n/a'
                               }
                             </td>
-                            <td className="center-text">{user.clientUserRoles.Admin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentPublisher ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentAccessAdmin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.ContentUser ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.FileDropAdmin ? 'X' : ''}</td>
-                            <td className="center-text">{user.clientUserRoles.FileDropUser ? 'X' : ''}</td>
+                            <td className="center-text">
+                              {user.clientUserRoles.Admin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentPublisher ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentAccessAdmin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.ContentUser ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.FileDropAdmin ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
+                              {user.clientUserRoles.FileDropUser ? this.renderCheckmark() : ''}
+                            </td>
                           </tr>
                         );
                       })
@@ -509,9 +586,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                             pg.authorizedServiceAccounts[0].userEmail
                                         }
                                       </td>
-                                      <td className="center-text">{pg.permissions.Read ? 'X' : null}</td>
-                                      <td className="center-text">{pg.permissions.Write ? 'X' : null}</td>
-                                      <td className="center-text">{pg.permissions.Delete ? 'X' : null}</td>
+                                      <td className="center-text">
+                                        {pg.permissions.Read ? this.renderCheckmark() : null}
+                                      </td>
+                                      <td className="center-text">
+                                        {pg.permissions.Write ? this.renderCheckmark() : null}
+                                      </td>
+                                      <td className="center-text">
+                                        {pg.permissions.Delete ? this.renderCheckmark() : null}
+                                      </td>
                                     </tr>
                                   );
                                 } else {
@@ -523,13 +606,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         <td className="detail-value-name">{pg.permissionGroupName}</td>
                                         <td />
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Read ? 'X' : null}
+                                          {pg.permissions.Read ? this.renderCheckmark() : null}
                                         </td>
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Write ? 'X' : null}
+                                          {pg.permissions.Write ? this.renderCheckmark() : null}
                                         </td>
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
-                                          {pg.permissions.Delete ? 'X' : null}
+                                          {pg.permissions.Delete ? this.renderCheckmark() : null}
                                         </td>
                                       </tr>
                                       {
@@ -593,7 +676,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Back
                 </button>
               }
-              <button className="link-button" onClick={() => this.props.cancelClientAccessReview({})}>
+              <button
+                className="link-button"
+                onClick={() => {
+                  this.props.openLeavingActiveReviewModal({ clientId: null });
+                }}
+              >
                 Cancel
               </button>
               {
@@ -628,6 +716,14 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
       </div>
     );
   }
+
+  private renderCheckmark() {
+    return (
+      <svg className="checkmark">
+        <use xlinkHref={'#checkmark'} />
+      </svg>
+    );
+  }
 }
 
 function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
@@ -637,6 +733,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     clientSummary: data.selectedClientSummary,
     clientAccessReview: data.clientAccessReview,
     clientAccessReviewProgress: pending.clientAccessReviewProgress,
+    globalData: data.globalData,
     selected,
     cardAttributes,
     pending,

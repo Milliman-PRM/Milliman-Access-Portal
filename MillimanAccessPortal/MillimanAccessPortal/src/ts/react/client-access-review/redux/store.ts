@@ -148,7 +148,9 @@ export interface AccessReviewStateCardAttributes {
 export interface AccessReviewStatePending {
   data: PendingDataState;
   clientAccessReviewProgress: ClientAccessReviewProgress;
+  pendingClientSelection: Guid;
   statusTries: number;
+  navBarRenderInt: number;
 }
 
 /**

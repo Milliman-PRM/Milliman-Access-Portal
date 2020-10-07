@@ -60,6 +60,28 @@ export interface CancelClientAccessReview {
   type: 'CANCEL_CLIENT_ACCESS_REVIEW';
 }
 
+/**
+ * Open the Leaving Active Review Modal.
+ */
+export interface OpenLeavingActiveReviewModal {
+  type: 'OPEN_LEAVING_ACTIVE_REVIEW_MODAL';
+  clientId?: Guid;
+}
+
+/**
+ * Close the Leaving Active Review Modal.
+ */
+export interface CloseLeavingActiveReviewModal {
+  type: 'CLOSE_LEAVING_ACTIVE_REVIEW_MODAL';
+}
+
+/**
+ * Re-render the NavBar to update its contents
+ */
+export interface UpdateNavBar {
+  type: 'UPDATE_NAV_BAR';
+}
+
 // ~~ Server actions ~~
 
 /**
@@ -201,6 +223,9 @@ export type PageAccessReviewAction =
   | ToggleContentItemReviewStatus
   | ToggleFileDropReviewStatus
   | CancelClientAccessReview
+  | OpenLeavingActiveReviewModal
+  | CloseAccessReviewModalAction
+  | UpdateNavBar
   ;
 
 /**
@@ -267,9 +292,13 @@ export type FilterAccessReviewAction =
 /**
  * An action that opens a modal.
  */
-export type OpenAccessReviewAction = null;
+export type OpenAccessReviewModalAction = 
+  | OpenLeavingActiveReviewModal
+  ;
 
 /**
  * An action that closes a modal.
  */
-export type CloseAccessReviewAction = null;
+export type CloseAccessReviewModalAction =
+  | CloseLeavingActiveReviewModal
+  ;
