@@ -8,9 +8,9 @@ This file is for describing end user roles and actions.
 |Client Administrator|Internal Milliman Consultants|Create, edit, and/or view client information for one or more clients including the client tree, client information, and client users|
 |Content Publisher|Consultant|Publishes content items|
 |Content Access Administrator|Consultant|Create users, give users access to reports, and chooses selections for each user/group|
-|Content User|Client Employees|Eligible for authorization (by Content Access Administrator) to access content|
+|Content User|Client Employees and Internal Milliman Consultants|Eligible for authorization (by Content Access Administrator) to access content|
 |File Drop User|Client Employees and Internal Milliman Consultants|Eligible for authorization to read, write, and delete file drop contents (SFTP)|
-|File Drop Administrator|Internal Milliman Consultants|Create, edit, delete file drops / details, manage user permissions, view access history|
+|File Drop Administrator|Client Employees and Internal Milliman Consultants|Create, edit, delete file drops / details, manage user permissions, view access history|
 
 
 ## Possible Actions by Role/View
@@ -50,7 +50,7 @@ This file is for describing end user roles and actions.
 
 #### Client Admin with Profit Center Authority _(in addition to Client Admin)_
 
-- Create Root Client _(Needs Profit Center to be created by System Admin)_
+- Create Client _(Needs Profit Center to be created by System Admin)_
 - Delete Client _(Only if no further children in client and no content)_
 
 ### Content Access Administrator Page
@@ -58,10 +58,10 @@ This file is for describing end user roles and actions.
 #### Content Access Admin
 
 - View Content Access Admin page
-- View Client level reports, groups, and selections
-- Authorize client **Content Users** to content _(Can only assign a user to a single Selection Group per root content item)_
-- Create and delete user selection groups for reducible content
-- Manage **Content Users** in selection groups for reducible content (who goes in selection group)
+- List Client level reports, groups, and selections
+- Authorize client **Content Users** to content _(Can only assign a user to a single Selection Group per content item)_
+- Create and delete user selection groups
+- Manage **Content Users** in selection groups (who goes in selection group)
 - Manage **Content Users** selections for reducible content (what selections does group receive)
 
 #### Content Access Admin with User Creation - _post v1.0.0_
@@ -87,9 +87,10 @@ This file is for describing end user roles and actions.
 
 #### File Drop User
 - View File Drop Page
-- View SFTP connection settings for an authorized File Drop
-- Generate new password for an authorized File Drop
-- Select email notifications for an authorized File Drop
+- List File Drops for the selected Client
+- View SFTP connection settings of the current user for an authorized File Drop
+- Generate a new password for the current user for an authorized File Drop
+- Select email notifications for the current user for an authorized File Drop
 
 #### File Drop Admin (in addition to activities of the File Drop User)
 - View and manage user permissions to File Drops for authorized Clients
