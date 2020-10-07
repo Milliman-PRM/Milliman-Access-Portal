@@ -98,7 +98,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         >
           <h3 className="title red">Leave Client Access Review</h3>
           <span className="modal-text">
-            Do you want to leave the active Client Access Review
+            Do you want to leave the active Client Access Review?
           </span>
           <span className="modal-text">
             All progress will be lost.
