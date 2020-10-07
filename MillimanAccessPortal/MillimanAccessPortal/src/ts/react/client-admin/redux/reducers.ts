@@ -177,7 +177,7 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clientUsers: true,
   }),
-  SAVE_NEW_CLIENT_SUCCEEDED: (state) => ({
+  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state) => ({
     ...state,
     clientUsers: false,
   }),
