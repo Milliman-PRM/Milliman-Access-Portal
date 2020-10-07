@@ -1,5 +1,4 @@
 ﻿import * as _ from 'lodash';
-import * as Yup from 'yup';
 
 import { combineReducers } from 'redux';
 
@@ -166,6 +165,10 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...action.response.clients,
     },
   }),
+  SELECT_CLIENT: (state) => ({
+    ...state,
+    clients: _.omit(state.clients, 'child'),
+  }),
   SELECT_NEW_SUB_CLIENT: (state, action: AccessActions.SelectNewSubClient) => ({
     ...state,
     clients: {
@@ -178,6 +181,7 @@ const data = createReducer<AccessStateData>(_initialData, {
         contentItemCount: 0,
         userCount: 0,
         canManage: true,
+        isChild: true,
       },
     },
   }),
@@ -221,6 +225,7 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
 
 const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
+  SELECT_NEW_SUB_CLIENT: () => _initialFormData,
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
     details: action.response.clientDetail,

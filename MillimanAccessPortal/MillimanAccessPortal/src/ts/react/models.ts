@@ -35,6 +35,7 @@ export interface Client {
   profitCenterId?: Guid;
   name: string;
   code: string;
+  isChild?: boolean;
 }
 export interface ClientWithStats extends Client {
   canManage?: boolean;

@@ -118,7 +118,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           return (
             <Card
               key={key}
-              selected={entity.id === selected.client}
+              selected={entity.id === selected.client || (entity.isChild && selected.client === 'child')}
               readonly={!entity.canManage}
               onSelect={() => {
                 this.props.selectClient({ id: entity.id, readonly: !entity.canManage });
@@ -128,22 +128,24 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             >
               <CardSectionMain>
                 <CardText
-                  text={entity.name}
+                  text={!entity.isChild ? entity.name : 'New Sub-Client'}
                   isNewChild={entity.parentId !== null}
                   subtext={entity.code}
                 />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Eligible users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                  <CardStat
-                    name={'Content items'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                </CardSectionStats>
+                {!entity.isChild ?
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Eligible users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Content items'}
+                      value={entity.contentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats> : null
+                }
                 {entity.canManage ?
                   <CardSectionButtons>
                     {!this.clientHasChildren(clients, entity.id) ?
@@ -156,24 +158,27 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         }}
                       /> : null
                     }
-                    <CardButton
-                      icon={'edit'}
-                      color={'blue'}
-                      onClick={() => {
-                        if (selected.client !== entity.id) {
-                          this.props.selectClient({ id: entity.id, readonly: !entity.canManage });
-                        }
-                        this.props.fetchClientDetails({ clientId: entity.id });
-                        this.props.setEditStatus({ disabled: false });
-                        this.props.resetValidity({});
-                      }}
-                    />
+                    {!entity.isChild ?
+                      <CardButton
+                        icon={'edit'}
+                        color={'blue'}
+                        onClick={() => {
+                          if (selected.client !== entity.id) {
+                            this.props.selectClient({ id: entity.id, readonly: !entity.canManage });
+                          }
+                          this.props.fetchClientDetails({ clientId: entity.id });
+                          this.props.setEditStatus({ disabled: false });
+                          this.props.resetValidity({});
+                        }}
+                      /> : null
+                    }
                     {entity.parentId === null ?
                       <CardButton
                         icon={'add'}
                         color={'green'}
                         onClick={() => {
                           this.props.selectNewSubClient({ parentId: entity.id });
+                          this.props.setFormFieldValue({ field: 'parentClientId', value: entity.id });
                         }}
                       /> : null
                     }
@@ -549,7 +554,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </div>
                 {!edit.disabled ?
                   <div className="form-submission-section">
-                    {selected.client === 'new' ?
+                    {selected.client === 'new' || selected.client === 'child' ?
                       <div className="button-container button-container-new">
                         <button
                           type="button"
@@ -770,7 +775,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
     return clients.filter((c) => {
-      if (c === 'divider' || c === 'new' || c === 'child') {
+      if (c === 'divider' || c === 'new') {
         return false;
       } else if (c.parentId === clientId) {
         return true;
