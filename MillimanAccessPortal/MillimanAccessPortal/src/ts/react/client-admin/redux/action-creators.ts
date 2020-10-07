@@ -61,6 +61,10 @@ export const openDiscardEditModal =
   createActionCreator<AccessActions.OpenDiscardEditModal>('OPEN_DISCARD_EDIT_MODAL');
 export const closeDiscardEditModal =
   createActionCreator<AccessActions.CloseDiscardEditModal>('CLOSE_DISCARD_EDIT_MODAL');
+export const openDiscardEditAfterSelectModal =
+  createActionCreator<AccessActions.OpenDiscardEditAfterSelectModal>('OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL');
+export const closeDiscardEditAfterSelectModal =
+  createActionCreator<AccessActions.CloseDiscardEditAfterSelectModal>('CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL');
 
 // Validity Actions
 export const resetValidity =

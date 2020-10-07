@@ -295,6 +295,13 @@ export interface OpenDiscardEditModal {
 export interface CloseDiscardEditModal {
   type: 'CLOSE_DISCARD_EDIT_MODAL';
 }
+export interface OpenDiscardEditAfterSelectModal {
+  type: 'OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL';
+  newlySelectedClientId: Guid;
+}
+export interface CloseDiscardEditAfterSelectModal {
+  type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -380,6 +387,8 @@ export type PageAccessAction =
   | CloseRemoveClientUserModal
   | OpenDiscardEditModal
   | CloseDiscardEditModal
+  | OpenDiscardEditAfterSelectModal
+  | CloseDiscardEditAfterSelectModal
   ;
 
 export type AccessAction =
@@ -395,4 +404,5 @@ export type OpenModalAction =
   | OpenCreateClientUserModal
   | OpenRemoveClientUserModal
   | OpenDiscardEditModal
+  | OpenDiscardEditAfterSelectModal
   ;

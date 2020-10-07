@@ -10,7 +10,7 @@ import * as AccessActions from './actions';
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
-  PendingDeleteClientState, PendingRemoveClientUserState,
+  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingRemoveClientUserState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -36,6 +36,9 @@ const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
   clientId: null,
   userId: null,
   name: null,
+};
+const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
+  newlySelectedClientId: null,
 };
 
 const initialDetails: ClientDetail = {
@@ -224,6 +227,14 @@ const pendingRemoveClientUser = createReducer<PendingRemoveClientUserState>(_ini
     clientId: action.clientId,
     userId: action.userId,
     name: action.name,
+  }),
+});
+
+const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelectModal>(
+  _initialPendingDiscardEditModal, {
+  OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL: (state, action: AccessActions.OpenDiscardEditAfterSelectModal) => ({
+    ...state,
+    newlySelectedClientId: action.newlySelectedClientId,
   }),
 });
 
@@ -432,6 +443,9 @@ const modals = combineReducers({
   discardEdit: createModalReducer(['OPEN_DISCARD_EDIT_MODAL'], [
     'CLOSE_DISCARD_EDIT_MODAL',
   ]),
+  discardEditAfterSelect: createModalReducer(['OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL'], [
+    'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL',
+  ]),
 });
 
 const pending = combineReducers({
@@ -439,6 +453,7 @@ const pending = combineReducers({
   deleteClient: pendingDeleteClient,
   createClientUser: pendingCreateClientUser,
   removeClientUser: pendingRemoveClientUser,
+  discardEditAfterSelect: pendingDiscardEditAfterSelect,
 });
 
 /**

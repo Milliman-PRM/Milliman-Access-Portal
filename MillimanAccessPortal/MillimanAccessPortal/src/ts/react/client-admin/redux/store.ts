@@ -36,6 +36,9 @@ export interface PendingRemoveClientUserState {
   userId: Guid;
   name: string;
 }
+export interface PendingDiscardEditAfterSelectModal {
+  newlySelectedClientId: Guid;
+}
 
 /**
  * Entity data returned from the server.
@@ -112,6 +115,7 @@ export interface AccessStatePending {
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
+  discardEditAfterSelect: PendingDiscardEditAfterSelectModal;
 }
 
 /**
@@ -123,6 +127,7 @@ export interface AccessStateModals {
   createClientUser: ModalState;
   removeClientUser: ModalState;
   discardEdit: ModalState;
+  discardEditAfterSelect: ModalState;
 }
 
 export interface AccessState {

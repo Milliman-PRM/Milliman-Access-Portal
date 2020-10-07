@@ -94,7 +94,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending } = this.props;
+    const { clients, selected, filters, pending, edit, formModified } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -132,8 +132,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client}
               disabled={false}
               onSelect={() => {
-                this.props.selectClient({ id: entity.id });
-                this.props.fetchClientDetails({ clientId: entity.id });
+                if (!edit.disabled && formModified) {
+                  this.props.openDiscardEditAfterSelectModal({ newlySelectedClientId: entity.id });
+                } else {
+                  this.props.selectClient({ id: entity.id });
+                  this.props.fetchClientDetails({ clientId: entity.id });
+                }
               }}
               indentation={entity.indent}
             >
@@ -928,7 +932,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h2 className="title blue">Reset Form</h2>
           <span className="modal-text text-muted">
-            Would you liek to reset the form?
+            Would you like to reset the form?
           </span>
           <form
             onSubmit={(event) => {
@@ -952,6 +956,43 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Reset
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEditAfterSelect.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditAfterSelectModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Discard Changes</h2>
+          <span className="modal-text">
+            Would you like to discard any unsaved changes?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectClient({ id: pending.discardEditAfterSelect.newlySelectedClientId });
+              this.props.fetchClientDetails({ clientId: pending.discardEditAfterSelect.newlySelectedClientId });
+              this.props.closeDiscardEditAfterSelectModal({});
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditAfterSelectModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Discard
               </button>
             </div>
           </form>
