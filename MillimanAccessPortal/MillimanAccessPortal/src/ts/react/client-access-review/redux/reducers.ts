@@ -219,13 +219,34 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
     ...state,
     globalData: action.response,
   }),
-  FETCH_CLIENTS_SUCCEEDED: (state, action: AccessReviewActions.FetchClientsSucceeded) => ({
-    ...state,
-    clients: {
-      ...action.response.clients,
-      ...action.response.parentClients,
-    },
-  }),
+  FETCH_CLIENTS_SUCCEEDED: (state, action: AccessReviewActions.FetchClientsSucceeded) => {
+    const combinedClients = {
+      ..._.mapValues(action.response.clients, (client) => ({ ...client, canManage: true })),
+      ..._.mapValues(action.response.parentClients, (client) => ({ ...client, canManage: false })),
+    };
+    const combinedClientDueDates: Dict<Moment[]> = {};
+    Object.keys(combinedClients).forEach((client) => {
+      const parentId = combinedClients[client].parentId || combinedClients[client].id;
+      if (combinedClients[client].canManage) {
+        (parentId in combinedClientDueDates) ?
+          combinedClientDueDates[parentId].push(moment(combinedClients[client].reviewDueDateTimeUtc)) :
+          combinedClientDueDates[parentId] = [moment(combinedClients[client].reviewDueDateTimeUtc)];
+      } else {
+        if (!(parentId in combinedClientDueDates)) {
+          combinedClientDueDates[parentId] = [];
+        }
+      }
+    });
+    const clients = combinedClients;
+    Object.keys(clients).forEach((client) => {
+      clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]);
+      clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]);
+    });
+    return {
+      ...state,
+      clients,
+    };
+  },
   FETCH_CLIENT_SUMMARY_SUCCEEDED: (state, action: AccessReviewActions.FetchClientSummarySucceeded) => ({
     ...state,
     selectedClientSummary: action.response,
@@ -239,14 +260,35 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
     ...state,
     clientAccessReview: null,
   }),
-  APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.ApproveClientAccessReviewSucceeded) => ({
-    ...state,
-    clients: {
-      ...action.response.clients,
-      ...action.response.parentClients,
-    },
-    clientAccessReview: null,
-  }),
+  APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.ApproveClientAccessReviewSucceeded) => {
+    const combinedClients = {
+      ..._.mapValues(action.response.clients, (client) => ({ ...client, canManage: true })),
+      ..._.mapValues(action.response.parentClients, (client) => ({ ...client, canManage: false })),
+    };
+    const combinedClientDueDates: Dict<Moment[]> = {};
+    Object.keys(combinedClients).forEach((client) => {
+      const parentId = combinedClients[client].parentId || combinedClients[client].id;
+      if (combinedClients[client].canManage) {
+        (parentId in combinedClientDueDates) ?
+          combinedClientDueDates[parentId].push(moment(combinedClients[client].reviewDueDateTimeUtc)) :
+          combinedClientDueDates[parentId] = [moment(combinedClients[client].reviewDueDateTimeUtc)];
+      } else {
+        if (!(parentId in combinedClientDueDates)) {
+          combinedClientDueDates[parentId] = [];
+        }
+      }
+    });
+    const clients = combinedClients;
+    Object.keys(clients).forEach((client) => {
+      clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]);
+      clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]);
+    });
+    return {
+      ...state,
+      clients,
+      clientAccessReview: null,
+    };
+  },
 });
 
 const selected = createReducer<AccessReviewStateSelected>(
