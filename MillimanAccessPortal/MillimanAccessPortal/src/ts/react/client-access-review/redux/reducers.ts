@@ -1,4 +1,7 @@
 import * as _ from 'lodash';
+import * as moment from 'moment';
+import { Moment } from 'moment';
+
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
@@ -12,7 +15,7 @@ import {
 } from './actions';
 import {
   AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress,
-  ClientAccessReviewProgressEnum, PendingDataState,
+  ClientAccessReviewProgressEnum, ClientSort, PendingDataState,
 } from './store';
 
 const _initialData: AccessReviewStateData = {
@@ -36,6 +39,11 @@ const _initialClientAccessReviewProgress: ClientAccessReviewProgress = {
   step: 0,
   contentItemConfirmations: null,
   fileDropConfirmations: null,
+};
+
+const _initialClientSort: ClientSort = {
+  sortBy: 'date',
+  sortOrder: 'desc',
 };
 
 /**
@@ -195,6 +203,13 @@ const pendingClientSelection = createReducer<Guid>(null, {
   SELECT_CLIENT: () => null,
 });
 
+const clientSort = createReducer<ClientSort>(_initialClientSort, {
+  SET_SORT_ORDER: (_state, action: AccessReviewActions.SetSortOrder) => ({
+    sortBy: action.clientSort.sortBy,
+    sortOrder: action.clientSort.sortOrder,
+  }),
+});
+
 const navBarRenderInt = createReducer<number>(0, {
   UPDATE_NAV_BAR: (state) => state + 1,
 });
@@ -253,6 +268,7 @@ const pending = combineReducers({
   data: pendingData,
   clientAccessReviewProgress: reviewProgress,
   pendingClientSelection,
+  clientSort,
   navBarRenderInt,
 });
 
