@@ -181,7 +181,6 @@ const data = createReducer<AccessStateData>(_initialData, {
         contentItemCount: 0,
         userCount: 0,
         canManage: true,
-        isChild: true,
       },
     },
   }),

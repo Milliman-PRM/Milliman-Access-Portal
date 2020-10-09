@@ -15,9 +15,6 @@ export const fetchClients =
 export const fetchProfitCenters =
   createJsonRequestor<AccessActions.FetchProfitCenters, AccessActions.FetchProfitCentersSucceeded>
     ('GET', '/ClientAdmin/AuthorizedProfitCenters');
-export const fetchClientFamilyTree =
-  createJsonRequestor<AccessActions.FetchClientFamilyTree, AccessActions.FetchClientFamilyTreeSucceeded>
-    ('GET', '/ClientAdmin/ClientFamilyList');
 export const fetchClientDetails =
   createJsonRequestor<AccessActions.FetchClientDetails, AccessActions.FetchClientDetailsSucceeded>
     ('GET', '/ClientAdmin/ClientDetail');

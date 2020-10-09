@@ -55,7 +55,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
   public componentDidMount() {
-    this.props.fetchClientFamilyTree({});
     this.props.fetchProfitCenters({});
     this.props.fetchClients({});
   }
@@ -118,21 +117,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           return (
             <Card
               key={key}
-              selected={entity.id === selected.client || (entity.isChild && selected.client === 'child')}
+              selected={entity.id === selected.client || this.clientIsNewChild(entity)}
               readonly={!entity.canManage}
               onSelect={() => {
                 this.props.selectClient({ id: entity.id, readonly: !entity.canManage });
                 this.props.fetchClientDetails({ clientId: entity.id });
               }}
               indentation={entity.indent}
+              insertCard={this.clientIsNewChild(entity)}
             >
               <CardSectionMain>
                 <CardText
-                  text={!entity.isChild ? entity.name : 'New Sub-Client'}
-                  isNewChild={entity.parentId !== null}
+                  text={!this.clientIsNewChild(entity) ? entity.name : 'New Sub-Client'}
+                  isNewChild={this.clientIsNewChild(entity)}
                   subtext={entity.code}
                 />
-                {!entity.isChild ?
+                {!this.clientIsNewChild(entity) ?
                   <CardSectionStats>
                     <CardStat
                       name={'Eligible users'}
@@ -158,7 +158,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         }}
                       /> : null
                     }
-                    {!entity.isChild ?
+                    {!this.clientIsNewChild(entity) ?
                       <CardButton
                         icon={'edit'}
                         color={'blue'}
@@ -782,6 +782,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       }
       return false;
     }).length > 0;
+  }
+
+  private clientIsNewChild(client: ClientEntity) {
+    return client !== 'divider'
+      && client !== 'new'
+      && client.parentId !== null
+      && client.id === null;
   }
 }
 

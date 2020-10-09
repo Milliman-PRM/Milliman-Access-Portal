@@ -588,10 +588,11 @@
             height: 2em;
             width: 2em;
             margin: 0 .25em;
-        }
+        }     
 
         .new-child-icon {
-            transform: rotate(-90deg);
+          font-size: 22px;
+          transform: rotate(-90deg);
         }
     }
 }
@@ -599,3 +600,4 @@
 .action-card-container {
     margin-bottom: 0;
 }
+

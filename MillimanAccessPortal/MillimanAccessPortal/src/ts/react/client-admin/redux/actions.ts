@@ -101,23 +101,6 @@ export interface SetValidityForField {
 
 /**
  * GET:
- *   client family tree as well as additional information needed for the client-admin form.
- */
-export interface FetchClientFamilyTree {
-  type: 'FETCH_CLIENT_FAMILY_TREE';
-  request: {};
-}
-export interface FetchClientFamilyTreeSucceeded {
-  type: 'FETCH_CLIENT_FAMILY_TREE_SUCCEEDED';
-  response: {};
-}
-export interface FetchClientFamilyTreeFailed {
-  type: 'FETCH_CLIENT_FAMILY_TREE_FAILED';
-  error: TSError;
-}
-
-/**
- * GET:
  *   clients the current user has access to administrate;
  */
 export interface FetchClients {
@@ -266,7 +249,6 @@ export type ValidityAction =
  * An action that makes an Ajax request.
  */
 export type RequestAccessAction =
-  | FetchClientFamilyTree
   | FetchClients
   | FetchProfitCenters
   | FetchClientDetails
@@ -277,7 +259,6 @@ export type RequestAccessAction =
   ;
 
 export type ResponseAccessAction =
-  | FetchClientFamilyTreeSucceeded
   | FetchClientsSucceeded
   | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
@@ -291,7 +272,6 @@ export type ResponseAccessAction =
 * An action that marks the errored response of an Ajax request.
 */
 export type ErrorAccessAction =
-  | FetchClientFamilyTreeFailed
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed

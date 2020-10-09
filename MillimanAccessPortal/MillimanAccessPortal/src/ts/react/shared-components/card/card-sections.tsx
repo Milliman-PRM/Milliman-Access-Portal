@@ -42,6 +42,11 @@ export class CardText extends React.Component<CardTextProps> {
               />
               : text + (textSuffix ? ` ${textSuffix}` : '')
           }
+          {isNewChild ?
+            <svg className="new-child-icon">
+              <use href="#expand-card" />
+            </svg> : null
+          }
         </h2>
         <p className="card-body-secondary-text">{subtext}</p>
       </div>

@@ -15,7 +15,6 @@ const takeLatestRequest = createTakeLatestRequest<RequestAccessAction, ResponseA
  */
 export default function* rootSaga() {
   // API requests
-  yield takeLatestRequest('FETCH_CLIENT_FAMILY_TREE', api.fetchClientFamilyTree);
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_PROFIT_CENTERS', api.fetchProfitCenters);
   yield takeLatestRequest('FETCH_CLIENT_DETAILS', api.fetchClientDetails);

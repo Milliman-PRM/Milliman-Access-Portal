@@ -8,6 +8,7 @@ export interface CardAttributes {
   readonly?: boolean;
   expanded?: boolean;
   editing?: boolean;
+  insertCard?: boolean;
   profitCenterModalOpen?: boolean;
 }
 
@@ -20,6 +21,7 @@ export interface CardProps {
   suspended: boolean;
   inactive: boolean;
   locked: boolean;
+  insertCard: boolean;
   indentation: number;
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
 }
@@ -32,6 +34,7 @@ export class Card extends React.Component<CardProps> {
     suspended: false,
     inactive: false,
     locked: false,
+    insertCard: false,
     indentation: 1,
     status: null as PublicationWithQueueDetails | ReductionWithQueueDetails,
   };
@@ -44,12 +47,13 @@ export class Card extends React.Component<CardProps> {
 
   public render() {
     const { indentation, disabled, readonly, selected, suspended,
-      inactive, locked, onSelect, status, children } = this.props;
+      inactive, locked, insertCard, onSelect, status, children } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
       + (disabled ? ' card-disabled' : '')
-      + (readonly ? ' card-readonly' : '');
+      + (readonly ? ' card-readonly' : '')
+      + (insertCard ? ' insert-card' : '');
     const cardBodyClass = 'card-body-container'
       + (selected ? ' selected' : '')
       + (locked ? ' locked' : suspended ? ' suspended' : inactive ? ' inactive' : '');
