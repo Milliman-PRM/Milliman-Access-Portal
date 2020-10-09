@@ -19,6 +19,12 @@ export const toggleFileDropReviewStatus =
   createActionCreator<AccessReviewActions.ToggleFileDropReviewStatus>('TOGGLE_FILE_DROP_REVIEW_STATUS');
 export const cancelClientAccessReview =
   createActionCreator<AccessReviewActions.CancelClientAccessReview>('CANCEL_CLIENT_ACCESS_REVIEW');
+export const openLeavingActiveReviewModal =
+  createActionCreator<AccessReviewActions.OpenLeavingActiveReviewModal>('OPEN_LEAVING_ACTIVE_REVIEW_MODAL');
+export const closeLeavingActiveReviewModal =
+  createActionCreator<AccessReviewActions.CloseLeavingActiveReviewModal>('CLOSE_LEAVING_ACTIVE_REVIEW_MODAL');
+export const updateNavBar =
+  createActionCreator<AccessReviewActions.UpdateNavBar>('UPDATE_NAV_BAR');
 
 // Data fetches
 export const fetchGlobalData =
