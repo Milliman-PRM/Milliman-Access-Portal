@@ -1,22 +1,44 @@
 ﻿import * as _ from 'lodash';
 
+import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
-import { AccessAction, FilterAccessAction } from './actions';
+import { AccessAction, FilterAccessAction, OpenModalAction } from './actions';
 import * as AccessActions from './actions';
+
 import {
-  AccessStateBaseFormData, AccessStateData, AccessStateEdit, AccessStateFormData,
-  AccessStateSelected, AccessStateValid, PendingDataState,
+  AccessStateBaseFormData, AccessStateData, AccessStateEdit,
+  AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
+  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingRemoveClientUserState,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
-import { createReducerCreator } from '../../shared-components/redux/reducers';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
+  clientUsers: false,
+};
+const _initialPendingDeleteClient: PendingDeleteClientState = {
+  id: null,
+  name: null,
+};
+const _initialPendingCreateClientUser: PendingCreateClientUserState = {
+  memberOfClientId: null,
+  userName: null,
+  email: null,
+};
+const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
+  clientId: null,
+  userId: null,
+  name: null,
+};
+const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
+  newlySelectedClientId: null,
+  editAfterSelect: false,
 };
 
 const initialDetails: ClientDetail = {
@@ -92,7 +114,32 @@ const _initialEditStatus: AccessStateEdit = {
  */
 const createReducer = createReducerCreator<AccessAction>();
 
-const pending = createReducer<PendingDataState>(_initialPendingData, {
+/**
+ * Create a reducer for a modal
+ * @param openActions Actions that cause the modal to open
+ * @param closeActions Actions that cause the modal to close
+ */
+const createModalReducer = (
+  openActions: Array<OpenModalAction['type']>,
+  closeActions: Array<AccessAction['type']>,
+) => {
+  const handlers: Handlers<ModalState, any> = {};
+  openActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: true,
+    });
+  });
+  closeActions.forEach((action) => {
+    handlers[action] = (state) => ({
+      ...state,
+      isOpen: false,
+    });
+  });
+  return createReducer<ModalState>({ isOpen: false }, handlers);
+};
+
+const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENTS: (state) => ({
     ...state,
     clients: true,
@@ -116,6 +163,82 @@ const pending = createReducer<PendingDataState>(_initialPendingData, {
   FETCH_CLIENT_DETAILS_FAILED: (state) => ({
     ...state,
     details: false,
+  }),
+  DELETE_CLIENT: (state) => ({
+    ...state,
+    clients: true,
+  }),
+  DELETE_CLIENT_SUCCEEDED: (state) => ({
+    ...state,
+    clients: false,
+  }),
+  DELETE_CLIENT_FAILED: (state) => ({
+    ...state,
+    clients: false,
+  }),
+  SAVE_NEW_CLIENT_USER: (state) => ({
+    ...state,
+    clientUsers: true,
+  }),
+  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+  SAVE_NEW_CLIENT_USER_FAILED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+  REMOVE_CLIENT_USER: (state) => ({
+    ...state,
+    clientUsers: true,
+  }),
+  REMOVE_CLIENT_USER_SUCCEEDED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+  REMOVE_CLIENT_USER_FAILED: (state) => ({
+    ...state,
+    clientUsers: false,
+  }),
+});
+
+const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
+  OPEN_DELETE_CLIENT_MODAL: (state, action: AccessActions.OpenDeleteClientModal) => ({
+    ...state,
+    id: action.id,
+    name: action.name,
+  }),
+});
+
+const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_initialPendingCreateClientUser, {
+  OPEN_CREATE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenCreateClientUserModal) => ({
+    ...state,
+    memberOfClientId: action.clientId,
+    email: null,
+    userName: null,
+  }),
+  SET_CREATE_CLIENT_USER_EMAIL: (state, action: AccessActions.SetCreateClientUserModalEmail) => ({
+    ...state,
+    email: action.email,
+    userName: action.email,
+  }),
+});
+
+const pendingRemoveClientUser = createReducer<PendingRemoveClientUserState>(_initialPendingRemoveClientUser, {
+  OPEN_REMOVE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenRemoveClientUserModal) => ({
+    ...state,
+    clientId: action.clientId,
+    userId: action.userId,
+    name: action.name,
+  }),
+});
+
+const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelectModal>(
+  _initialPendingDiscardEditModal, {
+  OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL: (state, action: AccessActions.OpenDiscardEditAfterSelectModal) => ({
+    ...state,
+    newlySelectedClientId: action.newlySelectedClientId,
+    editAfterSelect: action.editAfterSelect,
   }),
 });
 
@@ -164,6 +287,15 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+  }),
+  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
+    ...state,
+    assignedUsers: state.assignedUsers.concat(action.response),
+  }),
+  REMOVE_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.RemoveClientUserSucceeded) => ({
+    ...state,
+    details: action.response.clientDetail,
+    assignedUsers: action.response.assignedUsers,
   }),
   SELECT_CLIENT: (state) => ({
     ...state,
@@ -326,6 +458,43 @@ const userCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+const modals = combineReducers({
+  deleteClient: createModalReducer(['OPEN_DELETE_CLIENT_MODAL'], [
+    'CLOSE_DELETE_CLIENT_MODAL',
+    'OPEN_DELETE_CLIENT_CONFIRMATION_MODAL',
+    'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
+  ]),
+  deleteClientConfirmation: createModalReducer(['OPEN_DELETE_CLIENT_CONFIRMATION_MODAL'], [
+    'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL',
+    'DELETE_CLIENT_SUCCEEDED',
+    'DELETE_CLIENT_FAILED',
+  ]),
+  createClientUser: createModalReducer(['OPEN_CREATE_CLIENT_USER_MODAL'], [
+    'CLOSE_CREATE_CLIENT_USER_MODAL',
+    'SAVE_NEW_CLIENT_USER_SUCCEEDED',
+    'SAVE_NEW_CLIENT_USER_FAILED',
+  ]),
+  removeClientUser: createModalReducer(['OPEN_REMOVE_CLIENT_USER_MODAL'], [
+    'CLOSE_REMOVE_CLIENT_USER_MODAL',
+    'REMOVE_CLIENT_USER_SUCCEEDED',
+    'REMOVE_CLIENT_USER_FAILED',
+  ]),
+  discardEdit: createModalReducer(['OPEN_DISCARD_EDIT_MODAL'], [
+    'CLOSE_DISCARD_EDIT_MODAL',
+  ]),
+  discardEditAfterSelect: createModalReducer(['OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL'], [
+    'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL',
+  ]),
+});
+
+const pending = combineReducers({
+  data: pendingData,
+  deleteClient: pendingDeleteClient,
+  createClientUser: pendingCreateClientUser,
+  removeClientUser: pendingRemoveClientUser,
+  discardEditAfterSelect: pendingDiscardEditAfterSelect,
+});
+
 /**
  * Create a reducer for a filter
  * @param actionType Single filter action
@@ -353,6 +522,8 @@ export const clientAdmin = combineReducers({
   edit,
   formData,
   valid,
+  modals,
   filters,
   pending,
+  toastr: toastrReducer,
 });

@@ -7,7 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { Dict, FilterState } from '../../shared-components/redux/store';
+import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
@@ -16,6 +16,29 @@ import { ClientDetail } from '../../system-admin/interfaces';
 export interface PendingDataState {
   clients: boolean;
   details: boolean;
+  clientUsers: boolean;
+}
+
+/**
+ * Flags indicating whether the page is waiting on user input/confirmation to delete a client.
+ */
+export interface PendingDeleteClientState {
+  id: Guid;
+  name: string;
+}
+export interface PendingCreateClientUserState {
+  memberOfClientId: Guid;
+  userName: string;
+  email: string;
+}
+export interface PendingRemoveClientUserState {
+  clientId: Guid;
+  userId: Guid;
+  name: string;
+}
+export interface PendingDiscardEditAfterSelectModal {
+  newlySelectedClientId: Guid;
+  editAfterSelect: boolean;
 }
 
 /**
@@ -88,6 +111,29 @@ export interface AccessStateCardAttributes {
   user: Dict<CardAttributes>;
 }
 
+/**
+ * All pending state.
+ */
+export interface AccessStatePending {
+  data: PendingDataState;
+  deleteClient: PendingDeleteClientState;
+  createClientUser: PendingCreateClientUserState;
+  removeClientUser: PendingRemoveClientUserState;
+  discardEditAfterSelect: PendingDiscardEditAfterSelectModal;
+}
+
+/**
+ * All modal state.
+ */
+export interface AccessStateModals {
+  deleteClient: ModalState;
+  deleteClientConfirmation: ModalState;
+  createClientUser: ModalState;
+  removeClientUser: ModalState;
+  discardEdit: ModalState;
+  discardEditAfterSelect: ModalState;
+}
+
 export interface AccessState {
   data: AccessStateData;
   selected: AccessStateSelected;
@@ -95,8 +141,9 @@ export interface AccessState {
   cardAttributes: AccessStateCardAttributes;
   filters: AccessStateFilters;
   formData: AccessStateBaseFormData;
-  pending: PendingDataState;
+  pending: AccessStatePending;
   valid: AccessStateValid;
+  modals: AccessStateModals;
 }
 
 // Create the store and apply saga middleware
