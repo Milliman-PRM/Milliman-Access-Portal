@@ -273,7 +273,7 @@ namespace SftpServerLib
                                     User = connection.MapUser,
                                 }
                             ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for writing, user {evtData.User}");
+                            Log.Information($"File {evtData.Path} authorized for writing, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
 
@@ -301,7 +301,7 @@ namespace SftpServerLib
                                     User = connection.MapUser,
                                 }
                             ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for reading, user {evtData.User}");
+                            Log.Information($"File {evtData.Path} authorized for reading, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
 
@@ -315,7 +315,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
         internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
+            Log.Information($"File closed, connection {evtData.ConnectionId}, user {evtData.User}, path {evtData.Path}");
         }
 
         //[Description("Fired when a connection is closed.")]
