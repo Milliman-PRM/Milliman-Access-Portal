@@ -170,7 +170,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'edit'}
                         color={'blue'}
                         onClick={() => {
-                          this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, true, true);
+                          this.changeClientFormState(formModified, !edit.disabled, selected.client,
+                            entity.id, true, true);
                         }}
                       /> : null
                     }
@@ -179,8 +180,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'add'}
                         color={'green'}
                         onClick={() => {
-                          this.props.selectNewSubClient({ parentId: entity.id });
-                          this.props.setFormFieldValue({ field: 'parentClientId', value: entity.id });
+                          this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
                         }}
                       /> : null
                     }
@@ -984,12 +984,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.changeClientFormState(false, false,
-                selected.client,
-                pending.discardEditAfterSelect.newlySelectedClientId,
-                pending.discardEditAfterSelect.editAfterSelect,
-                true);
+              if (pending.discardEditAfterSelect.newSubClientParentId === null) {
+                this.changeClientFormState(false, false,
+                  selected.client,
+                  pending.discardEditAfterSelect.newlySelectedClientId,
+                  pending.discardEditAfterSelect.editAfterSelect,
+                  true);
+              } else {
+                this.changeClientFormStateForNewSubClient(false, false,
+                  pending.discardEditAfterSelect.newSubClientParentId);
+              }
               this.props.closeDiscardEditAfterSelectModal({});
+
             }}
           >
             <div className="button-container">
@@ -1046,6 +1052,19 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         this.props.resetClientDetails({});
         this.props.clearFormData({});
       }
+    }
+  }
+
+  private changeClientFormStateForNewSubClient(formModified: boolean, currentlyEditing: boolean, parent: Guid) {
+    if (currentlyEditing && formModified) {
+      this.props.openDiscardEditAfterSelectModal({
+        newlySelectedClientId: 'child',
+        editAfterSelect: true,
+        newSubClientParentId: parent,
+      });
+    } else {
+      this.props.selectNewSubClient({ parentId: parent });
+      this.props.setFormFieldValue({ field: 'parentClientId', value: parent });
     }
   }
 

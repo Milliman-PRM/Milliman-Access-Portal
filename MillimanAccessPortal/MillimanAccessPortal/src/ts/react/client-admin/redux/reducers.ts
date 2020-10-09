@@ -39,6 +39,7 @@ const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
 const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newlySelectedClientId: null,
   editAfterSelect: false,
+  newSubClientParentId: null,
 };
 
 const initialDetails: ClientDetail = {
@@ -239,6 +240,7 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
     ...state,
     newlySelectedClientId: action.newlySelectedClientId,
     editAfterSelect: action.editAfterSelect,
+    newSubClientParentId: action.newSubClientParentId,
   }),
 });
 
