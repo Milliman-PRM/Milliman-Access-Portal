@@ -23,6 +23,8 @@ export const openLeavingActiveReviewModal =
   createActionCreator<AccessReviewActions.OpenLeavingActiveReviewModal>('OPEN_LEAVING_ACTIVE_REVIEW_MODAL');
 export const closeLeavingActiveReviewModal =
   createActionCreator<AccessReviewActions.CloseLeavingActiveReviewModal>('CLOSE_LEAVING_ACTIVE_REVIEW_MODAL');
+export const setSortOrder =
+  createActionCreator<AccessReviewActions.SetSortOrder>('SET_SORT_ORDER');
 export const updateNavBar =
   createActionCreator<AccessReviewActions.UpdateNavBar>('UPDATE_NAV_BAR');
 
