@@ -153,8 +153,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'delete'}
                         color={'red'}
                         onClick={() => {
-                        this.props.deleteClient(entity.id);
-                        this.props.selectClient({ id: null });
+                          this.props.deleteClient(entity.id);
+                          this.props.selectClient({ id: null });
                         }}
                       /> : null
                     }
@@ -554,7 +554,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </div>
                 {!edit.disabled ?
                   <div className="form-submission-section">
-                    {selected.client === 'new' || selected.client === 'child' ?
+                    {selected.client === 'new' ?
                       <div className="button-container button-container-new">
                         <button
                           type="button"

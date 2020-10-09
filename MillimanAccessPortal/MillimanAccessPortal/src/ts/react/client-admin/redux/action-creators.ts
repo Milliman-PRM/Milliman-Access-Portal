@@ -46,8 +46,6 @@ export const setValidityForField =
   createActionCreator<AccessActions.SetValidityForField>('SET_VALIDITY_FOR_FIELD');
 
 // Data fetches/posts
-export const fetchClientFamilyTree =
-  createRequestActionCreator<AccessActions.FetchClientFamilyTree>('FETCH_CLIENT_FAMILY_TREE');
 export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
 export const fetchClientDetails =
