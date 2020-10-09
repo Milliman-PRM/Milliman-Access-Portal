@@ -114,15 +114,15 @@ This file is for describing end user roles and actions.
     - View / manage all role assignments for each client
 
 ###### Clients
-- View all Clients in the system and selected Client details (e.g. Name, code contact)
+- List all Clients in the system and selected Client details (e.g. Name, code contact)
 - for each Client:
   - Modify the number of allowed email domains for a specific Client
   - View details of the associated Profit Center for the Client
-  - View the Users assigned to the Client
+  - List the Users assigned to the Client
   - For each assigned user:
     - View selected user details (e.g. name, employer, email, phone)
     - Manage roles of this user for this Client
-  - View the Content Items published for the Client
+  - List the Content Items published for the Client
   - For each Content Item:
     - View selected Content Item details (e.g. name, type, description)
     - Cancel an incomplete publication request for the Content Item
@@ -130,17 +130,17 @@ This file is for describing end user roles and actions.
     - View details of User Selection Groups for the Content Item, and a list of users authorized to each group
 
 ##### Profit Centers
-- View all Profit Centers in the System
+- List all Profit Centers in the System
 - Create a new Profit Center
 - Remove a Profit Center
 - Edit details of a Profit Center (e.g. Name, code office, contact info)
-- View the users having Profit Center Admin role for the Profit Center
+- List the users having Profit Center Admin role for the Profit Center
 - Assign a user with Profit Center Admin role for this Profit Center
 - For each Profit Center Admin:
   - View the user's name, email, and phone number
   - View the user's assigned Clients
   - Unassign the Profit Center Admin role for the user
-- View the Clients associated with the Profit Center
+- List the Clients associated with the Profit Center
 - For each Client listed:
   - View details of the Client (e.g. name, code, contact info)
   - View a summary of all assigned users and their current roles for the Client
