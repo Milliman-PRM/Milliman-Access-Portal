@@ -1035,6 +1035,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       this.props.openDiscardEditAfterSelectModal({
         newlySelectedClientId: newClient,
         editAfterSelect: edit,
+        newSubClientParentId: null,
       });
     } else {
       if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
