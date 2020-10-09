@@ -222,7 +222,7 @@ namespace MillimanAccessPortal.Controllers
         // POST: ClientAdmin/SaveNewUser
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SaveNewUser([Bind("UserName,Email,MemberOfClientId")]ApplicationUserViewModel Model)
+        public async Task<ActionResult> SaveNewUser([FromBody]ApplicationUserViewModel Model)
         {
             Log.Verbose($"In ClientAdminController.SaveNewUser action request to add user {(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : Model.UserName) ?? "<Unspecified>"} to clientId {Model.MemberOfClientId}");
 
@@ -703,7 +703,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>BadRequestObjectResult, UnauthorizedResult, ClientDetailViewModel</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> RemoveUserFromClient(ClientUserAssociationViewModel Model, bool AllowZeroAdmins = false)
+        public async Task<IActionResult> RemoveUserFromClient([FromBody]ClientUserAssociationViewModel Model, bool AllowZeroAdmins = false)
         {
             Log.Verbose("Entered ClientAdminController.RemoveUserFromClient action with parameters {@ClientUserAssociationViewModel}, {@AllowZeroAdmins}", Model, AllowZeroAdmins);
 

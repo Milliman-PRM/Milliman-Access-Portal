@@ -3,7 +3,7 @@ import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, U
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { RoleEnum } from "../../shared-components/interfaces";
-import { AccessStateFormData } from "./store";
+import { AccessStateFormData, PendingDeleteClientState } from "./store";
 
 // ~ Page Actions ~
 
@@ -219,6 +219,90 @@ export interface DeleteClientFailed {
   type: 'DELETE_CLIENT_FAILED';
   error: TSError;
 }
+export interface SaveNewClientUser {
+  type: 'SAVE_NEW_CLIENT_USER';
+  request: {
+    memberOfClientId: Guid;
+    userName: string;
+    email: string;
+  };
+}
+export interface SaveNewClientUserSucceeded {
+  type: 'SAVE_NEW_CLIENT_USER_SUCCEEDED';
+  response: User;
+}
+export interface SaveNewClientUserFailed {
+  type: 'SAVE_NEW_CLIENT_USER_FAILED';
+  error: TSError;
+}
+export interface RemoveClientUser {
+  type: 'REMOVE_CLIENT_USER';
+  request: {
+    clientId: Guid;
+    userId: Guid;
+  };
+}
+export interface RemoveClientUserSucceeded {
+  type: 'REMOVE_CLIENT_USER_SUCCEEDED';
+  response: {
+    clientDetail: ClientDetail;
+    assignedUsers: User[];
+  };
+}
+export interface RemoveClientUserFailed {
+  type: 'REMOVE_CLIENT_USER_FAILED';
+  error: TSError;
+}
+
+// Modals
+export interface OpenDeleteClientModal {
+  type: 'OPEN_DELETE_CLIENT_MODAL';
+  id: Guid;
+  name: string;
+}
+export interface OpenDeleteClientConfirmationModal {
+  type: 'OPEN_DELETE_CLIENT_CONFIRMATION_MODAL';
+}
+export interface CloseDeleteClientModal {
+  type: 'CLOSE_DELETE_CLIENT_MODAL';
+}
+export interface CloseDeleteClientConfirmationModal {
+  type: 'CLOSE_DELETE_CLIENT_CONFIRMATION_MODAL';
+}
+export interface OpenCreateClientUserModal {
+  type: 'OPEN_CREATE_CLIENT_USER_MODAL';
+  clientId: Guid;
+}
+export interface CloseCreateClientUserModal {
+  type: 'CLOSE_CREATE_CLIENT_USER_MODAL';
+}
+export interface SetCreateClientUserModalEmail {
+  type: 'SET_CREATE_CLIENT_USER_EMAIL';
+  email: string;
+}
+export interface OpenRemoveClientUserModal {
+  type: 'OPEN_REMOVE_CLIENT_USER_MODAL';
+  clientId: string;
+  userId: string;
+  name: string;
+}
+export interface CloseRemoveClientUserModal {
+  type: 'CLOSE_REMOVE_CLIENT_USER_MODAL';
+}
+export interface OpenDiscardEditModal {
+  type: 'OPEN_DISCARD_EDIT_MODAL';
+}
+export interface CloseDiscardEditModal {
+  type: 'CLOSE_DISCARD_EDIT_MODAL';
+}
+export interface OpenDiscardEditAfterSelectModal {
+  type: 'OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL';
+  newlySelectedClientId: Guid;
+  editAfterSelect: boolean;
+}
+export interface CloseDiscardEditAfterSelectModal {
+  type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -250,6 +334,8 @@ export type RequestAccessAction =
   | SaveNewClient
   | EditClient
   | DeleteClient
+  | SaveNewClientUser
+  | RemoveClientUser
   ;
 
 export type ResponseAccessAction =
@@ -260,6 +346,8 @@ export type ResponseAccessAction =
   | SaveNewClientSucceeded
   | EditClientSucceeded
   | DeleteClientSucceeded
+  | SaveNewClientUserSucceeded
+  | RemoveClientUserSucceeded
   ;
 
 /**
@@ -269,8 +357,13 @@ export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed
+  | SaveNewClientFailed
+  | EditClientFailed
+  | DeleteClientFailed
+  | SaveNewClientFailed
+  | SaveNewClientUserFailed
+  | RemoveClientUserFailed
   ;
-
 
 export type PageAccessAction =
   | SelectClient
@@ -284,6 +377,19 @@ export type PageAccessAction =
   | FormAction
   | ValidityAction
   | ResetClientDetails
+  | OpenDeleteClientModal
+  | CloseDeleteClientModal
+  | OpenDeleteClientConfirmationModal
+  | CloseDeleteClientConfirmationModal
+  | OpenCreateClientUserModal
+  | CloseCreateClientUserModal
+  | SetCreateClientUserModalEmail
+  | OpenRemoveClientUserModal
+  | CloseRemoveClientUserModal
+  | OpenDiscardEditModal
+  | CloseDiscardEditModal
+  | OpenDiscardEditAfterSelectModal
+  | CloseDiscardEditAfterSelectModal
   ;
 
 export type AccessAction =
@@ -291,4 +397,13 @@ export type AccessAction =
   | RequestAccessAction
   | ResponseAccessAction
   | ErrorAccessAction
+  ;
+
+export type OpenModalAction =
+  | OpenDeleteClientModal
+  | OpenDeleteClientConfirmationModal
+  | OpenCreateClientUserModal
+  | OpenRemoveClientUserModal
+  | OpenDiscardEditModal
+  | OpenDiscardEditAfterSelectModal
   ;

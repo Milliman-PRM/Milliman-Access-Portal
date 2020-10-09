@@ -1,5 +1,8 @@
 ﻿import * as React from 'react';
+import * as Modal from 'react-modal';
+
 import { connect } from 'react-redux';
+import ReduxToastr from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
@@ -7,7 +10,7 @@ import {
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
-  AccessStateSelected, AccessStateValid, PendingDataState,
+  AccessStateModals, AccessStatePending, AccessStateSelected, AccessStateValid,
 } from './redux/store';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
@@ -19,6 +22,7 @@ import CardButton from '../shared-components/card/card-button';
 import { CardExpansion } from '../shared-components/card/card-expansion';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import {
   CardSectionButtons, CardSectionMain, CardSectionStats, CardText,
 } from '../shared-components/card/card-sections';
@@ -35,7 +39,7 @@ import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
-  pending: PendingDataState;
+  pending: AccessStatePending;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
   details: ClientDetail;
@@ -46,6 +50,7 @@ interface ClientAdminProps {
   filters: AccessStateFilters;
   cardAttributes: AccessStateCardAttributes;
   valid: AccessStateValid;
+  modals: AccessStateModals;
   formModified: boolean;
   formValid: boolean;
 }
@@ -62,6 +67,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   public render() {
     return (
       <>
+        <ReduxToastr
+          timeOut={5000}
+          newestOnTop={false}
+          position="bottom-right"
+          transitionIn="fadeIn"
+          transitionOut="fadeOut"
+        />
         <NavBar currentView={this.currentView} />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?
@@ -69,24 +81,24 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             className="admin-panel-container
                        flex-item-12-12 flex-item-for-tablet-up-6-12 flex-item-for-desktop-up-6-12"
           >
-            {this.props.pending.details ?
+            {this.props.pending.data.details ?
               <ColumnSpinner />
               : this.renderClientDetail()
             }
           </div> : null
         }
-        {this.props.selected.client !== null && !this.props.pending.details && this.props.edit.disabled
+        {this.props.selected.client !== null && !this.props.pending.data.details && this.props.edit.disabled
           ? this.renderClientUsers() : null}
       </>
     );
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending } = this.props;
+    const { clients, selected, filters, pending, edit, formModified } = this.props;
     return (
       <CardPanel
         entities={clients}
-        loading={pending.clients}
+        loading={pending.data.clients}
         renderEntity={(entity, key) => {
           if (entity === 'divider') {
             return <div className="hr" key={key} />;
@@ -97,10 +109,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.props.resetClientDetails({});
-                  this.props.selectClient({ id: 'new' });
-                  this.props.clearFormData({});
-                  this.props.setEditStatus({ disabled: false });
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -120,8 +129,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client}
               disabled={false}
               onSelect={() => {
-                this.props.selectClient({ id: entity.id });
-                this.props.fetchClientDetails({ clientId: entity.id });
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, false, true);
               }}
               indentation={entity.indent}
             >
@@ -144,20 +152,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon={'delete'}
                     color={'red'}
                     onClick={() => {
-                      this.props.deleteClient(entity.id);
-                      this.props.selectClient({ id: null });
+                      this.props.openDeleteClientModal({ id: entity.id, name: entity.name });
                     }}
                   />
                   <CardButton
                     icon={'edit'}
                     color={'blue'}
                     onClick={() => {
-                      if (selected.client !== entity.id) {
-                        this.props.selectClient({ id: entity.id });
-                      }
-                      this.props.fetchClientDetails({ clientId: entity.id });
-                      this.props.setEditStatus({ disabled: false });
-                      this.props.resetValidity({});
+                      this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, true, true);
                     }}
                   />
                   <CardButton
@@ -183,13 +185,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Add or create a new client"
               icon="add"
               action={() => {
-                this.props.selectClient({ id: 'new' });
-                this.props.clearFormData({});
-                this.props.setEditStatus({ disabled: false });
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
               }}
             />
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
+        {this.renderModals()}
       </CardPanel>
     );
   }
@@ -580,8 +581,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="button"
                           className="button-reset link-button"
                           onClick={() => {
-                            this.props.resetValidity({});
-                            this.props.resetFormData({ details });
+                            this.props.openDiscardEditModal({});
                           }}
                         >
                           Discard Changes
@@ -644,11 +644,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     <CardButton
                       icon="remove-circle"
                       color={'red'}
-                      onClick={null}
+                      onClick={() => this.props.openRemoveUserFromClientModal({
+                        clientId: selected.client,
+                        userId: entity.id,
+                        name: entity.firstName && entity.lastName ?
+                          `${entity.firstName} ${entity.lastName}` : entity.email,
+                      })}
                     />
                   </CardSectionButtons>
                 </CardSectionMain>
-                {Object.keys(entity.userRoles).length > 0 ?
+                {entity.userRoles && Object.keys(entity.userRoles).length > 0 ?
                   <CardExpansion
                     label={'User roles'}
                     expanded={card && card.expanded}
@@ -721,16 +726,265 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   action={() => false}
                 />
                 <ActionIcon
-                  label="Add or create a new client"
+                  label="Add or create a new client user"
                   icon="add"
                   action={() => {
-                    return false; // Code checked in for this in client-admin-toast-modals
+                    this.props.openCreateClientUserModal({ clientId: selected.client });
                   }}
                 />
               </PanelSectionToolbarButtons>
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
         </CardPanel>
+      </>
+    );
+  }
+
+  private renderModals() {
+    const { modals, pending, details, selected } = this.props;
+    return (
+      <>
+        <Modal
+          isOpen={modals.deleteClient.isOpen}
+          onRequestClose={() => this.props.closeDeleteClientModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Delete Client</h2>
+          <span className="modal-text">Delete <strong>{pending.deleteClient.name}</strong>?</span>
+          <span className="modal-text">This action <u><strong>cannot</strong></u> be undone.</span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.openDeleteClientConfirmationModal({});
+            }}
+          >
+            <div className="button-container">
+              <button className="link-button" type="button" onClick={() => this.props.closeDeleteClientModal({})}>
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Delete
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.deleteClientConfirmation.isOpen}
+          onRequestClose={() => this.props.closeDeleteClientConfirmationModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Delete Client</h2>
+          <span className="modal-text">
+            Please confirm the deletion of <strong>{pending.deleteClient.name}</strong>.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.deleteClient(pending.deleteClient.id);
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDeleteClientConfirmationModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Delete
+                {this.props.pending.data.clients
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.createClientUser.isOpen}
+          onRequestClose={() => this.props.closeCreateClientUserModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Add User</h2>
+          <span className="modal-text text-muted">
+            Please provide a valid email address.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.saveNewClientUser({
+                memberOfClientId: pending.createClientUser.memberOfClientId,
+                email: pending.createClientUser.email,
+                userName: pending.createClientUser.userName,
+              });
+            }}
+          >
+            <input
+              type="text"
+              placeholder="Email"
+              onChange={(event) => this.props.setCreateClientUserModalEmail({
+                email: event.target.value,
+              })}
+              value={this.props.pending.createClientUser.email}
+              autoFocus={true}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeCreateClientUserModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Add User
+                {this.props.pending.data.clientUsers
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.removeClientUser.isOpen}
+          onRequestClose={() => this.props.closeRemoveUserFromClientModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Remove User</h2>
+          <span className="modal-text">
+            Remove <strong>{pending.removeClientUser.name}</strong> from the selected client?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.removeClientUser({
+                clientId: pending.removeClientUser.clientId,
+                userId: pending.removeClientUser.userId,
+              });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeRemoveUserFromClientModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Remove
+                {this.props.pending.data.clientUsers
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEdit.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Reset Form</h2>
+          <span className="modal-text text-muted">
+            Would you like to reset the form?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.resetValidity({});
+              this.props.resetFormData({ details });
+              this.props.closeDiscardEditModal({});
+              this.props.setEditStatus({ disabled: true });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEditAfterSelect.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditAfterSelectModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Discard Changes</h2>
+          <span className="modal-text">
+            Would you like to discard any unsaved changes?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.changeClientFormState(false, false,
+                selected.client,
+                pending.discardEditAfterSelect.newlySelectedClientId,
+                pending.discardEditAfterSelect.editAfterSelect,
+                true);
+              this.props.closeDiscardEditAfterSelectModal({});
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditAfterSelectModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Discard
+              </button>
+            </div>
+          </form>
+        </Modal>
       </>
     );
   }
@@ -745,13 +999,39 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     });
   }
 
+  private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
+                                edit: boolean, resetValidityAfterSelect: boolean) {
+    if (currentlyEditing && formModified) {
+      this.props.openDiscardEditAfterSelectModal({
+        newlySelectedClientId: newClient,
+        editAfterSelect: edit,
+      });
+    } else {
+      if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
+        this.props.selectClient({ id: newClient });
+      }
+      this.props.setEditStatus({ disabled: !edit });
+
+      if (resetValidityAfterSelect) {
+        this.props.resetValidity({});
+      }
+
+      if (newClient !== 'new') {
+        this.props.fetchClientDetails({ clientId: newClient });
+      } else {
+        this.props.resetClientDetails({});
+        this.props.clearFormData({});
+      }
+    }
+  }
+
   private async editClient(formData: AccessStateFormData) {
     return await this.props.editClient(formData);
   }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters, pending, valid } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals } = state;
 
   return {
     clients: clientEntities(state),
@@ -765,6 +1045,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     filters,
     pending,
     valid,
+    modals,
     formModified: isFormModified(state),
     formValid: isFormValid(state),
   };

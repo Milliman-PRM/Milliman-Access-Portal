@@ -104,6 +104,11 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             ClientDetail = (ClientDetail) ClientEntity;
 
+            if (ClientDetail.ProfitCenter == null)
+            {
+              ClientDetail.ProfitCenter = await DbContext.ProfitCenter.FindAsync(ClientEntity.ProfitCenterId);
+            }
+
             ClientEntity.ParentClient = null;
 
             StandardQueries Queries = new StandardQueries(DbContext, UserManager, null);
