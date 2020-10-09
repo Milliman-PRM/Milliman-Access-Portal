@@ -109,10 +109,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.props.resetClientDetails({});
-                  this.props.selectClient({ id: 'new' });
-                  this.props.clearFormData({});
-                  this.props.setEditStatus({ disabled: false });
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -132,12 +129,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client}
               disabled={false}
               onSelect={() => {
-                if (!edit.disabled && formModified) {
-                  this.props.openDiscardEditAfterSelectModal({ newlySelectedClientId: entity.id });
-                } else {
-                  this.props.selectClient({ id: entity.id });
-                  this.props.fetchClientDetails({ clientId: entity.id });
-                }
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, false, true);
               }}
               indentation={entity.indent}
             >
@@ -167,12 +159,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon={'edit'}
                     color={'blue'}
                     onClick={() => {
-                      if (selected.client !== entity.id) {
-                        this.props.selectClient({ id: entity.id });
-                      }
-                      this.props.fetchClientDetails({ clientId: entity.id });
-                      this.props.setEditStatus({ disabled: false });
-                      this.props.resetValidity({});
+                      this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, true, true);
                     }}
                   />
                   <CardButton
@@ -198,9 +185,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Add or create a new client"
               icon="add"
               action={() => {
-                this.props.selectClient({ id: 'new' });
-                this.props.clearFormData({});
-                this.props.setEditStatus({ disabled: false });
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
               }}
             />
           </PanelSectionToolbarButtons>
@@ -756,7 +741,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details } = this.props;
+    const { modals, pending, details, selected } = this.props;
     return (
       <>
         <Modal
@@ -975,8 +960,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.props.selectClient({ id: pending.discardEditAfterSelect.newlySelectedClientId });
-              this.props.fetchClientDetails({ clientId: pending.discardEditAfterSelect.newlySelectedClientId });
+              this.changeClientFormState(false, false,
+                selected.client,
+                pending.discardEditAfterSelect.newlySelectedClientId,
+                pending.discardEditAfterSelect.editAfterSelect,
+                true);
               this.props.closeDiscardEditAfterSelectModal({});
             }}
           >
@@ -1009,6 +997,32 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       roleEnum: entityRole.roleEnum,
       userId: user,
     });
+  }
+
+  private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
+                                edit: boolean, resetValidityAfterSelect: boolean) {
+    if (currentlyEditing && formModified) {
+      this.props.openDiscardEditAfterSelectModal({
+        newlySelectedClientId: newClient,
+        editAfterSelect: edit,
+      });
+    } else {
+      if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
+        this.props.selectClient({ id: newClient });
+      }
+      this.props.setEditStatus({ disabled: !edit });
+
+      if (resetValidityAfterSelect) {
+        this.props.resetValidity({});
+      }
+
+      if (newClient !== 'new') {
+        this.props.fetchClientDetails({ clientId: newClient });
+      } else {
+        this.props.resetClientDetails({});
+        this.props.clearFormData({});
+      }
+    }
   }
 
   private async editClient(formData: AccessStateFormData) {

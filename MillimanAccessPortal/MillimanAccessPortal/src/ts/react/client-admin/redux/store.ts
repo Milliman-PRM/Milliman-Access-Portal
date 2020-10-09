@@ -38,6 +38,7 @@ export interface PendingRemoveClientUserState {
 }
 export interface PendingDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
+  editAfterSelect: boolean;
 }
 
 /**

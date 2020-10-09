@@ -39,6 +39,7 @@ const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
 };
 const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newlySelectedClientId: null,
+  editAfterSelect: false,
 };
 
 const initialDetails: ClientDetail = {
@@ -235,6 +236,7 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
   OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL: (state, action: AccessActions.OpenDiscardEditAfterSelectModal) => ({
     ...state,
     newlySelectedClientId: action.newlySelectedClientId,
+    editAfterSelect: action.editAfterSelect,
   }),
 });
 
