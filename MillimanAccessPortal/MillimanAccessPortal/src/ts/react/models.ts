@@ -1,3 +1,5 @@
+import { Moment } from 'moment';
+
 import { PublicationStatus, ReductionStatus } from '../view-models/content-publishing';
 import { Dict } from './shared-components/redux/store';
 
@@ -33,6 +35,8 @@ export interface Client {
 export interface ClientWithReviewDate extends Client {
   canManage?: boolean;
   reviewDueDateTimeUtc: string;
+  maxReviewDueDate?: Moment;
+  minReviewDueDate?: Moment;
 }
 export interface ClientWithStats extends Client {
   canManage?: boolean;
