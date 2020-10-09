@@ -16,10 +16,11 @@ export function clientsTree(state: AccessReviewState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithReviewDate[] });
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+  const sortItems = ['maxReviewDueDate'];
+  const sortOrder: Array<'asc' | 'desc'> = ['desc'];
+  const clientTree = _.orderBy(parentGroups.null, sortItems, sortOrder).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+    children: _.orderBy(parentGroups[c.id] || [], ['reviewDueDateTimeUtc'], sortOrder),
   }));
   return clientTree;
 }
