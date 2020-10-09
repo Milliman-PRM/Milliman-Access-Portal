@@ -143,12 +143,21 @@ export interface AccessReviewStateCardAttributes {
 }
 
 /**
+ * Client sort order
+ */
+export interface ClientSort {
+  sortBy: 'date' | 'name';
+  sortOrder: 'asc' | 'desc';
+}
+
+/**
  * All state that represents a change pending submission.
  */
 export interface AccessReviewStatePending {
   data: PendingDataState;
   clientAccessReviewProgress: ClientAccessReviewProgress;
   pendingClientSelection: Guid;
+  clientSort: ClientSort;
   statusTries: number;
   navBarRenderInt: number;
 }
