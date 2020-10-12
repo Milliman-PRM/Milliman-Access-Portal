@@ -43,7 +43,7 @@ const _initialClientAccessReviewProgress: ClientAccessReviewProgress = {
 
 const _initialClientSort: ClientSort = {
   sortBy: 'date',
-  sortOrder: 'desc',
+  sortOrder: 'asc',
 };
 
 /**
