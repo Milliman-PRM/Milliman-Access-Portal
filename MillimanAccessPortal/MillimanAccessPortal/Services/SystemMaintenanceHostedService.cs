@@ -22,19 +22,27 @@ namespace MillimanAccessPortal.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly Timer _clientAccessReviewNotificationTimer;
+        private readonly TimeSpan _clientReviewNotificationTimeOfDayUtc;
 
         public SystemMaintenanceHostedService(
-            IServiceProvider serviceProviderArg)
+            IServiceProvider serviceProviderArg,
+            IConfiguration appConfigArg)
         {
             _serviceProvider = serviceProviderArg;
 
+            _clientReviewNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9));
+
             _clientAccessReviewNotificationTimer = new Timer(ClientAccessReviewNotificationHandler);
-            _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(TimeSpan.FromHours(9)), Timeout.InfiniteTimeSpan);
+            _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await Task.Yield();
+            // await Task.Yield();
+            for (;;)
+            {
+                await Task.Delay(TimeSpan.FromMinutes(0.5));
+            }
         }
 
         private void ClientAccessReviewNotificationHandler(object state)
@@ -88,7 +96,7 @@ namespace MillimanAccessPortal.Services
                 }
             }
 
-            thisTimer.Change(TimeSpanTillNextEvent(TimeSpan.FromHours(9)), Timeout.InfiniteTimeSpan);
+            thisTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
