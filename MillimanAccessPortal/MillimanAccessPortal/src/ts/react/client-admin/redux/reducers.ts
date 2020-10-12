@@ -42,7 +42,7 @@ const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newSubClientParentId: null,
 };
 
-const initialDetails: ClientDetail = {
+const _initialDetails: ClientDetail = {
   id: null,
   name: '',
   clientCode: '',
@@ -68,7 +68,7 @@ const _initialData: AccessStateData = {
   clients: {},
   parentClients: {},
   profitCenters: [],
-  details: initialDetails,
+  details: _initialDetails,
   assignedUsers: [],
 };
 
@@ -260,7 +260,7 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   RESET_CLIENT_DETAILS: (state) => ({
     ...state,
-    details: initialDetails,
+    details: _initialDetails,
   }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
@@ -289,6 +289,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    details: _initialDetails,
   }),
   SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
     ...state,
@@ -317,6 +318,7 @@ const data = createReducer<AccessStateData>(_initialData, {
         canManage: true,
       },
     },
+    details: _initialDetails,
   }),
 });
 
@@ -343,6 +345,7 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     client: action.response.newClient.id,
     user: null,
   }),
+  DELETE_CLIENT_SUCCEEDED: () => _initialSelected,
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {

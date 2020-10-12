@@ -555,7 +555,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </div>
                 {!edit.disabled ?
                   <div className="form-submission-section">
-                    {selected.client === 'new' ?
+                    {selected.client === 'new' || selected.client === 'child' ?
                       <div className="button-container button-container-new">
                         <button
                           type="button"
