@@ -1,5 +1,6 @@
 ﻿import * as React from 'react';
 import * as Modal from 'react-modal';
+import { MultiSelect, OptionValue } from 'react-selectize';
 
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
@@ -403,6 +404,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
+                        <MultiSelect
+                          placeholder="Select fruits"
+                          options={['apple', 'mango', 'orange', 'banana'].map(
+                            (fruit) => ({ label: fruit, value: fruit }),
+                          )}
+                          createFromSearch={return {label: search.trim()}}
+                        />
                         <Input
                           name="approvedEmailAddressExceptionList"
                           label="Approved Email Address Exception List"
@@ -1090,6 +1098,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       && client.parentId !== null
       && client.id === null;
   }
+}
+
+function createNewMultiSelectItem(_items: OptionValue[], search: string): OptionValue {
+  return { label: search.trim(), value: search.trim() };
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
