@@ -239,8 +239,10 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
     });
     const clients = combinedClients;
     Object.keys(clients).forEach((client) => {
-      clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]);
-      clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]);
+      if (client in combinedClientDueDates) {
+        clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
+        clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
+      }
     });
     return {
       ...state,
