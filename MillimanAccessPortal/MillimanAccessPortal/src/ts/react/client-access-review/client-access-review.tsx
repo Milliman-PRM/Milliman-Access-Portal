@@ -22,7 +22,7 @@ import { Checkbox } from '../shared-components/form/checkbox';
 import { NavBar } from '../shared-components/navbar';
 import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
-import { activeSelectedClient, clientEntities, continueButtonIsActive } from './redux/selectors';
+import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsActive } from './redux/selectors';
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
@@ -36,6 +36,7 @@ interface ClientAccessReviewProps {
   clientSummary: ClientSummaryModel;
   clientAccessReview: ClientAccessReviewModel;
   clientAccessReviewProgress: ClientAccessReviewProgress;
+  clientSortIcon: 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc';
   globalData: AccessReviewGlobalData;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
@@ -733,6 +734,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     clientSummary: data.selectedClientSummary,
     clientAccessReview: data.clientAccessReview,
     clientAccessReviewProgress: pending.clientAccessReviewProgress,
+    clientSortIcon: clientSortIcon(state),
     globalData: data.globalData,
     selected,
     cardAttributes,

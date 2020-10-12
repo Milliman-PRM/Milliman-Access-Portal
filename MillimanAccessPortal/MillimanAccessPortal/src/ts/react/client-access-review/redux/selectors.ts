@@ -142,3 +142,23 @@ export function continueButtonIsActive(state: AccessReviewState) {
   }
   return buttonIsActive;
 }
+
+/**
+ * Define the icon used for the Client Sort button
+ */
+export function clientSortIcon(state: AccessReviewState):
+  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' {
+  const { sortBy, sortOrder } = state.pending.clientSort;
+  if (sortBy === 'name' && sortOrder === 'asc') {
+    return 'sort-alphabetically-asc';
+  }
+  if (sortBy === 'name' && sortOrder === 'desc') {
+    return 'sort-alphabetically-desc';
+  }
+  if (sortBy === 'date' && sortOrder === 'asc') {
+    return 'sort-date-asc';
+  }
+  if (sortBy === 'date' && sortOrder === 'desc') {
+    return 'sort-date-desc';
+  }
+}
