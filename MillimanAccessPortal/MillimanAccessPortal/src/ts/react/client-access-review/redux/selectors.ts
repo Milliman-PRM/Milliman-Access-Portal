@@ -10,17 +10,31 @@ import { AccessReviewState, ClientAccessReviewProgressEnum } from './store';
  * This selector supports client tree structures with at most 2 layers.
  */
 export function clientsTree(state: AccessReviewState) {
+  const { sortBy, sortOrder } = state.pending.clientSort;
   const clients = _.toArray(state.data.clients);
   const parentGroups: { [id: string]: ClientWithReviewDate[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithReviewDate[] });
-  const sortItems = ['maxReviewDueDate'];
-  const sortOrder: Array<'asc' | 'desc'> = ['desc'];
-  const clientTree = _.orderBy(parentGroups.null, sortItems, sortOrder).map((c) => ({
+  const sortItemsParent = sortBy === 'date'
+    ? sortOrder === 'asc'
+      ? ['minReviewDueDate']
+      : ['maxReviewDueDate']
+    : ['name', 'code'];
+  const sortItemsChild = sortBy === 'date' ? ['reviewDueDateTimeUtc'] : ['name'];
+  let sortOrderParent: Array<'asc' | 'desc'>;
+  let sortOrderChild: Array<'asc' | 'desc'>;
+  if (sortBy === 'date') {
+    sortOrderParent = [sortOrder];
+    sortOrderChild = [sortOrder];
+  } else {
+    sortOrderParent = [sortOrder, sortOrder];
+    sortOrderChild = [sortOrder];
+  }
+  const clientTree = _.orderBy(parentGroups.null, sortItemsParent, sortOrderParent).map((c) => ({
     parent: c,
-    children: _.orderBy(parentGroups[c.id] || [], ['reviewDueDateTimeUtc'], sortOrder),
+    children: _.orderBy(parentGroups[c.id] || [], sortItemsChild, sortOrderChild),
   }));
   return clientTree;
 }
