@@ -1,6 +1,5 @@
 ﻿import * as React from 'react';
 import * as Modal from 'react-modal';
-import { MultiSelect, OptionValue } from 'react-selectize';
 
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
@@ -29,7 +28,7 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
-import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { RoleEnum } from '../shared-components/interfaces';
@@ -186,7 +185,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       /> : null
                     }
                   </CardSectionButtons>
-                : null}
+                  : null}
               </CardSectionMain>
             </Card>
           );
@@ -404,23 +403,19 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
-                        <MultiSelect
-                          placeholder="Select fruits"
-                          options={['apple', 'mango', 'orange', 'banana'].map(
-                            (fruit) => ({ label: fruit, value: fruit }),
-                          )}
-                          createFromSearch={return {label: search.trim()}}
-                        />
-                        <Input
-                          name="approvedEmailAddressExceptionList"
+                        <MultiAddInput
+                          name="acceptedEmailAddressExceptionList"
                           label="Approved Email Address Exception List"
                           type="text"
-                          value={formData.acceptedEmailAddressExceptionList}
-                          onChange={(event) => {
-                            this.props.setFormFieldValue({
-                              field: 'approvedEmailAddressExceptionList',
-                              value: event.currentTarget.value.split(', '),
-                            });
+                          list={formData.acceptedEmailAddressExceptionList}
+                          value={null}
+                          onKeyPress={(event) => {
+                            if (event.key === 'Enter' || event.key === ',') {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailAddressExceptionList',
+                                value: formData.acceptedEmailAddressExceptionList.concat(event.currentTarget.value),
+                              });
+                            }
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -703,7 +698,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.ContentAccessAdmin],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -711,7 +706,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.ContentPublisher],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -726,7 +721,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropAdmin],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -1100,8 +1095,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 }
 
-function createNewMultiSelectItem(_items: OptionValue[], search: string): OptionValue {
-  return { label: search.trim(), value: search.trim() };
+function createFromSearch() {
+  return { value: '', search: ''};
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {

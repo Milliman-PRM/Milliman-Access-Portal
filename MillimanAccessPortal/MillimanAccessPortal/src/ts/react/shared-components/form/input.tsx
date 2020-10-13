@@ -1,4 +1,6 @@
-﻿import '../../../../images/icons/hide-password.svg';
+﻿import * as _ from 'lodash';
+
+import '../../../../images/icons/hide-password.svg';
 import '../../../../images/icons/show-password.svg';
 
 import '../../../../scss/react/shared-components/form-elements.scss';
@@ -10,7 +12,8 @@ interface BaseInputProps {
   name: string;
   label: string;
   value: string | number | string[];
-  onChange: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  onChange?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
+  onKeyPress?: (currentTarget: React.KeyboardEvent<HTMLInputElement>) => void;
   onBlur?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
   onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement> | null) => void;
   error: string;
@@ -79,6 +82,55 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps
             {...rest}
             rows={rows ? rows : 5}
             maxRows={maxRows ? maxRows : 10}
+          />
+          <label className="form-input-label" htmlFor={name}>{label}</label>
+        </div>
+        {children}
+      </div>
+      {error && <div className="error-message">{error}</div>}
+    </div>
+  );
+});
+
+interface MultiAddProps extends InputProps {
+  list: string[];
+  limit?: number;
+  exceptions?: string[];
+}
+
+export const MultiAddInput = React.forwardRef<HTMLInputElement, MultiAddProps>((props, ref) => {
+  const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
+          onKeyPress, ...rest } = props;
+
+  return (
+    <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
+      <div
+        className={'form-element-input' + (error ? ' error' : '') + (list.length > 0 && !readOnly ? ' multi-add' : '')}
+      >
+        <div className="form-input-container">
+          <div style={{ display: 'inherit', marginTop: readOnly ? '1.1em' : '2.2em' }}>
+            {list.map((element: string, key: number) => {
+              return (
+                <div className="badge badge-primary" key={key}>
+                  {element}
+                  {!readOnly ? <span className="badge-remove-btn">&nbsp;×</span> : null}
+                </div>
+              );
+            })}
+          </div>
+          <input
+            name={name}
+            id={name}
+            ref={ref}
+            className="form-input"
+            readOnly={readOnly}
+            onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
+              onKeyPress(event);
+              if (event.key === 'Enter' || event.key === ',') {
+                (document.getElementById(name) as HTMLFormElement).value = '';
+              }
+            }}
+            {...rest}
           />
           <label className="form-input-label" htmlFor={name}>{label}</label>
         </div>

@@ -192,6 +192,11 @@
             border: 2px solid $red;
         }
 
+        &.multi-add {
+          height: 75px;
+          max-height: 75px;
+        }
+
         .input-icon-label,
         .action-icon-label {
             flex: 0 0 auto;
@@ -450,4 +455,31 @@
         -o-transform: rotate(360deg);
         transform: rotate(360deg);
     }
+}
+
+.badge {
+  border-radius: 3px;
+  color: white;
+  padding: 0.2em;
+  margin: 0.2em;
+
+  &.badge-primary {
+    background-color: $green;
+  }
+
+  &:hover .badge-primary {
+    background-color: darkgreen;
+  }
+
+  &.badge-secondary {
+    background-color: $blue;
+
+    &:hover {
+      background-color: navy;
+    }
+  }
+
+  .badge-remove-btn {
+    color: grey;
+  }
 }
