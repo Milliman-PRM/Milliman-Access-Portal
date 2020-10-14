@@ -2,7 +2,9 @@ import { ClientWithReviewDate } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
-import { AccessReviewGlobalData, ClientAccessReviewModel, ClientSummaryModel } from './store';
+import {
+  AccessReviewGlobalData, ClientAccessReviewModel, ClientSort, ClientSummaryModel,
+} from './store';
 
 // ~~ Page actions ~~
 
@@ -73,6 +75,14 @@ export interface OpenLeavingActiveReviewModal {
  */
 export interface CloseLeavingActiveReviewModal {
   type: 'CLOSE_LEAVING_ACTIVE_REVIEW_MODAL';
+}
+
+/**
+ * Set the sort order of the Client column
+ */
+export interface SetSortOrder {
+  type: 'SET_SORT_ORDER';
+  clientSort: ClientSort;
 }
 
 /**
@@ -225,6 +235,7 @@ export type PageAccessReviewAction =
   | CancelClientAccessReview
   | OpenLeavingActiveReviewModal
   | CloseAccessReviewModalAction
+  | SetSortOrder
   | UpdateNavBar
   ;
 

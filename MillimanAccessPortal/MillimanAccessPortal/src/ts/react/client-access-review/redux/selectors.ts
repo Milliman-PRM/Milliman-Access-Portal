@@ -10,16 +10,31 @@ import { AccessReviewState, ClientAccessReviewProgressEnum } from './store';
  * This selector supports client tree structures with at most 2 layers.
  */
 export function clientsTree(state: AccessReviewState) {
+  const { sortBy, sortOrder } = state.pending.clientSort;
   const clients = _.toArray(state.data.clients);
   const parentGroups: { [id: string]: ClientWithReviewDate[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithReviewDate[] });
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+  const sortItemsParent = sortBy === 'date'
+    ? sortOrder === 'asc'
+      ? ['minReviewDueDate']
+      : ['maxReviewDueDate']
+    : ['name', 'code'];
+  const sortItemsChild = sortBy === 'date' ? ['reviewDueDateTimeUtc'] : ['name'];
+  let sortOrderParent: Array<'asc' | 'desc'>;
+  let sortOrderChild: Array<'asc' | 'desc'>;
+  if (sortBy === 'date') {
+    sortOrderParent = [sortOrder];
+    sortOrderChild = [sortOrder];
+  } else {
+    sortOrderParent = [sortOrder, sortOrder];
+    sortOrderChild = [sortOrder];
+  }
+  const clientTree = _.orderBy(parentGroups.null, sortItemsParent, sortOrderParent).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+    children: _.orderBy(parentGroups[c.id] || [], sortItemsChild, sortOrderChild),
   }));
   return clientTree;
 }
@@ -126,4 +141,24 @@ export function continueButtonIsActive(state: AccessReviewState) {
       break;
   }
   return buttonIsActive;
+}
+
+/**
+ * Define the icon used for the Client Sort button
+ */
+export function clientSortIcon(state: AccessReviewState):
+  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' {
+  const { sortBy, sortOrder } = state.pending.clientSort;
+  if (sortBy === 'name' && sortOrder === 'asc') {
+    return 'sort-alphabetically-asc';
+  }
+  if (sortBy === 'name' && sortOrder === 'desc') {
+    return 'sort-alphabetically-desc';
+  }
+  if (sortBy === 'date' && sortOrder === 'asc') {
+    return 'sort-date-asc';
+  }
+  if (sortBy === 'date' && sortOrder === 'desc') {
+    return 'sort-date-desc';
+  }
 }

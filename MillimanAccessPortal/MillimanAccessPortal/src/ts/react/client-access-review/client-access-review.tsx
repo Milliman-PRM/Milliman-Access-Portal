@@ -10,6 +10,7 @@ import ReduxToastr from 'react-redux-toastr';
 
 import { setUnloadAlert } from '../../unload-alerts';
 import { Client, ClientWithReviewDate } from '../models';
+import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
@@ -22,7 +23,7 @@ import { Checkbox } from '../shared-components/form/checkbox';
 import { NavBar } from '../shared-components/navbar';
 import { ProgressIndicator } from './progress-indicator';
 import * as ClientAccessReviewActionCreators from './redux/action-creators';
-import { activeSelectedClient, clientEntities, continueButtonIsActive } from './redux/selectors';
+import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsActive } from './redux/selectors';
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
@@ -36,6 +37,7 @@ interface ClientAccessReviewProps {
   clientSummary: ClientSummaryModel;
   clientAccessReview: ClientAccessReviewModel;
   clientAccessReviewProgress: ClientAccessReviewProgress;
+  clientSortIcon: 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc';
   globalData: AccessReviewGlobalData;
   selected: AccessReviewStateSelected;
   cardAttributes: AccessReviewStateCardAttributes;
@@ -134,7 +136,28 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, globalData, pending, cardAttributes, clientAccessReview } = this.props;
+    const {
+      clients, selected, filters, globalData, pending, cardAttributes, clientAccessReview,
+    } = this.props;
+    const setClientSortOrderButtons = (
+      <>
+        <ActionIcon
+          label={`Sorted by ${pending.clientSort.sortBy === 'name' ? 'Client Name' : 'Review Date'}`}
+          icon={this.props.clientSortIcon}
+          action={() => {
+            let sortBy: 'name' | 'date';
+            if (pending.clientSort.sortOrder === 'desc') {
+              sortBy = pending.clientSort.sortBy === 'date' ? 'name' : 'date';
+            } else {
+              sortBy = pending.clientSort.sortBy;
+            }
+            const sortOrder = pending.clientSort.sortOrder === 'desc' ? 'asc' : 'desc';
+            this.props.setSortOrder({ clientSort: { sortBy, sortOrder } });
+          }}
+        />
+      </>
+    );
+
     return (
       <CardPanel
         entities={clients}
@@ -191,7 +214,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
-            <div id="icons" />
+            {setClientSortOrderButtons}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
       </CardPanel>
@@ -733,6 +756,7 @@ function mapStateToProps(state: AccessReviewState): ClientAccessReviewProps {
     clientSummary: data.selectedClientSummary,
     clientAccessReview: data.clientAccessReview,
     clientAccessReviewProgress: pending.clientAccessReviewProgress,
+    clientSortIcon: clientSortIcon(state),
     globalData: data.globalData,
     selected,
     cardAttributes,

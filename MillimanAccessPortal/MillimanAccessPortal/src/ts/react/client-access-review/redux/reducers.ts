@@ -1,7 +1,11 @@
 import * as _ from 'lodash';
+import * as moment from 'moment';
+import { Moment } from 'moment';
+
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
+import { ClientWithReviewDate } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Guid } from '../../shared-components/interfaces';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -12,7 +16,7 @@ import {
 } from './actions';
 import {
   AccessReviewStateData, AccessReviewStateSelected, ClientAccessReviewProgress,
-  ClientAccessReviewProgressEnum, PendingDataState,
+  ClientAccessReviewProgressEnum, ClientSort, PendingDataState,
 } from './store';
 
 const _initialData: AccessReviewStateData = {
@@ -36,6 +40,11 @@ const _initialClientAccessReviewProgress: ClientAccessReviewProgress = {
   step: 0,
   contentItemConfirmations: null,
   fileDropConfirmations: null,
+};
+
+const _initialClientSort: ClientSort = {
+  sortBy: 'date',
+  sortOrder: 'asc',
 };
 
 /**
@@ -76,6 +85,40 @@ const createModalReducer = (
   });
   return createReducer<ModalState>({ isOpen: false }, handlers);
 };
+
+/**
+ * Create a helper function for calculating min/max client review due dates
+ */
+function calculateReviewDueDates(response: {
+  clients: Dict<ClientWithReviewDate>;
+  parentClients: Dict<ClientWithReviewDate>;
+}) {
+  const combinedClients = {
+    ..._.mapValues(response.clients, (client) => ({ ...client, canManage: true })),
+    ..._.mapValues(response.parentClients, (client) => ({ ...client, canManage: false })),
+  };
+  const combinedClientDueDates: Dict<Moment[]> = {};
+  Object.keys(combinedClients).forEach((client) => {
+    const parentId = combinedClients[client].parentId || combinedClients[client].id;
+    if (combinedClients[client].canManage) {
+      (parentId in combinedClientDueDates) ?
+        combinedClientDueDates[parentId].push(moment(combinedClients[client].reviewDueDateTimeUtc)) :
+        combinedClientDueDates[parentId] = [moment(combinedClients[client].reviewDueDateTimeUtc)];
+    } else {
+      if (!(parentId in combinedClientDueDates)) {
+        combinedClientDueDates[parentId] = [];
+      }
+    }
+  });
+  const clients = combinedClients;
+  Object.keys(clients).forEach((client) => {
+    if (client in combinedClientDueDates) {
+      clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
+      clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
+    }
+  });
+  return clients;
+}
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},
   {
@@ -195,6 +238,13 @@ const pendingClientSelection = createReducer<Guid>(null, {
   SELECT_CLIENT: () => null,
 });
 
+const clientSort = createReducer<ClientSort>(_initialClientSort, {
+  SET_SORT_ORDER: (_state, action: AccessReviewActions.SetSortOrder) => ({
+    sortBy: action.clientSort.sortBy,
+    sortOrder: action.clientSort.sortOrder,
+  }),
+});
+
 const navBarRenderInt = createReducer<number>(0, {
   UPDATE_NAV_BAR: (state) => state + 1,
 });
@@ -206,10 +256,7 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: AccessReviewActions.FetchClientsSucceeded) => ({
     ...state,
-    clients: {
-      ...action.response.clients,
-      ...action.response.parentClients,
-    },
+    clients: calculateReviewDueDates(action.response),
   }),
   FETCH_CLIENT_SUMMARY_SUCCEEDED: (state, action: AccessReviewActions.FetchClientSummarySucceeded) => ({
     ...state,
@@ -226,10 +273,7 @@ const data = createReducer<AccessReviewStateData>(_initialData, {
   }),
   APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED: (state, action: AccessReviewActions.ApproveClientAccessReviewSucceeded) => ({
     ...state,
-    clients: {
-      ...action.response.clients,
-      ...action.response.parentClients,
-    },
+    clients: calculateReviewDueDates(action.response),
     clientAccessReview: null,
   }),
 });
@@ -253,6 +297,7 @@ const pending = combineReducers({
   data: pendingData,
   clientAccessReviewProgress: reviewProgress,
   pendingClientSelection,
+  clientSort,
   navBarRenderInt,
 });
 
