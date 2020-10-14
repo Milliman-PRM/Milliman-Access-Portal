@@ -6,7 +6,7 @@ import ReduxToastr from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, clientEntities, isFormModified, isFormValid,
+  activeUsers, allUsersCollapsed, allUsersExpanded, clientEntities, isFormModified, isFormValid,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -53,6 +53,8 @@ interface ClientAdminProps {
   modals: AccessStateModals;
   formModified: boolean;
   formValid: boolean;
+  allUsersExpanded: boolean;
+  allUsersCollapsed: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -638,7 +640,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, cardAttributes, filters } = this.props;
+    const {
+      assignedUsers,
+      selected,
+      cardAttributes,
+      allUsersExpanded: allExpanded,
+      allUsersCollapsed: allCollapsed,
+      filters,
+    } = this.props;
     return (
       <>
         <CardPanel
@@ -746,11 +755,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <PanelSectionToolbarButtons>
               {!selected.readonly ?
                 <PanelSectionToolbarButtons>
-                  <ActionIcon
-                    label="Expand all user cards"
-                    icon="expand-cards"
-                    action={() => false}
-                  />
+                  {allExpanded ?
+                    null :
+                    <ActionIcon
+                      label="Expand all user cards"
+                      icon="expand-cards"
+                      action={() => this.props.setAllExpandedUser({})}
+                    />
+                  }
+                  {allCollapsed ?
+                    null :
+                    <ActionIcon
+                      label="Collapse all user cards"
+                      icon="collapse-cards"
+                      action={() => this.props.setAllCollapsedUser({})}
+                    />
+                  }
                   <ActionIcon
                     label="Add or create a new client"
                     icon="add"
@@ -1117,6 +1137,8 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     modals,
     formModified: isFormModified(state),
     formValid: isFormValid(state),
+    allUsersExpanded: allUsersExpanded(state),
+    allUsersCollapsed: allUsersCollapsed(state),
   };
 }
 

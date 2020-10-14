@@ -131,3 +131,27 @@ export function activeClients(state: AccessState) {
 export function activeUsers(state: AccessState) {
   return filteredUsers(state);
 }
+
+/**
+ * Select whether all client user cards are expanded.
+ * @param state Redux store
+ */
+export function allUsersExpanded(state: AccessState) {
+  return activeUsers(state)
+    .reduce((prev, u) => {
+      const card = state.cardAttributes.user[u.id];
+      return prev && card && card.expanded;
+    }, true);
+}
+
+/**
+ * Select whether all client user cards are collapsed.
+ * @param state Redux store
+ */
+export function allUsersCollapsed(state: AccessState) {
+  return activeUsers(state)
+    .reduce((prev, u) => {
+      const card = state.cardAttributes.user[u.id];
+      return prev && (!card || !card.expanded);
+    }, true);
+}

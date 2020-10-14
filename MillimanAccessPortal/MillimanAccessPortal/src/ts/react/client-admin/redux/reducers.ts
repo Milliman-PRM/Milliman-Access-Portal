@@ -451,15 +451,22 @@ const userCardAttributes = createReducer<Dict<CardAttributes>>({},
       },
     }),
     SET_ALL_EXPANDED_USER: (state) =>
-      _.mapValues(state, (group) => ({
-        ...group,
+      _.mapValues(state, (user) => ({
+        ...user,
         expanded: true,
       })),
     SET_ALL_COLLAPSED_USER: (state) =>
-      _.mapValues(state, (group) => ({
-        ...group,
+      _.mapValues(state, (user) => ({
+        ...user,
         expanded: false,
       })),
+    FETCH_CLIENT_DETAILS_SUCCEEDED: (_state, action: AccessActions.FetchClientDetailsSucceeded) => {
+      const state: Dict<CardAttributes> = {};
+      action.response.assignedUsers.forEach((user) => {
+        state[user.id] = {};
+      });
+      return state;
+    },
   },
 );
 
