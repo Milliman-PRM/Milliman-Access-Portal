@@ -405,24 +405,37 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
-                        <MultiAddInput
-                          name="acceptedEmailAddressExceptionList"
-                          label="Approved Email Address Exception List"
-                          type="text"
-                          list={formData.acceptedEmailAddressExceptionList}
-                          value={null}
-                          onKeyPress={(event) => {
-                            if (event.key === 'Enter' || event.key === ',') {
-                              this.props.setFormFieldValue({
-                                field: 'acceptedEmailAddressExceptionList',
-                                value: formData.acceptedEmailAddressExceptionList.concat(event.currentTarget.value),
-                              });
-                            }
-                          }}
-                          readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={null}
-                        />
+                        {edit.disabled ?
+                          <Input
+                            name="approvedEmailAddressExceptionList"
+                            label="Approved Email Address Exception List"
+                            type="text"
+                            value={formData.acceptedEmailAddressExceptionList}
+                            onChange={null}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="acceptedEmailAddressExceptionList"
+                            label="Approved Email Address Exception List"
+                            type="text"
+                            list={formData.acceptedEmailAddressExceptionList}
+                            value={null}
+                            onKeyPress={(event) => {
+                              if (event.key === 'Enter' || event.key === ',') {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailAddressExceptionList',
+                                  value: formData.acceptedEmailAddressExceptionList.
+                                    concat(event.currentTarget.value.trim()),
+                                });
+                              }
+                            }}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          />
+                        }
                       </div>
                     </div>
                   </div>

@@ -98,17 +98,17 @@ interface MultiAddProps extends InputProps {
   exceptions?: string[];
 }
 
-export const MultiAddInput = React.forwardRef<HTMLInputElement, MultiAddProps>((props, ref) => {
+export const MultiAddInput = React.forwardRef<HTMLTextAreaElement, MultiAddProps>((props, ref) => {
   const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
           onKeyPress, ...rest } = props;
 
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div
-        className={'form-element-input' + (error ? ' error' : '') + (list.length > 0 && !readOnly ? ' multi-add' : '')}
+        className={'form-element-multi-add-input' + (error ? ' error' : '')}
       >
-        <div className="form-input-container">
-          <div style={{ display: 'inherit', marginTop: readOnly ? '1.1em' : '2.2em' }}>
+        <div className="form-input-container-multi-add">
+          <span style={{ display: 'inline-flex', marginTop: '0.85em' }}>
             {list.map((element: string, key: number) => {
               return (
                 <div className="badge badge-primary" key={key}>
@@ -117,21 +117,23 @@ export const MultiAddInput = React.forwardRef<HTMLInputElement, MultiAddProps>((
                 </div>
               );
             })}
+          </span>
+          <div>
+            <TextareaAutosize
+              name={name}
+              id={name}
+              ref={ref}
+              className="form-input-multi-add"
+              readOnly={readOnly}
+              onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                onKeyPress(event);
+                if (event.key === 'Enter' || event.key === ',') {
+                  (document.getElementById(name) as HTMLFormElement).value = '';
+                }
+              }}
+              {...rest}
+            />
           </div>
-          <input
-            name={name}
-            id={name}
-            ref={ref}
-            className="form-input"
-            readOnly={readOnly}
-            onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
-              onKeyPress(event);
-              if (event.key === 'Enter' || event.key === ',') {
-                (document.getElementById(name) as HTMLFormElement).value = '';
-              }
-            }}
-            {...rest}
-          />
           <label className="form-input-label" htmlFor={name}>{label}</label>
         </div>
         {children}

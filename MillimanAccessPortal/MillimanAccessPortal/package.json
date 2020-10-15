@@ -54,6 +54,7 @@
     "@types/react-redux": "^6.0.9",
     "@types/react-redux-toastr": "^7.4.1",
     "@types/react-select": "^2.0.7",
+    "@types/react-tagsinput": "^3.19.7",
     "@types/resumablejs": "1.0.6",
     "@types/selectize": "^0.12.33",
     "@types/toastr": "^2.1.35",
