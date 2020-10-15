@@ -48,7 +48,10 @@ export class CardText extends React.Component<CardTextProps> {
             </svg> : null
           }
         </h2>
-        <p className="card-body-secondary-text">{subtext}</p>
+        {subtext && subtext.trim() !== '' ?
+          <p className="card-body-secondary-text">{subtext}</p>
+          : null
+        }
       </div>
     );
   }
