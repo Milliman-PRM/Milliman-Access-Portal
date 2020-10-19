@@ -1,5 +1,4 @@
 ﻿import * as _ from 'lodash';
-import * as Yup from 'yup';
 
 import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
@@ -40,9 +39,10 @@ const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
 const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newlySelectedClientId: null,
   editAfterSelect: false,
+  newSubClientParentId: null,
 };
 
-const initialDetails: ClientDetail = {
+const _initialDetails: ClientDetail = {
   id: null,
   name: '',
   clientCode: '',
@@ -66,8 +66,9 @@ const initialDetails: ClientDetail = {
 
 const _initialData: AccessStateData = {
   clients: {},
+  parentClients: {},
   profitCenters: [],
-  details: initialDetails,
+  details: _initialDetails,
   assignedUsers: [],
 };
 
@@ -98,7 +99,9 @@ const _initialValidation: AccessStateValid = {
 
 const _initialSelected: AccessStateSelected = {
   client: null,
+  parent: null,
   user: null,
+  readonly: false,
 };
 
 const _initialEditStatus: AccessStateEdit = {
@@ -237,6 +240,7 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
     ...state,
     newlySelectedClientId: action.newlySelectedClientId,
     editAfterSelect: action.editAfterSelect,
+    newSubClientParentId: action.newSubClientParentId,
   }),
 });
 
@@ -246,6 +250,9 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    parentClients: {
+      ...action.response.parentClients,
+    },
   }),
   FETCH_PROFIT_CENTERS_SUCCEEDED: (state, action: AccessActions.FetchProfitCentersSucceeded) => ({
     ...state,
@@ -253,7 +260,7 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   RESET_CLIENT_DETAILS: (state) => ({
     ...state,
-    details: initialDetails,
+    details: _initialDetails,
   }),
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
@@ -282,6 +289,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     clients: {
       ...action.response.clients,
     },
+    details: _initialDetails,
   }),
   SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
     ...state,
@@ -292,6 +300,26 @@ const data = createReducer<AccessStateData>(_initialData, {
     details: action.response.clientDetail,
     assignedUsers: action.response.assignedUsers,
   }),
+  SELECT_CLIENT: (state) => ({
+    ...state,
+    clients: _.omit(state.clients, 'child'),
+  }),
+  SELECT_NEW_SUB_CLIENT: (state, action: AccessActions.SelectNewSubClient) => ({
+    ...state,
+    clients: {
+      ...state.clients,
+      ['child']: {
+        id: null,
+        parentId: action.parentId,
+        name: null,
+        code: null,
+        contentItemCount: 0,
+        userCount: 0,
+        canManage: true,
+      },
+    },
+    details: _initialDetails,
+  }),
 });
 
 const selected = createReducer<AccessStateSelected>(_initialSelected, {
@@ -299,6 +327,14 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     client: action.id === state.client ? null : action.id,
     user: null,
+    readonly: action.readonly,
+  }),
+  SELECT_NEW_SUB_CLIENT: (state, action: AccessActions.SelectNewSubClient) => ({
+    ...state,
+    client: 'child',
+    parent: action.parentId,
+    user: null,
+    readonly: false,
   }),
   SELECT_USER: (state, action: AccessActions.SelectUser) => ({
     ...state,
@@ -309,6 +345,7 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     client: action.response.newClient.id,
     user: null,
   }),
+  DELETE_CLIENT_SUCCEEDED: () => _initialSelected,
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
@@ -317,10 +354,14 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     disabled: action.disabled,
   }),
   SELECT_CLIENT: () => _initialEditStatus,
+  SELECT_NEW_SUB_CLIENT: () => ({
+    disabled: false,
+  }),
 });
 
 const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
   CLEAR_FORM_DATA: () => _initialFormData,
+  SELECT_NEW_SUB_CLIENT: () => _initialFormData,
   FETCH_CLIENT_DETAILS_SUCCEEDED: (state, action: AccessActions.FetchClientDetailsSucceeded) => ({
     ...state,
     details: action.response.clientDetail,
@@ -388,6 +429,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
 const valid = createReducer<AccessStateValid>(_initialValidation, {
   RESET_VALIDITY: () => _initialValidation,
   SELECT_CLIENT: () => _initialValidation,
+  SELECT_NEW_SUB_CLIENT: () => _initialValidation,
   SET_VALIDITY_FOR_FIELD: (state, action: AccessActions.SetValidityForField) => ({
     ...state,
     [action.field]: action.valid,

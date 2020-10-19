@@ -126,48 +126,66 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           return (
             <Card
               key={key}
-              selected={entity.id === selected.client}
-              disabled={false}
+              selected={entity.id === selected.client || this.clientIsNewChild(entity)}
+              readonly={!entity.canManage}
               onSelect={() => {
                 this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, false, true);
               }}
               indentation={entity.indent}
+              insertCard={this.clientIsNewChild(entity)}
             >
               <CardSectionMain>
-                <CardText text={entity.name} subtext={entity.code} />
-                <CardSectionStats>
-                  <CardStat
-                    name={'Eligible users'}
-                    value={entity.userCount}
-                    icon={'user'}
-                  />
-                  <CardStat
-                    name={'Content items'}
-                    value={entity.contentItemCount}
-                    icon={'reports'}
-                  />
-                </CardSectionStats>
-                <CardSectionButtons>
-                  <CardButton
-                    icon={'delete'}
-                    color={'red'}
-                    onClick={() => {
-                      this.props.openDeleteClientModal({ id: entity.id, name: entity.name });
-                    }}
-                  />
-                  <CardButton
-                    icon={'edit'}
-                    color={'blue'}
-                    onClick={() => {
-                      this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, true, true);
-                    }}
-                  />
-                  <CardButton
-                    icon={'add'}
-                    color={'green'}
-                    onClick={null}
-                  />
-                </CardSectionButtons>
+                <CardText
+                  text={!this.clientIsNewChild(entity) ? entity.name : 'New Sub-Client'}
+                  isNewChild={this.clientIsNewChild(entity)}
+                  subtext={entity.code}
+                />
+                {!this.clientIsNewChild(entity) ?
+                  <CardSectionStats>
+                    <CardStat
+                      name={'Eligible users'}
+                      value={entity.userCount}
+                      icon={'user'}
+                    />
+                    <CardStat
+                      name={'Content items'}
+                      value={entity.contentItemCount}
+                      icon={'reports'}
+                    />
+                  </CardSectionStats> : null
+                }
+                {entity.canManage ?
+                  <CardSectionButtons>
+                    {!this.clientHasChildren(clients, entity.id) ?
+                      <CardButton
+                        icon={'delete'}
+                        color={'red'}
+                        onClick={() => {
+                          this.props.openDeleteClientModal({ id: entity.id, name: entity.name });
+                        }}
+                      /> : null
+                    }
+                    {!this.clientIsNewChild(entity) ?
+                      <CardButton
+                        icon={'edit'}
+                        color={'blue'}
+                        onClick={() => {
+                          this.changeClientFormState(formModified, !edit.disabled, selected.client,
+                            entity.id, true, true);
+                        }}
+                      /> : null
+                    }
+                    {entity.parentId === null ?
+                      <CardButton
+                        icon={'add'}
+                        color={'green'}
+                        onClick={() => {
+                          this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
+                        }}
+                      /> : null
+                    }
+                  </CardSectionButtons>
+                : null}
               </CardSectionMain>
             </Card>
           );
@@ -206,28 +224,30 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h3 className="admin-panel-header">Client Information</h3>
           <PanelSectionToolbar>
-            <PanelSectionToolbarButtons>
-              {edit.disabled ?
-                <ActionIcon
-                  label="Edit client details"
-                  icon="edit"
-                  action={() => {
-                    this.props.setEditStatus({ disabled: false });
-                  }}
-                /> :
-                <ActionIcon
-                  label="Cancel edit"
-                  icon="cancel"
-                  action={() => {
-                    this.props.resetFormData({ details });
-                    this.props.resetValidity({});
-                    this.props.setEditStatus({ disabled: true });
+            {!selected.readonly ?
+              <PanelSectionToolbarButtons>
+                {edit.disabled ?
+                  <ActionIcon
+                    label="Edit client details"
+                    icon="edit"
+                    action={() => {
+                      this.props.setEditStatus({ disabled: false });
+                    }}
+                  /> :
+                  <ActionIcon
+                    label="Cancel edit"
+                    icon="cancel"
+                    action={() => {
+                      this.props.resetFormData({ details });
+                      this.props.resetValidity({});
+                      this.props.setEditStatus({ disabled: true });
 
-                    if (selected.client === 'new') { this.props.selectClient({ id: null }); }
-                  }}
-                />
-              }
-            </PanelSectionToolbarButtons>
+                      if (selected.client === 'new') { this.props.selectClient({ id: null }); }
+                    }}
+                  />
+                }
+              </PanelSectionToolbarButtons> : null
+            }
           </PanelSectionToolbar>
           <div className="admin-panel-content-container" style={{ overflowY: 'scroll' }}>
             <form className={`admin-panel-content ${edit.disabled ? 'form-disabled' : ''}`}>
@@ -535,7 +555,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 </div>
                 {!edit.disabled ?
                   <div className="form-submission-section">
-                    {selected.client === 'new' ?
+                    {selected.client === 'new' || selected.client === 'child' ?
                       <div className="button-container button-container-new">
                         <button
                           type="button"
@@ -626,7 +646,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <Card
                 key={key}
                 selected={false}
-                disabled={false}
+                disabled={selected.readonly}
                 onSelect={() => {
                   this.props.selectUser({ id: entity.id });
                   (card && card.expanded) ?
@@ -640,18 +660,20 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
                     subtext={entity.firstName && entity.lastName ? entity.email : ''}
                   />
-                  <CardSectionButtons>
-                    <CardButton
-                      icon="remove-circle"
-                      color={'red'}
-                      onClick={() => this.props.openRemoveUserFromClientModal({
-                        clientId: selected.client,
-                        userId: entity.id,
-                        name: entity.firstName && entity.lastName ?
-                          `${entity.firstName} ${entity.lastName}` : entity.email,
-                      })}
-                    />
-                  </CardSectionButtons>
+                  {!selected.readonly ?
+                    <CardSectionButtons>
+                      <CardButton
+                        icon="remove-circle"
+                        color={'red'}
+                        onClick={() => this.props.openRemoveUserFromClientModal({
+                          clientId: selected.client,
+                          userId: entity.id,
+                          name: entity.firstName && entity.lastName ?
+                            `${entity.firstName} ${entity.lastName}` : entity.email,
+                        })}
+                      />
+                    </CardSectionButtons> : null
+                  }
                 </CardSectionMain>
                 {entity.userRoles && Object.keys(entity.userRoles).length > 0 ?
                   <CardExpansion
@@ -719,20 +741,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               filterText={filters.user.text}
             />
             <PanelSectionToolbarButtons>
-              <PanelSectionToolbarButtons>
-                <ActionIcon
-                  label="Expand all user cards"
-                  icon="expand-cards"
-                  action={() => false}
-                />
-                <ActionIcon
-                  label="Add or create a new client user"
-                  icon="add"
-                  action={() => {
-                    this.props.openCreateClientUserModal({ clientId: selected.client });
-                  }}
-                />
-              </PanelSectionToolbarButtons>
+              {!selected.readonly ?
+                <PanelSectionToolbarButtons>
+                  <ActionIcon
+                    label="Expand all user cards"
+                    icon="expand-cards"
+                    action={() => false}
+                  />
+                  <ActionIcon
+                    label="Add or create a new client"
+                    icon="add"
+                    action={() => {
+                      this.props.openCreateClientUserModal({ clientId: selected.client });
+                    }}
+                  />
+                </PanelSectionToolbarButtons> : null
+              }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
         </CardPanel>
@@ -960,12 +984,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.changeClientFormState(false, false,
-                selected.client,
-                pending.discardEditAfterSelect.newlySelectedClientId,
-                pending.discardEditAfterSelect.editAfterSelect,
-                true);
+              if (pending.discardEditAfterSelect.newSubClientParentId === null) {
+                this.changeClientFormState(false, false,
+                  selected.client,
+                  pending.discardEditAfterSelect.newlySelectedClientId,
+                  pending.discardEditAfterSelect.editAfterSelect,
+                  true);
+              } else {
+                this.changeClientFormStateForNewSubClient(false, false,
+                  pending.discardEditAfterSelect.newSubClientParentId);
+              }
               this.props.closeDiscardEditAfterSelectModal({});
+
             }}
           >
             <div className="button-container">
@@ -1005,6 +1035,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       this.props.openDiscardEditAfterSelectModal({
         newlySelectedClientId: newClient,
         editAfterSelect: edit,
+        newSubClientParentId: null,
       });
     } else {
       if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
@@ -1025,8 +1056,39 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     }
   }
 
+  private changeClientFormStateForNewSubClient(formModified: boolean, currentlyEditing: boolean, parent: Guid) {
+    if (currentlyEditing && formModified) {
+      this.props.openDiscardEditAfterSelectModal({
+        newlySelectedClientId: 'child',
+        editAfterSelect: true,
+        newSubClientParentId: parent,
+      });
+    } else {
+      this.props.selectNewSubClient({ parentId: parent });
+      this.props.setFormFieldValue({ field: 'parentClientId', value: parent });
+    }
+  }
+
   private async editClient(formData: AccessStateFormData) {
     return await this.props.editClient(formData);
+  }
+
+  private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
+    return clients.filter((c) => {
+      if (c === 'divider' || c === 'new') {
+        return false;
+      } else if (c.parentId === clientId) {
+        return true;
+      }
+      return false;
+    }).length > 0;
+  }
+
+  private clientIsNewChild(client: ClientEntity) {
+    return client !== 'divider'
+      && client !== 'new'
+      && client.parentId !== null
+      && client.id === null;
   }
 }
 

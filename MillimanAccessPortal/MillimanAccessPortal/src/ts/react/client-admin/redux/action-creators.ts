@@ -7,6 +7,8 @@ import {
 // Page actions
 export const selectClient =
   createActionCreator<AccessActions.SelectClient>('SELECT_CLIENT');
+export const selectNewSubClient =
+  createActionCreator<AccessActions.SelectNewSubClient>('SELECT_NEW_SUB_CLIENT');
 export const selectUser =
   createActionCreator<AccessActions.SelectUser>('SELECT_USER');
 export const setEditStatus =

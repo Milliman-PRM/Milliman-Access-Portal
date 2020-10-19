@@ -1,8 +1,7 @@
 ﻿import * as _ from 'lodash';
-import { AccessState, AccessStateFormData, AccessStateValid } from './store';
+import { AccessState } from './store';
 
 import { ClientWithStats, User } from '../../models';
-import { ClientDetail } from '../../system-admin/interfaces';
 
 /**
  * Determines whether the form has the necessary fields filled out in order to submit.
@@ -46,7 +45,8 @@ export function isFormModified(state: AccessState) {
  * @param state Redux store
  */
 export function clientsTree(state: AccessState) {
-  const clients = _.toArray(state.data.clients);
+  const allClientsDict = Object.assign({}, state.data.clients, state.data.parentClients);
+  const clients = _.toArray(allClientsDict);
   const parentGroups: { [id: string]: ClientWithStats[] } = clients.reduce((groups, cur) =>
     groups[cur.parentId]
       ? { ...groups, [cur.parentId]: [...groups[cur.parentId], cur] }

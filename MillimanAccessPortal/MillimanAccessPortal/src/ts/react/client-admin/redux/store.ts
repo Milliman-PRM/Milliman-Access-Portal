@@ -39,6 +39,7 @@ export interface PendingRemoveClientUserState {
 export interface PendingDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
+  newSubClientParentId: Guid;
 }
 
 /**
@@ -46,6 +47,7 @@ export interface PendingDiscardEditAfterSelectModal {
  */
 export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
+  parentClients: Dict<ClientWithEligibleUsers | ClientWithStats>;
   profitCenters: ProfitCenter[];
   details: ClientDetail;
   assignedUsers: User[];
@@ -53,7 +55,9 @@ export interface AccessStateData {
 
 export interface AccessStateSelected {
   client: Guid;
+  parent: Guid;
   user: Guid;
+  readonly: boolean;
 }
 
 export interface AccessStateEdit {

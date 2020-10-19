@@ -14,6 +14,11 @@ import { AccessStateFormData, PendingDeleteClientState } from "./store";
 export interface SelectClient {
   type: 'SELECT_CLIENT';
   id: Guid;
+  readonly?: boolean;
+}
+export interface SelectNewSubClient {
+  type: 'SELECT_NEW_SUB_CLIENT';
+  parentId: Guid;
 }
 export interface SelectUser {
   type: 'SELECT_USER';
@@ -106,6 +111,7 @@ export interface FetchClientsSucceeded {
   type: 'FETCH_CLIENTS_SUCCEEDED';
   response: {
     clients: Dict<ClientWithEligibleUsers>;
+    parentClients: Dict<ClientWithStats>;
   };
 }
 export interface FetchClientsFailed {
@@ -299,6 +305,7 @@ export interface OpenDiscardEditAfterSelectModal {
   type: 'OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL';
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
+  newSubClientParentId: Guid;
 }
 export interface CloseDiscardEditAfterSelectModal {
   type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
@@ -367,6 +374,7 @@ export type ErrorAccessAction =
 
 export type PageAccessAction =
   | SelectClient
+  | SelectNewSubClient
   | SetEditStatus
   | SelectUser
   | SetCollapsedUser
