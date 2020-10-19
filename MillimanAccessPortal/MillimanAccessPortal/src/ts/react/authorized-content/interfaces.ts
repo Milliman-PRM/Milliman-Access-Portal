@@ -20,6 +20,7 @@ export interface ContentItemGroup {
   id: Guid;
   name: string;
   items: ContentItem[];
+  clientStatus: string;
 }
 
 export interface ContentItemGroupList {

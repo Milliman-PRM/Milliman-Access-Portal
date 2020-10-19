@@ -1114,6 +1114,9 @@ namespace AuditLogLib.Event
 
             [Display(Description = "The related MAP user has an expired password or is suspended")]
             MapUserBlocked,
+
+            [Display(Description = "The access review deadline for the client related to this file drop has been exceeded")]
+            ClientAccessReviewDeadlineMissed,
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(

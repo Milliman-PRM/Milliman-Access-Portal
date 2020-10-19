@@ -81,7 +81,6 @@ namespace MapTests
             {
                 #region Arrange
                 ClientAccessReviewController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
-                var configuredClientReviewGracePeriodDays = TestResources.Configuration.GetValue("ClientReviewGracePeriodDays", -1);
                 var configuredClientReviewEarlyWarningDays = TestResources.Configuration.GetValue("ClientReviewEarlyWarningDays", -1);
                 #endregion
 
@@ -92,7 +91,6 @@ namespace MapTests
                 #region Assert
                 var result = Assert.IsType<JsonResult>(view);
                 var model = Assert.IsType<ClientAccessReviewGlobalDataModel>(result.Value);
-                Assert.Equal(configuredClientReviewGracePeriodDays, model.ClientReviewGracePeriodDays);
                 Assert.Equal(configuredClientReviewEarlyWarningDays, model.ClientReviewEarlyWarningDays);
                 #endregion
             }

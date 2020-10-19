@@ -14,7 +14,5 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     public class ClientAccessReviewGlobalDataModel
     {
         public int ClientReviewEarlyWarningDays { get; set; }
-
-        public int ClientReviewGracePeriodDays { get; set; }
     }
 }
