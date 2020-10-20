@@ -15,6 +15,7 @@ if not exist "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation
 REM Compile Release Notes
 pandoc --self-contained --css=".\_CSS\style.css" --metadata=pagetitle:"Milliman Access Portal - Release Notes" -o "../MillimanAccessPortal/MillimanAccessPortal/wwwroot/Documentation/ReleaseNotes.html" "ReleaseNotes.md"
 
+REM Copy all of the necessary files over
 xcopy /I /D /Y "_CSS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_CSS"
 xcopy /I /D /Y "_JS" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\Documentation\_JS"
 copy "..\MillimanAccessPortal\MillimanAccessPortal\src\images\map-logo-white.svg" "..\MillimanAccessPortal\MillimanAccessPortal\wwwroot\images\"
