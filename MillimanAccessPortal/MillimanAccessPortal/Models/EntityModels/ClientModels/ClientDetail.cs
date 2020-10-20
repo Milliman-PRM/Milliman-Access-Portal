@@ -26,8 +26,10 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string Office { get; set; }
         public string ConsultantName { get; set; }
         public string ConsultantEmail { get; set; }
+        public string NewUserWelcomeText { get; set; }
 
-        public static explicit operator ClientDetail(Client client)
+
+    public static explicit operator ClientDetail(Client client)
         {
             if (client == null)
             {
@@ -55,6 +57,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,
+                NewUserWelcomeText = client.NewUserWelcomeText,
             };
         }
 

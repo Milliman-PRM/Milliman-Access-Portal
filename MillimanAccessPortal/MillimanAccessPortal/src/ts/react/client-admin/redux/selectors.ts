@@ -34,7 +34,8 @@ export function isFormModified(state: AccessState) {
     state.formData.consultantName !== state.data.details.consultantName ||
     state.formData.consultantEmail !== state.data.details.consultantEmail ||
     state.formData.consultantOffice !== state.data.details.office ||
-    state.formData.profitCenterId !== state.data.details.profitCenter.id;
+    state.formData.profitCenterId !== state.data.details.profitCenter.id ||
+    state.formData.newUserWelcomeText !== state.data.details.newUserWelcomeText;
 }
 
 /**

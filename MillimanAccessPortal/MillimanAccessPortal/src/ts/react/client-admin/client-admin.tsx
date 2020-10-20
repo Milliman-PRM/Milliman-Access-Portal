@@ -588,20 +588,28 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div className="switch-container flex-item-for-phone-only-12-12 content-item-flex-none">
                         <Toggle
                           label={'Custom Welcome Text'}
-                          checked={false}
-                          onClick={null}
+                          checked={formData.useNewUserWelcomeText}
+                          onClick={() => {
+                            this.props.setFormFieldValue({
+                              field: 'useNewUserWelcomeText',
+                              value: !formData.useNewUserWelcomeText,
+                            });
+                          }}
                         />
                       </div>
                       <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
                         <TextAreaInput
                           label={null}
                           name="NewUserWelcomeText"
-                          onChange={() => {
-                            return false;
+                          onChange={(event) => {
+                            this.props.setFormFieldValue({
+                              field: 'newUserWelcomeText',
+                              value: event.currentTarget.value,
+                            });
                           }}
                           error={null}
-                          value={null}
-                          readOnly={edit.disabled}
+                          value={formData.newUserWelcomeText}
+                          readOnly={edit.disabled || !formData.useNewUserWelcomeText}
                         />
                       </div>
                     </div>

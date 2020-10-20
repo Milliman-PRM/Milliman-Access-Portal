@@ -84,7 +84,7 @@ export interface ResetFormData {
 export interface SetFormFieldValue {
   type: 'SET_FORM_FIELD_VALUE';
   field: string;
-  value: string | string[] | Guid;
+  value: string | string[] | Guid | boolean;
 }
 
 // ~ Checking validity of form items ~
