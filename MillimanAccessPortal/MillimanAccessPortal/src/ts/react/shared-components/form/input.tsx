@@ -96,11 +96,12 @@ interface MultiAddProps extends InputProps {
   list: string[];
   limit?: number;
   exceptions?: string[];
+  removeItemCallback?: (index: number) => void;
 }
 
 export const MultiAddInput = React.forwardRef<HTMLTextAreaElement, MultiAddProps>((props, ref) => {
   const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
-          onKeyPress, ...rest } = props;
+    onKeyPress, removeItemCallback, ...rest } = props;
 
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
@@ -108,18 +109,26 @@ export const MultiAddInput = React.forwardRef<HTMLTextAreaElement, MultiAddProps
         className={'form-element-multi-add-input' + (error ? ' error' : '')}
       >
         <div className="form-input-container-multi-add">
-          <span style={{ display: 'inline-flex', marginTop: '0.85em' }}>
-            {list.map((element: string, key: number) => {
+          <span style={{ display: 'inline-flex', marginTop: '1.5em', flexWrap: 'wrap', width: '100%' }}>
+            {list.map((element: string, index: number) => {
               return (
-                <div className="badge badge-primary" key={key}>
+                <div
+                  className={`badge ${!exceptions || (exceptions && exceptions.indexOf(element) === -1) ?
+                             'badge-secondary' : 'badge-primary'}`}
+                  key={index}
+                >
                   {element}
-                  {!readOnly ? <span className="badge-remove-btn">&nbsp;×</span> : null}
+                  <span
+                    className="badge-remove-btn"
+                    onClick={() => removeItemCallback(index)}
+                  >
+                    &nbsp;×
+                  </span>
                 </div>
               );
             })}
-          </span>
-          <div>
             <TextareaAutosize
+              style={{ boxSizing: 'border-box' }}
               name={name}
               id={name}
               ref={ref}
@@ -128,12 +137,13 @@ export const MultiAddInput = React.forwardRef<HTMLTextAreaElement, MultiAddProps
               onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
                 onKeyPress(event);
                 if (event.key === 'Enter' || event.key === ',') {
+                  event.preventDefault();
                   (document.getElementById(name) as HTMLFormElement).value = '';
                 }
               }}
               {...rest}
             />
-          </div>
+          </span>
           <label className="form-input-label" htmlFor={name}>{label}</label>
         </div>
         {children}

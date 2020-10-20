@@ -263,7 +263,7 @@
         position: relative;
       }
 
-      textarea.form-input-multi-add {
+      input.form-input-multi-add {
         position: relative;
         top: 0;
         left: 0;
@@ -335,6 +335,11 @@
         background-color: inherit;
       }
     }
+
+    .form-input-container-multi-add {
+      display: flex;
+      border: 1px solid $charcoal;
+    }
   }
 
   .form-element-input,
@@ -342,8 +347,27 @@
     height: 3.5rem;
   }
 
-  form-element-multi-add-input {
+  .form-element-multi-add-input {
     min-height: 3.5rem;
+    border: 1px solid $charcoal;
+
+    .form-input-label {
+      position: absolute;
+      top: .25rem;
+      left: 0;
+      padding: .25rem .5rem;
+      font-size: .75rem;
+      font-weight: 300;
+      color: $dark-grey;
+      pointer-events: none;
+    }
+
+    textarea.form-input-multi-add {
+      border: none;
+      height: 1.5rem;
+      min-height: 1rem;
+      flex: 1;
+    }
   }
 }
 
@@ -479,10 +503,10 @@
 
   &.badge-primary {
     background-color: $green;
-  }
 
-  &:hover .badge-primary {
-    background-color: darkgreen;
+    &:hover {
+      background-color: darkgreen;
+    }
   }
 
   &.badge-secondary {

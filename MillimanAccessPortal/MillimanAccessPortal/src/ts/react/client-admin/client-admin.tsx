@@ -386,21 +386,50 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <div className="form-input-container">
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
-                        <Input
-                          name="approvedEmailDomainList"
-                          label="Approved Email Domain List"
-                          type="text"
-                          value={formData.acceptedEmailDomainList.join(', ')}
-                          onChange={(event) => {
-                            this.props.setFormFieldValue({
-                              field: 'acceptedEmailDomainList',
-                              value: event.currentTarget.value.split(', '),
-                            });
-                          }}
-                          readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={null}
-                        />
+                        {edit.disabled ?
+                          <Input
+                            name="approvedEmailDomainList"
+                            label="Approved Email Domain List"
+                            type="text"
+                            value={formData.acceptedEmailDomainList.join(', ')}
+                            onChange={(event) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailDomainList',
+                                value: event.currentTarget.value.split(', '),
+                              });
+                            }}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="approvedEmailDomainList"
+                            label="Approved Email Domain List"
+                            type="text"
+                            list={formData.acceptedEmailDomainList}
+                            value={null}
+                            exceptions={['milliman.com']}
+                            onKeyPress={(event) => {
+                              if (event.key === 'Enter' || event.key === ',') {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailDomainList',
+                                  value: formData.acceptedEmailDomainList.
+                                    concat(event.currentTarget.value.trim()),
+                                });
+                              }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailDomainList',
+                                value: formData.acceptedEmailDomainList.slice(0, index)
+                                               .concat(formData.acceptedEmailDomainList.slice(index + 1)),
+                              });
+                            }}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          />
+                        }
                       </div>
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
@@ -430,6 +459,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                     concat(event.currentTarget.value.trim()),
                                 });
                               }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailAddressExceptionList',
+                                value: formData.acceptedEmailAddressExceptionList.slice(0, index)
+                                  .concat(formData.acceptedEmailAddressExceptionList.slice(index + 1)),
+                              });
                             }}
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
