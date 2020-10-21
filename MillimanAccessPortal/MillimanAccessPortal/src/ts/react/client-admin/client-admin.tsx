@@ -409,20 +409,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             list={formData.acceptedEmailDomainList}
                             value={null}
                             exceptions={['milliman.com']}
-                            onKeyPress={(event) => {
-                              if (event.key === 'Enter' || event.key === ',') {
-                                this.props.setFormFieldValue({
-                                  field: 'acceptedEmailDomainList',
-                                  value: formData.acceptedEmailDomainList.
-                                    concat(event.currentTarget.value.trim()),
-                                });
-                              }
+                            addItem={(item: string) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailDomainList',
+                                value: formData.acceptedEmailDomainList.concat(item.trim()),
+                              });
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
                                 field: 'acceptedEmailDomainList',
                                 value: formData.acceptedEmailDomainList.slice(0, index)
-                                               .concat(formData.acceptedEmailDomainList.slice(index + 1)),
+                                  .concat(formData.acceptedEmailDomainList.slice(index + 1)),
                               });
                             }}
                             readOnly={edit.disabled}
@@ -451,14 +448,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             type="text"
                             list={formData.acceptedEmailAddressExceptionList}
                             value={null}
-                            onKeyPress={(event) => {
-                              if (event.key === 'Enter' || event.key === ',') {
-                                this.props.setFormFieldValue({
-                                  field: 'acceptedEmailAddressExceptionList',
-                                  value: formData.acceptedEmailAddressExceptionList.
-                                    concat(event.currentTarget.value.trim()),
-                                });
-                              }
+                            addItem={(item: string) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailAddressExceptionList',
+                                value: formData.acceptedEmailAddressExceptionList.
+                                  concat(item.trim()),
+                              });
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({

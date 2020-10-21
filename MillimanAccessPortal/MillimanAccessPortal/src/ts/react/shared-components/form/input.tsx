@@ -13,7 +13,6 @@ interface BaseInputProps {
   label: string;
   value: string | number | string[];
   onChange?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
-  onKeyPress?: (currentTarget: React.KeyboardEvent<HTMLInputElement>) => void;
   onBlur?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
   onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement> | null) => void;
   error: string;
@@ -96,59 +95,112 @@ interface MultiAddProps extends InputProps {
   list: string[];
   limit?: number;
   exceptions?: string[];
+  addItem: (item: string) => void;
   removeItemCallback?: (index: number) => void;
 }
 
-export const MultiAddInput = React.forwardRef<HTMLTextAreaElement, MultiAddProps>((props, ref) => {
-  const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
-    onKeyPress, removeItemCallback, ...rest } = props;
+interface MultiAddInputState {
+  currentText: string;
+  isFocused: boolean;
+}
 
-  return (
-    <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
-      <div
-        className={'form-element-multi-add-input' + (error ? ' error' : '')}
-      >
-        <div className="form-input-container-multi-add">
-          <span style={{ display: 'inline-flex', marginTop: '1.5em', flexWrap: 'wrap', width: '100%' }}>
-            {list.map((element: string, index: number) => {
-              return (
-                <div
-                  className={`badge ${!exceptions || (exceptions && exceptions.indexOf(element) === -1) ?
-                             'badge-secondary' : 'badge-primary'}`}
-                  key={index}
-                >
-                  {element}
-                  <span
-                    className="badge-remove-btn"
-                    onClick={() => removeItemCallback(index)}
+export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputState> {
+  public constructor(props: MultiAddProps) {
+    super(props);
+
+    this.state = {
+      currentText: '',
+      isFocused: false,
+    };
+
+    this.handleBlur = this.handleBlur.bind(this);
+    this.handleFocus = this.handleFocus.bind(this);
+  }
+
+  public render() {
+    const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
+      addItem, removeItemCallback, ...rest } = this.props;
+
+    return (
+      <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
+        <div
+          className={'form-element-multi-add-input' + (error ? ' error' : '')}
+        >
+          <div className="form-input-container-multi-add">
+            <span style={{ display: 'inline-flex', marginTop: '1.5em', flexWrap: 'wrap', width: '100%' }}>
+              {list.map((element: string, index: number) => {
+                return (
+                  <div
+                    className={`badge ${!exceptions || (exceptions && exceptions.indexOf(element) === -1) ?
+                      'badge-secondary' : 'badge-primary'}`}
+                    key={index}
                   >
-                    &nbsp;×
-                  </span>
-                </div>
-              );
-            })}
-            <TextareaAutosize
-              style={{ boxSizing: 'border-box' }}
-              name={name}
-              id={name}
-              ref={ref}
-              className="form-input-multi-add"
-              readOnly={readOnly}
-              onKeyPress={(event: React.KeyboardEvent<HTMLInputElement>) => {
-                onKeyPress(event);
-                if (event.key === 'Enter' || event.key === ',') {
-                  event.preventDefault();
-                  (document.getElementById(name) as HTMLFormElement).value = '';
-                }
-              }}
-              {...rest}
-            />
-          </span>
-          <label className="form-input-label" htmlFor={name}>{label}</label>
+                    {element}
+                    <span
+                      style={{ cursor: 'pointer' }}
+                      className="badge-remove-btn"
+                      onClick={() => removeItemCallback(index)}
+                    >
+                      &nbsp;×
+                    </span>
+                  </div>
+                );
+              })}
+              <input
+                type="text"
+                style={{ boxSizing: 'border-box' }}
+                name={name}
+                id={name}
+                className="form-input-multi-add"
+                value={this.state.currentText}
+                readOnly={readOnly}
+                onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+                  if (event.key === 'Enter' || event.key === ',' || event.key === ';' || event.key === 'Tab') {
+                    event.preventDefault();
+                    this.addItemAndClear(addItem);
+                  }
+                  if ((event.key === 'Backspace' || event.key === 'Delete') && this.state.currentText === '') {
+                    event.preventDefault();
+                    removeItemCallback(list.length - 1);
+                  }
+                }}
+                onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
+                  this.setState({ currentText: event.currentTarget.value });
+                }}
+                onFocus={this.handleFocus}
+                onBlur={this.handleBlur}
+              />
+            </span>
+            {this.state.currentText.trim() !== '' && this.state.isFocused ?
+              <div
+                className="multi-add-preview-dropdown"
+                onMouseDown={(event: React.MouseEvent) => {
+                  event.stopPropagation();
+                  this.addItemAndClear(addItem);
+                }}
+              >
+                Add <strong>{this.state.currentText}</strong>...
+              </div> : null
+            }
+            <label className="form-input-label" htmlFor={name}>{label}</label>
+          </div>
+          {children}
         </div>
-        {children}
+        {error && <div className="error-message">{error}</div>}
       </div>
-      {error && <div className="error-message">{error}</div>}
-    </div>
-  );
-});
+    );
+  }
+
+  private addItemAndClear(addItemCallback: (item: string) => void) {
+    addItemCallback(this.state.currentText);
+    this.setState({ currentText: '' });
+  }
+
+  private handleBlur() {
+    this.setState({ currentText: '', isFocused: false });
+  }
+
+  private handleFocus() {
+    this.setState({ isFocused: true });
+  }
+}
