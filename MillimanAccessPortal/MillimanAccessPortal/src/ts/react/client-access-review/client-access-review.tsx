@@ -370,11 +370,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <div className="detail-column">
                   <div className="detail-section">
                     <span className="detail-label">Client name</span>
-                    <span className="detail-value">{clientAccessReview.clientName}</span>
+                    <span className="detail-value-name">{clientAccessReview.clientName}</span>
                   </div>
                   <div className="detail-section">
                     <span className="detail-label">Client code</span>
-                    <span className="detail-value">{clientAccessReview.clientCode}</span>
+                    <span className="detail-value-name">{clientAccessReview.clientCode}</span>
                   </div>
                   <div className="detail-section">
                     <span className="detail-label">Client Admins</span>
@@ -397,7 +397,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <div className="detail-column">
                   <div className="detail-section">
                     <span className="detail-label">Profit Center</span>
-                    <span className="detail-value">{clientAccessReview.assignedProfitCenterName}</span>
+                    <span className="detail-value-name">{clientAccessReview.assignedProfitCenterName}</span>
                   </div>
                   <div className="detail-section">
                     <span className="detail-label">Profit Center Admins</span>
@@ -426,7 +426,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           return (
                             <li className="detail-list-item" key={index}>
                               <div className="list-container">
-                                <span className="detail-value">{domain}</span>
+                                <span className="detail-value-name">{domain}</span>
                               </div>
                             </li>
                           );
@@ -444,7 +444,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               return (
                                 <li className="detail-list-item" key={index}>
                                   <div className="list-container">
-                                    <span className="detail-value">{email}</span>
+                                    <span className="detail-value-name">{email}</span>
                                   </div>
                                 </li>
                               );
@@ -452,7 +452,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           }
                         </ul>
                       ) : (
-                          <span className="detail-value">N/A</span>
+                          <span className="detail-value-name">N/A</span>
                         )
                     }
                   </div>
