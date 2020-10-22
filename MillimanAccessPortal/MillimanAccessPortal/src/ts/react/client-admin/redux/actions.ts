@@ -87,6 +87,39 @@ export interface SetFormFieldValue {
   value: string | string[] | Guid | boolean;
 }
 
+/**
+ * Display a toast indicating that a duplicate domain name has been entered in the email domain exception list.
+ */
+export interface PromptExistingDomainName {
+  type: 'PROMPT_EXISITING_DOMAIN_NAME';
+}
+
+/**
+ * Display a toast indicating that an invalid name has been entered in the email domain exception list.
+ */
+export interface PromptInvalidDomainName {
+  type: 'PROMPT_INVALID_DOMAIN_NAME';
+}
+
+/**
+ * Display a toast indicating that the email address domain list has exceeded its limit.
+ */
+export interface PromptDomainLimitExceeded {
+  type: 'PROMPT_DOMAIN_LIMIT_EXCEEDED';
+}
+
+/**
+ * Display a toast indicating that an invalid email address has been added to the email address exception list.
+ */
+export interface PromptInvalidEmailAddress {
+  type: 'PROMPT_INVALID_EMAIL_ADDRESS';
+}
+
+export interface PromptExistingEmailAddress {
+  type: 'PROMPT_EXISTING_EMAIL_ADDRESS';
+}
+
+
 // ~ Checking validity of form items ~
 export interface ResetValidity {
   type: 'RESET_VALIDITY';
@@ -398,6 +431,11 @@ export type PageAccessAction =
   | CloseDiscardEditModal
   | OpenDiscardEditAfterSelectModal
   | CloseDiscardEditAfterSelectModal
+  | PromptInvalidDomainName
+  | PromptExistingDomainName
+  | PromptDomainLimitExceeded
+  | PromptInvalidEmailAddress
+  | PromptExistingEmailAddress
   ;
 
 export type AccessAction =

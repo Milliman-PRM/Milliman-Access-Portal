@@ -94,8 +94,9 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps
 interface MultiAddProps extends InputProps {
   list: string[];
   limit?: number;
+  limitText?: string;
   exceptions?: string[];
-  addItem: (item: string) => void;
+  addItem: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void;
   removeItemCallback?: (index: number) => void;
 }
 
@@ -118,7 +119,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   }
 
   public render() {
-    const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, exceptions,
+    const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, limitText, exceptions,
       addItem, removeItemCallback, ...rest } = this.props;
 
     return (
@@ -157,7 +158,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
                   if (event.key === 'Enter' || event.key === ',' || event.key === ';' || event.key === 'Tab') {
                     event.preventDefault();
-                    this.addItemAndClear(addItem);
+                    this.addItemAndClear(addItem, list, exceptions, limit);
                   }
                   if ((event.key === 'Backspace' || event.key === 'Delete') && this.state.currentText === '') {
                     event.preventDefault();
@@ -176,13 +177,21 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 className="multi-add-preview-dropdown"
                 onMouseDown={(event: React.MouseEvent) => {
                   event.stopPropagation();
-                  this.addItemAndClear(addItem);
+                  this.addItemAndClear(addItem, list, exceptions, limit);
                 }}
               >
                 Add <strong>{this.state.currentText}</strong>...
               </div> : null
             }
-            <label className="form-input-label" htmlFor={name}>{label}</label>
+            <label className="form-input-label" htmlFor={name}>
+              {label}&nbsp;
+              {limit && limitText ?
+                <span>
+                  ({this.getEffectiveListLength(list, exceptions)} of {limit} {limitText} used)
+                </span>
+                : null
+              }
+            </label>
           </div>
           {children}
         </div>
@@ -191,9 +200,25 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
     );
   }
 
-  private addItemAndClear(addItemCallback: (item: string) => void) {
-    addItemCallback(this.state.currentText);
+  private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void,
+                          list: string[] = [], exceptions: string[] = [], limit: number) {
+    const effectiveListLength = this.getEffectiveListLength(list, exceptions);
+    const overLimit = limit > 0 ? (effectiveListLength >= limit ? true : false) : false;
+    const itemAlreadyExists = list.includes(this.state.currentText.trim());
+
+    addItemCallback(this.state.currentText, overLimit, itemAlreadyExists);
     this.setState({ currentText: '' });
+  }
+
+  private getEffectiveListLength(list: string[], exceptions: string[]) {
+    const tempList = list.slice();
+    tempList.push(this.state.currentText);
+    const numberOfExceptions = tempList.filter((value) => exceptions.includes(value)).length;
+
+    if (exceptions.includes(this.state.currentText)) {
+      return tempList.length - numberOfExceptions;
+    }
+    return tempList.length - numberOfExceptions - 1;
   }
 
   private handleBlur() {

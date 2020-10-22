@@ -35,7 +35,7 @@ import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
-import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
+import { isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../shared';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
@@ -406,14 +406,24 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             name="approvedEmailDomainList"
                             label="Approved Email Domain List"
                             type="text"
+                            limit={3}
+                            limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
                             value={null}
                             exceptions={['milliman.com']}
-                            addItem={(item: string) => {
-                              this.props.setFormFieldValue({
-                                field: 'acceptedEmailDomainList',
-                                value: formData.acceptedEmailDomainList.concat(item.trim()),
-                              });
+                            addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
+                              if (itemAlreadyExists) {
+                                this.props.promptExistingDomainName({});
+                              } else if (!isDomainNameValid(item)) {
+                                this.props.promptInvalidDomainName({});
+                              } else if (overLimit) {
+                                this.props.promptDomainLimitExceeded({});
+                              } else {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailDomainList',
+                                  value: formData.acceptedEmailDomainList.concat(item.trim()),
+                                });
+                              }
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
@@ -448,12 +458,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             type="text"
                             list={formData.acceptedEmailAddressExceptionList}
                             value={null}
-                            addItem={(item: string) => {
-                              this.props.setFormFieldValue({
-                                field: 'acceptedEmailAddressExceptionList',
-                                value: formData.acceptedEmailAddressExceptionList.
-                                  concat(item.trim()),
-                              });
+                            addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
+                              if (!isEmailAddressValid(item)) {
+                                this.props.promptInvalidEmailAddress({});
+                              } else if (itemAlreadyExists) {
+                                this.props.promptExistingEmailAddress({});
+                              } else {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailAddressExceptionList',
+                                  value: formData.acceptedEmailAddressExceptionList.
+                                    concat(item.trim()),
+                                });
+                              }
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
