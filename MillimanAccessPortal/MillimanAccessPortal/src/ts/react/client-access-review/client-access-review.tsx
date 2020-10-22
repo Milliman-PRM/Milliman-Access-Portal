@@ -642,8 +642,12 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                   return (
                                     <React.Fragment key={pg.permissionGroupName}>
                                       <tr>
-                                        <td className="detail-value-name">{pg.permissionGroupName}</td>
-                                        <td />
+                                        <td
+                                          className={`detail-value-name${authUsers === 0 ? ' table-row-divider' : ''}`}
+                                        >
+                                          {pg.permissionGroupName}
+                                        </td>
+                                        <td className={`${authUsers === 0 ? 'table-row-divider' : null}`} />
                                         <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
                                           {pg.permissions.Read ? this.renderCheckmark() : null}
                                         </td>
