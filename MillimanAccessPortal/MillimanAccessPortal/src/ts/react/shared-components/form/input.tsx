@@ -128,7 +128,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
           className={'form-element-multi-add-input' + (error ? ' error' : '')}
         >
           <div className="form-input-container-multi-add">
-            <span style={{ display: 'inline-flex', marginTop: '1.5em', flexWrap: 'wrap', width: '100%' }}>
+            <span className="badge-container">
               {list.map((element: string, index: number) => {
                 return (
                   <div
@@ -138,7 +138,6 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                   >
                     {element}
                     <span
-                      style={{ cursor: 'pointer' }}
                       className="badge-remove-btn"
                       onClick={() => removeItemCallback(index)}
                     >
@@ -149,7 +148,6 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
               })}
               <input
                 type="text"
-                style={{ boxSizing: 'border-box' }}
                 name={name}
                 id={name}
                 className="form-input-multi-add"

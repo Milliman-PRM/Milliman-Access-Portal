@@ -271,6 +271,7 @@
         border: none;
         font-size: 1.25em;
         width: 100px;
+        box-sizing: border-box;
       }
 
       input.form-input,
@@ -503,29 +504,37 @@
     }
 }
 
-.badge {
-  border-radius: 3px;
-  color: white;
-  padding: 0.2em;
-  margin: 0.2em;
+.badge-container {
+  display: inline-flex;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  width: 100%;
 
-  &.badge-primary {
-    background-color: $green;
+  .badge {
+    border-radius: 3px;
+    color: white;
+    padding: 0.2em;
+    margin: 0.2em;
 
-    &:hover {
-      background-color: darkgreen;
+    &.badge-primary {
+      background-color: $green;
+
+      &:hover {
+        background-color: darkgreen;
+      }
     }
-  }
 
-  &.badge-secondary {
-    background-color: $blue;
+    &.badge-secondary {
+      background-color: $blue;
 
-    &:hover {
-      background-color: navy;
+      &:hover {
+        background-color: navy;
+      }
     }
-  }
 
-  .badge-remove-btn {
-    color: grey;
+    .badge-remove-btn {
+      color: grey;
+      cursor: pointer;
+    }
   }
 }

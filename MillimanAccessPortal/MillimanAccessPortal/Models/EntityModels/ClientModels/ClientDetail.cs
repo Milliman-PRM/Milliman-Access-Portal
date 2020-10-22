@@ -29,16 +29,11 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string NewUserWelcomeText { get; set; }
 
 
-    public static explicit operator ClientDetail(Client client)
+        public static explicit operator ClientDetail(Client client)
         {
             if (client == null)
             {
                 return null;
-            }
-
-            if (client.ProfitCenter == null)
-            {
-              
             }
 
             return new ClientDetail

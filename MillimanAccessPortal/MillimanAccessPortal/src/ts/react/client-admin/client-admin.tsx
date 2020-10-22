@@ -392,12 +392,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             label="Approved Email Domain List"
                             type="text"
                             value={formData.acceptedEmailDomainList.join(', ')}
-                            onChange={(event) => {
-                              this.props.setFormFieldValue({
-                                field: 'acceptedEmailDomainList',
-                                value: event.currentTarget.value.split(', '),
-                              });
-                            }}
+                            onChange={null}
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
                             error={null}
@@ -1181,10 +1176,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       && client.parentId !== null
       && client.id === null;
   }
-}
-
-function createFromSearch() {
-  return { value: '', search: ''};
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
