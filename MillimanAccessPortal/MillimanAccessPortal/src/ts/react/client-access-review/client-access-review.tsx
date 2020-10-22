@@ -242,7 +242,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               </div>
               <div className="detail-section">
                 <span className="detail-label">Last review date</span>
-                <span className="detail-value">
+                <span className="detail-value-name">
                   {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
                 </span>
               </div>
@@ -281,7 +281,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             <div className="detail-column">
               <div className="detail-section">
                 <span className="detail-label">Profit center</span>
-                <span className="detail-value">{clientSummary.assignedProfitCenter}</span>
+                <span className="detail-value-name">{clientSummary.assignedProfitCenter}</span>
               </div>
               <div className="detail-section">
                 <span className="detail-label">Profit Center Admins</span>
