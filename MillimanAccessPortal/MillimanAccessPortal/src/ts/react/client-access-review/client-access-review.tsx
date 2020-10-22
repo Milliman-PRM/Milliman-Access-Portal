@@ -317,6 +317,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
 
   private renderClientAccessReviewPanel() {
     const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
+    const reviewDescription = () => {
+      switch (clientAccessReviewProgress.step) {
+        case ClientAccessReviewProgressEnum.clientReview:
+          return 'Review the Client information to proceed';
+        case ClientAccessReviewProgressEnum.userRoles:
+          return 'Review the User information to proceed';
+        case ClientAccessReviewProgressEnum.contentAccess:
+          return 'Review content access information to proceed';
+        case ClientAccessReviewProgressEnum.fileDropAccess:
+          return 'Review File Drop access information to proceed';
+        case ClientAccessReviewProgressEnum.attestations:
+          return 'Attest to the Client information to complete the review';
+        default:
+          return '';
+      }
+    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -326,7 +342,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             <div className="title">
               <span className="client-name">{clientAccessReview.clientName}</span>
               <span className="client-code">{clientAccessReview.clientCode}</span>
-              <span className="client-code">Review the Client information to proceed</span>
+              <span className="client-code">{reviewDescription()}</span>
               <ProgressIndicator
                 progressObjects={{
                   [ClientAccessReviewProgressEnum.clientReview]: {
