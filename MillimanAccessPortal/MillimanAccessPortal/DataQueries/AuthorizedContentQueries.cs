@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.DataQueries
 
                     if (clientAccessReviewIsExpired)
                     {
-                        ContentItemGroupModel.ClientStatus = "Your client admin is a buffoon and is shirking responsibility";
+                        ContentItemGroupModel.ClientStatus = "Please contact your MAP Administrator";
                     }
                     else
                     {
