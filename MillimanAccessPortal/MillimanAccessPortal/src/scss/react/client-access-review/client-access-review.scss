@@ -63,22 +63,26 @@
         .detail-value-name,
         .detail-value-email {
             display: block;
+            letter-spacing: 0.32px;
         }
 
         .detail-label {
-            font-size: .75em;
+            font-size: .75rem;
+            color: $dark-grey;
         }
 
         .detail-value {
-            font-size: 1.25em;
+            font-size: 1.25rem;
         }
 
         .detail-value-name {
+            font-size: 1.125rem;
             font-weight: bold;
+            color: $charcoal;
         }
 
         .detail-value-email {
-            font-size: .9em;
+            font-size: .875rem;
         }
 
         .detail-list {
