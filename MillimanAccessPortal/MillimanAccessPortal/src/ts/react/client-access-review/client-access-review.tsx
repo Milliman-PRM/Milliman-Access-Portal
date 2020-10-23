@@ -193,7 +193,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   level: notificationType,
                   message: (
                     <div className="review-due-container">
-                      <span className="needs-review">Needs Review:&nbsp;</span>
+                      <span className="needs-review">
+                        {notificationType === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
+                      </span>
                       Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
                     </div>
                   ),
