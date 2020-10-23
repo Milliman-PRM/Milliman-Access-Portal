@@ -610,7 +610,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               fd.permissionGroups.map((pg) => {
                                 if (pg.isPersonalGroup) {
                                   return (
-                                    <tr className="table-row-divider">
+                                    <tr className="table-row-divider" key={pg.permissionGroupName}>
                                       <td className="detail-value-name">
                                         {
                                           pg.authorizedMapUsers.length > 0 ?
