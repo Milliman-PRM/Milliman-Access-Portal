@@ -169,7 +169,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           const card = cardAttributes.client[entity.id];
           const daysUntilDue =
             moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
-          const notificationType = Math.abs(daysUntilDue) > globalData.clientReviewGracePeriodDays ?
+          const notificationType = daysUntilDue < 0 ?
             'error' :
             'informational';
           return (
