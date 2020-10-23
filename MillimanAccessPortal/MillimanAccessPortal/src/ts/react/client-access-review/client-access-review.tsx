@@ -169,9 +169,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           const card = cardAttributes.client[entity.id];
           const daysUntilDue =
             moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
-          const notificationType = daysUntilDue < 0 ?
-            'error' :
-            'informational';
+          const notificationType = () => {
+            if (daysUntilDue < 0) {
+              return 'error';
+            } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
+              return 'informational';
+            } else {
+              return 'message';
+            }
+          };
           return (
             <Card
               key={key}
@@ -189,14 +195,26 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               }}
               indentation={entity.indent}
               bannerMessage={!card.disabled &&
-                daysUntilDue < globalData.clientReviewEarlyWarningDays ? {
-                  level: notificationType,
+                (daysUntilDue < globalData.clientReviewEarlyWarningDays
+                  || clientAccessReview && clientAccessReview.id === entity.id) ? {
+                  level: notificationType(),
                   message: (
                     <div className="review-due-container">
-                      <span className="needs-review">
-                        {notificationType === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
-                      </span>
-                      Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                      {
+                        daysUntilDue < globalData.clientReviewEarlyWarningDays &&
+                        <>
+                          <span className="needs-review">
+                            {notificationType() === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
+                          </span>
+                          Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                        </>
+                      }
+                      {
+                        clientAccessReview && clientAccessReview.id === entity.id &&
+                        <div>
+                          <span>Review in progress...</span>
+                        </div>
+                      }
                     </div>
                   ),
                 } : null}
