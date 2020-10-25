@@ -51,6 +51,8 @@ export default function* rootSaga() {
   yield takeLatest('FETCH_SESSION_CHECK_FAILED', function*() { yield window.location.reload(); });
 
   // Toasts
+  yield takeEveryToast('APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED', 'Client Access Review completed.');
+
   yield takeEveryToast<ErrorAccessReviewAction>([
     'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENTS_FAILED',
