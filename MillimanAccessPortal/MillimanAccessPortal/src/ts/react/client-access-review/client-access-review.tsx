@@ -242,12 +242,30 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientSummaryPanel() {
-    const { clientSummary, pending, selected } = this.props;
+    const { clientSummary, globalData, pending, selected } = this.props;
+    const daysUntilDue =
+      moment.utc(clientSummary.reviewDueDate).local().diff(moment(), 'days');
+    const dueDateClass = () => {
+      if (daysUntilDue < 0) {
+        return 'review-overdue';
+      } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
+        return 'review-approaching';
+      } else {
+        return null;
+      }
+    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientSummary && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
-        <div className="client-summary-container">
+        <div
+          className={
+            [
+              'client-summary-container',
+              dueDateClass(),
+            ].join(' ')
+          }
+        >
           <div className="header">
             <div className="title">
               <span className="client-name">{clientSummary.clientName}</span>

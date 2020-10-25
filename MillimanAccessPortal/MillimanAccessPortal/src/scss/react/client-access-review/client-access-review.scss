@@ -7,12 +7,12 @@
     background-color: $white;
     overflow: auto;
 
-    &.warning {
-        border-left: 5px solid $orange;
+    &.review-approaching {
+        border-left: 10px solid $orange;
     }
 
-    &.late {
-        border-left: 5px solid $red;
+    &.review-overdue {
+        border-left: 10px solid $red;
     }
 
     .header {
