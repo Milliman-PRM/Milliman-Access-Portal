@@ -121,9 +121,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   if (pending.pendingClientSelection !== selected.client) {
                     this.props.fetchClientSummary({ clientId: pending.pendingClientSelection });
                   }
-                } else {
-                  this.props.cancelClientAccessReview({});
                 }
+                this.props.cancelClientAccessReview({});
                 this.props.closeLeavingActiveReviewModal({});
               }}
             >
