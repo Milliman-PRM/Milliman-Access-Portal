@@ -7,6 +7,10 @@
     background-color: $white;
     overflow: auto;
 
+    .title .action-icon-container-inline {
+        cursor: default;
+    }
+
     &.review-approaching {
         border-left: 10px solid $orange;
 
