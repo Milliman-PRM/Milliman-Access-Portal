@@ -134,6 +134,7 @@ export interface AccessStateModals {
   removeClientUser: ModalState;
   discardEdit: ModalState;
   discardEditAfterSelect: ModalState;
+  changeUserRoles: ModalState;
 }
 
 export interface AccessState {

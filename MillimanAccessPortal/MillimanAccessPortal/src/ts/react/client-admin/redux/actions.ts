@@ -314,6 +314,12 @@ export interface OpenDiscardEditAfterSelectModal {
 export interface CloseDiscardEditAfterSelectModal {
   type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
 }
+export interface OpenChangeUserRolesModal {
+  type: 'OPEN_CHANGE_USER_ROLE_MODAL';
+}
+export interface CloseChangeUserRolesModal {
+  type: 'CLOSE_CHANGE_USER_ROLES_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -403,6 +409,8 @@ export type PageAccessAction =
   | CloseDiscardEditModal
   | OpenDiscardEditAfterSelectModal
   | CloseDiscardEditAfterSelectModal
+  | OpenChangeUserRolesModal
+  | CloseChangeUserRolesModal
   ;
 
 export type AccessAction =
@@ -419,4 +427,5 @@ export type OpenModalAction =
   | OpenRemoveClientUserModal
   | OpenDiscardEditModal
   | OpenDiscardEditAfterSelectModal
+  | OpenChangeUserRolesModal
   ;

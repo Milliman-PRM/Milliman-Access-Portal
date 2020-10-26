@@ -69,6 +69,10 @@ export const openDiscardEditAfterSelectModal =
   createActionCreator<AccessActions.OpenDiscardEditAfterSelectModal>('OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL');
 export const closeDiscardEditAfterSelectModal =
   createActionCreator<AccessActions.CloseDiscardEditAfterSelectModal>('CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL');
+export const openChangeUserRolesModal =
+  createActionCreator<AccessActions.OpenChangeUserRolesModal>('OPEN_CHANGE_USER_ROLE_MODAL');
+export const closeChangeUserRolesModal =
+  createActionCreator<AccessActions.CloseChangeUserRolesModal>('CLOSE_CHANGE_USER_ROLES_MODAL');
 
 // Validity Actions
 export const resetValidity =

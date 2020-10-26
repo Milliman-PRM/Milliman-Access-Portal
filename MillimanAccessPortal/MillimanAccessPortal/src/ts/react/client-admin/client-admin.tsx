@@ -667,9 +667,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           icon="checkmark"
                           color={'green'}
                           onClick={() => {
-                            this.props.selectUser({ id: null });
-                            this.props.setExpandedUser({ id: entity.id });
-                            this.props.setUserEditStatus({ enabled: false });
+                            this.props.openChangeUserRolesModal({});
                           }}
                         /> :
                         <CardButton
@@ -1038,6 +1036,52 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Discard
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.changeUserRoles.isOpen}
+          onRequestClose={() => this.props.closeChangeUserRolesModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Change User Role</h2>
+          <span className="modal-text">
+            Please provide a reason for changing the user's role in this Client.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectUser({ id: null });
+              this.props.setUserEditStatus({ enabled: false });
+              this.props.closeChangeUserRolesModal({});
+            }}
+          >
+            <DropDown
+              name="reason"
+              label="Reason"
+              value={null}
+              values={[]}
+              onChange={null}
+              error={null}
+              placeholderText={'Choose an option'}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeChangeUserRolesModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Change roles
               </button>
             </div>
           </form>

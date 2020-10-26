@@ -496,6 +496,9 @@ const modals = combineReducers({
   discardEditAfterSelect: createModalReducer(['OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL'], [
     'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL',
   ]),
+  changeUserRoles: createModalReducer(['OPEN_CHANGE_USER_ROLE_MODAL'], [
+    'CLOSE_CHANGE_USER_ROLES_MODAL',
+  ]),
 });
 
 const pending = combineReducers({
