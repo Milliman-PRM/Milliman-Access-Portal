@@ -9,14 +9,35 @@
 
     &.review-approaching {
         border-left: 10px solid $orange;
+
+        .title .action-icon {
+            color: $orange;
+        }
     }
 
     &.review-overdue {
         border-left: 10px solid $red;
+
+        .title .action-icon {
+            color: $red;
+        }
     }
 
     .header {
         width: 100%;
+
+        .title {
+            display: flex;
+            flex-flow: row wrap;
+
+            .title-container {
+                flex: 1 0 auto;
+            }
+
+            .progress-indicator-container {
+                width: 100%;
+            }
+        }
 
         .client-name,
         .client-code {

@@ -267,8 +267,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         >
           <div className="header">
             <div className="title">
-              <span className="client-name">{clientSummary.clientName}</span>
-              <span className="client-code">{clientSummary.clientCode}</span>
+              <div className="title-container">
+                <span className="client-name">{clientSummary.clientName}</span>
+                <span className="client-code">{clientSummary.clientCode}</span>
+              </div>
+              {
+                dueDateClass() !== null ? (
+                  <ActionIcon icon="error" />
+                ) : null
+              }
             </div>
           </div>
           <div className="details-container">
@@ -383,9 +390,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <div className="client-review-container" ref={this.clientReviewContainer}>
           <div className="header">
             <div className="title">
-              <span className="client-name">{clientAccessReview.clientName}</span>
-              <span className="client-code">{clientAccessReview.clientCode}</span>
-              <span className="client-code">{reviewDescription()}</span>
+              <div className="title-container">
+                <span className="client-name">{clientAccessReview.clientName}</span>
+                <span className="client-code">{clientAccessReview.clientCode}</span>
+                <span className="client-code">{reviewDescription()}</span>
+              </div>
               <ProgressIndicator
                 progressObjects={{
                   [ClientAccessReviewProgressEnum.clientReview]: {
