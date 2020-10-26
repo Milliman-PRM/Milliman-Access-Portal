@@ -872,7 +872,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h2 className="title blue">Add User</h2>
           <span className="modal-text text-muted">
-            Please provide a valid email address.
+            Please provide a valid email address using an approved email domain and a reason
+            for adding the user to this Client.
           </span>
           <form
             onSubmit={(event) => {
@@ -884,14 +885,66 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               });
             }}
           >
-            <input
+            <Input
               type="text"
-              placeholder="Email"
+              name="Email"
+              label="Email *"
               onChange={(event) => this.props.setCreateClientUserModalEmail({
-                email: event.target.value,
+                email: event.currentTarget.value,
               })}
               value={this.props.pending.createClientUser.email}
               autoFocus={true}
+              error={null}
+            />
+            <div className="checkbox-container">
+              <span className="modal-text">
+                <strong>User Roles</strong>
+              </span>
+              <Checkbox
+                name={'Client Admin'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content Access Admin'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content Publisher'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content User'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'File Drop Admin'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'File Drop User'}
+                selected={false}
+                onChange={null}
+                readOnly={false}
+              />
+            </div>
+            <DropDown
+              name="reason"
+              label="Reason *"
+              value={null}
+              values={[]}
+              onChange={null}
+              error={null}
+              placeholderText={'Choose an option'}
             />
             <div className="button-container">
               <button
@@ -924,7 +977,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h2 className="title red">Remove User</h2>
           <span className="modal-text">
-            Remove <strong>{pending.removeClientUser.name}</strong> from the selected client?
+            Please provide a reason for removing the user from this Client.
           </span>
           <form
             onSubmit={(event) => {
@@ -935,6 +988,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               });
             }}
           >
+            <DropDown
+              name="reason"
+              label="Reason"
+              value={null}
+              values={[]}
+              onChange={null}
+              error={null}
+              placeholderText={'Choose an option'}
+            />
             <div className="button-container">
               <button
                 className="link-button"
