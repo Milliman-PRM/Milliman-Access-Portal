@@ -706,13 +706,34 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                           {pg.permissionGroupName}
                                         </td>
                                         <td className={`${authUsers === 0 ? 'table-row-divider' : null}`} />
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Read ? this.renderCheckmark() : null}
                                         </td>
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Write ? this.renderCheckmark() : null}
                                         </td>
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Delete ? this.renderCheckmark() : null}
                                         </td>
                                       </tr>
@@ -727,6 +748,14 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                             >
                                               <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{user.name}</td>
                                               <td>{user.userEmail}</td>
+                                              {
+                                                index + 1 === authUsers &&
+                                                <>
+                                                  <td className="table-row-divider" />
+                                                  <td className="table-row-divider" />
+                                                  <td className="table-row-divider" />
+                                                </>
+                                              }
                                             </tr>
                                           );
                                         })
