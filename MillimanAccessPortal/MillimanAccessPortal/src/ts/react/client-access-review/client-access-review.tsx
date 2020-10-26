@@ -121,9 +121,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   if (pending.pendingClientSelection !== selected.client) {
                     this.props.fetchClientSummary({ clientId: pending.pendingClientSelection });
                   }
-                } else {
-                  this.props.cancelClientAccessReview({});
                 }
+                this.props.cancelClientAccessReview({});
                 this.props.closeLeavingActiveReviewModal({});
               }}
             >
@@ -169,9 +168,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           const card = cardAttributes.client[entity.id];
           const daysUntilDue =
             moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
-          const notificationType = Math.abs(daysUntilDue) > globalData.clientReviewGracePeriodDays ?
-            'error' :
-            'informational';
+          const notificationType = () => {
+            if (daysUntilDue < 0) {
+              return 'error';
+            } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
+              return 'informational';
+            } else {
+              return 'message';
+            }
+          };
           return (
             <Card
               key={key}
@@ -189,12 +194,26 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               }}
               indentation={entity.indent}
               bannerMessage={!card.disabled &&
-                daysUntilDue < globalData.clientReviewEarlyWarningDays ? {
-                  level: notificationType,
+                (daysUntilDue < globalData.clientReviewEarlyWarningDays
+                  || clientAccessReview && clientAccessReview.id === entity.id) ? {
+                  level: notificationType(),
                   message: (
                     <div className="review-due-container">
-                      <span className="needs-review">Needs Review:&nbsp;</span>
-                      Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                      {
+                        daysUntilDue < globalData.clientReviewEarlyWarningDays &&
+                        <>
+                          <span className="needs-review">
+                            {notificationType() === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
+                          </span>
+                          Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                        </>
+                      }
+                      {
+                        clientAccessReview && clientAccessReview.id === entity.id &&
+                        <div>
+                          <span>Review in progress...</span>
+                        </div>
+                      }
                     </div>
                   ),
                 } : null}
@@ -222,16 +241,41 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientSummaryPanel() {
-    const { clientSummary, pending, selected } = this.props;
+    const { clientSummary, globalData, pending, selected } = this.props;
+    const daysUntilDue =
+      moment.utc(clientSummary.reviewDueDate).local().diff(moment(), 'days');
+    const dueDateClass = () => {
+      if (daysUntilDue < 0) {
+        return 'review-overdue';
+      } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
+        return 'review-approaching';
+      } else {
+        return null;
+      }
+    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientSummary && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
-        <div className="client-summary-container">
+        <div
+          className={
+            [
+              'client-summary-container',
+              dueDateClass(),
+            ].join(' ')
+          }
+        >
           <div className="header">
             <div className="title">
-              <span className="client-name">{clientSummary.clientName}</span>
-              <span className="client-code">{clientSummary.clientCode}</span>
+              <div className="title-container">
+                <span className="client-name">{clientSummary.clientName}</span>
+                <span className="client-code">{clientSummary.clientCode}</span>
+              </div>
+              {
+                dueDateClass() !== null ? (
+                  <ActionIcon icon="error" />
+                ) : null
+              }
             </div>
           </div>
           <div className="details-container">
@@ -242,7 +286,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               </div>
               <div className="detail-section">
                 <span className="detail-label">Last review date</span>
-                <span className="detail-value">
+                <span className="detail-value-name">
                   {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
                 </span>
               </div>
@@ -281,10 +325,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             <div className="detail-column">
               <div className="detail-section">
                 <span className="detail-label">Profit center</span>
-                <span className="detail-value">{clientSummary.assignedProfitCenter}</span>
+                <span className="detail-value-name">{clientSummary.assignedProfitCenter}</span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Profit Center Admins</span>
+                <span className="detail-label">
+                  Profit Center Admins
+                  <ActionIcon
+                    icon="information"
+                    label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                  />
+                </span>
                 <ul className="detail-list">
                   {
                     clientSummary.profitCenterAdmins.map((admin) => {
@@ -317,6 +367,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
 
   private renderClientAccessReviewPanel() {
     const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
+    const reviewDescription = () => {
+      switch (clientAccessReviewProgress.step) {
+        case ClientAccessReviewProgressEnum.clientReview:
+          return 'Review the Client information to proceed';
+        case ClientAccessReviewProgressEnum.userRoles:
+          return 'Review the User information to proceed';
+        case ClientAccessReviewProgressEnum.contentAccess:
+          return 'Review content access information to proceed';
+        case ClientAccessReviewProgressEnum.fileDropAccess:
+          return 'Review File Drop access information to proceed';
+        case ClientAccessReviewProgressEnum.attestations:
+          return 'Attest to the Client information to complete the review';
+        default:
+          return '';
+      }
+    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -324,9 +390,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <div className="client-review-container" ref={this.clientReviewContainer}>
           <div className="header">
             <div className="title">
-              <span className="client-name">{clientAccessReview.clientName}</span>
-              <span className="client-code">{clientAccessReview.clientCode}</span>
-              <span className="client-code">Review the Client information to proceed</span>
+              <div className="title-container">
+                <span className="client-name">{clientAccessReview.clientName}</span>
+                <span className="client-code">{clientAccessReview.clientCode}</span>
+                <span className="client-code">{reviewDescription()}</span>
+              </div>
               <ProgressIndicator
                 progressObjects={{
                   [ClientAccessReviewProgressEnum.clientReview]: {
@@ -354,11 +422,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <div className="detail-column">
                   <div className="detail-section">
                     <span className="detail-label">Client name</span>
-                    <span className="detail-value">{clientAccessReview.clientName}</span>
+                    <span className="detail-value-name">{clientAccessReview.clientName}</span>
                   </div>
                   <div className="detail-section">
                     <span className="detail-label">Client code</span>
-                    <span className="detail-value">{clientAccessReview.clientCode}</span>
+                    <span className="detail-value-name">{clientAccessReview.clientCode}</span>
                   </div>
                   <div className="detail-section">
                     <span className="detail-label">Client Admins</span>
@@ -381,10 +449,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <div className="detail-column">
                   <div className="detail-section">
                     <span className="detail-label">Profit Center</span>
-                    <span className="detail-value">{clientAccessReview.assignedProfitCenterName}</span>
+                    <span className="detail-value-name">{clientAccessReview.assignedProfitCenterName}</span>
                   </div>
                   <div className="detail-section">
-                    <span className="detail-label">Profit Center Admins</span>
+                    <span className="detail-label">
+                      Profit Center Admins
+                      <ActionIcon
+                        icon="information"
+                        label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                      />
+                    </span>
                     <ul className="detail-list">
                       {
                         clientAccessReview.profitCenterAdmins.map((admin) => {
@@ -410,7 +484,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           return (
                             <li className="detail-list-item" key={index}>
                               <div className="list-container">
-                                <span className="detail-value">{domain}</span>
+                                <span className="detail-value-name">{domain}</span>
                               </div>
                             </li>
                           );
@@ -428,7 +502,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               return (
                                 <li className="detail-list-item" key={index}>
                                   <div className="list-container">
-                                    <span className="detail-value">{email}</span>
+                                    <span className="detail-value-name">{email}</span>
                                   </div>
                                 </li>
                               );
@@ -436,7 +510,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           }
                         </ul>
                       ) : (
-                          <span className="detail-value">N/A</span>
+                          <span className="detail-value-name">N/A</span>
                         )
                     }
                   </div>
@@ -594,7 +668,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               fd.permissionGroups.map((pg) => {
                                 if (pg.isPersonalGroup) {
                                   return (
-                                    <tr className="table-row-divider">
+                                    <tr className="table-row-divider" key={pg.permissionGroupName}>
                                       <td className="detail-value-name">
                                         {
                                           pg.authorizedMapUsers.length > 0 ?
@@ -625,16 +699,41 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                     pg.authorizedMapUsers.length + pg.authorizedServiceAccounts.length;
                                   return (
                                     <React.Fragment key={pg.permissionGroupName}>
-                                      <tr>
-                                        <td className="detail-value-name">{pg.permissionGroupName}</td>
-                                        <td />
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                      <tr className={authUsers === 0 ? 'table-row-divider' : null}>
+                                        <td
+                                          className="detail-value-name"
+                                        >
+                                          {pg.permissionGroupName}
+                                        </td>
+                                        <td className={`${authUsers === 0 ? 'table-row-divider' : null}`} />
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Read ? this.renderCheckmark() : null}
                                         </td>
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Write ? this.renderCheckmark() : null}
                                         </td>
-                                        <td className="center-text table-row-divider" rowSpan={authUsers + 1}>
+                                        <td
+                                          className={
+                                            [
+                                              'center-text',
+                                              authUsers === 0 ? 'table-row-divider' : null,
+                                            ].join(' ')
+                                          }
+                                        >
                                           {pg.permissions.Delete ? this.renderCheckmark() : null}
                                         </td>
                                       </tr>
@@ -649,6 +748,14 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                             >
                                               <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{user.name}</td>
                                               <td>{user.userEmail}</td>
+                                              {
+                                                index + 1 === authUsers &&
+                                                <>
+                                                  <td className="table-row-divider" />
+                                                  <td className="table-row-divider" />
+                                                  <td className="table-row-divider" />
+                                                </>
+                                              }
                                             </tr>
                                           );
                                         })

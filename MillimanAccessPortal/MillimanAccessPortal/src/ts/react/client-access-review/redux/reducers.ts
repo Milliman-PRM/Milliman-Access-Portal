@@ -22,7 +22,6 @@ import {
 const _initialData: AccessReviewStateData = {
   globalData: {
     clientReviewEarlyWarningDays: null,
-    clientReviewGracePeriodDays: null,
   },
   clients: {},
   selectedClientSummary: null,

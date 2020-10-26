@@ -11,7 +11,6 @@ import sagas from './sagas';
 
 export interface AccessReviewGlobalData {
   clientReviewEarlyWarningDays: number;
-  clientReviewGracePeriodDays: number;
 }
 
 export interface ClientSummaryModel {
