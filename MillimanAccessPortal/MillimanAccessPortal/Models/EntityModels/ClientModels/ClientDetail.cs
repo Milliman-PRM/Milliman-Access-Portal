@@ -2,6 +2,8 @@
  * CODE OWNERS: Joseph Sweeney,
  * OBJECTIVE: Provide client information for display in the system admin detail panel
  * DEVELOPER NOTES:
+ * It might be necessary when supplying a Client object to the constructor operator
+ * to ensure that the ProfitCenter value exists using .Include(c => c.ProfitCenter).
  */
 
 using MapDbContextLib.Context;
