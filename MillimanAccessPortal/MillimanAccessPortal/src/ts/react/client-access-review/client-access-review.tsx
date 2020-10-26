@@ -321,7 +321,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <span className="detail-value-name">{clientSummary.assignedProfitCenter}</span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Profit Center Admins</span>
+                <span className="detail-label">
+                  Profit Center Admins
+                  <ActionIcon
+                    icon="information"
+                    label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                  />
+                </span>
                 <ul className="detail-list">
                   {
                     clientSummary.profitCenterAdmins.map((admin) => {
@@ -437,7 +443,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     <span className="detail-value-name">{clientAccessReview.assignedProfitCenterName}</span>
                   </div>
                   <div className="detail-section">
-                    <span className="detail-label">Profit Center Admins</span>
+                    <span className="detail-label">
+                      Profit Center Admins
+                      <ActionIcon
+                        icon="information"
+                        label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                      />
+                    </span>
                     <ul className="detail-list">
                       {
                         clientAccessReview.profitCenterAdmins.map((admin) => {

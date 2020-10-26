@@ -8,8 +8,10 @@ import '../../../images/icons/collapse-cards.svg';
 import '../../../images/icons/delete.svg';
 import '../../../images/icons/edit.svg';
 import '../../../images/icons/email.svg';
+import '../../../images/icons/error.svg';
 import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/expand-cards.svg';
+import '../../../images/icons/information.svg';
 import '../../../images/icons/reload.svg';
 import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/sort-alphabetically-asc.svg';
@@ -29,9 +31,9 @@ import * as React from 'react';
 export interface ActionIconProps {
   label: string;
   icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
-  'delete' | 'edit' | 'email' | 'expand-card' | 'expand-cards' | 'reload' | 'remove-circle' |
-  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' |
-  'upload' | 'user' | 'userguide';
+  'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' | 'reload' |
+  'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' |
+  'sort-date-desc' | 'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
