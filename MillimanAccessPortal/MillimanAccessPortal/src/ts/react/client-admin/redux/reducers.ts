@@ -106,6 +106,7 @@ const _initialSelected: AccessStateSelected = {
 
 const _initialEditStatus: AccessStateEdit = {
   disabled: true,
+  userEnabled: false,
 };
 
 /**
@@ -353,9 +354,14 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     ...state,
     disabled: action.disabled,
   }),
+  SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
+    ...state,
+    userEnabled: action.enabled,
+  }),
   SELECT_CLIENT: () => _initialEditStatus,
   SELECT_NEW_SUB_CLIENT: () => ({
     disabled: false,
+    userEnabled: false,
   }),
 });
 

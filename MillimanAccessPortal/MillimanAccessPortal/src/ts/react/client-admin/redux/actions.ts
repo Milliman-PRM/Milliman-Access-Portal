@@ -32,6 +32,10 @@ export interface SetEditStatus {
   type: 'SET_EDIT_STATUS';
   disabled: boolean;
 }
+export interface SetUserEditStatus {
+  type: 'SET_USER_EDIT_STATUS';
+  enabled: boolean;
+}
 
 /**
  * Expand the user card specified by id.
@@ -376,6 +380,7 @@ export type PageAccessAction =
   | SelectClient
   | SelectNewSubClient
   | SetEditStatus
+  | SetUserEditStatus
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser

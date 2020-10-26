@@ -61,7 +61,8 @@ export interface AccessStateSelected {
 }
 
 export interface AccessStateEdit {
-  disabled: boolean;
+  disabled: boolean; // TODO Rename
+  userEnabled: boolean;
 }
 
 export interface ValidationState {

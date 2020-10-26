@@ -36,6 +36,7 @@ import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
 import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
+import { Checkbox } from '../shared-components/form/checkbox';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
@@ -635,7 +636,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, cardAttributes, filters } = this.props;
+    const { assignedUsers, selected, edit, cardAttributes, filters } = this.props;
     return (
       <>
         <CardPanel
@@ -648,7 +649,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 selected={false}
                 disabled={selected.readonly}
                 onSelect={() => {
-                  this.props.selectUser({ id: entity.id });
                   (card && card.expanded) ?
                     this.props.setCollapsedUser({ id: entity.id }) :
                     this.props.setExpandedUser({ id: entity.id });
@@ -662,6 +662,26 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   />
                   {!selected.readonly ?
                     <CardSectionButtons>
+                      {edit.userEnabled ?
+                        <CardButton
+                          icon="checkmark"
+                          color={'green'}
+                          onClick={() => {
+                            this.props.selectUser({ id: null });
+                            this.props.setExpandedUser({ id: entity.id });
+                            this.props.setUserEditStatus({ enabled: false });
+                          }}
+                        /> :
+                        <CardButton
+                          icon="edit"
+                          color={'blue'}
+                          onClick={() => {
+                            this.props.selectUser({ id: entity.id });
+                            this.props.setExpandedUser({ id: entity.id });
+                            this.props.setUserEditStatus({ enabled: true });
+                          }}
+                        />
+                      }
                       <CardButton
                         icon="remove-circle"
                         color={'red'}
@@ -683,50 +703,57 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       ? this.props.setExpandedUser({ id: entity.id })
                       : this.props.setCollapsedUser({ id: entity.id })}
                   >
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.Admin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.Admin], selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.Admin].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.Admin], selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentAccessAdmin],
-                                            selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentAccessAdmin],
+                          selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentPublisher],
-                                            selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentPublisher],
+                          selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentUser].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentUser], selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.ContentUser].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentUser], selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropAdmin],
-                                            selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.FileDropAdmin],
+                          selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.FileDropUser].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropUser], selected.client, entity.id)
+                    <Checkbox
+                      name={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
+                      selected={entity.userRoles[RoleEnum.FileDropUser].isAssigned}
+                      onChange={(checked) =>
+                        this.changeUserRole(checked, entity.userRoles[RoleEnum.FileDropUser],
+                          selected.client, entity.id)
                       }
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                   </CardExpansion> : null}
               </Card>
@@ -1019,11 +1046,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     );
   }
 
-  private changeUserRole(event: React.MouseEvent, entityRole: UserRole, client: Guid, user: Guid) {
+  private changeUserRole(selected: boolean, entityRole: UserRole, client: Guid, user: Guid) {
     event.stopPropagation();
     this.props.setUserRoleInClient({
       clientId: client,
-      isAssigned: !entityRole.isAssigned,
+      isAssigned: selected,
       roleEnum: entityRole.roleEnum,
       userId: user,
     });
