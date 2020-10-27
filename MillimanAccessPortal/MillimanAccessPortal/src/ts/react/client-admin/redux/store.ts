@@ -61,7 +61,8 @@ export interface AccessStateSelected {
 }
 
 export interface AccessStateEdit {
-  disabled: boolean;
+  disabled: boolean; // TODO Rename
+  userEnabled: boolean;
 }
 
 export interface ValidationState {
@@ -133,6 +134,7 @@ export interface AccessStateModals {
   removeClientUser: ModalState;
   discardEdit: ModalState;
   discardEditAfterSelect: ModalState;
+  changeUserRoles: ModalState;
 }
 
 export interface AccessState {
