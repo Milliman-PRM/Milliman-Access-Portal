@@ -14,5 +14,6 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     {
         public Guid ClientId { get; set; }
         public Guid UserId { get; set; }
+        public int Reason { get; set; }
     }
 }

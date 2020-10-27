@@ -380,7 +380,7 @@ namespace MillimanAccessPortal.Controllers
 
                 await DbContext.SaveChangesAsync();
 
-                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
             }
             catch (Exception e)
             {
@@ -480,13 +480,129 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
-                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser));
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
             await ReturnModel.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
 
             Log.Verbose($"In ClientAdminController.AssignUserToClient action: user {RequestedUserEmail} added client {RequestedClient.Id}");
+            return Json(ReturnModel);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateAllUserRolesInClient([FromBody] UpdateAllUserRolesInClientRequestModel model)
+        {
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action for model {{@UpdateAllUserRolesInClientRequestModel}}", model);
+
+            #region Authorization
+            if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, model.ClientId))).Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, role Admin, client {model.ClientId}");
+                Response.Headers.Add("Warning", $"You are not authorized to manage this client");
+                return Unauthorized();
+            }
+            #endregion
+
+            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(model.UserId.ToString());
+            Client RequestedClient = await DbContext.Client.FindAsync(model.ClientId);
+
+            #region Validation
+            // requested user must exist
+            if (RequestedUser == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested user ID {model.UserId} not found");
+                Response.Headers.Add("Warning", $"The requested user was not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // requested client must exist
+            if (RequestedClient == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested client ID {model.ClientId} not found");
+                Response.Headers.Add("Warning", $"The requested client was not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // Requested user must be member of requested client
+            Claim ClientMembershipClaim = new Claim(ClaimNames.ClientMembership.ToString(), model.ClientId.ToString());
+            if (!(await _userManager.GetUsersForClaimAsync(ClientMembershipClaim)).Contains(RequestedUser))
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested user ID {model.UserId} not a member of client ID {model.ClientId}");
+                Response.Headers.Add("Warning", $"The requested user is not associated with the requested client");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // Don't remove the last client admin
+            if (!model.RoleAssignments.Single(r => r.RoleEnum == RoleEnum.Admin).IsAssigned)
+            {
+                bool OtherAdminExists = await DbContext.UserRoleInClient.Where(r => r.ClientId == model.ClientId)
+                                                                        .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                                        .AnyAsync(r => r.UserId != model.UserId);
+                if (!OtherAdminExists)
+                {
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
+                    Response.Headers.Add("Warning", "Cannot remove the last client admin user role from the client");
+                    return StatusCode(StatusCodes.Status422UnprocessableEntity);
+                }
+            }
+            #endregion
+
+            List<UserRoleInClient> existingAssignedRoles = await DbContext.UserRoleInClient
+                                                                          .Include(urc => urc.Role)
+                                                                          .Where(urc => urc.ClientId == model.ClientId)
+                                                                          .Where(urc => urc.UserId == model.UserId)
+                                                                          .ToListAsync();
+
+            foreach (ClientRoleAssignment roleAssignment in model.RoleAssignments)
+            {
+                // remove existing roles no longer wanted
+                List<UserRoleInClient> rolesToRemove = existingAssignedRoles.Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum && !roleAssignment.IsAssigned).ToList();
+                rolesToRemove.ForEach(urc => 
+                {
+                    DbContext.UserRoleInClient.Remove(urc);
+
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
+                });
+                AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
+
+                // add roles not already assigned
+                if (roleAssignment.IsAssigned && !existingAssignedRoles.Any(r => r.Role.RoleEnum == roleAssignment.RoleEnum))
+                {
+                    var roleRecord = await RoleManager.Roles.SingleAsync(r => r.RoleEnum == roleAssignment.RoleEnum);
+                    DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, ClientId = RequestedClient.Id, RoleId = roleRecord.Id });
+
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+                }
+            }
+            await DbContext.SaveChangesAsync();
+
+            #region Build resulting model
+            existingAssignedRoles = await DbContext.UserRoleInClient
+                                                   .Where(urc => urc.ClientId == model.ClientId)
+                                                   .Where(urc => urc.UserId == model.UserId)
+                                                   .ToListAsync();
+
+            SetUserRoleInClientResponseModel ReturnModel = new SetUserRoleInClientResponseModel();
+
+            foreach (RoleEnum x in RolesToManage)
+            {
+                if (x == RoleEnum.UserCreator) continue;  // UserCreator is hidden from the front end
+                ReturnModel.Roles.Add((int)x, new AssignedRoleInfo
+                {
+                    RoleEnum = x,
+                    RoleDisplayValue = x.GetDisplayNameString(),
+                    IsAssigned = existingAssignedRoles.Any(urc => urc.RoleId == ApplicationRole.RoleIds[x]),
+                });
+            }
+            string AssignedRolenames = string.Join(", ", ReturnModel.Roles.Values.Where(r => r.IsAssigned).Select(r => r.RoleDisplayValue));
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: result is user {RequestedUser.UserName} has assigned roles <{AssignedRolenames}>");
+            #endregion
+
+            ReturnModel.UserId = model.UserId;
+
             return Json(ReturnModel);
         }
 
@@ -505,9 +621,11 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(model.UserId.ToString());
+            Client RequestedClient = await DbContext.Client.FindAsync(model.ClientId);
+
             #region Validation
             // requested user must exist
-            ApplicationUser RequestedUser = await _userManager.FindByIdAsync(model.UserId.ToString());
             if (RequestedUser == null)
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested user ID {model.UserId} not found");
@@ -516,7 +634,6 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // requested client must exist
-            Client RequestedClient = await DbContext.Client.FindAsync(model.ClientId);
             if (RequestedClient == null)
             {
                 Log.Debug($"In ClientAdminController.SetUserRoleInClient action: requested client ID {model.ClientId} not found");
@@ -602,7 +719,7 @@ namespace MillimanAccessPortal.Controllers
                     await DbContext.SaveChangesAsync();
 
                     Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }));
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }, model.Reason));
                 }
             }
             else
@@ -665,7 +782,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
                 foreach (var existingRecord in ExistingRecordsForRequestedRole)
                 {
-                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }));
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }, model.Reason));
                 }
             }
             #endregion
@@ -799,7 +916,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ClientAdminController.RemoveUserFromClient action: user {Model.UserId} removed from client {Model.ClientId}");
-            AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser));
+            AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
             await ReturnModel.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
@@ -965,7 +1082,7 @@ namespace MillimanAccessPortal.Controllers
             // Log new client store and ClientAdministrator role authorization events
             Log.Verbose($"In ClientAdminController.SaveNewClient action: client {Model.Id} created and user {CurrentApplicationUser.UserName} assigned Administrator and UserCreator roles");
             AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
-            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }));
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }, HitrustReason.NewMapClient.NumericValue));
 
             var currentUser = await _userManager.GetUserAsync(User);
             var returnModel = await _clientAdminQueries.GetNewClientResponseModelAsync(currentUser, Model.Id);

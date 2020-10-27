@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Context;
+using System.Runtime.InteropServices;
 
 namespace MillimanAccessPortal.Models.ClientAdminViewModels
 {
@@ -35,6 +36,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string Employer { get; set; }
 
         public Guid MemberOfClientId { get; set; }
+
+        public int Reason { get; set; }
 
     }
 }
