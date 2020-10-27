@@ -899,14 +899,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
           <div ref={this.browseUploadRef}>
             <ActionIcon
-              label="Add Folder"
-              icon="add"
+              label="Add File"
+              icon="add-file"
               action={() => false}
             />
           </div>
           <ActionIcon
-            label="Add File"
-            icon="add"
+            label="Add Folder"
+            icon="add-folder"
             action={() => false}
           />
         </PanelSectionToolbar>
