@@ -77,6 +77,10 @@ export const openChangeUserRolesModal =
   createActionCreator<AccessActions.OpenChangeUserRolesModal>('OPEN_CHANGE_USER_ROLE_MODAL');
 export const closeChangeUserRolesModal =
   createActionCreator<AccessActions.CloseChangeUserRolesModal>('CLOSE_CHANGE_USER_ROLES_MODAL');
+export const openDiscardUserRoleChangesModal =
+  createActionCreator<AccessActions.OpenDiscardUserRoleChangesModal>('OPEN_DISCARD_USER_ROLE_CHANGES_MODAL');
+export const closeDiscardUserRoleChangesModal =
+  createActionCreator<AccessActions.CloseDiscardUserRoleChangesModal>('CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL');
 
 // Validity Actions
 export const resetValidity =

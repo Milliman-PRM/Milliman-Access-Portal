@@ -393,10 +393,6 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     user: null,
   }),
-  SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
-    ...state,
-    user: !action.enabled ? null : state.user,
-  }),
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
@@ -405,7 +401,7 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     disabled: action.disabled,
     userEnabled: false,
   }),
-  SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
+  SELECT_USER: (state, action: AccessActions.SelectClient) => ({
     ...state,
     userEnabled: action.id !== null ? true : false,
   }),
@@ -548,6 +544,9 @@ const modals = combineReducers({
   ]),
   changeUserRoles: createModalReducer(['OPEN_CHANGE_USER_ROLE_MODAL'], [
     'CLOSE_CHANGE_USER_ROLES_MODAL',
+  ]),
+  discardUserRoleChanges: createModalReducer(['OPEN_DISCARD_USER_ROLE_CHANGES_MODAL'], [
+    'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL',
   ]),
 });
 

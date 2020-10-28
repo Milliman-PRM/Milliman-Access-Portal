@@ -338,6 +338,12 @@ export interface OpenChangeUserRolesModal {
 export interface CloseChangeUserRolesModal {
   type: 'CLOSE_CHANGE_USER_ROLES_MODAL';
 }
+export interface OpenDiscardUserRoleChangesModal {
+  type: 'OPEN_DISCARD_USER_ROLE_CHANGES_MODAL';
+}
+export interface CloseDiscardUserRoleChangesModal {
+  type: 'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -432,6 +438,8 @@ export type PageAccessAction =
   | CloseDiscardEditAfterSelectModal
   | OpenChangeUserRolesModal
   | CloseChangeUserRolesModal
+  | OpenDiscardUserRoleChangesModal
+  | CloseDiscardUserRoleChangesModal
   ;
 
 export type AccessAction =
@@ -449,4 +457,5 @@ export type OpenModalAction =
   | OpenDiscardEditModal
   | OpenDiscardEditAfterSelectModal
   | OpenChangeUserRolesModal
+  | OpenDiscardUserRoleChangesModal
   ;

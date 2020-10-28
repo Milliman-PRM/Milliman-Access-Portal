@@ -709,8 +709,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             icon="cancel"
                             color={'red'}
                             onClick={() => {
-                              this.props.selectUser({ id: null });
-                              this.props.setExpandedUser({ id: entity.id });
+                              if (rolesModified) {
+                                this.props.openDiscardUserRoleChangesModal({});
+                              } else {
+                                this.props.selectUser({ id: null });
+                                this.props.setExpandedUser({ id: entity.id });
+                              }
                             }}
                           />
                         </> :
@@ -859,7 +863,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details, selected, rolesModified } = this.props;
+    const { modals, pending, details, selected } = this.props;
     return (
       <>
         <Modal
@@ -1248,6 +1252,80 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 disabled={!pending.hitrustReason.reason}
               >
                 Change roles
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEdit.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Reset Form</h2>
+          <span className="modal-text text-muted">
+            Would you like to reset the form?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.resetValidity({});
+              this.props.resetFormData({ details });
+              this.props.closeDiscardEditModal({});
+              this.props.setEditStatus({ disabled: true });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardUserRoleChanges.isOpen}
+          onRequestClose={() => this.props.closeDiscardUserRoleChangesModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Discard Changes</h2>
+          <span className="modal-text">
+            Would you like to discard unsaved changes to the User roles?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectUser({ id: null });
+              this.props.closeDiscardUserRoleChangesModal({});
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardUserRoleChangesModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Discard
               </button>
             </div>
           </form>

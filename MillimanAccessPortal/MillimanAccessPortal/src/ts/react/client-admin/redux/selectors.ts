@@ -51,8 +51,14 @@ export function areRolesModified(state: AccessState) {
       roleEnum: role.roleEnum,
       isAssigned: role.isAssigned,
     };
+  }).sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
   });
-  return !_.isEqual(currentlySelectedRolesAsArray, state.pending.roles.roleAssignments);
+  const pendingRolesSorted = state.pending.roles.roleAssignments.sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
+  });
+
+  return !_.isEqual(currentlySelectedRolesAsArray, pendingRolesSorted);
 }
 
 /**
