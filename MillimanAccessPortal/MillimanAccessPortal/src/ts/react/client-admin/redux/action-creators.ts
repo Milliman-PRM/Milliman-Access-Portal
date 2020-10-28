@@ -61,6 +61,8 @@ export const closeCreateClientUserModal =
   createActionCreator<AccessActions.CloseCreateClientUserModal>('CLOSE_CREATE_CLIENT_USER_MODAL');
 export const setCreateClientUserModalEmail =
   createActionCreator<AccessActions.SetCreateClientUserModalEmail>('SET_CREATE_CLIENT_USER_EMAIL');
+export const setCreateClientUserModalEmailError =
+  createActionCreator<AccessActions.SetCreateClientUserModalEmailError>('SET_CREATE_CLIENT_USER_EMAIL_ERROR');
 export const openRemoveUserFromClientModal =
   createActionCreator<AccessActions.OpenRemoveClientUserModal>('OPEN_REMOVE_CLIENT_USER_MODAL');
 export const closeRemoveUserFromClientModal =

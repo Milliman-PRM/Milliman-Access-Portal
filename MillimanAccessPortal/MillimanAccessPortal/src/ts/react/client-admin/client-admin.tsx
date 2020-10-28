@@ -954,7 +954,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 memberOfClientId: pending.createClientUser.memberOfClientId,
                 email: pending.createClientUser.email,
                 userName: pending.createClientUser.userName,
-                reason: -1, // TODO
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
@@ -965,9 +965,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               onChange={(event) => this.props.setCreateClientUserModalEmail({
                 email: event.currentTarget.value,
               })}
-              value={this.props.pending.createClientUser.email}
+              value={pending.createClientUser.email}
               autoFocus={true}
-              error={null}
+              onBlur={() => this.props.setCreateClientUserModalEmailError({
+                showError: !isEmailAddressValid(pending.createClientUser.email),
+              })}
+              error={pending.createClientUser.displayEmailError ? 'Please enter a valid email address.' : null}
             />
             <div className="checkbox-container">
               <span className="modal-text">
@@ -1027,7 +1030,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Reason *"
               value={null}
               values={this.addUserHitrustReasons}
-              onChange={null}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -1042,6 +1047,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="blue-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason || !pending.createClientUser.email ||
+                  pending.createClientUser.displayEmailError}
               >
                 Add User
                 {this.props.pending.data.clientUsers
@@ -1070,7 +1077,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
-                reason: -1, // TODO
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
@@ -1079,7 +1086,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Reason"
               value={null}
               values={this.removeUserHitrustReasons}
-              onChange={null}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -1094,6 +1103,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="red-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason}
               >
                 Remove
                 {this.props.pending.data.clientUsers
@@ -1209,7 +1219,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
-                reason: pending.roles.reason,
+                reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
             }}
@@ -1217,7 +1227,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <DropDown
               name="reason"
               label="Reason"
-              value={pending.roles.reason}
+              value={pending.hitrustReason.reason}
               values={this.clientRoleChangeHitrustReasons}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                 this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
@@ -1240,7 +1250,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="blue-button"
                 type="submit"
-                disabled={!pending.roles.reason}
+                disabled={!pending.hitrustReason.reason}
               >
                 Change roles
               </button>

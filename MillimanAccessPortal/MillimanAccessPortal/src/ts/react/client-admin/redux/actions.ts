@@ -3,7 +3,7 @@ import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, U
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
-import { AccessStateFormData, PendingDeleteClientState } from "./store";
+import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
 
@@ -308,6 +308,10 @@ export interface SetCreateClientUserModalEmail {
   type: 'SET_CREATE_CLIENT_USER_EMAIL';
   email: string;
 }
+export interface SetCreateClientUserModalEmailError {
+  type: 'SET_CREATE_CLIENT_USER_EMAIL_ERROR';
+  showError: boolean;
+}
 export interface OpenRemoveClientUserModal {
   type: 'OPEN_REMOVE_CLIENT_USER_MODAL';
   clientId: string;
@@ -424,6 +428,7 @@ export type PageAccessAction =
   | OpenCreateClientUserModal
   | CloseCreateClientUserModal
   | SetCreateClientUserModalEmail
+  | SetCreateClientUserModalEmailError
   | OpenRemoveClientUserModal
   | CloseRemoveClientUserModal
   | OpenDiscardEditModal

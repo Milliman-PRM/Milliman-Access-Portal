@@ -24,6 +24,8 @@ export interface PendingUserRoleAssignments {
     roleEnum: RoleEnum;
     isAssigned: boolean;
   }>;
+}
+export interface PendingHitrustReason {
   reason: HitrustReasonEnum;
 }
 
@@ -38,6 +40,7 @@ export interface PendingCreateClientUserState {
   memberOfClientId: Guid;
   userName: string;
   email: string;
+  displayEmailError: boolean;
 }
 export interface PendingRemoveClientUserState {
   clientId: Guid;
@@ -127,6 +130,7 @@ export interface AccessStateCardAttributes {
 export interface AccessStatePending {
   data: PendingDataState;
   roles: PendingUserRoleAssignments;
+  hitrustReason: PendingHitrustReason;
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
