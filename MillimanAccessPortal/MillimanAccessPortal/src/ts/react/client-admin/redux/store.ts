@@ -7,7 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { RoleEnum } from '../../shared-components/interfaces';
+import { HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
@@ -24,6 +24,7 @@ export interface PendingUserRoleAssignments {
     roleEnum: RoleEnum;
     isAssigned: boolean;
   }>;
+  reason: HitrustReasonEnum;
 }
 
 /**

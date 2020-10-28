@@ -1206,14 +1206,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.selectUser({ id: null });
               this.props.setUserEditStatus({ enabled: false });
               this.props.closeChangeUserRolesModal({});
+              this.props.updateAllUserRolesInClient({
+                clientId: selected.client,
+                userId: selected.user,
+                reason: pending.roles.reason,
+                roleAssignments: pending.roles.roleAssignments,
+              });
             }}
           >
             <DropDown
               name="reason"
               label="Reason"
-              value={null}
+              value={pending.roles.reason}
               values={this.clientRoleChangeHitrustReasons}
-              onChange={null}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -1232,6 +1240,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="blue-button"
                 type="submit"
+                disabled={!pending.roles.reason}
               >
                 Change roles
               </button>

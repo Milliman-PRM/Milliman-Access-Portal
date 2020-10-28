@@ -25,6 +25,7 @@ const _initialPendingData: PendingDataState = {
 };
 const _initialPendingUserRoleAssignements: PendingUserRoleAssignments = {
   roleAssignments: [],
+  reason: null,
 };
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
@@ -223,6 +224,14 @@ const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initia
       }),
     };
   },
+  SET_ROLE_CHANGE_REASON: (state, action: AccessActions.SetRoleChangeReason) => ({
+    ...state,
+    reason: action.reason,
+  }),
+  OPEN_CHANGE_USER_ROLE_MODAL: (state) => ({
+    ...state,
+    reason: null,
+  }),
   OPEN_CREATE_CLIENT_USER_MODAL: () => _initialPendingUserRoleAssignements,
 });
 

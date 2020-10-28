@@ -19,6 +19,8 @@ export const resetClientDetails =
   createActionCreator<AccessActions.ResetClientDetails>('RESET_CLIENT_DETAILS');
 export const changeUserRolePending =
   createActionCreator<AccessActions.ChangeUserRolePending>('CHANGE_USER_ROLE_PENDING');
+export const setRoleChangeReason =
+  createActionCreator<AccessActions.SetRoleChangeReason>('SET_ROLE_CHANGE_REASON');
 
 // Collapse/expand actions
 export const setExpandedUser =

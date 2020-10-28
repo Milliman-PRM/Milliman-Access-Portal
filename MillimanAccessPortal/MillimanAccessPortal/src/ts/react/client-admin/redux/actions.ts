@@ -1,8 +1,8 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
+import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole, HitrustReason } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
-import { RoleEnum } from "../../shared-components/interfaces";
+import { HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
 import { AccessStateFormData, PendingDeleteClientState } from "./store";
 
 // ~ Page Actions ~
@@ -44,6 +44,10 @@ export interface ChangeUserRolePending {
   type: 'CHANGE_USER_ROLE_PENDING';
   roleEnum: RoleEnum;
   isAssigned: boolean;
+}
+export interface SetRoleChangeReason {
+  type: 'SET_ROLE_CHANGE_REASON';
+  reason: HitrustReasonEnum;
 }
 
 /**
@@ -403,6 +407,7 @@ export type PageAccessAction =
   | SetEditStatus
   | SetUserEditStatus
   | ChangeUserRolePending
+  | SetRoleChangeReason
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser
