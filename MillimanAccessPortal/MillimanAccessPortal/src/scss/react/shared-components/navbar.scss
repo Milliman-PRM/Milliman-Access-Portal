@@ -140,8 +140,8 @@ nav {
 
         .badge {
             position: absolute;
-            top: 6px;
-            right: 6px;
+            top: 1vmin;
+            right: .25vmin;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -153,7 +153,6 @@ nav {
             background-color: $red;
             color: $white;
             font-size: .75em;
-            font-weight: bold;
             text-align: center;
         }
 
