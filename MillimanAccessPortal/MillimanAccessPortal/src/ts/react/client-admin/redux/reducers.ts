@@ -369,12 +369,17 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     user: null,
   }),
   DELETE_CLIENT_SUCCEEDED: () => _initialSelected,
+  SET_EDIT_STATUS: (state) => ({
+    ...state,
+    user: null,
+  }),
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
   SET_EDIT_STATUS: (state, action: AccessActions.SetEditStatus) => ({
     ...state,
     disabled: action.disabled,
+    userEnabled: false,
   }),
   SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
     ...state,

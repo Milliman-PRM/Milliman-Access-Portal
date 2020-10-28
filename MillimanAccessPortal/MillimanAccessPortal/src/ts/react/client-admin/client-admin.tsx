@@ -8,7 +8,7 @@ import ReduxToastr from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, clientEntities, isFormModified, isFormValid,
+  activeUsers, areRolesModified, clientEntities, isFormModified, isFormValid,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -56,6 +56,7 @@ interface ClientAdminProps {
   modals: AccessStateModals;
   formModified: boolean;
   formValid: boolean;
+  rolesModified: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -665,7 +666,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, edit, cardAttributes, pending, filters } = this.props;
+    const { assignedUsers, selected, edit, cardAttributes, pending, filters, rolesModified } = this.props;
     return (
       <>
         <CardPanel
@@ -697,7 +698,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             icon="checkmark"
                             color={'green'}
                             onClick={() => {
-                              this.props.openChangeUserRolesModal({});
+                              if (rolesModified) {
+                                this.props.openChangeUserRolesModal({});
+                              } else {
+                                this.props.selectUser({ id: null });
+                                this.props.setUserEditStatus({ enabled: false });
+                              }
                             }}
                           />
                           <CardButton
@@ -856,7 +862,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details, selected } = this.props;
+    const { modals, pending, details, selected, rolesModified } = this.props;
     return (
       <>
         <Modal
@@ -1329,6 +1335,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     modals,
     formModified: isFormModified(state),
     formValid: isFormValid(state),
+    rolesModified: areRolesModified(state),
   };
 }
 
