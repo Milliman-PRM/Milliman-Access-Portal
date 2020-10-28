@@ -144,8 +144,8 @@ namespace MillimanAccessPortal.DataQueries
                                                                        .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
                                                                        .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
                                                                        .Select(urp => urp.User)
-                                                                       .OrderBy(urp => urp.LastName)
-                                                                       .ThenBy(urp => urp.FirstName)
+                                                                       .OrderBy(u => u.LastName)
+                                                                       .ThenBy(u => u.FirstName)
                                                                        .ToListAsync();
 
             List<FileDrop> fileDrops = await _dbContext.FileDrop
@@ -227,7 +227,7 @@ namespace MillimanAccessPortal.DataQueries
                         AuthorizedServiceAccounts = group.SftpAccounts
                             .Where(a => !a.ApplicationUserId.HasValue)
                             .Select(a => (ClientActorModel)a)
-                            .OrderBy(a => a.UserEmail).ToList(),
+                            .OrderBy(sa => sa.UserEmail).ToList(),
                     });
                 }
                 returnModel.FileDrops.Add(fileDropModel);
