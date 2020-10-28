@@ -32,10 +32,6 @@ export interface SetEditStatus {
   type: 'SET_EDIT_STATUS';
   disabled: boolean;
 }
-export interface SetUserEditStatus {
-  type: 'SET_USER_EDIT_STATUS';
-  enabled: boolean;
-}
 
 /**
  * Change a user role (pending).
@@ -409,7 +405,6 @@ export type PageAccessAction =
   | SelectClient
   | SelectNewSubClient
   | SetEditStatus
-  | SetUserEditStatus
   | ChangeUserRolePending
   | SetRoleChangeReason
   | SelectUser

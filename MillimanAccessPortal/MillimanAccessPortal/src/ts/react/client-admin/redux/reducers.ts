@@ -393,6 +393,10 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     user: null,
   }),
+  SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
+    ...state,
+    user: !action.enabled ? null : state.user,
+  }),
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
@@ -401,11 +405,10 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     disabled: action.disabled,
     userEnabled: false,
   }),
-  SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
+  SELECT_CLIENT: (state, action: AccessActions.SelectClient) => ({
     ...state,
-    userEnabled: action.enabled,
+    userEnabled: action.id !== null ? true : false,
   }),
-  SELECT_CLIENT: () => _initialEditStatus,
   SELECT_NEW_SUB_CLIENT: () => ({
     disabled: false,
     userEnabled: false,

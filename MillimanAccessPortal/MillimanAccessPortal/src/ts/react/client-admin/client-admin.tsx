@@ -702,7 +702,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                 this.props.openChangeUserRolesModal({});
                               } else {
                                 this.props.selectUser({ id: null });
-                                this.props.setUserEditStatus({ enabled: false });
                               }
                             }}
                           />
@@ -712,7 +711,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             onClick={() => {
                               this.props.selectUser({ id: null });
                               this.props.setExpandedUser({ id: entity.id });
-                              this.props.setUserEditStatus({ enabled: false });
                             }}
                           />
                         </> :
@@ -729,7 +727,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                 });
                               });
                               this.props.setExpandedUser({ id: entity.id });
-                              this.props.setUserEditStatus({ enabled: true });
                             }}
                           />
                           <CardButton
@@ -845,7 +842,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     action={() => false}
                   />
                   <ActionIcon
-                    label="Add or create a new client"
+                    label="Add or create a new client user"
                     icon="add"
                     action={() => {
                       this.props.selectUser({ id: 'new' });
@@ -1214,14 +1211,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               this.props.selectUser({ id: null });
-              this.props.setUserEditStatus({ enabled: false });
-              this.props.closeChangeUserRolesModal({});
               this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
                 reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
+              this.props.closeChangeUserRolesModal({});
             }}
           >
             <DropDown
@@ -1242,7 +1238,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 onClick={() => {
                   this.props.selectUser({ id: null });
                   this.props.closeChangeUserRolesModal({});
-                  this.props.setUserEditStatus({ enabled: false });
                 }}
               >
                 Cancel

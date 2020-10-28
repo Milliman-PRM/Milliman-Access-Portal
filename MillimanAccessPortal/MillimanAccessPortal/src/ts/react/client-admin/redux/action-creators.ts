@@ -13,8 +13,6 @@ export const selectUser =
   createActionCreator<AccessActions.SelectUser>('SELECT_USER');
 export const setEditStatus =
   createActionCreator<AccessActions.SetEditStatus>('SET_EDIT_STATUS');
-export const setUserEditStatus =
-  createActionCreator<AccessActions.SetUserEditStatus>('SET_USER_EDIT_STATUS');
 export const resetClientDetails =
   createActionCreator<AccessActions.ResetClientDetails>('RESET_CLIENT_DETAILS');
 export const changeUserRolePending =
