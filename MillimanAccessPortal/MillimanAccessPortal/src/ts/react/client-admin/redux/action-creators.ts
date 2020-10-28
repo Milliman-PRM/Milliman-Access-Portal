@@ -17,6 +17,8 @@ export const setUserEditStatus =
   createActionCreator<AccessActions.SetUserEditStatus>('SET_USER_EDIT_STATUS');
 export const resetClientDetails =
   createActionCreator<AccessActions.ResetClientDetails>('RESET_CLIENT_DETAILS');
+export const changeUserRolePending =
+  createActionCreator<AccessActions.ChangeUserRolePending>('CHANGE_USER_ROLE_PENDING');
 
 // Collapse/expand actions
 export const setExpandedUser =
@@ -85,8 +87,8 @@ export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
 export const fetchClientDetails =
   createRequestActionCreator<AccessActions.FetchClientDetails>('FETCH_CLIENT_DETAILS');
-export const setUserRoleInClient =
-  createRequestActionCreator<AccessActions.SetUserRoleInClient>('SET_USER_ROLE_IN_CLIENT');
+export const updateAllUserRolesInClient =
+  createRequestActionCreator<AccessActions.UpdateAllUserRolesInClient>('UPDATE_ALL_USER_ROLES_IN_CLIENT');
 export const fetchProfitCenters =
   createRequestActionCreator<AccessActions.FetchProfitCenters>('FETCH_PROFIT_CENTERS');
 export const saveNewClient =

@@ -38,6 +38,15 @@ export interface SetUserEditStatus {
 }
 
 /**
+ * Change a user role (pending).
+ */
+export interface ChangeUserRolePending {
+  type: 'CHANGE_USER_ROLE_PENDING';
+  roleEnum: RoleEnum;
+  isAssigned: boolean;
+}
+
+/**
  * Expand the user card specified by id.
  */
 export interface SetExpandedUser {
@@ -166,24 +175,27 @@ export interface FetchClientDetailsFailed {
 }
 
 // POSTS
-export interface SetUserRoleInClient {
-  type: 'SET_USER_ROLE_IN_CLIENT';
+export interface UpdateAllUserRolesInClient {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT';
   request: {
     clientId: Guid;
-    isAssigned: boolean;
-    roleEnum: RoleEnum;
     userId: Guid;
+    reason: number;
+    roleAssignments: Array<{
+      roleEnum: RoleEnum;
+      isAssigned: boolean;
+    }>;
   };
 }
-export interface SetUserRoleInClientSucceeded {
-  type: 'SET_USER_ROLE_IN_CLIENT_SUCCEEDED';
+export interface UpdateAllUserRolesInClientSucceeded {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED';
   response: {
     userId: Guid;
     roles: Dict<UserRole>;
   };
 }
-export interface SetUserRoleInClientFailed {
-  type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
+export interface UpdateAllUserRolesInClientFailed {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT_FAILED';
   error: TSError;
 }
 export interface SaveNewClient {
@@ -235,6 +247,7 @@ export interface SaveNewClientUser {
     memberOfClientId: Guid;
     userName: string;
     email: string;
+    reason: number;
   };
 }
 export interface SaveNewClientUserSucceeded {
@@ -250,6 +263,7 @@ export interface RemoveClientUser {
   request: {
     clientId: Guid;
     userId: Guid;
+    reason: number;
   };
 }
 export interface RemoveClientUserSucceeded {
@@ -347,7 +361,7 @@ export type RequestAccessAction =
   | FetchClients
   | FetchProfitCenters
   | FetchClientDetails
-  | SetUserRoleInClient
+  | UpdateAllUserRolesInClient
   | SaveNewClient
   | EditClient
   | DeleteClient
@@ -359,7 +373,7 @@ export type ResponseAccessAction =
   | FetchClientsSucceeded
   | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
-  | SetUserRoleInClientSucceeded
+  | UpdateAllUserRolesInClientSucceeded
   | SaveNewClientSucceeded
   | EditClientSucceeded
   | DeleteClientSucceeded
@@ -374,6 +388,7 @@ export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed
+  | UpdateAllUserRolesInClientFailed
   | SaveNewClientFailed
   | EditClientFailed
   | DeleteClientFailed
@@ -387,6 +402,7 @@ export type PageAccessAction =
   | SelectNewSubClient
   | SetEditStatus
   | SetUserEditStatus
+  | ChangeUserRolePending
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser

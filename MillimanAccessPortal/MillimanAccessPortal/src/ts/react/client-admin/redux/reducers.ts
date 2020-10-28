@@ -10,6 +10,7 @@ import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
   PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingRemoveClientUserState,
+  PendingUserRoleAssignments,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -21,6 +22,9 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
   clientUsers: false,
+};
+const _initialPendingUserRoleAssignements: PendingUserRoleAssignments = {
+  roleAssignments: [],
 };
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
@@ -204,6 +208,24 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 
+const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initialPendingUserRoleAssignements, {
+  CHANGE_USER_ROLE_PENDING: (state, action: AccessActions.ChangeUserRolePending) => {
+    const currentRoleAssignments = state.roleAssignments;
+    if (currentRoleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum) !== -1) {
+      currentRoleAssignments.splice(state.roleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum), 1);
+    }
+
+    return {
+      ...state,
+      roleAssignments: currentRoleAssignments.concat({
+        roleEnum: action.roleEnum,
+        isAssigned: action.isAssigned,
+      }),
+    };
+  },
+  OPEN_CREATE_CLIENT_USER_MODAL: () => _initialPendingUserRoleAssignements,
+});
+
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
   OPEN_DELETE_CLIENT_MODAL: (state, action: AccessActions.OpenDeleteClientModal) => ({
     ...state,
@@ -268,7 +290,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     details: action.response.clientDetail,
     assignedUsers: action.response.assignedUsers,
   }),
-  SET_USER_ROLE_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.SetUserRoleInClientSucceeded) => ({
+  UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.UpdateAllUserRolesInClientSucceeded) => ({
     ...state,
     ...state.assignedUsers.find((u) => u.id === action.response.userId).userRoles = action.response.roles,
   }),
@@ -503,6 +525,7 @@ const modals = combineReducers({
 
 const pending = combineReducers({
   data: pendingData,
+  roles: pendingRoleAssignments,
   deleteClient: pendingDeleteClient,
   createClientUser: pendingCreateClientUser,
   removeClientUser: pendingRemoveClientUser,

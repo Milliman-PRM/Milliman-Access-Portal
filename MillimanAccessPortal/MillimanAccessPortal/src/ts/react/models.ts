@@ -23,6 +23,10 @@ export interface UserRole {
   roleDisplayValue: string;
   isAssigned: boolean;
 }
+export interface HitrustReason {
+  reasonEnum: number;
+  reasonDisplayValue: string;
+}
 export interface ProfitCenter {
   id: Guid;
   name: string;

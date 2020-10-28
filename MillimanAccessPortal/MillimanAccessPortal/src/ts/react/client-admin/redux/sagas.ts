@@ -26,7 +26,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
   yield takeLatestRequest('FETCH_PROFIT_CENTERS', api.fetchProfitCenters);
   yield takeLatestRequest('FETCH_CLIENT_DETAILS', api.fetchClientDetails);
-  yield takeLatestRequest('SET_USER_ROLE_IN_CLIENT', api.setUserRoleInClient);
+  yield takeLatestRequest('UPDATE_ALL_USER_ROLES_IN_CLIENT', api.updateAllUserRolesInClient);
   yield takeLatestRequest('SAVE_NEW_CLIENT', api.saveNewClient);
   yield takeLatestRequest('EDIT_CLIENT', api.editClient);
   yield takeLatestRequest('DELETE_CLIENT', api.deleteClient);

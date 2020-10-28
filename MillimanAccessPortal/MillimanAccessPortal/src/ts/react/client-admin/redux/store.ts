@@ -7,6 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
+import { RoleEnum } from '../../shared-components/interfaces';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
@@ -17,6 +18,12 @@ export interface PendingDataState {
   clients: boolean;
   details: boolean;
   clientUsers: boolean;
+}
+export interface PendingUserRoleAssignments {
+  roleAssignments: Array<{
+    roleEnum: RoleEnum;
+    isAssigned: boolean;
+  }>;
 }
 
 /**
@@ -118,6 +125,7 @@ export interface AccessStateCardAttributes {
  */
 export interface AccessStatePending {
   data: PendingDataState;
+  roles: PendingUserRoleAssignments;
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
