@@ -341,6 +341,14 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion Validation
 
+            foreach (var role in RolesToManage)
+            {
+                if (!Model.RoleAssignments.Any(ra => ra.RoleEnum == role))
+                {
+                    Model.RoleAssignments.Add(new ClientRoleAssignment { RoleEnum = role, IsAssigned = false });
+                }
+            }
+
             try
             {
                 // Create requested user if not already existing
@@ -377,10 +385,13 @@ namespace MillimanAccessPortal.Controllers
                     await _userManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                     Log.Verbose($"In ClientAdminController.SaveNewUser action: UserName {RequestedUser.UserName}, added to client {ThisClientMembershipClaim.Value}");
                 }
-
                 await DbContext.SaveChangesAsync();
-
                 AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
+
+                await UpdateAllUserRolesInClient(new UpdateAllUserRolesInClientRequestModel { ClientId = Model.MemberOfClientId, 
+                                                                                              UserId = RequestedUser.Id, 
+                                                                                              RoleAssignments = Model.RoleAssignments, 
+                                                                                              Reason = Model.Reason });
             }
             catch (Exception e)
             {

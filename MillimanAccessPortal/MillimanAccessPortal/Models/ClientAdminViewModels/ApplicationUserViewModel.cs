@@ -1,6 +1,6 @@
 ﻿/*
- * CODE OWNERS: Joseph Sweeney
- * OBJECTIVE:
+ * CODE OWNERS: Joseph Sweeney, Tom Puckett
+ * OBJECTIVE: Request model for the ClientAdminController.SaveNewUser action
  * DEVELOPER NOTES:
  */
 
@@ -36,6 +36,8 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public string Employer { get; set; }
 
         public Guid MemberOfClientId { get; set; }
+
+        public List<ClientRoleAssignment> RoleAssignments { get; set; } = new List<ClientRoleAssignment>();
 
         public int Reason { get; set; }
 
