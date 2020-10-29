@@ -29,12 +29,11 @@ import { Filter } from '../shared-components/filter';
 import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
-    ClientDetail, ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
+    ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
     isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
     SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
-import { AddUserToClientModal } from './modals/add-user-to-client';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
@@ -223,12 +222,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                           onClick={() => this.handleSendReset(entity.email)}
                           icon={'email'}
                         />
-                        <CardButton
-                          color={'red'}
-                          tooltip="Remove from client"
-                          onClick={() => this.handleClientUserRemove(entity.id, entity.clientId)}
-                          icon={'remove-circle'}
-                        />
                       </CardSectionButtons>
                     </CardSectionMain>
                     {entity.rootContentItems && entity.rootContentItems.length
@@ -385,35 +378,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             <PanelSectionToolbarButtons>
               {this.state.secondaryPanel.selected.column === SystemAdminColumn.USER
               ? (
-                this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
+                this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
                 ? (
-                  <ActionIcon
-                    label="Add or create client user"
-                    icon="add"
-                    action={this.handleSecondaryModalOpen}
-                  />
-                )
-                : (
                   <ActionIcon
                     label="Add or create authorized profit center user"
                     icon="add"
                     action={this.handleSecondaryModalOpen}
                   />
-                )
+                ) : null
               )
               : null
               }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
-          <AddUserToClientModal
-            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
-              && this.state.secondaryPanel.createModal.open}
-            onRequestClose={this.handleSecondaryModalClose}
-            ariaHideApp={false}
-            className="modal"
-            overlayClassName="modal-overlay"
-            clientId={this.state.primaryPanel.selected.card}
-          />
           <AddUserToProfitCenterModal
             isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
               && this.state.secondaryPanel.createModal.open}
@@ -637,7 +614,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedFileDropAdmin={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropAdmin}
             checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
-            onPushUserClient={this.pushUserClient}
             onPushSuspend={this.pushSuspendContent}
           />
         </div>
@@ -1203,58 +1179,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private pushUserClient = (_: React.MouseEvent<HTMLInputElement>, role: RoleEnum) => {
-    const { secondaryDetail } = this.state.data;
-    if (!isUserClientRoles(secondaryDetail)) {
-      return;
-    }
-
-    let prevValue = false;
-    if (role === RoleEnum.Admin) {
-      prevValue = secondaryDetail.isClientAdmin;
-    } else if (role === RoleEnum.ContentPublisher) {
-      prevValue = secondaryDetail.isContentPublisher;
-    } else if (role === RoleEnum.ContentAccessAdmin) {
-      prevValue = secondaryDetail.isAccessAdmin;
-    } else if (role === RoleEnum.ContentUser) {
-      prevValue = secondaryDetail.isContentUser;
-    } else if (role === RoleEnum.FileDropAdmin) {
-      prevValue = secondaryDetail.isFileDropAdmin;
-    } else if (role === RoleEnum.FileDropUser) {
-      prevValue = secondaryDetail.isFileDropUser;
-    }
-    postData('/SystemAdmin/UserClientRoleAssignment', {
-      ...this.getFinalQueryFilter(),
-      role,
-      value: !prevValue,
-    }).then((response: boolean) => {
-      let roleAssignment: Partial<UserClientRoles> = {};
-      if (role === RoleEnum.Admin) {
-        roleAssignment = { isClientAdmin: response };
-      } else if (role === RoleEnum.ContentPublisher) {
-        roleAssignment = { isContentPublisher: response };
-      } else if (role === RoleEnum.ContentAccessAdmin) {
-        roleAssignment = { isAccessAdmin: response };
-      } else if (role === RoleEnum.ContentUser) {
-        roleAssignment = { isContentUser: response };
-      } else if (role === RoleEnum.FileDropAdmin) {
-        roleAssignment = { isFileDropAdmin: response };
-      } else if (role === RoleEnum.FileDropUser) {
-        roleAssignment = { isFileDropUser: response };
-      }
-      this.setState((prevState) => ({
-        ...prevState,
-        data: {
-          ...prevState.data,
-          secondaryDetail: {
-            ...prevState.data.secondaryDetail,
-            ...roleAssignment,
-          },
-        },
-      }));
-    });
-  }
-
   private fetchSuspendContent = () => {
     getJsonData('/SystemAdmin/ContentSuspendedStatus', {
       ...this.getFinalQueryFilter(),
@@ -1463,13 +1387,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('SystemAdmin/RemoveUserFromProfitCenter', { userId, profitCenterId }, true)
     .then(() => {
       alert('User removed from profit center.');
-    });
-  }
-
-  private handleClientUserRemove = (userId: Guid, clientId: Guid) => {
-    postData('SystemAdmin/RemoveUserFromClient', { userId, clientId }, true)
-    .then(() => {
-      alert('User removed from client.');
     });
   }
 
