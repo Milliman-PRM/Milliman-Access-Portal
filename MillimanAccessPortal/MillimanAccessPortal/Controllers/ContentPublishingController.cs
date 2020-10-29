@@ -488,14 +488,7 @@ namespace MillimanAccessPortal.Controllers
             RootContentItemDetail model = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
 
             _dbContext.RootContentItem.Remove(rootContentItem);
-            try
-            {
-                await _dbContext.SaveChangesAsync();
-            }
-            catch (Exception e)
-            {
-                string msg = e.Message;
-            }
+            await _dbContext.SaveChangesAsync();
 
             // ContentType specific handling after database operation completes
             switch (rootContentItem.ContentType.TypeEnum)
