@@ -80,11 +80,15 @@ namespace MillimanAccessPortal.DataQueries
                                                                  .Where(urc => urc.ClientId == clientId)
                                                                  .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
                                                                  .Select(urc => urc.User)
+                                                                 .OrderBy(urc => urc.LastName)
+                                                                 .ThenBy(urc => urc.FirstName)
                                                                  .ToListAsync();
             List<ApplicationUser> profitCenterAdmins = await _dbContext.UserRoleInProfitCenter
                                                                        .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
                                                                        .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
                                                                        .Select(urp => urp.User)
+                                                                       .OrderBy(urp => urp.LastName)
+                                                                       .ThenBy(urp => urp.FirstName)
                                                                        .ToListAsync();
 
             ApplicationUser lastApprover = await _userManager.FindByNameAsync(client.LastAccessReview.UserName);
@@ -113,6 +117,8 @@ namespace MillimanAccessPortal.DataQueries
                                             .Include(c => c.ProfitCenter)
                                             .SingleOrDefaultAsync(c => c.Id == clientId);
             IEnumerable<ClientActorReviewModel> memberUsers = (await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("ClientMembership", client.Id.ToString())))
+                .OrderBy(u => u.LastName)
+                .ThenBy(u => u.FirstName)
                 .Select(u => 
                 {
                     List<RoleEnum> authorizedRoles = _dbContext.UserRoleInClient
@@ -131,12 +137,15 @@ namespace MillimanAccessPortal.DataQueries
             List<RootContentItem> contentItems = await _dbContext.RootContentItem
                                                                  .Include(c => c.ContentType)
                                                                  .Where(c => c.ClientId == client.Id)
+                                                                 .OrderBy(c => c.ContentName)
                                                                  .ToListAsync();
 
             List<ApplicationUser> profitCenterAdmins = await _dbContext.UserRoleInProfitCenter
                                                                        .Where(urp => urp.ProfitCenterId == client.ProfitCenterId)
                                                                        .Where(urp => urp.Role.RoleEnum == RoleEnum.Admin)
                                                                        .Select(urp => urp.User)
+                                                                       .OrderBy(u => u.LastName)
+                                                                       .ThenBy(u => u.FirstName)
                                                                        .ToListAsync();
 
             List<FileDrop> fileDrops = await _dbContext.FileDrop
@@ -144,6 +153,7 @@ namespace MillimanAccessPortal.DataQueries
                                                            .ThenInclude(g => g.SftpAccounts)
                                                                .ThenInclude(a => a.ApplicationUser)
                                                        .Where(d => d.ClientId == client.Id)
+                                                       .OrderBy(d => d.Name)
                                                        .ToListAsync();
 
             var returnModel = new ClientAccessReviewModel
@@ -159,14 +169,15 @@ namespace MillimanAccessPortal.DataQueries
                 AttestationLanguage = _appConfig.GetValue<string>("ClientReviewAttestationLanguage"),
                 ClientAccessReviewId = Guid.NewGuid(),
             };
-            returnModel.ApprovedEmailDomainList.AddRange(client.AcceptedEmailDomainList);
-            returnModel.ApprovedEmailExceptionList.AddRange(client.AcceptedEmailAddressExceptionList);
+            returnModel.ApprovedEmailDomainList.AddRange(client.AcceptedEmailDomainList.OrderBy(d => d));
+            returnModel.ApprovedEmailExceptionList.AddRange(client.AcceptedEmailAddressExceptionList.OrderBy(e => e));
             profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
             returnModel.MemberUsers.AddRange(memberUsers);
             contentItems.ForEach(c =>
             {
                 var relatedGroups = _dbContext.SelectionGroup
                                               .Where(g => g.RootContentItemId == c.Id)
+                                              .OrderBy(g => g.GroupName)
                                               .ToList();
                 var contentModel = new ClientContentItemModel
                 {
@@ -190,6 +201,8 @@ namespace MillimanAccessPortal.DataQueries
                     };
                     groupModel.AuthorizedUsers.AddRange(_dbContext.UserInSelectionGroup
                                                                   .Where(usg => usg.SelectionGroupId == g.Id)
+                                                                  .OrderBy(usg => usg.User.LastName)
+                                                                  .ThenBy(usg => usg.User.FirstName)
                                                                   .Select(usg => (ClientActorModel)usg.User));
                     contentModel.SelectionGroups.Add(groupModel);
                 });
@@ -199,15 +212,22 @@ namespace MillimanAccessPortal.DataQueries
             fileDrops.ForEach(d =>
             {
                 ClientFileDropModel fileDropModel = new ClientFileDropModel { Id = d.Id, FileDropName = d.Name };
-                foreach (FileDropUserPermissionGroup group in d.PermissionGroups)
+                foreach (FileDropUserPermissionGroup group in d.PermissionGroups.OrderByDescending(pg => pg.IsPersonalGroup).ThenBy(pg => pg.Name))
                 {
-                    fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel 
+                    fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel
                     {
                         PermissionGroupName = group.Name,
                         IsPersonalGroup = group.IsPersonalGroup,
                         Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
-                        AuthorizedMapUsers = group.SftpAccounts.Where(a => a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
-                        AuthorizedServiceAccounts = group.SftpAccounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => (ClientActorModel)a).ToList(),
+                        AuthorizedMapUsers = group.SftpAccounts
+                            .Where(a => a.ApplicationUserId.HasValue)
+                            .OrderBy(a => a.ApplicationUser.LastName)
+                            .ThenBy(a => a.ApplicationUser.FirstName)
+                            .Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
+                        AuthorizedServiceAccounts = group.SftpAccounts
+                            .Where(a => !a.ApplicationUserId.HasValue)
+                            .Select(a => (ClientActorModel)a)
+                            .OrderBy(sa => sa.UserEmail).ToList(),
                     });
                 }
                 returnModel.FileDrops.Add(fileDropModel);
