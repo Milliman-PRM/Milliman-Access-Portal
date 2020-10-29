@@ -9,7 +9,8 @@ import * as AccessActions from './actions';
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
-  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingRemoveClientUserState,
+  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingHitrustReason,
+  PendingRemoveClientUserState, PendingUserRoleAssignments,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -22,6 +23,12 @@ const _initialPendingData: PendingDataState = {
   details: false,
   clientUsers: false,
 };
+const _initialPendingUserRoleAssignements: PendingUserRoleAssignments = {
+  roleAssignments: [],
+};
+const _initialHitrustReason: PendingHitrustReason = {
+  reason: null,
+};
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
   name: null,
@@ -30,6 +37,7 @@ const _initialPendingCreateClientUser: PendingCreateClientUserState = {
   memberOfClientId: null,
   userName: null,
   email: null,
+  displayEmailError: false,
 };
 const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
   clientId: null,
@@ -204,6 +212,34 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
 });
 
+const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initialPendingUserRoleAssignements, {
+  OPEN_CREATE_CLIENT_USER_MODAL: () => _initialPendingUserRoleAssignements,
+  CHANGE_USER_ROLE_PENDING: (state, action: AccessActions.ChangeUserRolePending) => {
+    const currentRoleAssignments = state.roleAssignments;
+    if (currentRoleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum) !== -1) {
+      currentRoleAssignments.splice(state.roleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum), 1);
+    }
+
+    return {
+      ...state,
+      roleAssignments: currentRoleAssignments.concat({
+        roleEnum: action.roleEnum,
+        isAssigned: action.isAssigned,
+      }),
+    };
+  },
+});
+
+const pendingHitrustReason = createReducer<PendingHitrustReason>(_initialHitrustReason, {
+  OPEN_CHANGE_USER_ROLE_MODAL: () => _initialHitrustReason,
+  OPEN_CREATE_CLIENT_USER_MODAL: () => _initialHitrustReason,
+  OPEN_REMOVE_CLIENT_USER_MODAL: () => _initialHitrustReason,
+  SET_ROLE_CHANGE_REASON: (state, action: AccessActions.SetRoleChangeReason) => ({
+    ...state,
+    reason: action.reason,
+  }),
+});
+
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
   OPEN_DELETE_CLIENT_MODAL: (state, action: AccessActions.OpenDeleteClientModal) => ({
     ...state,
@@ -218,11 +254,17 @@ const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_ini
     memberOfClientId: action.clientId,
     email: null,
     userName: null,
+    displayEmailError: false,
   }),
   SET_CREATE_CLIENT_USER_EMAIL: (state, action: AccessActions.SetCreateClientUserModalEmail) => ({
     ...state,
     email: action.email,
     userName: action.email,
+    displayEmailError: false,
+  }),
+  SET_CREATE_CLIENT_USER_EMAIL_ERROR: (state, action: AccessActions.SetCreateClientUserModalEmailError) => ({
+    ...state,
+    displayEmailError: action.showError,
   }),
 });
 
@@ -268,7 +310,7 @@ const data = createReducer<AccessStateData>(_initialData, {
     details: action.response.clientDetail,
     assignedUsers: action.response.assignedUsers,
   }),
-  SET_USER_ROLE_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.SetUserRoleInClientSucceeded) => ({
+  UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.UpdateAllUserRolesInClientSucceeded) => ({
     ...state,
     ...state.assignedUsers.find((u) => u.id === action.response.userId).userRoles = action.response.roles,
   }),
@@ -347,18 +389,22 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     user: null,
   }),
   DELETE_CLIENT_SUCCEEDED: () => _initialSelected,
+  SET_EDIT_STATUS: (state) => ({
+    ...state,
+    user: null,
+  }),
 });
 
 const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
   SET_EDIT_STATUS: (state, action: AccessActions.SetEditStatus) => ({
     ...state,
     disabled: action.disabled,
+    userEnabled: false,
   }),
-  SET_USER_EDIT_STATUS: (state, action: AccessActions.SetUserEditStatus) => ({
+  SELECT_USER: (state, action: AccessActions.SelectClient) => ({
     ...state,
-    userEnabled: action.enabled,
+    userEnabled: action.id !== null ? true : false,
   }),
-  SELECT_CLIENT: () => _initialEditStatus,
   SELECT_NEW_SUB_CLIENT: () => ({
     disabled: false,
     userEnabled: false,
@@ -499,10 +545,15 @@ const modals = combineReducers({
   changeUserRoles: createModalReducer(['OPEN_CHANGE_USER_ROLE_MODAL'], [
     'CLOSE_CHANGE_USER_ROLES_MODAL',
   ]),
+  discardUserRoleChanges: createModalReducer(['OPEN_DISCARD_USER_ROLE_CHANGES_MODAL'], [
+    'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL',
+  ]),
 });
 
 const pending = combineReducers({
   data: pendingData,
+  roles: pendingRoleAssignments,
+  hitrustReason: pendingHitrustReason,
   deleteClient: pendingDeleteClient,
   createClientUser: pendingCreateClientUser,
   removeClientUser: pendingRemoveClientUser,

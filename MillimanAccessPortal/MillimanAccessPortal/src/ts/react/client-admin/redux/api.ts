@@ -18,9 +18,9 @@ export const fetchProfitCenters =
 export const fetchClientDetails =
   createJsonRequestor<AccessActions.FetchClientDetails, AccessActions.FetchClientDetailsSucceeded>
     ('GET', '/ClientAdmin/ClientDetail');
-export const setUserRoleInClient =
-  createJsonRequestor<AccessActions.SetUserRoleInClient, AccessActions.SetUserRoleInClientSucceeded>
-    ('POST', '/ClientAdmin/SetUserRoleInClient');
+export const updateAllUserRolesInClient =
+  createJsonRequestor<AccessActions.UpdateAllUserRolesInClient, AccessActions.UpdateAllUserRolesInClientSucceeded>
+    ('POST', '/ClientAdmin/UpdateAllUserRolesInClient');
 export const saveNewClient =
   createJsonRequestor<AccessActions.SaveNewClient, AccessActions.SaveNewClientSucceeded>
     ('POST', '/ClientAdmin/SaveNewClient');

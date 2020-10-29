@@ -1,4 +1,6 @@
-﻿import * as React from 'react';
+﻿import * as _ from 'lodash';
+
+import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { connect } from 'react-redux';
@@ -6,7 +8,7 @@ import ReduxToastr from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, clientEntities, isFormModified, isFormValid,
+  activeUsers, areRolesModified, clientEntities, isFormModified, isFormValid,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -31,7 +33,7 @@ import { Filter } from '../shared-components/filter';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
-import { RoleEnum } from '../shared-components/interfaces';
+import { HitrustReasonEnum, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
@@ -54,11 +56,39 @@ interface ClientAdminProps {
   modals: AccessStateModals;
   formModified: boolean;
   formValid: boolean;
+  rolesModified: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
+
+  private readonly addUserHitrustReasons: Array<{selectionValue: number, selectionLabel: string}> = [
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+  ];
+  private readonly removeUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+    { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+  ];
+  private readonly clientRoleChangeHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+    { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+  ];
 
   public componentDidMount() {
     this.props.fetchProfitCenters({});
@@ -636,7 +666,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, edit, cardAttributes, filters } = this.props;
+    const { assignedUsers, selected, edit, cardAttributes, pending, filters, rolesModified } = this.props;
     return (
       <>
         <CardPanel
@@ -660,36 +690,61 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
                     subtext={entity.firstName && entity.lastName ? entity.email : ''}
                   />
-                  {!selected.readonly ?
+                  {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>
                       {edit.userEnabled ?
-                        <CardButton
-                          icon="checkmark"
-                          color={'green'}
-                          onClick={() => {
-                            this.props.openChangeUserRolesModal({});
-                          }}
-                        /> :
-                        <CardButton
-                          icon="edit"
-                          color={'blue'}
-                          onClick={() => {
-                            this.props.selectUser({ id: entity.id });
-                            this.props.setExpandedUser({ id: entity.id });
-                            this.props.setUserEditStatus({ enabled: true });
-                          }}
-                        />
+                        <>
+                          <CardButton
+                            icon="checkmark"
+                            color={'green'}
+                            onClick={() => {
+                              if (rolesModified) {
+                                this.props.openChangeUserRolesModal({});
+                              } else {
+                                this.props.selectUser({ id: null });
+                              }
+                            }}
+                          />
+                          <CardButton
+                            icon="cancel"
+                            color={'red'}
+                            onClick={() => {
+                              if (rolesModified) {
+                                this.props.openDiscardUserRoleChangesModal({});
+                              } else {
+                                this.props.selectUser({ id: null });
+                                this.props.setExpandedUser({ id: entity.id });
+                              }
+                            }}
+                          />
+                        </> :
+                        <>
+                          <CardButton
+                            icon="edit"
+                            color={'blue'}
+                            onClick={() => {
+                              this.props.selectUser({ id: entity.id });
+                              _.forEach(entity.userRoles, (role) => {
+                                this.props.changeUserRolePending({
+                                  roleEnum: role.roleEnum,
+                                  isAssigned: role.isAssigned,
+                                });
+                              });
+                              this.props.setExpandedUser({ id: entity.id });
+                            }}
+                          />
+                          <CardButton
+                            icon="remove-circle"
+                            color={'red'}
+                            onClick={() => this.props.openRemoveUserFromClientModal({
+                              clientId: selected.client,
+                              userId: entity.id,
+                              name: entity.firstName && entity.lastName ?
+                                `${entity.firstName} ${entity.lastName}` : entity.email,
+                            })}
+                          />
+                        </>
                       }
-                      <CardButton
-                        icon="remove-circle"
-                        color={'red'}
-                        onClick={() => this.props.openRemoveUserFromClientModal({
-                          clientId: selected.client,
-                          userId: entity.id,
-                          name: entity.firstName && entity.lastName ?
-                            `${entity.firstName} ${entity.lastName}` : entity.email,
-                        })}
-                      />
                     </CardSectionButtons> : null
                   }
                 </CardSectionMain>
@@ -703,54 +758,71 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   >
                     <Checkbox
                       name={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.Admin].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.Admin], selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
                       name={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentAccessAdmin],
-                          selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentAccessAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
                       name={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentPublisher],
-                          selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentPublisher,
+                          isAssigned: checked,
+                        });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
                       name={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.ContentUser].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.ContentUser], selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentUser,
+                          isAssigned: checked,
+                        });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
                       name={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.FileDropAdmin],
-                          selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
                       name={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
-                      selected={entity.userRoles[RoleEnum.FileDropUser].isAssigned}
-                      onChange={(checked) =>
-                        this.changeUserRole(checked, entity.userRoles[RoleEnum.FileDropUser],
-                          selected.client, entity.id)
-                      }
+                      selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropUser,
+                          isAssigned: checked,
+                        });
+                      }}
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                   </CardExpansion> : null}
@@ -774,9 +846,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     action={() => false}
                   />
                   <ActionIcon
-                    label="Add or create a new client"
+                    label="Add or create a new client user"
                     icon="add"
                     action={() => {
+                      this.props.selectUser({ id: 'new' });
                       this.props.openCreateClientUserModal({ clientId: selected.client });
                     }}
                   />
@@ -882,6 +955,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 memberOfClientId: pending.createClientUser.memberOfClientId,
                 email: pending.createClientUser.email,
                 userName: pending.createClientUser.userName,
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
@@ -892,9 +966,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               onChange={(event) => this.props.setCreateClientUserModalEmail({
                 email: event.currentTarget.value,
               })}
-              value={this.props.pending.createClientUser.email}
+              value={pending.createClientUser.email}
               autoFocus={true}
-              error={null}
+              onBlur={() => this.props.setCreateClientUserModalEmailError({
+                showError: !isEmailAddressValid(pending.createClientUser.email),
+              })}
+              error={pending.createClientUser.displayEmailError ? 'Please enter a valid email address.' : null}
             />
             <div className="checkbox-container">
               <span className="modal-text">
@@ -902,38 +979,50 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               </span>
               <Checkbox
                 name={'Client Admin'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.Admin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                }}
                 readOnly={false}
               />
               <Checkbox
                 name={'Content Access Admin'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentAccessAdmin, isAssigned: checked });
+                }}
                 readOnly={false}
               />
               <Checkbox
                 name={'Content Publisher'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.ContentPublisher, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentPublisher, isAssigned: checked });
+                }}
                 readOnly={false}
               />
               <Checkbox
                 name={'Content User'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.ContentUser, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentUser, isAssigned: checked });
+                }}
                 readOnly={false}
               />
               <Checkbox
                 name={'File Drop Admin'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.FileDropAdmin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.FileDropAdmin, isAssigned: checked });
+                }}
                 readOnly={false}
               />
               <Checkbox
                 name={'File Drop User'}
-                selected={false}
-                onChange={null}
+                selected={this.isRoleSelected(RoleEnum.FileDropUser, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.FileDropUser, isAssigned: checked });
+                }}
                 readOnly={false}
               />
             </div>
@@ -941,8 +1030,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               name="reason"
               label="Reason *"
               value={null}
-              values={[]}
-              onChange={null}
+              values={this.addUserHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -957,6 +1048,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="blue-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason || !pending.createClientUser.email ||
+                  pending.createClientUser.displayEmailError}
               >
                 Add User
                 {this.props.pending.data.clientUsers
@@ -985,6 +1078,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
@@ -992,8 +1086,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               name="reason"
               label="Reason"
               value={null}
-              values={[]}
-              onChange={null}
+              values={this.removeUserHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -1008,6 +1104,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="red-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason}
               >
                 Remove
                 {this.props.pending.data.clientUsers
@@ -1118,16 +1215,23 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               this.props.selectUser({ id: null });
-              this.props.setUserEditStatus({ enabled: false });
+              this.props.updateAllUserRolesInClient({
+                clientId: selected.client,
+                userId: selected.user,
+                reason: pending.hitrustReason.reason,
+                roleAssignments: pending.roles.roleAssignments,
+              });
               this.props.closeChangeUserRolesModal({});
             }}
           >
             <DropDown
               name="reason"
               label="Reason"
-              value={null}
-              values={[]}
-              onChange={null}
+              value={pending.hitrustReason.reason}
+              values={this.clientRoleChangeHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
               error={null}
               placeholderText={'Choose an option'}
             />
@@ -1135,31 +1239,99 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="link-button"
                 type="button"
-                onClick={() => this.props.closeChangeUserRolesModal({})}
+                onClick={() => {
+                  this.props.selectUser({ id: null });
+                  this.props.closeChangeUserRolesModal({});
+                }}
               >
                 Cancel
               </button>
               <button
                 className="blue-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason}
               >
                 Change roles
               </button>
             </div>
           </form>
         </Modal>
+        <Modal
+          isOpen={modals.discardEdit.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Reset Form</h2>
+          <span className="modal-text text-muted">
+            Would you like to reset the form?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.resetValidity({});
+              this.props.resetFormData({ details });
+              this.props.closeDiscardEditModal({});
+              this.props.setEditStatus({ disabled: true });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardUserRoleChanges.isOpen}
+          onRequestClose={() => this.props.closeDiscardUserRoleChangesModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Discard Changes</h2>
+          <span className="modal-text">
+            Would you like to discard unsaved changes to the User roles?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectUser({ id: null });
+              this.props.closeDiscardUserRoleChangesModal({});
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardUserRoleChangesModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Discard
+              </button>
+            </div>
+          </form>
+        </Modal>
       </>
     );
-  }
-
-  private changeUserRole(selected: boolean, entityRole: UserRole, client: Guid, user: Guid) {
-    event.stopPropagation();
-    this.props.setUserRoleInClient({
-      clientId: client,
-      isAssigned: selected,
-      roleEnum: entityRole.roleEnum,
-      userId: user,
-    });
   }
 
   private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
@@ -1223,6 +1395,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       && client.parentId !== null
       && client.id === null;
   }
+
+  private isRoleSelected(roleEnum: RoleEnum, entity: User, selectedUserId: Guid,
+                         pendingRoleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>) {
+    if (entity && entity.id === selectedUserId || (entity === null && selectedUserId === 'new')) {
+      const role = pendingRoleAssignments.find((ra) => ra.roleEnum === roleEnum);
+      if (role) {
+        return role.isAssigned;
+      }
+      return false;
+    }
+    return entity.userRoles[roleEnum].isAssigned;
+  }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
@@ -1243,6 +1427,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     modals,
     formModified: isFormModified(state),
     formValid: isFormValid(state),
+    rolesModified: areRolesModified(state),
   };
 }
 

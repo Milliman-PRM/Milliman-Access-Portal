@@ -7,6 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
+import { HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
@@ -17,6 +18,15 @@ export interface PendingDataState {
   clients: boolean;
   details: boolean;
   clientUsers: boolean;
+}
+export interface PendingUserRoleAssignments {
+  roleAssignments: Array<{
+    roleEnum: RoleEnum;
+    isAssigned: boolean;
+  }>;
+}
+export interface PendingHitrustReason {
+  reason: HitrustReasonEnum;
 }
 
 /**
@@ -30,6 +40,7 @@ export interface PendingCreateClientUserState {
   memberOfClientId: Guid;
   userName: string;
   email: string;
+  displayEmailError: boolean;
 }
 export interface PendingRemoveClientUserState {
   clientId: Guid;
@@ -118,6 +129,8 @@ export interface AccessStateCardAttributes {
  */
 export interface AccessStatePending {
   data: PendingDataState;
+  roles: PendingUserRoleAssignments;
+  hitrustReason: PendingHitrustReason;
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
@@ -135,6 +148,7 @@ export interface AccessStateModals {
   discardEdit: ModalState;
   discardEditAfterSelect: ModalState;
   changeUserRoles: ModalState;
+  discardUserRoleChanges: ModalState;
 }
 
 export interface AccessState {

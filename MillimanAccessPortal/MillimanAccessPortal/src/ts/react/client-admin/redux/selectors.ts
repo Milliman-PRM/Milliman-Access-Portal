@@ -38,6 +38,30 @@ export function isFormModified(state: AccessState) {
 }
 
 /**
+ * Determines whether any of the roles in a selected ClientUser have been modified from their initial state.
+ *
+ * @param state Redux store.
+ */
+export function areRolesModified(state: AccessState) {
+  const currentlySelectedUser = state.data.assignedUsers.find((u) => u.id === state.selected.user);
+  if (!currentlySelectedUser) { return false; }
+
+  const currentlySelectedRolesAsArray = _.map(currentlySelectedUser.userRoles, (role) => {
+    return {
+      roleEnum: role.roleEnum,
+      isAssigned: role.isAssigned,
+    };
+  }).sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
+  });
+  const pendingRolesSorted = state.pending.roles.roleAssignments.sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
+  });
+
+  return !_.isEqual(currentlySelectedRolesAsArray, pendingRolesSorted);
+}
+
+/**
  * Select all clients as a tree
  *
  * This selector supports client tree structures with at most 2 layers.
