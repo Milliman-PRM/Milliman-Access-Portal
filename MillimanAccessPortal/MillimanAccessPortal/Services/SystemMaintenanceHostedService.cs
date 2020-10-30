@@ -89,10 +89,10 @@ namespace MillimanAccessPortal.Services
                             var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
                             _ => "https://unhandled.environment",
                         };
-                        string emailBody = "You have the role of Client administrator of the below listed Client(s) in Milliman Access Portal. ";
+                        string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
                         emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
                         emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
-                        emailBody += $"Please login to MAP at {mapUrl} and perform the client access review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
+                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
 
                         foreach (Client client in expiringClients)
                         {
