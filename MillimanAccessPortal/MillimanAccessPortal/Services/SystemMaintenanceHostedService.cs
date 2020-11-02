@@ -56,6 +56,7 @@ namespace MillimanAccessPortal.Services
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 IConfiguration appConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
+                IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
 
@@ -80,10 +81,18 @@ namespace MillimanAccessPortal.Services
 
                     if (expiringClients.Any())
                     {
-                        string emailBody = "You have the role of administrator of the below listed client(s) in Milliman Access Portal. ";
-                        emailBody += "Each of these clients has an approaching deadline for the required periodic review of access assignments. ";
-                        emailBody += "User access to content published for the client will be discontinued if the deadline passes. " + Environment.NewLine + Environment.NewLine;
-                        emailBody += "Please login to MAP at https://map.milliman.com and perform the client review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
+                        string mapUrl = hostEnvironment switch
+                        {
+                            var env when env.IsProduction() => "https://map.milliman.com",
+                            var env when env.IsStaging() => "https://map.milliman.com:44300",
+                            var env when env.IsDevelopment() => "https://localhost:44336",
+                            var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
+                            _ => "https://unhandled.environment",
+                        };
+                        string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
+                        emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
+                        emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
+                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
 
                         foreach (Client client in expiringClients)
                         {
