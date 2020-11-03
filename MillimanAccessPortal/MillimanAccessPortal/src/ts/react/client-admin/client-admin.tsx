@@ -30,6 +30,7 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
@@ -38,7 +39,7 @@ import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
 import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
-import { Checkbox } from '../shared-components/form/checkbox';
+import { setUnloadAlert } from '../../unload-alerts';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
@@ -93,6 +94,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   public componentDidMount() {
     this.props.fetchProfitCenters({});
     this.props.fetchClients({});
+    setUnloadAlert(() => (this.props.edit.userEnabled && this.props.rolesModified)
+      || (!this.props.edit.disabled && this.props.formModified));
   }
 
   public render() {
