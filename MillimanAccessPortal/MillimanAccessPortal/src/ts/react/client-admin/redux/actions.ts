@@ -247,6 +247,7 @@ export interface SaveNewClientUser {
     memberOfClientId: Guid;
     userName: string;
     email: string;
+    roleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>;
     reason: number;
   };
 }

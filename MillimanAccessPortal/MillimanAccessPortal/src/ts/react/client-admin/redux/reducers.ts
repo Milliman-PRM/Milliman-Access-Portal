@@ -334,10 +334,6 @@ const data = createReducer<AccessStateData>(_initialData, {
     },
     details: _initialDetails,
   }),
-  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.SaveNewClientUserSucceeded) => ({
-    ...state,
-    assignedUsers: state.assignedUsers.concat(action.response),
-  }),
   REMOVE_CLIENT_USER_SUCCEEDED: (state, action: AccessActions.RemoveClientUserSucceeded) => ({
     ...state,
     details: action.response.clientDetail,

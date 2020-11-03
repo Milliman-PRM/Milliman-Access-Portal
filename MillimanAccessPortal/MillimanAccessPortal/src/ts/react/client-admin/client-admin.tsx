@@ -692,7 +692,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   />
                   {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>
-                      {edit.userEnabled ?
+                      {edit.userEnabled && entity.id === selected.user ?
                         <>
                           <CardButton
                             icon="checkmark"
@@ -951,11 +951,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.props.saveNewClientUser({
-                memberOfClientId: pending.createClientUser.memberOfClientId,
-                email: pending.createClientUser.email,
-                userName: pending.createClientUser.userName,
-                reason: pending.hitrustReason.reason,
+              this.saveNewClientUser(pending).then(() => {
+                this.props.fetchClientDetails({ clientId: selected.client });
               });
             }}
           >
@@ -1376,6 +1373,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 
   private async editClient(formData: AccessStateFormData) {
     return await this.props.editClient(formData);
+  }
+
+  private async saveNewClientUser(pending: AccessStatePending) {
+    return await this.props.saveNewClientUser({
+      memberOfClientId: pending.createClientUser.memberOfClientId,
+      email: pending.createClientUser.email,
+      userName: pending.createClientUser.userName,
+      roleAssignments: pending.roles.roleAssignments,
+      reason: pending.hitrustReason.reason,
+    });
   }
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
