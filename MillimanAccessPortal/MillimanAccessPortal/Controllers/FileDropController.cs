@@ -758,35 +758,19 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDropDirectory thisDirectory = _dbContext.FileDropDirectory
-                                                        .Include(d => d.ChildDirectories)
-                                                        .Include(d => d.Files)
-                                                        .Where(d => d.FileDropId == fileDropId)
-                                                        .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
-                                                        .SingleOrDefault();
-
             try
             {
-                var model = new DirectoryContentModel
-                {
-                    ThisDirectory = new FileDropDirectoryModel(thisDirectory),
-                    Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
-                    Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
-                };
-                model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
-                model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
-                model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
-                return Json(model);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(fileDropId, account, canonicalPath);
             }
-            catch (ArgumentNullException ex)
+            catch (ApplicationException ex)
             {
-                Log.Warning(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Requested directory with canonical path {canonicalPath} not found in FileDrop {fileDrop.Name} (Id {fileDrop.Id})");
+                Log.Warning(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
                 Response.Headers.Add("Warning", "The requested folder was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Error building return model, parameters: canonical path {canonicalPath}, FileDrop {fileDrop.Name} (Id {fileDrop.Id})");
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
                 Response.Headers.Add("Warning", "Error. Please contact support if this issue continues.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }

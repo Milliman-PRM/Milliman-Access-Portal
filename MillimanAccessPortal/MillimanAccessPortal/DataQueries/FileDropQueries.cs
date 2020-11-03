@@ -627,5 +627,44 @@ namespace MillimanAccessPortal.DataQueries
 
             return requestedTask.Status;
         }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="fileDropId"></param>
+        /// <param name="account">Must include navigation property values for this.FileDropUserPermissionGroup.FileDrop</param>
+        /// <param name="canonicalPath"></param>
+        /// <returns></returns>
+        internal async Task<DirectoryContentModel> CreateFolderContentModelAsync(Guid fileDropId, SftpAccount account, string canonicalPath)
+        {
+            FileDropDirectory thisDirectory = await _dbContext.FileDropDirectory
+                                                              .Include(d => d.ChildDirectories)
+                                                              .Include(d => d.Files)
+                                                              .Where(d => d.FileDropId == fileDropId)
+                                                              .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
+                                                              .SingleOrDefaultAsync();
+
+            try
+            {
+                var model = new DirectoryContentModel
+                {
+                    ThisDirectory = new FileDropDirectoryModel(thisDirectory),
+                    Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
+                    Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
+                };
+                model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
+                model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
+                model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
+                return model;
+            }
+            catch (ArgumentNullException ex)
+            {
+                throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error building return model, parameters: canonical path {canonicalPath}, FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+            }
+        }
     }
 }
