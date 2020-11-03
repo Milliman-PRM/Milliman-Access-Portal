@@ -773,6 +773,9 @@ namespace MillimanAccessPortal.Controllers
                     Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
                     Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
                 };
+                model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
+                model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
+                model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
                 return Json(model);
             }
             catch (ArgumentNullException ex)
