@@ -36,8 +36,10 @@ import {
 } from './interfaces';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
+import { ChangeSystemAdminStatusModal } from './modals/change-system-admin-status-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { RemoveUserFromProfitCenterModal } from './modals/remove-user-from-profit-center';
 import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
@@ -68,6 +70,14 @@ export interface SystemAdminState {
   secondaryPanel: ContentPanelAttributes;
   domainLimitModal: {
     open: boolean;
+  };
+  profitCenterModal: {
+    open: boolean;
+    action: string;
+  };
+  systemAdminModal: {
+    open: boolean;
+    checked: boolean;
   };
 }
 
@@ -120,6 +130,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
       domainLimitModal: {
         open: false,
+      },
+      profitCenterModal: {
+        open: false,
+        action: null,
+      },
+      systemAdminModal: {
+        open: false,
+        checked: false,
       },
     };
   }
@@ -339,7 +357,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardButton
                         color={'red'}
                         tooltip="Remove from profit center"
-                        onClick={() => this.handleProfitCenterUserRemove(entity.id, entity.profitCenterId)}
+                        onClick={() => this.handleSecondaryModalOpen('remove')}
                         icon={'remove-circle'}
                       />
                     </CardSectionButtons>
@@ -383,7 +401,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <ActionIcon
                     label="Add or create authorized profit center user"
                     icon="add"
-                    action={this.handleSecondaryModalOpen}
+                    action={() => this.handleSecondaryModalOpen('add')}
                   />
                 ) : null
               )
@@ -391,14 +409,51 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
               }
             </PanelSectionToolbarButtons>
           </PanelSectionToolbar>
+          <ChangeSystemAdminStatusModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.USER
+              && this.state.secondaryPanel.createModal.open && this.state.systemAdminModal.open}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            userId={this.state.primaryPanel.selected.card}
+            value={this.state.systemAdminModal.checked}
+            callback={(response: boolean) => {
+              alert(response ? 'System admin enabled for user.' : 'System admin disabled for user.');
+              this.setState((prevState) => ({
+                ...prevState,
+                data: {
+                  ...prevState.data,
+                  primaryDetail: {
+                    ...prevState.data.primaryDetail,
+                    isSystemAdmin: response,
+                  },
+                },
+              }));
+            }}
+          />
           <AddUserToProfitCenterModal
             isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
-              && this.state.secondaryPanel.createModal.open}
+              && this.state.secondaryPanel.createModal.open
+              && this.state.profitCenterModal.open
+              && this.state.profitCenterModal.action === 'add'}
             onRequestClose={this.handleSecondaryModalClose}
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
             profitCenterId={this.state.primaryPanel.selected.card}
+          />
+          <RemoveUserFromProfitCenterModal
+            isOpen={this.state.primaryPanel.selected.column === SystemAdminColumn.PROFIT_CENTER
+              && this.state.secondaryPanel.createModal.open
+              && this.state.profitCenterModal.open
+              && this.state.profitCenterModal.action === 'remove'}
+            onRequestClose={this.handleSecondaryModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            profitCenterId={this.state.primaryPanel.selected.card}
+            userId={this.state.secondaryPanel.selected.card}
           />
           {
             this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
@@ -593,7 +648,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             selectedColumn={primaryColumn}
             queryFilter={secondaryQueryFilter}
             detail={primaryDetail}
-            onPushSystemAdmin={this.pushSystemAdmin}
+            onPushSystemAdmin={this.openSystemAdminStatusModal}
             checkedSystemAdmin={isUserDetail(primaryDetail) && primaryDetail.isSystemAdmin}
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
@@ -833,6 +888,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+          modalName: '',
         },
         secondaryPanel: {
           selected: {
@@ -846,9 +902,19 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+          modalName: '',
         },
         domainLimitModal: {
           open: false,
+        },
+        profitCenterModal: {
+          open: false,
+          action: null,
+        },
+        systemAdminModal: {
+          open: false,
+          checked: false,
+          action: '',
         },
       };
     });
@@ -878,6 +944,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           createModal: {
             open: false,
           },
+          modalName: '',
         },
         domainLimitModal: {
           open: false,
@@ -1083,27 +1150,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private pushSystemAdmin = () => {
+  private openSystemAdminStatusModal = (_event: React.MouseEvent<HTMLButtonElement>, enabled: boolean) => {
     const { primaryDetail } = this.state.data;
     if (!isUserDetail(primaryDetail)) {
       return;
     }
-
-    postData('/SystemAdmin/SystemRole', {
-      ...this.getSecondaryQueryFilter(),
-      role: RoleEnum.Admin,
-      value: !primaryDetail.isSystemAdmin,
-    }).then((response: boolean) => {
-      this.setState((prevState) => ({
-        ...prevState,
-        data: {
-          ...prevState.data,
-          primaryDetail: {
-            ...prevState.data.primaryDetail,
-            isSystemAdmin: response,
-          },
-        },
-      }));
+    this.handleSecondaryModalOpen(null);
+    this.setState({
+      systemAdminModal: {
+        open: true,
+        checked: enabled,
+      },
     });
   }
 
@@ -1281,7 +1338,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
-  private handleSecondaryModalOpen = () => {
+  private handleSecondaryModalOpen = (modal: string) => {
     this.setState((prevState) => ({
       ...prevState,
       secondaryPanel: {
@@ -1289,6 +1346,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: true,
         },
+        modalName: modal,
       },
     }));
   }
@@ -1380,13 +1438,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
     .then(() => {
       alert('Profit center deleted.');
-    });
-  }
-
-  private handleProfitCenterUserRemove = (userId: Guid, profitCenterId: Guid) => {
-    postData('SystemAdmin/RemoveUserFromProfitCenter', { userId, profitCenterId }, true)
-    .then(() => {
-      alert('User removed from profit center.');
     });
   }
 

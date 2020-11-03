@@ -43,7 +43,6 @@ export class AddUserToProfitCenterModal
     this.handleEmailBlur = this.handleEmailBlur.bind(this);
     this.handleHitrustReasonChange = this.handleHitrustReasonChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.cancel = this.cancel.bind(this);
     this.resetState = this.resetState.bind(this);
   }
 
@@ -54,7 +53,7 @@ export class AddUserToProfitCenterModal
         {...this.props}
         className="modal"
         overlayClassName="modal-overlay"
-        onAfterOpen={this.resetState}
+        onRequestClose={this.resetState}
       >
         <h3 className="title blue">Add Authorized User</h3>
         <span className="modal-text">User to add:</span>
@@ -82,7 +81,7 @@ export class AddUserToProfitCenterModal
             <button
               className="link-button"
               type="button"
-              onClick={this.cancel}
+              onClick={() => this.props.onRequestClose(null)}
             >
               Cancel
             </button>
@@ -129,15 +128,10 @@ export class AddUserToProfitCenterModal
       email: this.state.userText,
       profitCenterId: this.props.profitCenterId,
       reason: this.state.reason,
-    })
-    .then(() => {
+    }).then(() => {
       alert('User added to profit center.');
       this.props.onRequestClose(null);
     });
-  }
-
-  private cancel(event: React.MouseEvent<HTMLButtonElement>) {
-    this.props.onRequestClose(event.nativeEvent);
   }
 
   private resetState() {
