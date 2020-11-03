@@ -357,7 +357,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardButton
                         color={'red'}
                         tooltip="Remove from profit center"
-                        onClick={() => this.handleSecondaryModalOpen('remove')}
+                        onClick={() => {
+                          this.handleSecondaryModalOpen();
+                          this.setState({
+                            profitCenterModal: {
+                              open: true,
+                              action: 'remove',
+                            },
+                          });
+                        }}
                         icon={'remove-circle'}
                       />
                     </CardSectionButtons>
@@ -401,7 +409,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <ActionIcon
                     label="Add or create authorized profit center user"
                     icon="add"
-                    action={() => this.handleSecondaryModalOpen('add')}
+                    action={() => {
+                      this.handleSecondaryModalOpen();
+                      this.setState({
+                        profitCenterModal: {
+                          open: true,
+                          action: 'add',
+                        },
+                      });
+                    }}
                   />
                 ) : null
               )
@@ -1155,7 +1171,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     if (!isUserDetail(primaryDetail)) {
       return;
     }
-    this.handleSecondaryModalOpen(null);
+    this.handleSecondaryModalOpen();
     this.setState({
       systemAdminModal: {
         open: true,
@@ -1338,7 +1354,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
-  private handleSecondaryModalOpen = (modal: string) => {
+  private handleSecondaryModalOpen = () => {
     this.setState((prevState) => ({
       ...prevState,
       secondaryPanel: {
@@ -1346,7 +1362,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: true,
         },
-        modalName: modal,
       },
     }));
   }
