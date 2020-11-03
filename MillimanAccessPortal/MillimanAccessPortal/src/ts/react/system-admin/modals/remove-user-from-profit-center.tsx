@@ -38,7 +38,6 @@ export class RemoveUserFromProfitCenterModal
 
     this.handleHitrustReasonChange = this.handleHitrustReasonChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.resetState = this.resetState.bind(this);
   }
 
   public render() {
@@ -48,7 +47,10 @@ export class RemoveUserFromProfitCenterModal
         {...this.props}
         className="modal"
         overlayClassName="modal-overlay"
-        onRequestClose={this.resetState}
+        onRequestClose={() => {
+          this.props.onRequestClose(null);
+          this.setState({ reason: null });
+        }}
       >
         <h3 className="title red">Remove Authorized User</h3>
         <span className="modal-text">Please select a valid reason to remove this authorized user.</span>
@@ -58,7 +60,7 @@ export class RemoveUserFromProfitCenterModal
             label="Reason"
             placeholderText="Choose an option..."
             values={this.removeAuthorizedUserHitrustReasons}
-            value={this.state.reason as number}
+            value={this.state.reason}
             onChange={this.handleHitrustReasonChange}
             error={null}
             autoFocus={true}
@@ -67,7 +69,10 @@ export class RemoveUserFromProfitCenterModal
             <button
               className="link-button"
               type="button"
-              onClick={() => this.props.onRequestClose(null)}
+              onClick={() => {
+                this.props.onRequestClose(null);
+                this.setState({ reason: null });
+              }}
             >
               Cancel
             </button>
@@ -97,14 +102,8 @@ export class RemoveUserFromProfitCenterModal
       profitCenterId: this.props.profitCenterId,
       reason: this.state.reason,
     }).then(() => {
-      alert('User removed profit center.');
+      alert('User removed from profit center.');
       this.props.onRequestClose(null);
-    });
-  }
-
-  private resetState() {
-    this.setState({
-      reason: null,
     });
   }
 }

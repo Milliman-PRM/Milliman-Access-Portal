@@ -77,7 +77,7 @@ export interface SystemAdminState {
   };
   systemAdminModal: {
     open: boolean;
-    checked: boolean;
+    enabled: boolean;
   };
 }
 
@@ -133,11 +133,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
       profitCenterModal: {
         open: false,
-        action: null,
+        action: '',
       },
       systemAdminModal: {
         open: false,
-        checked: false,
+        enabled: false,
       },
     };
   }
@@ -433,7 +433,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             className="modal"
             overlayClassName="modal-overlay"
             userId={this.state.primaryPanel.selected.card}
-            value={this.state.systemAdminModal.checked}
+            value={this.state.systemAdminModal.enabled}
             callback={(response: boolean) => {
               alert(response ? 'System admin enabled for user.' : 'System admin disabled for user.');
               this.setState((prevState) => ({
@@ -925,12 +925,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         },
         profitCenterModal: {
           open: false,
-          action: null,
+          action: '',
         },
         systemAdminModal: {
           open: false,
-          checked: false,
-          action: '',
+          enabled: false,
         },
       };
     });
@@ -1166,7 +1165,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private openSystemAdminStatusModal = (_event: React.MouseEvent<HTMLButtonElement>, enabled: boolean) => {
+  private openSystemAdminStatusModal = (_event: React.MouseEvent<HTMLButtonElement>, status: boolean) => {
     const { primaryDetail } = this.state.data;
     if (!isUserDetail(primaryDetail)) {
       return;
@@ -1175,7 +1174,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setState({
       systemAdminModal: {
         open: true,
-        checked: enabled,
+        enabled: status,
       },
     });
   }
@@ -1374,6 +1373,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         createModal: {
           open: false,
         },
+      },
+      profitCenterModal: {
+        open: false,
+        action: '',
+      },
+      systemAdminModal: {
+        open: false,
+        enabled: false,
       },
     }));
   }

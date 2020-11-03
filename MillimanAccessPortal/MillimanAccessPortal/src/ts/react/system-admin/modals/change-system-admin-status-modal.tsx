@@ -45,7 +45,6 @@ export class ChangeSystemAdminStatusModal
 
     this.handleHitrustReasonChange = this.handleHitrustReasonChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
-    this.resetState = this.resetState.bind(this);
   }
 
   public render() {
@@ -55,7 +54,10 @@ export class ChangeSystemAdminStatusModal
         {...this.props}
         className="modal"
         overlayClassName="modal-overlay"
-        onRequestClose={this.resetState}
+        onRequestClose={() => {
+          this.props.onRequestClose(null);
+          this.setState({ reason: null });
+        }}
       >
         <h3 className={`title ${this.props.value ? 'blue' : 'red'}`}>
           {this.props.value ?
@@ -70,7 +72,7 @@ export class ChangeSystemAdminStatusModal
             label="Reason"
             placeholderText="Choose an option..."
             values={this.props.value ? this.enableSystemAdminHitrustReasons : this.disableSystemAdminHitrustReasons}
-            value={this.state.reason as number}
+            value={this.state.reason}
             onChange={this.handleHitrustReasonChange}
             error={null}
             autoFocus={true}
@@ -79,7 +81,10 @@ export class ChangeSystemAdminStatusModal
             <button
               className="link-button"
               type="button"
-              onClick={() => this.props.onRequestClose(null)}
+              onClick={() => {
+                this.props.onRequestClose(null);
+                this.setState({ reason: null });
+              }}
             >
               Cancel
             </button>
@@ -115,12 +120,6 @@ export class ChangeSystemAdminStatusModal
     }).then((response: boolean) => {
       this.props.callback(response);
       this.props.onRequestClose(null);
-    });
-  }
-
-  private resetState() {
-    this.setState({
-      reason: null,
     });
   }
 }

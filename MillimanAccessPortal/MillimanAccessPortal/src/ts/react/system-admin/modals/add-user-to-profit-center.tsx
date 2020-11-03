@@ -13,7 +13,7 @@ export interface AddUserToProfitCenterModalProps extends Modal.Props {
 }
 
 interface AddUserToProfitCenterModalState {
-  userText: string;
+  email: string;
   reason: HitrustReasonEnum;
   emailError: boolean;
 }
@@ -34,7 +34,7 @@ export class AddUserToProfitCenterModal
     super(props);
 
     this.state = {
-      userText: '',
+      email: '',
       reason: null,
       emailError: false,
     };
@@ -53,7 +53,10 @@ export class AddUserToProfitCenterModal
         {...this.props}
         className="modal"
         overlayClassName="modal-overlay"
-        onRequestClose={this.resetState}
+        onRequestClose={() => {
+          this.props.onRequestClose(null);
+          this.resetState();
+        }}
       >
         <h3 className="title blue">Add Authorized User</h3>
         <span className="modal-text">User to add:</span>
@@ -61,7 +64,7 @@ export class AddUserToProfitCenterModal
           <Input
             name="email"
             label="Email address"
-            value={this.state.userText}
+            value={this.state.email}
             type="text"
             placeholderText="Email address"
             onChange={this.handleChange}
@@ -81,7 +84,10 @@ export class AddUserToProfitCenterModal
             <button
               className="link-button"
               type="button"
-              onClick={() => this.props.onRequestClose(null)}
+              onClick={() => {
+                this.props.onRequestClose(null);
+                this.resetState();
+              }}
             >
               Cancel
             </button>
@@ -89,8 +95,8 @@ export class AddUserToProfitCenterModal
               className="blue-button"
               type="submit"
               disabled={
-                !this.state.userText.trim()
-                || !isEmailAddressValid(this.state.userText)
+                !this.state.email
+                || !isEmailAddressValid(this.state.email)
                 || this.state.emailError
                 || !this.state.reason
               }
@@ -105,14 +111,14 @@ export class AddUserToProfitCenterModal
 
   private handleChange(event: React.ChangeEvent<HTMLInputElement>) {
     this.setState({
-      userText: event.target.value,
+      email: event.target.value,
       emailError: false,
     });
   }
 
   private handleEmailBlur() {
     this.setState({
-      emailError: !this.state.userText.trim() || !isEmailAddressValid(this.state.userText),
+      emailError: !this.state.email || !isEmailAddressValid(this.state.email),
     });
   }
 
@@ -125,7 +131,7 @@ export class AddUserToProfitCenterModal
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     postData(this.url, {
-      email: this.state.userText,
+      email: this.state.email,
       profitCenterId: this.props.profitCenterId,
       reason: this.state.reason,
     }).then(() => {
@@ -136,7 +142,7 @@ export class AddUserToProfitCenterModal
 
   private resetState() {
     this.setState({
-      userText: '',
+      email: '',
       reason: null,
       emailError: false,
     });
