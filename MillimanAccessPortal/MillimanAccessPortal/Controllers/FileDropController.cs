@@ -1000,7 +1000,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.DeleteAccess)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1057,7 +1057,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.DeleteAccess)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1090,6 +1090,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateFileDropFile(Guid fileDropId, Guid fileId, string fileName, string fileDescription)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
@@ -1123,7 +1124,65 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Perform the delete of the folder and all contents
-#warning TODO: do the delete
+#warning TODO: do the update
+            string canonicalPath = "";
+            #endregion
+
+            try
+            {
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(fileDropId, account, canonicalPath);
+                return Json(returnModel);
+            }
+            catch (ApplicationException ex)
+            {
+                Log.Warning(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
+                Response.Headers.Add("Warning", "The requested folder was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
+                Response.Headers.Add("Warning", "Error. Please contact support if this issue continues.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateFileDropFolder(Guid fileDropId, Guid fileId, string folderName, string folderDescription)
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            #region Validation
+            if (fileDrop == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            SftpAccount account = await _dbContext.SftpAccount
+                                      //.Include(a => a.ApplicationUser)
+                                      .Include(a => a.FileDropUserPermissionGroup)
+                                          .ThenInclude(g => g.FileDrop)
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => a.FileDropId == fileDropId)
+                                      .SingleOrDefaultAsync();
+
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.WriteAccess)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Perform the delete of the folder and all contents
+#warning TODO: do the update
             string canonicalPath = "";
             #endregion
 
