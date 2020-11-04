@@ -117,6 +117,7 @@ nav {
     }
 
     .nav-element {
+        position: relative;
         display: flex;
         flex-flow: row nowrap;
         justify-content: flex-end;
@@ -135,6 +136,24 @@ nav {
             &:hover {
                 color: $charcoal;
             }
+        }
+
+        .badge {
+            position: absolute;
+            top: 1vmin;
+            right: .25vmin;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 1.5em;
+            padding: .15em .3em;
+            margin: 0;
+            border: 2px solid $white;
+            border-radius: 50%;
+            background-color: $red;
+            color: $white;
+            font-size: .75em;
+            text-align: center;
         }
 
         .nav-element-label {

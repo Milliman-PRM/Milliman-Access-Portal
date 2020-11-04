@@ -124,6 +124,11 @@ namespace SftpServerLib
 
             (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Read);
 
+            if (connection != null)
+            {
+                connection.LastActivityUtc = DateTime.UtcNow;
+            }
+
             if (result != AuthorizationResult.Authorized || !connection.ReadAccess)
             {
                 Log.Information($"OnFileRead event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Read access");
@@ -268,7 +273,7 @@ namespace SftpServerLib
                                     User = connection.MapUser,
                                 }
                             ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for writing, user {evtData.User}");
+                            Log.Information($"File {evtData.Path} authorized for writing, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
 
@@ -296,7 +301,7 @@ namespace SftpServerLib
                                     User = connection.MapUser,
                                 }
                             ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for reading, user {evtData.User}");
+                            Log.Information($"File {evtData.Path} authorized for reading, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
 
@@ -310,7 +315,7 @@ namespace SftpServerLib
         //[Description("Fires when a client attempts to close an open file or directory handle.")]
         internal static void OnFileClose(object sender, SftpserverFileCloseEventArgs evtData)
         {
-            Log.Verbose(GenerateEventArgsLogMessage("FileClose", evtData));
+            Log.Information($"File closed, connection {evtData.ConnectionId}, user {evtData.User}, path {evtData.Path}");
         }
 
         //[Description("Fired when a connection is closed.")]
@@ -733,6 +738,11 @@ namespace SftpServerLib
             {
                 (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.Write);
 
+                if (connection != null)
+                {
+                    connection.LastActivityUtc = DateTime.UtcNow;
+                }
+
                 if (result != AuthorizationResult.Authorized || !connection.WriteAccess)
                 {
                     Log.Information($"OnFileWrite event invoked but account <{connection.Account?.Id}, {connection.Account?.UserName}> does not have Write access");
@@ -786,6 +796,9 @@ namespace SftpServerLib
                                                         .ThenInclude(d => d.Client)
                                                 .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
 
+                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
+                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
+
                     if (userAccount == null)
                     {
                         evtData.Accept = false;
@@ -803,6 +816,14 @@ namespace SftpServerLib
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        return;
+                    }
+
+                    if (DateTime.UtcNow > clientReviewDeadline)
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The access review deadline for the client related to the requested file drop is exceeded");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.ClientAccessReviewDeadlineMissed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
                         return;
                     }
 
@@ -848,11 +869,15 @@ namespace SftpServerLib
                         connection.FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name;
                         connection.ClientId = userAccount.FileDropId;
                         connection.ClientName = userAccount.FileDropUserPermissionGroup.FileDrop.Client.Name;
+                        connection.ClientAccessReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
                         connection.ReadAccess = userAccount.FileDropUserPermissionGroup.ReadAccess;
                         connection.WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess;
                         connection.DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess;
                         connection.FileDropRootPathAbsolute = absoluteFileDropRootPath;
                         connection.MapUserIsSso = userIsSso;
+
+                        userAccount.LastLoginUtc = DateTime.UtcNow;
+                        db.SaveChanges();
 
                         evtData.Accept = true;
 
@@ -896,6 +921,7 @@ namespace SftpServerLib
                               .Include(a => a.ApplicationUser)
                               .Include(a => a.FileDropUserPermissionGroup)
                                   .ThenInclude(p => p.FileDrop)
+                                    .ThenInclude(d => d.Client)
                               .Where(a => currentConnectedAccountIds.Contains(a.Id));
 
                 foreach (SftpAccount connectedAccount in query)
@@ -925,6 +951,12 @@ namespace SftpServerLib
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
                             IpWorksSftpServer._connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
+                        }
+                        else if (DateTime.UtcNow > connection.ClientAccessReviewDeadline)
+                        {
+                            IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
+                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the client access review deadline has passed");
                         }
 
                         else if (connectedAccount.ApplicationUserId.HasValue && 

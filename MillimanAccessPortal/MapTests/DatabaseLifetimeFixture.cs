@@ -67,7 +67,11 @@ namespace MapTests
             #endregion
 
             var builder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            builder.UseNpgsql(ConnectionString, o => o.SetPostgresVersion(9, 6));
+            builder.UseNpgsql(ConnectionString, o => 
+            { 
+                o.SetPostgresVersion(9, 6); 
+                o.MigrationsAssembly("MillimanAccessPortal"); 
+            });
             using (ApplicationDbContext db = new ApplicationDbContext(builder.Options))
             {
                 db.Database.EnsureCreated();

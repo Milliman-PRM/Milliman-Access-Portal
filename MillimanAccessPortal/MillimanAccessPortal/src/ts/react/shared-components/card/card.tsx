@@ -20,6 +20,10 @@ export interface CardProps {
   locked: boolean;
   indentation: number;
   status: PublicationWithQueueDetails | ReductionWithQueueDetails;
+  bannerMessage?: {
+    level: 'message' | 'informational' | 'error';
+    message: JSX.Element;
+  };
 }
 
 export class Card extends React.Component<CardProps> {
@@ -40,7 +44,9 @@ export class Card extends React.Component<CardProps> {
   };
 
   public render() {
-    const { indentation, disabled, selected, suspended, inactive, locked, onSelect, status, children } = this.props;
+    const {
+      indentation, disabled, selected, suspended, inactive, locked, onSelect, status, bannerMessage, children,
+    } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
@@ -55,6 +61,11 @@ export class Card extends React.Component<CardProps> {
           {children}
         </div>
         {status && <CardStatus status={status} />}
+        {!status && bannerMessage &&
+          <div className={`card-status-container status-${bannerMessage.level}`}>
+            {bannerMessage.message}
+          </div>
+        }
       </div>
     );
   }
