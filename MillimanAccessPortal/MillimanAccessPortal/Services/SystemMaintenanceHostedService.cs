@@ -36,12 +36,18 @@ namespace MillimanAccessPortal.Services
             _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
+        public override void Dispose()
+        {
+            _clientAccessReviewNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _clientAccessReviewNotificationTimer.Dispose();
+        }
+
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            // await Task.Yield();
-            for (;;)
+            while (!cancellationToken.IsCancellationRequested)
             {
-                await Task.Delay(TimeSpan.FromMinutes(0.5));
+                await Task.Yield();
+                Thread.Sleep(TimeSpan.FromSeconds(15));
             }
         }
 
