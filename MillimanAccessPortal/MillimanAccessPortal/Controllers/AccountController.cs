@@ -424,7 +424,7 @@ namespace MillimanAccessPortal.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email, LastLoginUtc = DateTime.UtcNow };
                 ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
 
                 using (var txn = await DbContext.Database.BeginTransactionAsync())
