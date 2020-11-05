@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using System;
 using System.Collections.Generic;
 using MapCommonLib;
@@ -23,9 +24,11 @@ using Prm.SerilogCustomization;
 using Serilog;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal
 {
@@ -61,6 +64,26 @@ namespace MillimanAccessPortal
                     .ReadFrom.Configuration(Configuration)
                     .Enrich.With<UtcTimestampEnricher>()
                     .CreateLogger();
+
+                #region Configure Audit Logger connection string
+                string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+                // If the database name is defined in the environment, update the connection string
+                if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+                {
+                    Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                    {
+                        Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                    };
+                    auditLogConnectionString = stringBuilder.ConnectionString;
+                }
+
+                AuditLogger.Config = new AuditLoggerConfiguration
+                {
+                    AuditLogConnectionString = auditLogConnectionString,
+                    ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
+                };
+                #endregion
                 #endregion
 
                 Assembly processAssembly = Assembly.GetEntryAssembly();
@@ -77,6 +100,8 @@ namespace MillimanAccessPortal
                 try
                 {
                     await ApplicationDbContext.InitializeAllAsync(serviceProvider);
+                    ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
+                    await InitializeUserLastLoginTimeStamp(dbContext);
 
                     MailSender.ConfigureMailSender(new SmtpConfig
                     {
@@ -90,26 +115,6 @@ namespace MillimanAccessPortal
                         EmailDisclaimer = Configuration.GetValue<string>("EmailDisclaimer"),
                         DisclaimerExemptDomainString = Configuration.GetValue<string>("DisclaimerExemptDomainString"),
                     });
-
-                    #region Configure Audit Logger connection string
-                    string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-
-                    // If the database name is defined in the environment, update the connection string
-                    if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
-                    {
-                        Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
-                        {
-                            Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
-                        };
-                        auditLogConnectionString = stringBuilder.ConnectionString;
-                    }
-
-                    AuditLogger.Config = new AuditLoggerConfiguration
-                    {
-                        AuditLogConnectionString = auditLogConnectionString,
-                        ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
-                    };
-                    #endregion
 
                 }
                 catch (Exception e)
@@ -221,6 +226,40 @@ namespace MillimanAccessPortal
                 var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
                 config.AddConfiguration(newConnectionStringCfg);
             }
+        }
+
+        private static async Task InitializeUserLastLoginTimeStamp(ApplicationDbContext dbContext)
+        {
+            var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
+            {
+                { e => e.EventCode == 1001 },  // user login
+                { e => e.User != null },  // username is present
+            };
+
+            List<ActivityEventModel> filteredEvents = await new AuditLogger().GetAuditEventsAsync(serverFilters, dbContext, true, null);
+
+            var usersLastLoginDateTimes = new Dictionary<string, DateTime>
+            (
+                filteredEvents.GroupBy(
+                    evt => evt.UserName.ToLower(),
+                    (user, events) => new KeyValuePair<string, DateTime>(user.ToLower(), events.Max(e => e.TimeStampUtc))
+                ), 
+                StringComparer.OrdinalIgnoreCase
+            );
+
+            foreach (ApplicationUser user in dbContext.ApplicationUser.Where(u => u.LastLoginUtc == null))
+            {
+                if (usersLastLoginDateTimes.TryGetValue(user.UserName.ToLower(), out DateTime lastLogin))
+                {
+                    user.LastLoginUtc = lastLogin;
+                }
+                else
+                {
+                    user.LastLoginUtc = DateTime.UtcNow;
+                }
+            }
+
+            await dbContext.SaveChangesAsync();
         }
     }
 }
