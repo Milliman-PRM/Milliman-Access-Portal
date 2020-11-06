@@ -100,8 +100,6 @@ namespace MillimanAccessPortal
                 try
                 {
                     await ApplicationDbContext.InitializeAllAsync(serviceProvider);
-                    ApplicationDbContext dbContext = serviceProvider.GetService<ApplicationDbContext>();
-                    await InitializeUserLastLoginTimeStamp(dbContext);
 
                     MailSender.ConfigureMailSender(new SmtpConfig
                     {
@@ -228,25 +226,5 @@ namespace MillimanAccessPortal
             }
         }
 
-        private static async Task InitializeUserLastLoginTimeStamp(ApplicationDbContext dbContext)
-        {
-            DateTime utcNow = DateTime.UtcNow;   // all users never logged in will use the same value during this call
-            List<ApplicationUser> usersWithNullValue = await dbContext.ApplicationUser.Where(u => u.LastLoginUtc == null).ToListAsync();
-
-            foreach (ApplicationUser user in usersWithNullValue)
-            {
-                var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
-                {
-                    { e => e.EventCode == 1001 },   // 1001 is LoginSuccess
-                    { e => EF.Functions.ILike(e.User, user.UserName) },  // only events for this user
-                };
-
-                List<ActivityEventModel> filteredEvent = await new AuditLogger().GetAuditEventsAsync(serverFilters, dbContext, true, null, 1);
-
-                user.LastLoginUtc = filteredEvent.SingleOrDefault()?.TimeStampUtc ?? utcNow;
-            }
-
-            await dbContext.SaveChangesAsync();
-        }
     }
 }
