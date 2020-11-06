@@ -225,9 +225,9 @@ namespace MillimanAccessPortal.Controllers
                 int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
                 if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
-                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} not found, local login rejected");
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
-                    Response.Headers.Add("Warning", "Invalid login attempt.");
+                    Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
                     return Ok();
                 }
 
@@ -236,8 +236,7 @@ namespace MillimanAccessPortal.Controllers
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
-                    string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
-                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {supportEmailAlias}>");
+                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
                     return Ok();
                 }
 
