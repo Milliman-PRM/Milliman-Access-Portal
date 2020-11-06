@@ -513,14 +513,14 @@
   .badge {
     border-radius: 3px;
     color: white;
-    padding: 0.2em;
+    padding: 0.2em 0.5em;
     margin: 0.2em;
 
     &.badge-primary {
       background-color: $green;
 
       &:hover {
-        background-color: darkgreen;
+        background-color: darken($green, 5%);
       }
     }
 
@@ -528,13 +528,14 @@
       background-color: $blue;
 
       &:hover {
-        background-color: navy;
+        background-color: darken($blue, 10%);
       }
     }
 
     .badge-remove-btn {
       color: grey;
       cursor: pointer;
+      margin-left: .2em;
     }
   }
 }
