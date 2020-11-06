@@ -11,7 +11,7 @@ using System;
 using System.Collections.Generic;
 using MapCommonLib;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -230,33 +230,20 @@ namespace MillimanAccessPortal
 
         private static async Task InitializeUserLastLoginTimeStamp(ApplicationDbContext dbContext)
         {
-            var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
+            DateTime utcNow = DateTime.UtcNow;   // all users never logged in will use the same value during this call
+            List<ApplicationUser> usersWithNullValue = await dbContext.ApplicationUser.Where(u => u.LastLoginUtc == null).ToListAsync();
+
+            foreach (ApplicationUser user in usersWithNullValue)
             {
-                { e => e.EventCode == 1001 },  // user login
-                { e => e.User != null },  // username is present
-            };
-
-            List<ActivityEventModel> filteredEvents = await new AuditLogger().GetAuditEventsAsync(serverFilters, dbContext, true, null);
-
-            var usersLastLoginDateTimes = new Dictionary<string, DateTime>
-            (
-                filteredEvents.GroupBy(
-                    evt => evt.UserName.ToLower(),
-                    (user, events) => new KeyValuePair<string, DateTime>(user.ToLower(), events.Max(e => e.TimeStampUtc))
-                ), 
-                StringComparer.OrdinalIgnoreCase
-            );
-
-            foreach (ApplicationUser user in dbContext.ApplicationUser.Where(u => u.LastLoginUtc == null))
-            {
-                if (usersLastLoginDateTimes.TryGetValue(user.UserName.ToLower(), out DateTime lastLogin))
+                var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
                 {
-                    user.LastLoginUtc = lastLogin;
-                }
-                else
-                {
-                    user.LastLoginUtc = DateTime.UtcNow;
-                }
+                    { e => e.EventCode == 1001 },   // 1001 is LoginSuccess
+                    { e => EF.Functions.ILike(e.User, user.UserName) },  // only events for this user
+                };
+
+                List<ActivityEventModel> filteredEvent = await new AuditLogger().GetAuditEventsAsync(serverFilters, dbContext, true, null, 1);
+
+                user.LastLoginUtc = filteredEvent.SingleOrDefault()?.TimeStampUtc ?? utcNow;
             }
 
             await dbContext.SaveChangesAsync();

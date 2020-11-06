@@ -196,7 +196,7 @@ namespace AuditLogLib
         /// <param name="orderIsDescending"></param>
         /// <param name="clientFilters">Filter expressions to be applied to the result of the database query</param>
         /// <returns></returns>
-        public async Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> serverFilters, ApplicationDbContext mapDb, bool orderIsDescending, List<Expression<Func<AuditEvent, bool>>> clientFilters = null)
+        public async Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> serverFilters, ApplicationDbContext mapDb, bool orderIsDescending, List<Expression<Func<AuditEvent, bool>>> clientFilters = null, int limit = -1)
         {
             List<AuditEvent> filteredAuditEvents = default;
             using (AuditLogDbContext auditDb = AuditLogDbContext.Instance(Config.AuditLogConnectionString))
@@ -210,6 +210,11 @@ namespace AuditLogLib
                 serverQuery = orderIsDescending
                     ? serverQuery.OrderByDescending(e => e.TimeStampUtc)
                     : serverQuery.OrderBy(e => e.TimeStampUtc);
+
+                if (limit > -1)
+                {
+                    serverQuery = serverQuery.Take(limit);
+                }
 
                 filteredAuditEvents = await serverQuery.ToListAsync();
             }
