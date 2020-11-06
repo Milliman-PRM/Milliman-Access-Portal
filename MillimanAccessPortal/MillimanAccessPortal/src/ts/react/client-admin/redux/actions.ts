@@ -339,6 +339,7 @@ export interface OpenDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
   newSubClientParentId: Guid;
+  canManageNewlySelectedClient: boolean;
 }
 export interface CloseDiscardEditAfterSelectModal {
   type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';

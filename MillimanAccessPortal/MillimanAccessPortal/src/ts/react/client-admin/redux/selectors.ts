@@ -30,12 +30,17 @@ export function isFormModified(state: AccessState) {
     state.formData.contactPhone !== state.data.details.clientContactPhone ||
     !_.isEqual(state.formData.acceptedEmailDomainList, state.data.details.acceptedEmailDomainList) ||
     !_.isEqual(state.formData.acceptedEmailAddressExceptionList,
-               state.data.details.acceptedEmailAddressExceptionList) ||
+      state.data.details.acceptedEmailAddressExceptionList) ||
     state.formData.consultantName !== state.data.details.consultantName ||
     state.formData.consultantEmail !== state.data.details.consultantEmail ||
     state.formData.consultantOffice !== state.data.details.office ||
     state.formData.profitCenterId !== state.data.details.profitCenter.id ||
-    state.formData.newUserWelcomeText !== state.data.details.newUserWelcomeText;
+    (state.formData.useNewUserWelcomeText && state.formData.initialUseNewUserWelcomeText &&
+      (state.formData.newUserWelcomeText !== state.data.details.newUserWelcomeText &&
+      !(state.formData.newUserWelcomeText === '' && state.data.details === null))) ||
+    (state.formData.useNewUserWelcomeText && !state.formData.initialUseNewUserWelcomeText &&
+      state.formData.newUserWelcomeText !== '') ||
+    (!state.formData.useNewUserWelcomeText && state.formData.initialUseNewUserWelcomeText);
 }
 
 /**

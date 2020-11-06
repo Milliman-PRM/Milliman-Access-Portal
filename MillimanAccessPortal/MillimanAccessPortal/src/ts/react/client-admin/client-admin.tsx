@@ -111,7 +111,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -131,7 +131,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client || this.clientIsNewChild(entity)}
               readonly={!entity.canManage}
               onSelect={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, false, true);
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, entity.canManage,
+                  false, true);
               }}
               indentation={entity.indent}
               insertCard={this.clientIsNewChild(entity)}
@@ -173,7 +174,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         color={'blue'}
                         onClick={() => {
                           this.changeClientFormState(formModified, !edit.disabled, selected.client,
-                            entity.id, true, true);
+                            entity.id, entity.canManage, true, true);
                         }}
                       /> : null
                     }
@@ -205,7 +206,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Add or create a new client"
               icon="add"
               action={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                  true, true);
               }}
             />
           </PanelSectionToolbarButtons>
@@ -596,11 +598,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           label={'Custom Welcome Text'}
                           checked={formData.useNewUserWelcomeText}
                           onClick={() => {
-                            this.props.setFormFieldValue({
-                              field: 'useNewUserWelcomeText',
-                              value: !formData.useNewUserWelcomeText,
-                            });
+                            if (!edit.disabled) {
+                              this.props.setFormFieldValue({
+                                field: 'useNewUserWelcomeText',
+                                value: !formData.useNewUserWelcomeText,
+                              });
+                            }
                           }}
+                          readOnly={edit.disabled}
                         />
                       </div>
                       <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
@@ -614,7 +619,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             });
                           }}
                           error={null}
-                          value={formData.newUserWelcomeText}
+                          value={formData.useNewUserWelcomeText ? formData.newUserWelcomeText : ''}
                           readOnly={edit.disabled || !formData.useNewUserWelcomeText}
                         />
                       </div>
@@ -1074,6 +1079,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 this.changeClientFormState(false, false,
                   selected.client,
                   pending.discardEditAfterSelect.newlySelectedClientId,
+                  pending.discardEditAfterSelect.canManageNewlySelectedClient,
                   pending.discardEditAfterSelect.editAfterSelect,
                   true);
               } else {
@@ -1116,16 +1122,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
-                                edit: boolean, resetValidityAfterSelect: boolean) {
+                                canManage: boolean, edit: boolean, resetValidityAfterSelect: boolean) {
     if (currentlyEditing && formModified) {
       this.props.openDiscardEditAfterSelectModal({
         newlySelectedClientId: newClient,
         editAfterSelect: edit,
         newSubClientParentId: null,
+        canManageNewlySelectedClient: canManage,
       });
     } else {
       if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
-        this.props.selectClient({ id: newClient });
+        this.props.selectClient({ id: newClient, readonly: !canManage });
       }
       this.props.setEditStatus({ disabled: !edit });
 
@@ -1148,6 +1155,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         newlySelectedClientId: 'child',
         editAfterSelect: true,
         newSubClientParentId: parent,
+        canManageNewlySelectedClient: true,
       });
     } else {
       this.props.selectNewSubClient({ parentId: parent });
@@ -1156,7 +1164,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private async editClient(formData: AccessStateFormData) {
-    return await this.props.editClient(formData);
+    return await this.props.editClient({
+      ...formData,
+      newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
+    });
   }
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {

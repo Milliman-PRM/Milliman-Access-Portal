@@ -40,6 +40,7 @@ const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newlySelectedClientId: null,
   editAfterSelect: false,
   newSubClientParentId: null,
+  canManageNewlySelectedClient: false,
 };
 
 const _initialDetails: ClientDetail = {
@@ -90,6 +91,7 @@ const _initialFormData: AccessStateBaseFormData = {
   newUserWelcomeText: '',
   parentClientId: '',
   useNewUserWelcomeText: false,
+  initialUseNewUserWelcomeText: false,
 };
 
 const _initialValidation: AccessStateValid = {
@@ -243,6 +245,7 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
     newlySelectedClientId: action.newlySelectedClientId,
     editAfterSelect: action.editAfterSelect,
     newSubClientParentId: action.newSubClientParentId,
+    canManageNewlySelectedClient: action.canManageNewlySelectedClient,
   }),
 });
 
@@ -384,8 +387,10 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantName: action.response.clientDetail.consultantName,
     consultantEmail: action.response.clientDetail.consultantEmail ?
       action.response.clientDetail.consultantEmail : null,
-    newUserWelcomeText: action.response.clientDetail.newUserWelcomeText,
+    newUserWelcomeText: action.response.clientDetail.newUserWelcomeText ?
+      action.response.clientDetail.newUserWelcomeText : '',
     useNewUserWelcomeText: action.response.clientDetail.newUserWelcomeText ? true : false,
+    initialUseNewUserWelcomeText: action.response.clientDetail.newUserWelcomeText ? true : false,
   }),
   SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
     ...state,
@@ -408,6 +413,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
       action.response.newClient.consultantEmail : null,
     newUserWelcomeText: action.response.newClient.newUserWelcomeText,
     useNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
+    initialUseNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
   }),
   RESET_FORM_DATA: (state, action: AccessActions.ResetFormData) => ({
     ...state,

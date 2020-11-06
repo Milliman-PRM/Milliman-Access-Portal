@@ -40,6 +40,7 @@ export interface PendingDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
   newSubClientParentId: Guid;
+  canManageNewlySelectedClient: boolean;
 }
 
 /**
@@ -85,6 +86,7 @@ export interface AccessStateBaseFormData {
   newUserWelcomeText: string;
   parentClientId: Guid;
   useNewUserWelcomeText: boolean;
+  initialUseNewUserWelcomeText: boolean;
 }
 
 export interface AccessStateFormData extends AccessStateBaseFormData {
