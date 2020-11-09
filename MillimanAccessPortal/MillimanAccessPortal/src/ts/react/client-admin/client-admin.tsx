@@ -447,7 +447,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             name="approvedEmailAddressExceptionList"
                             label="Approved Email Address Exception List"
                             type="text"
-                            value={formData.acceptedEmailAddressExceptionList}
+                            value={formData.acceptedEmailAddressExceptionList.join(', ')}
                             onChange={null}
                             readOnly={edit.disabled}
                             error={null}
