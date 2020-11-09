@@ -3,6 +3,7 @@ import * as Modal from 'react-modal';
 
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
+import { toastr } from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
@@ -410,11 +411,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             exceptions={['milliman.com']}
                             addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
-                                this.props.promptExistingDomainName({});
+                                toastr.warning('', 'That domain already exists.');
                               } else if (!isDomainNameValid(item)) {
-                                this.props.promptInvalidDomainName({});
+                                toastr.warning('', 'Please enter a valid domain name (e.g. domain.com)');
                               } else if (overLimit) {
-                                this.props.promptDomainLimitExceeded({});
+                                toastr.warning('', `
+                                  You have reached the allowed domain limit for this client.
+                                  Contact map.support@milliman.com to request an increase to this limit.
+                                `);
                               } else {
                                 this.props.setFormFieldValue({
                                   field: 'acceptedEmailDomainList',
@@ -446,7 +450,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             value={formData.acceptedEmailAddressExceptionList}
                             onChange={null}
                             readOnly={edit.disabled}
-                            onBlur={() => { return; }}
                             error={null}
                           /> :
                           <MultiAddInput
@@ -457,9 +460,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             value={null}
                             addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (!isEmailAddressValid(item)) {
-                                this.props.promptInvalidEmailAddress({});
+                                toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
                               } else if (itemAlreadyExists) {
-                                this.props.promptExistingEmailAddress({});
+                                toastr.warning('', 'That email address already exists.');
                               } else {
                                 this.props.setFormFieldValue({
                                   field: 'acceptedEmailAddressExceptionList',
@@ -476,7 +479,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               });
                             }}
                             readOnly={edit.disabled}
-                            onBlur={() => { return; }}
                             error={null}
                           />
                         }

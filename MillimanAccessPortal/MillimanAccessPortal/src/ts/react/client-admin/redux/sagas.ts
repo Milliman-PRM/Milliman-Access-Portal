@@ -1,7 +1,5 @@
 ﻿import {
-  AccessAction, ErrorAccessAction, PromptDomainLimitExceeded, PromptExistingDomainName,
-  PromptExistingEmailAddress, PromptInvalidDomainName, PromptInvalidEmailAddress,
-  RequestAccessAction, ResponseAccessAction,
+  AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
 
@@ -44,24 +42,11 @@ export default function* rootSaga() {
   yield takeEveryToast('SAVE_NEW_CLIENT_USER_SUCCEEDED', 'User successfully added');
   yield takeEveryToast('REMOVE_CLIENT_USER_SUCCEEDED', 'User successfully removed');
 
-  // Warning
-  yield takeEveryToast<PromptExistingDomainName>('PROMPT_EXISITING_DOMAIN_NAME',
-    'That domain already exists.', 'warning');
-  yield takeEveryToast<PromptInvalidDomainName>('PROMPT_INVALID_DOMAIN_NAME',
-    'Please enter a valid domain name (e.g. domain.com)', 'warning');
-  yield takeEveryToast<PromptDomainLimitExceeded>('PROMPT_DOMAIN_LIMIT_EXCEEDED',
-    `You have reached the allowed domain limit for this client.
-     Contact map.support@milliman.com to request an increase to this limit.`,
-    'warning');
-  yield takeEveryToast<PromptInvalidEmailAddress>('PROMPT_INVALID_EMAIL_ADDRESS',
-    'Please enter a valid email address (e.g. username@domain.com)', 'warning');
-  yield takeEveryToast<PromptExistingEmailAddress>('PROMPT_EXISTING_EMAIL_ADDRESS',
-    'That email address already exists.', 'warning');
-
   yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_PROFIT_CENTERS_FAILED',
     'FETCH_CLIENT_DETAILS_FAILED',
+    'SET_USER_ROLE_IN_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_FAILED',
     'EDIT_CLIENT_FAILED',
     'DELETE_CLIENT_FAILED',

@@ -39,16 +39,6 @@ export const resetFormData =
   createActionCreator<AccessActions.ResetFormData>('RESET_FORM_DATA');
 export const setFormFieldValue =
   createActionCreator<AccessActions.SetFormFieldValue>('SET_FORM_FIELD_VALUE');
-export const promptExistingDomainName =
-  createActionCreator<AccessActions.PromptExistingDomainName>('PROMPT_EXISITING_DOMAIN_NAME');
-export const promptInvalidDomainName =
-  createActionCreator<AccessActions.PromptInvalidDomainName>('PROMPT_INVALID_DOMAIN_NAME');
-export const promptDomainLimitExceeded =
-  createActionCreator<AccessActions.PromptDomainLimitExceeded>('PROMPT_DOMAIN_LIMIT_EXCEEDED');
-export const promptInvalidEmailAddress =
-  createActionCreator<AccessActions.PromptInvalidEmailAddress>('PROMPT_INVALID_EMAIL_ADDRESS');
-export const promptExistingEmailAddress =
-  createActionCreator<AccessActions.PromptExistingEmailAddress>('PROMPT_EXISTING_EMAIL_ADDRESS');
 
 // Modal Actions
 export const openDeleteClientModal =
