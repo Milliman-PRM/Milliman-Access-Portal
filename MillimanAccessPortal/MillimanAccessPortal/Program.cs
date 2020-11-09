@@ -6,11 +6,12 @@
 
 using AuditLogLib;
 using AuditLogLib.Event;
+using AuditLogLib.Models;
 using System;
 using System.Collections.Generic;
 using MapCommonLib;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Memory;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,9 +24,11 @@ using Prm.SerilogCustomization;
 using Serilog;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using MapDbContextLib.Identity;
 
 namespace MillimanAccessPortal
 {
@@ -61,6 +64,26 @@ namespace MillimanAccessPortal
                     .ReadFrom.Configuration(Configuration)
                     .Enrich.With<UtcTimestampEnricher>()
                     .CreateLogger();
+
+                #region Configure Audit Logger connection string
+                string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+                // If the database name is defined in the environment, update the connection string
+                if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+                {
+                    Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                    {
+                        Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                    };
+                    auditLogConnectionString = stringBuilder.ConnectionString;
+                }
+
+                AuditLogger.Config = new AuditLoggerConfiguration
+                {
+                    AuditLogConnectionString = auditLogConnectionString,
+                    ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
+                };
+                #endregion
                 #endregion
 
                 Assembly processAssembly = Assembly.GetEntryAssembly();
@@ -90,26 +113,6 @@ namespace MillimanAccessPortal
                         EmailDisclaimer = Configuration.GetValue<string>("EmailDisclaimer"),
                         DisclaimerExemptDomainString = Configuration.GetValue<string>("DisclaimerExemptDomainString"),
                     });
-
-                    #region Configure Audit Logger connection string
-                    string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-
-                    // If the database name is defined in the environment, update the connection string
-                    if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
-                    {
-                        Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
-                        {
-                            Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
-                        };
-                        auditLogConnectionString = stringBuilder.ConnectionString;
-                    }
-
-                    AuditLogger.Config = new AuditLoggerConfiguration
-                    {
-                        AuditLogConnectionString = auditLogConnectionString,
-                        ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
-                    };
-                    #endregion
 
                 }
                 catch (Exception e)
@@ -222,5 +225,6 @@ namespace MillimanAccessPortal
                 config.AddConfiguration(newConnectionStringCfg);
             }
         }
+
     }
 }
