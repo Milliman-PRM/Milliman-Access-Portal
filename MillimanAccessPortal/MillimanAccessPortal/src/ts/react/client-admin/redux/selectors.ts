@@ -28,13 +28,19 @@ export function isFormModified(state: AccessState) {
     state.formData.contactTitle !== state.data.details.clientContactTitle ||
     state.formData.contactEmail !== state.data.details.clientContactEmail ||
     state.formData.contactPhone !== state.data.details.clientContactPhone ||
-    // TODO: Wait on remaining email adding code
-    // state.formData.acceptedEmailDomainList !== state.data.details.acceptedEmailDomainList ||
-    // state.formData.acceptedEmailAddressExceptionList !== state.data.details.acceptedEmailAddressExceptionList ||
+    !_.isEqual(state.formData.acceptedEmailDomainList, state.data.details.acceptedEmailDomainList) ||
+    !_.isEqual(state.formData.acceptedEmailAddressExceptionList,
+      state.data.details.acceptedEmailAddressExceptionList) ||
     state.formData.consultantName !== state.data.details.consultantName ||
     state.formData.consultantEmail !== state.data.details.consultantEmail ||
     state.formData.consultantOffice !== state.data.details.office ||
-    state.formData.profitCenterId !== state.data.details.profitCenter.id;
+    state.formData.profitCenterId !== state.data.details.profitCenter.id ||
+    (state.formData.useNewUserWelcomeText && state.formData.initialUseNewUserWelcomeText &&
+      (state.formData.newUserWelcomeText !== state.data.details.newUserWelcomeText &&
+      !(state.formData.newUserWelcomeText === '' && state.data.details === null))) ||
+    (state.formData.useNewUserWelcomeText && !state.formData.initialUseNewUserWelcomeText &&
+      state.formData.newUserWelcomeText !== '') ||
+    (!state.formData.useNewUserWelcomeText && state.formData.initialUseNewUserWelcomeText);
 }
 
 /**
@@ -130,4 +136,28 @@ export function activeClients(state: AccessState) {
 
 export function activeUsers(state: AccessState) {
   return filteredUsers(state);
+}
+
+/**
+ * Select whether all client user cards are expanded.
+ * @param state Redux store
+ */
+export function allUsersExpanded(state: AccessState) {
+  return activeUsers(state)
+    .reduce((prev, u) => {
+      const card = state.cardAttributes.user[u.id];
+      return prev && card && card.expanded;
+    }, true);
+}
+
+/**
+ * Select whether all client user cards are collapsed.
+ * @param state Redux store
+ */
+export function allUsersCollapsed(state: AccessState) {
+  return activeUsers(state)
+    .reduce((prev, u) => {
+      const card = state.cardAttributes.user[u.id];
+      return prev && (!card || !card.expanded);
+    }, true);
 }

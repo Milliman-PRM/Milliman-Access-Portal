@@ -3,10 +3,11 @@ import * as Modal from 'react-modal';
 
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
+import { toastr } from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, clientEntities, isFormModified, isFormValid,
+  activeUsers, allUsersCollapsed, allUsersExpanded, clientEntities, isFormModified, isFormValid,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -28,14 +29,14 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
-import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
-import { isEmailAddressValid, isStringNotEmpty } from '../../shared';
+import { isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../shared';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
 interface ClientAdminProps {
@@ -53,6 +54,8 @@ interface ClientAdminProps {
   modals: AccessStateModals;
   formModified: boolean;
   formValid: boolean;
+  allUsersExpanded: boolean;
+  allUsersCollapsed: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -109,7 +112,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -129,7 +132,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client || this.clientIsNewChild(entity)}
               readonly={!entity.canManage}
               onSelect={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, false, true);
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, entity.canManage,
+                  false, true);
               }}
               indentation={entity.indent}
               insertCard={this.clientIsNewChild(entity)}
@@ -171,7 +175,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         color={'blue'}
                         onClick={() => {
                           this.changeClientFormState(formModified, !edit.disabled, selected.client,
-                            entity.id, true, true);
+                            entity.id, entity.canManage, true, true);
                         }}
                       /> : null
                     }
@@ -185,7 +189,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       /> : null
                     }
                   </CardSectionButtons>
-                : null}
+                  : null}
               </CardSectionMain>
             </Card>
           );
@@ -203,7 +207,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Add or create a new client"
               icon="add"
               action={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', true, true);
+                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                  true, true);
               }}
             />
           </PanelSectionToolbarButtons>
@@ -384,40 +389,99 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <div className="form-input-container">
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
-                        <Input
-                          name="approvedEmailDomainList"
-                          label="Approved Email Domain List"
-                          type="text"
-                          value={formData.acceptedEmailDomainList.join(', ')}
-                          onChange={(event) => {
-                            this.props.setFormFieldValue({
-                              field: 'acceptedEmailDomainList',
-                              value: event.currentTarget.value.split(', '),
-                            });
-                          }}
-                          readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={null}
-                        />
+                        {edit.disabled ?
+                          <Input
+                            name="approvedEmailDomainList"
+                            label="Approved Email Domain List"
+                            type="text"
+                            value={formData.acceptedEmailDomainList.join(', ')}
+                            onChange={null}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="approvedEmailDomainList"
+                            label="Approved Email Domain List"
+                            type="text"
+                            limit={3}
+                            limitText={'domains'}
+                            list={formData.acceptedEmailDomainList}
+                            value={null}
+                            exceptions={['milliman.com']}
+                            addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
+                              if (itemAlreadyExists) {
+                                toastr.warning('', 'That domain already exists.');
+                              } else if (!isDomainNameValid(item)) {
+                                toastr.warning('', 'Please enter a valid domain name (e.g. domain.com)');
+                              } else if (overLimit) {
+                                toastr.warning('', `
+                                  You have reached the allowed domain limit for this client.
+                                  Contact map.support@milliman.com to request an increase to this limit.
+                                `);
+                              } else {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailDomainList',
+                                  value: formData.acceptedEmailDomainList.concat(item.trim()),
+                                });
+                              }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailDomainList',
+                                value: formData.acceptedEmailDomainList.slice(0, index)
+                                  .concat(formData.acceptedEmailDomainList.slice(index + 1)),
+                              });
+                            }}
+                            readOnly={edit.disabled}
+                            onBlur={() => { return; }}
+                            error={null}
+                          />
+                        }
                       </div>
                     </div>
                     <div className="form-input form-input-selectized flex-item-12-12">
                       <div>
-                        <Input
-                          name="approvedEmailAddressExceptionList"
-                          label="Approved Email Address Exception List"
-                          type="text"
-                          value={formData.acceptedEmailAddressExceptionList}
-                          onChange={(event) => {
-                            this.props.setFormFieldValue({
-                              field: 'approvedEmailAddressExceptionList',
-                              value: event.currentTarget.value.split(', '),
-                            });
-                          }}
-                          readOnly={edit.disabled}
-                          onBlur={() => { return; }}
-                          error={null}
-                        />
+                        {edit.disabled ?
+                          <Input
+                            name="approvedEmailAddressExceptionList"
+                            label="Approved Email Address Exception List"
+                            type="text"
+                            value={formData.acceptedEmailAddressExceptionList.join(', ')}
+                            onChange={null}
+                            readOnly={edit.disabled}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="acceptedEmailAddressExceptionList"
+                            label="Approved Email Address Exception List"
+                            type="text"
+                            list={formData.acceptedEmailAddressExceptionList}
+                            value={null}
+                            addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
+                              if (!isEmailAddressValid(item)) {
+                                toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
+                              } else if (itemAlreadyExists) {
+                                toastr.warning('', 'That email address already exists.');
+                              } else {
+                                this.props.setFormFieldValue({
+                                  field: 'acceptedEmailAddressExceptionList',
+                                  value: formData.acceptedEmailAddressExceptionList.
+                                    concat(item.trim()),
+                                });
+                              }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setFormFieldValue({
+                                field: 'acceptedEmailAddressExceptionList',
+                                value: formData.acceptedEmailAddressExceptionList.slice(0, index)
+                                  .concat(formData.acceptedEmailAddressExceptionList.slice(index + 1)),
+                              });
+                            }}
+                            readOnly={edit.disabled}
+                            error={null}
+                          />
+                        }
                       </div>
                     </div>
                   </div>
@@ -534,20 +598,31 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       <div className="switch-container flex-item-for-phone-only-12-12 content-item-flex-none">
                         <Toggle
                           label={'Custom Welcome Text'}
-                          checked={false}
-                          onClick={null}
+                          checked={formData.useNewUserWelcomeText}
+                          onClick={() => {
+                            if (!edit.disabled) {
+                              this.props.setFormFieldValue({
+                                field: 'useNewUserWelcomeText',
+                                value: !formData.useNewUserWelcomeText,
+                              });
+                            }
+                          }}
+                          readOnly={edit.disabled}
                         />
                       </div>
                       <div className="flex-item-for-phone-only-12-12 content-item-flex-1">
                         <TextAreaInput
                           label={null}
                           name="NewUserWelcomeText"
-                          onChange={() => {
-                            return false;
+                          onChange={(event) => {
+                            this.props.setFormFieldValue({
+                              field: 'newUserWelcomeText',
+                              value: event.currentTarget.value,
+                            });
                           }}
                           error={null}
-                          value={null}
-                          readOnly={edit.disabled}
+                          value={formData.useNewUserWelcomeText ? formData.newUserWelcomeText : ''}
+                          readOnly={edit.disabled || !formData.useNewUserWelcomeText}
                         />
                       </div>
                     </div>
@@ -635,7 +710,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientUsers() {
-    const { assignedUsers, selected, cardAttributes, filters } = this.props;
+    const {
+      assignedUsers,
+      selected,
+      cardAttributes,
+      allUsersExpanded: allExpanded,
+      allUsersCollapsed: allCollapsed,
+      filters,
+    } = this.props;
     return (
       <>
         <CardPanel
@@ -695,7 +777,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.ContentAccessAdmin],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -703,7 +785,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.ContentPublisher],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -718,7 +800,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       checked={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
                       onClick={(event) =>
                         this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropAdmin],
-                                            selected.client, entity.id)
+                          selected.client, entity.id)
                       }
                     />
                     <Toggle
@@ -743,11 +825,22 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <PanelSectionToolbarButtons>
               {!selected.readonly ?
                 <PanelSectionToolbarButtons>
-                  <ActionIcon
-                    label="Expand all user cards"
-                    icon="expand-cards"
-                    action={() => false}
-                  />
+                  {allExpanded ?
+                    null :
+                    <ActionIcon
+                      label="Expand all user cards"
+                      icon="expand-cards"
+                      action={() => this.props.setAllExpandedUser({})}
+                    />
+                  }
+                  {allCollapsed ?
+                    null :
+                    <ActionIcon
+                      label="Collapse all user cards"
+                      icon="collapse-cards"
+                      action={() => this.props.setAllCollapsedUser({})}
+                    />
+                  }
                   <ActionIcon
                     label="Add or create a new client"
                     icon="add"
@@ -988,6 +1081,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 this.changeClientFormState(false, false,
                   selected.client,
                   pending.discardEditAfterSelect.newlySelectedClientId,
+                  pending.discardEditAfterSelect.canManageNewlySelectedClient,
                   pending.discardEditAfterSelect.editAfterSelect,
                   true);
               } else {
@@ -1030,16 +1124,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
-                                edit: boolean, resetValidityAfterSelect: boolean) {
+                                canManage: boolean, edit: boolean, resetValidityAfterSelect: boolean) {
     if (currentlyEditing && formModified) {
       this.props.openDiscardEditAfterSelectModal({
         newlySelectedClientId: newClient,
         editAfterSelect: edit,
         newSubClientParentId: null,
+        canManageNewlySelectedClient: canManage,
       });
     } else {
       if (!(edit && oldClient === newClient)) { // Handles clicking 'edit' for an already selected client.
-        this.props.selectClient({ id: newClient });
+        this.props.selectClient({ id: newClient, readonly: !canManage });
       }
       this.props.setEditStatus({ disabled: !edit });
 
@@ -1062,6 +1157,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         newlySelectedClientId: 'child',
         editAfterSelect: true,
         newSubClientParentId: parent,
+        canManageNewlySelectedClient: true,
       });
     } else {
       this.props.selectNewSubClient({ parentId: parent });
@@ -1070,7 +1166,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private async editClient(formData: AccessStateFormData) {
-    return await this.props.editClient(formData);
+    return await this.props.editClient({
+      ...formData,
+      newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
+    });
   }
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
@@ -1110,6 +1209,8 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     modals,
     formModified: isFormModified(state),
     formValid: isFormValid(state),
+    allUsersExpanded: allUsersExpanded(state),
+    allUsersCollapsed: allUsersCollapsed(state),
   };
 }
 

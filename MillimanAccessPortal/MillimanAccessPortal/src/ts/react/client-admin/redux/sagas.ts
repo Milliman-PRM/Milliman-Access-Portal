@@ -1,4 +1,6 @@
-﻿import { AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction } from './actions';
+﻿import {
+  AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
+} from './actions';
 import * as api from './api';
 
 import { createTakeEveryToast, createTakeLatestRequest } from '../../shared-components/redux/sagas';
@@ -39,10 +41,12 @@ export default function* rootSaga() {
   yield takeEveryToast('DELETE_CLIENT_SUCCEEDED', 'Deleted client');
   yield takeEveryToast('SAVE_NEW_CLIENT_USER_SUCCEEDED', 'User successfully added');
   yield takeEveryToast('REMOVE_CLIENT_USER_SUCCEEDED', 'User successfully removed');
+
   yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
     'FETCH_PROFIT_CENTERS_FAILED',
     'FETCH_CLIENT_DETAILS_FAILED',
+    'SET_USER_ROLE_IN_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_FAILED',
     'EDIT_CLIENT_FAILED',
     'DELETE_CLIENT_FAILED',
