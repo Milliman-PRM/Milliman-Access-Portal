@@ -342,6 +342,7 @@ export interface CloseChangeUserRolesModal {
 }
 export interface OpenDiscardUserRoleChangesModal {
   type: 'OPEN_DISCARD_USER_ROLE_CHANGES_MODAL';
+  callback: () => void;
 }
 export interface CloseDiscardUserRoleChangesModal {
   type: 'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL';

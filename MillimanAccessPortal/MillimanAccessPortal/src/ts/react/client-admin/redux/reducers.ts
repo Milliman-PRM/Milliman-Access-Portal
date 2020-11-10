@@ -9,8 +9,8 @@ import * as AccessActions from './actions';
 import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
-  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingHitrustReason,
-  PendingRemoveClientUserState, PendingUserRoleAssignments,
+  PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingDiscardEditUserRoles,
+  PendingHitrustReason, PendingRemoveClientUserState, PendingUserRoleAssignments,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -49,6 +49,9 @@ const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   editAfterSelect: false,
   newSubClientParentId: null,
   canManageNewlySelectedClient: false,
+};
+const _initialPendingDiscardEditUserRoles: PendingDiscardEditUserRoles = {
+  callback: null,
 };
 
 const _initialDetails: ClientDetail = {
@@ -289,6 +292,14 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
     editAfterSelect: action.editAfterSelect,
     newSubClientParentId: action.newSubClientParentId,
     canManageNewlySelectedClient: action.canManageNewlySelectedClient,
+  }),
+});
+
+const pendingDiscardEditUserRoles = createReducer<PendingDiscardEditUserRoles>(
+  _initialPendingDiscardEditUserRoles, {
+  OPEN_DISCARD_USER_ROLE_CHANGES_MODAL: (state, action: AccessActions.OpenDiscardUserRoleChangesModal) => ({
+    ...state,
+    callback: action.callback,
   }),
 });
 
@@ -575,6 +586,7 @@ const pending = combineReducers({
   createClientUser: pendingCreateClientUser,
   removeClientUser: pendingRemoveClientUser,
   discardEditAfterSelect: pendingDiscardEditAfterSelect,
+  discardEditUserRoles: pendingDiscardEditUserRoles,
 });
 
 /**

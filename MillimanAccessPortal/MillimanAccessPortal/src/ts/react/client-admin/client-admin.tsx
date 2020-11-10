@@ -131,7 +131,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, edit, formModified } = this.props;
+    const { clients, selected, filters, pending, edit, formModified, rolesModified } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -146,7 +146,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
+                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
+                  });
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -166,8 +168,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client || this.clientIsNewChild(entity)}
               readonly={!entity.canManage}
               onSelect={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, entity.canManage,
-                  false, true);
+                this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id,
+                    entity.canManage, false, true);
+                });
               }}
               indentation={entity.indent}
               insertCard={this.clientIsNewChild(entity)}
@@ -208,8 +212,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'edit'}
                         color={'blue'}
                         onClick={() => {
-                          this.changeClientFormState(formModified, !edit.disabled, selected.client,
-                            entity.id, entity.canManage, true, true);
+                          this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                            this.changeClientFormState(formModified, !edit.disabled, selected.client,
+                              entity.id, entity.canManage, true, true);
+                          });
                         }}
                       /> : null
                     }
@@ -218,7 +224,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'add'}
                         color={'green'}
                         onClick={() => {
-                          this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
+                          this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                            this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
+                          });
                         }}
                       /> : null
                     }
@@ -241,8 +249,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               label="Add or create a new client"
               icon="add"
               action={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
-                  true, true);
+                this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                    true, true);
+                });
               }}
             />
           </PanelSectionToolbarButtons>
@@ -253,7 +263,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, profitCenters, details, selected, edit, valid, formModified, formValid } = this.props;
+    const {
+      formData, profitCenters, details, selected, edit, valid, formModified, rolesModified, formValid,
+    } = this.props;
     return (
       <>
         <div
@@ -270,7 +282,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     label="Edit client details"
                     icon="edit"
                     action={() => {
-                      this.props.setEditStatus({ disabled: false });
+                      this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                        this.props.setEditStatus({ disabled: false });
+                      });
                     }}
                   /> :
                   <ActionIcon
@@ -798,7 +812,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             color={'red'}
                             onClick={() => {
                               if (rolesModified) {
-                                this.props.openDiscardUserRoleChangesModal({});
+                                this.props.openDiscardUserRoleChangesModal({ callback: null });
                               } else {
                                 this.props.selectUser({ id: null });
                                 this.props.setExpandedUser({ id: entity.id });
@@ -824,12 +838,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           <CardButton
                             icon="remove-circle"
                             color={'red'}
-                            onClick={() => this.props.openRemoveUserFromClientModal({
-                              clientId: selected.client,
-                              userId: entity.id,
-                              name: entity.firstName && entity.lastName ?
-                                `${entity.firstName} ${entity.lastName}` : entity.email,
-                            })}
+                            onClick={() => {
+                              this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                                this.props.openRemoveUserFromClientModal({
+                                  clientId: selected.client,
+                                  userId: entity.id,
+                                  name: entity.firstName && entity.lastName ?
+                                    `${entity.firstName} ${entity.lastName}` : entity.email,
+                                });
+                              });
+                            }}
                           />
                         </>
                       }
@@ -948,8 +966,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     label="Add or create a new client user"
                     icon="add"
                     action={() => {
-                      this.props.selectUser({ id: 'new' });
-                      this.props.openCreateClientUserModal({ clientId: selected.client });
+                      this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                        this.props.selectUser({ id: 'new' });
+                        this.props.openCreateClientUserModal({ clientId: selected.client });
+                      });
                     }}
                   />
                 </PanelSectionToolbarButtons> : null
@@ -1407,6 +1427,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               this.props.selectUser({ id: null });
+              if (pending.discardEditUserRoles.callback) {
+                pending.discardEditUserRoles.callback();
+              }
               this.props.closeDiscardUserRoleChangesModal({});
             }}
           >
@@ -1470,6 +1493,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     } else {
       this.props.selectNewSubClient({ parentId: parent });
       this.props.setFormFieldValue({ field: 'parentClientId', value: parent });
+    }
+  }
+
+  private handleCallbackForPendingRoleChanges(useCallback: boolean, callbackFunction: () => void) {
+    if (useCallback) {
+      this.props.openDiscardUserRoleChangesModal({
+        callback: callbackFunction,
+      });
+    } else {
+      callbackFunction();
     }
   }
 

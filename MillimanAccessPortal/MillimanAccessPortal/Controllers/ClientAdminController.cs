@@ -1370,6 +1370,15 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has content items.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            // Client must not have any active File Drops
+            var FileDropCount = await DbContext.FileDrop.CountAsync(i => i.ClientId == Id);
+            if (FileDropCount > 0)
+            {
+              Log.Debug($"In ClientAdminController.DeleteClient action: requested client {ExistingClient.Id} has file drop(s), aborting");
+              Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has File Drops.");
+              return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion Validation
 
             using (IDbContextTransaction DbTransaction = await DbContext.Database.BeginTransactionAsync())

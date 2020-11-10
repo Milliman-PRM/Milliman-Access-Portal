@@ -53,6 +53,9 @@ export interface PendingDiscardEditAfterSelectModal {
   newSubClientParentId: Guid;
   canManageNewlySelectedClient: boolean;
 }
+export interface PendingDiscardEditUserRoles {
+  callback: () => void;
+}
 
 /**
  * Entity data returned from the server.
@@ -138,6 +141,7 @@ export interface AccessStatePending {
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
   discardEditAfterSelect: PendingDiscardEditAfterSelectModal;
+  discardEditUserRoles: PendingDiscardEditUserRoles;
 }
 
 /**
