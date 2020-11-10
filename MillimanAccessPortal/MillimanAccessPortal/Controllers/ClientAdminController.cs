@@ -1357,26 +1357,24 @@ namespace MillimanAccessPortal.Controllers
                                                    .ToListAsync();
             if (Children.Count > 0)
             {
-                Log.Debug($"In ClientAdminController.DeleteClient action: requested client {ExistingClient.Id} has child client(s) {string.Join(", ", Children)}, aborting");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested client {ExistingClient.Id} has child client(s) {string.Join(", ", Children)}, aborting");
                 Response.Headers.Add("Warning", $"Can't delete Client {ExistingClient.Name}. The client has child client(s): {string.Join(", ", Children)}");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Client must not have any root content items
-            var ItemCount = await DbContext.RootContentItem.CountAsync(i => i.ClientId == Id);
-            if (ItemCount > 0)
+            if (await DbContext.RootContentItem.CountAsync(i => i.ClientId == Id) > 0)
             {
-                Log.Debug($"In ClientAdminController.DeleteClient action: requested client {ExistingClient.Id} has content item(s), aborting");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested client {ExistingClient.Id} has content item(s), aborting");
                 Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has content items.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             // Client must not have any active File Drops
-            var FileDropCount = await DbContext.FileDrop.CountAsync(i => i.ClientId == Id);
-            if (FileDropCount > 0)
+            if (await DbContext.FileDrop.CountAsync(i => i.ClientId == Id) > 0)
             {
-              Log.Debug($"In ClientAdminController.DeleteClient action: requested client {ExistingClient.Id} has file drop(s), aborting");
-              Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has File Drops.");
+              Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested client {ExistingClient.Id} has File Drop(s), aborting");
+              Response.Headers.Add("Warning", $"Can't delete client {ExistingClient.Name} because it has File Drop(s).");
               return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
@@ -1406,13 +1404,13 @@ namespace MillimanAccessPortal.Controllers
                 catch (Exception ex)
                 {
                     string ErrMsg = GlobalFunctions.LoggableExceptionString(ex, $"In {this.GetType().Name}.{ControllerContext.ActionDescriptor.ActionName}(): Failed to delete client from database");
-                    Log.Error($"In ClientAdminController.DeleteClient action: {ErrMsg}");
+                    Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: {ErrMsg}");
                     Response.Headers.Add("Warning", "Error processing request.");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
             }
 
-            Log.Verbose($"In ClientAdminController.DeleteClient action: deleted client {ExistingClient.Id}");
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: deleted client {ExistingClient.Id}");
             AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
 
             var currentUser = await _userManager.GetUserAsync(User);
