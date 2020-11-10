@@ -1,5 +1,5 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole, HitrustReason } from "../../models";
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
 import { HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
