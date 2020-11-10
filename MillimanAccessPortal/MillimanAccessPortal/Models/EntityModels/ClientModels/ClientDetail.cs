@@ -2,6 +2,8 @@
  * CODE OWNERS: Joseph Sweeney,
  * OBJECTIVE: Provide client information for display in the system admin detail panel
  * DEVELOPER NOTES:
+ * It might be necessary when supplying a Client object to the constructor operator
+ * to ensure that the ProfitCenter value exists using .Include(c => c.ProfitCenter).
  */
 
 using MapDbContextLib.Context;
@@ -26,17 +28,14 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string Office { get; set; }
         public string ConsultantName { get; set; }
         public string ConsultantEmail { get; set; }
+        public string NewUserWelcomeText { get; set; }
+
 
         public static explicit operator ClientDetail(Client client)
         {
             if (client == null)
             {
                 return null;
-            }
-
-            if (client.ProfitCenter == null)
-            {
-              
             }
 
             return new ClientDetail
@@ -55,6 +54,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 Office = client.ConsultantOffice,
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,
+                NewUserWelcomeText = client.NewUserWelcomeText,
             };
         }
 

@@ -48,6 +48,7 @@ const _initialPendingDiscardEditModal: PendingDiscardEditAfterSelectModal = {
   newlySelectedClientId: null,
   editAfterSelect: false,
   newSubClientParentId: null,
+  canManageNewlySelectedClient: false,
 };
 
 const _initialDetails: ClientDetail = {
@@ -70,6 +71,7 @@ const _initialDetails: ClientDetail = {
   office: '',
   consultantName: '',
   consultantEmail: null,
+  newUserWelcomeText: '',
 };
 
 const _initialData: AccessStateData = {
@@ -96,6 +98,8 @@ const _initialFormData: AccessStateBaseFormData = {
   consultantEmail: null,
   newUserWelcomeText: '',
   parentClientId: '',
+  useNewUserWelcomeText: false,
+  initialUseNewUserWelcomeText: false,
 };
 
 const _initialValidation: AccessStateValid = {
@@ -284,6 +288,7 @@ const pendingDiscardEditAfterSelect = createReducer<PendingDiscardEditAfterSelec
     newlySelectedClientId: action.newlySelectedClientId,
     editAfterSelect: action.editAfterSelect,
     newSubClientParentId: action.newSubClientParentId,
+    canManageNewlySelectedClient: action.canManageNewlySelectedClient,
   }),
 });
 
@@ -429,7 +434,11 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantOffice: action.response.clientDetail.office,
     consultantName: action.response.clientDetail.consultantName,
     consultantEmail: action.response.clientDetail.consultantEmail ?
-                     action.response.clientDetail.consultantEmail : null,
+      action.response.clientDetail.consultantEmail : null,
+    newUserWelcomeText: action.response.clientDetail.newUserWelcomeText ?
+      action.response.clientDetail.newUserWelcomeText : '',
+    useNewUserWelcomeText: action.response.clientDetail.newUserWelcomeText ? true : false,
+    initialUseNewUserWelcomeText: action.response.clientDetail.newUserWelcomeText ? true : false,
   }),
   SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
     ...state,
@@ -450,6 +459,9 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantName: action.response.newClient.consultantName,
     consultantEmail: action.response.newClient.consultantEmail ?
       action.response.newClient.consultantEmail : null,
+    newUserWelcomeText: action.response.newClient.newUserWelcomeText,
+    useNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
+    initialUseNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
   }),
   RESET_FORM_DATA: (state, action: AccessActions.ResetFormData) => ({
     ...state,
@@ -467,6 +479,8 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantOffice: action.details.office,
     consultantName: action.details.consultantName,
     consultantEmail: action.details.consultantEmail ? action.details.consultantEmail : null,
+    newUserWelcomeText: action.details.newUserWelcomeText,
+    useNewUserWelcomeText: action.details.newUserWelcomeText ? true : false,
   }),
   SET_FORM_FIELD_VALUE: (state, action: AccessActions.SetFormFieldValue) => ({
     ...state,
@@ -499,15 +513,22 @@ const userCardAttributes = createReducer<Dict<CardAttributes>>({},
       },
     }),
     SET_ALL_EXPANDED_USER: (state) =>
-      _.mapValues(state, (group) => ({
-        ...group,
+      _.mapValues(state, (user) => ({
+        ...user,
         expanded: true,
       })),
     SET_ALL_COLLAPSED_USER: (state) =>
-      _.mapValues(state, (group) => ({
-        ...group,
+      _.mapValues(state, (user) => ({
+        ...user,
         expanded: false,
       })),
+    FETCH_CLIENT_DETAILS_SUCCEEDED: (_state, action: AccessActions.FetchClientDetailsSucceeded) => {
+      const state: Dict<CardAttributes> = {};
+      action.response.assignedUsers.forEach((user) => {
+        state[user.id] = {};
+      });
+      return state;
+    },
   },
 );
 

@@ -30,7 +30,7 @@ export interface PendingHitrustReason {
 }
 
 /**
- * Flags indicating whether the page is waiting on user input/confirmation to delete a client.
+ * Flags indicating whether the page is waiting on user input/confirmation for particular actions.
  */
 export interface PendingDeleteClientState {
   id: Guid;
@@ -51,6 +51,7 @@ export interface PendingDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
   newSubClientParentId: Guid;
+  canManageNewlySelectedClient: boolean;
 }
 
 /**
@@ -96,6 +97,8 @@ export interface AccessStateBaseFormData {
   consultantEmail: string;
   newUserWelcomeText: string;
   parentClientId: Guid;
+  useNewUserWelcomeText: boolean;
+  initialUseNewUserWelcomeText: boolean;
 }
 
 export interface AccessStateFormData extends AccessStateBaseFormData {

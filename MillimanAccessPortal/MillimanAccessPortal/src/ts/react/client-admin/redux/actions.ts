@@ -97,7 +97,7 @@ export interface ResetFormData {
 export interface SetFormFieldValue {
   type: 'SET_FORM_FIELD_VALUE';
   field: string;
-  value: string | string[] | Guid;
+  value: string | string[] | Guid | boolean;
 }
 
 // ~ Checking validity of form items ~
@@ -329,6 +329,7 @@ export interface OpenDiscardEditAfterSelectModal {
   newlySelectedClientId: Guid;
   editAfterSelect: boolean;
   newSubClientParentId: Guid;
+  canManageNewlySelectedClient: boolean;
 }
 export interface CloseDiscardEditAfterSelectModal {
   type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
