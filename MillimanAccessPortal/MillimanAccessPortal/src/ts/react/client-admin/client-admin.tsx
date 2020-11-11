@@ -16,7 +16,7 @@ import {
   AccessStateModals, AccessStatePending, AccessStateSelected, AccessStateValid,
 } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -863,7 +863,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       : this.props.setCollapsedUser({ id: entity.id })}
                   >
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
+                      name={'Client Admin'}
                       selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -872,7 +872,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
+                      name={'Content Access Admin'}
                       selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -884,7 +884,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
+                      name={'Content Publisher'}
                       selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -896,7 +896,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
+                      name={'Content User'}
                       selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -908,7 +908,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
+                      name={'File Drop Admin'}
                       selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -920,7 +920,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                     <Checkbox
-                      name={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
+                      name={'File Drop User'}
                       selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
                         pending.roles.roleAssignments)}
                       onChange={(checked) => {
@@ -1089,7 +1089,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               })}
               error={pending.createClientUser.displayEmailError ? 'Please enter a valid email address.' : null}
             />
-            <div className="checkbox-container">
+            <div className="checkbox-container" style={{ margin: '1rem 0' }}>
               <span className="modal-text">
                 <strong>User Roles</strong>
               </span>
@@ -1142,6 +1142,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 readOnly={false}
               />
             </div>
+
             <DropDown
               name="reason"
               label="Reason *"
