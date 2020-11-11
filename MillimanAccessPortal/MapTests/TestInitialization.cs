@@ -82,6 +82,7 @@ namespace MapTests
         public IAuthenticationSchemeProvider AuthenticationSchemeProvider { get; private set; } = default;
         public StandardQueries StandardQueries { get; set; } = default;
         public ContentAccessAdminQueries ContentAccessAdminQueries { get; set; } = default;
+        public ClientAccessReviewQueries ClientAccessReviewQueries { get; set; } = default;
         public ContentPublishingAdminQueries ContentPublishingAdminQueries { get; set; } = default;
         public FileDropQueries FileDropQueries { get; set; } = default;
         public ClientQueries ClientQueries { get; set; } = default;
@@ -90,6 +91,7 @@ namespace MapTests
         public SelectionGroupQueries SelectionGroupQueries { get; set; } = default;
         public PublicationQueries PublicationQueries { get; set; } = default;
         public UserQueries UserQueries { get; set; } = default;
+        public AuthorizedContentQueries AuthorizedContentQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
         public IUrlHelper UrlHelper { get; set; } = default;
@@ -227,6 +229,7 @@ namespace MapTests
             //services.AddScoped<ApplicationDbContext, MockableMapDbContext>();
             services.AddScoped<StandardQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
             services.AddScoped<FileDropQueries>();
             services.AddScoped<FileSystemTasks>();
@@ -237,7 +240,7 @@ namespace MapTests
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
-            services.AddScoped<PublicationQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
             services.AddScoped<UserQueries>();
 
             string fileUploadPath = Path.GetTempPath();
@@ -273,6 +276,7 @@ namespace MapTests
             AuthenticationSchemeProvider = ScopedServiceProvider.GetService<IAuthenticationSchemeProvider>();
             StandardQueries = ScopedServiceProvider.GetService<StandardQueries>();
             ContentAccessAdminQueries = ScopedServiceProvider.GetService<ContentAccessAdminQueries>();
+            ClientAccessReviewQueries = ScopedServiceProvider.GetService<ClientAccessReviewQueries>();
             ContentPublishingAdminQueries = ScopedServiceProvider.GetService<ContentPublishingAdminQueries>();
             FileDropQueries = ScopedServiceProvider.GetService<FileDropQueries>();
             FileSystemTasks = ScopedServiceProvider.GetService<FileSystemTasks>();
@@ -283,6 +287,7 @@ namespace MapTests
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();
             PublicationQueries = ScopedServiceProvider.GetService<PublicationQueries>();
             UserQueries = ScopedServiceProvider.GetService<UserQueries>();
+            AuthorizedContentQueries = ScopedServiceProvider.GetService<AuthorizedContentQueries>();
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
             QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
             PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();
@@ -421,16 +426,8 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", PhoneNumber = "3171234567" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", PhoneNumber = "1234567890" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", PhoneNumber = "1234567890" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "AdminOfChildClient", Email = "AdminOfChildClient@example.com", Employer = "example", FirstName = "FN7", LastName = "LN7", PhoneNumber = "1234567890" });
             DbContext.ApplicationUser.Load();
-            #endregion
-
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
-                });
-            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -485,6 +482,8 @@ namespace MapTests
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(6) },
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.UserCreator).Id, UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(13), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(14), ClientId=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
                     });
             #endregion
 
@@ -500,6 +499,7 @@ namespace MapTests
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user6"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("AdminOfChildClient"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(7).ToString()));
             DbContext.UserClaims.Load();
             #endregion
             #endregion
@@ -519,6 +519,7 @@ namespace MapTests
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(7), ContentName="RootContent 6", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                 });
             #endregion
 
@@ -574,6 +575,13 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(6), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+            });
+            #endregion
+
+            #region Initialize FileDrop
+            DbContext.FileDrop.AddRange(new List<FileDrop>
+            {
+                new FileDrop { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(7), Name="Client 7 File Drop 1", ShortHash="abcd", RootPath = "" },
             });
             #endregion
 

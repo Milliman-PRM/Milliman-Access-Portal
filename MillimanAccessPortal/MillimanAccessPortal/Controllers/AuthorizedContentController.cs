@@ -48,6 +48,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly QlikviewConfig QlikviewConfig;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
+        private readonly AuthorizedContentQueries _authorizedContentQueries;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -67,7 +68,8 @@ namespace MillimanAccessPortal.Controllers
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration AppConfigurationArg,
-            IOptions<PowerBiConfig> powerBiConfigArg)
+            IOptions<PowerBiConfig> powerBiConfigArg,
+            AuthorizedContentQueries AuthorizedContentQueriesArg)
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -77,6 +79,7 @@ namespace MillimanAccessPortal.Controllers
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
+            _authorizedContentQueries = AuthorizedContentQueriesArg;
         }
 
         /// <summary>
@@ -94,7 +97,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
-            var model = AuthorizedContentViewModel.Build(DataContext, await UserManager.GetUserAsync(User), HttpContext);
+            var model = await _authorizedContentQueries.GetAuthorizedContentViewModel(HttpContext);
 
             return Json(model);
         }
@@ -274,6 +277,23 @@ namespace MillimanAccessPortal.Controllers
                 }
                 Log.Warning($"From {ControllerContext.ActionDescriptor.DisplayName}: Improper request not refered by AuthorizedContentController.{nameof(ContentWrapper)}, redirecting to {contentUrlBuilder.Uri.AbsoluteUri}");
                 return Redirect(contentUrlBuilder.Uri.AbsoluteUri);
+            }
+
+            // The related client must not be past due for periodic client access review
+            if (DateTime.UtcNow > selectionGroup.RootContentItem.Client.LastAccessReview.LastReviewDateTimeUtc
+                                + TimeSpan.FromDays(ApplicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                // TODO email client admins?
+                Log.Warning($"From {ControllerContext.ActionDescriptor.DisplayName}: Request for content of client {selectionGroup.RootContentItem.Client.Id} ({selectionGroup.RootContentItem.Client.Name}) with expired client access review");
+
+                return View("UserMessage", new UserMessageModel
+                {
+                    PrimaryMessages = {
+                        "This content cannot be displayed.",
+                        "The client's access review is past due and must be performed.",
+                        "Please click your browser's \"Back\" button or use a navigation button at the left." }, 
+                    Buttons = new List<ConfiguredButton>(),  // remove the default "OK" button
+                });
             }
             #endregion
 

@@ -53,6 +53,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 UserName = UserNameArg,
                 Email = EmailArg,
+                LastLoginUtc = DateTime.UtcNow,
             };
             IdentityResult result = await _userManager.CreateAsync(RequestedUser);
 

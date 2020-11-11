@@ -221,13 +221,22 @@ namespace MillimanAccessPortal.Controllers
                     return Ok();
                 }
 
+                // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
+                int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
+                if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
+                {
+                    Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
+                    Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
+                    return Ok();
+                }
+
                 if (user.IsSuspended)
                 {
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
-                    string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
-                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {supportEmailAlias}>");
+                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
                     return Ok();
                 }
 
@@ -266,7 +275,7 @@ namespace MillimanAccessPortal.Controllers
                         return Ok();
  
                     case var r when r.Succeeded:
-                        SignInCommon(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
+                        await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                         // Provide the location that should be navigated to (or fall back on default route)
                         Response.Headers.Add("NavigateTo", returnUrl ?? "/");
@@ -301,13 +310,15 @@ namespace MillimanAccessPortal.Controllers
         /// Does everything that is common to externally and internally signed in users
         /// </summary>
         [NonAction]
-        private void SignInCommon(string userName, string scheme)
+        private async Task SignInCommon(ApplicationUser user, string scheme)
         {
             try
             {
+                user.LastLoginUtc = DateTime.UtcNow;
+                await DbContext.SaveChangesAsync();
                 HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
-                Log.Information($"User {userName} logged in with scheme {scheme}");
-                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), userName, HttpContext.Session.Id);
+                Log.Information($"User {user.UserName} logged in with scheme {scheme}");
+                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), user.UserName, HttpContext.Session.Id);
             }
             catch (Exception ex)
             {
@@ -412,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
             ViewData["ReturnUrl"] = returnUrl;
             if (ModelState.IsValid)
             {
-                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email };
+                ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email, LastLoginUtc = DateTime.UtcNow };
                 ApplicationRole adminRole = await _roleManager.FindByNameAsync(RoleEnum.Admin.ToString());
 
                 using (var txn = await DbContext.Database.BeginTransactionAsync())
@@ -490,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
         // GET: /Account/ExternalLoginCallback
         [HttpGet]
         [AllowAnonymous]
-        public IActionResult ExternalLoginCallback(string returnUrl = null, string remoteError = null)
+        public async Task<IActionResult> ExternalLoginCallback(string returnUrl = null, string remoteError = null)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
@@ -507,7 +518,8 @@ namespace MillimanAccessPortal.Controllers
                 return RedirectToAction(nameof(Login));
             }
 
-            SignInCommon(HttpContext.User.Identity.Name, GetExternalAuthenticationScheme(HttpContext.User.Identity.Name)?.Name);
+            var user = await _userManager.FindByNameAsync(HttpContext.User.Identity.Name);
+            await SignInCommon(user, GetExternalAuthenticationScheme(user.UserName)?.Name);
 
             returnUrl = returnUrl ?? Url.Content("~/");
             return LocalRedirect(returnUrl);
@@ -1240,6 +1252,34 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
+            // Conditionally add the Client Access Review Element
+            if (ClientAdminResult1.Succeeded)
+            {
+                List<Guid> myClientIds = (await DbContext.UserRoleInClient
+                                                         .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                         .Select(urc => urc.ClientId)
+                                                         .Distinct()
+                                                         .ToListAsync());
+                DateTime countableLastReviewTime = DateTime.UtcNow 
+                                                    - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays")) 
+                                                    + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
+                int numClientsDue = (await DbContext.Client
+                                                    .Where(c => myClientIds.Contains(c.Id))
+                                                    .Where(c => c.LastAccessReview.LastReviewDateTimeUtc < countableLastReviewTime)
+                                                    .CountAsync());
+
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Review Client Access",
+                    URL = nameof(ClientAccessReviewController).Replace("Controller", ""),
+                    View = "ClientAccessReview",
+                    Icon = "client-access-review",
+                    BadgeNumber = numClientsDue,
+                });
+            }
+
             // Conditionally add the Content Publishing Element
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (ContentPublishResult.Succeeded)
@@ -1361,7 +1401,7 @@ namespace MillimanAccessPortal.Controllers
                     string scheme = await IsUserAccountLocal(user.UserName)
                         ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
                         : GetExternalAuthenticationScheme(user.UserName).Name;
-                    SignInCommon(HttpContext.User.Identity.Name, scheme);
+                    await SignInCommon(user, scheme);
                     return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
 
                 case var r when r.IsLockedOut:

@@ -110,6 +110,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
       return (
         <div key={`client-${client.id}`} className="client-content-container">
           <h1 className="client-name">{client.name}</h1>
+              {client.clientStatus ? (<span>{client.clientStatus}</span>) : null}
           {clientItems}
         </div>
       );
@@ -177,6 +178,6 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
         [itemGroup.name, item.name, item.description].filter((text) =>
           text && text.toLowerCase().indexOf(this.state.filterString.toLowerCase()) > -1).length);
       return itemGroup;
-    }).filter((itemGroup: ContentItemGroup) => itemGroup.items.length);
+    }).filter((itemGroup: ContentItemGroup) => itemGroup.items.length || itemGroup.clientStatus);
   }
 }
