@@ -32,7 +32,7 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 
+  icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' |
   'collapse-cards' | 'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' |
   'reload' | 'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' |
   'sort-date-desc' | 'upload' | 'user' | 'userguide';
