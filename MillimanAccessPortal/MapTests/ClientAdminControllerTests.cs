@@ -46,8 +46,8 @@ namespace MapTests
                 testResources.Configuration,
                 null);   // AccountController
 
-        // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
-        testController.ControllerContext = testResources.GenerateControllerContext(userName: (await testResources.UserManager.FindByNameAsync(UserName)).UserName);
+            // Generating ControllerContext will throw a NullReferenceException if the provided user does not exist
+            testController.ControllerContext = testResources.GenerateControllerContext(userName: (await testResources.UserManager.FindByNameAsync(UserName)).UserName);
             testController.HttpContext.Session = new MockSession();
 
             return testController;
