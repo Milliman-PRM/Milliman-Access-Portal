@@ -9,7 +9,8 @@ import { toastr } from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities, isFormModified, isFormValid, userEntities,
+  allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities,
+  isFormModified, isFormValid, userCanCreateClients, userEntities,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -62,6 +63,7 @@ interface ClientAdminProps {
   allUsersExpanded: boolean;
   allUsersCollapsed: boolean;
   rolesModified: boolean;
+  canCreateClients: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -132,7 +134,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, edit, formModified, rolesModified } = this.props;
+    const { clients, selected, filters, pending, edit, formModified, rolesModified, canCreateClients } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -148,7 +150,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 className="card-container action-card-container"
                 onClick={() => {
                   this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
+                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                      true, true);
                   });
                 }}
               >
@@ -246,16 +249,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
-            <ActionIcon
-              label="Add or create a new client"
-              icon="add"
-              action={() => {
-                this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
-                    true, true);
-                });
-              }}
-            />
+            {canCreateClients ?
+              <ActionIcon
+                label="Add or create a new client"
+                icon="add"
+                action={() => {
+                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                      true, true);
+                  });
+                }}
+              /> : null}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         {this.renderModals()}
@@ -768,7 +772,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       allUsersExpanded: allExpanded,
       allUsersCollapsed: allCollapsed,
       filters,
-      formModified,
       rolesModified,
     } = this.props;
     return (
@@ -1602,6 +1605,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     allUsersExpanded: allUsersExpanded(state),
     allUsersCollapsed: allUsersCollapsed(state),
     rolesModified: areRolesModified(state),
+    canCreateClients: userCanCreateClients(state),
   };
 }
 

@@ -146,7 +146,13 @@ export function clientEntities(state: AccessState) {
     });
     entities.push('divider');
   });
-  entities.push('new');
+
+  if (!userCanCreateClients(state)) {
+    entities.pop(); // Remove last divider so that no divider appears unless the 'new' button also exists.
+  } else {
+    entities.push('new');
+  }
+
   return entities;
 }
 
@@ -197,4 +203,12 @@ export function allUsersCollapsed(state: AccessState) {
       const card = state.cardAttributes.user[u.id];
       return prev && (!card || !card.expanded);
     }, true);
+}
+
+/**
+ * Select whether the current Client Admin has the assigned profit centers needed to create new clients.
+ * @param state Redux store
+ */
+export function userCanCreateClients(state: AccessState) {
+  return state.data.profitCenters.length > 0;
 }
