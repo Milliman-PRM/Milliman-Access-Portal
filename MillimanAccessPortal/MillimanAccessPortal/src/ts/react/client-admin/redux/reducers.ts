@@ -399,6 +399,7 @@ const selected = createReducer<AccessStateSelected>(_initialSelected, {
     ...state,
     client: action.response.newClient.id,
     user: null,
+    readonly: false,
   }),
   DELETE_CLIENT_SUCCEEDED: () => _initialSelected,
   SET_EDIT_STATUS: (state) => ({
