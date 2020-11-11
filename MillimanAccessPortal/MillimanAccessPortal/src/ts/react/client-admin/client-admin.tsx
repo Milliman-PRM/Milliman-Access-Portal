@@ -9,7 +9,7 @@ import { toastr } from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities, isFormModified, isFormValid,
+  allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities, isFormModified, isFormValid, userEntities,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -43,13 +43,14 @@ import { isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../
 import { setUnloadAlert } from '../../unload-alerts';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
+type UserEntity = User | 'new';
 interface ClientAdminProps {
   pending: AccessStatePending;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
   details: ClientDetail;
   formData: AccessStateFormData;
-  assignedUsers: User[];
+  assignedUsers: UserEntity[];
   selected: AccessStateSelected;
   edit: AccessStateEdit;
   filters: AccessStateFilters;
@@ -767,6 +768,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       allUsersExpanded: allExpanded,
       allUsersCollapsed: allCollapsed,
       filters,
+      formModified,
       rolesModified,
     } = this.props;
     return (
@@ -774,6 +776,30 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         <CardPanel
           entities={assignedUsers}
           renderEntity={(entity, key) => {
+            if (entity === 'new') {
+              return (
+                <div
+                  key={key}
+                  className="card-container action-card-container"
+                  onClick={() => {
+                    this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                      this.props.openCreateClientUserModal({
+                        clientId: selected.client,
+                      });
+                    });
+                  }}
+                >
+                  <div className="card-body-container card-100 action-card">
+                    <h2 className="card-body-primary-text">
+                      <svg className="action-card-icon">
+                        <use href="#add" />
+                      </svg>
+                      <span>ADD USER</span>
+                    </h2>
+                  </div>
+                </div>
+              );
+            }
             const card = cardAttributes.user[entity.id];
             return (
               <Card
@@ -1563,7 +1589,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     profitCenters: data.profitCenters,
     details: data.details,
     cardAttributes,
-    assignedUsers: activeUsers(state),
+    assignedUsers: userEntities(state),
     formData,
     selected,
     edit,

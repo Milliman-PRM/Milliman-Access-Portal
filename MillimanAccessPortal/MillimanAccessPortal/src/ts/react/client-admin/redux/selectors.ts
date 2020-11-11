@@ -163,6 +163,19 @@ export function activeUsers(state: AccessState) {
 }
 
 /**
+ * Select users with additional rendering data.
+ * @param state Redux store
+ */
+export function userEntities(state: AccessState) {
+  const entities: Array<User | 'new'> = [];
+  activeUsers(state).forEach((entity) => {
+    entities.push(entity);
+  });
+  entities.push('new');
+  return entities;
+}
+
+/**
  * Select whether all client user cards are expanded.
  * @param state Redux store
  */
