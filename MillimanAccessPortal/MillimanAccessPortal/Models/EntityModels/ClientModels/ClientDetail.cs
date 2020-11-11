@@ -29,7 +29,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string ConsultantName { get; set; }
         public string ConsultantEmail { get; set; }
         public string NewUserWelcomeText { get; set; }
-
+        public Guid? ParentClientId { get; set; }
 
         public static explicit operator ClientDetail(Client client)
         {
@@ -55,6 +55,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 ConsultantName = client.ConsultantName,
                 ConsultantEmail = client.ConsultantEmail,
                 NewUserWelcomeText = client.NewUserWelcomeText,
+                ParentClientId = client.ParentClientId,
             };
         }
 

@@ -443,6 +443,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     acceptedEmailDomainList: action.response.clientDetail.acceptedEmailDomainList,
     acceptedEmailAddressExceptionList: action.response.clientDetail.acceptedEmailAddressExceptionList,
     profitCenterId: action.response.clientDetail.profitCenter.id,
+    parentClientId: action.response.clientDetail.parentClientId,
     consultantOffice: action.response.clientDetail.office,
     consultantName: action.response.clientDetail.consultantName,
     consultantEmail: action.response.clientDetail.consultantEmail ?
@@ -474,6 +475,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     newUserWelcomeText: action.response.newClient.newUserWelcomeText,
     useNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
     initialUseNewUserWelcomeText: action.response.newClient.newUserWelcomeText ? true : false,
+    parentClientId: action.response.newClient.parentClientId,
   }),
   RESET_FORM_DATA: (state, action: AccessActions.ResetFormData) => ({
     ...state,
@@ -493,6 +495,7 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     consultantEmail: action.details.consultantEmail ? action.details.consultantEmail : null,
     newUserWelcomeText: action.details.newUserWelcomeText,
     useNewUserWelcomeText: action.details.newUserWelcomeText ? true : false,
+    parentClientId: action.details.parentClientId,
   }),
   SET_FORM_FIELD_VALUE: (state, action: AccessActions.SetFormFieldValue) => ({
     ...state,
