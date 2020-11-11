@@ -67,31 +67,31 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
-  private readonly addUserHitrustReasons: Array<{selectionValue: number, selectionLabel: string}> = [
-    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
-    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+  private readonly addUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
   ];
   private readonly removeUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
     { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
   ];
   private readonly clientRoleChangeHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
-    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
-    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
     { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
   ];
 
   public componentDidMount() {

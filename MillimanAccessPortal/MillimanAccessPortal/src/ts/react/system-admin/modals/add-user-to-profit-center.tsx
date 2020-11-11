@@ -23,11 +23,11 @@ export class AddUserToProfitCenterModal
 
   private url: string = 'SystemAdmin/AddUserToProfitCenter';
   private readonly addAuthorizedUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
   ];
 
   public constructor(props: AddUserToProfitCenterModalProps) {

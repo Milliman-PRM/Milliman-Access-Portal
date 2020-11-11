@@ -21,12 +21,12 @@ export class RemoveUserFromProfitCenterModal
 
   private url: string = 'SystemAdmin/RemoveUserFromProfitCenter';
   private readonly removeAuthorizedUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
     { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
   ];
 
   public constructor(props: RemoveUserFromProfitCenterModalProps) {

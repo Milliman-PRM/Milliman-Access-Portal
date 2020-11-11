@@ -22,18 +22,18 @@ export class ChangeSystemAdminStatusModal
 
   private url: string = 'SystemAdmin/SystemRole';
   private readonly enableSystemAdminHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
   ];
   private readonly disableSystemAdminHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
-    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
     {
       selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
       selectionLabel: 'Change in employee responsibilities',
     },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
   ];
 
   public constructor(props: ChangeSystemAdminStatusModalProps) {
