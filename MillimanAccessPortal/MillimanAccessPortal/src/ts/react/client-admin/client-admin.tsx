@@ -777,7 +777,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           entities={assignedUsers}
           renderEntity={(entity, key) => {
             if (entity === 'new') {
-              return (
+              return !selected.readonly ? (
                 <div
                   key={key}
                   className="card-container action-card-container"
@@ -798,7 +798,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </h2>
                   </div>
                 </div>
-              );
+              ) : null;
             }
             const card = cardAttributes.user[entity.id];
             return (
