@@ -39,7 +39,7 @@ export default function* rootSaga() {
   yield takeEveryToast('SAVE_NEW_CLIENT_SUCCEEDED', 'Created new client');
   yield takeEveryToast('EDIT_CLIENT_SUCCEEDED', 'Updated client');
   yield takeEveryToast('DELETE_CLIENT_SUCCEEDED', 'Deleted client');
-  yield takeEveryToast('UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED', 'Roles updated.');
+  yield takeEveryToast('UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED', 'Roles updated');
   yield takeEveryToast('SAVE_NEW_CLIENT_USER_SUCCEEDED', 'User successfully added');
   yield takeEveryToast('REMOVE_CLIENT_USER_SUCCEEDED', 'User successfully removed');
 

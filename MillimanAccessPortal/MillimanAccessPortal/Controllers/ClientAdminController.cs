@@ -384,6 +384,10 @@ namespace MillimanAccessPortal.Controllers
                 {
                     await _userManager.AddClaimAsync(RequestedUser, ThisClientMembershipClaim);
                     Log.Verbose($"In ClientAdminController.SaveNewUser action: UserName {RequestedUser.UserName}, added to client {ThisClientMembershipClaim.Value}");
+                } else {
+                  Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName}: UserName {RequestedUser.UserName} already exists on client {ThisClientMembershipClaim.Value}");
+                  Response.Headers.Add("Warning", $"User already exists for this Client.");
+                  return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
                 await DbContext.SaveChangesAsync();
                 AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));

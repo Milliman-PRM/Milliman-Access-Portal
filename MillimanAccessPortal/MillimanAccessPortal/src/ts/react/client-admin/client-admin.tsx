@@ -1099,8 +1099,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.saveNewClientUser(pending).then(() => {
-                this.props.fetchClientDetails({ clientId: selected.client });
+              this.props.saveNewClientUser({
+                memberOfClientId: pending.createClientUser.memberOfClientId,
+                email: pending.createClientUser.email,
+                userName: pending.createClientUser.userName,
+                roleAssignments: pending.roles.roleAssignments,
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
@@ -1540,16 +1544,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     return await this.props.editClient({
       ...formData,
       newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
-    });
-  }
-
-  private async saveNewClientUser(pending: AccessStatePending) {
-    return await this.props.saveNewClientUser({
-      memberOfClientId: pending.createClientUser.memberOfClientId,
-      email: pending.createClientUser.email,
-      userName: pending.createClientUser.userName,
-      roleAssignments: pending.roles.roleAssignments,
-      reason: pending.hitrustReason.reason,
     });
   }
 
