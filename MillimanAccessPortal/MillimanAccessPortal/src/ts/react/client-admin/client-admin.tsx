@@ -854,14 +854,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             icon="edit"
                             color={'blue'}
                             onClick={() => {
-                              this.props.selectUser({ id: entity.id });
-                              _.forEach(entity.userRoles, (role) => {
-                                this.props.changeUserRolePending({
-                                  roleEnum: role.roleEnum,
-                                  isAssigned: role.isAssigned,
+                              this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                                this.props.selectUser({ id: entity.id });
+                                _.forEach(entity.userRoles, (role) => {
+                                  this.props.changeUserRolePending({
+                                    roleEnum: role.roleEnum,
+                                    isAssigned: role.isAssigned,
+                                  });
                                 });
+                                this.props.setExpandedUser({ id: entity.id });
                               });
-                              this.props.setExpandedUser({ id: entity.id });
                             }}
                           />
                           <CardButton
