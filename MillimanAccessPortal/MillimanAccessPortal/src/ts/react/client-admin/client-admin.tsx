@@ -850,36 +850,38 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           />
                         </> :
                         <>
-                          <CardButton
-                            icon="edit"
-                            color={'blue'}
-                            onClick={() => {
-                              this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                                this.props.selectUser({ id: entity.id });
-                                _.forEach(entity.userRoles, (role) => {
-                                  this.props.changeUserRolePending({
-                                    roleEnum: role.roleEnum,
-                                    isAssigned: role.isAssigned,
+                          {!edit.userEnabled &&
+                            <>
+                              <CardButton
+                                icon="edit"
+                                color={'blue'}
+                                onClick={() => {
+                                  this.props.selectUser({ id: entity.id });
+                                  _.forEach(entity.userRoles, (role) => {
+                                    this.props.changeUserRolePending({
+                                      roleEnum: role.roleEnum,
+                                      isAssigned: role.isAssigned,
+                                    });
                                   });
-                                });
-                                this.props.setExpandedUser({ id: entity.id });
-                              });
-                            }}
-                          />
-                          <CardButton
-                            icon="remove-circle"
-                            color={'red'}
-                            onClick={() => {
-                              this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                                this.props.openRemoveUserFromClientModal({
-                                  clientId: selected.client,
-                                  userId: entity.id,
-                                  name: entity.firstName && entity.lastName ?
-                                    `${entity.firstName} ${entity.lastName}` : entity.email,
-                                });
-                              });
-                            }}
-                          />
+                                  this.props.setExpandedUser({ id: entity.id });
+                                }}
+                              />
+                              <CardButton
+                                icon="remove-circle"
+                                color={'red'}
+                                onClick={() => {
+                                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                                    this.props.openRemoveUserFromClientModal({
+                                      clientId: selected.client,
+                                      userId: entity.id,
+                                      name: entity.firstName && entity.lastName ?
+                                        `${entity.firstName} ${entity.lastName}` : entity.email,
+                                    });
+                                  });
+                                }}
+                              />
+                            </>
+                          }
                         </>
                       }
                     </CardSectionButtons> : null
@@ -1099,15 +1101,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             for adding the user to this Client.
           </span>
           <form
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.nativeEvent.preventDefault();
-              this.props.saveNewClientUser({
+              await this.props.saveNewClientUser({
                 memberOfClientId: pending.createClientUser.memberOfClientId,
                 email: pending.createClientUser.email,
                 userName: pending.createClientUser.userName,
                 roleAssignments: pending.roles.roleAssignments,
                 reason: pending.hitrustReason.reason,
               });
+              this.props.fetchClients({});
             }}
           >
             <Input
@@ -1365,15 +1368,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             Please provide a reason for changing the user's role in this Client.
           </span>
           <form
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.nativeEvent.preventDefault();
               this.props.selectUser({ id: null });
-              this.props.updateAllUserRolesInClient({
+              await this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
                 reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
+              this.props.fetchClients({});
               this.props.closeChangeUserRolesModal({});
             }}
           >
