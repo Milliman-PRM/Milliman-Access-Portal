@@ -336,6 +336,7 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...action.response.clients,
     },
     details: action.response.newClient,
+    assignedUsers: [action.response.assignedUser],
   }),
   EDIT_CLIENT_SUCCEEDED: (state, action: AccessActions.EditClientSucceeded) => ({
     ...state,

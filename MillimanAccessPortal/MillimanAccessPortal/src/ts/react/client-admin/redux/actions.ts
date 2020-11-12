@@ -207,6 +207,7 @@ export interface SaveNewClientSucceeded {
   response: {
     clients: Dict<ClientWithEligibleUsers>;
     newClient: ClientDetail;
+    assignedUser: User;
   };
 }
 export interface SaveNewClientFailed {
