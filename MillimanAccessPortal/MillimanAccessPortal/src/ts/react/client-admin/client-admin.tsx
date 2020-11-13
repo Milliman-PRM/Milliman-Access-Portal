@@ -189,7 +189,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 {!this.clientIsNewChild(entity) ?
                   <CardSectionStats>
                     <CardStat
-                      name={'Eligible users'}
+                      name={'Client users'}
                       value={entity.userCount}
                       icon={'user'}
                     />
@@ -1228,13 +1228,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             Please provide a reason for removing the user from this Client.
           </span>
           <form
-            onSubmit={(event) => {
+            onSubmit={async (event) => {
               event.nativeEvent.preventDefault();
-              this.props.removeClientUser({
+              await this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
                 reason: pending.hitrustReason.reason,
               });
+              this.props.fetchClients({});
             }}
           >
             <DropDown
