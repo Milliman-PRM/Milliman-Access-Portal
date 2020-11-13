@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Models;
+using FileDropLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -27,6 +28,12 @@ namespace SftpServerLib
     internal class IpWorksSftpServerEventHandlers
     {
         internal static JsonSerializerOptions prettyJsonOptions = new JsonSerializerOptions { WriteIndented = true, };
+        internal static Dictionary<string, SftpConnectionProperties> _connections;
+
+        static IpWorksSftpServerEventHandlers()
+        {
+            _connections = new Dictionary<string, SftpConnectionProperties>();
+        }
 
         #region Event handlers
         //[Description("Information about errors during data delivery.")]
@@ -60,59 +67,14 @@ namespace SftpServerLib
                 return;
             }
 
-            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
-            {
-                string requestedFileName = Path.GetFileName(evtData.Path);
-                string requestedDirectoryCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.Path));
-                string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
-                FileDropFile fileRecord = db.FileDropFile
-                                            .Include(f => f.Directory)
-                                            .Where(f => EF.Functions.ILike(requestedDirectoryCanonicalPath, f.Directory.CanonicalFileDropPath))
-                                            .Where(f => f.Directory.FileDropId == connection.FileDropId)
-                                            .SingleOrDefault(f => EF.Functions.ILike(requestedFileName, f.FileName));
-
-                if (evtData.BeforeExec)
-                {
-                    bool failValidation = false;
-                    if (fileRecord == null)
-                    {
-                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the database, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
-                        failValidation = true;
-                    }
-                    else if (!File.Exists(requestedAbsolutePath))
-                    {
-                        Log.Warning($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} is not found in the file system), FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
-                        failValidation = true;
-                    }
-                    if (failValidation) 
-                    {
-                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
-                        return;
-                    }
-                }
-                else
-                {
-                    if (evtData.StatusCode == 0)
-                    {
-                        db.FileDropFile.Remove(fileRecord);
-                        db.SaveChanges();
-
-                        new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
-                                                                                     (FileDropDirectoryLogModel)fileRecord.Directory,
-                                                                                          new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                                                                                          connection.Account,
-                                                                                          connection.MapUser), connection.MapUser?.UserName);
-                        Log.Information($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
-                    }
-                    else
-                    {
-                        Log.Error($"OnFileRemove: Requested file {evtData.Path} at absolute path {requestedAbsolutePath} failed to be removed, event status {evtData.StatusCode}, FileDrop ID {connection.FileDropId}, named {connection.FileDropName}");
-                    }
-                }
-
-
-            }
+            evtData.StatusCode = (int)FileDropOperations.RemoveFile(evtData.Path, 
+                                                                    connection.FileDropName, 
+                                                                    connection.FileDropRootPathAbsolute, 
+                                                                    connection.FileDropId, 
+                                                                    connection.Account, 
+                                                                    connection.MapUser, 
+                                                                    evtData.BeforeExec, 
+                                                                    evtData.StatusCode);
         }
 
         //[Description("Fires when a client wants to read from an open file.")]
@@ -172,7 +134,7 @@ namespace SftpServerLib
             string fileName = Path.GetFileName(evtData.Path);
 
             FileDropDirectory containingDirectory = default;
-            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
             {
                 containingDirectory = db.FileDropDirectory
                                         .Where(d => d.FileDropId == connection.FileDropId)
@@ -202,7 +164,7 @@ namespace SftpServerLib
                                      && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
                         // create/write a file
 
-                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
                             if ((evtData.Flags & 0x00000020) != 0x00000020 &&  // SSH_FXF_EXCL  (0x00000020)
                                 File.Exists(absoluteFilePath))
@@ -240,7 +202,7 @@ namespace SftpServerLib
                                      && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
                         // read a file
 
-                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
                             if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
                                 !File.Exists(absoluteFilePath))
@@ -278,7 +240,7 @@ namespace SftpServerLib
                                      && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
                         // create/write a file
 
-                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
                             Guid fileDropFileId = db.FileDropFile
                                                     .Where(f => f.DirectoryId == containingDirectory.Id)
@@ -331,7 +293,7 @@ namespace SftpServerLib
                                      && evtData.FileType == 1:   // SSH_FILEXFER_TYPE_REGULAR(1)
                         // read a file
 
-                        using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                        using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
                             if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
                                 !File.Exists(absoluteFilePath))
@@ -376,7 +338,7 @@ namespace SftpServerLib
                     connection.OpenFileWrites.Remove(evtData.Handle);
                     string absoluteFilePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart('/', '\\'));
 
-                    using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                    using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                     {
                         try
                         {
@@ -400,7 +362,7 @@ namespace SftpServerLib
         //[Description("Fired when a connection is closed.")]
         internal static void OnDisconnected(object sender, SftpserverDisconnectedEventArgs evtData)
         {
-            if (IpWorksSftpServer._connections.TryGetValue(evtData.ConnectionId, out var connectionProperties))
+            if (_connections.TryGetValue(evtData.ConnectionId, out var connectionProperties))
             {
                 Log.Information($"Connection <{evtData.ConnectionId}> closed for account <{connectionProperties.Account?.UserName ?? "<unknown>"}>");
             }
@@ -409,7 +371,7 @@ namespace SftpServerLib
                 Log.Information($"Connection <{evtData.ConnectionId}> closed");
             }
 
-            IpWorksSftpServer._connections.Remove(evtData.ConnectionId);
+            _connections.Remove(evtData.ConnectionId);
         }
 
         //[Description("Fires when a client wants to delete a directory.")]
@@ -444,7 +406,7 @@ namespace SftpServerLib
             }
             string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-            using (var db = GlobalResources.NewMapDbContext)
+            using (var db = FileDropOperations.NewMapDbContext)
             {
                 List<FileDropDirectory> allDirectoryRecordsForFileDrop = db.FileDropDirectory.Where(d => d.FileDropId == connection.FileDropId).ToList();
                 FileDropDirectory requestedDirectory = allDirectoryRecordsForFileDrop.SingleOrDefault(d => d.CanonicalFileDropPath == evtData.Path);
@@ -529,7 +491,7 @@ namespace SftpServerLib
                 if (evtData.BeforeExec)
                 {
                     // Validation:
-                    using (var db = GlobalResources.NewMapDbContext)
+                    using (var db = FileDropOperations.NewMapDbContext)
                     {
                         // 1. Requested directory must not already exist
                         if (Directory.Exists(requestedAbsolutePath) ||
@@ -553,7 +515,7 @@ namespace SftpServerLib
                 }
                 else // after event has been processed
                 { 
-                    using (var db = GlobalResources.NewMapDbContext)
+                    using (var db = FileDropOperations.NewMapDbContext)
                     {
                         // Validation:
                         if (!Directory.Exists(requestedAbsolutePath))
@@ -602,7 +564,7 @@ namespace SftpServerLib
                 LastActivityUtc = now,
             };
 
-            IpWorksSftpServer._connections[evtData.ConnectionId] = newConnection;
+            _connections[evtData.ConnectionId] = newConnection;
         }
 
         //[Description("Fires when a client needs to get file information.")]
@@ -661,7 +623,7 @@ namespace SftpServerLib
             {
                 FileAttributes attributes = File.GetAttributes(evtData.NewPath);
 
-                using (var db = GlobalResources.NewMapDbContext)
+                using (var db = FileDropOperations.NewMapDbContext)
                 {
                     bool sourceRecordFound = false;
                     string recordNameString = string.Empty;
@@ -703,7 +665,7 @@ namespace SftpServerLib
                     string absoluteNewPath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\'));
                     FileAttributes attributes = File.GetAttributes(absoluteNewPath);
 
-                    using (var db = GlobalResources.NewMapDbContext)
+                    using (var db = FileDropOperations.NewMapDbContext)
                     {
                         switch (attributes)
                         {
@@ -860,7 +822,7 @@ namespace SftpServerLib
 
                 connection.LastActivityUtc = DateTime.UtcNow;
 
-                using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+                using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                 {
                     SftpAccount userAccount = db.SftpAccount
                                                 .Where(a => a.FileDropUserPermissionGroupId.HasValue)
@@ -983,17 +945,16 @@ namespace SftpServerLib
 
         internal static void OnMaintenanceTimerElapsed(object source, System.Timers.ElapsedEventArgs e)
         {
-            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
             {
                 int mapPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("PasswordExpirationDays", 60);
                 int sftpPasswordExpirationDays = GlobalResources.ApplicationConfiguration.GetValue("SftpPasswordExpirationDays", 60);
 
-                List<Guid> currentConnectedAccountIds = IpWorksSftpServer._connections
-                                                                         .Where(c => c.Value != null)  // .Value can be null in some debugging situations
-                                                                         .Where(c => c.Value.Account != null)
-                                                                         .Select(c => c.Value.Account.Id)
-                                                                         .Distinct()
-                                                                         .ToList();
+                List<Guid> currentConnectedAccountIds = _connections.Where(c => c.Value != null)  // .Value can be null in some debugging situations
+                                                                    .Where(c => c.Value.Account != null)
+                                                                    .Select(c => c.Value.Account.Id)
+                                                                    .Distinct()
+                                                                    .ToList();
 
                 var query = db.SftpAccount
                               .Include(a => a.ApplicationUser)
@@ -1005,7 +966,7 @@ namespace SftpServerLib
                 foreach (SftpAccount connectedAccount in query)
                 {
                     // An account can have multiple open connections
-                    foreach (SftpConnectionProperties connection in IpWorksSftpServer._connections.Values.Where(c => c.Account?.Id == connectedAccount.Id))
+                    foreach (SftpConnectionProperties connection in _connections.Values.Where(c => c.Account?.Id == connectedAccount.Id))
                     {
                         if (connection == null)  // can happen during debug if a connection is closed while sitting at a breakpoint in this method
                         {
@@ -1015,25 +976,25 @@ namespace SftpServerLib
                         if (!connectedAccount.IsCurrent(sftpPasswordExpirationDays))
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
-                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account is suspended or has expired password");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup == null)
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
-                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the SFTP account currently is not authorized through a permission group");
                         }
                         else if (connectedAccount.FileDropUserPermissionGroup.FileDrop.IsSuspended)
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
-                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the file drop is suspended");
                         }
                         else if (DateTime.UtcNow > connection.ClientAccessReviewDeadline)
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
-                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the client access review deadline has passed");
                         }
 
@@ -1042,7 +1003,7 @@ namespace SftpServerLib
                                     !(connection.MapUserIsSso || DateTime.UtcNow - connectedAccount.ApplicationUser.LastPasswordChangeDateTimeUtc < TimeSpan.FromDays(mapPasswordExpirationDays))))
                         {
                             IpWorksSftpServer._sftpServer.DisconnectAsync(connection.Id);
-                            IpWorksSftpServer._connections.Remove(connection.Id);
+                            _connections.Remove(connection.Id);
                             Log.Information($"Connection {connection.Id} for account {connection.Account.UserName} disconnecting because the related MAP user is suspended or is locally authenticated and has expired password");
                         }
                         else
@@ -1072,8 +1033,8 @@ namespace SftpServerLib
         #region Async event completion handlers
         internal static void ShutdownCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
         {
-            Log.Information(GenerateEventArgsLogMessage($"ShutdownCompleted, {IpWorksSftpServer._connections.Count} connections will be deleted", evtData));
-            IpWorksSftpServer._connections.Clear();
+            Log.Information(GenerateEventArgsLogMessage($"ShutdownCompleted, {_connections.Count} connections will be deleted", evtData));
+            _connections.Clear();
         }
 
         internal static void SetFileListCompleted(object sender, SftpserverAsyncCompletedEventArgs evtData)
@@ -1100,31 +1061,15 @@ namespace SftpServerLib
             //return $"{DateTime.UtcNow.ToString("u")} {eventName} event with EventArgs: {Regex.Unescape(JsonSerializer.Serialize(args, args.GetType(), prettyJsonOptions))}";
         }
 
-        protected enum RequiredAccess
-        {
-            NoRequirement,
-            AnyOneOrMore,
-            Read,
-            Write,
-            Delete
-        }
-
-        protected enum AuthorizationResult
-        {
-            ConnectionNotFound,
-            NotAuthorized,
-            Authorized,
-        }
-
         protected static (AuthorizationResult result, SftpConnectionProperties connection) GetAuthorizedConnectionProperties(string connectionId, RequiredAccess requiredAccess)
         {
-            if (!IpWorksSftpServer._connections.Keys.Contains(connectionId))
+            if (!_connections.Keys.Contains(connectionId))
             {
-                Log.Warning($"Connection <{connectionId}> not found among all tracked connections ({string.Join(',', IpWorksSftpServer._connections.Keys.ToArray())})");
+                Log.Warning($"Connection <{connectionId}> not found among all tracked connections ({string.Join(',', _connections.Keys.ToArray())})");
                 return (AuthorizationResult.ConnectionNotFound, null);
             }
 
-            var connectionRecord = IpWorksSftpServer._connections[connectionId];
+            var connectionRecord = _connections[connectionId];
 
             bool accountHasAccess = false;
 
@@ -1171,7 +1116,7 @@ namespace SftpServerLib
         /// <returns></returns>
         protected static bool IsSsoUser(ApplicationUser user)
         {
-            using (ApplicationDbContext db = GlobalResources.NewMapDbContext)
+            using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
             {
                 if (user?.AuthenticationScheme != null)
                 {
