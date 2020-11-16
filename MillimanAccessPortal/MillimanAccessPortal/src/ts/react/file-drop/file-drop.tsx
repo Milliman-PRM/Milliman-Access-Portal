@@ -930,6 +930,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.beginFileDropUploadCancel({ uploadId })
                   }
                   thisDirectory={this.props.data.fileDropContents.thisDirectory}
+                  deleteFile={(fileDropId, fileId) =>
+                    this.props.deleteFileDropFile({ fileDropId, fileId })}
+                  deleteFolder={(fileDropId, folderId) =>
+                    this.props.deleteFileDropFolder({ fileDropId, folderId })}
                 />
               }
             </div>
