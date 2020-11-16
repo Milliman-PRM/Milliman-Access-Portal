@@ -212,3 +212,11 @@ export function allUsersCollapsed(state: AccessState) {
 export function userCanCreateClients(state: AccessState) {
   return state.data.profitCenters.length > 0;
 }
+
+/**
+ * Select the highlighted client.
+ * @param state Redux store
+ */
+export function selectedClientId(state: AccessState) {
+  return state.selected.client;
+}

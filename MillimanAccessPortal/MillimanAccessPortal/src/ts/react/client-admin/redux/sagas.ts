@@ -1,8 +1,11 @@
-﻿import * as AccessActionCreators from './action-creators';
+﻿import { select } from 'redux-saga/effects';
+
+import * as AccessActionCreators from './action-creators';
 import {
   AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
+import { selectedClientId } from './selectors';
 
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
@@ -51,6 +54,10 @@ export default function* rootSaga() {
   });
   yield takeLatestSchedule('REMOVE_CLIENT_USER_SUCCEEDED', function*() {
     return AccessActionCreators.fetchClients({});
+  });
+  yield takeLatestSchedule('EDIT_CLIENT_SUCCEEDED', function*() {
+    const selectedClient = yield select(selectedClientId);
+    return AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
   });
 
   // Toasts

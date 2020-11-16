@@ -741,11 +741,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             (formModified && !formValid)
                           }
                           onClick={() => {
-                            this.editClient(formData).then(() => {
-                              this.props.resetValidity({});
-                              this.props.setEditStatus({ disabled: true });
-                              this.props.fetchClientDetails({ clientId: details.id });
+                            this.props.editClient({
+                              ...formData,
+                              newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
                             });
+                            this.props.resetValidity({});
+                            this.props.setEditStatus({ disabled: true });
                           }}
                         >
                           Save Changes
@@ -1542,13 +1543,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     } else {
       callbackFunction();
     }
-  }
-
-  private async editClient(formData: AccessStateFormData) {
-    return await this.props.editClient({
-      ...formData,
-      newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
-    });
   }
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
