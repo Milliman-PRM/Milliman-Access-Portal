@@ -36,7 +36,7 @@ const _initialPendingDeleteClient: PendingDeleteClientState = {
 const _initialPendingCreateClientUser: PendingCreateClientUserState = {
   memberOfClientId: null,
   userName: null,
-  email: null,
+  email: '',
   displayEmailError: false,
 };
 const _initialPendingRemoveClientUser: PendingRemoveClientUserState = {
@@ -259,7 +259,7 @@ const pendingCreateClientUser = createReducer<PendingCreateClientUserState>(_ini
   OPEN_CREATE_CLIENT_USER_MODAL: (state, action: AccessActions.OpenCreateClientUserModal) => ({
     ...state,
     memberOfClientId: action.clientId,
-    email: null,
+    email: '',
     userName: null,
     displayEmailError: false,
   }),

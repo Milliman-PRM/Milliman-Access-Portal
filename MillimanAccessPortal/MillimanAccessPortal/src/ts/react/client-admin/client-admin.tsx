@@ -460,7 +460,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             limit={3}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
-                            value={null}
+                            value={''}
                             exceptions={['milliman.com']}
                             addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
@@ -817,6 +817,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 }}
               >
                 <CardSectionMain>
+                  <svg
+                    className="card-user-icon"
+                    style={{
+                      width: '5em',
+                      height: '5em',
+                    }}
+                  >
+                    <use xlinkHref="#user" />
+                  </svg>
                   <CardText
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
@@ -888,84 +897,83 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </CardSectionButtons> : null
                   }
                 </CardSectionMain>
-                {entity.userRoles && Object.keys(entity.userRoles).length > 0 ?
-                  <CardExpansion
-                    label={'User roles'}
-                    expanded={card && card.expanded}
-                    setExpanded={(value) => value
-                      ? this.props.setExpandedUser({ id: entity.id })
-                      : this.props.setCollapsedUser({ id: entity.id })}
-                  >
-                    <Checkbox
-                      name={'Client Admin'}
-                      selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content Access Admin'}
-                      selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentAccessAdmin,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content Publisher'}
-                      selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentPublisher,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content User'}
-                      selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentUser,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'File Drop Admin'}
-                      selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.FileDropAdmin,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'File Drop User'}
-                      selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.FileDropUser,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                  </CardExpansion> : null}
+                <CardExpansion
+                  label={'User roles'}
+                  expanded={card && card.expanded}
+                  setExpanded={(value) => value
+                    ? this.props.setExpandedUser({ id: entity.id })
+                    : this.props.setCollapsedUser({ id: entity.id })}
+                >
+                  <Checkbox
+                    name={'Client Admin'}
+                    selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                  <Checkbox
+                    name={'Content Access Admin'}
+                    selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({
+                        roleEnum: RoleEnum.ContentAccessAdmin,
+                        isAssigned: checked,
+                      });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                  <Checkbox
+                    name={'Content Publisher'}
+                    selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({
+                        roleEnum: RoleEnum.ContentPublisher,
+                        isAssigned: checked,
+                      });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                  <Checkbox
+                    name={'Content User'}
+                    selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({
+                        roleEnum: RoleEnum.ContentUser,
+                        isAssigned: checked,
+                      });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                  <Checkbox
+                    name={'File Drop Admin'}
+                    selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({
+                        roleEnum: RoleEnum.FileDropAdmin,
+                        isAssigned: checked,
+                      });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                  <Checkbox
+                    name={'File Drop User'}
+                    selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
+                      pending.roles.roleAssignments)}
+                    onChange={(checked) => {
+                      this.props.changeUserRolePending({
+                        roleEnum: RoleEnum.FileDropUser,
+                        isAssigned: checked,
+                      });
+                    }}
+                    readOnly={entity.id !== selected.user || !edit.userEnabled}
+                  />
+                </CardExpansion>
               </Card>
             );
           }}
@@ -1184,7 +1192,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <DropDown
               name="reason"
               label="Reason *"
-              value={null}
+              value={''}
               values={this.addUserHitrustReasons}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                 this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
@@ -1572,7 +1580,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       }
       return false;
     }
-    return entity.userRoles[roleEnum].isAssigned;
+
+    if (entity.userRoles) {
+      return entity.userRoles[roleEnum].isAssigned;
+    }
+    return false;
   }
 }
 
