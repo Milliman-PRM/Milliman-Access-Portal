@@ -1101,16 +1101,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             for adding the user to this Client.
           </span>
           <form
-            onSubmit={async (event) => {
+            onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              await this.props.saveNewClientUser({
+              this.props.saveNewClientUser({
                 memberOfClientId: pending.createClientUser.memberOfClientId,
                 email: pending.createClientUser.email,
                 userName: pending.createClientUser.userName,
                 roleAssignments: pending.roles.roleAssignments,
                 reason: pending.hitrustReason.reason,
               });
-              this.props.fetchClients({});
             }}
           >
             <Input
@@ -1228,14 +1227,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             Please provide a reason for removing the user from this Client.
           </span>
           <form
-            onSubmit={async (event) => {
+            onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              await this.props.removeClientUser({
+              this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
                 reason: pending.hitrustReason.reason,
               });
-              this.props.fetchClients({});
             }}
           >
             <DropDown
@@ -1369,16 +1367,15 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             Please provide a reason for changing the user's role in this Client.
           </span>
           <form
-            onSubmit={async (event) => {
+            onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               this.props.selectUser({ id: null });
-              await this.props.updateAllUserRolesInClient({
+              this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
                 reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
-              this.props.fetchClients({});
               this.props.closeChangeUserRolesModal({});
             }}
           >

@@ -1,9 +1,12 @@
-﻿import {
+﻿import * as AccessActionCreators from './action-creators';
+import {
   AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
 
-import { createTakeEveryToast, createTakeLatestRequest } from '../../shared-components/redux/sagas';
+import {
+  createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
+} from '../../shared-components/redux/sagas';
 
 /**
  * Custom effect for handling request actions.
@@ -11,6 +14,13 @@ import { createTakeEveryToast, createTakeLatestRequest } from '../../shared-comp
  * @param apiCall API method to invoke
  */
 const takeLatestRequest = createTakeLatestRequest<RequestAccessAction, ResponseAccessAction>();
+
+/**
+ * Custom effect for handling schedule actions.
+ * @param type action type
+ * @param nextActionCreator action creator to invoke after the scheduled duration
+ */
+const takeLatestSchedule = createTakeLatestSchedule<ResponseAccessAction>();
 
 /**
  * Custom effect for handling actions that result in toasts.
@@ -34,6 +44,14 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_CLIENT', api.deleteClient);
   yield takeLatestRequest('SAVE_NEW_CLIENT_USER', api.saveNewClientUser);
   yield takeLatestRequest('REMOVE_CLIENT_USER', api.removeClientUser);
+
+  // Scheduled actions
+  yield takeLatestSchedule('SAVE_NEW_CLIENT_USER_SUCCEEDED', function*() {
+    return AccessActionCreators.fetchClients({});
+  });
+  yield takeLatestSchedule('REMOVE_CLIENT_USER_SUCCEEDED', function*() {
+    return AccessActionCreators.fetchClients({});
+  });
 
   // Toasts
   yield takeEveryToast('SAVE_NEW_CLIENT_SUCCEEDED', 'Created new client');
