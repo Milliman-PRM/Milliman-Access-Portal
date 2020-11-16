@@ -23,7 +23,7 @@ const takeLatestRequest = createTakeLatestRequest<RequestAccessAction, ResponseA
  * @param type action type
  * @param nextActionCreator action creator to invoke after the scheduled duration
  */
-const takeLatestSchedule = createTakeLatestSchedule<ResponseAccessAction>();
+const takeLatestSchedule = createTakeLatestSchedule<AccessAction>();
 
 /**
  * Custom effect for handling actions that result in toasts.
@@ -49,15 +49,11 @@ export default function* rootSaga() {
   yield takeLatestRequest('REMOVE_CLIENT_USER', api.removeClientUser);
 
   // Scheduled actions
-  yield takeLatestSchedule('SAVE_NEW_CLIENT_USER_SUCCEEDED', function*() {
-    return AccessActionCreators.fetchClients({});
-  });
-  yield takeLatestSchedule('REMOVE_CLIENT_USER_SUCCEEDED', function*() {
-    return AccessActionCreators.fetchClients({});
-  });
+  yield takeLatestSchedule('SAVE_NEW_CLIENT_USER_SUCCEEDED', () => AccessActionCreators.fetchClients({}));
+  yield takeLatestSchedule('REMOVE_CLIENT_USER_SUCCEEDED', () => AccessActionCreators.fetchClients({}));
   yield takeLatestSchedule('EDIT_CLIENT_SUCCEEDED', function*() {
     const selectedClient = yield select(selectedClientId);
-    return AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
+    AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
   });
 
   // Toasts
