@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { PopupMenu } from '../shared-components/popup-menu';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUploadState } from './redux/store';
 
@@ -20,10 +21,11 @@ interface FolderContentsProps {
   fileDropId: Guid;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
+  deleteFile: (fileDropId: Guid, fileId: Guid) => void;
+  deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
-
   public renderBreadCrumbs() {
     const { fileDropId, fileDropName, navigateTo, thisDirectory } = this.props;
     const pathDivider = '/';
@@ -90,9 +92,18 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           <td className="col-file-size" />
           <td className="col-date-modified" />
           <td className="col-actions">
-            <svg className="menu-icon">
-              <use xlinkHref={'#menu'} />
-            </svg>
+            <PopupMenu>
+              <ul>
+                <li>Edit</li>
+                <li>Move</li>
+                <li
+                  className="warning"
+                  onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                >
+                  Delete
+                </li>
+              </ul>
+            </PopupMenu>
           </td>
         </tr>
       );
@@ -159,9 +170,18 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               }
             </td>
             <td className="col-actions">
-              <svg className="menu-icon">
-                <use xlinkHref={'#menu'} />
-              </svg>
+              <PopupMenu>
+                <ul>
+                  <li>Edit</li>
+                  <li>Move</li>
+                  <li
+                    className="warning"
+                    onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                  >
+                    Delete
+                  </li>
+                </ul>
+              </PopupMenu>
             </td>
           </tr >
         );
