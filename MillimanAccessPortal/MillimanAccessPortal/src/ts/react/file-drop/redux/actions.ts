@@ -165,6 +165,18 @@ export interface ClosePasswordNotificationModal {
   type: 'CLOSE_PASSWORD_NOTIFICATION_MODAL';
 }
 
+/** Enter File Drop edit mode */
+export interface EnterFileDropEditMode {
+  type: 'ENTER_FILE_DROP_EDIT_MODE';
+  editMode: 'file' | 'folder';
+  id: Guid;
+}
+
+/** Exit File Drop edit mode */
+export interface ExitFileDropEditMode {
+  type: 'EXIT_FILE_DROP_EDIT_MODE';
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -401,7 +413,6 @@ export interface SetFileDropNotificationSettingFailed {
   error: TSError;
 }
 
-
 /**
  * GET:
  *   Folder contents for the requested File Drop
@@ -424,6 +435,49 @@ export interface FetchFolderContentsFailed {
   error: TSError;
 }
 
+/**
+ * DELETE:
+ *   Delete a file from a File Drop
+ */
+export interface DeleteFileDropFile {
+  type: 'DELETE_FILE_DROP_FILE';
+  request: {
+    fileDropId: Guid;
+    fileId: Guid;
+  };
+}
+/** Action called upon successful return of the DeleteFileDropFile API call */
+export interface DeleteFileDropFileSucceeded {
+  type: 'DELETE_FILE_DROP_FILE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the DeleteFileDropFile API call */
+export interface DeleteFileDropFileFailed {
+  type: 'DELETE_FILE_DROP_FILE_FAILED';
+  error: TSError;
+}
+
+/**
+ * DELETE:
+ *   Delete a folder from a File Drop
+ */
+export interface DeleteFileDropFolder {
+  type: 'DELETE_FILE_DROP_FOLDER';
+  request: {
+    fileDropId: Guid;
+    folderId: Guid;
+  };
+}
+/** Action called upon successful return of the DeleteFileDropFolder API call */
+export interface DeleteFileDropFolderSucceeded {
+  type: 'DELETE_FILE_DROP_FOLDER_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the DeleteFileDropFolder API call */
+export interface DeleteFileDropFolderFailed {
+  type: 'DELETE_FILE_DROP_FOLDER_FAILED';
+  error: TSError;
+}
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
@@ -569,6 +623,8 @@ export type FileDropPageActions =
   | BeginFileDropUploadCancel
   | ToggleFileDropCardExpansion
   | FinalizeFileDropUpload
+  | EnterFileDropEditMode
+  | ExitFileDropEditMode
   ;
 
 /** Actions that schedule another action */
@@ -593,6 +649,8 @@ export type FileDropRequestActions =
   | GenerateNewSftpPassword
   | SetFileDropNotificationSetting
   | FetchFolderContents
+  | DeleteFileDropFile
+  | DeleteFileDropFolder
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -611,6 +669,8 @@ export type FileDropSuccessResponseActions =
   | GenerateNewSftpPasswordSucceeded
   | SetFileDropNotificationSettingSucceeded
   | FetchFolderContentsSucceeded
+  | DeleteFileDropFileSucceeded
+  | DeleteFileDropFolderSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -629,6 +689,8 @@ export type FileDropErrorActions =
   | GenerateNewSftpPasswordFailed
   | SetFileDropNotificationSettingFailed
   | FetchFolderContentsFailed
+  | DeleteFileDropFileFailed
+  | DeleteFileDropFolderFailed
   ;
 
 /** Actions that set filter text */
