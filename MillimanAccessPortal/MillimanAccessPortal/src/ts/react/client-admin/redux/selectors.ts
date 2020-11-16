@@ -214,7 +214,7 @@ export function userCanCreateClients(state: AccessState) {
 }
 
 /**
- * Select the highlighted client.
+ * Select the highlighted client Guid.
  * @param state Redux store
  */
 export function selectedClientId(state: AccessState) {
