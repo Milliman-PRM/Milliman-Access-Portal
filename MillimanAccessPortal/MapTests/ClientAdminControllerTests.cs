@@ -1172,7 +1172,7 @@ namespace MapTests
             #endregion
 
             #region Act
-            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(9));
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(7));
             #endregion
 
             #region Assert
