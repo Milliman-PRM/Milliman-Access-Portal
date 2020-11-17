@@ -403,7 +403,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactEmail || ''}
                           onChange={(event) => {
-                            this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'contactEmail',
+                              value: event.currentTarget.value.trim() !== '' ? event.currentTarget.value.trim() : null,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={(event: React.FormEvent<HTMLInputElement>) => {
@@ -427,7 +430,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           type="text"
                           value={formData.contactPhone || ''}
                           onChange={(event) => {
-                            this.props.setFormFieldValue({ field: 'contactPhone', value: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'contactPhone',
+                              value: event.currentTarget.value.trim() !== '' ?
+                                event.currentTarget.value.trim() : null,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -577,7 +584,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantEmail',
-                              value: event.currentTarget.value,
+                              value: event.currentTarget.value.trim() ? event.currentTarget.value.trim() : null,
                             });
                           }}
                           readOnly={edit.disabled}
