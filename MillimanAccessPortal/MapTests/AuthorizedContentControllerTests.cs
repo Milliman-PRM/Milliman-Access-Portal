@@ -32,6 +32,30 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Common controller constructor to be used by all tests
+        /// </summary>
+        /// <param name="UserName"></param>
+        /// <returns></returns>
+        private async Task<AuthorizedContentController> GetControllerForUser(TestInitialization testResources, string UserName = null, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
+        {
+            AuthorizedContentController testController = new AuthorizedContentController(
+                testResources.AuditLogger,
+                testResources.AuthorizationService,
+                testResources.DbContext,
+                testResources.MessageQueueServicesObject,
+                testResources.QvConfig,
+                testResources.UserManager,
+                testResources.Configuration,
+                testResources.PowerBiConfig,
+                testResources.AuthorizedContentQueries);
+
+            testController.ControllerContext = testResources.GenerateControllerContext((await testResources.UserManager.FindByNameAsync(UserName)).UserName, requestUriBuilder, requestHeaders);
+            testController.HttpContext.Session = new MockSession();
+
+            return testController;
+        }
+
+        /// <summary>
         /// Test that the Index returns a view containing a list of content items the test user can access.
         /// </summary>
         /// <returns></returns>
@@ -41,23 +65,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // initialize dependencies
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                TestResources.AuditLogger,
-                TestResources.AuthorizationService,
-                TestResources.DbContext,
-                TestResources.MessageQueueServicesObject,
-                TestResources.QvConfig,
-                TestResources.UserManager,
-                TestResources.Configuration,
-                TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1"); 
                 #endregion
 
                 #region Act
@@ -81,21 +89,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext("test1", new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" });
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                //sut.ControllerContext = TestInitialization2.GenerateControllerContext(userName: TestResources.DbContextObject.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1", new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" });
                 #endregion
 
                 #region Act
@@ -114,6 +108,38 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Test that the Index returns a client model that correctly reflects that the client has expired access review status.  
+        /// </summary>
+        /// <returns></returns>
+        [Fact]
+        public async Task Content_DeniedForExpiredClientAccessReviewDeadline()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1", new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" });
+
+                // Tests the same client as the success test case above, with the last review date altered to be expired. 
+                Client testClient = TestResources.DbContext.Client.Find(TestUtil.MakeTestGuid(1));
+                testClient.LastAccessReview = new ClientAccessReview { UserName = "someone", LastReviewDateTimeUtc = DateTime.UtcNow - TimeSpan.FromDays(120) };
+                TestResources.DbContext.SaveChanges();
+                #endregion
+
+                #region Act
+                var view = await sut.Content();
+                #endregion
+
+                #region Assert
+                Assert.Equal(2, TestResources.DbContext.UserInSelectionGroup.Where(usg => usg.UserId == TestUtil.MakeTestGuid(1) && usg.SelectionGroupId == TestUtil.MakeTestGuid(1)).Count());
+                JsonResult returnModel = Assert.IsType<JsonResult>(view);
+                AuthorizedContentViewModel typedModel = Assert.IsType<AuthorizedContentViewModel>(returnModel.Value);
+                Assert.Single(typedModel.ItemGroups);
+                Assert.Empty(typedModel.ItemGroups[0].Items);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Test that WebHostedContent(id) results in an error page when the user is not authorized to the content
         /// </summary>
         /// <returns></returns>
@@ -124,25 +150,9 @@ namespace MapTests
             {
                 // Attempt to load the content view for unauthorized content
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1", new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" });
 
                 sut.ControllerContext.ActionDescriptor = new Microsoft.AspNetCore.Mvc.Controllers.ControllerActionDescriptor { ActionName = "WebHostedContent" };
-                sut.HttpContext.Session = new MockSession();
                 #endregion
 
                 #region Act
@@ -166,25 +176,10 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
-                sut.ControllerContext = TestResources.GenerateControllerContext(TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName,
-                                                                                     new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
-                                                                                     new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, 
+                                                                             "test1", 
+                                                                             new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                             new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -229,26 +224,10 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
-
-                sut.ControllerContext = TestResources.GenerateControllerContext(TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName,
-                                                                                     new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
-                                                                                     new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
+                AuthorizedContentController sut = await GetControllerForUser(TestResources,
+                                                                             "test1",
+                                                                             new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                             new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/ContentWrapper" } });
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -283,26 +262,10 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
-
-                sut.ControllerContext = TestResources.GenerateControllerContext(TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName,
-                                                                                     new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
-                                                                                     new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/Index" } });
+                AuthorizedContentController sut = await GetControllerForUser(TestResources,
+                                                                             "test1",
+                                                                             new UriBuilder { Scheme = "https", Host = "www.test.com", Path = "/", Query = "p1=abc&p2=def&p3=ghi" },
+                                                                             new Dictionary<string, StringValues> { { "Referer", "https://www.impossible.wut/AuthorizedContent/Index" } });
 
                 // Add a file to the root content item and a content url to the selection group
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
@@ -338,22 +301,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
                 #endregion
 
                 #region Act
@@ -377,22 +325,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
                 #endregion
 
                 #region Act
@@ -419,22 +352,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
 
                 string UserGuideSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", "IHopeSo.pdf");
                 string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), purpose + ".pdf");
@@ -478,22 +396,8 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
 
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
                 string purpose = "UserGuide";
                 string UserGuideSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", "IHopeSo.pdf");
                 string UserGuideTestPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), purpose + ".pdf");
@@ -535,22 +439,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
 
                 string purpose = "UserGuide";
                 string UserGuideSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", "IHopeSo.pdf");
@@ -592,22 +481,7 @@ namespace MapTests
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
                 #region Arrange
-                // Create the system under test (sut)
-                AuthorizedContentController sut = new AuthorizedContentController(
-                    TestResources.AuditLogger,
-                    TestResources.AuthorizationService,
-                    TestResources.DbContext,
-                    TestResources.MessageQueueServicesObject,
-                    TestResources.QvConfig,
-                    TestResources.UserManager,
-                    TestResources.Configuration,
-                    TestResources.PowerBiConfig);
-
-                // For illustration only, the same result comes from either of the following techniques:
-                // This one should never throw even if the user name is not in the context data
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: "test1");
-                // Following throws if dependency failed to create or specified user is not in the data. Use try/catch to prevent failure for this cause
-                sut.ControllerContext = TestResources.GenerateControllerContext(userName: TestResources.DbContext.ApplicationUser.Where(u => u.UserName == "test1").First().UserName);
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "test1");
 
                 string purpose = "UserGuide";
                 string UserGuideSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", "IHopeSo.pdf");
@@ -615,9 +489,9 @@ namespace MapTests
                 File.Copy(UserGuideSourcePath, UserGuideTestPath, true);
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.Single(rci => rci.Id == TestUtil.MakeTestGuid(1));
                 ThisItem.ContentFilesList = new List<MapDbContextLib.Models.ContentRelatedFile>
-            {
-                new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
-            };
+                {
+                    new MapDbContextLib.Models.ContentRelatedFile { Checksum = "", FileOriginalName = "", FilePurpose = purpose, FullPath = UserGuideTestPath, }
+                };
                 #endregion
 
                 #region Act

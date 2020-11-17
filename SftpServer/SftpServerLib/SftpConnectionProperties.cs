@@ -29,6 +29,7 @@ namespace SftpServerLib
 
         public Guid? ClientId { get; set; } = null;
         public string ClientName { get; set; } = null;
+        public DateTime ClientAccessReviewDeadline { get; set; }
 
         public string FileDropRootPathAbsolute { get; set; } = null;
 

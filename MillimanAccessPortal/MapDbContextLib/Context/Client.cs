@@ -73,10 +73,21 @@ namespace MapDbContextLib.Context
 
         public Client ParentClient { get; set; }
 
+        [Column(TypeName = "jsonb")]
+        [Required]
+        public ClientAccessReview LastAccessReview { get; set; } = new ClientAccessReview();
+
         [Required]
         [ForeignKey("ProfitCenter")]
         [Display(Name = "Profit Center *")]
         public Guid ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
+    }
+
+    public class ClientAccessReview
+    {
+        public string UserName { get; set; } = "";
+
+        public DateTime LastReviewDateTimeUtc { get; set; } = DateTime.UtcNow;
     }
 }

@@ -36,6 +36,12 @@ export interface Client {
   name: string;
   code: string;
 }
+export interface ClientWithReviewDate extends Client {
+  canManage?: boolean;
+  reviewDueDateTimeUtc: string;
+  maxReviewDueDate?: string;
+  minReviewDueDate?: string;
+}
 export interface ClientWithStats extends Client {
   canManage?: boolean;
   contentItemCount: number;

@@ -1116,6 +1116,9 @@ namespace AuditLogLib.Event
 
             [Display(Description = "The related MAP user has an expired password or is suspended")]
             MapUserBlocked,
+
+            [Display(Description = "The access review deadline for the client related to this file drop has been exceeded")]
+            ClientAccessReviewDeadlineMissed,
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(
@@ -1218,6 +1221,24 @@ namespace AuditLogLib.Event
             });
 
         #endregion
+
+        #region Client Access Review [9000 - 9999]
+        public static readonly AuditEventType<Guid, object> ClientAccessReviewPresented = new AuditEventType<Guid, object>(
+            9001, "Client Access Review Presented", (clientId, reviewModel) => new
+            {
+                ClientId = clientId,
+                Model = reviewModel,
+            });
+
+        public static readonly AuditEventType<Guid, Guid> ClientAccessReviewApproved = new AuditEventType<Guid, Guid>(
+            9002, "Client Access Review Approved", (clientId, clientAccessReviewId) => new
+            {
+                ClientId = clientId,
+                ClientAccessReviewId = clientAccessReviewId,
+            });
+
+        #endregion
+
         #endregion
 
         private readonly Func<object> logObjectTransform;
