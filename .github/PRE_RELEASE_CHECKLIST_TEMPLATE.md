@@ -71,7 +71,7 @@ Completed by: ___________
 
 ##### Tasks
 
-- [ ] Schedule release deployment
+- [ ] Request release deployment at https://hd.milliman.com/support/catalog/items/161
 - [ ] Merge into Master and promote released code base
 - [ ] Tag release
 - [ ] Merge into Develop to make sure warm changes are propagated
