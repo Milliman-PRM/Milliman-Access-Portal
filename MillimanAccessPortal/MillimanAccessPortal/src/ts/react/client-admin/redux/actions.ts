@@ -254,7 +254,10 @@ export interface SaveNewClientUser {
 }
 export interface SaveNewClientUserSucceeded {
   type: 'SAVE_NEW_CLIENT_USER_SUCCEEDED';
-  response: User;
+  response: {
+    userInfo: User;
+    userRoles: Dict<UserRole>;
+  };
 }
 export interface SaveNewClientUserFailed {
   type: 'SAVE_NEW_CLIENT_USER_FAILED';

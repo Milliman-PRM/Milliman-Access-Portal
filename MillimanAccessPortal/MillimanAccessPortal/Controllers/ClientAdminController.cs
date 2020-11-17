@@ -405,8 +405,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            var model = (UserInfoViewModel)RequestedUser;
-            model.UserRoles = Model.RoleAssignments.ToDictionary(ra => (int) ra.RoleEnum);
+            SaveNewClientUserResponseModel model = new SaveNewClientUserResponseModel()
+            {
+              UserInfo = (UserInfoViewModel) RequestedUser,
+              UserRoles = Model.RoleAssignments.ToDictionary(ra => (int) ra.RoleEnum),
+            };
 
             return Json(model);
         }

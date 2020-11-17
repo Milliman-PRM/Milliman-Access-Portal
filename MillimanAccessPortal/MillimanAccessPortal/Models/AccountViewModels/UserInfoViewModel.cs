@@ -19,7 +19,6 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public bool IsSuspended { get; set; } = false;
-        public Dictionary<int, ClientRoleAssignment>? UserRoles { get; set; }
 
         public static explicit operator UserInfoViewModel(ApplicationUser User)
         {
