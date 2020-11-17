@@ -1,4 +1,6 @@
-﻿import * as React from 'react';
+﻿import * as _ from 'lodash';
+
+import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { connect } from 'react-redux';
@@ -7,14 +9,15 @@ import { toastr } from 'react-redux-toastr';
 
 import * as AccessActionCreators from './redux/action-creators';
 import {
-  activeUsers, allUsersCollapsed, allUsersExpanded, clientEntities, isFormModified, isFormValid,
+  allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities,
+  isFormModified, isFormValid, userCanCreateClients, userEntities,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
   AccessStateModals, AccessStatePending, AccessStateSelected, AccessStateValid,
 } from './redux/store';
 
-import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../models';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
@@ -29,23 +32,26 @@ import {
 } from '../shared-components/card/card-sections';
 import { CardStat } from '../shared-components/card/card-stat';
 import { Filter } from '../shared-components/filter';
+import { Checkbox } from '../shared-components/form/checkbox';
 import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
-import { RoleEnum } from '../shared-components/interfaces';
+import { HitrustReasonEnum, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
 import { isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../shared';
+import { setUnloadAlert } from '../../unload-alerts';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
+type UserEntity = User | 'new';
 interface ClientAdminProps {
   pending: AccessStatePending;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
   details: ClientDetail;
   formData: AccessStateFormData;
-  assignedUsers: User[];
+  assignedUsers: UserEntity[];
   selected: AccessStateSelected;
   edit: AccessStateEdit;
   filters: AccessStateFilters;
@@ -56,15 +62,46 @@ interface ClientAdminProps {
   formValid: boolean;
   allUsersExpanded: boolean;
   allUsersCollapsed: boolean;
+  rolesModified: boolean;
+  canCreateClients: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
 
+  private readonly addUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
+  ];
+  private readonly removeUserHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+    { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
+  ];
+  private readonly clientRoleChangeHitrustReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
+    {
+      selectionValue: HitrustReasonEnum.ChangeInEmployeeResponsibilities,
+      selectionLabel: 'Change in employee responsibilities',
+    },
+    { selectionValue: HitrustReasonEnum.ClientRemoval, selectionLabel: 'Client removal' },
+    { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
+    { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
+    { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
+  ];
+
   public componentDidMount() {
     this.props.fetchProfitCenters({});
     this.props.fetchClients({});
+    setUnloadAlert(() => (this.props.edit.userEnabled && this.props.rolesModified)
+      || (!this.props.edit.disabled && this.props.formModified));
   }
 
   public render() {
@@ -97,7 +134,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientPanel() {
-    const { clients, selected, filters, pending, edit, formModified } = this.props;
+    const { clients, selected, filters, pending, edit, formModified, rolesModified, canCreateClients } = this.props;
     return (
       <CardPanel
         entities={clients}
@@ -112,7 +149,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 className="card-container action-card-container"
                 onClick={() => {
-                  this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false, true, true);
+                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                      true, true);
+                  });
                 }}
               >
                 <div className="card-body-container card-100 action-card">
@@ -132,8 +172,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               selected={entity.id === selected.client || this.clientIsNewChild(entity)}
               readonly={!entity.canManage}
               onSelect={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id, entity.canManage,
-                  false, true);
+                this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                  this.changeClientFormState(formModified, !edit.disabled, selected.client, entity.id,
+                    entity.canManage, false, true);
+                });
               }}
               indentation={entity.indent}
               insertCard={this.clientIsNewChild(entity)}
@@ -147,7 +189,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 {!this.clientIsNewChild(entity) ?
                   <CardSectionStats>
                     <CardStat
-                      name={'Eligible users'}
+                      name={'Client users'}
                       value={entity.userCount}
                       icon={'user'}
                     />
@@ -174,8 +216,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'edit'}
                         color={'blue'}
                         onClick={() => {
-                          this.changeClientFormState(formModified, !edit.disabled, selected.client,
-                            entity.id, entity.canManage, true, true);
+                          this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                            this.changeClientFormState(formModified, !edit.disabled, selected.client,
+                              entity.id, entity.canManage, true, true);
+                          });
                         }}
                       /> : null
                     }
@@ -184,7 +228,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         icon={'add'}
                         color={'green'}
                         onClick={() => {
-                          this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
+                          this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                            this.changeClientFormStateForNewSubClient(formModified, !edit.disabled, entity.id);
+                          });
                         }}
                       /> : null
                     }
@@ -203,14 +249,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             filterText={filters.client.text}
           />
           <PanelSectionToolbarButtons>
-            <ActionIcon
-              label="Add or create a new client"
-              icon="add"
-              action={() => {
-                this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
-                  true, true);
-              }}
-            />
+            {canCreateClients ?
+              <ActionIcon
+                label="Add or create a new client"
+                icon="add"
+                action={() => {
+                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                    this.changeClientFormState(formModified, !edit.disabled, selected.client, 'new', false,
+                      true, true);
+                  });
+                }}
+              /> : null}
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
         {this.renderModals()}
@@ -219,7 +268,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderClientDetail() {
-    const { formData, profitCenters, details, selected, edit, valid, formModified, formValid } = this.props;
+    const {
+      formData, profitCenters, details, selected, edit, valid, formModified, rolesModified, formValid,
+    } = this.props;
     return (
       <>
         <div
@@ -236,18 +287,25 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     label="Edit client details"
                     icon="edit"
                     action={() => {
-                      this.props.setEditStatus({ disabled: false });
+                      this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                        this.props.setEditStatus({ disabled: false });
+                      });
                     }}
                   /> :
                   <ActionIcon
                     label="Cancel edit"
                     icon="cancel"
                     action={() => {
-                      this.props.resetFormData({ details });
-                      this.props.resetValidity({});
-                      this.props.setEditStatus({ disabled: true });
-
-                      if (selected.client === 'new') { this.props.selectClient({ id: null }); }
+                      if (formModified) {
+                        this.props.openDiscardEditAfterSelectModal({
+                          newlySelectedClientId: null, // Same client should be selected after cancel.
+                          editAfterSelect: false,
+                          newSubClientParentId: null,
+                          canManageNewlySelectedClient: !selected.readonly,
+                        });
+                      } else {
+                        this.discardChangesOnSelectedClient(details, selected.client);
+                      }
                     }}
                   />
                 }
@@ -291,7 +349,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="clientCode"
                           label="Client Code"
                           type="text"
-                          value={formData.clientCode}
+                          value={formData.clientCode || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'clientCode', value: event.currentTarget.value });
                           }}
@@ -310,7 +368,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactName"
                           label="Client Contact Name"
                           type="text"
-                          value={formData.contactName}
+                          value={formData.contactName || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactName', value: event.currentTarget.value });
                           }}
@@ -329,7 +387,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="clientContactTitle"
                           label="Client Contact Title"
                           type="text"
-                          value={formData.contactTitle}
+                          value={formData.contactTitle || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactTitle', value: event.currentTarget.value });
                           }}
@@ -348,9 +406,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactEmail"
                           label="Client Contact Email"
                           type="text"
-                          value={formData.contactEmail ? formData.contactEmail : ''}
+                          value={formData.contactEmail || ''}
                           onChange={(event) => {
-                            this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'contactEmail',
+                              value: event.currentTarget.value.trim() !== '' ? event.currentTarget.value.trim() : null,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={(event: React.FormEvent<HTMLInputElement>) => {
@@ -372,9 +433,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactPhone"
                           label="Client Contact Phone"
                           type="text"
-                          value={formData.contactPhone ? formData.contactPhone : ''}
+                          value={formData.contactPhone || ''}
                           onChange={(event) => {
-                            this.props.setFormFieldValue({ field: 'contactPhone', value: event.currentTarget.value });
+                            this.props.setFormFieldValue({
+                              field: 'contactPhone',
+                              value: event.currentTarget.value.trim() !== '' ?
+                                event.currentTarget.value.trim() : null,
+                            });
                           }}
                           readOnly={edit.disabled}
                           onBlur={() => { return; }}
@@ -407,7 +472,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             limit={3}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
-                            value={null}
+                            value={''}
                             exceptions={['milliman.com']}
                             addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
@@ -457,7 +522,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             label="Approved Email Address Exception List"
                             type="text"
                             list={formData.acceptedEmailAddressExceptionList}
-                            value={null}
+                            value={''}
                             addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (!isEmailAddressValid(item)) {
                                 toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
@@ -498,7 +563,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="consultantName"
                           label="Primary Consultant"
                           type="text"
-                          value={formData.consultantName}
+                          value={formData.consultantName || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantName',
@@ -520,11 +585,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="consultantEmail"
                           label="Consultant Email"
                           type="text"
-                          value={formData.consultantEmail ? formData.consultantEmail : ''}
+                          value={formData.consultantEmail || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantEmail',
-                              value: event.currentTarget.value,
+                              value: event.currentTarget.value.trim() ? event.currentTarget.value.trim() : null,
                             });
                           }}
                           readOnly={edit.disabled}
@@ -547,7 +612,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="office"
                           label="Office"
                           type="text"
-                          value={formData.consultantOffice}
+                          value={formData.consultantOffice || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantOffice',
@@ -575,7 +640,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               selectionLabel: pc.name,
                             };
                           })}
-                          value={formData.profitCenterId}
+                          value={formData.profitCenterId || ''}
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                             const profitCenterId = target.value ? target.value : null;
                             this.props.setFormFieldValue({ field: 'profitCenterId', value: profitCenterId });
@@ -688,11 +753,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             (formModified && !formValid)
                           }
                           onClick={() => {
-                            this.editClient(formData).then(() => {
-                              this.props.resetValidity({});
-                              this.props.setEditStatus({ disabled: true });
-                              this.props.fetchClientDetails({ clientId: details.id });
+                            this.props.editClient({
+                              ...formData,
+                              newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
                             });
+                            this.props.resetValidity({});
+                            this.props.setEditStatus({ disabled: true });
                           }}
                         >
                           Save Changes
@@ -713,16 +779,43 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     const {
       assignedUsers,
       selected,
+      edit,
       cardAttributes,
+      pending,
       allUsersExpanded: allExpanded,
       allUsersCollapsed: allCollapsed,
       filters,
+      rolesModified,
     } = this.props;
     return (
       <>
         <CardPanel
           entities={assignedUsers}
           renderEntity={(entity, key) => {
+            if (entity === 'new') {
+              return !selected.readonly ? (
+                <div
+                  key={key}
+                  className="card-container action-card-container"
+                  onClick={() => {
+                    this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                      this.props.openCreateClientUserModal({
+                        clientId: selected.client,
+                      });
+                    });
+                  }}
+                >
+                  <div className="card-body-container card-100 action-card">
+                    <h2 className="card-body-primary-text">
+                      <svg className="action-card-icon">
+                        <use href="#add" />
+                      </svg>
+                      <span>ADD USER</span>
+                    </h2>
+                  </div>
+                </div>
+              ) : null;
+            }
             const card = cardAttributes.user[entity.id];
             return (
               <Card
@@ -730,34 +823,112 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 selected={false}
                 disabled={selected.readonly}
                 onSelect={() => {
-                  this.props.selectUser({ id: entity.id });
                   (card && card.expanded) ?
                     this.props.setCollapsedUser({ id: entity.id }) :
                     this.props.setExpandedUser({ id: entity.id });
                 }}
               >
                 <CardSectionMain>
+                  <svg
+                    className="card-user-icon"
+                    style={{
+                      width: '5em',
+                      height: '5em',
+                    }}
+                  >
+                    <use xlinkHref="#user" />
+                  </svg>
+                  {entity.userRoles &&
+                    entity.userRoles[RoleEnum.Admin] &&
+                    entity.userRoles[RoleEnum.Admin].isAssigned ?
+                    <svg
+                      className="card-user-role-indicator"
+                      style={{
+                      position: 'absolute',
+                      top: '20%',
+                      left: '13%',
+                      height: '1.25rem',
+                      width: '1.25rem',
+                      color: '#42cc42',
+                      stroke: 'context fill #42cc42',
+                      strokeWidth: '3px',
+                      }}
+                    >
+                      <use href="#add" />
+                    </svg> : null
+                  }
                   <CardText
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
                     subtext={entity.firstName && entity.lastName ? entity.email : ''}
                   />
-                  {!selected.readonly ?
+                  {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>
-                      <CardButton
-                        icon="remove-circle"
-                        color={'red'}
-                        onClick={() => this.props.openRemoveUserFromClientModal({
-                          clientId: selected.client,
-                          userId: entity.id,
-                          name: entity.firstName && entity.lastName ?
-                            `${entity.firstName} ${entity.lastName}` : entity.email,
-                        })}
-                      />
+                      {edit.userEnabled && entity.id === selected.user ?
+                        <>
+                          <CardButton
+                            icon="checkmark"
+                            color={'green'}
+                            onClick={() => {
+                              if (rolesModified) {
+                                this.props.openChangeUserRolesModal({});
+                              } else {
+                                this.props.selectUser({ id: null });
+                              }
+                            }}
+                          />
+                          <CardButton
+                            icon="cancel"
+                            color={'red'}
+                            onClick={() => {
+                              if (rolesModified) {
+                                this.props.openDiscardUserRoleChangesModal({ callback: null });
+                              } else {
+                                this.props.selectUser({ id: null });
+                                this.props.setExpandedUser({ id: entity.id });
+                              }
+                            }}
+                          />
+                        </> :
+                        <>
+                          {!edit.userEnabled &&
+                            <>
+                              <CardButton
+                                icon="edit"
+                                color={'blue'}
+                                onClick={() => {
+                                  this.props.selectUser({ id: entity.id });
+                                  _.forEach(entity.userRoles, (role) => {
+                                    this.props.changeUserRolePending({
+                                      roleEnum: role.roleEnum,
+                                      isAssigned: role.isAssigned,
+                                    });
+                                  });
+                                  this.props.setExpandedUser({ id: entity.id });
+                                }}
+                              />
+                              <CardButton
+                                icon="remove-circle"
+                                color={'red'}
+                                onClick={() => {
+                                  this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                                    this.props.openRemoveUserFromClientModal({
+                                      clientId: selected.client,
+                                      userId: entity.id,
+                                      name: entity.firstName && entity.lastName ?
+                                        `${entity.firstName} ${entity.lastName}` : entity.email,
+                                    });
+                                  });
+                                }}
+                              />
+                            </>
+                          }
+                        </>
+                      }
                     </CardSectionButtons> : null
                   }
                 </CardSectionMain>
-                {entity.userRoles && Object.keys(entity.userRoles).length > 0 ?
+                {!selected.readonly ?
                   <CardExpansion
                     label={'User roles'}
                     expanded={card && card.expanded}
@@ -765,50 +936,74 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       ? this.props.setExpandedUser({ id: entity.id })
                       : this.props.setCollapsedUser({ id: entity.id })}
                   >
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.Admin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.Admin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.Admin], selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'Client Admin'}
+                      selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentAccessAdmin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentAccessAdmin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentAccessAdmin],
-                          selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'Content Access Admin'}
+                      selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentAccessAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentPublisher].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentPublisher].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentPublisher],
-                          selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'Content Publisher'}
+                      selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentPublisher,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.ContentUser].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.ContentUser].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.ContentUser], selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'Content User'}
+                      selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentUser,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.FileDropAdmin].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.FileDropAdmin].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropAdmin],
-                          selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'File Drop Admin'}
+                      selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
-                    <Toggle
-                      label={entity.userRoles[RoleEnum.FileDropUser].roleDisplayValue}
-                      checked={entity.userRoles[RoleEnum.FileDropUser].isAssigned}
-                      onClick={(event) =>
-                        this.changeUserRole(event, entity.userRoles[RoleEnum.FileDropUser], selected.client, entity.id)
-                      }
+                    <Checkbox
+                      name={'File Drop User'}
+                      selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropUser,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
                     />
                   </CardExpansion> : null}
               </Card>
@@ -842,10 +1037,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     />
                   }
                   <ActionIcon
-                    label="Add or create a new client"
+                    label="Add or create a new client user"
                     icon="add"
                     action={() => {
-                      this.props.openCreateClientUserModal({ clientId: selected.client });
+                      this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                        this.props.selectUser({ id: 'new' });
+                        this.props.openCreateClientUserModal({ clientId: selected.client });
+                      });
                     }}
                   />
                 </PanelSectionToolbarButtons> : null
@@ -940,7 +1138,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h2 className="title blue">Add User</h2>
           <span className="modal-text text-muted">
-            Please provide a valid email address.
+            Please provide a valid email address using an approved email domain and a reason
+            for adding the user to this Client.
           </span>
           <form
             onSubmit={(event) => {
@@ -949,17 +1148,88 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 memberOfClientId: pending.createClientUser.memberOfClientId,
                 email: pending.createClientUser.email,
                 userName: pending.createClientUser.userName,
+                roleAssignments: pending.roles.roleAssignments,
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
-            <input
+            <Input
               type="text"
-              placeholder="Email"
+              name="Email"
+              label="Email *"
               onChange={(event) => this.props.setCreateClientUserModalEmail({
-                email: event.target.value,
+                email: event.currentTarget.value,
               })}
-              value={this.props.pending.createClientUser.email}
+              value={pending.createClientUser.email}
               autoFocus={true}
+              onBlur={() => this.props.setCreateClientUserModalEmailError({
+                showError: !isEmailAddressValid(pending.createClientUser.email),
+              })}
+              error={pending.createClientUser.displayEmailError ? 'Please enter a valid email address.' : null}
+            />
+            <div className="checkbox-container" style={{ margin: '1rem 0' }}>
+              <span className="modal-text">
+                <strong>User Roles</strong>
+              </span>
+              <Checkbox
+                name={'Client Admin'}
+                selected={this.isRoleSelected(RoleEnum.Admin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content Access Admin'}
+                selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentAccessAdmin, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content Publisher'}
+                selected={this.isRoleSelected(RoleEnum.ContentPublisher, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentPublisher, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'Content User'}
+                selected={this.isRoleSelected(RoleEnum.ContentUser, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.ContentUser, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'File Drop Admin'}
+                selected={this.isRoleSelected(RoleEnum.FileDropAdmin, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.FileDropAdmin, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+              <Checkbox
+                name={'File Drop User'}
+                selected={this.isRoleSelected(RoleEnum.FileDropUser, null, 'new', pending.roles.roleAssignments)}
+                onChange={(checked) => {
+                  this.props.changeUserRolePending({ roleEnum: RoleEnum.FileDropUser, isAssigned: checked });
+                }}
+                readOnly={false}
+              />
+            </div>
+            <DropDown
+              name="reason"
+              label="Reason *"
+              value={pending.hitrustReason.reason.toString()}
+              values={this.addUserHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
+              error={null}
+              placeholderText={'Choose an option'}
             />
             <div className="button-container">
               <button
@@ -972,6 +1242,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="blue-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason || !pending.createClientUser.email ||
+                  pending.createClientUser.displayEmailError}
               >
                 Add User
                 {this.props.pending.data.clientUsers
@@ -992,7 +1264,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
         >
           <h2 className="title red">Remove User</h2>
           <span className="modal-text">
-            Remove <strong>{pending.removeClientUser.name}</strong> from the selected client?
+            Please provide a reason for removing the user from this Client.
           </span>
           <form
             onSubmit={(event) => {
@@ -1000,9 +1272,21 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               this.props.removeClientUser({
                 clientId: pending.removeClientUser.clientId,
                 userId: pending.removeClientUser.userId,
+                reason: pending.hitrustReason.reason,
               });
             }}
           >
+            <DropDown
+              name="reason"
+              label="Reason"
+              value={pending.hitrustReason.reason.toString()}
+              values={this.removeUserHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
+              error={null}
+              placeholderText={'Choose an option'}
+            />
             <div className="button-container">
               <button
                 className="link-button"
@@ -1014,6 +1298,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
               <button
                 className="red-button"
                 type="submit"
+                disabled={!pending.hitrustReason.reason}
               >
                 Remove
                 {this.props.pending.data.clientUsers
@@ -1078,18 +1363,21 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               if (pending.discardEditAfterSelect.newSubClientParentId === null) {
-                this.changeClientFormState(false, false,
-                  selected.client,
-                  pending.discardEditAfterSelect.newlySelectedClientId,
-                  pending.discardEditAfterSelect.canManageNewlySelectedClient,
-                  pending.discardEditAfterSelect.editAfterSelect,
-                  true);
+                if (pending.discardEditAfterSelect.newlySelectedClientId === null) {
+                  this.discardChangesOnSelectedClient(details, selected.client);
+                } else {
+                  this.changeClientFormState(false, false,
+                    selected.client,
+                    pending.discardEditAfterSelect.newlySelectedClientId,
+                    pending.discardEditAfterSelect.canManageNewlySelectedClient,
+                    pending.discardEditAfterSelect.editAfterSelect,
+                    true);
+                }
               } else {
                 this.changeClientFormStateForNewSubClient(false, false,
                   pending.discardEditAfterSelect.newSubClientParentId);
               }
               this.props.closeDiscardEditAfterSelectModal({});
-
             }}
           >
             <div className="button-container">
@@ -1109,18 +1397,142 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             </div>
           </form>
         </Modal>
+        <Modal
+          isOpen={modals.changeUserRoles.isOpen}
+          onRequestClose={() => this.props.closeChangeUserRolesModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Change User Role</h2>
+          <span className="modal-text">
+            Please provide a reason for changing the user's role in this Client.
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectUser({ id: null });
+              this.props.updateAllUserRolesInClient({
+                clientId: selected.client,
+                userId: selected.user,
+                reason: pending.hitrustReason.reason,
+                roleAssignments: pending.roles.roleAssignments,
+              });
+              this.props.closeChangeUserRolesModal({});
+            }}
+          >
+            <DropDown
+              name="reason"
+              label="Reason"
+              value={pending.hitrustReason.reason.toString()}
+              values={this.clientRoleChangeHitrustReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
+              }}
+              error={null}
+              placeholderText={'Choose an option'}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => {
+                  this.props.selectUser({ id: null });
+                  this.props.closeChangeUserRolesModal({});
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+                disabled={!pending.hitrustReason.reason}
+              >
+                Change roles
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardEdit.isOpen}
+          onRequestClose={() => this.props.closeDiscardEditModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Reset Form</h2>
+          <span className="modal-text text-muted">
+            Would you like to reset the form?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.resetValidity({});
+              this.props.resetFormData({ details });
+              this.props.closeDiscardEditModal({});
+              this.props.setEditStatus({ disabled: true });
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardEditModal({})}
+              >
+                Continue Editing
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Reset
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.discardUserRoleChanges.isOpen}
+          onRequestClose={() => this.props.closeDiscardUserRoleChangesModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title red">Discard Changes</h2>
+          <span className="modal-text">
+            Would you like to discard unsaved changes to the User roles?
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+              this.props.selectUser({ id: null });
+              if (pending.discardEditUserRoles.callback) {
+                pending.discardEditUserRoles.callback();
+              }
+              this.props.closeDiscardUserRoleChangesModal({});
+            }}
+          >
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeDiscardUserRoleChangesModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="red-button"
+                type="submit"
+              >
+                Discard
+              </button>
+            </div>
+          </form>
+        </Modal>
       </>
     );
-  }
-
-  private changeUserRole(event: React.MouseEvent, entityRole: UserRole, client: Guid, user: Guid) {
-    event.stopPropagation();
-    this.props.setUserRoleInClient({
-      clientId: client,
-      isAssigned: !entityRole.isAssigned,
-      roleEnum: entityRole.roleEnum,
-      userId: user,
-    });
   }
 
   private changeClientFormState(formModified: boolean, currentlyEditing: boolean, oldClient: Guid, newClient: Guid,
@@ -1165,11 +1577,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     }
   }
 
-  private async editClient(formData: AccessStateFormData) {
-    return await this.props.editClient({
-      ...formData,
-      newUserWelcomeText: formData.useNewUserWelcomeText ? formData.newUserWelcomeText : null,
-    });
+  private handleCallbackForPendingRoleChanges(useCallback: boolean, callbackFunction: () => void) {
+    if (useCallback) {
+      this.props.openDiscardUserRoleChangesModal({
+        callback: callbackFunction,
+      });
+    } else {
+      callbackFunction();
+    }
   }
 
   private clientHasChildren(clients: ClientEntity[], clientId: Guid) {
@@ -1189,6 +1604,29 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       && client.parentId !== null
       && client.id === null;
   }
+
+  private isRoleSelected(roleEnum: RoleEnum, entity: User, selectedUserId: Guid,
+                         pendingRoleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>) {
+    if (entity && entity.id === selectedUserId || (entity === null && selectedUserId === 'new')) {
+      const role = pendingRoleAssignments.find((ra) => ra.roleEnum === roleEnum);
+      if (role) {
+        return role.isAssigned;
+      }
+      return false;
+    }
+
+    if (entity.userRoles) {
+      return entity.userRoles[roleEnum].isAssigned;
+    }
+    return false;
+  }
+
+  private discardChangesOnSelectedClient(details: ClientDetail, selectedClientId: Guid) {
+    this.props.resetFormData({ details });
+    this.props.resetValidity({});
+    this.props.setEditStatus({ disabled: true });
+    if (selectedClientId === 'new') { this.props.selectClient({ id: null }); }
+  }
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
@@ -1199,7 +1637,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     profitCenters: data.profitCenters,
     details: data.details,
     cardAttributes,
-    assignedUsers: activeUsers(state),
+    assignedUsers: userEntities(state),
     formData,
     selected,
     edit,
@@ -1211,6 +1649,8 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     formValid: isFormValid(state),
     allUsersExpanded: allUsersExpanded(state),
     allUsersCollapsed: allUsersCollapsed(state),
+    rolesModified: areRolesModified(state),
+    canCreateClients: userCanCreateClients(state),
   };
 }
 

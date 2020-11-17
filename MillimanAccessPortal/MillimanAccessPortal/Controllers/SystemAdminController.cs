@@ -668,7 +668,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddUserToClient(string email, Guid clientId)
+        public async Task<ActionResult> AddUserToClient(string email, Guid clientId, int reason)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToClient action with {@Email}, {@ClientId}", email, clientId);
 
@@ -739,7 +739,7 @@ namespace MillimanAccessPortal.Controllers
                 transaction.Commit();
 
                 Log.Verbose($"In SystemAdminController.AddUserToClient action: success");
-                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user));
+                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user, reason));
             }
 
             return Json(user);
@@ -754,7 +754,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId)
+        public async Task<ActionResult> AddUserToProfitCenter(string email, Guid profitCenterId, int reason)
         {
             Log.Verbose("Entered SystemAdminController.AddUserToProfitCenter action with {@Email}, {@ProfitCenterId}", email, profitCenterId);
 
@@ -832,7 +832,7 @@ namespace MillimanAccessPortal.Controllers
                 await transaction.CommitAsync();
             }
 
-            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user));
+            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user, reason));
 
             return Json(user);
         }
@@ -1344,7 +1344,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId)
+        public async Task<ActionResult> RemoveUserFromProfitCenter(Guid userId, Guid profitCenterId, int reason)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromProfitCenter action with {@UserId}, {@ProfitCenterId}", userId, profitCenterId);
 
@@ -1390,7 +1390,7 @@ namespace MillimanAccessPortal.Controllers
             await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.RemoveUserFromProfitCenter action: success");
-            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user));
+            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user, reason));
 
             return Json(user);
         }
@@ -1403,7 +1403,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId)
+        public async Task<ActionResult> RemoveUserFromClient(Guid userId, Guid clientId, int reason)
         {
             Log.Verbose("Entered SystemAdminController.RemoveUserFromClient action with {@userId}, {@clientId}", userId, clientId);
 
@@ -1463,7 +1463,7 @@ namespace MillimanAccessPortal.Controllers
             await _dbContext.SaveChangesAsync();
 
             Log.Verbose("In SystemAdminController.RemoveUserFromClient action: success");
-            _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user));
+            _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user, reason));
 
             return Json(user);
         }
@@ -1732,7 +1732,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role, bool value)
+        public async Task<ActionResult> SystemRole(Guid userId, RoleEnum role, bool value, int reason)
         {
             Log.Verbose("Entered SystemAdminController.SystemRole action with {@UserId}, {@Role}, {@Assign}", userId, role.ToString(), value.ToString());
 
@@ -1795,7 +1795,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.UserRoles.Add(userRoleToAdd);
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role));
+                _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role, reason));
             }
             else
             {
@@ -1803,7 +1803,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.UserRoles.Remove(userRoleToRemove);
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role));
+                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role, reason));
             }
 
             Log.Verbose("In SystemAdminController.SystemRole action: success");
@@ -1983,7 +1983,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>true if the user has the role in the client; false otherwise</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role, bool value)
+        public async Task<ActionResult> UserClientRoleAssignment(Guid userId, Guid clientId, RoleEnum role, bool value, int reason)
         {
             Log.Verbose("Entered SystemAdminController.UserClientRoleAssignment action with {@Parameters}", new object[] { userId, clientId, role.ToString(), value });
 
@@ -2089,7 +2089,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role]));
+                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role], reason));
             }
             else
             {
@@ -2132,7 +2132,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role]));
+                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role], reason));
             }
 
             Log.Verbose("In SystemAdminController.UserClientRoleAssignment action: success");

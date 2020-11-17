@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using MillimanAccessPortal.Models.ClientAdminViewModels;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -21,15 +22,18 @@ namespace MillimanAccessPortal.DataQueries
     {
     private readonly ApplicationDbContext _dbContext;
     private readonly ClientQueries _clientQueries;
-        private readonly UserQueries _userQueries;
+    private readonly UserManager<ApplicationUser> _userManager;
+    private readonly UserQueries _userQueries;
 
         public ClientAdminQueries(
             ApplicationDbContext dbContext,
             ClientQueries clientQueries,
+            UserManager<ApplicationUser> userManager,
             UserQueries userQueries)
         {
             _dbContext = dbContext;
             _clientQueries = clientQueries;
+            _userManager = userManager;
             _userQueries = userQueries;
         }
 
@@ -79,10 +83,38 @@ namespace MillimanAccessPortal.DataQueries
                                    .Include(c => c.ProfitCenter)
                                    .FirstOrDefaultAsync(c => c.Id == clientId);
 
+            var assignedUser = (UserInfoModel) user;
+
+            StandardQueries Queries = new StandardQueries(_dbContext, _userManager, null);
+            List<RoleEnum> RolesToManage = new List<RoleEnum>
+                  {
+                      RoleEnum.Admin,
+                      RoleEnum.ContentAccessAdmin,
+                      RoleEnum.ContentPublisher,
+                      RoleEnum.ContentUser,
+                      RoleEnum.FileDropAdmin,
+                      RoleEnum.FileDropUser,
+                  };
+            var assignedUserRoles = (await Queries.GetUserRolesForClientAsync(user.Id, clientId))
+              .Where(ur => RolesToManage.Contains(ur.RoleEnum))
+              .ToList();
+
+            // any roles that were not found need to be included with IsAssigned=false
+            assignedUserRoles.AddRange(RolesToManage.Except(assignedUserRoles.Select(ur => ur.RoleEnum)).Select(re =>
+                new AssignedRoleInfo
+                {
+                  RoleEnum = re,
+                  RoleDisplayValue = re.GetDisplayNameString(),
+                  IsAssigned = false
+                }));
+
+            assignedUser.UserRoles = assignedUserRoles.ToDictionary(ur => (int)ur.RoleEnum);
+
             SaveNewClientResponseModel ReturnModel = new SaveNewClientResponseModel
             {
-              NewClient = (ClientDetail) newClient,
+              NewClient = (ClientDetail)newClient,
               Clients = clientResponseModel.Clients,
+              AssignedUser = assignedUser,
             };
 
             return ReturnModel;

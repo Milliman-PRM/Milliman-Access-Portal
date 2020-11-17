@@ -29,5 +29,10 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         /// </summary>
         [EmitBeforeAfterLog]
         public Guid UserId { get; set; }
+
+        /// <summary>
+        /// Reason for the change, logged for HITRUST purposes
+        /// </summary>
+        public int Reason { get; set; }
     }
 }

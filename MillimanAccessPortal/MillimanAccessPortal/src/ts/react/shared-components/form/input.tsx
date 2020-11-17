@@ -154,13 +154,15 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 value={this.state.currentText}
                 readOnly={readOnly}
                 onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
-                  if (event.key === 'Enter' || event.key === ',' || event.key === ';' || event.key === 'Tab') {
-                    event.preventDefault();
-                    this.addItemAndClear(addItem, list, exceptions, limit);
-                  }
-                  if ((event.key === 'Backspace' || event.key === 'Delete') && this.state.currentText === '') {
-                    event.preventDefault();
-                    removeItemCallback(list.length - 1);
+                  if (!(event.key === 'Tab' && this.state.currentText === '')) {
+                    if (event.key === 'Enter' || event.key === ',' || event.key === ';' || event.key === 'Tab') {
+                      event.preventDefault();
+                      this.addItemAndClear(addItem, list, exceptions, limit);
+                    }
+                    if ((event.key === 'Backspace' || event.key === 'Delete') && this.state.currentText === '') {
+                      event.preventDefault();
+                      removeItemCallback(list.length - 1);
+                    }
                   }
                 }}
                 onChange={(event: React.ChangeEvent<HTMLInputElement>) => {

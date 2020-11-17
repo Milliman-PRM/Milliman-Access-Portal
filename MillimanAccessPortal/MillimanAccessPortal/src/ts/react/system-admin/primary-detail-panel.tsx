@@ -12,7 +12,7 @@ interface PrimaryDetailPanelProps {
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
-  onPushSystemAdmin: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onPushSystemAdmin: (event: React.MouseEvent<HTMLButtonElement>, checked: boolean) => void;
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
@@ -67,11 +67,19 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                   <div className="detail-section">
                     <h3 className="detail-section-title">System Permissions</h3>
                     <div className="detail-container">
-                      <Toggle
-                        label={'System Admin'}
-                        checked={this.props.checkedSystemAdmin}
-                        onClick={this.props.onPushSystemAdmin}
-                      />
+                      <button
+                        name="systemAdminButton"
+                        className={`systemAdminButton ${this.props.checkedSystemAdmin ? 'red-button' : 'blue-button'}`}
+                        onClick={(event) => this.props.onPushSystemAdmin(event, !this.props.checkedSystemAdmin)}
+                      >
+                        {this.props.checkedSystemAdmin ?
+                          <span>Revoke</span> :
+                          <span>Enable</span>
+                        }
+                      </button>
+                      <label htmlFor="systemAdminButton" style={{ fontSize: '1rem' }}>
+                        System Admin
+                      </label>
                     </div>
                   </div>
                   <div className="detail-section">

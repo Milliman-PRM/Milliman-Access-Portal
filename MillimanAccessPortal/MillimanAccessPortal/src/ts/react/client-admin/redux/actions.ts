@@ -1,9 +1,9 @@
 ﻿import { Dict } from "../../shared-components/redux/store";
-import { Client, ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
-import { RoleEnum } from "../../shared-components/interfaces";
-import { AccessStateFormData, PendingDeleteClientState } from "./store";
+import { HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
+import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
 
@@ -31,6 +31,19 @@ export interface SelectUser {
 export interface SetEditStatus {
   type: 'SET_EDIT_STATUS';
   disabled: boolean;
+}
+
+/**
+ * Change a user role (pending).
+ */
+export interface ChangeUserRolePending {
+  type: 'CHANGE_USER_ROLE_PENDING';
+  roleEnum: RoleEnum;
+  isAssigned: boolean;
+}
+export interface SetRoleChangeReason {
+  type: 'SET_ROLE_CHANGE_REASON';
+  reason: HitrustReasonEnum;
 }
 
 /**
@@ -162,24 +175,27 @@ export interface FetchClientDetailsFailed {
 }
 
 // POSTS
-export interface SetUserRoleInClient {
-  type: 'SET_USER_ROLE_IN_CLIENT';
+export interface UpdateAllUserRolesInClient {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT';
   request: {
     clientId: Guid;
-    isAssigned: boolean;
-    roleEnum: RoleEnum;
     userId: Guid;
+    reason: number;
+    roleAssignments: Array<{
+      roleEnum: RoleEnum;
+      isAssigned: boolean;
+    }>;
   };
 }
-export interface SetUserRoleInClientSucceeded {
-  type: 'SET_USER_ROLE_IN_CLIENT_SUCCEEDED';
+export interface UpdateAllUserRolesInClientSucceeded {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED';
   response: {
     userId: Guid;
     roles: Dict<UserRole>;
   };
 }
-export interface SetUserRoleInClientFailed {
-  type: 'SET_USER_ROLE_IN_CLIENT_FAILED';
+export interface UpdateAllUserRolesInClientFailed {
+  type: 'UPDATE_ALL_USER_ROLES_IN_CLIENT_FAILED';
   error: TSError;
 }
 export interface SaveNewClient {
@@ -191,6 +207,7 @@ export interface SaveNewClientSucceeded {
   response: {
     clients: Dict<ClientWithEligibleUsers>;
     newClient: ClientDetail;
+    assignedUser: User;
   };
 }
 export interface SaveNewClientFailed {
@@ -231,11 +248,16 @@ export interface SaveNewClientUser {
     memberOfClientId: Guid;
     userName: string;
     email: string;
+    roleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>;
+    reason: number;
   };
 }
 export interface SaveNewClientUserSucceeded {
   type: 'SAVE_NEW_CLIENT_USER_SUCCEEDED';
-  response: User;
+  response: {
+    userInfo: User;
+    userRoles: Dict<UserRole>;
+  };
 }
 export interface SaveNewClientUserFailed {
   type: 'SAVE_NEW_CLIENT_USER_FAILED';
@@ -246,6 +268,7 @@ export interface RemoveClientUser {
   request: {
     clientId: Guid;
     userId: Guid;
+    reason: number;
   };
 }
 export interface RemoveClientUserSucceeded {
@@ -286,6 +309,10 @@ export interface SetCreateClientUserModalEmail {
   type: 'SET_CREATE_CLIENT_USER_EMAIL';
   email: string;
 }
+export interface SetCreateClientUserModalEmailError {
+  type: 'SET_CREATE_CLIENT_USER_EMAIL_ERROR';
+  showError: boolean;
+}
 export interface OpenRemoveClientUserModal {
   type: 'OPEN_REMOVE_CLIENT_USER_MODAL';
   clientId: string;
@@ -310,6 +337,19 @@ export interface OpenDiscardEditAfterSelectModal {
 }
 export interface CloseDiscardEditAfterSelectModal {
   type: 'CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL';
+}
+export interface OpenChangeUserRolesModal {
+  type: 'OPEN_CHANGE_USER_ROLE_MODAL';
+}
+export interface CloseChangeUserRolesModal {
+  type: 'CLOSE_CHANGE_USER_ROLES_MODAL';
+}
+export interface OpenDiscardUserRoleChangesModal {
+  type: 'OPEN_DISCARD_USER_ROLE_CHANGES_MODAL';
+  callback: () => void;
+}
+export interface CloseDiscardUserRoleChangesModal {
+  type: 'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL';
 }
 
 /**
@@ -338,7 +378,7 @@ export type RequestAccessAction =
   | FetchClients
   | FetchProfitCenters
   | FetchClientDetails
-  | SetUserRoleInClient
+  | UpdateAllUserRolesInClient
   | SaveNewClient
   | EditClient
   | DeleteClient
@@ -350,7 +390,7 @@ export type ResponseAccessAction =
   | FetchClientsSucceeded
   | FetchProfitCentersSucceeded
   | FetchClientDetailsSucceeded
-  | SetUserRoleInClientSucceeded
+  | UpdateAllUserRolesInClientSucceeded
   | SaveNewClientSucceeded
   | EditClientSucceeded
   | DeleteClientSucceeded
@@ -365,7 +405,7 @@ export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchProfitCentersFailed
   | FetchClientDetailsFailed
-  | SetUserRoleInClientFailed
+  | UpdateAllUserRolesInClientFailed
   | SaveNewClientFailed
   | EditClientFailed
   | DeleteClientFailed
@@ -378,6 +418,8 @@ export type PageAccessAction =
   | SelectClient
   | SelectNewSubClient
   | SetEditStatus
+  | ChangeUserRolePending
+  | SetRoleChangeReason
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser
@@ -394,12 +436,17 @@ export type PageAccessAction =
   | OpenCreateClientUserModal
   | CloseCreateClientUserModal
   | SetCreateClientUserModalEmail
+  | SetCreateClientUserModalEmailError
   | OpenRemoveClientUserModal
   | CloseRemoveClientUserModal
   | OpenDiscardEditModal
   | CloseDiscardEditModal
   | OpenDiscardEditAfterSelectModal
   | CloseDiscardEditAfterSelectModal
+  | OpenChangeUserRolesModal
+  | CloseChangeUserRolesModal
+  | OpenDiscardUserRoleChangesModal
+  | CloseDiscardUserRoleChangesModal
   ;
 
 export type AccessAction =
@@ -416,4 +463,6 @@ export type OpenModalAction =
   | OpenRemoveClientUserModal
   | OpenDiscardEditModal
   | OpenDiscardEditAfterSelectModal
+  | OpenChangeUserRolesModal
+  | OpenDiscardUserRoleChangesModal
   ;

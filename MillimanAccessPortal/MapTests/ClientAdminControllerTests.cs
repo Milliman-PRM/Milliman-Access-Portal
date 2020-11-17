@@ -1161,10 +1161,31 @@ namespace MapTests
             }
         }
 
-        /// <summary>
-        /// Verify that a deleted client is removed from persistence
-        /// </summary>
         [Fact]
+        public async Task DeleteClient_ErrorWhenClientHasFileDrops()
+        {
+          using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+          {
+            #region Arrange
+            ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+            ApplicationUser AppUser = await TestResources.UserManager.FindByNameAsync("ClientAdmin1");
+            #endregion
+
+            #region Act
+            var view = await controller.DeleteClient(TestUtil.MakeTestGuid(9));
+            #endregion
+
+            #region Assert
+            Assert.IsType<StatusCodeResult>(view);
+            Assert.Equal(422, (view as StatusCodeResult).StatusCode);
+            #endregion
+          }
+        }
+
+    /// <summary>
+    /// Verify that a deleted client is removed from persistence
+    /// </summary>
+    [Fact]
         public async Task DeleteClient_Success()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))

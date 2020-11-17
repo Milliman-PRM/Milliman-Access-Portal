@@ -123,11 +123,12 @@ namespace MillimanAccessPortal.DataQueries
                                                                                         && r.UserId == userId.Value);
                 }
                 clientWith.ContentItemCount = await _dbContext.RootContentItem.CountAsync(i => i.ClientId == client.Id);
-                clientWith.UserCount = await _dbContext.UserRoleInClient
-                    .Where(r => r.ClientId == client.Id)
-                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                clientWith.UserCount = await _dbContext.UserClaims
+                    .Where(r => r.ClaimValue == client.Id.ToString())
+                    .Where(r => r.ClaimType == ClaimNames.ClientMembership.ToString())
+                    .Select(r => r.UserId)
+                    .Distinct()
                     .CountAsync();
-
                 clientsWith.Add(clientWith);
             }
             return clientsWith;

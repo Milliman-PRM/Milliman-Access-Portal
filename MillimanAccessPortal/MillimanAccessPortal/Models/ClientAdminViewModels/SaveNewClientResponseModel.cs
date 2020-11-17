@@ -27,5 +27,10 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
     public Dictionary<Guid, BasicClientWithEligibleUsers> Clients { get; set; } = 
       new Dictionary<Guid, BasicClientWithEligibleUsers>();
 
+    /// <summary>
+    /// The new client-admin for the newly created client.
+    /// </summary>
+    [EmitBeforeAfterLog]
+    public UserInfoModel AssignedUser { get; set; } = new UserInfoModel();
   }
 }
