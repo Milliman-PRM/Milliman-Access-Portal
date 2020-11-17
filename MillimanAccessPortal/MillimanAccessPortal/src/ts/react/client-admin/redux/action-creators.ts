@@ -15,6 +15,10 @@ export const setEditStatus =
   createActionCreator<AccessActions.SetEditStatus>('SET_EDIT_STATUS');
 export const resetClientDetails =
   createActionCreator<AccessActions.ResetClientDetails>('RESET_CLIENT_DETAILS');
+export const changeUserRolePending =
+  createActionCreator<AccessActions.ChangeUserRolePending>('CHANGE_USER_ROLE_PENDING');
+export const setRoleChangeReason =
+  createActionCreator<AccessActions.SetRoleChangeReason>('SET_ROLE_CHANGE_REASON');
 
 // Collapse/expand actions
 export const setExpandedUser =
@@ -55,6 +59,8 @@ export const closeCreateClientUserModal =
   createActionCreator<AccessActions.CloseCreateClientUserModal>('CLOSE_CREATE_CLIENT_USER_MODAL');
 export const setCreateClientUserModalEmail =
   createActionCreator<AccessActions.SetCreateClientUserModalEmail>('SET_CREATE_CLIENT_USER_EMAIL');
+export const setCreateClientUserModalEmailError =
+  createActionCreator<AccessActions.SetCreateClientUserModalEmailError>('SET_CREATE_CLIENT_USER_EMAIL_ERROR');
 export const openRemoveUserFromClientModal =
   createActionCreator<AccessActions.OpenRemoveClientUserModal>('OPEN_REMOVE_CLIENT_USER_MODAL');
 export const closeRemoveUserFromClientModal =
@@ -67,6 +73,14 @@ export const openDiscardEditAfterSelectModal =
   createActionCreator<AccessActions.OpenDiscardEditAfterSelectModal>('OPEN_DISCARD_EDIT_AFTER_SELECT_MODAL');
 export const closeDiscardEditAfterSelectModal =
   createActionCreator<AccessActions.CloseDiscardEditAfterSelectModal>('CLOSE_DISCARD_EDIT_AFTER_SELECT_MODAL');
+export const openChangeUserRolesModal =
+  createActionCreator<AccessActions.OpenChangeUserRolesModal>('OPEN_CHANGE_USER_ROLE_MODAL');
+export const closeChangeUserRolesModal =
+  createActionCreator<AccessActions.CloseChangeUserRolesModal>('CLOSE_CHANGE_USER_ROLES_MODAL');
+export const openDiscardUserRoleChangesModal =
+  createActionCreator<AccessActions.OpenDiscardUserRoleChangesModal>('OPEN_DISCARD_USER_ROLE_CHANGES_MODAL');
+export const closeDiscardUserRoleChangesModal =
+  createActionCreator<AccessActions.CloseDiscardUserRoleChangesModal>('CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL');
 
 // Validity Actions
 export const resetValidity =
@@ -79,8 +93,8 @@ export const fetchClients =
   createRequestActionCreator<AccessActions.FetchClients>('FETCH_CLIENTS');
 export const fetchClientDetails =
   createRequestActionCreator<AccessActions.FetchClientDetails>('FETCH_CLIENT_DETAILS');
-export const setUserRoleInClient =
-  createRequestActionCreator<AccessActions.SetUserRoleInClient>('SET_USER_ROLE_IN_CLIENT');
+export const updateAllUserRolesInClient =
+  createRequestActionCreator<AccessActions.UpdateAllUserRolesInClient>('UPDATE_ALL_USER_ROLES_IN_CLIENT');
 export const fetchProfitCenters =
   createRequestActionCreator<AccessActions.FetchProfitCenters>('FETCH_PROFIT_CENTERS');
 export const saveNewClient =

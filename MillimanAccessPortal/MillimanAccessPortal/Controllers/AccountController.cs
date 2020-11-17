@@ -426,7 +426,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Information($"Initial user {model.Email} account created new with password.");
                         _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
-                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin));
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin, HitrustReason.InitialSystemUser.NumericValue));
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok

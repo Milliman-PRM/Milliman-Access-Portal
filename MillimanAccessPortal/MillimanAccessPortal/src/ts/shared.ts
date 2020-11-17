@@ -684,5 +684,5 @@ export function isDomainNameValid(domainName: string): boolean {
 
 export function isEmailAddressValid(email: string): boolean {
   const emailRegex = /\S+@\S+\.\S+/;
-  return email.trim() === '' || email === null || emailRegex.test(email);
+  return email === null || email.trim() === '' || emailRegex.test(email);
 }

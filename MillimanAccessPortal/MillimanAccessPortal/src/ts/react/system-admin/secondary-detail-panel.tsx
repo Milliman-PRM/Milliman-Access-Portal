@@ -16,7 +16,6 @@ interface SecondaryDetailPanelProps {
   detail: SecondaryDetail;
   onCancelPublication: (event: React.MouseEvent<HTMLElement>) => void;
   onCancelReduction: (event: React.MouseEvent<HTMLElement>, id: Guid) => void;
-  onPushUserClient: (event: React.MouseEvent<HTMLDivElement>, role: RoleEnum) => void;
   checkedClientAdmin: boolean;
   checkedContentPublisher: boolean;
   checkedAccessAdmin: boolean;
@@ -56,51 +55,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
-                      <div className="detail-section">
-                        <h3 className="detail-section-title">Client/User Roles</h3>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Client Admin'}
-                            checked={this.props.checkedClientAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Access Admin'}
-                            checked={this.props.checkedAccessAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Publisher'}
-                            checked={this.props.checkedContentPublisher}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Eligible'}
-                            checked={this.props.checkedContentUser}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'File Drop Admin'}
-                            checked={this.props.checkedFileDropAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropAdmin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'File Drop User'}
-                            checked={this.props.checkedFileDropUser}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropUser)}
-                          />
-                        </div>
-                      </div>
+                      {this.renderClientUserRoles()}
                     </div>
                   </div>
                 </div>
@@ -166,51 +121,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
-                      <div className="detail-section">
-                        <h3 className="detail-section-title">Client/User Roles</h3>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Client Admin'}
-                            checked={this.props.checkedClientAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.Admin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Access Admin'}
-                            checked={this.props.checkedAccessAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentAccessAdmin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Publisher'}
-                            checked={this.props.checkedContentPublisher}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentPublisher)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'Content Eligible'}
-                            checked={this.props.checkedContentUser}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.ContentUser)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'File Drop Admin'}
-                            checked={this.props.checkedFileDropAdmin}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropAdmin)}
-                          />
-                        </div>
-                        <div className="detail-container">
-                          <Toggle
-                            label={'File Drop User'}
-                            checked={this.props.checkedFileDropUser}
-                            onClick={(event) => this.props.onPushUserClient(event, RoleEnum.FileDropUser)}
-                          />
-                        </div>
-                      </div>
+                      {this.renderClientUserRoles()}
                     </div>
                   </div>
                 </div>
@@ -409,5 +320,61 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         </div>
       );
     });
+  }
+
+  private renderClientUserRoles() {
+    return (
+      <div className="detail-section">
+        <h3 className="detail-section-title">Client/User Roles</h3>
+        <div className="detail-container">
+          <Toggle
+            label={'Client Admin'}
+            checked={this.props.checkedClientAdmin}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+        <div className="detail-container">
+          <Toggle
+            label={'Content Access Admin'}
+            checked={this.props.checkedAccessAdmin}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+        <div className="detail-container">
+          <Toggle
+            label={'Content Publisher'}
+            checked={this.props.checkedContentPublisher}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+        <div className="detail-container">
+          <Toggle
+            label={'Content Eligible'}
+            checked={this.props.checkedContentUser}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+        <div className="detail-container">
+          <Toggle
+            label={'File Drop Admin'}
+            checked={this.props.checkedFileDropAdmin}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+        <div className="detail-container">
+          <Toggle
+            label={'File Drop User'}
+            checked={this.props.checkedFileDropUser}
+            onClick={null}
+            readOnly={true}
+          />
+        </div>
+      </div>
+    );
   }
 }

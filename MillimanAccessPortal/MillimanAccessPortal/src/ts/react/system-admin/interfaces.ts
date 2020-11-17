@@ -125,6 +125,7 @@ export interface ClientDetail {
   consultantName: string;
   consultantEmail: string;
   newUserWelcomeText: string;
+  parentClientId?: Guid;
 }
 export function isClientDetail(detail: PrimaryDetail): detail is ClientDetail {
   return detail && (detail as ClientDetail).domainListCountLimit !== null;

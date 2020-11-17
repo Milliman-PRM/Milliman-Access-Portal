@@ -44,6 +44,30 @@ export function isFormModified(state: AccessState) {
 }
 
 /**
+ * Determines whether any of the roles in a selected ClientUser have been modified from their initial state.
+ *
+ * @param state Redux store.
+ */
+export function areRolesModified(state: AccessState) {
+  const currentlySelectedUser = state.data.assignedUsers.find((u) => u.id === state.selected.user);
+  if (!currentlySelectedUser) { return false; }
+
+  const currentlySelectedRolesAsArray = _.map(currentlySelectedUser.userRoles, (role) => {
+    return {
+      roleEnum: role.roleEnum,
+      isAssigned: role.isAssigned,
+    };
+  }).sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
+  });
+  const pendingRolesSorted = state.pending.roles.roleAssignments.sort((a, b) => {
+    return a.roleEnum === b.roleEnum ? 0 : (a.roleEnum > b.roleEnum ? 1 : -1);
+  });
+
+  return !_.isEqual(currentlySelectedRolesAsArray, pendingRolesSorted);
+}
+
+/**
  * Select all clients as a tree
  *
  * This selector supports client tree structures with at most 2 layers.
@@ -122,7 +146,13 @@ export function clientEntities(state: AccessState) {
     });
     entities.push('divider');
   });
-  entities.push('new');
+
+  if (!userCanCreateClients(state)) {
+    entities.pop(); // Remove last divider so that no divider appears unless the 'new' button also exists.
+  } else {
+    entities.push('new');
+  }
+
   return entities;
 }
 
@@ -136,6 +166,19 @@ export function activeClients(state: AccessState) {
 
 export function activeUsers(state: AccessState) {
   return filteredUsers(state);
+}
+
+/**
+ * Select users with additional rendering data.
+ * @param state Redux store
+ */
+export function userEntities(state: AccessState) {
+  const entities: Array<User | 'new'> = [];
+  activeUsers(state).forEach((entity) => {
+    entities.push(entity);
+  });
+  entities.push('new');
+  return entities;
 }
 
 /**
@@ -160,4 +203,20 @@ export function allUsersCollapsed(state: AccessState) {
       const card = state.cardAttributes.user[u.id];
       return prev && (!card || !card.expanded);
     }, true);
+}
+
+/**
+ * Select whether the current Client Admin has the assigned profit centers needed to create new clients.
+ * @param state Redux store
+ */
+export function userCanCreateClients(state: AccessState) {
+  return state.data.profitCenters.length > 0;
+}
+
+/**
+ * Select the highlighted client Guid.
+ * @param state Redux store
+ */
+export function selectedClientId(state: AccessState) {
+  return state.selected.client;
 }
