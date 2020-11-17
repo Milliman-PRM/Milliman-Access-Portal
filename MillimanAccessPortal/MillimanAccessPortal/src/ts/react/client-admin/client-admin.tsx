@@ -344,7 +344,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="clientCode"
                           label="Client Code"
                           type="text"
-                          value={formData.clientCode}
+                          value={formData.clientCode || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'clientCode', value: event.currentTarget.value });
                           }}
@@ -363,7 +363,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactName"
                           label="Client Contact Name"
                           type="text"
-                          value={formData.contactName}
+                          value={formData.contactName || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactName', value: event.currentTarget.value });
                           }}
@@ -382,7 +382,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="clientContactTitle"
                           label="Client Contact Title"
                           type="text"
-                          value={formData.contactTitle}
+                          value={formData.contactTitle || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactTitle', value: event.currentTarget.value });
                           }}
@@ -401,7 +401,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactEmail"
                           label="Client Contact Email"
                           type="text"
-                          value={formData.contactEmail ? formData.contactEmail : ''}
+                          value={formData.contactEmail || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactEmail', value: event.currentTarget.value });
                           }}
@@ -425,7 +425,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="contactPhone"
                           label="Client Contact Phone"
                           type="text"
-                          value={formData.contactPhone ? formData.contactPhone : ''}
+                          value={formData.contactPhone || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({ field: 'contactPhone', value: event.currentTarget.value });
                           }}
@@ -510,7 +510,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             label="Approved Email Address Exception List"
                             type="text"
                             list={formData.acceptedEmailAddressExceptionList}
-                            value={null}
+                            value={''}
                             addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (!isEmailAddressValid(item)) {
                                 toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
@@ -551,7 +551,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="consultantName"
                           label="Primary Consultant"
                           type="text"
-                          value={formData.consultantName}
+                          value={formData.consultantName || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantName',
@@ -573,7 +573,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="consultantEmail"
                           label="Consultant Email"
                           type="text"
-                          value={formData.consultantEmail ? formData.consultantEmail : ''}
+                          value={formData.consultantEmail || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantEmail',
@@ -600,7 +600,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                           name="office"
                           label="Office"
                           type="text"
-                          value={formData.consultantOffice}
+                          value={formData.consultantOffice || ''}
                           onChange={(event) => {
                             this.props.setFormFieldValue({
                               field: 'consultantOffice',
@@ -826,7 +826,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   >
                     <use xlinkHref="#user" />
                   </svg>
-                  {entity.userRoles && entity.userRoles[RoleEnum.Admin].isAssigned ?
+                  {entity.userRoles &&
+                    entity.userRoles[RoleEnum.Admin] &&
+                    entity.userRoles[RoleEnum.Admin].isAssigned ?
                     <svg
                       className="card-user-role-indicator"
                       style={{
@@ -914,83 +916,84 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </CardSectionButtons> : null
                   }
                 </CardSectionMain>
-                <CardExpansion
-                  label={'User roles'}
-                  expanded={card && card.expanded}
-                  setExpanded={(value) => value
-                    ? this.props.setExpandedUser({ id: entity.id })
-                    : this.props.setCollapsedUser({ id: entity.id })}
-                >
-                  <Checkbox
-                    name={'Client Admin'}
-                    selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                  <Checkbox
-                    name={'Content Access Admin'}
-                    selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({
-                        roleEnum: RoleEnum.ContentAccessAdmin,
-                        isAssigned: checked,
-                      });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                  <Checkbox
-                    name={'Content Publisher'}
-                    selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({
-                        roleEnum: RoleEnum.ContentPublisher,
-                        isAssigned: checked,
-                      });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                  <Checkbox
-                    name={'Content User'}
-                    selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({
-                        roleEnum: RoleEnum.ContentUser,
-                        isAssigned: checked,
-                      });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                  <Checkbox
-                    name={'File Drop Admin'}
-                    selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({
-                        roleEnum: RoleEnum.FileDropAdmin,
-                        isAssigned: checked,
-                      });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                  <Checkbox
-                    name={'File Drop User'}
-                    selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
-                      pending.roles.roleAssignments)}
-                    onChange={(checked) => {
-                      this.props.changeUserRolePending({
-                        roleEnum: RoleEnum.FileDropUser,
-                        isAssigned: checked,
-                      });
-                    }}
-                    readOnly={entity.id !== selected.user || !edit.userEnabled}
-                  />
-                </CardExpansion>
+                {!selected.readonly ?
+                  <CardExpansion
+                    label={'User roles'}
+                    expanded={card && card.expanded}
+                    setExpanded={(value) => value
+                      ? this.props.setExpandedUser({ id: entity.id })
+                      : this.props.setCollapsedUser({ id: entity.id })}
+                  >
+                    <Checkbox
+                      name={'Client Admin'}
+                      selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                    <Checkbox
+                      name={'Content Access Admin'}
+                      selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentAccessAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                    <Checkbox
+                      name={'Content Publisher'}
+                      selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentPublisher,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                    <Checkbox
+                      name={'Content User'}
+                      selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.ContentUser,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                    <Checkbox
+                      name={'File Drop Admin'}
+                      selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropAdmin,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                    <Checkbox
+                      name={'File Drop User'}
+                      selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
+                        pending.roles.roleAssignments)}
+                      onChange={(checked) => {
+                        this.props.changeUserRolePending({
+                          roleEnum: RoleEnum.FileDropUser,
+                          isAssigned: checked,
+                        });
+                      }}
+                      readOnly={entity.id !== selected.user || !edit.userEnabled}
+                    />
+                  </CardExpansion> : null}
               </Card>
             );
           }}
@@ -1407,7 +1410,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <DropDown
               name="reason"
               label="Reason"
-              value={pending.hitrustReason.reason}
+              value={pending.hitrustReason.reason.toString()}
               values={this.clientRoleChangeHitrustReasons}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                 this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
