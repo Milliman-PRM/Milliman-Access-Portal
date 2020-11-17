@@ -188,18 +188,66 @@ namespace FileDropLib
             return returnVal;
         }
 
-        public static FileDropOperationResult RemoveDirectory(string path,
+        public static FileDropOperationResult RemoveDirectory(string canonicalPath,
                                                               string fileDropName,
                                                               string fileDropRootPath,
                                                               Guid? fileDropId,
                                                               SftpAccount account,
                                                               ApplicationUser user,
-                                                              bool? BeforeExec = null,
+                                                              bool? beforeExec = null,
                                                               int sftpStatus = 0)
         {
             FileDropOperationResult returnVal = (FileDropOperationResult)sftpStatus;
 
-            
+            using (var db = NewMapDbContext)
+            {
+                List<FileDropDirectory> allDirectoryRecordsForFileDrop = db.FileDropDirectory.Where(d => d.FileDropId == fileDropId).ToList();
+                FileDropDirectory requestedDirectory = allDirectoryRecordsForFileDrop.SingleOrDefault(d => d.CanonicalFileDropPath == canonicalPath);
+                string requestedAbsolutePath = Path.Combine(fileDropRootPath, canonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+                switch (beforeExec)
+                {
+                    case true:
+                        if (!Directory.Exists(requestedAbsolutePath) || requestedDirectory == null)
+                        {
+                            Log.Warning($"OnDirRemove: Requested directory {canonicalPath} at absolute path {requestedAbsolutePath} is not found (database or file system)");
+                            returnVal = FileDropOperationResult.NO_SUCH_PATH;
+                        }
+                        break;
+
+                    case null:
+                    case false:
+                        try
+                        {
+                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, canonicalPath + "%")).ToList();
+
+                            var deleteInventory = new FileDropDirectoryInventoryModel
+                            {
+                                Directories = directoriesToDelete.Select(d => (FileDropDirectoryLogModel)d).ToList(),
+                                Files = db.FileDropFile
+                                          .Where(f => directoriesToDelete.Select(d => d.Id).Contains(f.DirectoryId))
+                                          .ToList(),
+                            };
+
+                            // Cascade on delete behavior will remove all subfolder and contained file records
+                            db.FileDropDirectory.Remove(requestedDirectory);
+                            db.SaveChanges();
+
+                            new AuditLogger().Log(AuditEventType.SftpDirectoryRemoved.ToEvent((FileDropDirectoryLogModel)requestedDirectory,
+                                                                                              deleteInventory,
+                                                                                              new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
+                                                                                              account,
+                                                                                              user), user?.UserName);
+                            Log.Information($"OnDirRemove: Requested directory {canonicalPath} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e, $"Failed to remove directory record with ID {requestedDirectory.Id} or contained file or directory record(s)");
+                            returnVal = FileDropOperationResult.FAILURE;
+                        }
+                        break;
+                }
+            }
 
             return returnVal;
         }

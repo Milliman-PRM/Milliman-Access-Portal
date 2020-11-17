@@ -404,46 +404,15 @@ namespace SftpServerLib
                 evtData.StatusCode = 8;  // SSH_FX_OP_UNSUPPORTED 8
                 return;
             }
-            string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
 
-            using (var db = FileDropOperations.NewMapDbContext)
-            {
-                List<FileDropDirectory> allDirectoryRecordsForFileDrop = db.FileDropDirectory.Where(d => d.FileDropId == connection.FileDropId).ToList();
-                FileDropDirectory requestedDirectory = allDirectoryRecordsForFileDrop.SingleOrDefault(d => d.CanonicalFileDropPath == evtData.Path);
-
-                if (evtData.BeforeExec)
-                {
-                    if (!Directory.Exists(requestedAbsolutePath) || requestedDirectory == null)
-                    {
-                        Log.Warning($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} is not found (database or file system)");
-                        evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
-                        return;
-                    }
-                }
-                else
-                {
-                    List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, requestedCanonicalPath + "%")).ToList();
-
-                    var deleteInventory = new FileDropDirectoryInventoryModel
-                    {
-                        Directories = directoriesToDelete.Select(d => (FileDropDirectoryLogModel)d).ToList(),
-                        Files = db.FileDropFile
-                                  .Where(f => directoriesToDelete.Select(d => d.Id).Contains(f.DirectoryId))
-                                  .ToList(),
-                    };
-
-                    // Cascade on delete behavior will remove all subfolder and contained file records
-                    db.FileDropDirectory.Remove(requestedDirectory);  // This should cascade to all child directory and contained file records
-                    db.SaveChanges();
-
-                    new AuditLogger().Log(AuditEventType.SftpDirectoryRemoved.ToEvent((FileDropDirectoryLogModel)requestedDirectory, 
-                                                                                      deleteInventory, 
-                                                                                      new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName }, 
-                                                                                      connection.Account,
-                                                                                      connection.MapUser), connection.MapUser?.UserName);
-                    Log.Information($"OnDirRemove: Requested directory {evtData.Path} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
-                }
-            }
+            evtData.StatusCode = (int) FileDropOperations.RemoveDirectory(evtData.Path,
+                                                                          connection.FileDropName,
+                                                                          connection.FileDropRootPathAbsolute,
+                                                                          connection.FileDropId,
+                                                                          connection.Account,
+                                                                          connection.MapUser,
+                                                                          evtData.BeforeExec,
+                                                                          evtData.StatusCode);
         }
 
         //[Description("Fires when a client attempts to open a directory for listing.")]
