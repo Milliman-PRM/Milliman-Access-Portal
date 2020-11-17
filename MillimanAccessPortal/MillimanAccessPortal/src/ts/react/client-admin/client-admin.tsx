@@ -296,11 +296,16 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     label="Cancel edit"
                     icon="cancel"
                     action={() => {
-                      this.props.resetFormData({ details });
-                      this.props.resetValidity({});
-                      this.props.setEditStatus({ disabled: true });
-
-                      if (selected.client === 'new') { this.props.selectClient({ id: null }); }
+                      if (formModified) {
+                        this.props.openDiscardEditAfterSelectModal({
+                          newlySelectedClientId: null, // Same client should be selected after cancel.
+                          editAfterSelect: false,
+                          newSubClientParentId: null,
+                          canManageNewlySelectedClient: !selected.readonly,
+                        });
+                      } else {
+                        this.discardChangesOnSelectedClient(details, selected.client);
+                      }
                     }}
                   />
                 }
@@ -1358,18 +1363,21 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
               if (pending.discardEditAfterSelect.newSubClientParentId === null) {
-                this.changeClientFormState(false, false,
-                  selected.client,
-                  pending.discardEditAfterSelect.newlySelectedClientId,
-                  pending.discardEditAfterSelect.canManageNewlySelectedClient,
-                  pending.discardEditAfterSelect.editAfterSelect,
-                  true);
+                if (pending.discardEditAfterSelect.newlySelectedClientId === null) {
+                  this.discardChangesOnSelectedClient(details, selected.client);
+                } else {
+                  this.changeClientFormState(false, false,
+                    selected.client,
+                    pending.discardEditAfterSelect.newlySelectedClientId,
+                    pending.discardEditAfterSelect.canManageNewlySelectedClient,
+                    pending.discardEditAfterSelect.editAfterSelect,
+                    true);
+                }
               } else {
                 this.changeClientFormStateForNewSubClient(false, false,
                   pending.discardEditAfterSelect.newSubClientParentId);
               }
               this.props.closeDiscardEditAfterSelectModal({});
-
             }}
           >
             <div className="button-container">
@@ -1611,6 +1619,13 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
       return entity.userRoles[roleEnum].isAssigned;
     }
     return false;
+  }
+
+  private discardChangesOnSelectedClient(details: ClientDetail, selectedClientId: Guid) {
+    this.props.resetFormData({ details });
+    this.props.resetValidity({});
+    this.props.setEditStatus({ disabled: true });
+    if (selectedClientId === 'new') { this.props.selectClient({ id: null }); }
   }
 }
 
