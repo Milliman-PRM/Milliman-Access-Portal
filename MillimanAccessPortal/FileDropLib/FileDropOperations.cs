@@ -251,6 +251,88 @@ namespace FileDropLib
 
             return returnVal;
         }
+
+        internal static object CreateDirectoryLockObj = new object();
+        public static FileDropOperationResult CreateDirectory(string canonicalPath,
+                                                              string fileDropRootPath,
+                                                              string fileDropName,
+                                                              Guid? fileDropId,
+                                                              Guid? clientId,
+                                                              string clientName,
+                                                              SftpAccount account,
+                                                              ApplicationUser user,
+                                                              bool? beforeExec = null,
+                                                              int sftpStatus = 0)
+        {
+            string requestedCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(canonicalPath);
+            if (string.IsNullOrWhiteSpace(canonicalPath))
+            {
+                Log.Warning($"OnDirCreate event invoked but requested path <{canonicalPath}> is invalid");
+                return FileDropOperationResult.INVALID_FILENAME;
+            }
+
+            string requestedAbsolutePath = Path.Combine(fileDropRootPath, canonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            string parentCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestedCanonicalPath));
+            string parentAbsolutePath = Path.Combine(fileDropRootPath, parentCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+            FileDropOperationResult returnVal = (FileDropOperationResult)sftpStatus;
+
+            using (var db = FileDropOperations.NewMapDbContext)
+            {
+                switch (beforeExec)
+                {
+                    case true:
+                    // Validation:
+                        // 1. Requested directory must not already exist
+                        if (Directory.Exists(requestedAbsolutePath) ||
+                            db.FileDropDirectory.Any(d => d.FileDropId == fileDropId
+                                                       && EF.Functions.ILike(d.CanonicalFileDropPath, requestedCanonicalPath)))
+                        {
+                            Log.Warning($"CreateDirectory invoked but requested path <{canonicalPath}> already exists");
+                            return FileDropOperationResult.FILE_ALREADY_EXISTS;
+                        }
+
+                        // 2. The parent of the requested directory must already exist, including in the database
+                        if (!Directory.Exists(parentAbsolutePath) ||
+                            (!db.FileDropDirectory.Any(d => d.FileDropId == fileDropId 
+                                                         && EF.Functions.ILike(d.CanonicalFileDropPath, parentCanonicalPath))))
+                        {
+                            Log.Warning($"CreateDirectory invoked but parent directory of requested path <{canonicalPath}> does not exist");
+                            return FileDropOperationResult.NO_SUCH_PATH;
+                        }
+                        break;
+
+                    case false:
+                        // Validation:
+                        if (!Directory.Exists(requestedAbsolutePath))
+                        {
+                            Log.Warning($"CreateDirectory invoked, the requested directory does not appear to have been created");
+                            return FileDropOperationResult.FAILURE;
+                        }
+
+                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath));
+                        FileDropDirectory newDirRecord = new FileDropDirectory
+                        {
+                            CanonicalFileDropPath = requestedCanonicalPath,
+                            FileDropId = fileDropId.Value,
+                            ParentDirectoryId = parentRecord?.Id,
+                            Description = string.Empty,
+                        };
+                        db.FileDropDirectory.Add(newDirRecord);
+                        db.SaveChanges();
+
+                        new AuditLogger().Log(AuditEventType.SftpDirectoryCreated.ToEvent(newDirRecord,
+                                                                                          new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
+                                                                                          account,
+                                                                                          new Client { Id = clientId.HasValue ? clientId.Value : Guid.Empty, Name = clientName },
+                                                                                          user), user?.UserName);
+                        Log.Information($"CreateDirectory invoked, directory {requestedCanonicalPath} created relative to absolute file drop root {fileDropRootPath}");
+                        break;
+                }
+            }
+
+            return returnVal;
+        }
     }
 
     public enum RequiredAccess

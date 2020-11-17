@@ -421,7 +421,6 @@ namespace SftpServerLib
             Log.Verbose(GenerateEventArgsLogMessage("DirList", evtData));
         }
 
-        internal static object OnDirCreateLockObj = new object();
         //[Description("Fires when a client wants to create a new directory.")]
         internal static void OnDirCreate(object sender, SftpserverDirCreateEventArgs evtData)
         {
@@ -444,76 +443,16 @@ namespace SftpServerLib
                 return;
             }
 
-            string requestedCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(evtData.Path);
-            if (string.IsNullOrWhiteSpace(requestedCanonicalPath))
-            {
-                Log.Information($"OnDirCreate event invoked but requested path <{evtData.Path}> is invalid");
-                evtData.StatusCode = 8;  // SSH_FX_OP_UNSUPPORTED 8
-                return;
-            }
-            string requestedAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.Path.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-            string parentCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestedCanonicalPath));
-            string parentAbsolutePath = Path.Combine(connection.FileDropRootPathAbsolute, parentCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
-
-            lock (OnDirCreateLockObj)
-            {
-                if (evtData.BeforeExec)
-                {
-                    // Validation:
-                    using (var db = FileDropOperations.NewMapDbContext)
-                    {
-                        // 1. Requested directory must not already exist
-                        if (Directory.Exists(requestedAbsolutePath) ||
-                            db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId
-                                                       && EF.Functions.ILike(requestedCanonicalPath, d.CanonicalFileDropPath)))
-                        {
-                            Log.Warning($"OnDirCreate event invoked but requested path <{evtData.Path}> already exists");
-                            evtData.StatusCode = 11;  // SSH_FX_FILE_ALREADY_EXISTS 11
-                            return;
-                        }
-
-                        // 2. The parent of the requested directory must already exist, including in the database
-                        if (!Directory.Exists(parentAbsolutePath) ||
-                            (!db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath))))
-                        {
-                            Log.Warning($"OnDirCreate event invoked but parent of requested path <{evtData.Path}> does not exist");
-                            evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
-                            return;
-                        }
-                    }
-                }
-                else // after event has been processed
-                { 
-                    using (var db = FileDropOperations.NewMapDbContext)
-                    {
-                        // Validation:
-                        if (!Directory.Exists(requestedAbsolutePath))
-                        {
-                            Log.Warning($"OnDirCreate event invoked, the requested directory does not appear to have been created");
-                            evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                            return;
-                        }
-
-                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath));
-                        FileDropDirectory newDirRecord = new FileDropDirectory
-                        {
-                            CanonicalFileDropPath = requestedCanonicalPath,
-                            FileDropId = connection.FileDropId.Value,
-                            ParentDirectoryId = parentRecord?.Id,
-                            Description = string.Empty,
-                        };
-                        db.FileDropDirectory.Add(newDirRecord);
-                        db.SaveChanges();
-
-                        new AuditLogger().Log(AuditEventType.SftpDirectoryCreated.ToEvent(newDirRecord,
-                                                                                          new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                                                                                          connection.Account,
-                                                                                          new Client { Id = connection.ClientId.Value, Name = connection.ClientName },
-                                                                                          connection.MapUser), connection.MapUser?.UserName);
-                        Log.Information($"DirCreate event invoked, directory {requestedCanonicalPath} created relative to UserRootDirectory { IpWorksSftpServer._sftpServer.Config($"UserRootDirectory[{connection.Id}]")}");
-                    }
-                }
-            }
+            evtData.StatusCode = (int)FileDropOperations.CreateDirectory(evtData.Path,
+                                                                         connection.FileDropRootPathAbsolute,
+                                                                         connection.FileDropName,
+                                                                         connection.FileDropId,
+                                                                         connection.ClientId,
+                                                                         connection.ClientName,
+                                                                         connection.Account,
+                                                                         connection.MapUser,
+                                                                         evtData.BeforeExec,
+                                                                         evtData.StatusCode);
         }
 
         //[Description("Fired when a request for connection comes from a remote host.")]
