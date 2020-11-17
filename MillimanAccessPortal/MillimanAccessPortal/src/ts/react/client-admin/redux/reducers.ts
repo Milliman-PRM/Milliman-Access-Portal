@@ -193,30 +193,6 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
     ...state,
     clients: false,
   }),
-  SAVE_NEW_CLIENT_USER: (state) => ({
-    ...state,
-    clientUsers: true,
-  }),
-  SAVE_NEW_CLIENT_USER_SUCCEEDED: (state) => ({
-    ...state,
-    clientUsers: false,
-  }),
-  SAVE_NEW_CLIENT_USER_FAILED: (state) => ({
-    ...state,
-    clientUsers: false,
-  }),
-  REMOVE_CLIENT_USER: (state) => ({
-    ...state,
-    clientUsers: true,
-  }),
-  REMOVE_CLIENT_USER_SUCCEEDED: (state) => ({
-    ...state,
-    clientUsers: false,
-  }),
-  REMOVE_CLIENT_USER_FAILED: (state) => ({
-    ...state,
-    clientUsers: false,
-  }),
 });
 
 const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initialPendingUserRoleAssignements, {

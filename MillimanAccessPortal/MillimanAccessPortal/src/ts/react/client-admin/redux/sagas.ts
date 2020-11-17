@@ -53,7 +53,7 @@ export default function* rootSaga() {
   yield takeLatestSchedule('REMOVE_CLIENT_USER_SUCCEEDED', () => AccessActionCreators.fetchClients({}));
   yield takeLatestSchedule('EDIT_CLIENT_SUCCEEDED', function*() {
     const selectedClient = yield select(selectedClientId);
-    AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
+    return AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
   });
 
   // Toasts

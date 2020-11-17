@@ -406,6 +406,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             var model = (UserInfoViewModel)RequestedUser;
+            model.UserRoles = Model.RoleAssignments.ToDictionary(ra => (int) ra.RoleEnum);
 
             return Json(model);
         }

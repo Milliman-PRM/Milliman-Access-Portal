@@ -5,7 +5,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.ClientAdminViewModels;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
@@ -17,6 +19,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Email { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
         public bool IsSuspended { get; set; } = false;
+        public Dictionary<int, ClientRoleAssignment>? UserRoles { get; set; }
 
         public static explicit operator UserInfoViewModel(ApplicationUser User)
         {
