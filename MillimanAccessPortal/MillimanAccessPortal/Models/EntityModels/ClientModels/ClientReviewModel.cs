@@ -5,7 +5,6 @@
  */
 
 using MapDbContextLib.Context;
-using MillimanAccessPortal.Models.ClientModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
