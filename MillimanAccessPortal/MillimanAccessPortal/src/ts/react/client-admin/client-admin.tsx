@@ -628,7 +628,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               selectionLabel: pc.name,
                             };
                           })}
-                          value={formData.profitCenterId}
+                          value={formData.profitCenterId || ''}
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                             const profitCenterId = target.value ? target.value : null;
                             this.props.setFormFieldValue({ field: 'profitCenterId', value: profitCenterId });
@@ -1208,7 +1208,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <DropDown
               name="reason"
               label="Reason *"
-              value={''}
+              value={pending.hitrustReason.reason.toString()}
               values={this.addUserHitrustReasons}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                 this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });
@@ -1264,7 +1264,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
             <DropDown
               name="reason"
               label="Reason"
-              value={null}
+              value={pending.hitrustReason.reason.toString()}
               values={this.removeUserHitrustReasons}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                 this.props.setRoleChangeReason({ reason: parseInt(target.value, 10) });

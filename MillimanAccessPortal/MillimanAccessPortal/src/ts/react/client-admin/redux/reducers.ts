@@ -27,7 +27,7 @@ const _initialPendingUserRoleAssignements: PendingUserRoleAssignments = {
   roleAssignments: [],
 };
 const _initialHitrustReason: PendingHitrustReason = {
-  reason: null,
+  reason: 0,
 };
 const _initialPendingDeleteClient: PendingDeleteClientState = {
   id: null,
