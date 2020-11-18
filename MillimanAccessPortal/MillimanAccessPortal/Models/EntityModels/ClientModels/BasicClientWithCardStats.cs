@@ -6,7 +6,7 @@
 
 using MapDbContextLib.Context;
 
-namespace MillimanAccessPortal.Models.ClientModels
+namespace MillimanAccessPortal.Models.EntityModels.ClientModels
 {
     public class BasicClientWithCardStats : BasicClient
     {

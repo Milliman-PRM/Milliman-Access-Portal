@@ -392,6 +392,7 @@ namespace MillimanAccessPortal
 
             // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ClientAdminQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
 

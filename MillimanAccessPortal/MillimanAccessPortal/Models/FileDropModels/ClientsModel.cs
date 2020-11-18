@@ -4,7 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using MillimanAccessPortal.Models.ClientModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;

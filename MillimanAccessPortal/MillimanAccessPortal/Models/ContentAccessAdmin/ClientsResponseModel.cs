@@ -1,4 +1,4 @@
-﻿using MillimanAccessPortal.Models.ClientModels;
+﻿using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.UserModels;
 using System;
 using System.Collections.Generic;

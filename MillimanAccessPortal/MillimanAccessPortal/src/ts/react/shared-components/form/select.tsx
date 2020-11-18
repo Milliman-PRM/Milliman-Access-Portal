@@ -30,6 +30,7 @@ export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>((prop
             ref={ref}
             className={`form-input ${!props.value ? '' : 'item-selected'}`}
             disabled={readOnly}
+            value={''}
             {...rest}
           >
             <option value="">{placeholderText || 'Select a ' + label}</option>

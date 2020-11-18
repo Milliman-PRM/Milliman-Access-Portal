@@ -16,7 +16,6 @@ namespace MapDbContextLib.Context
     public class Client
     {
         [Key]
-        [HiddenInput]
         [Display(Name = "Client ID")]
         public Guid Id { get; set; }
 

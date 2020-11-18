@@ -95,6 +95,7 @@ namespace MapTests
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
         public IUrlHelper UrlHelper { get; set; } = default;
+        public ClientAdminQueries ClientAdminQueries { get; set; } = default;
         #endregion
 
         #region Transient registered services
@@ -241,6 +242,7 @@ namespace MapTests
             services.AddScoped<PublicationQueries>();
             services.AddScoped<AuthorizedContentQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<ClientAdminQueries>();
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
@@ -280,6 +282,7 @@ namespace MapTests
             FileSystemTasks = ScopedServiceProvider.GetService<FileSystemTasks>();
             UploadHelper = ScopedServiceProvider.GetService<IUploadHelper>();
             ClientQueries = ScopedServiceProvider.GetService<ClientQueries>();
+            ClientAdminQueries = ScopedServiceProvider.GetService<ClientAdminQueries>();
             ContentItemQueries = ScopedServiceProvider.GetService<ContentItemQueries>();
             HierarchyQueries = ScopedServiceProvider.GetService<HierarchyQueries>();
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();
@@ -453,6 +456,8 @@ namespace MapTests
                     new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example2.com" } },
                     new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
                     new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new List<string> { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(9), Name="Name9", ClientCode="ClientCode9", ProfitCenterId=TestUtil.MakeTestGuid(1),
+                     ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
                 });
             #endregion
 
@@ -497,6 +502,8 @@ namespace MapTests
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user6"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("AdminOfChildClient"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(7).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(),
+             TestUtil.MakeTestGuid(9).ToString()));
             DbContext.UserClaims.Load();
             #endregion
             #endregion
