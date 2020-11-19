@@ -204,7 +204,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                           list: string[] = [], exceptions: string[] = [], limit: number) {
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
     const overLimit = limit > 0 ? (effectiveListLength >= limit ? true : false) : false;
-    const itemAlreadyExists = list.includes(this.state.currentText.trim());
+    const itemAlreadyExists = _.includes(list, this.state.currentText.trim());
 
     addItemCallback(this.state.currentText, overLimit, itemAlreadyExists);
     this.setState({ currentText: '' });
@@ -213,9 +213,9 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   private getEffectiveListLength(list: string[], exceptions: string[]) {
     const tempList = list.slice();
     tempList.push(this.state.currentText);
-    const numberOfExceptions = tempList.filter((value) => exceptions.includes(value)).length;
+    const numberOfExceptions = tempList.filter((value) => _.includes(exceptions, value)).length;
 
-    if (exceptions.includes(this.state.currentText)) {
+    if (_.includes(exceptions, this.state.currentText)) {
       return tempList.length - numberOfExceptions;
     }
     return tempList.length - numberOfExceptions - 1;

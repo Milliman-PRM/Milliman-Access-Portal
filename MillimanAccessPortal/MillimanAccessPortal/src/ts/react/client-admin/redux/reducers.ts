@@ -199,8 +199,8 @@ const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initia
   OPEN_CREATE_CLIENT_USER_MODAL: () => _initialPendingUserRoleAssignements,
   CHANGE_USER_ROLE_PENDING: (state, action: AccessActions.ChangeUserRolePending) => {
     const currentRoleAssignments = state.roleAssignments;
-    if (currentRoleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum) !== -1) {
-      currentRoleAssignments.splice(state.roleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum), 1);
+    if (_.findIndex(currentRoleAssignments, (ra) => ra.roleEnum === action.roleEnum) !== -1) {
+      currentRoleAssignments.splice(_.findIndex(state.roleAssignments, (ra) => ra.roleEnum === action.roleEnum, 1));
     }
 
     return {
