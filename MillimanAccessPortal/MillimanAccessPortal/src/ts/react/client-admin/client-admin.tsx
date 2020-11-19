@@ -1608,7 +1608,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   private isRoleSelected(roleEnum: RoleEnum, entity: User, selectedUserId: Guid,
                          pendingRoleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>) {
     if (entity && entity.id === selectedUserId || (entity === null && selectedUserId === 'new')) {
-      const role = pendingRoleAssignments.find((ra) => ra.roleEnum === roleEnum);
+      const role = pendingRoleAssignments.filter((ra) => ra.roleEnum === roleEnum)[0];
       if (role) {
         return role.isAssigned;
       }
