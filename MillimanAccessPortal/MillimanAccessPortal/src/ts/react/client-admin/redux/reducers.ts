@@ -304,7 +304,7 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.UpdateAllUserRolesInClientSucceeded) => ({
     ...state,
-    ...state.assignedUsers.find((u) => u.id === action.response.userId).userRoles = action.response.roles,
+    ...state.assignedUsers.filter((u) => u.id === action.response.userId)[0].userRoles = action.response.roles,
   }),
   SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
     ...state,

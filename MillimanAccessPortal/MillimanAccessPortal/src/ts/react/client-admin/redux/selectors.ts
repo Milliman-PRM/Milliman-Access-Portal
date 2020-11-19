@@ -49,7 +49,7 @@ export function isFormModified(state: AccessState) {
  * @param state Redux store.
  */
 export function areRolesModified(state: AccessState) {
-  const currentlySelectedUser = state.data.assignedUsers.find((u) => u.id === state.selected.user);
+  const currentlySelectedUser = state.data.assignedUsers.filter((u) => u.id === state.selected.user)[0];
   if (!currentlySelectedUser) { return false; }
 
   const currentlySelectedRolesAsArray = _.map(currentlySelectedUser.userRoles, (role) => {
