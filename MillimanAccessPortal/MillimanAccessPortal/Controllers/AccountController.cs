@@ -1562,6 +1562,17 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            if (string.IsNullOrWhiteSpace(model.User.FirstName) ||
+                string.IsNullOrWhiteSpace(model.User.LastName) ||
+                string.IsNullOrWhiteSpace(model.User.Employer) ||
+                string.IsNullOrWhiteSpace(model.User.Phone)
+            )
+            {
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");                
+                Response.Headers.Add("Warning", "All account fields are required.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             DbContext.Attach(user);
             using (var txn = await DbContext.Database.BeginTransactionAsync())
             {
