@@ -23,6 +23,11 @@ export interface FileDropUploadState extends UploadState {
   canceled: boolean;
 }
 
+export interface FileAndFolderAttributes {
+  expanded?: boolean;
+  editing?: boolean;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Define State Objects
 // ~~~~~~~~~~~~~~~~~~~~
@@ -108,6 +113,7 @@ export interface FileDropDataState {
 export interface FileDropCardAttributesState {
   clients: Dict<CardAttributes>;
   fileDrops: Dict<CardAttributes>;
+  fileDropContents: Dict<FileAndFolderAttributes>;
 }
 
 /** State representing filter strings */
