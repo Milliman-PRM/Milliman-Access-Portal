@@ -60,6 +60,10 @@
     tr {
         border-bottom: 1px solid $grey;
 
+        &.expanded {
+            border-bottom: none;
+        }
+
         td {
             padding: .5em 0;
         }
