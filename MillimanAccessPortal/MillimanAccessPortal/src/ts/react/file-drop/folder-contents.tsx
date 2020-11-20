@@ -9,6 +9,7 @@ import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { PopupMenu } from '../shared-components/popup-menu';
+import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
 import { FileDropUploadState } from './redux/store';
 
@@ -23,6 +24,8 @@ interface FolderContentsProps {
   beginFileDropUploadCancel: (uploadId: string) => void;
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
   deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
+  expandFileOrFolder: (id: Guid, expanded: boolean) => void;
+  editFileOrFolder: (id: Guid, editing: boolean) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
