@@ -659,10 +659,35 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+/** Reducer for File Drop contents in the cardAttributes state object */
+const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
+  {
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) => ({
+      ..._.mapValues(response.directories, () => ({ editing: false, expanded: false })),
+      ..._.mapValues(response.files, () => ({ editing: false, expanded: false })),
+    }),
+    SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        expanded: action.expanded,
+      },
+    }),
+    SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+        editing: action.editing,
+      },
+    }),
+  },
+);
+
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
   clients: clientCardAttributes,
   fileDrops: fileDropCardAttributes,
+  fileDropContents: fileDropContentAttributes,
 });
 
 // ~~~~~~~~~~~~~~~
