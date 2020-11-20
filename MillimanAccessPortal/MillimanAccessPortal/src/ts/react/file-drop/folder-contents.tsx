@@ -11,7 +11,7 @@ import { ActionIcon } from '../shared-components/action-icon';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { FileDropUploadState } from './redux/store';
+import { FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -20,6 +20,7 @@ interface FolderContentsProps {
   activeUploads: FileDropUploadState[];
   fileDropName: string;
   fileDropId: Guid;
+  fileDropContentAttributes: Dict<FileAndFolderAttributes>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
@@ -114,7 +115,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -141,52 +142,79 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           `FileDropFileId=${file.id}&`,
           `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
         ].join('');
+        const rowClass = fileDropContentAttributes[file.id] &&
+          (fileDropContentAttributes[file.id].editing || fileDropContentAttributes[file.id].expanded) ?
+          'expanded' : null;
         return (
-          <tr key={file.id}>
-            <td className="file-icon">
-              <svg className="content-type-icon">
-                <use xlinkHref={'#file'} />
-              </svg>
-            </td>
-            <td>
-              <a
-                href={encodeURI(fileDownloadURL)}
-                download={true}
-                className="file-download"
+          <>
+            <tr key={file.id} className={rowClass}>
+              <td className="file-icon">
+                <svg className="content-type-icon">
+                  <use xlinkHref={'#file'} />
+                </svg>
+              </td>
+              <td>
+                <a
+                  href={encodeURI(fileDownloadURL)}
+                  download={true}
+                  className="file-download"
+                >
+                  {file.fileName}
+                </a>
+              </td>
+              <td className="col-file-size">{file.size}</td>
+              <td
+                className="col-date-modified"
+                title={
+                  file.uploadDateTimeUtc
+                    ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
+                    : null
+                }
               >
-                {file.fileName}
-              </a>
-            </td>
-            <td className="col-file-size">{file.size}</td>
-            <td
-              className="col-date-modified"
-              title={
-                file.uploadDateTimeUtc
-                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
-                  : null
-              }
-            >
-              {
-                file.uploadDateTimeUtc
-                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
-                  : null
-              }
-            </td>
-            <td className="col-actions">
-              <PopupMenu>
-                <ul>
-                  <li>Edit</li>
-                  <li>Move</li>
-                  <li
-                    className="warning"
-                    onClick={() => this.props.deleteFile(fileDropId, file.id)}
-                  >
-                    Delete
-                  </li>
-                </ul>
-              </PopupMenu>
-            </td>
-          </tr >
+                {
+                  file.uploadDateTimeUtc
+                    ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
+                    : null
+                }
+              </td>
+              <td className="col-actions">
+                {
+                  file.description &&
+                  <ActionIcon
+                    label="View Details"
+                    icon="expand-card"
+                    inline={true}
+                    action={() => this.props.expandFileOrFolder(file.id, true)}
+                  />
+                }
+                <PopupMenu>
+                  <ul>
+                    <li onClick={() => this.props.editFileOrFolder(file.id, true)}>
+                      Edit
+                    </li>
+                    <li>Move</li>
+                    <li
+                      className="warning"
+                      onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                    >
+                      Delete
+                    </li>
+                  </ul>
+                </PopupMenu>
+              </td>
+            </tr >
+            {
+              fileDropContentAttributes[file.id] &&
+              fileDropContentAttributes[file.id].editing &&
+              <>
+                <tr>
+                  <td colSpan={5}>
+                    Editing!
+                  </td>
+                </tr>
+              </>
+            }
+          </>
         );
       } else {
         return (
