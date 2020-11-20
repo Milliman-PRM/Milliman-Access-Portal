@@ -172,6 +172,20 @@ export interface EnterFileDropEditMode {
   id: Guid;
 }
 
+/** Expand or contract the file or folder element in the content table */
+export interface SetFileOrFolderExpansion {
+  type: 'SET_FILE_OR_FOLDER_EXPANSION';
+  id: Guid;
+  expanded: boolean;
+}
+
+/** Set editing status for file or folder element in the content table */
+export interface SetFileOrFolderEditing {
+  type: 'SET_FILE_OR_FOLDER_EDITING';
+  id: Guid;
+  editing: boolean;
+}
+
 /** Exit File Drop edit mode */
 export interface ExitFileDropEditMode {
   type: 'EXIT_FILE_DROP_EDIT_MODE';
@@ -625,6 +639,8 @@ export type FileDropPageActions =
   | FinalizeFileDropUpload
   | EnterFileDropEditMode
   | ExitFileDropEditMode
+  | SetFileOrFolderExpansion
+  | SetFileOrFolderEditing
   ;
 
 /** Actions that schedule another action */

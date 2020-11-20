@@ -111,6 +111,14 @@ export const enterFileDropEditMode =
 export const exitFileDropEditMode =
   createActionCreator<Action.ExitFileDropEditMode>('EXIT_FILE_DROP_EDIT_MODE');
 
+/** Set the File or Folder expansion status */
+export const setFileOrFolderExpansion =
+  createActionCreator<Action.SetFileOrFolderExpansion>('SET_FILE_OR_FOLDER_EXPANSION');
+
+/** Set the File or Folder editing status */
+export const setFileOrFolderEditing =
+  createActionCreator<Action.SetFileOrFolderEditing>('SET_FILE_OR_FOLDER_EDITING');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
