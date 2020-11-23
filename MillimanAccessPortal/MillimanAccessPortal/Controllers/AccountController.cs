@@ -1364,7 +1364,7 @@ namespace MillimanAccessPortal.Controllers
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
                 $"This code will be valid for 5 minutes.";
 
-            _messageSender.QueueEmail(user.Email, "Security Code", message);
+            _messageSender.QueueEmail(user.Email, "Authentication Code", message);
 
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginStepTwoViewModel { Username = user.UserName, ReturnUrl = returnUrl });
