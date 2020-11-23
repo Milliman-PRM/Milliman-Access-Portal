@@ -257,7 +257,9 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <>
                 <tr>
                   <td colSpan={5}>
-                    {file.description}
+                    <div className="file-drop-content-description">
+                      {file.description}
+                    </div>
                   </td>
                 </tr>
               </>
