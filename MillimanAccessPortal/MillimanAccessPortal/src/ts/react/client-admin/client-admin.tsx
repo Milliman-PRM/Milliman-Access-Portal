@@ -64,6 +64,7 @@ interface ClientAdminProps {
   allUsersCollapsed: boolean;
   rolesModified: boolean;
   canCreateClients: boolean;
+  currentUser: string;
   currentlyRemovingOwnAdminRole: boolean;
 }
 
@@ -913,8 +914,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                     this.props.openRemoveUserFromClientModal({
                                       clientId: selected.client,
                                       userId: entity.id,
-                                      name: entity.firstName && entity.lastName ?
-                                        `${entity.firstName} ${entity.lastName}` : entity.email,
+                                      name: entity.email,
                                     });
                                   });
                                 }}
@@ -1054,7 +1054,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details, selected, currentlyRemovingOwnAdminRole } = this.props;
+    const { modals, pending, details, selected, currentlyRemovingOwnAdminRole, currentUser } = this.props;
     return (
       <>
         <Modal
@@ -1272,6 +1272,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 userId: pending.removeClientUser.userId,
                 reason: pending.hitrustReason.reason,
               });
+
+              if (pending.removeClientUser.name === currentUser) {
+                this.props.selectClient({ id: null });
+              }
             }}
           >
             <DropDown
@@ -1632,7 +1636,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals, currentUser } = state;
 
   return {
     clients: clientEntities(state),
@@ -1653,6 +1657,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     allUsersCollapsed: allUsersCollapsed(state),
     rolesModified: areRolesModified(state),
     canCreateClients: userCanCreateClients(state),
+    currentUser,
     currentlyRemovingOwnAdminRole: userIsRemovingOwnClientAdminRole(state),
   };
 }
