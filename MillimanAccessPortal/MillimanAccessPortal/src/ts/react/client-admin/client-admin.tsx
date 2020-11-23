@@ -98,6 +98,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   ];
 
   public componentDidMount() {
+    this.props.setCurrentUser({ username: document.getElementById('current-user-email').innerText });
     this.props.fetchProfitCenters({});
     this.props.fetchClients({});
     setUnloadAlert(() => (this.props.edit.userEnabled && this.props.rolesModified)
@@ -1412,7 +1413,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.props.selectUser({ id: null });
               this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
@@ -1616,7 +1616,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     }
 
     if (entity.userRoles) {
-      return entity.userRoles[roleEnum].isAssigned;
+      return entity.userRoles[roleEnum] && entity.userRoles[roleEnum].isAssigned;
     }
     return false;
   }

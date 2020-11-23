@@ -1,11 +1,11 @@
-﻿import { select } from 'redux-saga/effects';
+﻿import { all, put, select } from 'redux-saga/effects';
 
 import * as AccessActionCreators from './action-creators';
 import {
   AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
-import { selectedClientId } from './selectors';
+import { selectedClientId, userIsRemovingOwnClientAdminRole } from './selectors';
 
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
@@ -54,6 +54,16 @@ export default function* rootSaga() {
   yield takeLatestSchedule('EDIT_CLIENT_SUCCEEDED', function*() {
     const selectedClient = yield select(selectedClientId);
     return AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
+  });
+  yield takeLatestSchedule('UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED', function*() {
+    const currentUserRemovingOwnClientAdminRole = yield select(userIsRemovingOwnClientAdminRole);
+    if (currentUserRemovingOwnClientAdminRole) {
+      return yield all([
+        put(AccessActionCreators.fetchClients({})),
+        put(AccessActionCreators.selectClient({ id: null })),
+      ]);
+    }
+    return AccessActionCreators.selectUser({ id: null });
   });
 
   // Toasts

@@ -610,5 +610,8 @@ export const clientAdmin = combineReducers({
   modals,
   filters,
   pending,
+  currentUser: createReducer<string>('', {
+    SET_CURRENT_USER: (_state, action: AccessActions.SetCurrentUser) => action.username,
+  }),
   toastr: toastrReducer,
 });
