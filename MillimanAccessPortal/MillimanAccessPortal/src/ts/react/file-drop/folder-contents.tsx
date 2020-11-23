@@ -188,7 +188,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   file.description &&
                   <ActionIcon
                     label="View Details"
-                    icon="expand-card"
+                    icon={fileAttributes.expanded ? 'collapse-card' : 'expand-card'}
                     inline={true}
                     action={() => this.props.expandFileOrFolder(file.id, !fileAttributes.expanded)}
                   />
