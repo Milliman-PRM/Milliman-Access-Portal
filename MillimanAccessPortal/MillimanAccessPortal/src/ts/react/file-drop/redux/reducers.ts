@@ -678,6 +678,11 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       [action.id]: {
         expanded: true,
         editing: action.editing,
+    UPDATE_FILE_OR_FOLDER_DESCRIPTION: (state, action: Action.UpdateFileOrFolderDescription) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        description: action.description,
       },
     }),
   },
