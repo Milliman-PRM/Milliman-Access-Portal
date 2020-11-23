@@ -1360,9 +1360,9 @@ namespace MillimanAccessPortal.Controllers
 
             // TODO Convert this to html, looking like the prototype
             string message = 
-                $"Your two factor security code for login to Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
+                $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
-                $"This code will be valid for 5 minutes from the time it was first requested.";
+                $"This code will be valid for 5 minutes.";
 
             _messageSender.QueueEmail(user.Email, "Security Code", message);
 
