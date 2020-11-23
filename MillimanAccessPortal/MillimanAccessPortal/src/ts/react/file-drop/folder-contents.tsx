@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
@@ -26,7 +27,8 @@ interface FolderContentsProps {
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
   deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
-  editFileOrFolder: (id: Guid, editing: boolean) => void;
+  editFileOrFolder: (id: Guid, editing: boolean, fileName: string, description: string) => void;
+  updateFileOrFolderDescription: (id: Guid, description: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -142,11 +144,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           `FileDropFileId=${file.id}&`,
           `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
         ].join('');
-        const rowClass = fileDropContentAttributes[file.id] &&
-          (fileDropContentAttributes[file.id].editing || fileDropContentAttributes[file.id].expanded) ?
-          'expanded' : null;
+        const fileAttributes = fileDropContentAttributes[file.id];
+        const editing = fileAttributes && fileAttributes.editing ? true : false;
+        const expanded = fileAttributes && fileAttributes.expanded ? true : false;
+        const rowClass = editing || expanded ? 'expanded' : null;
         return (
-          <>
+          <React.Fragment key={file.id}>
             <tr key={file.id} className={rowClass}>
               <td className="file-icon">
                 <svg className="content-type-icon">
@@ -158,6 +161,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   href={encodeURI(fileDownloadURL)}
                   download={true}
                   className="file-download"
+                  title={file.description ? file.description : null}
                 >
                   {file.fileName}
                 </a>
@@ -179,17 +183,42 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </td>
               <td className="col-actions">
                 {
+                  fileAttributes &&
+                  !fileAttributes.editing &&
                   file.description &&
                   <ActionIcon
                     label="View Details"
                     icon="expand-card"
                     inline={true}
-                    action={() => this.props.expandFileOrFolder(file.id, true)}
+                    action={() => this.props.expandFileOrFolder(file.id, !fileAttributes.expanded)}
+                  />
+                }
+                {
+                  fileAttributes &&
+                  fileAttributes.editing &&
+                  fileAttributes.description !== fileAttributes.descriptionRaw &&
+                  <ActionIcon
+                    label="Submit Changes"
+                    icon="checkmark"
+                    inline={true}
+                    action={() => false}
+                  />
+                }
+                {
+                  editing &&
+                  <ActionIcon
+                    label="Discard Changes"
+                    icon="cancel"
+                    inline={true}
+                    action={() => {
+                      this.props.editFileOrFolder(file.id, false, null, null);
+                      this.props.expandFileOrFolder(file.id, false);
+                    }}
                   />
                 }
                 <PopupMenu>
                   <ul>
-                    <li onClick={() => this.props.editFileOrFolder(file.id, true)}>
+                    <li onClick={() => this.props.editFileOrFolder(file.id, true, file.fileName, file.description)}>
                       Edit
                     </li>
                     <li>Move</li>
@@ -204,21 +233,40 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </td>
             </tr >
             {
-              fileDropContentAttributes[file.id] &&
-              fileDropContentAttributes[file.id].editing &&
+              editing &&
               <>
                 <tr>
                   <td colSpan={5}>
-                    Editing!
+                    <TextAreaInput
+                      error=""
+                      autoFocus={true}
+                      label="Description"
+                      name="description"
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                        this.props.updateFileOrFolderDescription(file.id, target.value)}
+                      value={fileAttributes.description}
+                      maxRows={5}
+                    />
                   </td>
                 </tr>
               </>
             }
-          </>
+            {
+              !editing &&
+              expanded &&
+              <>
+                <tr>
+                  <td colSpan={5}>
+                    {file.description}
+                  </td>
+                </tr>
+              </>
+            }
+          </React.Fragment>
         );
       } else {
         return (
-          <tr key={file.fileName}>
+          <tr key={file.folderId}>
             <td className="file-icon">
               <svg className="content-type-icon">
                 <use xlinkHref={'#file'} />
