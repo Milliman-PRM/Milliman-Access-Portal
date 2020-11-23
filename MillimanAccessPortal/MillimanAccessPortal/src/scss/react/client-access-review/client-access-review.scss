@@ -1,0 +1,194 @@
+﻿@import "../../map_modules/variables";
+
+.client-summary-container,
+.client-review-container {
+    margin: 0;
+    padding: 1em;
+    background-color: $white;
+    overflow: auto;
+
+    .title .action-icon-container-inline {
+        cursor: default;
+    }
+
+    &.review-approaching {
+        border-left: 10px solid $orange;
+
+        .title .action-icon {
+            color: $orange;
+        }
+    }
+
+    &.review-overdue {
+        border-left: 10px solid $red;
+
+        .title .action-icon {
+            color: $red;
+        }
+    }
+
+    .header {
+        width: 100%;
+
+        .title {
+            display: flex;
+            flex-flow: row wrap;
+
+            .title-container {
+                flex: 1 0 auto;
+            }
+
+            .progress-indicator-container {
+                width: 100%;
+            }
+        }
+
+        .client-name,
+        .client-code {
+            display: block;
+            padding: 0;
+            margin: 0;
+        }
+
+        .client-name {
+            font-weight: bold;
+            font-size: 1.75em;
+        }
+
+        .client-code {
+            font-size: 1em;
+            margin-bottom: 1rem;
+        }
+    }
+
+    .details-container {
+        display: flex;
+        flex-flow: row wrap;
+        justify-content: space-between;
+
+        .detail-column {
+            flex: 1 0 auto;
+        }
+    }
+
+    .detail-section,
+    .details-container {
+        margin: 0;
+        padding: 0;
+        margin-bottom: 2.5rem;
+
+        .detail-title {
+            margin: 0;
+            font-size: 1.25em;
+            font-weight: bold;
+        }
+
+        .detail-label,
+        .detail-value-name,
+        .detail-value-email {
+            display: block;
+            letter-spacing: 0.32px;
+        }
+
+        .detail-label {
+            font-size: .75rem;
+            color: $dark-grey;
+        }
+
+        .detail-value-name {
+            font-size: 1.125rem;
+            color: $charcoal;
+        }
+
+        .detail-value-email {
+            font-size: .875rem;
+        }
+
+        .detail-list {
+            padding-left: 1em;
+            list-style: square;
+
+            .list-container {
+                margin-bottom: .25em;
+            }
+        }
+    }
+
+    .access-review-table {
+        width: 100%;
+        margin-bottom: 1em;
+
+        thead {
+            background-color: $light-grey;
+
+            .header-cell {
+                border-bottom: 1px solid $charcoal;
+            }
+
+            .role-column {
+                width: 10%;
+            }
+
+            .name-column {
+                width: 25%;
+            }
+
+            .email-column {
+                width: 30%;
+            }
+
+            .permission-column {
+                width: 15%;
+            }
+        }
+
+        tr {
+            height: 2rem;
+        }
+
+        .table-row-divider {
+            border-bottom: 1px solid $grey;
+        }
+
+        .center-text {
+            text-align: center;
+        }
+
+        .detail-value-name,
+        .detail-value-email {
+            display: inline-block;
+        }
+
+        .detail-value-name {
+            margin-top: .5rem;
+        }
+
+        .detail-value-email {
+            margin-bottom: .5rem;
+        }
+
+        .checkmark {
+            height: 1.5em;
+            width: 1.5em;
+            color: $green;
+        }
+    }
+
+    .attestation-block {
+        padding: 1em 5em;
+
+        .attestation {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+    }
+}
+
+.button-container {
+    padding: 1em;
+    text-align: right;
+
+    .align-left {
+        float: left;
+    }
+}

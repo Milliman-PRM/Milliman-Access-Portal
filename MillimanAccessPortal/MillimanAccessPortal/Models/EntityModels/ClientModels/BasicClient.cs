@@ -1,7 +1,7 @@
 ﻿using MapDbContextLib.Context;
 using System;
 
-namespace MillimanAccessPortal.Models.ClientModels
+namespace MillimanAccessPortal.Models.EntityModels.ClientModels
 {
     /// <summary>
     /// A simplified representation of a Client.

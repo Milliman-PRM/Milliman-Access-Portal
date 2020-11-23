@@ -182,6 +182,7 @@ namespace MillimanAccessPortal
                             IServiceProvider serviceProvider = scope.ServiceProvider;
                             SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
+                            IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
@@ -196,6 +197,19 @@ namespace MillimanAccessPortal
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
                                         Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (_applicationUser.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                {
+                                    // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
+                                        Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -215,7 +229,6 @@ namespace MillimanAccessPortal
                                 else if (!_applicationUser.EmailConfirmed)
                                 {
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
-                                    IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                                     await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request.Scheme, context.Request.Host, appConfig["Global:DefaultNewUserWelcomeText"]);
 
                                     UriBuilder msg = new UriBuilder
@@ -379,16 +392,19 @@ namespace MillimanAccessPortal
 
             // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ClientAdminQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
 
             services.AddScoped<FileDropQueries>();
             services.AddScoped<ClientQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentItemQueries>();
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
 
             //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
             services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
@@ -402,6 +418,7 @@ namespace MillimanAccessPortal
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddHostedService<QueuedReductionPostProcessingHostedService>();
+            services.AddHostedService <SystemMaintenanceHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
 

@@ -38,6 +38,11 @@ namespace MapDbContextLib.Identity
 
         //
         // Summary:
+        //     Gets or sets the user's most recent login date/time
+        public virtual DateTime? LastLoginUtc { get; set; }
+
+        //
+        // Summary:
         //     Gets or sets the user's LastName.
         public virtual string LastName { get; set; }
 

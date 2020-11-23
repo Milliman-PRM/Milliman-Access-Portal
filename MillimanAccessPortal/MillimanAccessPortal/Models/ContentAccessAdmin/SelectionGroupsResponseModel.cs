@@ -1,4 +1,4 @@
-﻿using MillimanAccessPortal.Models.ClientModels;
+﻿using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
