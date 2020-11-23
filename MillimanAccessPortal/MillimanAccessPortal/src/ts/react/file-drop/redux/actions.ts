@@ -184,6 +184,15 @@ export interface SetFileOrFolderEditing {
   type: 'SET_FILE_OR_FOLDER_EDITING';
   id: Guid;
   editing: boolean;
+  fileName: string;
+  description: string;
+}
+
+/** Update the file or folder description value */
+export interface UpdateFileOrFolderDescription {
+  type: 'UPDATE_FILE_OR_FOLDER_DESCRIPTION';
+  id: Guid;
+  description: string;
 }
 
 /** Exit File Drop edit mode */
@@ -641,6 +650,7 @@ export type FileDropPageActions =
   | ExitFileDropEditMode
   | SetFileOrFolderExpansion
   | SetFileOrFolderEditing
+  | UpdateFileOrFolderDescription
   ;
 
 /** Actions that schedule another action */

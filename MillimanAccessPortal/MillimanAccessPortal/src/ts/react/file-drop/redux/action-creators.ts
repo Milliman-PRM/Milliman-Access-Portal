@@ -119,6 +119,10 @@ export const setFileOrFolderExpansion =
 export const setFileOrFolderEditing =
   createActionCreator<Action.SetFileOrFolderEditing>('SET_FILE_OR_FOLDER_EDITING');
 
+/** Update the File or Folder description */
+export const updateFileOrFolderDescription =
+  createActionCreator<Action.UpdateFileOrFolderDescription>('UPDATE_FILE_OR_FOLDER_DESCRIPTION');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
