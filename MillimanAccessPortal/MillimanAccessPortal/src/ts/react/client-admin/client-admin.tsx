@@ -10,7 +10,7 @@ import { toastr } from 'react-redux-toastr';
 import * as AccessActionCreators from './redux/action-creators';
 import {
   allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities,
-  isFormModified, isFormValid, userCanCreateClients, userEntities,
+  isFormModified, isFormValid, userCanCreateClients, userEntities, userIsRemovingOwnClientAdminRole,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -64,6 +64,7 @@ interface ClientAdminProps {
   allUsersCollapsed: boolean;
   rolesModified: boolean;
   canCreateClients: boolean;
+  currentlyRemovingOwnAdminRole: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -470,7 +471,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             name="approvedEmailDomainList"
                             label="Approved Email Domain List"
                             type="text"
-                            limit={3}
+                            limit={formData.domainListCountLimit}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
                             value={''}
@@ -823,11 +824,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 selected={false}
                 disabled={selected.readonly}
-                onSelect={() => {
-                  (card && card.expanded) ?
-                    this.props.setCollapsedUser({ id: entity.id }) :
-                    this.props.setExpandedUser({ id: entity.id });
-                }}
+                onSelect={null}
               >
                 <CardSectionMain>
                   <svg
@@ -1057,7 +1054,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details, selected } = this.props;
+    const { modals, pending, details, selected, currentlyRemovingOwnAdminRole } = this.props;
     return (
       <>
         <Modal
@@ -1419,6 +1416,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
+
+              this.props.selectUser({ id: null });
+              if (currentlyRemovingOwnAdminRole) {
+                this.props.selectClient({ id: null });
+              }
               this.props.closeChangeUserRolesModal({});
             }}
           >
@@ -1651,6 +1653,7 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     allUsersCollapsed: allUsersCollapsed(state),
     rolesModified: areRolesModified(state),
     canCreateClients: userCanCreateClients(state),
+    currentlyRemovingOwnAdminRole: userIsRemovingOwnClientAdminRole(state),
   };
 }
 
