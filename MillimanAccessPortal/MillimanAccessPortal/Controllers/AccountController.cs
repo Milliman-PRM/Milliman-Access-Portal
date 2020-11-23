@@ -176,7 +176,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = returnUrl });
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
                 switch (scheme.Type)
