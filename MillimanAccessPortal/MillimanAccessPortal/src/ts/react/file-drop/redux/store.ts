@@ -26,6 +26,10 @@ export interface FileDropUploadState extends UploadState {
 export interface FileAndFolderAttributes {
   expanded?: boolean;
   editing?: boolean;
+  fileName?: string;
+  description?: string;
+  fileNameRaw?: string;
+  descriptionRaw?: string;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
