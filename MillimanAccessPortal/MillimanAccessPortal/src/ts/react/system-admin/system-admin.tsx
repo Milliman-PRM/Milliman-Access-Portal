@@ -104,7 +104,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       },
       primaryPanel: {
         selected: {
-          column: SystemAdminColumn.USER,
+          column: null,
           card: null,
         },
         cards: null,
@@ -140,7 +140,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         enabled: false,
       },
     };
-    this.fetchPrimaryEntities();
   }
 
   public componentDidUpdate() {
