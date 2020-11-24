@@ -7,6 +7,11 @@ import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
 
+export interface SetCurrentUser {
+  type: 'SET_CURRENT_USER';
+  username: string;
+}
+
 /**
  * Exclusively select the client card specified by id.
  * If id refers to the currently selected card, deselect it.
@@ -415,6 +420,7 @@ export type ErrorAccessAction =
   ;
 
 export type PageAccessAction =
+  | SetCurrentUser
   | SelectClient
   | SelectNewSubClient
   | SetEditStatus

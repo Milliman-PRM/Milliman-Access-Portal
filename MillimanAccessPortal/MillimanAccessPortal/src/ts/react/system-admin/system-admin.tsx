@@ -359,6 +359,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         tooltip="Remove from profit center"
                         onClick={() => {
                           this.handleSecondaryModalOpen();
+                          this.handleSecondaryCardSelected(entity.id);
                           this.setState({
                             profitCenterModal: {
                               open: true,

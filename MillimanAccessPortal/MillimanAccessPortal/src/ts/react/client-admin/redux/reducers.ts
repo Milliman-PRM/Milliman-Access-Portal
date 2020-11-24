@@ -200,7 +200,7 @@ const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initia
   CHANGE_USER_ROLE_PENDING: (state, action: AccessActions.ChangeUserRolePending) => {
     const currentRoleAssignments = state.roleAssignments;
     if (_.findIndex(currentRoleAssignments, (ra) => ra.roleEnum === action.roleEnum) !== -1) {
-      currentRoleAssignments.splice(_.findIndex(state.roleAssignments, (ra) => ra.roleEnum === action.roleEnum, 1));
+      currentRoleAssignments.splice(_.findIndex(state.roleAssignments, (ra) => ra.roleEnum === action.roleEnum), 1);
     }
 
     return {
@@ -610,5 +610,8 @@ export const clientAdmin = combineReducers({
   modals,
   filters,
   pending,
+  currentUser: createReducer<string>('', {
+    SET_CURRENT_USER: (_state, action: AccessActions.SetCurrentUser) => action.username,
+  }),
   toastr: toastrReducer,
 });

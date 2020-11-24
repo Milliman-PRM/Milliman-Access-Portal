@@ -35,7 +35,7 @@ export class AddUserToProfitCenterModal
 
     this.state = {
       email: '',
-      reason: null,
+      reason: 0,
       emailError: false,
     };
 
@@ -76,7 +76,7 @@ export class AddUserToProfitCenterModal
             label="Reason"
             placeholderText="Choose an option..."
             values={this.addAuthorizedUserHitrustReasons}
-            value={this.state.reason}
+            value={this.state.reason.toString()}
             onChange={this.handleHitrustReasonChange}
             error={null}
           />
@@ -143,7 +143,7 @@ export class AddUserToProfitCenterModal
   private resetState() {
     this.setState({
       email: '',
-      reason: null,
+      reason: 0,
       emailError: false,
     });
   }

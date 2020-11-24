@@ -33,7 +33,7 @@ export class RemoveUserFromProfitCenterModal
     super(props);
 
     this.state = {
-      reason: null,
+      reason: 0,
     };
 
     this.handleHitrustReasonChange = this.handleHitrustReasonChange.bind(this);
@@ -49,7 +49,7 @@ export class RemoveUserFromProfitCenterModal
         overlayClassName="modal-overlay"
         onRequestClose={() => {
           this.props.onRequestClose(null);
-          this.setState({ reason: null });
+          this.setState({ reason: 0 });
         }}
       >
         <h3 className="title red">Remove Authorized User</h3>
@@ -60,7 +60,7 @@ export class RemoveUserFromProfitCenterModal
             label="Reason"
             placeholderText="Choose an option..."
             values={this.removeAuthorizedUserHitrustReasons}
-            value={this.state.reason}
+            value={this.state.reason.toString()}
             onChange={this.handleHitrustReasonChange}
             error={null}
             autoFocus={true}
@@ -71,7 +71,7 @@ export class RemoveUserFromProfitCenterModal
               type="button"
               onClick={() => {
                 this.props.onRequestClose(null);
-                this.setState({ reason: null });
+                this.setState({ reason: 0 });
               }}
             >
               Cancel

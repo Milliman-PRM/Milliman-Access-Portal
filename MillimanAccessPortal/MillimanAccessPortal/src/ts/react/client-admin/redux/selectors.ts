@@ -2,6 +2,7 @@
 import { AccessState } from './store';
 
 import { ClientWithStats, User } from '../../models';
+import { RoleEnum } from '../../shared-components/interfaces';
 
 /**
  * Determines whether the form has the necessary fields filled out in order to submit.
@@ -219,4 +220,14 @@ export function userCanCreateClients(state: AccessState) {
  */
 export function selectedClientId(state: AccessState) {
   return state.selected.client;
+}
+
+/**
+ * Select whether the most recent role changes involve the current user removing their own client admin role.
+ * @param state Redux store
+ */
+export function userIsRemovingOwnClientAdminRole(state: AccessState) {
+  const userWithPendingRoleChanges = _.find(state.data.assignedUsers, (u) => u.id === state.selected.user);
+  return userWithPendingRoleChanges && state.currentUser === userWithPendingRoleChanges.email &&
+    _.some(state.pending.roles.roleAssignments, { roleEnum: RoleEnum.Admin, isAssigned: false });
 }
