@@ -284,11 +284,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
             2006, "Client role assigned", (client, user, roles, reasonVal) =>
             {
-                List<int> acceptableReasons = HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
 
                 if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of user from client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
                 }
                 HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
 
@@ -315,11 +315,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
             2007, "Client role removed", (client, user, roles, reasonVal) =>
             {
-                List<int> acceptableReasons = HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
 
                 if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of user from client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
                 }
                 HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
 
