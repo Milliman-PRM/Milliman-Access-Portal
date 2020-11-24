@@ -77,41 +77,115 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFolders() {
-    const { directories, fileDropId, navigateTo } = this.props;
+    const { directories, fileDropId, fileDropContentAttributes, navigateTo } = this.props;
     return directories.map((directory) => {
       const [folderName] = directory.canonicalPath.split('/').slice(-1);
+      const folderAttributes = fileDropContentAttributes[directory.id];
+      const editing = folderAttributes && folderAttributes.editing ? true : false;
+      const expanded = folderAttributes && folderAttributes.expanded ? true : false;
+      const rowClass = editing || expanded ? 'expanded' : null;
       return (
-        <tr className="folder-row" key={directory.id}>
-          <td className="folder-icon">
-            <svg className="content-type-icon">
-              <use xlinkHref={'#folder'} />
-            </svg>
-          </td>
-          <td>
-            <span
-              className="folder"
-              onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
-            >
-              {folderName}
-            </span>
-          </td>
-          <td className="col-file-size" />
-          <td className="col-date-modified" />
-          <td className="col-actions">
-            <PopupMenu>
-              <ul>
-                <li>Edit</li>
-                <li>Move</li>
-                <li
-                  className="warning"
-                  onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
-                >
-                  Delete
-                </li>
-              </ul>
-            </PopupMenu>
-          </td>
-        </tr>
+        <React.Fragment key={directory.id}>
+          <tr className={`folder-row ${rowClass}`}>
+            <td className="folder-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#folder'} />
+              </svg>
+            </td>
+            <td>
+              <span
+                className="folder"
+                onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+              >
+                {folderName}
+              </span>
+            </td>
+            <td className="col-file-size" />
+            <td className="col-date-modified" />
+            <td className="col-actions">
+              {
+                folderAttributes &&
+                !folderAttributes.editing &&
+                directory.description &&
+                <ActionIcon
+                  label="View Details"
+                  icon={folderAttributes.expanded ? 'collapse-card' : 'expand-card'}
+                  inline={true}
+                  action={() => this.props.expandFileOrFolder(diirectory.id, !folderAttributes.expanded)}
+                />
+              }
+              {
+                folderAttributes &&
+                folderAttributes.editing &&
+                folderAttributes.description !== folderAttributes.descriptionRaw &&
+                <ActionIcon
+                  label="Submit Changes"
+                  icon="checkmark"
+                  inline={true}
+                  action={() => false}
+                />
+              }
+              {
+                editing &&
+                <ActionIcon
+                  label="Discard Changes"
+                  icon="cancel"
+                  inline={true}
+                  action={() => {
+                    this.props.editFileOrFolder(directory.id, false, null, null);
+                    this.props.expandFileOrFolder(directory.id, false);
+                  }}
+                />
+              }
+              <PopupMenu>
+                <ul>
+                  <li onClick={() => this.props.editFileOrFolder(directory.id, true, null, directory.description)}>
+                    Edit
+                      </li>
+                  <li>Move</li>
+                  <li
+                    className="warning"
+                    onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                  >
+                    Delete
+                  </li>
+                </ul>
+              </PopupMenu>
+            </td>
+          </tr>
+          {
+            editing &&
+            <>
+              <tr>
+                <td colSpan={5}>
+                  <TextAreaInput
+                    error=""
+                    autoFocus={true}
+                    label="Description"
+                    name="description"
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                      this.props.updateFileOrFolderDescription(directory.id, target.value)}
+                    value={folderAttributes.description}
+                    maxRows={5}
+                  />
+                </td>
+              </tr>
+            </>
+          }
+          {
+            !editing &&
+            expanded &&
+            <>
+              <tr>
+                <td colSpan={5}>
+                  <div className="file-drop-content-description">
+                    {directory.description}
+                  </div>
+                </td>
+              </tr>
+            </>
+          }
+        </React.Fragment>
       );
     });
   }
@@ -150,7 +224,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         const rowClass = editing || expanded ? 'expanded' : null;
         return (
           <React.Fragment key={file.id}>
-            <tr key={file.id} className={rowClass}>
+            <tr className={rowClass}>
               <td className="file-icon">
                 <svg className="content-type-icon">
                   <use xlinkHref={'#file'} />
