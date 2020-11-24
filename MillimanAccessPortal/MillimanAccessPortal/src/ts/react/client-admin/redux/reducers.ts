@@ -62,7 +62,7 @@ const _initialDetails: ClientDetail = {
   clientContactTitle: '',
   clientContactEmail: null,
   clientContactPhone: null,
-  domainListCountLimit: 0,
+  domainListCountLimit: 3,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenter: {
@@ -92,7 +92,7 @@ const _initialFormData: AccessStateBaseFormData = {
   contactTitle: '',
   contactEmail: null,
   contactPhone: null,
-  domainListCountLimit: 0,
+  domainListCountLimit: 3,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
