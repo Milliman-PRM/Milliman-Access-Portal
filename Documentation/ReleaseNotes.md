@@ -2,6 +2,15 @@
 
 ## Release Notes
 
+### v1.10.0
+
+- Introduced HITRUST compliance features
+  - Two factor authentication for all users
+  - Logging of administrator selected reasons for all user role changes
+  - Periodic administrative reviews of user access for all clients
+- Locking of user accounts after 1 year of inactivity
+- 
+
 #### v1.9.3
 
 - Added a workaround for an uncommon problem where a user password reset cannot be submitted
