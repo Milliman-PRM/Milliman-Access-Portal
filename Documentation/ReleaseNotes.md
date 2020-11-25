@@ -9,6 +9,8 @@
   - Logging of administrator selected reasons for all user role changes
   - Periodic administrative reviews of user access for all clients
   - Locking of user accounts after 1 year of inactivity
+- Fixed a bug that allowed a user to remove employer and phone number information from their user profile
+- Fixed a bug that included Clients in the file drop view for which a past file drop authorization had been revoked
 
 #### v1.9.3
 
