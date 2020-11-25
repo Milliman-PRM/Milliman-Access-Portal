@@ -8,8 +8,7 @@
   - Two factor authentication for all users
   - Logging of administrator selected reasons for all user role changes
   - Periodic administrative reviews of user access for all clients
-- Locking of user accounts after 1 year of inactivity
-- 
+  - Locking of user accounts after 1 year of inactivity
 
 #### v1.9.3
 
