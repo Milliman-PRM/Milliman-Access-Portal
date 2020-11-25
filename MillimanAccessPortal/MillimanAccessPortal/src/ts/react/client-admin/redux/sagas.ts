@@ -5,7 +5,7 @@ import {
   AccessAction, ErrorAccessAction, RequestAccessAction, ResponseAccessAction,
 } from './actions';
 import * as api from './api';
-import { selectedClientId } from './selectors';
+import { selectedClientId, userIsRemovingOwnClientAdminRole } from './selectors';
 
 import {
   createTakeEveryToast, createTakeLatestRequest, createTakeLatestSchedule,
@@ -54,6 +54,11 @@ export default function* rootSaga() {
   yield takeLatestSchedule('EDIT_CLIENT_SUCCEEDED', function*() {
     const selectedClient = yield select(selectedClientId);
     return AccessActionCreators.fetchClientDetails({ clientId: selectedClient });
+  });
+  yield takeLatestSchedule('UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED', function*() {
+    if (userIsRemovingOwnClientAdminRole) {
+      return AccessActionCreators.fetchClients({});
+    }
   });
 
   // Toasts

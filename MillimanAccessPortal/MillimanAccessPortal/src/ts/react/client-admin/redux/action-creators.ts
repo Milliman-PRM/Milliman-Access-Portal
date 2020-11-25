@@ -4,6 +4,9 @@ import {
     createActionCreator, createRequestActionCreator,
 } from '../../shared-components/redux/action-creators';
 
+export const setCurrentUser =
+  createActionCreator<AccessActions.SetCurrentUser>('SET_CURRENT_USER');
+
 // Page actions
 export const selectClient =
   createActionCreator<AccessActions.SelectClient>('SELECT_CLIENT');

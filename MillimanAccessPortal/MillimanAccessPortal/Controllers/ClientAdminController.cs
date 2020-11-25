@@ -917,12 +917,25 @@ namespace MillimanAccessPortal.Controllers
                                                                              .Where(r => r.ClientId == RequestedClient.Id)
                                                                              .ToListAsync();
 
+            List<SftpAccount> sftpAccounts = await DbContext.SftpAccount
+                                                            .Where(a => a.ApplicationUserId == RequestedUser.Id)
+                                                            .Where(a => a.FileDrop.ClientId == RequestedClient.Id)
+                                                            .ToListAsync();
+
+            List<FileDropUserPermissionGroup> permissionGroups = await DbContext.FileDropUserPermissionGroup
+                                                                                .Where(g => g.IsPersonalGroup)
+                                                                                .Where(g => g.SftpAccounts.All(a => a.ApplicationUserId == RequestedUser.Id))
+                                                                                .Where(g => g.FileDrop.ClientId == RequestedClient.Id)
+                                                                                .ToListAsync();
+
             try
             {
                 DbContext.UserInSelectionGroup.RemoveRange(AllSelectionGroupAssignments);
                 DbContext.UserRoleInRootContentItem.RemoveRange(AllRootContentItemAssignments);
                 DbContext.UserRoleInClient.RemoveRange(AllClientRoleAssignments);
                 DbContext.UserClaims.RemoveRange(UserClaims);
+                DbContext.SftpAccount.RemoveRange(sftpAccounts);
+                DbContext.FileDropUserPermissionGroup.RemoveRange(permissionGroups);
 
                 await DbContext.SaveChangesAsync();
             }
