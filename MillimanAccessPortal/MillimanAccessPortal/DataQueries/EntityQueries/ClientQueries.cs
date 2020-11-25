@@ -2,7 +2,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
-using MillimanAccessPortal.Models.ClientModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -123,11 +123,12 @@ namespace MillimanAccessPortal.DataQueries
                                                                                         && r.UserId == userId.Value);
                 }
                 clientWith.ContentItemCount = await _dbContext.RootContentItem.CountAsync(i => i.ClientId == client.Id);
-                clientWith.UserCount = await _dbContext.UserRoleInClient
-                    .Where(r => r.ClientId == client.Id)
-                    .Where(r => r.Role.RoleEnum == RoleEnum.ContentUser)
+                clientWith.UserCount = await _dbContext.UserClaims
+                    .Where(r => r.ClaimValue == client.Id.ToString())
+                    .Where(r => r.ClaimType == ClaimNames.ClientMembership.ToString())
+                    .Select(r => r.UserId)
+                    .Distinct()
                     .CountAsync();
-
                 clientsWith.Add(clientWith);
             }
             return clientsWith;
@@ -151,6 +152,7 @@ namespace MillimanAccessPortal.DataQueries
                     Code = client.Code,
                     ContentItemCount = client.ContentItemCount,
                     UserCount = client.UserCount,
+                    CanManage = client.CanManage,
                 };
 
                 clientWith.EligibleUsers = await _dbContext.UserRoleInClient
@@ -179,7 +181,7 @@ namespace MillimanAccessPortal.DataQueries
             }
 
             var clients = await SelectClientWhereRoleAsync(user, role);
-            var clientsWithStats = await AddCardStatsAsync(clients);
+            var clientsWithStats = await AddCardStatsAsync(clients, role, user.Id);
             var clientsWithEligibleUsers = await WithEligibleUsersAsync(clientsWithStats);
 
             return clientsWithEligibleUsers;

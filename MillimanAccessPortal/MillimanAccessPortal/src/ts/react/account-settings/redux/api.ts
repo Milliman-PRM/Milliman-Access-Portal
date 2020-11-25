@@ -22,8 +22,8 @@ export type UserInputState = Pick<PendingInputState,
 const userSchema = yup.object<UserInputState>({
   firstName: yup.string().required('This field is required'),
   lastName: yup.string().required('This field is required'),
-  phone: yup.string(),
-  employer: yup.string(),
+  phone: yup.string().required('This field is required'),
+  employer: yup.string().required('This field is required'),
 });
 
 export const fetchUser =
