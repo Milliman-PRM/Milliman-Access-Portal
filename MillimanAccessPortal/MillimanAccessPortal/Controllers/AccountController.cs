@@ -176,7 +176,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { ReturnUrl = returnUrl });
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
                 AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                 properties.SetString("username", userName);
                 switch (scheme.Type)
@@ -437,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
 
                         Log.Information($"Initial user {model.Email} account created new with password.");
                         _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
-                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin));
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin, HitrustReason.InitialSystemUser.NumericValue));
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
@@ -1360,11 +1360,11 @@ namespace MillimanAccessPortal.Controllers
 
             // TODO Convert this to html, looking like the prototype
             string message = 
-                $"Your two factor security code for login to Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
+                $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
-                $"This code will be valid for 5 minutes from the time it was first requested.";
+                $"This code will be valid for 5 minutes.";
 
-            _messageSender.QueueEmail(user.Email, "Security Code", message);
+            _messageSender.QueueEmail(user.Email, "Authentication Code", message);
 
             ViewData["ReturnUrl"] = returnUrl;
             return View(new LoginStepTwoViewModel { Username = user.UserName, ReturnUrl = returnUrl });
@@ -1560,6 +1560,17 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {User.Identity.Name} not found, aborting");
                 return BadRequest();
+            }
+
+            if (string.IsNullOrWhiteSpace(model.User.FirstName) ||
+                string.IsNullOrWhiteSpace(model.User.LastName) ||
+                string.IsNullOrWhiteSpace(model.User.Employer) ||
+                string.IsNullOrWhiteSpace(model.User.Phone)
+            )
+            {
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");                
+                Response.Headers.Add("Warning", "All account fields are required.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
             DbContext.Attach(user);
