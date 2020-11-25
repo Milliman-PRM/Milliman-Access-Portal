@@ -36,5 +36,6 @@ namespace MapDbContextLib.Context
         public Client Client { get; set; }
 
         public IEnumerable<SftpAccount> SftpAccounts { get; set; }
+        public IEnumerable<FileDropUserPermissionGroup> PermissionGroups { get; set; } = new List<FileDropUserPermissionGroup>();
     }
 }

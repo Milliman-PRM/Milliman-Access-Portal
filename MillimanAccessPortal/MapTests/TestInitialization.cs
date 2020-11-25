@@ -82,6 +82,7 @@ namespace MapTests
         public IAuthenticationSchemeProvider AuthenticationSchemeProvider { get; private set; } = default;
         public StandardQueries StandardQueries { get; set; } = default;
         public ContentAccessAdminQueries ContentAccessAdminQueries { get; set; } = default;
+        public ClientAccessReviewQueries ClientAccessReviewQueries { get; set; } = default;
         public ContentPublishingAdminQueries ContentPublishingAdminQueries { get; set; } = default;
         public FileDropQueries FileDropQueries { get; set; } = default;
         public ClientQueries ClientQueries { get; set; } = default;
@@ -90,8 +91,11 @@ namespace MapTests
         public SelectionGroupQueries SelectionGroupQueries { get; set; } = default;
         public PublicationQueries PublicationQueries { get; set; } = default;
         public UserQueries UserQueries { get; set; } = default;
+        public AuthorizedContentQueries AuthorizedContentQueries { get; set; } = default;
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
+        public IUrlHelper UrlHelper { get; set; } = default;
+        public ClientAdminQueries ClientAdminQueries { get; set; } = default;
         #endregion
 
         #region Transient registered services
@@ -225,18 +229,20 @@ namespace MapTests
             //services.AddScoped<ApplicationDbContext, MockableMapDbContext>();
             services.AddScoped<StandardQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
             services.AddScoped<FileDropQueries>();
             services.AddScoped<FileSystemTasks>();
-            services.AddScoped<IAuditLogger> (p => MockAuditLogger.New().Object);
+            services.AddScoped<IAuditLogger>(p => MockAuditLogger.New().Object);
             services.AddScoped<IUploadHelper, UploadHelper>();
             services.AddScoped<ClientQueries>();
             services.AddScoped<ContentItemQueries>();
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
-            services.AddScoped<PublicationQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<ClientAdminQueries>();
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
@@ -270,16 +276,19 @@ namespace MapTests
             AuthenticationSchemeProvider = ScopedServiceProvider.GetService<IAuthenticationSchemeProvider>();
             StandardQueries = ScopedServiceProvider.GetService<StandardQueries>();
             ContentAccessAdminQueries = ScopedServiceProvider.GetService<ContentAccessAdminQueries>();
+            ClientAccessReviewQueries = ScopedServiceProvider.GetService<ClientAccessReviewQueries>();
             ContentPublishingAdminQueries = ScopedServiceProvider.GetService<ContentPublishingAdminQueries>();
             FileDropQueries = ScopedServiceProvider.GetService<FileDropQueries>();
             FileSystemTasks = ScopedServiceProvider.GetService<FileSystemTasks>();
             UploadHelper = ScopedServiceProvider.GetService<IUploadHelper>();
             ClientQueries = ScopedServiceProvider.GetService<ClientQueries>();
+            ClientAdminQueries = ScopedServiceProvider.GetService<ClientAdminQueries>();
             ContentItemQueries = ScopedServiceProvider.GetService<ContentItemQueries>();
             HierarchyQueries = ScopedServiceProvider.GetService<HierarchyQueries>();
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();
             PublicationQueries = ScopedServiceProvider.GetService<PublicationQueries>();
             UserQueries = ScopedServiceProvider.GetService<UserQueries>();
+            AuthorizedContentQueries = ScopedServiceProvider.GetService<AuthorizedContentQueries>();
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
             QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
             PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();
@@ -317,7 +326,9 @@ namespace MapTests
                 TestUserClaimsPrincipal.AddIdentity(new ClaimsIdentity(newIdentity));
             }
 
-            return GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
+            ControllerContext returnVal =  GenerateControllerContext(TestUserClaimsPrincipal, requestUriBuilder, requestHeaders);
+
+            return returnVal;
         }
 
         /// <summary>
@@ -325,13 +336,19 @@ namespace MapTests
         /// </summary>
         /// <param name="UserAsClaimsPrincipal">The user to be impersonated in the ControllerContext</param>
         /// <returns></returns>
-        public static ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
+        public ControllerContext GenerateControllerContext(ClaimsPrincipal UserAsClaimsPrincipal, UriBuilder requestUriBuilder = null, Dictionary<string, StringValues> requestHeaders = null)
         {
             ControllerContext returnVal = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() { User = UserAsClaimsPrincipal, },
+                HttpContext = new DefaultHttpContext() 
+                { 
+                    User = UserAsClaimsPrincipal,
+                    RequestServices = ScopedServiceProvider,
+                },
                 ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" }
             };
+
+            SignInManager.Context = returnVal.HttpContext;
 
             if (requestUriBuilder != null)
             {
@@ -409,16 +426,8 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "test3", Email = "test3@example2.com", Employer = "example", FirstName = "FN3", LastName = "LN3", PhoneNumber = "3171234567" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(5), UserName = "user5", Email = "user5@example.com", Employer = "example", FirstName = "FN5", LastName = "LN5", PhoneNumber = "1234567890" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(6), UserName = "user6", Email = "user6@example.com", Employer = "example", FirstName = "FN6", LastName = "LN6", PhoneNumber = "1234567890" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(7), UserName = "AdminOfChildClient", Email = "AdminOfChildClient@example.com", Employer = "example", FirstName = "FN7", LastName = "LN7", PhoneNumber = "1234567890" });
             DbContext.ApplicationUser.Load();
-            #endregion
-
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
-                });
-            */
             #endregion
 
             #region Initialize ProfitCenters
@@ -447,6 +456,8 @@ namespace MapTests
                     new Client { Id=TestUtil.MakeTestGuid(6), Name="Name6", ClientCode="ClientCode6", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(1),    AcceptedEmailDomainList=new List<string> { "example2.com" } },
                     new Client { Id=TestUtil.MakeTestGuid(7), Name="Name7", ClientCode="ClientCode7", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
                     new Client { Id=TestUtil.MakeTestGuid(8), Name="Name8", ClientCode="ClientCode8", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=TestUtil.MakeTestGuid(7),    AcceptedEmailDomainList=new List<string> { "example.com" } },
+                    new Client { Id=TestUtil.MakeTestGuid(9), Name="Name9", ClientCode="ClientCode9", ProfitCenterId=TestUtil.MakeTestGuid(1),
+                     ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" } },
                 });
             #endregion
 
@@ -473,6 +484,8 @@ namespace MapTests
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(10), ClientId=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(6) },
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(11), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.UserCreator).Id, UserId=TestUtil.MakeTestGuid(2) }, // this record is intentionally without a respective claim
                         new UserRoleInClient { Id=TestUtil.MakeTestGuid(12), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(13), ClientId=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
+                        new UserRoleInClient { Id=TestUtil.MakeTestGuid(14), ClientId=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.Admin).Id, UserId=TestUtil.MakeTestGuid(7) },
                     });
             #endregion
 
@@ -488,6 +501,9 @@ namespace MapTests
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user6"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(8).ToString()));
             await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("user5"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(1).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("AdminOfChildClient"), new Claim(ClaimNames.ClientMembership.ToString(), TestUtil.MakeTestGuid(7).ToString()));
+            await UserManager.AddClaimAsync(await UserManager.FindByNameAsync("ClientAdmin1"), new Claim(ClaimNames.ClientMembership.ToString(),
+             TestUtil.MakeTestGuid(9).ToString()));
             DbContext.UserClaims.Load();
             #endregion
             #endregion
@@ -507,6 +523,7 @@ namespace MapTests
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(8), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                     new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                    new RootContentItem{ Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(7), ContentName="RootContent 6", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                 });
             #endregion
 
@@ -562,6 +579,13 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(5), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(6), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+            });
+            #endregion
+
+            #region Initialize FileDrop
+            DbContext.FileDrop.AddRange(new List<FileDrop>
+            {
+                new FileDrop { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(7), Name="Client 7 File Drop 1", ShortHash="abcd", RootPath = "" },
             });
             #endregion
 
@@ -783,7 +807,7 @@ namespace MapTests
             #endregion
 
             #region Initialize Users
-            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com" });
+            await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(1), UserName = "user1", Email = "user1@example.com", TwoFactorEnabled = true });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(2), UserName = "user2", Email = "user2@example.com", EmailConfirmed = true });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(3), UserName = "user3-confirmed-defaultscheme", Email = "user3@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s=>s.Type==AuthenticationType.Default).Id });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(4), UserName = "user4-confirmed-wsscheme", Email = "user4@example.com", EmailConfirmed = true, AuthenticationSchemeId = DbContext.AuthenticationScheme.Single(s => s.Name == "prmtest").Id });

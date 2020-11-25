@@ -12,7 +12,7 @@
         @{ 
             if (User.Identity.IsAuthenticated)
             {
-                <span id="username">@Html.ActionLink(User.Identity.Name, "AccountSettings", "Account")</span>
+                <span id="username">@Html.ActionLink(User.Identity.Name, "AccountSettings", "Account", null, new { id = "current-user-email" })</span>
             }
         }
     </div>

@@ -13,17 +13,6 @@
             public string Employer { get; set; }
         }
 
-        public class PasswordModel
-        {
-            public string Current { get; set; }
-
-            public string New { get; set; }
-
-            public string Confirm { get; set; }
-        }
-
         public UserModel User { get; set; }
-
-        public PasswordModel Password { get; set; }
     }
 }

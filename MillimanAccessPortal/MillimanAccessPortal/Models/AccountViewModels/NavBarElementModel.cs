@@ -18,5 +18,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         [Required]
         public string Icon { get; set; }
+
+        public int? BadgeNumber { get; set; } = null;
     }
 }

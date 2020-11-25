@@ -8,7 +8,8 @@ module.exports = {
   entry: {
     'account-settings': './src/ts/react/account-settings/index.tsx',
     'authorized-content': './src/ts/react/authorized-content/index.tsx',
-    'client-admin': './src/ts/client-admin.tsx',
+    'client-access-review': './src/ts/react/client-access-review/index.tsx',
+    'client-admin': './src/ts/react/client-admin/index.tsx',
     'content-access-admin': './src/ts/react/content-access-admin/index.tsx',
     'content-disclaimer': './src/ts/content-disclaimer.ts',
     'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
@@ -18,6 +19,7 @@ module.exports = {
     'file-drop': './src/ts/react/file-drop/index.tsx',
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
+    'login-step-two': './src/ts/react/login-step-two/index.tsx',
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
@@ -144,10 +146,16 @@ module.exports = {
       chunks: [ 'commons', 'account-settings' ],
     }),
     new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'ClientAccessReview', 'Index.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'ClientAccessReview', 'Index.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'client-access-review'],
+    }),
+    new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'ClientAdmin', 'Index.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'ClientAdmin', 'Index.cshtml.template'),
       inject: false,
-      chunks: [ 'commons', 'client-admin' ],
+      chunks: ['commons', 'client-admin'],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'ContentAccessAdmin', 'Index.cshtml'),
@@ -196,6 +204,12 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'Login.cshtml.template'),
       inject: false,
       chunks: [ 'commons', 'login' ],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Account', 'LoginStepTwo.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'LoginStepTwo.cshtml.template'),
+      inject: false,
+      chunks: [ 'commons', 'login-step-two' ],
     }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'SystemAdmin', 'Index.cshtml'),

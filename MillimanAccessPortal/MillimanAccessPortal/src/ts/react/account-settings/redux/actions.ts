@@ -1,7 +1,7 @@
 import { ValidationError } from 'yup';
 
 import { UserFull } from '../../models';
-import { PasswordInputState, UserInputState } from './api';
+import { UserInputState } from './api';
 
 export type TSError = any;  // any by necessity due to the nature of try/catch in TypeScript
 
@@ -11,14 +11,8 @@ type UserInputName =
   | 'phone'
   | 'employer'
   ;
-type PasswordInputName =
-  | 'current'
-  | 'new'
-  | 'confirm'
-  ;
 type InputName =
   | UserInputName
-  | PasswordInputName
   ;
 
 /**
@@ -86,7 +80,6 @@ export interface UpdateAccount {
   type: 'UPDATE_ACCOUNT';
   request: {
     user?: UserInputState,
-    password?: PasswordInputState,
   };
 }
 export interface UpdateAccountSucceeded {
@@ -95,6 +88,20 @@ export interface UpdateAccountSucceeded {
 }
 export interface UpdateAccountFailed {
   type: 'UPDATE_ACCOUNT_FAILED';
+  error: TSError;
+}
+export interface RequestPasswordReset {
+  type: 'REQUEST_PASSWORD_RESET';
+  request: {};
+}
+export interface RequestPasswordResetSucceeded {
+  type: 'REQUEST_PASSWORD_RESET_SUCCEEDED';
+  response: {
+    successMessage: string;
+  };
+}
+export interface RequestPasswordResetFailed {
+  type: 'REQUEST_PASSWORD_RESET_FAILED';
   error: TSError;
 }
 
@@ -113,25 +120,6 @@ export interface ValidateInputUserSucceeded {
 }
 export interface ValidateInputUserFailed {
   type: 'VALIDATE_INPUT_USER_FAILED';
-  result: ValidationError;
-  inputName?: UserInputName;
-}
-
-/**
- * Validate the password section
- */
-export interface ValidateInputPassword {
-  type: 'VALIDATE_INPUT_PASSWORD';
-  value: PasswordInputState;
-  inputName?: PasswordInputName;
-}
-export interface ValidateInputPasswordSucceeded {
-  type: 'VALIDATE_INPUT_PASSWORD_SUCCEEDED';
-  result: any;
-  inputName?: UserInputName;
-}
-export interface ValidateInputPasswordFailed {
-  type: 'VALIDATE_INPUT_PASSWORD_FAILED';
   result: ValidationError;
   inputName?: UserInputName;
 }
@@ -157,6 +145,7 @@ export type ScheduleAccountAction =
 export type RequestAccountAction =
   | FetchUser
   | UpdateAccount
+  | RequestPasswordReset
   | FetchSessionCheck
   ;
 
@@ -166,6 +155,7 @@ export type RequestAccountAction =
 export type ResponseAccountAction =
   | FetchUserSucceeded
   | UpdateAccountSucceeded
+  | RequestPasswordResetSucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -175,6 +165,7 @@ export type ResponseAccountAction =
 export type ErrorAccountAction =
   | FetchUserFailed
   | UpdateAccountFailed
+  | RequestPasswordResetFailed
   | FetchSessionCheckFailed
   ;
 
@@ -183,7 +174,6 @@ export type ErrorAccountAction =
  */
 export type ValidationAccountAction =
   | ValidateInputUser
-  | ValidateInputPassword
   ;
 
 /**
@@ -192,8 +182,6 @@ export type ValidationAccountAction =
 export type ValidationResultAccountAction =
   | ValidateInputUserSucceeded
   | ValidateInputUserFailed
-  | ValidateInputPasswordSucceeded
-  | ValidateInputPasswordFailed
   ;
 
 /**

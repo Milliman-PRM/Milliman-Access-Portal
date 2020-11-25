@@ -32,7 +32,9 @@ namespace MillimanAccessPortal
             var connectionString = cfg.GetConnectionString("DefaultConnection");
 
             var contextOptionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString, b => b.MigrationsAssembly("MillimanAccessPortal"));
-            return new ApplicationDbContext(contextOptionsBuilder.Options);
+            ApplicationDbContext newContext = new ApplicationDbContext(contextOptionsBuilder.Options);
+
+            return newContext;
         }
     }
 }

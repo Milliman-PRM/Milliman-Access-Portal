@@ -12,7 +12,7 @@ interface PrimaryDetailPanelProps {
   selectedCard: string;
   queryFilter: QueryFilter;
   detail: PrimaryDetail;
-  onPushSystemAdmin: (event: React.MouseEvent<HTMLDivElement>) => void;
+  onPushSystemAdmin: (event: React.MouseEvent<HTMLButtonElement>, checked: boolean) => void;
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
@@ -67,11 +67,19 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                   <div className="detail-section">
                     <h3 className="detail-section-title">System Permissions</h3>
                     <div className="detail-container">
-                      <Toggle
-                        label={'System Admin'}
-                        checked={this.props.checkedSystemAdmin}
-                        onClick={this.props.onPushSystemAdmin}
-                      />
+                      <button
+                        name="systemAdminButton"
+                        className={`systemAdminButton ${this.props.checkedSystemAdmin ? 'red-button' : 'blue-button'}`}
+                        onClick={(event) => this.props.onPushSystemAdmin(event, !this.props.checkedSystemAdmin)}
+                      >
+                        {this.props.checkedSystemAdmin ?
+                          <span>Revoke</span> :
+                          <span>Enable</span>
+                        }
+                      </button>
+                      <label htmlFor="systemAdminButton" style={{ fontSize: '1rem' }}>
+                        System Admin
+                      </label>
                     </div>
                   </div>
                   <div className="detail-section">
@@ -99,7 +107,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Client Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Name</span>
-                      <span className="detail-value">{clientDetail.clientName}</span>
+                      <span className="detail-value">{clientDetail.name}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Code</span>
@@ -152,7 +160,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <h3 className="detail-section-title">Billing Information</h3>
                     <div className="detail-container">
                       <span className="detail-label">Prof. Center</span>
-                      <span className="detail-value">{clientDetail.profitCenter}</span>
+                      <span className="detail-value">{clientDetail.profitCenter.name}</span>
                     </div>
                     <div className="detail-container">
                       <span className="detail-label">Office</span>

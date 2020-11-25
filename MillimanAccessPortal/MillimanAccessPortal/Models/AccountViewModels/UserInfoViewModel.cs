@@ -5,7 +5,9 @@
  */
 
 using System;
+using System.Collections.Generic;
 using MapDbContextLib.Identity;
+using MillimanAccessPortal.Models.ClientAdminViewModels;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {

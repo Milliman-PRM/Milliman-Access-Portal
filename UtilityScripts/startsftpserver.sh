@@ -1,5 +1,5 @@
 #! /bin/sh
 
-/app/certificate-tool add -f /mnt/filedroppk/SPFileDrop.pfx -p $azCertPass -t $thumbprint
+/app/certificate-tool add --file /mnt/filedroppk/SPFileDrop.pfx --password $azCertPass
 
 dotnet /app/SftpServer.dll

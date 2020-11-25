@@ -37,295 +37,347 @@
 }
 
 .form-element-container {
-    position: relative;
-    opacity: 1;
-    width: 100%;
+  position: relative;
+  opacity: 1;
+  width: 100%;
 
-    &.upload-complete {
+  &.upload-complete {
 
-        .form-input-container,
-        .thumbnail-preview {
-            border: 2px solid $green !important;
-        }
-
-        &.thumbnail .form-input-container {
-            border-bottom: none !important;
-        }
-
-        .thumbnail-preview {
-            border-top: none !important;
-        }
+    .form-input-container,
+    .thumbnail-preview {
+      border: 2px solid $green !important;
     }
 
-    &:hover .upload-icon-container .upload-icon .upload.icon.green {
-        color: $green;
+    &.thumbnail .form-input-container {
+      border-bottom: none !important;
+    }
+
+    .thumbnail-preview {
+      border-top: none !important;
+    }
+  }
+
+  &:hover .upload-icon-container .upload-icon .upload.icon.green {
+    color: $green;
+  }
+
+  .upload-icon-container {
+    position: absolute;
+    top: .4rem;
+    right: .25rem;
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: center;
+    align-items: center;
+    height: 2.7rem;
+    padding-left: 1.5em;
+    background-image: linear-gradient(90deg, rgba($white, .4), rgba($white, .8), $white);
+
+    .upload-icon {
+      height: 1.5rem;
+      width: 1.5rem;
+      cursor: pointer;
+      margin-right: .4rem;
+
+      .icon {
+        height: 1.5rem;
+        width: 1.5rem;
+        color: $charcoal;
+
+        &.upload {
+          pointer-events: none;
+        }
+      }
+
+      &:hover .icon {
+        pointer-events: none;
+
+        &.red {
+          color: $red !important;
+        }
+
+        &.blue {
+          color: $blue !important;
+        }
+
+        &.green {
+          color: $green !important;
+        }
+      }
+    }
+
+    .loading-spinner {
+      color: $green;
+      height: 2rem;
+      width: 2rem;
+      margin-right: .3rem;
+    }
+  }
+
+  &.disabled {
+
+    .input-icon-label,
+    .action-icon-label,
+    .form-input-container,
+    .thumbnail-preview {
+      border-color: $grey !important;
+    }
+
+    .input-icon-label {
+      background-color: rgba($blue, .6) !important;
+    }
+
+    .action-icon-label,
+    .form-input-container,
+    .thumbnail-preview {
+      background-color: $off-white !important;
+    }
+
+    &.thumbnail img.thumbnail-preview {
+      cursor: default;
+    }
+
+    .form-input-label,
+    .form-input {
+      color: $grey !important;
+    }
+
+    &.thumbnail .form-element-input .form-input-container {
+      min-height: 1.5em;
+    }
+  }
+
+  &.thumbnail {
+
+    .form-element-input {
+      height: auto;
+      flex-flow: column nowrap;
+
+      .file-upload-input.preview {
+        display: none;
+      }
+
+      .form-input-container {
+        min-height: 2.5em;
+        border-bottom: none;
+      }
     }
 
     .upload-icon-container {
-        position: absolute;
-        top: .4rem;
-        right: .25rem;
-        display: flex;
-        flex-flow: row nowrap;
-        justify-content: center;
-        align-items: center;
-        height: 2.7rem;
-        padding-left: 1.5em;
-        background-image: linear-gradient(90deg, rgba($white, .4), rgba($white, .8), $white);
-
-        .upload-icon {
-            height: 1.5rem;
-            width: 1.5rem;
-            cursor: pointer;
-            margin-right: .4rem;
-
-            .icon {
-                height: 1.5rem;
-                width: 1.5rem;
-                color: $charcoal;
-
-                &.upload {
-                    pointer-events: none;
-                }
-            }
-
-            &:hover .icon {
-                pointer-events: none;
-
-                &.red {
-                    color: $red !important;
-                }
-
-                &.blue {
-                    color: $blue !important;
-                }
-
-                &.green {
-                    color: $green !important;
-                }
-            }
-        }
-
-        .loading-spinner {
-            color: $green;
-            height: 2rem;
-            width: 2rem;
-            margin-right: .3rem;
-        }
+      height: 2em;
     }
 
-    &.disabled {
+    .thumbnail-preview {
+      width: 100%;
+      height: auto;
+      min-height: 1px;
+      cursor: pointer;
+      border: 1px solid $charcoal;
+      border-top: none;
+      background-color: $white;
+    }
+  }
 
-        .input-icon-label,
-        .action-icon-label,
-        .form-input-container,
-        .thumbnail-preview {
-            border-color: $grey !important;
-        }
+  .form-element-input,
+  .form-element-textarea,
+  .form-element-select {
+    position: relative;
+    display: flex;
+    flex-flow: row nowrap;
+    width: 100%;
+    align-self: flex-start;
+    margin-bottom: .5rem;
 
-        .input-icon-label {
-            background-color: rgba($blue, .6) !important;
-        }
-
-        .action-icon-label,
-        .form-input-container,
-        .thumbnail-preview {
-            background-color: $off-white !important;
-        }
-
-        &.thumbnail img.thumbnail-preview {
-            cursor: default;
-        }
-
-        .form-input-label,
-        .form-input {
-            color: $grey !important;
-        }
-
-        &.thumbnail .form-element-input .form-input-container {
-            min-height: 1.5em;
-        }
+    &.error {
+      border: 2px solid $red;
     }
 
-    &.thumbnail {
-
-        .form-element-input {
-            height: auto;
-            flex-flow: column nowrap;
-
-            .file-upload-input.preview {
-                display: none;
-            }
-
-            .form-input-container {
-                min-height: 2.5em;
-                border-bottom: none;
-            }
-        }
-
-        .upload-icon-container {
-            height: 2em;
-        }
-
-        .thumbnail-preview {
-            width: 100%;
-            height: auto;
-            min-height: 1px;
-            cursor: pointer;
-            border: 1px solid $charcoal;
-            border-top: none;
-            background-color: $white;
-        }
+    &.multi-add {
+      height: 75px;
+      max-height: 75px;
     }
 
-    .form-element-input,
-    .form-element-textarea,
-    .form-element-select {
-        position: relative;
-        display: flex;
-        flex-flow: row nowrap;
+    .input-icon-label,
+    .action-icon-label {
+      flex: 0 0 auto;
+      height: 100%;
+      width: 3.5rem;
+      border: 1px solid $charcoal;
+      padding: .5rem;
+
+
+      .input-icon,
+      .action-icon {
+        height: 100%;
         width: 100%;
-        align-self: flex-start;
-        margin-bottom: .5rem;
-
-        &.error {
-            border: 2px solid $red;
-        }
-
-        .input-icon-label,
-        .action-icon-label {
-            flex: 0 0 auto;
-            height: 100%;
-            width: 3.5rem;
-            border: 1px solid $charcoal;
-            padding: .5rem;
-
-
-            .input-icon,
-            .action-icon {
-                height: 100%;
-                width: 100%;
-                color: $white;
-            }
-        }
-
-        .input-icon-label {
-            background-color: $blue;
-            border-right: none;
-        }
-
-        .action-icon-label {
-            cursor: pointer;
-            background-color: $green;
-            border-left: none;
-            margin: 0;
-            border-radius: 0 !important;
-            padding: .5rem !important;
-
-            &:hover {
-                background-color: darken($green, 5%);
-            }
-
-            &.waiting {
-
-                &:hover {
-                    background-color: $green;
-                }
-
-                svg {
-                    animation: rotating 1s linear infinite;
-                }
-            }
-        }
-
-        .form-input-container {
-            flex: 1 0 auto;
-            align-items: flex-start;
-            position: relative;
-            border: 1px solid $charcoal;
-            background-color: $white;
-            margin: 0;
-
-            input.form-input,
-            select.form-input {
-                position: absolute;
-                top: 0;
-                left: 0;
-                height: 100%;
-            }
-
-            textarea.form-input {
-                position: relative;
-            }
-            
-            input.form-input,
-            textarea.form-input,
-            select.form-input {
-                width: 100%;
-                font-size: 1.25rem;
-                border: none;
-                background-color: transparent;
-                color: $charcoal;
-                transition: all .25s;
-
-                &:focus:not([readonly]) {
-
-                    & + .form-input-label {
-                        color: $blue;
-                        font-weight: bold;
-                    }
-                }
-
-                &[value]:not([value='']),
-                &[data-input-value]:not([data-input-value='']),
-                &.item-selected,
-                &:focus {
-                    padding: 1.25rem .5rem .1rem;
-                }
-
-                &[readonly] + .form-input-label,
-                &[disabled] + .form-input-label,
-                &[value]:not([value='']) + .form-input-label,
-                &.item-selected + .form-input-label,
-                &[data-input-value]:not([data-input-value='']) + .form-input-label,
-                &:focus + .form-input-label {
-                    top: 0;
-                    opacity: 1;
-                    transition: opacity .5s, top .5s;
-                }
-
-                &[readonly],
-                &[disabled],
-                &:focus {
-                    &::placeholder {
-                        color: transparent;
-                    }
-                }
-            }
-
-            .form-input-label {
-                position: absolute;
-                top: .25rem;
-                left: 0;
-                padding: .25rem .5rem;
-                font-size: .75rem;
-                font-weight: 300;
-                color: $dark-grey;
-                opacity: 0;
-                pointer-events: none;
-            }
-
-            textarea.form-input + .form-input-label {
-                width: 97%;
-                background-color: inherit;
-            }
-        }
+        color: $white;
+      }
     }
 
-    .form-element-input,
-    .form-element-select {
-        height: 3.5rem;
+    .input-icon-label {
+      background-color: $blue;
+      border-right: none;
     }
+
+    .action-icon-label {
+      cursor: pointer;
+      background-color: $green;
+      border-left: none;
+      margin: 0;
+      border-radius: 0 !important;
+      padding: .5rem !important;
+
+      &:hover {
+        background-color: darken($green, 5%);
+      }
+
+      &.waiting {
+
+        &:hover {
+          background-color: $green;
+        }
+
+        svg {
+          animation: rotating 1s linear infinite;
+        }
+      }
+    }
+
+    .form-input-container {
+      flex: 1 0 auto;
+      align-items: flex-start;
+      position: relative;
+      border: 1px solid $charcoal;
+      background-color: $white;
+      margin: 0;
+
+      input.form-input,
+      select.form-input {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+      }
+
+      textarea.form-input {
+        position: relative;
+      }
+
+      input.form-input-multi-add {
+        position: relative;
+        top: 0;
+        left: 0;
+        height: 100%;
+        border: none;
+        font-size: 1.25em;
+        width: 100px;
+        box-sizing: border-box;
+      }
+
+      input.form-input,
+      textarea.form-input,
+      select.form-input {
+        width: 100%;
+        font-size: 1.25rem;
+        border: none;
+        background-color: transparent;
+        color: $charcoal;
+        transition: all .25s;
+
+        &:focus:not([readonly]) {
+
+          & + .form-input-label {
+            color: $blue;
+            font-weight: bold;
+          }
+        }
+
+        &[value]:not([value='']),
+        &[data-input-value]:not([data-input-value='']),
+        &.item-selected,
+        &:focus {
+          padding: 1.25rem .5rem .1rem;
+        }
+
+        &[readonly] + .form-input-label,
+        &[disabled] + .form-input-label,
+        &[value]:not([value='']) + .form-input-label,
+        &.item-selected + .form-input-label,
+        &[data-input-value]:not([data-input-value='']) + .form-input-label,
+        &:focus + .form-input-label {
+          top: 0;
+          opacity: 1;
+          transition: opacity .5s, top .5s;
+        }
+
+        &[readonly],
+        &[disabled],
+        &:focus {
+          &::placeholder {
+            color: transparent;
+          }
+        }
+      }
+
+      .form-input-label {
+        position: absolute;
+        top: .25rem;
+        left: 0;
+        padding: .25rem .5rem;
+        font-size: .75rem;
+        font-weight: 300;
+        color: $dark-grey;
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      textarea.form-input + .form-input-label {
+        width: 97%;
+        background-color: inherit;
+      }
+    }
+
+    .form-input-container-multi-add {
+      display: flex;
+      border: 1px solid $charcoal;
+    }
+  }
+
+  .form-element-input,
+  .form-element-select {
+    height: 3.5rem;
+  }
+
+  .form-element-multi-add-input {
+    min-height: 3.5rem;
+    border: 1px solid $charcoal;
+
+    .form-input-label {
+      position: absolute;
+      top: .25rem;
+      left: 0;
+      padding: .25rem .5rem;
+      font-size: .75rem;
+      font-weight: 300;
+      color: $dark-grey;
+      pointer-events: none;
+    }
+
+    input.form-input-multi-add {
+      border: none;
+      height: 1.5rem;
+      min-height: 1rem;
+      margin-top: 0.3rem;
+      flex: 1;
+    }
+
+    .multi-add-preview-dropdown {
+      padding: 1px;
+      background-color: lightblue;
+      font-size: 14px;
+      cursor: pointer;
+    }
+  }
 }
 
 .disclaimer-preview-toggle {
@@ -414,6 +466,12 @@
     text-align: right;
 }
 
+.button-left {
+    float: left;
+    margin-left: 0px;
+    padding-left: 0.5em !important;
+}
+
 .form-element-container,
 .button-container {
     position: relative;
@@ -444,4 +502,40 @@
         -o-transform: rotate(360deg);
         transform: rotate(360deg);
     }
+}
+
+.badge-container {
+  display: inline-flex;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+  width: 100%;
+
+  .badge {
+    border-radius: 3px;
+    color: white;
+    padding: 0.2em 0.5em;
+    margin: 0.2em;
+
+    &.badge-primary {
+      background-color: $green;
+
+      &:hover {
+        background-color: darken($green, 5%);
+      }
+    }
+
+    &.badge-secondary {
+      background-color: $blue;
+
+      &:hover {
+        background-color: darken($blue, 10%);
+      }
+    }
+
+    .badge-remove-btn {
+      color: grey;
+      cursor: pointer;
+      margin-left: .2em;
+    }
+  }
 }

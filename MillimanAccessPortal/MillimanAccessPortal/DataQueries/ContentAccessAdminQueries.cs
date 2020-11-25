@@ -1,6 +1,6 @@
 ﻿using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries.EntityQueries;
-using MillimanAccessPortal.Models.ClientModels;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;

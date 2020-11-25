@@ -37,7 +37,6 @@ using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Services;
 using MillimanAccessPortal.Utilities;
-using NetEscapades.AspNetCore.SecurityHeaders;
 using Newtonsoft.Json;
 using PowerBiLib;
 using Prm.EmailQueue;
@@ -45,13 +44,12 @@ using QlikviewLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
-using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace MillimanAccessPortal
 {
@@ -107,7 +105,7 @@ namespace MillimanAccessPortal
 
             if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
-                Log.Error("Multiple configured WsFederation schemes have the same name");
+                Log.Error("Multiple configured authentication schemes have the same name");
             }
 
             AuthenticationBuilder authenticationBuilder = services.AddAuthentication(IdentityConstants.ApplicationScheme);
@@ -184,6 +182,7 @@ namespace MillimanAccessPortal
                             IServiceProvider serviceProvider = scope.ServiceProvider;
                             SignInManager<ApplicationUser> _signInManager = serviceProvider.GetService<SignInManager<ApplicationUser>>();
                             IAuditLogger _auditLogger = serviceProvider.GetService<IAuditLogger>();
+                            IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
@@ -191,13 +190,26 @@ namespace MillimanAccessPortal
 
                                 if (_applicationUser == null)
                                 {
-                                    Log.Warning($"External login succeeded but username {identity.Name} is not in our Identity database");
+                                    Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
                                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
 
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
                                         Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                    };
+                                    context.Response.Redirect(msg.Uri.PathAndQuery);
+                                    return;
+                                }
+                                else if (_applicationUser.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                {
+                                    // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
+
+                                    UriBuilder msg = new UriBuilder
+                                    {
+                                        Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
+                                        Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -217,7 +229,6 @@ namespace MillimanAccessPortal
                                 else if (!_applicationUser.EmailConfirmed)
                                 {
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
-                                    IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                                     await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request.Scheme, context.Request.Host, appConfig["Global:DefaultNewUserWelcomeText"]);
 
                                     UriBuilder msg = new UriBuilder
@@ -230,12 +241,47 @@ namespace MillimanAccessPortal
                                 }
                                 else
                                 {
-                                    await _signInManager.SignInAsync(_applicationUser, false);
+                                    if (_applicationUser.TwoFactorEnabled)
+                                    {
+                                        // This technique duplicates code in inaccessible method SignInManager<TUser>.SignInOrTwoFactorAsync().  We shouldn't 
+                                        // need to do that. There may be a better way to integrate WsFederation using standard external login logic of Identity.
+                                        var userId = await _signInManager.UserManager.GetUserIdAsync(_applicationUser);
+                                        ClaimsIdentity signInIdentity = new ClaimsIdentity( 
+                                            new [] { new Claim(ClaimTypes.AuthenticationMethod, TokenOptions.DefaultEmailProvider), 
+                                                     new Claim(ClaimTypes.Name, userId)}, 
+                                            IdentityConstants.TwoFactorUserIdScheme);
+                                        ClaimsPrincipal signInClaimsPrincipal = new ClaimsPrincipal(signInIdentity);
+
+                                        await _signInManager.Context.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, signInClaimsPrincipal);
+
+                                        string contextReturnUrl = context.ReturnUri
+                                                                         .Split('?', '&')
+                                                                         .SingleOrDefault(q => q.Contains("returnUrl=", StringComparison.InvariantCultureIgnoreCase))
+                                                                      ?? "";
+
+                                        contextReturnUrl = contextReturnUrl ?? "returnUrl=/";
+
+                                        UriBuilder twoFactorUriBuilder = new UriBuilder
+                                        {
+                                            Host = context.Request.Host.Host,
+                                            Scheme = context.Request.Scheme,
+                                            Port = context.Request.Host.Port ?? -1,
+                                            Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
+                                            Query = $"Username={_applicationUser.UserName}&RememberMe=false&{contextReturnUrl}",
+                                        };
+
+                                        context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);
+                                        return;
+                                    }
+                                    else
+                                    {
+                                        await _signInManager.SignInAsync(_applicationUser, false);
+                                    }
                                 }
                             }
                             catch (Exception ex)
                             {
-                                Log.Information(ex, ex.Message);
+                                Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
                                 _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
 
@@ -249,7 +295,20 @@ namespace MillimanAccessPortal
                     #endregion
                 });
             }
-            authenticationBuilder.AddIdentityCookies();
+            authenticationBuilder.AddIdentityCookies(builder =>
+            {
+                builder.TwoFactorUserIdCookie.Configure(options =>
+                {
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(5);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+                });
+                builder.ApplicationCookie.Configure(options =>
+                {
+                    options.LoginPath = "/Account/LogIn";
+                    options.LogoutPath = "/Account/LogOut";
+                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.SlidingExpiration = true;
+                });
+            });
 
             #endregion
 
@@ -287,15 +346,6 @@ namespace MillimanAccessPortal
             services.Configure<DataProtectionTokenProviderOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromDays(accountActivationTokenTimespanDays);
-            });
-
-            // Cookie settings
-            services.ConfigureApplicationCookie(options =>
-            {
-                options.LoginPath = "/Account/LogIn";
-                options.LogoutPath = "/Account/LogOut";
-                options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
-                options.SlidingExpiration = true;
             });
 
             services.Configure<QlikviewConfig>(Configuration);
@@ -349,16 +399,19 @@ namespace MillimanAccessPortal
 
             // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ClientAdminQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
 
             services.AddScoped<FileDropQueries>();
             services.AddScoped<ClientQueries>();
+            services.AddScoped<ClientAccessReviewQueries>();
             services.AddScoped<ContentItemQueries>();
             services.AddScoped<HierarchyQueries>();
             services.AddScoped<SelectionGroupQueries>();
             services.AddScoped<PublicationQueries>();
             services.AddScoped<UserQueries>();
+            services.AddScoped<AuthorizedContentQueries>();
 
             //services.AddSingleton<IOptionsMonitorCache<WsFederationOptions>, OptionsCache<WsFederationOptions>>();
             services.AddSingleton<IPostConfigureOptions<WsFederationOptions>, WsFederationPostConfigureOptions>();
@@ -372,6 +425,7 @@ namespace MillimanAccessPortal
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddHostedService<QueuedPublicationPostProcessingHostedService>();
             services.AddHostedService<QueuedReductionPostProcessingHostedService>();
+            services.AddHostedService <SystemMaintenanceHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddScoped<FileSystemTasks>();
 

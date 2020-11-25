@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using Serilog;
 
 namespace AuditLogLib.Event
 {
@@ -56,6 +57,71 @@ namespace AuditLogLib.Event
 
         [Display(Name = "User removed from selection group")]
         UserRemovedFromSelectionGroup,
+    }
+
+    public class HitrustReason
+    {
+        private static Dictionary<int, HitrustReason> AllReasons;
+
+        public static HitrustReason Unknown;
+        public static HitrustReason NewEmployeeHire;
+        public static HitrustReason NewMapClient;
+        public static HitrustReason ChangeInEmployeeResponsibilities;
+        public static HitrustReason EmployeeTermination;
+        public static HitrustReason ClientRemoval;
+        public static HitrustReason InitialSystemUser;
+        public static List<HitrustReason> ClientAddUserReasons;
+        public static List<HitrustReason> ClientRemoveUserReasons;
+        public static List<HitrustReason> ClientRoleChangeReasons;
+        public static List<HitrustReason> AddProfitCenterAdminReasons;
+        public static List<HitrustReason> RemoveProfitCenterAdminReasons;
+        public static List<HitrustReason> GrantSysAdminReasons;
+        public static List<HitrustReason> RevokeSysAdminReasons;
+
+        static HitrustReason()
+        {
+            AllReasons = new Dictionary<int, HitrustReason>();
+
+            Unknown = new HitrustReason(0, "Unknown");
+            NewEmployeeHire = new HitrustReason(1, "New employee hire");
+            NewMapClient = new HitrustReason(2, "New MAP Client");
+            ChangeInEmployeeResponsibilities = new HitrustReason(3, "Change in employee responsibilities");
+            EmployeeTermination = new HitrustReason(4, "Employee termination");
+            ClientRemoval = new HitrustReason(5, "Client removal");
+            InitialSystemUser = new HitrustReason(100, "Initial system user");
+
+            ClientAddUserReasons = new List<HitrustReason> { NewMapClient, NewEmployeeHire, ChangeInEmployeeResponsibilities };
+            ClientRemoveUserReasons = new List<HitrustReason> { EmployeeTermination, ChangeInEmployeeResponsibilities, ClientRemoval };
+            ClientRoleChangeReasons = new List<HitrustReason> { NewMapClient, NewEmployeeHire, EmployeeTermination, ChangeInEmployeeResponsibilities, ClientRemoval };
+            AddProfitCenterAdminReasons = new List<HitrustReason> { NewMapClient, ChangeInEmployeeResponsibilities };
+            RemoveProfitCenterAdminReasons = new List<HitrustReason> { ClientRemoval, EmployeeTermination, ChangeInEmployeeResponsibilities };
+            GrantSysAdminReasons = new List<HitrustReason> { NewEmployeeHire, ChangeInEmployeeResponsibilities, InitialSystemUser };
+            RevokeSysAdminReasons = new List<HitrustReason> { EmployeeTermination, ChangeInEmployeeResponsibilities };
+        }
+
+        private HitrustReason(int numericValue, string description)
+        {
+            NumericValue = numericValue;
+            Description = description;
+
+            AllReasons.Add(numericValue, this);
+        }
+
+        public int NumericValue { get; private set; }
+        public string Description { get; private set; }
+
+        public static bool TryGetReason(int numericValue, out HitrustReason reason)
+        {
+            if (AllReasons.TryGetValue(numericValue, out reason))
+            {
+                return true;
+            }
+            else
+            {
+                reason = Unknown;
+                return false;
+            }
+        }
     }
     #endregion
 
@@ -144,33 +210,61 @@ namespace AuditLogLib.Event
         #endregion
 
         #region Client Admin [2000 - 2999]
-        public static readonly AuditEventType<Client, ApplicationUser> UserAssignedToClient = new AuditEventType<Client, ApplicationUser>(
-            2001, "User assigned to client", (client, user) => new
+        public static readonly AuditEventType<Client, ApplicationUser, int> UserAssignedToClient = new AuditEventType<Client, ApplicationUser, int>(
+            2001, "User assigned to client", (client, user, reasonVal) =>
             {
-                Client = new
+                if (!HitrustReason.ClientAddUserReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    client.Id,
-                    client.Name,
-                },
-                User = new
-                {
-                    user.Id,
-                    user.UserName,
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of user to client, expected one of <{string.Join(",", HitrustReason.ClientAddUserReasons.Select(r => r.NumericValue.ToString()))}>");
                 }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
+                {
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
-        public static readonly AuditEventType<Client, ApplicationUser> UserRemovedFromClient = new AuditEventType<Client, ApplicationUser>(
-            2002, "User removed from client", (client, user) => new
+        public static readonly AuditEventType<Client, ApplicationUser, int> UserRemovedFromClient = new AuditEventType<Client, ApplicationUser, int>(
+            2002, "User removed from client", (client, user, reasonVal) =>
             {
-                Client = new
+                if (!HitrustReason.ClientRemoveUserReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    client.Id,
-                    client.Name,
-                },
-                User = new
-                {
-                    user.Id,
-                    user.UserName,
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of user from client, expected one of <{string.Join(",", HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue.ToString()))}>");
                 }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
+                {
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
         public static readonly AuditEventType<Client> ClientCreated = new AuditEventType<Client>(
             2003, "Client created", (client) => new
@@ -187,35 +281,67 @@ namespace AuditLogLib.Event
             {
                 Client = client,
             });
-        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
-            2006, "Client role assigned", (client, user, roles) => new
+        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
+            2006, "Client role assigned", (client, user, roles, reasonVal) =>
             {
-                Client = new
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+
+                if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    client.Id,
-                    client.Name,
-                },
-                User = new
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
                 {
-                    user.Id,
-                    user.UserName,
-                },
-                Role = roles.Select(r => r.ToString()),
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Role = roles.Select(r => r.ToString()),
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
-        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>>(
-            2007, "Client role removed", (client, user, roles) => new
+        public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
+            2007, "Client role removed", (client, user, roles, reasonVal) =>
             {
-                Client = new
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+
+                if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    client.Id,
-                    client.Name,
-                },
-                User = new
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
                 {
-                    user.Id,
-                    user.UserName,
-                },
-                Role = roles.Select(r => r.ToString()),
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Role = roles.Select(r => r.ToString()),
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
         #endregion
 
@@ -839,25 +965,53 @@ namespace AuditLogLib.Event
                 IsSuspended = isSuspended,
                 Reason = reason,
             });
-        public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleAssigned = new AuditEventType<ApplicationUser, RoleEnum>(
-            7003, "System role assigned", (user, role) => new
+        public static readonly AuditEventType<ApplicationUser, RoleEnum, int> SystemRoleAssigned = new AuditEventType<ApplicationUser, RoleEnum, int>(
+            7003, "System role assigned", (user, role, reasonVal) =>
             {
-                User = new
+                if (!HitrustReason.GrantSysAdminReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    user.Id,
-                    user.UserName,
-                },
-                Role = role.ToString(),
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of system role {role}, expected one of <{string.Join(",", HitrustReason.GrantSysAdminReasons.Select(r => r.NumericValue.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
+                {
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Role = role.ToString(),
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
-        public static readonly AuditEventType<ApplicationUser, RoleEnum> SystemRoleRemoved = new AuditEventType<ApplicationUser, RoleEnum>(
-            7004, "System role removed", (user, role) => new
+        public static readonly AuditEventType<ApplicationUser, RoleEnum, int> SystemRoleRemoved = new AuditEventType<ApplicationUser, RoleEnum, int>(
+            7004, "System role removed", (user, role, reasonVal) =>
             {
-                User = new
+                if (!HitrustReason.RevokeSysAdminReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    user.Id,
-                    user.UserName,
-                },
-                Role = role.ToString(),
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging revocation of system role {role}, expected one of <{string.Join(",", HitrustReason.RevokeSysAdminReasons.Select(r => r.NumericValue.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
+                {
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Role = role.ToString(),
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
         public static readonly AuditEventType<ProfitCenter> ProfitCenterCreated = new AuditEventType<ProfitCenter>(
             7101, "Profit center created", (profitCenter) => new
@@ -878,33 +1032,61 @@ namespace AuditLogLib.Event
                     profitCenter.Name,
                 }
             });
-        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
-            7104, "User assigned to profit center", (profitCenter, user) => new
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser, int> UserAssignedToProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser, int>(
+            7104, "User assigned to profit center", (profitCenter, user, reasonVal) =>
             {
-                ProfitCenter = new
+                if (!HitrustReason.AddProfitCenterAdminReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    profitCenter.Id,
-                    profitCenter.Name,
-                },
-                User = new
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of profit center admin role, expected one of <{string.Join(",", HitrustReason.AddProfitCenterAdminReasons.Select(r => r.NumericValue.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
                 {
-                    user.Id,
-                    user.UserName,
-                },
+                    ProfitCenter = new
+                    {
+                        profitCenter.Id,
+                        profitCenter.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
-        public static readonly AuditEventType<ProfitCenter, ApplicationUser> UserRemovedFromProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser>(
-            7105, "User removed from profit center", (profitCenter, user) => new
+        public static readonly AuditEventType<ProfitCenter, ApplicationUser, int> UserRemovedFromProfitCenter = new AuditEventType<ProfitCenter, ApplicationUser, int>(
+            7105, "User removed from profit center", (profitCenter, user, reasonVal) =>
             {
-                ProfitCenter = new
+                if (!HitrustReason.RemoveProfitCenterAdminReasons.Any(r => r.NumericValue == reasonVal))
                 {
-                    profitCenter.Id,
-                    profitCenter.Name,
-                },
-                User = new
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of profit center admin role, expected one of <{string.Join(",", HitrustReason.RemoveProfitCenterAdminReasons.Select(r => r.NumericValue.ToString()))}>");
+                }
+                HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
+
+                return new
                 {
-                    user.Id,
-                    user.UserName,
-                },
+                    ProfitCenter = new
+                    {
+                        profitCenter.Id,
+                        profitCenter.Name,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        reasonObj.NumericValue,
+                        reasonObj.Description,
+                    }
+                };
             });
 
         // 72xx - Authentication scheme management
@@ -1079,15 +1261,17 @@ namespace AuditLogLib.Event
             8103, "SFTP Account Removed From Permission Group", (account, permissionGroup, fileDrop) => new
             {
                 SftpAccount = new SftpAccountLogModel(account),
-                PermissionGroup = new
-                {
-                    permissionGroup.Id,
-                    permissionGroup.Name,
-                    permissionGroup.IsPersonalGroup,
-                    permissionGroup.ReadAccess,
-                    permissionGroup.WriteAccess,
-                    permissionGroup.DeleteAccess,
-                },
+                PermissionGroup = permissionGroup == null
+                ? null
+                : new
+                    {
+                        permissionGroup.Id,
+                        permissionGroup.Name,
+                        permissionGroup.IsPersonalGroup,
+                        permissionGroup.ReadAccess,
+                        permissionGroup.WriteAccess,
+                        permissionGroup.DeleteAccess,
+                    },
                 FileDrop = (FileDropLogModel)fileDrop,
             });
 
@@ -1114,6 +1298,9 @@ namespace AuditLogLib.Event
 
             [Display(Description = "The related MAP user has an expired password or is suspended")]
             MapUserBlocked,
+
+            [Display(Description = "The access review deadline for the client related to this file drop has been exceeded")]
+            ClientAccessReviewDeadlineMissed,
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(
@@ -1216,6 +1403,24 @@ namespace AuditLogLib.Event
             });
 
         #endregion
+
+        #region Client Access Review [9000 - 9999]
+        public static readonly AuditEventType<Guid, object> ClientAccessReviewPresented = new AuditEventType<Guid, object>(
+            9001, "Client Access Review Presented", (clientId, reviewModel) => new
+            {
+                ClientId = clientId,
+                Model = reviewModel,
+            });
+
+        public static readonly AuditEventType<Guid, Guid> ClientAccessReviewApproved = new AuditEventType<Guid, Guid>(
+            9002, "Client Access Review Approved", (clientId, clientAccessReviewId) => new
+            {
+                ClientId = clientId,
+                ClientAccessReviewId = clientAccessReviewId,
+            });
+
+        #endregion
+
         #endregion
 
         private readonly Func<object> logObjectTransform;

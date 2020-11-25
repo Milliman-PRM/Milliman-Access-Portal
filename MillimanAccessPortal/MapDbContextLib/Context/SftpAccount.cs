@@ -33,6 +33,8 @@ namespace MapDbContextLib.Context
         [Required]
         public DateTime PasswordResetDateTimeUtc { get; set; }
 
+        public DateTime? LastLoginUtc { get; set; }
+
         [Required]
         public bool IsSuspended { get; set; } = false;
 

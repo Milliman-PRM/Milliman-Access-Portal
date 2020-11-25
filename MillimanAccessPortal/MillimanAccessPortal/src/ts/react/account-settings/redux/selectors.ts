@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { AccountState, AccountStateForm, PendingInputState } from './store';
+import { AccountState, PendingInputState } from './store';
 
 /**
  * Select input values pending submission.
@@ -43,26 +43,6 @@ export function anyUserInputModified(state: AccountState) {
 }
 
 /**
- * Select whether any password input is modified
- * @param state Redux store
- */
-export function anyPasswordInputModified(state: AccountState) {
-  return _.reduce(
-    _.filter(modifiedInputs(state), (__, key) => ['current', 'new', 'confirm'].indexOf(key) !== -1)
-    , (prev, cur) => prev || cur.modified, false);
-}
-
-/**
- * Select whether all password inputs are modified
- * @param state Redux store
- */
-export function allPasswordInputsModified(state: AccountState) {
-  return _.reduce(
-    _.filter(modifiedInputs(state), (__, key) => ['current', 'new', 'confirm'].indexOf(key) !== -1)
-    , (prev, cur) => prev && cur.modified, true);
-}
-
-/**
  * Select whether all user inputs are valid
  * @param state Redux store
  */
@@ -94,9 +74,6 @@ export function inputProps(state: AccountState) {
     lastName: values.lastName,
     phone: values.phone,
     employer: values.employer,
-    currentPassword: values.current,
-    newPassword: values.new,
-    confirmPassword: values.confirm,
   };
 }
 
@@ -111,9 +88,6 @@ export function validProps(state: AccountState) {
     lastName: valid.lastName,
     phone: valid.phone,
     employer: valid.employer,
-    currentPassword: valid.current,
-    newPassword: valid.new,
-    confirmPassword: valid.confirm,
   };
 }
 
@@ -124,7 +98,6 @@ export function validProps(state: AccountState) {
 export function updateProps(state: AccountState) {
   const values = pendingInputValues(state);
   const userModified = anyUserInputModified(state);
-  const passwordModified = anyPasswordInputModified(state);
   return {
     user: userModified
       ? {
@@ -132,13 +105,6 @@ export function updateProps(state: AccountState) {
         lastName: values.lastName,
         phone: values.phone,
         employer: values.employer,
-      }
-      : null,
-    password: passwordModified
-      ? {
-        current: values.current,
-        new: values.new,
-        confirm: values.confirm,
       }
       : null,
   };

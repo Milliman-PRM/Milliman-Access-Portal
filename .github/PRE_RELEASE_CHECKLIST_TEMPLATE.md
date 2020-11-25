@@ -71,7 +71,7 @@ Completed by: ___________
 
 ##### Tasks
 
-- [ ] Schedule release deployment
+- [ ] Request deployment to production using [this form](https://hd.milliman.com/support/catalog/items/161). The requested deployment date/time should be no sooner than the next business day, unless a same-day deployment is agreed upon by the Infrastructure & Security team lead.
 - [ ] Merge into Master and promote released code base
 - [ ] Tag release
 - [ ] Merge into Develop to make sure warm changes are propagated
