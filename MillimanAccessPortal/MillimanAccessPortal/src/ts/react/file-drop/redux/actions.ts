@@ -502,6 +502,52 @@ export interface DeleteFileDropFolderFailed {
   error: TSError;
 }
 
+/**
+ * POST:
+ *   Update a folder description
+ */
+export interface UpdateFileDropFolderDescription {
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION';
+  request: {
+    fileDropId: Guid;
+    folderId: Guid;
+    description: string;
+  };
+}
+/** Action called upon successful return of the UpdateFileDropFolderDescription API call */
+export interface UpdateFileDropFolderDescriptionSucceeded {
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the UpdateFileDropFolderDescription API call */
+export interface UpdateFileDropFolderDescriptionFailed {
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Update a file description
+ */
+export interface UpdateFileDropFileDescription {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION';
+  request: {
+    fileDropId: Guid;
+    fileId: Guid;
+    description: string;
+  };
+}
+/** Action called upon successful return of the UpdateFileDropFolderDescription API call */
+export interface UpdateFileDropFileDescriptionSucceeded {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the UpdateFileDropFolderDescription API call */
+export interface UpdateFileDropFileDescriptionFailed {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -677,6 +723,8 @@ export type FileDropRequestActions =
   | FetchFolderContents
   | DeleteFileDropFile
   | DeleteFileDropFolder
+  | UpdateFileDropFileDescription
+  | UpdateFileDropFolderDescription
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -697,6 +745,8 @@ export type FileDropSuccessResponseActions =
   | FetchFolderContentsSucceeded
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
+  | UpdateFileDropFileDescriptionSucceeded
+  | UpdateFileDropFolderDescriptionSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -717,6 +767,8 @@ export type FileDropErrorActions =
   | FetchFolderContentsFailed
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
+  | UpdateFileDropFileDescriptionFailed
+  | UpdateFileDropFolderDescriptionFailed
   ;
 
 /** Actions that set filter text */

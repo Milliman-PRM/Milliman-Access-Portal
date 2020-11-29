@@ -183,6 +183,14 @@ export const deleteFileDropFile =
 export const deleteFileDropFolder =
   createRequestActionCreator<Action.DeleteFileDropFolder>('DELETE_FILE_DROP_FOLDER');
 
+/** Update a file description */
+export const updateFileDropFileDescription =
+  createRequestActionCreator<Action.UpdateFileDropFileDescription>('UPDATE_FILE_DROP_FILE_DESCRIPTION');
+
+/** Update a folder description */
+export const updateFileDropFolderDescription =
+  createRequestActionCreator<Action.UpdateFileDropFolderDescription>('UPDATE_FILE_DROP_FOLDER_DESCRIPTION');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
