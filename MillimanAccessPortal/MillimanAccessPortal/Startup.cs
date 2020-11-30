@@ -254,13 +254,20 @@ namespace MillimanAccessPortal
 
                                         await _signInManager.Context.SignInAsync(IdentityConstants.TwoFactorUserIdScheme, signInClaimsPrincipal);
 
+                                        string contextReturnUrl = context.ReturnUri
+                                                                         .Split('?', '&')
+                                                                         .SingleOrDefault(q => q.Contains("returnUrl=", StringComparison.InvariantCultureIgnoreCase))
+                                                                      ?? "";
+
+                                        contextReturnUrl = contextReturnUrl ?? "returnUrl=/";
+
                                         UriBuilder twoFactorUriBuilder = new UriBuilder
                                         {
                                             Host = context.Request.Host.Host,
                                             Scheme = context.Request.Scheme,
                                             Port = context.Request.Host.Port ?? -1,
                                             Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
-                                            Query = $"returnUrl=/&Username={_applicationUser.UserName}&RememberMe=false",
+                                            Query = $"Username={_applicationUser.UserName}&RememberMe=false&{contextReturnUrl}",
                                         };
 
                                         context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);
@@ -392,6 +399,7 @@ namespace MillimanAccessPortal
 
             // Queries
             services.AddScoped<StandardQueries>();
+            services.AddScoped<ClientAdminQueries>();
             services.AddScoped<ContentAccessAdminQueries>();
             services.AddScoped<ContentPublishingAdminQueries>();
 

@@ -659,10 +659,66 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+/** Reducer for File Drop contents in the cardAttributes state object */
+const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
+  {
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) => {
+      const returnObject: Dict<State.FileAndFolderAttributes> = {};
+      _.forEach(response.directories, (folder) => {
+        returnObject[folder.id] = {
+          editing: false,
+          expanded: false,
+          fileName: '',
+          description: folder.description,
+          fileNameRaw: '',
+          descriptionRaw: folder.description,
+        };
+      });
+      _.forEach(response.files, (file) => {
+        returnObject[file.id] = {
+          editing: false,
+          expanded: false,
+          fileName: file.fileName,
+          description: file.description,
+          fileNameRaw: file.fileName,
+          descriptionRaw: file.description,
+        };
+      });
+      return returnObject;
+    },
+    SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        expanded: action.expanded,
+      },
+    }),
+    SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+        editing: action.editing,
+        fileName: action.editing ? action.fileName : '',
+        description: action.editing ? action.description : '',
+        fileNameRaw: action.editing ? action.fileName : '',
+        descriptionRaw: action.editing ? action.description : '',
+      },
+    }),
+    UPDATE_FILE_OR_FOLDER_DESCRIPTION: (state, action: Action.UpdateFileOrFolderDescription) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        description: action.description,
+      },
+    }),
+  },
+);
+
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
   clients: clientCardAttributes,
   fileDrops: fileDropCardAttributes,
+  fileDropContents: fileDropContentAttributes,
 });
 
 // ~~~~~~~~~~~~~~~
