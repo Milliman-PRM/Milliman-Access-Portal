@@ -344,11 +344,4 @@ namespace FileDropLib
         Delete
     }
 
-    public enum AuthorizationResult
-    {
-        ConnectionNotFound,
-        NotAuthorized,
-        Authorized,
-    }
-
 }

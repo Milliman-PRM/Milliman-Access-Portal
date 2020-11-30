@@ -969,6 +969,13 @@ namespace SftpServerLib
             //return $"{DateTime.UtcNow.ToString("u")} {eventName} event with EventArgs: {Regex.Unescape(JsonSerializer.Serialize(args, args.GetType(), prettyJsonOptions))}";
         }
 
+        public enum AuthorizationResult
+        {
+            ConnectionNotFound,
+            NotAuthorized,
+            Authorized,
+        }
+
         protected static (AuthorizationResult result, SftpConnectionProperties connection) GetAuthorizedConnectionProperties(string connectionId, RequiredAccess requiredAccess)
         {
             if (!_connections.Keys.Contains(connectionId))
