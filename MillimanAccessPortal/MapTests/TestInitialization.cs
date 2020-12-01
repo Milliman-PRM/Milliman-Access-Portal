@@ -1251,12 +1251,12 @@ namespace MapTests
             #region Initialize SftpAccount
             DbContext.SftpAccount.AddRange(new List<SftpAccount>
                 {
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "SFTP user 1-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "SFTP user 2-aaa2" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "SFTP user 3-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "SFTP user 4-aaa2" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "SFTP user 5-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "SFTP user 6-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(1), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "user1-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "user2-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "user3-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "user4-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "user5-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "user6-aaa2" },
                 });
             #endregion
 

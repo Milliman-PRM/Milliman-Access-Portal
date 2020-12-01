@@ -9,6 +9,7 @@ using AuditLogLib.Models;
 using AuditLogLib.Services;
 using CsvHelper;
 using CsvHelper.Configuration;
+using FileDropLib;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -979,7 +980,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> DeleteFileDropFile(Guid fileDropId, Guid fileId)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.FindAsync(fileDropId);
             #region Validation
             if (fileDrop == null)
             {
@@ -1008,9 +1009,12 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Perform the delete of the folder and all contents
-#warning TODO: do the delete
-            string canonicalPath = "";
+            #region Perform the delete of the file
+            var fileRecord = await _dbContext.FileDropFile
+                                             .Include(f => f.Directory)
+                                             .SingleOrDefaultAsync(f => f.Id == fileId);
+            string canonicalPath = Path.Combine(fileRecord?.Directory?.CanonicalFileDropPath, fileRecord?.FileName);
+            FileDropOperations.RemoveFile(canonicalPath, fileDrop.Name, fileDrop.RootPath, fileDropId, account, user);
             #endregion
 
             try

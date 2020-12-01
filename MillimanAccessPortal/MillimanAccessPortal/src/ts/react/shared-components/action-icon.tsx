@@ -1,4 +1,4 @@
-﻿import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-circle.svg';
 import '../../../images/icons/add-file.svg';
 import '../../../images/icons/add-folder.svg';
 import '../../../images/icons/add-group.svg';
