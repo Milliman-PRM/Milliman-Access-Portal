@@ -1013,13 +1013,16 @@ namespace MillimanAccessPortal.Controllers
             var fileRecord = await _dbContext.FileDropFile
                                              .Include(f => f.Directory)
                                              .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
-            string canonicalPath = Path.Combine(fileRecord?.Directory?.CanonicalFileDropPath, fileRecord?.FileName);
-            FileDropOperations.RemoveFile(canonicalPath, fileDrop.Name, fileDrop.RootPath, requestModel.FileId, account, user);
+            string fileDropGlobalRoot = _applicationConfig.GetValue<string>("Storage:FileDropRoot");
+
+            var fileDropRootPath = Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+            string canonicalPath = Path.Combine(fileRecord.Directory.CanonicalFileDropPath, fileRecord.FileName);
+            FileDropOperations.RemoveFile(canonicalPath, fileDrop.Name, fileDropRootPath, requestModel.FileDropId, account, user);
             #endregion
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, canonicalPath);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, fileRecord.Directory.CanonicalFileDropPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
