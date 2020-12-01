@@ -504,49 +504,47 @@ export interface DeleteFileDropFolderFailed {
 
 /**
  * POST:
- *   Update a file description/name.
+ *   Update a file description.
  */
-export interface UpdateFileDropFile {
-  type: 'UPDATE_FILE_DROP_FILE';
+export interface UpdateFileDropFileDescription {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION';
   request: {
     fileDropId: Guid;
     fileId: Guid;
-    fileName: string;
     fileDescription: string;
   };
 }
-/** Action called upon successful return of the UpdateFileDropFile API call */
-export interface UpdateFileDropFileSucceeded {
-  type: 'UPDATE_FILE_DROP_FILE_SUCCEEDED';
+/** Action called upon successful return of the UpdateFileDropFileDescription API call */
+export interface UpdateFileDropFileDescriptionSucceeded {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION_SUCCEEDED';
   response: FileDropDirectoryContentModel;
 }
-/** Action called upon return of an error from the UpdateFileDropFile API call */
-export interface UpdateFileDropFileFailed {
-  type: 'UPDATE_FILE_DROP_FILE_FAILED';
+/** Action called upon return of an error from the UpdateFileDropFileDescription API call */
+export interface UpdateFileDropFileDescriptionFailed {
+  type: 'UPDATE_FILE_DROP_FILE_DESCRIPTION_FAILED';
   error: TSError;
 }
 
 /**
  * POST:
- *   Update a folder description/name.
+ *   Update a folder description.
  */
-export interface UpdateFileDropFolder {
-  type: 'UPDATE_FILE_DROP_FOLDER';
+export interface UpdateFileDropFolderDescription {
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION';
   request: {
     fileDropId: Guid;
-    folderId: Guid;
-    folderName: string;
+    folderId: Guid;    
     folderDescription: string;
   };
 }
-/** Action called upon successful return of the UpdateFileDropFolder API call */
+/** Action called upon successful return of the UpdateFileDropFolderDescription API call */
 export interface UpdateFileDropFolderSucceeded {
-  type: 'UPDATE_FILE_DROP_FOLDER_SUCCEEDED';
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_SUCCEEDED';
   response: FileDropDirectoryContentModel;
 }
 /** Action called upon return of an error from the UpdateFileDropFolder API call */
 export interface UpdateFileDropFolderFailed {
-  type: 'UPDATE_FILE_DROP_FOLDER_FAILED';
+  type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_FAILED';
   error: TSError;
 }
 
@@ -725,8 +723,8 @@ export type FileDropRequestActions =
   | FetchFolderContents
   | DeleteFileDropFile
   | DeleteFileDropFolder
-  | UpdateFileDropFile
-  | UpdateFileDropFolder
+  | UpdateFileDropFileDescription
+  | UpdateFileDropFolderDescription
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -747,7 +745,7 @@ export type FileDropSuccessResponseActions =
   | FetchFolderContentsSucceeded
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
-  | UpdateFileDropFileSucceeded
+  | UpdateFileDropFileDescriptionSucceeded
   | UpdateFileDropFolderSucceeded
   ;
 
@@ -769,7 +767,7 @@ export type FileDropErrorActions =
   | FetchFolderContentsFailed
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
-  | UpdateFileDropFileFailed
+  | UpdateFileDropFileDescriptionFailed
   | UpdateFileDropFolderFailed
   ;
 

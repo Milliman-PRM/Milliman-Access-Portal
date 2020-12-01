@@ -74,14 +74,14 @@ export const deleteFileDropFolder =
   createJsonRequestor<FileDropAction.DeleteFileDropFolder, FileDropAction.DeleteFileDropFolderSucceeded>
     ('DELETE', '/FileDrop/DeleteFileDropFolder');
 
-export const updateFileDropFile =
+export const updateFileDropFileDescription =
   createJsonRequestor<
-    FileDropAction.UpdateFileDropFile, FileDropAction.UpdateFileDropFileSucceeded
-  >('POST', '/FileDrop/UpdateFileDropFile');
+    FileDropAction.UpdateFileDropFileDescription, FileDropAction.UpdateFileDropFileDescriptionSucceeded
+  >('POST', '/FileDrop/UpdateFileDropFileDescription');
 
-export const updateFileDropFolder =
+export const updateFileDropFolderDescription =
   createJsonRequestor<
-    FileDropAction.UpdateFileDropFolder, FileDropAction.UpdateFileDropFolderSucceeded
+    FileDropAction.UpdateFileDropFolderDescription, FileDropAction.UpdateFileDropFolderSucceeded
   >('POST', '/FileDrop/UpdateFileDropFolderDescription');
 
 // ~~~~~~~~~~~~~~~~~~~
