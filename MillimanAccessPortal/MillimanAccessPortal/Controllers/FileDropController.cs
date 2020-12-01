@@ -1249,7 +1249,7 @@ namespace MillimanAccessPortal.Controllers
             var fileRecord = await _dbContext.FileDropFile
                                              .Include(f => f.Directory)
                                              .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
-            string canonicalPath = Path.Combine(fileRecord?.Directory?.CanonicalFileDropPath, fileRecord?.FileName);
+            string canonicalPath = fileRecord?.Directory?.CanonicalFileDropPath;
             fileRecord.Description = requestModel.FileDescription;
             await _dbContext.SaveChangesAsync();
             #endregion

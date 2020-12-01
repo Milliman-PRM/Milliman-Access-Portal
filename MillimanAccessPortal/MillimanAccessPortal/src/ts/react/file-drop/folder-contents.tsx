@@ -124,8 +124,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   label="Submit Changes"
                   icon="checkmark"
                   inline={true}
-                  action={() => this.props.saveFileDropFolderDescription(fileDropId, directory.id,
-                    folderAttributes.description)}
+                  action={() => {
+                    this.props.saveFileDropFolderDescription(fileDropId, directory.id,
+                      folderAttributes.description);
+                    this.props.editFileDropItem(directory.id, false, null, null);
+                  }}
                 />
               }
               {
@@ -278,8 +281,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     label="Submit Changes"
                     icon="checkmark"
                     inline={true}
-                    action={() => this.props.saveFileDropFileDescription(fileDropId, file.id,
-                      fileAttributes.description)}
+                    action={() => {
+                      this.props.saveFileDropFileDescription(fileDropId, file.id,
+                        fileAttributes.description);
+                      this.props.editFileDropItem(file.id, false, null, null);
+                    }}
                   />
                 }
                 {

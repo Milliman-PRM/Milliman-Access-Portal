@@ -81,7 +81,7 @@ export const updateFileDropFileDescription =
 
 export const updateFileDropFolderDescription =
   createJsonRequestor<
-    FileDropAction.UpdateFileDropFolderDescription, FileDropAction.UpdateFileDropFolderSucceeded
+    FileDropAction.UpdateFileDropFolderDescription, FileDropAction.UpdateFileDropFolderDescriptionSucceeded
   >('POST', '/FileDrop/UpdateFileDropFolderDescription');
 
 // ~~~~~~~~~~~~~~~~~~~

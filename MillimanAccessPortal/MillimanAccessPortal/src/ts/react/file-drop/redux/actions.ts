@@ -538,12 +538,12 @@ export interface UpdateFileDropFolderDescription {
   };
 }
 /** Action called upon successful return of the UpdateFileDropFolderDescription API call */
-export interface UpdateFileDropFolderSucceeded {
+export interface UpdateFileDropFolderDescriptionSucceeded {
   type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_SUCCEEDED';
   response: FileDropDirectoryContentModel;
 }
-/** Action called upon return of an error from the UpdateFileDropFolder API call */
-export interface UpdateFileDropFolderFailed {
+/** Action called upon return of an error from the UpdateFileDropFolderDescription API call */
+export interface UpdateFileDropFolderDescriptionFailed {
   type: 'UPDATE_FILE_DROP_FOLDER_DESCRIPTION_FAILED';
   error: TSError;
 }
@@ -746,7 +746,7 @@ export type FileDropSuccessResponseActions =
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileDescriptionSucceeded
-  | UpdateFileDropFolderSucceeded
+  | UpdateFileDropFolderDescriptionSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -768,7 +768,7 @@ export type FileDropErrorActions =
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileDescriptionFailed
-  | UpdateFileDropFolderFailed
+  | UpdateFileDropFolderDescriptionFailed
   ;
 
 /** Actions that set filter text */
