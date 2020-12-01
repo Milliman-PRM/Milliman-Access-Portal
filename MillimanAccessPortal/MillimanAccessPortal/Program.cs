@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Models;
+using FileDropLib;
 using System;
 using System.Collections.Generic;
 using MapCommonLib;
@@ -89,6 +90,8 @@ namespace MillimanAccessPortal
                 Assembly processAssembly = Assembly.GetEntryAssembly();
                 FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
                 NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
+
+                FileDropOperations.MapDbConnectionString = cxnStrBuilder.ConnectionString;
 
                 Log.Information($"Process launched:{Environment.NewLine}" +
                                 $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
