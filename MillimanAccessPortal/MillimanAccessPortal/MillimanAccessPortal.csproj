@@ -16,7 +16,7 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.9.3</Version>
+    <Version>1.10.0</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <LangVersion>latest</LangVersion>
@@ -59,6 +59,17 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="src\ts\login-step-two.tsx" />
+    <None Remove="src\ts\react\client-admin\client-admin.tsx" />
+    <None Remove="src\ts\react\client-admin\index.tsx" />
+    <None Remove="src\ts\react\client-admin\redux\action-creators.ts" />
+    <None Remove="src\ts\react\client-admin\redux\actions.ts" />
+    <None Remove="src\ts\react\client-admin\redux\api.ts" />
+    <None Remove="src\ts\react\client-admin\redux\reducers.ts" />
+    <None Remove="src\ts\react\client-admin\redux\sagas.ts" />
+    <None Remove="src\ts\react\client-admin\redux\selectors.ts" />
+    <None Remove="src\ts\react\client-admin\redux\store.ts" />
+    <None Remove="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
+    <None Remove="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -69,7 +80,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
-    <Folder Include="Views\" />
     <Folder Include="wwwroot\" />
     <Folder Include="wwwroot\js\" /> 
   </ItemGroup>
@@ -146,6 +156,17 @@
   </ItemGroup>
   <ItemGroup>
     <TypeScriptCompile Include="src\ts\react\login-step-two\login-step-two.tsx" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\client-admin.tsx" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\index.tsx" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\action-creators.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\actions.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\api.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\reducers.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\sagas.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\selectors.ts" />
+    <TypeScriptCompile Include="src\ts\react\client-admin\redux\store.ts" />
+    <TypeScriptCompile Include="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
+    <TypeScriptCompile Include="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="BuildTimeProperties.cs">

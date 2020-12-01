@@ -60,15 +60,17 @@ namespace MillimanAccessPortal.DataQueries
         internal async Task<Dictionary<Guid, ClientCardModel>> GetAuthorizedClientsModelAsync(ApplicationUser user)
         {
             List<Client> clientsWithRole = (await _dbContext.UserRoleInClient
-                                                     .Where(urc => urc.UserId == user.Id && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
+                                                     .Where(urc => urc.UserId == user.Id 
+                                                                && urc.Role.RoleEnum == RoleEnum.FileDropAdmin)
                                                      .Select(urc => urc.Client)
                                                      .ToListAsync())  // force the first query to execute
                                                      .Union(
-                                                         _dbContext.ApplicationUser
-                                                                   .Where(u => EF.Functions.ILike(u.UserName, user.UserName))
-                                                                   .SelectMany(u => u.SftpAccounts
-                                                                                     .Where(a => a.FileDropUserPermissionGroupId.HasValue)
-                                                                                     .Select(a => a.FileDropUserPermissionGroup.FileDrop.Client)),
+                                                         _dbContext.UserRoleInClient
+                                                                   .Where(urc => urc.UserId == user.Id 
+                                                                              && urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                                                   .SelectMany(urc => urc.User.SftpAccounts
+                                                                                              .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                              .Select(a => a.FileDrop.Client)),
                                                          new IdPropertyComparer<Client>()
                                                      )
                                                      .ToList();

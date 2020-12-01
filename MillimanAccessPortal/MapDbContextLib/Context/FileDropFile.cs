@@ -20,6 +20,10 @@ namespace MapDbContextLib.Context
 
         public string Description { get; set; }
 
+        public long Size { get; set; } = 0;
+
+        public DateTime? UploadDateTimeUtc { get; set; } = null;
+
         [ForeignKey("Directory")]
         public Guid DirectoryId { get; set; }
         public FileDropDirectory Directory { get; set; }

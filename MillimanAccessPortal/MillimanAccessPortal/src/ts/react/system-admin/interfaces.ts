@@ -1,5 +1,5 @@
 ﻿import { BasicTree, Nestable } from '../../view-models/content-publishing';
-import { SelectionGroup } from '../models';
+import { ProfitCenter, SelectionGroup } from '../models';
 import { Guid } from '../shared-components/interfaces';
 
 export interface NestedList {
@@ -111,18 +111,21 @@ export function isUserDetail(detail: PrimaryDetail): detail is UserDetail {
 }
 export interface ClientDetail {
   id: Guid;
-  clientName: string;
+  name: string;
   clientCode: string;
   clientContactName: string;
+  clientContactTitle: string;
   clientContactEmail: string;
   clientContactPhone: string;
   domainListCountLimit: number;
   acceptedEmailDomainList: string[];
   acceptedEmailAddressExceptionList: string[];
-  profitCenter: string;
+  profitCenter: ProfitCenter;
   office: string;
   consultantName: string;
   consultantEmail: string;
+  newUserWelcomeText: string;
+  parentClientId?: Guid;
 }
 export function isClientDetail(detail: PrimaryDetail): detail is ClientDetail {
   return detail && (detail as ClientDetail).domainListCountLimit !== null;

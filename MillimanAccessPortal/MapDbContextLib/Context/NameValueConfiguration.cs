@@ -8,8 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 namespace MapDbContextLib.Context
 {
@@ -29,14 +29,31 @@ namespace MapDbContextLib.Context
         internal static async Task InitializeNameValueConfigurationAsync(IServiceProvider serviceProvider)
         {
             ApplicationDbContext Db = serviceProvider.GetService<ApplicationDbContext>();
+            IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
 
             foreach (ConfiguredValueKeys key in Enum.GetValues(typeof(ConfiguredValueKeys)))
             {
-                if (!await Db.NameValueConfiguration.AnyAsync(c => c.Key == key.ToString()))
+                NameValueConfiguration dbRecord = await Db.NameValueConfiguration.SingleOrDefaultAsync(c => c.Key == key.ToString());
+                string configValue = appConfig.GetValue<string>(key.ToString());
+
+                if (dbRecord == null)
                 {
-                    Db.NameValueConfiguration.Add(new NameValueConfiguration { Key = key.ToString(), Value = "This configuration item has not been set." });
-                    await Db.SaveChangesAsync();
+                    Db.NameValueConfiguration.Add(new NameValueConfiguration 
+                    { 
+                        Key = key.ToString(), 
+                        Value = configValue ?? $"A value has not been set for required configuration key <{key}>." 
+                    });
                 }
+                else if (configValue != null && dbRecord.Value != configValue)
+                {
+                    dbRecord.Value = configValue;
+                }
+                else
+                {
+                    continue;
+                }
+
+                await Db.SaveChangesAsync();
             }
         }
         

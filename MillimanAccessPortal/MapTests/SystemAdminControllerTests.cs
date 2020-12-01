@@ -11,6 +11,7 @@ using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using MillimanAccessPortal.Controllers;
+using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.SystemAdmin;
 using System;
 using System.Collections.Generic;
@@ -771,7 +772,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserClaims.Count();
-                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId));
+                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId), 0);
                 var postCount = TestResources.DbContext.UserClaims.Count();
                 #endregion
 
@@ -796,7 +797,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserClaims.Count();
-                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId));
+                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId), 0);
                 var postCount = TestResources.DbContext.UserClaims.Count();
                 #endregion
 
@@ -819,7 +820,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserClaims.Count();
-                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId));
+                var json = await controller.AddUserToClient(email, TestUtil.MakeTestGuid(clientId), 0);
                 var postCount = TestResources.DbContext.UserClaims.Count();
                 #endregion
 
@@ -843,7 +844,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
-                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId));
+                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId), 0);
                 var postCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
                 #endregion
 
@@ -868,7 +869,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
-                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId));
+                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId), 0);
                 var postCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
                 #endregion
 
@@ -891,7 +892,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
-                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId));
+                var json = await controller.AddUserToProfitCenter(email, TestUtil.MakeTestGuid(profitCenterId), 0);
                 var postCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
                 #endregion
 
@@ -1310,7 +1311,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
-                var json = await controller.RemoveUserFromProfitCenter(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(profitCenterId));
+                var json = await controller.RemoveUserFromProfitCenter(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(profitCenterId), 0);
                 var postCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
                 #endregion
 
@@ -1334,7 +1335,7 @@ namespace MapTests
 
                 #region Act
                 var preCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
-                var json = await controller.RemoveUserFromProfitCenter(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(profitCenterId));
+                var json = await controller.RemoveUserFromProfitCenter(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(profitCenterId), 0);
                 var postCount = TestResources.DbContext.UserRoleInProfitCenter.Count();
                 #endregion
 
@@ -1456,7 +1457,7 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var json = await controller.SystemRole(TestUtil.MakeTestGuid(userId), role, false);
+                var json = await controller.SystemRole(TestUtil.MakeTestGuid(userId), role, false, 0);
                 #endregion
 
                 #region Assert
@@ -1477,7 +1478,7 @@ namespace MapTests
 
                 #region Act
                 var json1 = await controller.SystemRole(TestUtil.MakeTestGuid(userId), role);
-                var json2 = await controller.SystemRole(TestUtil.MakeTestGuid(userId), role, !expectedValue);
+                var json2 = await controller.SystemRole(TestUtil.MakeTestGuid(userId), role, !expectedValue, 0);
                 #endregion
 
                 #region Assert
@@ -1571,7 +1572,7 @@ namespace MapTests
 
                 #region Act
                 var json1 = await controller.UserClientRoleAssignment(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(clientId), role);
-                var json2 = await controller.UserClientRoleAssignment(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(clientId), role, !expectedValue);
+                var json2 = await controller.UserClientRoleAssignment(TestUtil.MakeTestGuid(userId), TestUtil.MakeTestGuid(clientId), role, !expectedValue, 0);
                 #endregion
 
                 #region Assert
