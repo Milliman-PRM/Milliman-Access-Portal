@@ -8,7 +8,10 @@ import * as State from './store';
 import { generateUniqueId } from '../../../generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
-import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
+import {
+  FileDropDirectoryContentModel, FileDropSettings, FileDropWithStats,
+  PermissionGroupsReturnModel,
+} from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, ModalState } from '../../shared-components/redux/store';
@@ -662,30 +665,8 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
 /** Reducer for File Drop contents in the cardAttributes state object */
 const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
   {
-    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) => {
-      const returnObject: Dict<State.FileAndFolderAttributes> = {};
-      _.forEach(response.directories, (folder) => {
-        returnObject[folder.id] = {
-          editing: false,
-          expanded: false,
-          fileName: '',
-          description: folder.description,
-          fileNameRaw: '',
-          descriptionRaw: folder.description,
-        };
-      });
-      _.forEach(response.files, (file) => {
-        returnObject[file.id] = {
-          editing: false,
-          expanded: false,
-          fileName: file.fileName,
-          description: file.description,
-          fileNameRaw: file.fileName,
-          descriptionRaw: file.description,
-        };
-      });
-      return returnObject;
-    },
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) =>
+      setFileDropDirectoryContentModel(response),
     SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
       ...state,
       [action.id]: {
@@ -711,8 +692,38 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         description: action.description,
       },
     }),
+    DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
   },
 );
+
+/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
+function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(response.directories, (folder) => {
+    returnObject[folder.id] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: folder.description,
+      fileNameRaw: '',
+      descriptionRaw: folder.description,
+    };
+  });
+  _.forEach(response.files, (file) => {
+    returnObject[file.id] = {
+      editing: false,
+      expanded: false,
+      fileName: file.fileName,
+      description: file.description,
+      fileNameRaw: file.fileName,
+      descriptionRaw: file.description,
+    };
+  });
+  return returnObject;
+}
 
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
@@ -950,6 +961,14 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: null,
   }),
   FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  DELETE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.DeleteFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.DeleteFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
   }),

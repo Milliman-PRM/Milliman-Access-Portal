@@ -27,8 +27,10 @@ interface FolderContentsProps {
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
   deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
-  editFileOrFolder: (id: Guid, editing: boolean, fileName: string, description: string) => void;
-  updateFileOrFolderDescription: (id: Guid, description: string) => void;
+  editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
+  updateFileDropItemDescription: (id: Guid, description: string) => void;
+  saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, name: string, description: string) => void;
+  saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, name: string, description: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -122,7 +124,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   label="Submit Changes"
                   icon="checkmark"
                   inline={true}
-                  action={() => false}
+                  action={() => this.props.saveFileDropFolderDescription(fileDropId,
+                    directory.id, directory.canonicalPath, folderAttributes.description)}
                 />
               }
               {
@@ -132,14 +135,14 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   icon="cancel"
                   inline={true}
                   action={() => {
-                    this.props.editFileOrFolder(directory.id, false, null, null);
+                    this.props.editFileDropItem(directory.id, false, null, null);
                     this.props.expandFileOrFolder(directory.id, false);
                   }}
                 />
               }
               <PopupMenu>
                 <ul>
-                  <li onClick={() => this.props.editFileOrFolder(directory.id, true, null, directory.description)}>
+                  <li onClick={() => this.props.editFileDropItem(directory.id, true, null, directory.description)}>
                     Edit
                       </li>
                   <li>Move</li>
@@ -164,7 +167,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     label="Description"
                     name="description"
                     onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
-                      this.props.updateFileOrFolderDescription(directory.id, target.value)}
+                      this.props.updateFileDropItemDescription(directory.id, target.value)}
                     value={folderAttributes.description}
                     maxRows={5}
                   />
@@ -275,7 +278,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     label="Submit Changes"
                     icon="checkmark"
                     inline={true}
-                    action={() => false}
+                    action={() => this.props.saveFileDropFileDescription(fileDropId, file.id,
+                      file.fileName, fileAttributes.description)}
                   />
                 }
                 {
@@ -285,14 +289,14 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     icon="cancel"
                     inline={true}
                     action={() => {
-                      this.props.editFileOrFolder(file.id, false, null, null);
+                      this.props.editFileDropItem(file.id, false, null, null);
                       this.props.expandFileOrFolder(file.id, false);
                     }}
                   />
                 }
                 <PopupMenu>
                   <ul>
-                    <li onClick={() => this.props.editFileOrFolder(file.id, true, file.fileName, file.description)}>
+                    <li onClick={() => this.props.editFileDropItem(file.id, true, file.fileName, file.description)}>
                       Edit
                     </li>
                     <li>Move</li>
@@ -317,7 +321,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       label="Description"
                       name="description"
                       onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
-                        this.props.updateFileOrFolderDescription(file.id, target.value)}
+                        this.props.updateFileDropItemDescription(file.id, target.value)}
                       value={fileAttributes.description}
                       maxRows={5}
                     />
