@@ -1316,7 +1316,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord?.CanonicalFileDropPath);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord?.CanonicalFileDropPath); // TODO: This needs to grab the directory info from the folderRecord.ParentDirectory instead, but we need to wait for creating folders to get implemented before that happens.
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
