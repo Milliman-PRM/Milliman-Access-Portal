@@ -405,7 +405,7 @@ namespace SftpServerLib
                 return;
             }
 
-            evtData.StatusCode = (int) FileDropOperations.RemoveDirectory(evtData.Path,
+            evtData.StatusCode = (int)FileDropOperations.RemoveDirectory(evtData.Path,
                                                                           connection.FileDropName,
                                                                           connection.FileDropRootPathAbsolute,
                                                                           connection.FileDropId,
@@ -526,10 +526,19 @@ namespace SftpServerLib
                 return;
             }
 
+            FileAttributes attributes = FileAttributes.Offline;
 
             if (evtData.BeforeExec)
             {
-                FileAttributes attributes = File.GetAttributes(evtData.NewPath);
+                try
+                {
+                    attributes = File.GetAttributes(evtData.Path);
+                }
+                catch (Exception ex)
+                {
+                    evtData.StatusCode = 2;  // SSH_FX_NO_SUCH_FILE 2
+                    return;
+                }
 
                 using (var db = FileDropOperations.NewMapDbContext)
                 {
@@ -571,7 +580,7 @@ namespace SftpServerLib
                 if (evtData.StatusCode == 0)
                 {
                     string absoluteNewPath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\'));
-                    FileAttributes attributes = File.GetAttributes(absoluteNewPath);
+                    attributes = File.GetAttributes(absoluteNewPath);
 
                     using (var db = FileDropOperations.NewMapDbContext)
                     {
