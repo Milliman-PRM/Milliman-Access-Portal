@@ -29,8 +29,8 @@ interface FolderContentsProps {
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
   updateFileDropItemDescription: (id: Guid, description: string) => void;
-  saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
-  saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
+  saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, name: string, description: string) => void;
+  saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, name: string, description: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -125,7 +125,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   icon="checkmark"
                   inline={true}
                   action={() => this.props.saveFileDropFolderDescription(fileDropId,
-                    directory.id, folderAttributes.description)}
+                    directory.id, directory.canonicalPath, folderAttributes.description)}
                 />
               }
               {
@@ -279,7 +279,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     icon="checkmark"
                     inline={true}
                     action={() => this.props.saveFileDropFileDescription(fileDropId, file.id,
-                      fileAttributes.description)}
+                      file.fileName, fileAttributes.description)}
                   />
                 }
                 {

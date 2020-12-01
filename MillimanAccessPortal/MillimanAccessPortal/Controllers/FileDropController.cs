@@ -1095,14 +1095,14 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateFileDropFile(Guid fileDropId, Guid fileId, string fileName, string fileDescription)
+        public async Task<IActionResult> UpdateFileDropFile([FromBody] UpdateFileDropFileRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1114,7 +1114,7 @@ namespace MillimanAccessPortal.Controllers
                                           .ThenInclude(g => g.FileDrop)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
-                                      .Where(a => a.FileDropId == fileDropId)
+                                      .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
@@ -1134,7 +1134,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(fileDropId, account, canonicalPath);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, canonicalPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
@@ -1153,14 +1153,14 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateFileDropFolder(Guid fileDropId, Guid fileId, string folderName, string folderDescription)
+        public async Task<IActionResult> UpdateFileDropFolder([FromBody] UpdateFileDropFolderRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
@@ -1172,7 +1172,7 @@ namespace MillimanAccessPortal.Controllers
                                           .ThenInclude(g => g.FileDrop)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
-                                      .Where(a => a.FileDropId == fileDropId)
+                                      .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
@@ -1192,7 +1192,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(fileDropId, account, canonicalPath);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, canonicalPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
