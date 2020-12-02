@@ -972,6 +972,14 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropContents: action.response,
   }),
+  UPDATE_FILE_DROP_FILE_DESCRIPTION_SUCCEEDED: (state, action: Action.UpdateFileDropFileDescriptionSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  UPDATE_FILE_DROP_FOLDER_DESCRIPTION_SUCCEEDED: (state, action: Action.UpdateFileDropFolderDescriptionSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
 });
 
 // ~~~~~~~~~~~~~~~~

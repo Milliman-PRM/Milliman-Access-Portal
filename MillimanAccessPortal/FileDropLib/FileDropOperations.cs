@@ -94,7 +94,7 @@ namespace FileDropLib
         /// </summary>
         /// <param name="path"></param>
         /// <param name="fileDropName"></param>
-        /// <param name="fileDropRootPath"></param>
+        /// <param name="fileDropRootPath">Absolute path of the root folder of the File Drop.</param>
         /// <param name="fileDropId"></param>
         /// <param name="account"></param>
         /// <param name="user"></param>
@@ -219,6 +219,9 @@ namespace FileDropLib
                     case false:
                         try
                         {
+                            if (beforeExec == null) {
+                              // TODO delete files from file system
+                            }
                             List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, canonicalPath + "%")).ToList();
 
                             var deleteInventory = new FileDropDirectoryInventoryModel

@@ -12,6 +12,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
 using MillimanAccessPortal.Services;
@@ -37,15 +38,17 @@ namespace MillimanAccessPortal.DataQueries
         private readonly IConfiguration _appConfig;
         private readonly IAuditLogger _auditLog;
         private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
+        private readonly IServiceProvider _serviceProvider;
 
-        public FileDropQueries(
+    public FileDropQueries(
             ApplicationDbContext dbContextArg,
             ClientQueries clientQueries,
             HierarchyQueries hierarchyQueries,
             UserQueries userQueries,
             IConfiguration configuration,
             IAuditLogger auditLog,
-            IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg
+            IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg,
+            IServiceProvider serviceProvider
             )
         {
             _dbContext = dbContextArg;
@@ -55,7 +58,8 @@ namespace MillimanAccessPortal.DataQueries
             _appConfig = configuration;
             _auditLog = auditLog;
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
-        }
+            _serviceProvider = serviceProvider;
+    }
 
         /// <summary>
         /// Return a model representing all clients that the current user should see in the FileDrop view clients column
@@ -639,33 +643,38 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns></returns>
         internal async Task<DirectoryContentModel> CreateFolderContentModelAsync(Guid fileDropId, SftpAccount account, string canonicalPath)
         {
-            FileDropDirectory thisDirectory = await _dbContext.FileDropDirectory
-                                                              .Include(d => d.ChildDirectories)
-                                                              .Include(d => d.Files)
-                                                              .Where(d => d.FileDropId == fileDropId)
-                                                              .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
-                                                              .SingleOrDefaultAsync();
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ApplicationDbContext context = scope.ServiceProvider.GetService<ApplicationDbContext>();
 
-            try
-            {
-                var model = new DirectoryContentModel
+                FileDropDirectory thisDirectory = await context.FileDropDirectory
+                                                    .Include(d => d.ChildDirectories)
+                                                    .Include(d => d.Files)
+                                                    .Where(d => d.FileDropId == fileDropId)
+                                                    .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
+                                                    .SingleOrDefaultAsync();
+
+                try
                 {
-                    ThisDirectory = new FileDropDirectoryModel(thisDirectory),
-                    Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
-                    Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
-                };
-                model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
-                model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
-                model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
-                return model;
-            }
-            catch (ArgumentNullException ex)
-            {
-                throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"Error building return model, parameters: canonical path {canonicalPath}, FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                    var model = new DirectoryContentModel
+                    {
+                        ThisDirectory = new FileDropDirectoryModel(thisDirectory),
+                        Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
+                        Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
+                    };
+                    model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
+                    model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
+                    model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
+                    return model;
+                }
+                catch (ArgumentNullException ex)
+                {
+                    throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Error building return model, parameters: canonical path {canonicalPath}, FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                }
             }
         }
     }

@@ -185,11 +185,11 @@ export const deleteFileDropFolder =
 
 /** Update a file description/name */
 export const updateFileDropFile =
-  createRequestActionCreator<Action.UpdateFileDropFile>('UPDATE_FILE_DROP_FILE');
+  createRequestActionCreator<Action.UpdateFileDropFileDescription>('UPDATE_FILE_DROP_FILE_DESCRIPTION');
 
 /** Update a folder description/name */
 export const updateFileDropFolder =
-  createRequestActionCreator<Action.UpdateFileDropFolder>('UPDATE_FILE_DROP_FOLDER');
+  createRequestActionCreator<Action.UpdateFileDropFolderDescription>('UPDATE_FILE_DROP_FOLDER_DESCRIPTION');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
