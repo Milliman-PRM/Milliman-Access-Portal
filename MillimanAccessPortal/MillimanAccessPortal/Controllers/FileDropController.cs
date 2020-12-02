@@ -1140,7 +1140,7 @@ namespace MillimanAccessPortal.Controllers
                                              .Include(f => f.Directory)
                                              .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
             string canonicalPath = fileRecord?.Directory?.CanonicalFileDropPath;
-            fileRecord.FileName = requestModel.FileName;
+            /** TODO: Add rename functionality */
             fileRecord.Description = requestModel.FileDescription;
             await _dbContext.SaveChangesAsync();
             #endregion
@@ -1202,6 +1202,7 @@ namespace MillimanAccessPortal.Controllers
             var folderRecord = await _dbContext.FileDropDirectory
                                              .Include(f => f.ParentDirectory)
                                              .SingleOrDefaultAsync(f => f.Id == requestModel.FolderId);
+            /** TODO: Add rename for folders functionality */
             folderRecord.Description = requestModel.FolderDescription;
             await _dbContext.SaveChangesAsync();
             #endregion
