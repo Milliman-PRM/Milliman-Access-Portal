@@ -1073,13 +1073,18 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Perform the delete of the folder and all contents
-            #warning TODO: do the delete
-            string canonicalPath = "";
+            var folderRecord = await _dbContext.FileDropDirectory
+                                             .Include(f => f.ParentDirectory)
+                                             .SingleOrDefaultAsync(f => f.Id == requestModel.FolderId);
+            string fileDropGlobalRoot = _applicationConfig.GetValue<string>("Storage:FileDropRoot");
+
+            var fileDropRootPath = Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));            
+            FileDropOperations.RemoveDirectory(folderRecord.CanonicalFileDropPath, fileDrop.Name, fileDropRootPath, requestModel.FileDropId, account, user);
             #endregion
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, canonicalPath);
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord.ParentDirectory.CanonicalFileDropPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
@@ -1312,6 +1317,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Update directory description            
             var folderRecord = await _dbContext.FileDropDirectory
+                                             .Include(f => f.ParentDirectory)
                                              .SingleOrDefaultAsync(f => f.Id == requestModel.FolderId);                       
             folderRecord.Description = requestModel.FolderDescription;
             await _dbContext.SaveChangesAsync();
@@ -1319,7 +1325,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord?.CanonicalFileDropPath); // TODO: This needs to grab the directory info from the folderRecord.ParentDirectory instead, but we need to wait for creating folders to get implemented before that happens.
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord.ParentDirectory.CanonicalFileDropPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)

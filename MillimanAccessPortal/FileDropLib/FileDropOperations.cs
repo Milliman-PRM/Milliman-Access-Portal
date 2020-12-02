@@ -220,8 +220,9 @@ namespace FileDropLib
                         try
                         {
                             if (beforeExec == null) {
-                              // TODO delete files from file system
+                                FileSystemUtil.DeleteDirectoryWithRetry(requestedAbsolutePath, true);
                             }
+
                             List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, canonicalPath + "%")).ToList();
 
                             var deleteInventory = new FileDropDirectoryInventoryModel
