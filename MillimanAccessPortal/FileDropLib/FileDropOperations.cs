@@ -337,6 +337,156 @@ namespace FileDropLib
 
             return returnVal;
         }
+
+        public static FileDropOperationResult RenameFile(string oldPath,
+                                                         string newPath,
+                                                         string fileDropRootPath,
+                                                         string fileDropName,
+                                                         Guid? fileDropId,
+                                                         Guid? clientId,
+                                                         string clientName,
+                                                         SftpAccount account,
+                                                         ApplicationUser user,
+                                                         bool? beforeExec = null,
+                                                         int sftpStatus = 0)
+        {
+            switch (beforeExec)
+            {
+                case true:
+                    break;
+
+                case false:
+                    break;
+
+                default:
+                    break;
+            }
+
+            return 0;
+        }
+
+        public static FileDropOperationResult RenameDirectory(string oldPath,
+                                                              string newPath,
+                                                              string fileDropRootPath,
+                                                              string fileDropName,
+                                                              Guid? fileDropId,
+                                                              Guid? clientId,
+                                                              string clientName,
+                                                              SftpAccount account,
+                                                              ApplicationUser user,
+                                                              bool? beforeExec = null,
+                                                              int sftpStatus = 0)
+        {
+            using (var db = NewMapDbContext)
+            switch (beforeExec)
+            {
+                case true:
+                    string recordNameString = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(oldPath).Replace(Path.GetFullPath(fileDropRootPath), ""));
+                    if (recordNameString == "/")
+                    {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.FAILURE; 
+                    }
+
+                    // confirm db connectivity and that the source record exists in the db
+                    bool sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, recordNameString));
+                    if (!sourceRecordFound)
+                    {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Corresponding database record not found.  Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.FAILURE;
+                    }
+                    break;
+
+                case null:
+                case false:
+                    if (beforeExec == null)
+                    {
+                        if (!Directory.Exists(oldPath))
+                        {
+                                return FileDropOperationResult.NO_SUCH_PATH;
+                        }
+                        if (Directory.Exists(newPath))
+                        {
+                                return FileDropOperationResult.FILE_ALREADY_EXISTS;
+                        }
+                        try
+                        {
+                            FileSystemUtil.MoveDirectoryWithRetry(oldPath, newPath);
+                        }
+                        catch (Exception ex)
+                        {
+                            Log.Error(ex, $"Failed to move directory {oldPath} to {newPath}");
+                            return FileDropOperationResult.FAILURE;
+                        }
+                    }
+
+                    if (sftpStatus == 0)
+                    {
+                        List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
+                                                                                 .Where(d => d.FileDropId == fileDropId)
+                                                                                 .Include(d => d.ParentDirectory)
+                                                                                 .Include(d => d.ChildDirectories)
+                                                                                 .ToList();
+
+                        FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, oldPath));
+                        if (directoryRecord == null)
+                        {
+                            return FileDropOperationResult.FAILURE;
+                        }
+
+                        RepathDirectoryRecord(directoryRecord, newPath, true);
+
+                        string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath));
+                        if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
+                        { // This move involves a change in parent directory
+                            FileDropDirectory newParentDirectoryRecord = allDirectoriesInThisFileDrop
+                                                                           .Where(d => d.FileDropId == fileDropId)
+                                                                           .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalParentPath));
+                            if (newParentDirectoryRecord == null)
+                            {
+                                return FileDropOperationResult.FAILURE;
+                            }
+
+                            directoryRecord.ParentDirectoryId = newParentDirectoryRecord.Id;
+                        }
+
+                        db.SaveChanges();
+
+                        Log.Information($"Renamed {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}).  Account {account?.UserName} (Id {account?.Id})");
+                        new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
+                        {
+                            From = oldPath,
+                            To = newPath,
+                            IsDirectory = true,
+                            FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
+                            Account = account,
+                            User = user,
+                        }), user?.UserName);
+                    }
+                    break;
+            }
+
+            return FileDropOperationResult.OK;
+        }
+
+        /// <summary>
+        /// Alter the FileDropPath field value(s) in one or a tree of nested directory records
+        /// </summary>
+        /// <param name="directoryRecord">Recursion only occurs on child directory records contained in the ChildDirectories navigation property</param>
+        /// <param name="toPath">Must meet requirements to be converted to a canonical path as described in <see cref="FileDropDirectory.CanonicalFileDropPath"/></param>
+        /// <param name="recurseOnChildren"></param>
+        private static void RepathDirectoryRecord(FileDropDirectory directoryRecord, string toPath, bool recurseOnChildren)
+        {
+            directoryRecord.FileDropPath = toPath;
+
+            if (recurseOnChildren)
+            {
+                foreach (FileDropDirectory child in directoryRecord.ChildDirectories)
+                {
+                    RepathDirectoryRecord(child, Path.Combine(toPath, Path.GetFileName(child.CanonicalFileDropPath)), recurseOnChildren);
+                }
+            }
+        }
     }
 
     public enum RequiredAccess

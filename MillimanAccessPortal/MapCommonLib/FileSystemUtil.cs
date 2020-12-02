@@ -27,11 +27,25 @@ namespace MapCommonLib
         /// </summary>
         /// <remarks>Time before retry increases after each attempt.</remarks>
         /// <param name="path">Path to the directory to be deleted</param>
+        /// <param name="recursive">Whether to delete the directory contents if any</param>
         /// <param name="attempts">Times to try deleting the directory before giving up</param>
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
         public static void DeleteDirectoryWithRetry(string path, bool recursive, int attempts = 5, int baseIntervalMs = 200)
         {
             StaticUtil.ApplyRetryOperation<IOException>(() => Directory.Delete(path, recursive), attempts, baseIntervalMs);
+        }
+
+        /// <summary>
+        /// Try to rename a directory until success
+        /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
+        /// <param name="oldPath">Path to the existing directory to be moved</param>
+        /// <param name="newPath">New path to move to</param>
+        /// <param name="attempts">Times to try deleting the directory before giving up</param>
+        /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
+        public static void MoveDirectoryWithRetry(string oldPath, string newPath, int attempts = 5, int baseIntervalMs = 200)
+        {
+            StaticUtil.ApplyRetryOperation<IOException>(() => Directory.Move(oldPath, newPath), attempts, baseIntervalMs);
         }
 
         /// <summary>

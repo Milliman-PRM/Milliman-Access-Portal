@@ -15,6 +15,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.FileDropModels;
+using MillimanAccessPortal.Services;
 using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
@@ -22,7 +23,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using MillimanAccessPortal.Services;
 
 namespace MillimanAccessPortal.DataQueries
 {
