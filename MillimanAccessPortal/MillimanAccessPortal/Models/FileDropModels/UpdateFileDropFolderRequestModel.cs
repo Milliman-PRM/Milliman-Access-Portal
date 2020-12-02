@@ -8,10 +8,11 @@ using System;
 
 namespace MillimanAccessPortal.Models.FileDropModels
 {
-  public class UpdateFileDropFolderDescriptionRequestModel
+  public class UpdateFileDropFolderRequestModel
   {
     public Guid FileDropId { get; set; }
     public Guid FolderId { get; set; }
+    public string FolderName { get; set; }
     public string FolderDescription { get; set; }
   }
 }
