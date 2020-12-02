@@ -511,7 +511,6 @@ export interface UpdateFileDropFile {
   request: {
     fileDropId: Guid;
     fileId: Guid;
-    fileName: string;
     fileDescription: string;
   };
 }
@@ -535,7 +534,6 @@ export interface UpdateFileDropFolder {
   request: {
     fileDropId: Guid;
     folderId: Guid;
-    folderName: string;
     folderDescription: string;
   };
 }

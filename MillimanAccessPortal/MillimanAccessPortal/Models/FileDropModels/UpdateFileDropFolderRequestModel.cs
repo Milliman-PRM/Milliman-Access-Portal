@@ -12,7 +12,6 @@ namespace MillimanAccessPortal.Models.FileDropModels
   {
     public Guid FileDropId { get; set; }
     public Guid FolderId { get; set; }
-    public string FolderName { get; set; }
     public string FolderDescription { get; set; }
   }
 }
