@@ -22,6 +22,8 @@ interface FileDropUploadProps {
   disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
+  postErrorToast: (toastMsg: string) => void;
+  postSuccessToast: (toastMsg: string) => void;
   beginUpload: (
     uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, canonicalPath: string, fileName: string,
   ) => void;
@@ -203,6 +205,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
                 this.props.finalizeFileDropUpload(
                   this.props.uploadId, this.props.fileDropId, this.props.folderId, this.props.canonicalPath,
                 );
+                this.props.postSuccessToast('File upload completed successfully.');
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
