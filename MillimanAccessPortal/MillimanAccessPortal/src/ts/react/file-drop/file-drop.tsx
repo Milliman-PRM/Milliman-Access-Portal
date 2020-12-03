@@ -99,41 +99,45 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     return (
       <>
-          Object.keys(pending.uploads).map((upload) => {
-            const uploadObject = pending.uploads[upload];
-            return (
-              <FileDropUpload
-                key={upload}
-                uploadId={upload}
-                clientId={uploadObject.clientId || selected.client}
-                fileDropId={uploadObject.fileDropId || selected.fileDrop}
-                fileName={uploadObject.fileName}
-                folderId={uploadObject.folderId || selected.fileDropFolder.folderId}
-                canonicalPath={uploadObject.canonicalPath || selected.fileDropFolder.canonicalPath}
-                cancelable={uploadObject.cancelable}
-                canceled={uploadObject.canceled}
-                dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
-                browseRef={uploadObject.cancelable ? null : this.browseUploadRef ? [this.browseUploadRef] : null}
-                beginUpload={(uploadId, clientId, fileDropId, folderId, canonicalPath, fileName) =>
-                  this.props.beginFileDropFileUpload({
-                    uploadId, clientId, fileDropId, folderId, canonicalPath, fileName,
-                  })}
-                cancelFileUpload={(uploadId) =>
-                  this.props.cancelFileUpload({ uploadId })}
-                finalizeFileDropUpload={(uploadId, fileDropId, folderId, canonicalPath) =>
-                  this.props.finalizeFileDropUpload({ uploadId, fileDropId, folderId, canonicalPath })}
-                setUploadError={(uploadId, errorMsg) =>
-                  this.props.setUploadError({ uploadId, errorMsg })}
-                updateChecksumProgress={(uploadId, progress) =>
-                  this.props.updateChecksumProgress({ uploadId, progress })}
-                updateUploadProgress={(uploadId, progress) =>
-                  this.props.updateUploadProgress({ uploadId, progress })}
-              />
-            );
-          })
-        }
-        <div style={{position: 'absolute', top: '10px', left: '50px', display: 'none'}}>
+        <div>
           {
+            Object.keys(pending.uploads).map((upload) => {
+              const uploadObject = pending.uploads[upload];
+              return (
+                <FileDropUpload
+                  key={upload}
+                  uploadId={upload}
+                  clientId={uploadObject.clientId || selected.client}
+                  disallowedFileNames={data.fileDropContents
+                    && data.fileDropContents.files
+                    && data.fileDropContents.files.map((file) => file.fileName)}
+                  fileDropId={uploadObject.fileDropId || selected.fileDrop}
+                  fileName={uploadObject.fileName}
+                  folderId={uploadObject.folderId || selected.fileDropFolder.folderId}
+                  canonicalPath={uploadObject.canonicalPath || selected.fileDropFolder.canonicalPath}
+                  cancelable={uploadObject.cancelable}
+                  canceled={uploadObject.canceled}
+                  postErrorToast={(toastMsg) => toastr.error('', toastMsg)}
+                  postSuccessToast={(toastMsg) => toastr.success('', toastMsg)}
+                  dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
+                  browseRef={uploadObject.cancelable ? null : this.browseUploadRef}
+                  beginUpload={(uploadId, clientId, fileDropId, folderId, canonicalPath, fileName) =>
+                    this.props.beginFileDropFileUpload({
+                      uploadId, clientId, fileDropId, folderId, canonicalPath, fileName,
+                    })}
+                  cancelFileUpload={(uploadId) =>
+                    this.props.cancelFileUpload({ uploadId })}
+                  finalizeFileDropUpload={(uploadId, fileDropId, folderId, canonicalPath) =>
+                    this.props.finalizeFileDropUpload({ uploadId, fileDropId, folderId, canonicalPath })}
+                  setUploadError={(uploadId, errorMsg) =>
+                    this.props.setUploadError({ uploadId, errorMsg })}
+                  updateChecksumProgress={(uploadId, progress) =>
+                    this.props.updateChecksumProgress({ uploadId, progress })}
+                  updateUploadProgress={(uploadId, progress) =>
+                    this.props.updateUploadProgress({ uploadId, progress })}
+                />
+              );
+            })
           }
         </div>
         <ReduxToastr
