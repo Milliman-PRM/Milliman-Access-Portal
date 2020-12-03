@@ -99,7 +99,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
     return (
       <>
-        {
           Object.keys(pending.uploads).map((upload) => {
             const uploadObject = pending.uploads[upload];
             return (
@@ -133,6 +132,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             );
           })
         }
+        <div style={{position: 'absolute', top: '10px', left: '50px', display: 'none'}}>
+          {
+          }
+        </div>
         <ReduxToastr
           timeOut={5000}
           newestOnTop={false}
