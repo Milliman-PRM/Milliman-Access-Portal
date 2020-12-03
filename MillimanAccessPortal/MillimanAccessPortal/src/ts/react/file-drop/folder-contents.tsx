@@ -1,5 +1,7 @@
 import '../../../scss/react/file-drop/folder-contents.scss';
 
+import '../../../images/icons/add-file.svg';
+import '../../../images/icons/add-folder.svg';
 import '../../../images/icons/file.svg';
 import '../../../images/icons/folder.svg';
 import '../../../images/icons/menu.svg';
@@ -22,6 +24,7 @@ interface FolderContentsProps {
   fileDropName: string;
   fileDropId: Guid;
   fileDropContentAttributes: Dict<FileAndFolderAttributes>;
+  browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
@@ -382,6 +385,36 @@ export class FolderContents extends React.Component<FolderContentsProps> {
     });
   }
 
+  public renderAddButtons() {
+    return (
+      <>
+        {
+          this.props.browseRef &&
+          <tr className="add-row" onClick={() => this.props.browseRef.current.click()}>
+            <td className="file-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#add-file'} />
+              </svg>
+            </td>
+            <td colSpan={4}>
+              Add File
+            </td>
+          </tr>
+        }
+        <tr className="add-row">
+          <td className="folder-icon">
+            <svg className="content-type-icon">
+              <use xlinkHref={'#add-folder'} />
+            </svg>
+          </td>
+          <td colSpan={4}>
+            Add Folder
+          </td>
+        </tr>
+      </>
+    );
+  }
+
   public render() {
 
     return (
@@ -401,6 +434,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           <tbody>
             {this.renderFolders()}
             {this.renderFiles()}
+            {this.renderAddButtons()}
           </tbody>
         </table>
       </div>
