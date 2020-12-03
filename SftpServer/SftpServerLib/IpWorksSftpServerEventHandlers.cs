@@ -405,7 +405,7 @@ namespace SftpServerLib
                 return;
             }
 
-            evtData.StatusCode = (int) FileDropOperations.RemoveDirectory(evtData.Path,
+            evtData.StatusCode = (int)FileDropOperations.RemoveDirectory(evtData.Path,
                                                                           connection.FileDropName,
                                                                           connection.FileDropRootPathAbsolute,
                                                                           connection.FileDropId,
@@ -527,10 +527,59 @@ namespace SftpServerLib
             }
 
 
+            FileAttributes attributes = FileAttributes.Offline;
+            try
+            {
+                if (evtData.BeforeExec == true)
+                {
+                    attributes = File.GetAttributes(evtData.Path);
+                }
+                else
+                {
+                    attributes = File.GetAttributes(Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\')));
+                }
+            }
+            catch (Exception ex)
+            {
+                evtData.StatusCode = 2;  // SSH_FX_NO_SUCH_FILE 2
+                return;
+            }
+
+            switch (attributes)
+            {
+                // rename directory
+                case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
+                    evtData.StatusCode = (int)FileDropOperations.RenameDirectory(evtData.Path,
+                                                                                 evtData.NewPath,
+                                                                                 connection.FileDropRootPathAbsolute,
+                                                                                 connection.FileDropName,
+                                                                                 connection.FileDropId,
+                                                                                 connection.ClientId,
+                                                                                 connection.ClientName,
+                                                                                 connection.Account,
+                                                                                 connection.MapUser,
+                                                                                 evtData.BeforeExec,
+                                                                                 evtData.StatusCode);
+                    return;  // TODO delete this
+
+                /*// rename file
+                default:
+                    evtData.StatusCode = (int)FileDropOperations.RenameFile(evtData.Path,
+                                                                            evtData.NewPath,
+                                                                            connection.FileDropRootPathAbsolute,
+                                                                            connection.FileDropName,
+                                                                            connection.FileDropId,
+                                                                            connection.ClientId,
+                                                                            connection.ClientName,
+                                                                            connection.Account,
+                                                                            connection.MapUser,
+                                                                            evtData.BeforeExec,
+                                                                            evtData.StatusCode);
+                    break;*/
+            }
+
             if (evtData.BeforeExec)
             {
-                FileAttributes attributes = File.GetAttributes(evtData.NewPath);
-
                 using (var db = FileDropOperations.NewMapDbContext)
                 {
                     bool sourceRecordFound = false;
@@ -538,20 +587,8 @@ namespace SftpServerLib
 
                     switch (attributes)
                     {
-                        // renamed a directory
-                        case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
-                            recordNameString = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(evtData.Path).Replace(Path.GetFullPath(connection.FileDropRootPathAbsolute), ""));
-                            if (recordNameString == "/")
-                            {
-                                Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
-                                evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                return;
-                            }
-
-                            sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == connection.FileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, recordNameString));
-                            break;
-
-                        default:
+                        // rename a file
+                        case FileAttributes a when (a & FileAttributes.Directory) != FileAttributes.Directory:
                             recordNameString = Path.GetFileName(evtData.Path);
                             sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == connection.FileDropId && EF.Functions.ILike(f.FileName, recordNameString));
                             break;
@@ -570,9 +607,6 @@ namespace SftpServerLib
             {
                 if (evtData.StatusCode == 0)
                 {
-                    string absoluteNewPath = Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\'));
-                    FileAttributes attributes = File.GetAttributes(absoluteNewPath);
-
                     using (var db = FileDropOperations.NewMapDbContext)
                     {
                         switch (attributes)
