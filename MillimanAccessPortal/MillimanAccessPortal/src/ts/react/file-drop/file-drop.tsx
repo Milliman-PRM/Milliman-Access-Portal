@@ -73,7 +73,7 @@ interface FileDropProps {
 
 class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCreator> {
   protected dragUploadRef: React.RefObject<HTMLDivElement>;
-  protected browseUploadRef: React.RefObject<HTMLDivElement>;
+  protected browseUploadRef: React.RefObject<HTMLInputElement>;
 
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -901,11 +901,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={() => false}
             filterText={''}
           />
-          <div ref={this.browseUploadRef}>
+          <div>
             <ActionIcon
               label="Add File"
               icon="add-file"
-              action={() => false}
+              action={() => this.browseUploadRef.current.click()}
             />
           </div>
           <ActionIcon

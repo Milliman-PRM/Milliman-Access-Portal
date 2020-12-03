@@ -20,7 +20,7 @@ interface FileDropUploadProps {
   cancelable: boolean;
   canceled: boolean;
   dragRef?: React.RefObject<HTMLElement>;
-  browseRef?: Array<React.RefObject<HTMLElement>>;
+  browseRef?: React.RefObject<HTMLInputElement>;
   beginUpload: (
     uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, canonicalPath: string, fileName: string,
   ) => void;
@@ -59,8 +59,8 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     }));
 
     // Hook up the file upload input
-    if (this.props.browseRef && this.props.browseRef.length > 0 && this.props.browseRef[0].current) {
-      this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
+    if (this.props.browseRef && this.props.browseRef.current) {
+      this.resumable.assignBrowse(this.props.browseRef.current, false);
     }
     if (this.props.dragRef && this.props.dragRef.current) {
       this.resumable.assignDrop(this.props.dragRef.current);
@@ -273,8 +273,8 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     if (nextProps.canceled === true) {
       this.resumable.cancel();
     }
-    if (nextProps.browseRef && nextProps.browseRef.length > 0 && nextProps.browseRef[0].current) {
-      this.resumable.assignBrowse(nextProps.browseRef.map((ref) => ref.current), false);
+    if (nextProps.browseRef && nextProps.browseRef.current) {
+      this.resumable.assignBrowse(nextProps.browseRef.current, false);
     }
     if (nextProps.dragRef && nextProps.dragRef.current) {
       this.resumable.assignDrop(nextProps.dragRef.current);
