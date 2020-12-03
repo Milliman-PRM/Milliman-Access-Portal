@@ -188,6 +188,13 @@ export interface SetFileOrFolderEditing {
   description: string;
 }
 
+/** Update the file or folder name value */
+export interface UpdateFileOrFolderName {
+  type: 'UPDATE_FILE_OR_FOLDER_NAME';
+  id: Guid;
+  name: string;
+}
+
 /** Update the file or folder description value */
 export interface UpdateFileOrFolderDescription {
   type: 'UPDATE_FILE_OR_FOLDER_DESCRIPTION';
@@ -504,7 +511,7 @@ export interface DeleteFileDropFolderFailed {
 
 /**
  * POST:
- *   Update a file name/description.
+ *   Update a file description.
  */
 export interface UpdateFileDropFile {
   type: 'UPDATE_FILE_DROP_FILE';
@@ -527,7 +534,7 @@ export interface UpdateFileDropFileFailed {
 
 /**
  * POST:
- *   Update a folder name/description.
+ *   Update a folder description.
  */
 export interface UpdateFileDropFolder {
   type: 'UPDATE_FILE_DROP_FOLDER';
@@ -545,6 +552,56 @@ export interface UpdateFileDropFolderSucceeded {
 /** Action called upon return of an error from the UpdateFileDropFolder API call */
 export interface UpdateFileDropFolderFailed {
   type: 'UPDATE_FILE_DROP_FOLDER_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Update a file's name.
+ */
+export interface RenameFileDropFile {
+  type: 'RENAME_FILE_DROP_FILE';
+  request: {
+    fileDropId: Guid;
+    fileId: Guid;
+    name: string;
+  };
+}
+
+/** Action called upon successful return of the RenameFileDropFile API call */
+export interface RenameFileDropFileSucceeded {
+  type: 'RENAME_FILE_DROP_FILE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+
+/** Action called upon return of an error from the RenameFileDropFile API call */
+export interface RenameFileDropFileFailed {
+  type: 'RENAME_FILE_DROP_FILE_FAILED';
+  error: TSError;
+}
+
+/**
+ * POST:
+ *   Update a folder's name, along with all other paths below it.
+ */
+export interface RenameFileDropFolder {
+  type: 'RENAME_FILE_DROP_FOLDER';
+  request: {
+    fileDropId: Guid;
+    directoryId: Guid;
+    toCanonicalPath: string;
+  };
+}
+
+/** Action called upon successful return of the RenameFileDropFolder API call */
+export interface RenameFileDropFolderSucceeded {
+  type: 'RENAME_FILE_DROP_FOLDER_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+
+/** Action called upon return of an error from the RenameFileDropFolder API call */
+export interface RenameFileDropFolderFailed {
+  type: 'RENAME_FILE_DROP_FOLDER_FAILED';
   error: TSError;
 }
 
@@ -696,6 +753,7 @@ export type FileDropPageActions =
   | ExitFileDropEditMode
   | SetFileOrFolderExpansion
   | SetFileOrFolderEditing
+  | UpdateFileOrFolderName
   | UpdateFileOrFolderDescription
   ;
 
@@ -725,6 +783,8 @@ export type FileDropRequestActions =
   | DeleteFileDropFolder
   | UpdateFileDropFile
   | UpdateFileDropFolder
+  | RenameFileDropFile
+  | RenameFileDropFolder
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -747,6 +807,8 @@ export type FileDropSuccessResponseActions =
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileSucceeded
   | UpdateFileDropFolderSucceeded
+  | RenameFileDropFileSucceeded
+  | RenameFileDropFolderSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -769,6 +831,8 @@ export type FileDropErrorActions =
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileFailed
   | UpdateFileDropFolderFailed
+  | RenameFileDropFileFailed
+  | RenameFileDropFolderFailed
   ;
 
 /** Actions that set filter text */

@@ -119,6 +119,10 @@ export const setFileOrFolderExpansion =
 export const setFileOrFolderEditing =
   createActionCreator<Action.SetFileOrFolderEditing>('SET_FILE_OR_FOLDER_EDITING');
 
+/** Update the File or Folder name */
+export const updateFileOrFolderName =
+  createActionCreator<Action.UpdateFileOrFolderName>('UPDATE_FILE_OR_FOLDER_NAME');
+
 /** Update the File or Folder description */
 export const updateFileOrFolderDescription =
   createActionCreator<Action.UpdateFileOrFolderDescription>('UPDATE_FILE_OR_FOLDER_DESCRIPTION');
@@ -183,13 +187,20 @@ export const deleteFileDropFile =
 export const deleteFileDropFolder =
   createRequestActionCreator<Action.DeleteFileDropFolder>('DELETE_FILE_DROP_FOLDER');
 
-/** Update a file description/name */
+/** Update a file description */
 export const updateFileDropFile =
   createRequestActionCreator<Action.UpdateFileDropFile>('UPDATE_FILE_DROP_FILE');
 
-/** Update a folder description/name */
+/** Update a folder description */
 export const updateFileDropFolder =
   createRequestActionCreator<Action.UpdateFileDropFolder>('UPDATE_FILE_DROP_FOLDER');
+
+/** Update a file's name */
+export const renameFileDropFile =
+  createRequestActionCreator<Action.RenameFileDropFile>('RENAME_FILE_DROP_FILE');
+
+export const renameFileDropFolder =
+  createRequestActionCreator<Action.RenameFileDropFolder>('RENAME_FILE_DROP_FOLDER');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

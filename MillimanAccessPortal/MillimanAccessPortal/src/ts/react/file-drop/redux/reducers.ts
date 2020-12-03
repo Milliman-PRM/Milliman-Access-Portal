@@ -692,6 +692,13 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         description: action.description,
       },
     }),
+    UPDATE_FILE_OR_FOLDER_NAME: (state, action: Action.UpdateFileOrFolderName) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        fileName: action.name,
+      },
+    }),
     DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
       setFileDropDirectoryContentModel(response),
     DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
@@ -977,6 +984,14 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDropContents: action.response,
   }),
   UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.UpdateFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.RenameFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.RenameFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
   }),

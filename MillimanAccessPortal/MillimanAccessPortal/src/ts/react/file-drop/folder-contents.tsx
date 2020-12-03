@@ -8,7 +8,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
-import { TextAreaInput } from '../shared-components/form/input';
+import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
@@ -28,9 +28,12 @@ interface FolderContentsProps {
   deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
+  updateFileDropItemName: (id: Guid, name: string) => void;
   updateFileDropItemDescription: (id: Guid, description: string) => void;
   saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
   saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
+  renameFileDropFile: (fileDropId: Guid, fileId: Guid, name: string) => void;
+  renameFileDropFolder: (fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -95,12 +98,23 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </svg>
             </td>
             <td>
-              <span
-                className="folder"
-                onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
-              >
-                {folderName}
-              </span>
+              {editing ?
+                <Input
+                  type="text"
+                  name="folderName"
+                  label="Folder Name"
+                  value={folderAttributes.fileName}
+                  onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                    this.props.updateFileDropItemName(directory.id, target.value)}
+                  error={null}
+                /> :
+                <span
+                  className="folder"
+                  onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+                >
+                  {folderName}
+                </span>
+              }
             </td>
             <td className="col-file-size" />
             <td className="col-date-modified" />
@@ -119,14 +133,23 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {
                 folderAttributes &&
                 folderAttributes.editing &&
-                folderAttributes.description !== folderAttributes.descriptionRaw &&
+                (folderAttributes.description !== folderAttributes.descriptionRaw ||
+                  folderAttributes.fileName !== folderAttributes.fileNameRaw) &&
                 <ActionIcon
                   label="Submit Changes"
                   icon="checkmark"
                   inline={true}
                   action={() => {
-                    this.props.saveFileDropFolderDescription(fileDropId, directory.id,
-                      folderAttributes.description);
+                    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
+                      this.props.saveFileDropFolderDescription(fileDropId, directory.id,
+                        folderAttributes.description);
+                    }
+                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
+                      const toCanonicalPath = directory.canonicalPath
+                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1)
+                        .concat(folderAttributes.fileName);
+                      this.props.renameFileDropFolder(fileDropId, directory.id, toCanonicalPath);
+                    }
                     this.props.editFileDropItem(directory.id, false, null, null);
                   }}
                 />
@@ -237,14 +260,25 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 </svg>
               </td>
               <td>
-                <a
-                  href={encodeURI(fileDownloadURL)}
-                  download={true}
-                  className="file-download"
-                  title={file.description ? file.description : null}
-                >
-                  {file.fileName}
-                </a>
+                {editing ?
+                  <Input
+                    type="text"
+                    name="fileName"
+                    label="File Name"
+                    value={fileAttributes.fileName}
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                      this.props.updateFileDropItemName(file.id, target.value)}
+                    error={null}
+                  /> :
+                  <a
+                    href={encodeURI(fileDownloadURL)}
+                    download={true}
+                    className="file-download"
+                    title={file.description ? file.description : null}
+                  >
+                    {file.fileName}
+                  </a>
+                }
               </td>
               <td className="col-file-size">{file.size}</td>
               <td
@@ -276,14 +310,20 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 {
                   fileAttributes &&
                   fileAttributes.editing &&
-                  fileAttributes.description !== fileAttributes.descriptionRaw &&
+                  (fileAttributes.description !== fileAttributes.descriptionRaw ||
+                   fileAttributes.fileName !== fileAttributes.fileNameRaw) &&
                   <ActionIcon
                     label="Submit Changes"
                     icon="checkmark"
                     inline={true}
                     action={() => {
-                      this.props.saveFileDropFileDescription(fileDropId, file.id,
-                        fileAttributes.description);
+                      if (fileAttributes.description !== fileAttributes.descriptionRaw) {
+                        this.props.saveFileDropFileDescription(fileDropId, file.id, fileAttributes.description);
+                      }
+                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
+                        this.props.renameFileDropFile(fileDropId, file.id, fileAttributes.fileName);
+                      }
+
                       this.props.editFileDropItem(file.id, false, null, null);
                     }}
                   />

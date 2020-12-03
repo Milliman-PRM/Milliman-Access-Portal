@@ -940,6 +940,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   editFileDropItem={(id, editing, fileName, description) =>
                     this.props.setFileOrFolderEditing({ id, editing, fileName, description })
                   }
+                  updateFileDropItemName={(id, name) =>
+                    this.props.updateFileOrFolderName({ id, name })
+                  }
                   updateFileDropItemDescription={(id, description) =>
                     this.props.updateFileOrFolderDescription({ id, description })
                   }
@@ -955,6 +958,20 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       fileDropId,
                       folderId,
                       folderDescription,
+                    })
+                  }
+                  renameFileDropFile={(fileDropId, fileId, name) =>
+                    this.props.renameFileDropFile({
+                      fileDropId,
+                      fileId,
+                      name,
+                    })
+                  }
+                  renameFileDropFolder={(fileDropId, directoryId, toCanonicalPath) =>
+                    this.props.renameFileDropFolder({
+                      fileDropId,
+                      directoryId,
+                      toCanonicalPath,
                     })
                   }
                 />
