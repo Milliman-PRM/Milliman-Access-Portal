@@ -422,21 +422,24 @@ namespace FileDropLib
 
                     if (sftpStatus == 0)
                     {
+                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
+                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
+
                         List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
                                                                                  .Where(d => d.FileDropId == fileDropId)
                                                                                  .Include(d => d.ParentDirectory)
                                                                                  .Include(d => d.ChildDirectories)
                                                                                  .ToList();
 
-                        FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, oldPath));
+                        FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalOldPath));
                         if (directoryRecord == null)
                         {
                             return FileDropOperationResult.FAILURE;
                         }
 
-                        RepathDirectoryRecord(directoryRecord, newPath, true);
+                        RepathDirectoryRecord(directoryRecord, canonicalNewPath, true);
 
-                        string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath));
+                        string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(canonicalNewPath));
                         if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
                         { // This move involves a change in parent directory
                             FileDropDirectory newParentDirectoryRecord = allDirectoriesInThisFileDrop
@@ -447,7 +450,7 @@ namespace FileDropLib
                                 return FileDropOperationResult.FAILURE;
                             }
 
-                            directoryRecord.ParentDirectoryId = newParentDirectoryRecord.Id;
+                            directoryRecord.ParentDirectory = newParentDirectoryRecord;
                         }
 
                         db.SaveChanges();
