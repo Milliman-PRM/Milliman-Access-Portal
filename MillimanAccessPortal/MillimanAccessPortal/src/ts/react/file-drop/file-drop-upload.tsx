@@ -19,6 +19,7 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
+  disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
   beginUpload: (
@@ -71,6 +72,12 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       if (!this.props.cancelable) {
         this.canceled = false;
         const file: File = resumableFile.file;
+
+        // Make sure that the fileName doesn't already exist
+        if (this.props.disallowedFileNames.indexOf(file.name) > -1) {
+          this.props.postErrorToast('A file with that name already exists.');
+          return false;
+        }
 
         // Make sure the file matches the expected magic numbers
         const sniffer = new FileSniffer(file);
