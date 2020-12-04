@@ -564,7 +564,7 @@ export interface RenameFileDropFile {
   request: {
     fileDropId: Guid;
     fileId: Guid;
-    name: string;
+    fileName: string;
   };
 }
 

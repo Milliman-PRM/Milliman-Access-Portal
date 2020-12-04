@@ -960,11 +960,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       folderDescription,
                     })
                   }
-                  renameFileDropFile={(fileDropId, fileId, name) =>
+                  renameFileDropFile={(fileDropId, fileId, fileName) =>
                     this.props.renameFileDropFile({
                       fileDropId,
                       fileId,
-                      name,
+                      fileName,
                     })
                   }
                   renameFileDropFolder={(fileDropId, directoryId, toCanonicalPath) =>
