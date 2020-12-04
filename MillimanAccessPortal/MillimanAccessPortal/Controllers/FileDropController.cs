@@ -234,7 +234,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropModel.Id;
-            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser.Id);
+            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser);
 
             return Json(model);
         }
@@ -416,7 +416,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
-            PermissionGroupsModel model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId, currentUser.Id);
+            PermissionGroupsModel model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId, currentUser);
 
             return Json(model);
         }
@@ -446,7 +446,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 ApplicationUser currentUser = await _userManager.GetUserAsync(User);
-                PermissionGroupsModel returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model, currentUser.Id);
+                PermissionGroupsModel returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model, currentUser);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
