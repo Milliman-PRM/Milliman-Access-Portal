@@ -145,7 +145,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         folderAttributes.description);
                     }
                     if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
-                      const toCanonicalPath = directory.canonicalPath
+                      const toCanonicalPath = directory.canonicalPath.slice()
                         .substr(0, directory.canonicalPath.lastIndexOf('/') + 1)
                         .concat(folderAttributes.fileName);
                       this.props.renameFileDropFolder(fileDropId, directory.id, toCanonicalPath);
@@ -168,9 +168,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               }
               <PopupMenu>
                 <ul>
-                  <li onClick={() => this.props.editFileDropItem(directory.id, true, null, directory.description)}>
+                  <li
+                    onClick={() => this.props.editFileDropItem(directory.id, true, folderName, directory.description)}
+                  >
                     Edit
-                      </li>
+                  </li>
                   <li>Move</li>
                   <li
                     className="warning"
