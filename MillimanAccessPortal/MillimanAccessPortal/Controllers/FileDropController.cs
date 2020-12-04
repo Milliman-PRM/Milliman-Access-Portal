@@ -1225,7 +1225,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpPost]
-        // [ValidateAntiForgeryToken]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RenameFileDropFolder([FromBody] RenameFileDropFolderRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
@@ -1285,7 +1285,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, folderRecord?.CanonicalFileDropPath); // TODO: This needs to grab the directory info from the folderRecord.ParentDirectory instead, but we need to wait for creating folders to get implemented before that happens.
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestModel.ToCanonicalPath)));
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
