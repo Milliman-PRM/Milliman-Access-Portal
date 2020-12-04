@@ -33,7 +33,7 @@ interface FolderContentsProps {
   saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
   saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
   renameFileDropFile: (fileDropId: Guid, fileId: Guid, name: string) => void;
-  renameFileDropFolder: (fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
+  renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -145,10 +145,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         folderAttributes.description);
                     }
                     if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
-                      const toCanonicalPath = directory.canonicalPath.slice()
-                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1)
-                        .concat(folderAttributes.fileName);
-                      this.props.renameFileDropFolder(fileDropId, directory.id, toCanonicalPath);
+                      const parentCanonicalPath = directory.canonicalPath.slice()
+                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1);
+                      this.props.renameFileDropFolder(fileDropId, directory.id, parentCanonicalPath,
+                        folderAttributes.fileName);
                     }
                     this.props.editFileDropItem(directory.id, false, null, null);
                   }}

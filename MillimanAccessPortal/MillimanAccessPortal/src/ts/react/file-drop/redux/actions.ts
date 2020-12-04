@@ -589,7 +589,8 @@ export interface RenameFileDropFolder {
   request: {
     fileDropId: Guid;
     directoryId: Guid;
-    toCanonicalPath: string;
+    parentCanonicalPath: string;
+    directoryName: string,
   };
 }
 

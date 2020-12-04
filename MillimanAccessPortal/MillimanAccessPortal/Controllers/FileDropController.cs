@@ -1270,7 +1270,8 @@ namespace MillimanAccessPortal.Controllers
                                                              folderRecord.CanonicalFileDropPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             string folderFutureAbsolutePath = Path.Combine(fileDropGlobalRoot,
                                                            fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                                                           requestModel.ToCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                                                           requestModel.ParentCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
+                                                           requestModel.DirectoryName);
 
             FileDropOperations.RenameDirectory(folderExistingAbsolutePath,
                                                folderFutureAbsolutePath,
@@ -1285,7 +1286,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestModel.ToCanonicalPath)));
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestModel.ParentCanonicalPath)));
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
