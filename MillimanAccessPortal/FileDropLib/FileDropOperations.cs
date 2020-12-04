@@ -281,7 +281,7 @@ namespace FileDropLib
 
             FileDropOperationResult returnVal = (FileDropOperationResult)sftpStatus;
 
-            using (var db = FileDropOperations.NewMapDbContext)
+            using (var db = NewMapDbContext)
             {
                 switch (beforeExec)
                 {
