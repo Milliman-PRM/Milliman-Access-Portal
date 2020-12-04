@@ -1286,7 +1286,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestModel.ParentCanonicalPath)));
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, account, requestModel.ParentCanonicalPath);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
