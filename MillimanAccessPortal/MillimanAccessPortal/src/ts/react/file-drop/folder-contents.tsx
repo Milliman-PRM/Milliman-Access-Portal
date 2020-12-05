@@ -147,20 +147,37 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   }}
                 />
               }
-              <PopupMenu>
-                <ul>
-                  <li onClick={() => this.props.editFileDropItem(directory.id, true, null, directory.description)}>
-                    Edit
+              {
+                this.props.currentUserPermissions &&
+                (this.props.currentUserPermissions.writeAccess ||
+                  this.props.currentUserPermissions.deleteAccess) &&
+                <PopupMenu>
+                  <ul>
+                    {
+                      this.props.currentUserPermissions.writeAccess &&
+                      <>
+                        <li
+                          onClick={() =>
+                            this.props.editFileDropItem(directory.id, true, null, directory.description)
+                          }
+                        >
+                          Edit
+                        </li>
+                        <li>Move</li>
+                      </>
+                    }
+                    {
+                      this.props.currentUserPermissions.deleteAccess &&
+                      <li
+                        className="warning"
+                        onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                      >
+                        Delete
                       </li>
-                  <li>Move</li>
-                  <li
-                    className="warning"
-                    onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
-                  >
-                    Delete
-                  </li>
-                </ul>
-              </PopupMenu>
+                    }
+                  </ul>
+                </PopupMenu>
+              }
             </td>
           </tr>
           {
@@ -241,14 +258,21 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 </svg>
               </td>
               <td>
-                <a
-                  href={encodeURI(fileDownloadURL)}
-                  download={true}
-                  className="file-download"
-                  title={file.description ? file.description : null}
-                >
-                  {file.fileName}
-                </a>
+                {
+                  (this.props.currentUserPermissions &&
+                  this.props.currentUserPermissions.readAccess) ? (
+                    <a
+                      href={encodeURI(fileDownloadURL)}
+                      download={true}
+                      className="file-download"
+                      title={file.description ? file.description : null}
+                    >
+                      {file.fileName}
+                    </a>
+                  ) : (
+                    <span>{file.fileName}</span>
+                  )
+                }
               </td>
               <td className="col-file-size">{file.size}</td>
               <td
@@ -304,20 +328,37 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     }}
                   />
                 }
-                <PopupMenu>
-                  <ul>
-                    <li onClick={() => this.props.editFileDropItem(file.id, true, file.fileName, file.description)}>
-                      Edit
-                    </li>
-                    <li>Move</li>
-                    <li
-                      className="warning"
-                      onClick={() => this.props.deleteFile(fileDropId, file.id)}
-                    >
-                      Delete
-                    </li>
-                  </ul>
-                </PopupMenu>
+                {
+                  this.props.currentUserPermissions &&
+                  (this.props.currentUserPermissions.writeAccess ||
+                    this.props.currentUserPermissions.deleteAccess) &&
+                  <PopupMenu>
+                    <ul>
+                      {
+                        this.props.currentUserPermissions.writeAccess &&
+                        <>
+                          <li
+                            onClick={() =>
+                              this.props.editFileDropItem(file.id, true, file.fileName, file.description)
+                            }
+                          >
+                            Edit
+                          </li>
+                          <li>Move</li>
+                        </>
+                      }
+                      {
+                        this.props.currentUserPermissions.deleteAccess &&
+                        <li
+                          className="warning"
+                          onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                        >
+                          Delete
+                        </li>
+                      }
+                    </ul>
+                  </PopupMenu>
+                }
               </td>
             </tr >
             {
@@ -435,7 +476,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           <tbody>
             {this.renderFolders()}
             {this.renderFiles()}
-            {this.renderAddButtons()}
+            {
+              this.props.currentUserPermissions &&
+              this.props.currentUserPermissions.writeAccess &&
+              this.renderAddButtons()
+            }
           </tbody>
         </table>
       </div>
