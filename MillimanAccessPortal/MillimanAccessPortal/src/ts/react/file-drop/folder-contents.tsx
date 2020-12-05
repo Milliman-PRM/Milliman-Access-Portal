@@ -8,7 +8,7 @@ import '../../../images/icons/menu.svg';
 
 import * as moment from 'moment';
 import * as React from 'react';
-import { FileDropDirectory, FileDropFile, Guid } from '../models';
+import { FileDropDirectory, FileDropFile, Guid, PermissionSet } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
@@ -24,6 +24,7 @@ interface FolderContentsProps {
   fileDropName: string;
   fileDropId: Guid;
   fileDropContentAttributes: Dict<FileAndFolderAttributes>;
+  currentUserPermissions: PermissionSet;
   browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
