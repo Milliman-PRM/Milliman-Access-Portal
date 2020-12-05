@@ -16,6 +16,6 @@ namespace MillimanAccessPortal.Models.FileDropModels
 
         public List<FileDropFileModel> Files { get; set; } = new List<FileDropFileModel>();
 
-        public Dictionary<string, bool> RequestingUserPermissions { get; set; } = new Dictionary<string, bool>();
+        public PermissionSet CurrentUserPermissions { get; set; } = new PermissionSet();
     }
 }

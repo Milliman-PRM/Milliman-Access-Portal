@@ -675,9 +675,9 @@ namespace MillimanAccessPortal.DataQueries
                         Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
                         Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
                     };
-                    model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
-                    model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
-                    model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
+                    model.CurrentUserPermissions.ReadAccess = account.FileDropUserPermissionGroup.ReadAccess;
+                    model.CurrentUserPermissions.WriteAccess = account.FileDropUserPermissionGroup.WriteAccess;
+                    model.CurrentUserPermissions.DeleteAccess = account.FileDropUserPermissionGroup.DeleteAccess;
                     return model;
                 }
                 catch (ArgumentNullException ex)
