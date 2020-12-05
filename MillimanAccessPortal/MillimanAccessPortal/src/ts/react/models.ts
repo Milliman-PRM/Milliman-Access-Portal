@@ -328,10 +328,17 @@ export interface FileDrop {
   name: string;
   description: string;
   isSuspended?: boolean;
+  currentUserPermissions?: PermissionSet;
 }
 
 export interface FileDropWithStats extends FileDrop {
   userCount: number;
+}
+
+export interface PermissionSet {
+  readAccess: boolean;
+  writeAccess: boolean;
+  deleteAccess: boolean;
 }
 
 export interface FileDropsReturnModel {
@@ -347,9 +354,7 @@ export interface PermissionGroupModel {
   assignedMapUserIds: Guid[];
   assignedSftpAccountIds: Guid[];
   isPersonalGroup: boolean;
-  readAccess: boolean;
-  writeAccess: boolean;
-  deleteAccess: boolean;
+  permissions: PermissionSet;
 }
 
 export interface FileDropEligibleUser {
@@ -372,9 +377,10 @@ export interface PGChangeModel {
   name: string;
   usersAdded: Guid[];
   usersRemoved: Guid[];
-  readAccess: boolean;
-  writeAccess: boolean;
-  deleteAccess: boolean;
+  permissions: PermissionSet;
+  // readAccess: boolean;
+  // writeAccess: boolean;
+  // deleteAccess: boolean;
 }
 
 export interface PermissionGroupsChangesModel {
@@ -645,6 +651,7 @@ export interface FileDropDirectoryContentModel {
   thisDirectory: FileDropDirectory;
   directories: FileDropDirectory[];
   files: FileDropFile[];
+  currentUserPermissions: PermissionSet;
 }
 
 export enum FileUploadStatus {
