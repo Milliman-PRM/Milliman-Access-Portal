@@ -79,6 +79,11 @@ const _initialFileDropWithStats: FileDropWithStats = {
   description: null,
   isSuspended: false,
   userCount: null,
+  currentUserPermissions: {
+    readAccess: false,
+    writeAccess: false,
+    deleteAccess: false,
+  },
 };
 
 const _initialAfterFormModal: State.AfterFormModal = {
@@ -331,7 +336,10 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       ...state.permissionGroups,
       [action.pgId]: {
         ...state.permissionGroups[action.pgId],
-        [action.permission]: action.value,
+        permissions: {
+          ...state.permissionGroups[action.pgId].permissions,
+          [action.permission]: action.value,
+        },
       },
     },
   }),
@@ -399,9 +407,11 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
         isPersonalGroup: action.isSingleGroup,
         assignedMapUserIds: [],
         assignedSftpAccountIds: [],
-        readAccess: false,
-        writeAccess: false,
-        deleteAccess: false,
+        permissions: {
+          readAccess: false,
+          writeAccess: false,
+          deleteAccess: false,
+        },
       },
     },
   }),
