@@ -905,18 +905,23 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             setFilterText={() => false}
             filterText={''}
           />
-          <div>
-            <ActionIcon
-              label="Add File"
-              icon="add-file"
-              action={() => this.browseUploadRef.current.click()}
-            />
-          </div>
-          <ActionIcon
-            label="Add Folder"
-            icon="add-folder"
-            action={() => false}
-          />
+          {
+            this.props.data.fileDropContents &&
+            this.props.data.fileDropContents.currentUserPermissions &&
+            this.props.data.fileDropContents.currentUserPermissions.writeAccess &&
+            <>
+              <ActionIcon
+                label="Add File"
+                icon="add-file"
+                action={() => this.browseUploadRef.current.click()}
+              />
+              <ActionIcon
+                label="Add Folder"
+                icon="add-folder"
+                action={() => false}
+              />
+            </>
+          }
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <ContentPanelForm
