@@ -121,6 +121,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   postSuccessToast={(toastMsg) => toastr.success('', toastMsg)}
                   dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
                   browseRef={uploadObject.cancelable ? null : this.browseUploadRef}
+                  writeAccess={(data.fileDropContents &&
+                    data.fileDropContents.currentUserPermissions) ?
+                    data.fileDropContents.currentUserPermissions.writeAccess : false
+                  }
                   beginUpload={(uploadId, clientId, fileDropId, folderId, canonicalPath, fileName) =>
                     this.props.beginFileDropFileUpload({
                       uploadId, clientId, fileDropId, folderId, canonicalPath, fileName,
@@ -927,7 +931,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <ContentPanelForm
             readOnly={false}
           >
-            <div className="files-table-container" ref={this.dragUploadRef}>
+            <div
+              className="files-table-container"
+              ref={this.dragUploadRef}
+            >
               {
                 this.props.data.fileDropContents &&
                 <FolderContents

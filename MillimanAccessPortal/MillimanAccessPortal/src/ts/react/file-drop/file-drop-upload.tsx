@@ -22,6 +22,7 @@ interface FileDropUploadProps {
   disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
+  writeAccess: boolean;
   postErrorToast: (toastMsg: string) => void;
   postSuccessToast: (toastMsg: string) => void;
   beginUpload: (
@@ -74,6 +75,11 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       if (!this.props.cancelable) {
         this.canceled = false;
         const file: File = resumableFile.file;
+
+        // Make sure that the user has write permissions
+        if (!this.props.writeAccess) {
+          return false;
+        }
 
         // Make sure that the fileName doesn't already exist
         if (this.props.disallowedFileNames.indexOf(file.name) > -1) {
