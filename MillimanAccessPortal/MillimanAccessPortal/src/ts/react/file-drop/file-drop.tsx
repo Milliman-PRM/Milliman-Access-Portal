@@ -351,7 +351,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         });
                       }
                     } else {
-                      this.props.selectFileDropTab({ tab: 'settings' });
+                      this.props.selectFileDropTab({ tab: 'files' });
                       this.props.fetchSettings({ fileDropId: entityToSelect });
                     }
                     break;
@@ -674,15 +674,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     });
                   } else {
                     this.props.selectFileDrop({ id: entity.id });
-                    if (activeSelectedClient.canManageFileDrops) {
-                      if (selected.fileDrop !== entity.id) {
-                        this.props.fetchFolderContents({ fileDropId: entity.id, canonicalPath: '/' });
-                      }
-                      this.props.selectFileDropTab({ tab: 'files' });
-                    } else {
-                      this.props.fetchSettings({ fileDropId: entity.id });
-                      this.props.selectFileDropTab({ tab: 'settings' });
+                    if (selected.fileDrop !== entity.id) {
+                      this.props.fetchFolderContents({ fileDropId: entity.id, canonicalPath: '/' });
                     }
+                    this.props.selectFileDropTab({ tab: 'files' });
                   }
                 }}
                 suspended={entity.isSuspended}
@@ -844,7 +839,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         { id: 'activityLog', label: 'Activity Log' },
         { id: 'settings', label: 'My Settings' },
       ] : [
-        { id: 'settings', label: 'My Settings' },
+          { id: 'files', label: 'Files' },
+          { id: 'settings', label: 'My Settings' },
       ];
 
     return (
