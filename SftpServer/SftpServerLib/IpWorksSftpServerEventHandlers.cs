@@ -191,7 +191,7 @@ namespace SftpServerLib
                             {
                                 FileName = fileName,
                                 DirectoryId = containingDirectory.Id,
-                                CreatedByAccountId = connection.Account.Id,
+                                CreatedByAccountUserName = connection.Account.UserName,
                             };
                             db.FileDropFile.Add(newFileDropFile);
                             db.SaveChanges();
