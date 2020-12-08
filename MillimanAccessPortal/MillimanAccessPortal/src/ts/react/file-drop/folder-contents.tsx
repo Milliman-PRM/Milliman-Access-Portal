@@ -250,7 +250,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             editing &&
             <>
               <tr>
-                <td colSpan={5}>
+                <td />
+                <td colSpan={4}>
                   <TextAreaInput
                     error=""
                     autoFocus={true}
@@ -259,7 +260,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                       this.props.updateFileDropItemDescription(directory.id, target.value)}
                     value={folderAttributes.description}
-                    maxRows={5}
+                    maxRows={3}
                   />
                 </td>
               </tr>
