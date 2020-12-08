@@ -58,6 +58,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_FILE_DROP_FILE', API.deleteFileDropFile);
   yield takeLatestRequest('DELETE_FILE_DROP_FOLDER', API.deleteFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FILE', API.updateFileDropFile);
+  yield takeLatestRequest('CREATE_FILE_DROP_FOLDER', API.createFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FOLDER', API.updateFileDropFolder);
 
   // Refresh the File Drop Folder contents if the upload that just finished was in the active File Drop folder
@@ -128,6 +129,7 @@ export default function* rootSaga() {
     'DELETE_FILE_DROP_FILE_FAILED',
     'DELETE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FILE_FAILED',
+    'CREATE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FOLDER_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
