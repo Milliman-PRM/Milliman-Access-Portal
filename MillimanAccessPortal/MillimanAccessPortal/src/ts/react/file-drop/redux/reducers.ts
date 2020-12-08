@@ -1000,6 +1000,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropContents: action.response,
   }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.CreateFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
   UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.UpdateFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
