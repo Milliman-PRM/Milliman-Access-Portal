@@ -545,6 +545,19 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
   },
 });
 
+/** Reducer for the Create Folder mode */
+const createFolder = createReducer<State.CreateFolderData>(null, {
+  ENTER_CREATE_FOLDER_MODE: () => ({
+    name: '',
+    description: '',
+  }),
+  EXIT_CREATE_FOLDER_MODE: () => null,
+  UPDATE_CREATE_FOLDER_VALUES: (state, action: Action.UpdateCreateFolderValues) => ({
+    ...state,
+    [action.field]: action.value,
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -557,6 +570,7 @@ const pending = combineReducers({
   permissionGroupsEditMode,
   afterFormModal,
   uploads: pendingUploads,
+  createFolder,
 });
 
 // ~~~~~~~~~~~~~~~~
