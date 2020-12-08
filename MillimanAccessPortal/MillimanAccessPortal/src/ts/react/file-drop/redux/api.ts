@@ -79,6 +79,11 @@ export const updateFileDropFile =
     FileDropAction.UpdateFileDropFile, FileDropAction.UpdateFileDropFileSucceeded
   >('POST', '/FileDrop/UpdateFileDropFile');
 
+export const createFileDropFolder =
+  createJsonRequestor<
+    FileDropAction.CreateFileDropFolder, FileDropAction.CreateFileDropFolderSucceeded
+  >('POST', '/FileDrop/CreateFileDropFolder');
+
 export const updateFileDropFolder =
   createJsonRequestor<
     FileDropAction.UpdateFileDropFolder, FileDropAction.UpdateFileDropFolderSucceeded
