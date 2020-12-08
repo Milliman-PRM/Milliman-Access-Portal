@@ -39,6 +39,8 @@ interface FolderContentsProps {
   enterCreateFolderMode: () => void;
   exitCreateFolderMode: () => void;
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
+  createFileDropFolder: (
+    fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -87,7 +89,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderCreateFolder() {
-    const { createFolder, directories } = this.props;
+    const { createFolder, directories, fileDropId, thisDirectory } = this.props;
     const existingFolderNames = directories.map((directory) => directory.canonicalPath.split('/').slice(-1)[0]);
     return (
       <>
@@ -118,7 +120,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 label="Create Folder"
                 icon="checkmark"
                 inline={true}
-                action={() => false}
+                action={() =>
+                  this.props.createFileDropFolder(
+                    fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+                }
               />
             }
             <ActionIcon

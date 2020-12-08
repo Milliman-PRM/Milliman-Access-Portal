@@ -978,6 +978,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   enterCreateFolderMode={() => this.props.enterCreateFolderMode({})}
                   exitCreateFolderMode={() => this.props.exitCreateFolderMode({})}
                   updateCreateFolderValues={(field, value) => this.props.updateCreateFolderValues({ field, value })}
+                  createFileDropFolder={(fileDropId, containingFileDropDirectoryId, newFolderName, description) =>
+                    this.props.createFileDropFolder({
+                      fileDropId, containingFileDropDirectoryId, newFolderName, description,
+                    })
+                  }
                 />
               }
             </div>
