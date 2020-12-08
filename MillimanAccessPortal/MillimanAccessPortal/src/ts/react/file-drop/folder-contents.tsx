@@ -10,11 +10,11 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid, PermissionSet } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
-import { TextAreaInput } from '../shared-components/form/input';
+import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import { CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -25,6 +25,7 @@ interface FolderContentsProps {
   fileDropId: Guid;
   fileDropContentAttributes: Dict<FileAndFolderAttributes>;
   currentUserPermissions: PermissionSet;
+  createFolder: CreateFolderData;
   browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
@@ -36,6 +37,8 @@ interface FolderContentsProps {
   saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
   saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
   enterCreateFolderMode: () => void;
+  exitCreateFolderMode: () => void;
+  updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -81,6 +84,68 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         </React.Fragment>
       );
     });
+  }
+
+  public renderCreateFolder() {
+    const { createFolder, directories } = this.props;
+    const existingFolderNames = directories.map((directory) => directory.canonicalPath.split('/').slice(-1)[0]);
+    return (
+      <>
+        <tr className="folder-row expanded">
+          <td className="folder-icon">
+            <svg className="content-type-icon">
+              <use xlinkHref={'#folder'} />
+            </svg>
+          </td>
+          <td>
+            <Input
+              error={existingFolderNames.indexOf(createFolder.name.trim()) > -1 ? 'Folder name already exists' : null}
+              label="New Folder Name"
+              name="new-folder-input"
+              type="text"
+              value={createFolder.name}
+              autoFocus={true}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                this.props.updateCreateFolderValues('name', target.value)}
+            />
+          </td>
+          <td colSpan={2} />
+          <td className="col-actions">
+            {
+              createFolder.name.trim().length > 0 &&
+              existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
+              <ActionIcon
+                label="Create Folder"
+                icon="checkmark"
+                inline={true}
+                action={() => false}
+              />
+            }
+            <ActionIcon
+              label="Discard Changes"
+              icon="cancel"
+              inline={true}
+              action={() => this.props.exitCreateFolderMode()}
+            />
+          </td>
+        </tr>
+        <tr>
+          <td />
+          <td colSpan={4}>
+            <TextAreaInput
+              error={null}
+              label="Description"
+              name="description"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                this.props.updateCreateFolderValues('description', target.value)}
+              value={createFolder.description}
+              maxRows={3}
+            />
+          </td>
+        </tr>
+
+      </>
+    );
   }
 
   public renderFolders() {
@@ -459,6 +524,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public render() {
+    const { createFolder } = this.props;
 
     return (
       <div>
@@ -475,6 +541,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </tr>
           </thead>
           <tbody>
+            {
+              createFolder &&
+              this.renderCreateFolder()
+            }
             {this.renderFolders()}
             {this.renderFiles()}
             {

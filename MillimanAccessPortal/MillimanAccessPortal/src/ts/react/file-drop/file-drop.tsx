@@ -948,6 +948,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.beginFileDropUploadCancel({ uploadId })
                   }
                   thisDirectory={this.props.data.fileDropContents.thisDirectory}
+                  createFolder={this.props.pending.createFolder}
                   browseRef={this.browseUploadRef}
                   deleteFile={(fileDropId, fileId) =>
                     this.props.deleteFileDropFile({ fileDropId, fileId })}
@@ -975,6 +976,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     })
                   }
                   enterCreateFolderMode={() => this.props.enterCreateFolderMode({})}
+                  exitCreateFolderMode={() => this.props.exitCreateFolderMode({})}
+                  updateCreateFolderValues={(field, value) => this.props.updateCreateFolderValues({ field, value })}
                 />
               }
             </div>
