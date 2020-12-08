@@ -199,6 +199,10 @@ export const deleteFileDropFolder =
 export const updateFileDropFile =
   createRequestActionCreator<Action.UpdateFileDropFile>('UPDATE_FILE_DROP_FILE');
 
+/** Create a folder with a name and description */
+export const createFileDropFolder =
+  createRequestActionCreator<Action.CreateFileDropFolder>('CREATE_FILE_DROP_FOLDER');
+
 /** Update a folder description/name */
 export const updateFileDropFolder =
   createRequestActionCreator<Action.UpdateFileDropFolder>('UPDATE_FILE_DROP_FOLDER');

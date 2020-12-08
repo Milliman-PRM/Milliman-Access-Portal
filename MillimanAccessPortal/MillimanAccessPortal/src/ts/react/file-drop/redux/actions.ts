@@ -544,6 +544,29 @@ export interface UpdateFileDropFileFailed {
 
 /**
  * POST:
+ *   Create a folder with a name and optionally a description.
+ */
+export interface CreateFileDropFolder {
+  type: 'CREATE_FILE_DROP_FOLDER';
+  request: {
+    fileDropId: Guid;
+    containingFileDropDirectoryId: Guid;
+    newFolderName: string;
+    description: string;
+  };
+}
+/** Action called upon successful return of the CreateFileDropFolder API call */
+export interface CreateFileDropFolderSucceeded {
+  type: 'CREATE_FILE_DROP_FOLDER_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the CreateFileDropFolder API call */
+export interface CreateFileDropFolderFailed {
+  type: 'CREATE_FILE_DROP_FOLDER_FAILED';
+  error: TSError;
+}
+/**
+ * POST:
  *   Update a folder name/description.
  */
 export interface UpdateFileDropFolder {
@@ -744,6 +767,7 @@ export type FileDropRequestActions =
   | DeleteFileDropFile
   | DeleteFileDropFolder
   | UpdateFileDropFile
+  | CreateFileDropFolder
   | UpdateFileDropFolder
   ;
 
@@ -766,6 +790,7 @@ export type FileDropSuccessResponseActions =
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileSucceeded
+  | CreateFileDropFolderSucceeded
   | UpdateFileDropFolderSucceeded
   ;
 
@@ -788,6 +813,7 @@ export type FileDropErrorActions =
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileFailed
+  | CreateFileDropFolderFailed
   | UpdateFileDropFolderFailed
   ;
 
