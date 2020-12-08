@@ -981,7 +981,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> CreateFileDropFolder([FromBody] CreateFileDropFolderRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
 
             #region Validation
             if (fileDrop == null)
@@ -995,6 +997,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount authorizedAccount = await _dbContext.SftpAccount
+                                                            .Include(a => a.FileDropUserPermissionGroup)
+                                                                .ThenInclude(g => g.FileDrop)
                                                             .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                                             .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
                                                             .Where(a => a.FileDropId == requestModel.FileDropId)
@@ -1033,6 +1037,7 @@ namespace MillimanAccessPortal.Controllers
             FileDropOperations.CreateDirectory(Path.Combine(containingDirectoryRecord.CanonicalFileDropPath, requestModel.NewFolderName),
                                                Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath),
                                                fileDrop.Name,
+                                               requestModel.Description,
                                                fileDrop.Id,
                                                fileDrop.Client.Id,
                                                fileDrop.Client.Name,
