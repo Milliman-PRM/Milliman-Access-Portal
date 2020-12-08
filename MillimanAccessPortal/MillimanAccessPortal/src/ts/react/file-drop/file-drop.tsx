@@ -918,7 +918,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <ActionIcon
                 label="Add Folder"
                 icon="add-folder"
-                action={() => false}
+                action={() => this.props.enterCreateFolderMode()}
               />
             </>
           }
@@ -974,6 +974,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       folderDescription,
                     })
                   }
+                  enterCreateFolderMode={() => this.props.enterCreateFolderMode({})}
                 />
               }
             </div>

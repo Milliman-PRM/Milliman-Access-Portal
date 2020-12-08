@@ -35,6 +35,7 @@ interface FolderContentsProps {
   updateFileDropItemDescription: (id: Guid, description: string) => void;
   saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
   saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
+  enterCreateFolderMode: () => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -443,7 +444,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </td>
           </tr>
         }
-        <tr className="add-row">
+        <tr className="add-row" onClick={() => this.props.enterCreateFolderMode()}>
           <td className="folder-icon">
             <svg className="content-type-icon">
               <use xlinkHref={'#add-folder'} />
