@@ -200,6 +200,23 @@ export interface ExitFileDropEditMode {
   type: 'EXIT_FILE_DROP_EDIT_MODE';
 }
 
+/** Enter Create Folder mode */
+export interface EnterCreateFolderMode {
+  type: 'ENTER_CREATE_FOLDER_MODE';
+}
+
+/** Exit Create Folder mode */
+export interface ExitCreateFolderMode {
+  type: 'EXIT_CREATE_FOLDER_MODE';
+}
+
+/** Update the Create Folder values */
+export interface UpdateCreateFolderValues {
+  type: 'UPDATE_CREATE_FOLDER_VALUES';
+  field: 'name' | 'description';
+  value: string;
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -697,6 +714,9 @@ export type FileDropPageActions =
   | SetFileOrFolderExpansion
   | SetFileOrFolderEditing
   | UpdateFileOrFolderDescription
+  | EnterCreateFolderMode
+  | ExitCreateFolderMode
+  | UpdateCreateFolderValues
   ;
 
 /** Actions that schedule another action */

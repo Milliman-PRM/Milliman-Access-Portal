@@ -123,6 +123,18 @@ export const setFileOrFolderEditing =
 export const updateFileOrFolderDescription =
   createActionCreator<Action.UpdateFileOrFolderDescription>('UPDATE_FILE_OR_FOLDER_DESCRIPTION');
 
+/** Enter Create Folder Mode */
+export const enterCreateFolderMode =
+  createActionCreator<Action.EnterCreateFolderMode>('ENTER_CREATE_FOLDER_MODE');
+
+/** Exit Create Folder Mode */
+export const exitCreateFolderMode =
+  createActionCreator<Action.ExitCreateFolderMode>('EXIT_CREATE_FOLDER_MODE');
+
+/** Update Create Folder Values */
+export const updateCreateFolderValues =
+  createActionCreator<Action.UpdateCreateFolderValues>('UPDATE_CREATE_FOLDER_VALUES');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
