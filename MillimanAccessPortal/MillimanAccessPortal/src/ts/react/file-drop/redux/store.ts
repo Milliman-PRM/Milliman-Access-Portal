@@ -78,6 +78,12 @@ export interface AfterFormModal {
 /** Available File Drop tabs */
 export type AvailableFileDropTabs = 'files' | 'permissions' | 'activityLog' | 'settings';
 
+/** State object for Create Folder mode */
+export interface CreateFolderData {
+  name: string;
+  description: string;
+}
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -91,6 +97,7 @@ export interface FileDropPendingState {
   permissionGroupsEditMode: boolean;
   afterFormModal: AfterFormModal;
   uploads: Dict<FileDropUploadState>;
+  createFolder?: CreateFolderData;
 }
 
 /** State representing user-selected entities */
