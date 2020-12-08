@@ -125,7 +125,7 @@ namespace MillimanAccessPortal.Services
                     {
                         FileName = taskKvp.Value.FileName,
                         DirectoryId = destinationDirectoryRecord.Id,
-                        CreatedByAccountId = taskKvp.Value.Account.Id,
+                        CreatedByAccountUserName = taskKvp.Value.Account.UserName,
                         Size = fi.Length,
                         UploadDateTimeUtc = fi.LastWriteTimeUtc,
                     };

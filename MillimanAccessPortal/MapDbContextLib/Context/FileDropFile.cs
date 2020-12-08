@@ -24,12 +24,10 @@ namespace MapDbContextLib.Context
 
         public DateTime? UploadDateTimeUtc { get; set; } = null;
 
+        public string CreatedByAccountUserName { get; set; }
+
         [ForeignKey("Directory")]
         public Guid DirectoryId { get; set; }
         public FileDropDirectory Directory { get; set; }
-
-        [ForeignKey("CreatedByAccount")]
-        public Guid CreatedByAccountId { get; set; }
-        public SftpAccount CreatedByAccount { get; set; }
     }
 }

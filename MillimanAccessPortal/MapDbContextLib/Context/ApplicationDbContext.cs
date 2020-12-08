@@ -195,8 +195,7 @@ namespace MapDbContextLib.Context
             builder.Entity<FileDropFile>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
-                b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
+                b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Cascade);
                 b.HasIndex(x => new { x.DirectoryId, x.FileName }).IsUnique();  // unique because sftp clients can make multiple requests to create the same item
             });
         }
