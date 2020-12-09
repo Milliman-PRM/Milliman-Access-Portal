@@ -31,6 +31,32 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
   return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
 };
 
+/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
+function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(response.directories, (folder) => {
+    returnObject[folder.id] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: folder.description,
+      fileNameRaw: '',
+      descriptionRaw: folder.description,
+    };
+  });
+  _.forEach(response.files, (file) => {
+    returnObject[file.id] = {
+      editing: false,
+      expanded: false,
+      fileName: file.fileName,
+      description: file.description,
+      fileNameRaw: file.fileName,
+      descriptionRaw: file.description,
+    };
+  });
+  return returnObject;
+}
+
 // ~~~~~~~~~~~~~~~
 // Default Objects
 // ~~~~~~~~~~~~~~~
@@ -722,32 +748,6 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       setFileDropDirectoryContentModel(response),
   },
 );
-
-/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
-function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
-  const returnObject: Dict<State.FileAndFolderAttributes> = {};
-  _.forEach(response.directories, (folder) => {
-    returnObject[folder.id] = {
-      editing: false,
-      expanded: false,
-      fileName: '',
-      description: folder.description,
-      fileNameRaw: '',
-      descriptionRaw: folder.description,
-    };
-  });
-  _.forEach(response.files, (file) => {
-    returnObject[file.id] = {
-      editing: false,
-      expanded: false,
-      fileName: file.fileName,
-      description: file.description,
-      fileNameRaw: file.fileName,
-      descriptionRaw: file.description,
-    };
-  });
-  return returnObject;
-}
 
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
