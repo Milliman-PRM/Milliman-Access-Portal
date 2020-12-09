@@ -889,6 +889,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFilesTab() {
+    const { fileDropContents } = this.props.cardAttributes;
     return (
       <>
         <PanelSectionToolbar>
@@ -899,14 +900,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           />
           <div ref={this.browseUploadRef}>
             <ActionIcon
-              label="Add Folder"
-              icon="add"
+              label="Add File"
+              icon="add-file"
               action={() => false}
             />
           </div>
           <ActionIcon
-            label="Add File"
-            icon="add"
+            label="Add Folder"
+            icon="add-folder"
             action={() => false}
           />
         </PanelSectionToolbar>
@@ -923,6 +924,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   activeUploads={this.props.activeSelectedFileDropFolderUploads}
                   fileDropId={this.props.selected.fileDrop}
                   fileDropName={this.props.activeSelectedFileDrop.name}
+                  fileDropContentAttributes={fileDropContents}
                   navigateTo={(fileDropId, canonicalPath) =>
                     this.props.fetchFolderContents({ fileDropId, canonicalPath })
                   }
@@ -930,6 +932,31 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.beginFileDropUploadCancel({ uploadId })
                   }
                   thisDirectory={this.props.data.fileDropContents.thisDirectory}
+                  deleteFile={(fileDropId, fileId) =>
+                    this.props.deleteFileDropFile({ fileDropId, fileId })}
+                  deleteFolder={(fileDropId, folderId) =>
+                    this.props.deleteFileDropFolder({ fileDropId, folderId })}
+                  expandFileOrFolder={(id, expanded) => this.props.setFileOrFolderExpansion({ id, expanded })}
+                  editFileDropItem={(id, editing, fileName, description) =>
+                    this.props.setFileOrFolderEditing({ id, editing, fileName, description })
+                  }
+                  updateFileDropItemDescription={(id, description) =>
+                    this.props.updateFileOrFolderDescription({ id, description })
+                  }
+                  saveFileDropFile={(fileDropId, fileId, fileDescription) =>
+                    this.props.updateFileDropFile({
+                      fileDropId,
+                      fileId,
+                      fileDescription,
+                    })
+                  }
+                  saveFileDropFolder={(fileDropId, folderId, folderDescription) =>
+                    this.props.updateFileDropFolder({
+                      fileDropId,
+                      folderId,
+                      folderDescription,
+                    })
+                  }
                 />
               }
             </div>

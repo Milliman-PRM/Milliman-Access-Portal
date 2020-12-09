@@ -8,8 +8,11 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { TextAreaInput } from '../shared-components/form/input';
+import { PopupMenu } from '../shared-components/popup-menu';
+import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { FileDropUploadState } from './redux/store';
+import { FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -18,12 +21,19 @@ interface FolderContentsProps {
   activeUploads: FileDropUploadState[];
   fileDropName: string;
   fileDropId: Guid;
+  fileDropContentAttributes: Dict<FileAndFolderAttributes>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
+  deleteFile: (fileDropId: Guid, fileId: Guid) => void;
+  deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
+  expandFileOrFolder: (id: Guid, expanded: boolean) => void;
+  editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
+  updateFileDropItemDescription: (id: Guid, description: string) => void;
+  saveFileDropFile: (fileDropId: Guid, fileId: Guid, description: string) => void;
+  saveFileDropFolder: (fileDropId: Guid, folderId: Guid, description: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
-
   public renderBreadCrumbs() {
     const { fileDropId, fileDropName, navigateTo, thisDirectory } = this.props;
     const pathDivider = '/';
@@ -69,38 +79,125 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFolders() {
-    const { directories, fileDropId, navigateTo } = this.props;
+    const { directories, fileDropId, fileDropContentAttributes, navigateTo } = this.props;
     return directories.map((directory) => {
       const [folderName] = directory.canonicalPath.split('/').slice(-1);
+      const folderAttributes = fileDropContentAttributes[directory.id];
+      const editing = folderAttributes && folderAttributes.editing ? true : false;
+      const expanded = folderAttributes && folderAttributes.expanded ? true : false;
+      const rowClass = editing || expanded ? 'expanded' : null;
       return (
-        <tr className="folder-row" key={directory.id}>
-          <td className="folder-icon">
-            <svg className="content-type-icon">
-              <use xlinkHref={'#folder'} />
-            </svg>
-          </td>
-          <td>
-            <span
-              className="folder"
-              onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
-            >
-              {folderName}
-            </span>
-          </td>
-          <td className="col-file-size" />
-          <td className="col-date-modified" />
-          <td className="col-actions">
-            <svg className="menu-icon">
-              <use xlinkHref={'#menu'} />
-            </svg>
-          </td>
-        </tr>
+        <React.Fragment key={directory.id}>
+          <tr className={`folder-row ${rowClass}`}>
+            <td className="folder-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#folder'} />
+              </svg>
+            </td>
+            <td>
+              <span
+                className="folder"
+                onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+              >
+                {folderName}
+              </span>
+            </td>
+            <td className="col-file-size" />
+            <td className="col-date-modified" />
+            <td className="col-actions">
+              {
+                folderAttributes &&
+                !folderAttributes.editing &&
+                directory.description &&
+                <ActionIcon
+                  label="View Details"
+                  icon={folderAttributes.expanded ? 'collapse-card' : 'expand-card'}
+                  inline={true}
+                  action={() => this.props.expandFileOrFolder(directory.id, !folderAttributes.expanded)}
+                />
+              }
+              {
+                folderAttributes &&
+                folderAttributes.editing &&
+                folderAttributes.description !== folderAttributes.descriptionRaw &&
+                <ActionIcon
+                  label="Submit Changes"
+                  icon="checkmark"
+                  inline={true}
+                  action={() => {
+                    this.props.saveFileDropFolder(fileDropId, directory.id,
+                      folderAttributes.description);
+                    this.props.editFileDropItem(directory.id, false, null, null);
+                  }}
+                />
+              }
+              {
+                editing &&
+                <ActionIcon
+                  label="Discard Changes"
+                  icon="cancel"
+                  inline={true}
+                  action={() => {
+                    this.props.editFileDropItem(directory.id, false, null, null);
+                    this.props.expandFileOrFolder(directory.id, false);
+                  }}
+                />
+              }
+              <PopupMenu>
+                <ul>
+                  <li onClick={() => this.props.editFileDropItem(directory.id, true, null, directory.description)}>
+                    Edit
+                      </li>
+                  <li>Move</li>
+                  <li
+                    className="warning"
+                    onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                  >
+                    Delete
+                  </li>
+                </ul>
+              </PopupMenu>
+            </td>
+          </tr>
+          {
+            editing &&
+            <>
+              <tr>
+                <td colSpan={5}>
+                  <TextAreaInput
+                    error=""
+                    autoFocus={true}
+                    label="Description"
+                    name="description"
+                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                      this.props.updateFileDropItemDescription(directory.id, target.value)}
+                    value={folderAttributes.description}
+                    maxRows={5}
+                  />
+                </td>
+              </tr>
+            </>
+          }
+          {
+            !editing &&
+            expanded &&
+            <>
+              <tr>
+                <td colSpan={5}>
+                  <div className="file-drop-content-description">
+                    {directory.description}
+                  </div>
+                </td>
+              </tr>
+            </>
+          }
+        </React.Fragment>
       );
     });
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -127,47 +224,135 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           `FileDropFileId=${file.id}&`,
           `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
         ].join('');
+        const fileAttributes = fileDropContentAttributes[file.id];
+        const editing = fileAttributes && fileAttributes.editing ? true : false;
+        const expanded = fileAttributes && fileAttributes.expanded ? true : false;
+        const rowClass = editing || expanded ? 'expanded' : null;
         return (
-          <tr key={file.id}>
-            <td className="file-icon">
-              <svg className="content-type-icon">
-                <use xlinkHref={'#file'} />
-              </svg>
-            </td>
-            <td>
-              <a
-                href={encodeURI(fileDownloadURL)}
-                download={true}
-                className="file-download"
+          <React.Fragment key={file.id}>
+            <tr className={rowClass}>
+              <td className="file-icon">
+                <svg className="content-type-icon">
+                  <use xlinkHref={'#file'} />
+                </svg>
+              </td>
+              <td>
+                <a
+                  href={encodeURI(fileDownloadURL)}
+                  download={true}
+                  className="file-download"
+                  title={file.description ? file.description : null}
+                >
+                  {file.fileName}
+                </a>
+              </td>
+              <td className="col-file-size">{file.size}</td>
+              <td
+                className="col-date-modified"
+                title={
+                  file.uploadDateTimeUtc
+                    ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
+                    : null
+                }
               >
-                {file.fileName}
-              </a>
-            </td>
-            <td className="col-file-size">{file.size}</td>
-            <td
-              className="col-date-modified"
-              title={
-                file.uploadDateTimeUtc
-                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY h:mm:ss A')
-                  : null
-              }
-            >
-              {
-                file.uploadDateTimeUtc
-                  ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
-                  : null
-              }
-            </td>
-            <td className="col-actions">
-              <svg className="menu-icon">
-                <use xlinkHref={'#menu'} />
-              </svg>
-            </td>
-          </tr >
+                {
+                  file.uploadDateTimeUtc
+                    ? moment(file.uploadDateTimeUtc).local().format('MM/DD/YYYY')
+                    : null
+                }
+              </td>
+              <td className="col-actions">
+                {
+                  fileAttributes &&
+                  !fileAttributes.editing &&
+                  file.description &&
+                  <ActionIcon
+                    label="View Details"
+                    icon={fileAttributes.expanded ? 'collapse-card' : 'expand-card'}
+                    inline={true}
+                    action={() => this.props.expandFileOrFolder(file.id, !fileAttributes.expanded)}
+                  />
+                }
+                {
+                  fileAttributes &&
+                  fileAttributes.editing &&
+                  fileAttributes.description !== fileAttributes.descriptionRaw &&
+                  <ActionIcon
+                    label="Submit Changes"
+                    icon="checkmark"
+                    inline={true}
+                    action={() => {
+                      this.props.saveFileDropFile(fileDropId, file.id,
+                        fileAttributes.description);
+                      this.props.editFileDropItem(file.id, false, null, null);
+                    }}
+                  />
+                }
+                {
+                  editing &&
+                  <ActionIcon
+                    label="Discard Changes"
+                    icon="cancel"
+                    inline={true}
+                    action={() => {
+                      this.props.editFileDropItem(file.id, false, null, null);
+                      this.props.expandFileOrFolder(file.id, false);
+                    }}
+                  />
+                }
+                <PopupMenu>
+                  <ul>
+                    <li onClick={() => this.props.editFileDropItem(file.id, true, file.fileName, file.description)}>
+                      Edit
+                    </li>
+                    <li>Move</li>
+                    <li
+                      className="warning"
+                      onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                    >
+                      Delete
+                    </li>
+                  </ul>
+                </PopupMenu>
+              </td>
+            </tr >
+            {
+              editing &&
+              <>
+                <tr>
+                  <td colSpan={5}>
+                    <TextAreaInput
+                      error=""
+                      autoFocus={true}
+                      label="Description"
+                      name="description"
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                        this.props.updateFileDropItemDescription(file.id, target.value)}
+                      value={fileAttributes.description}
+                      maxRows={5}
+                    />
+                  </td>
+                </tr>
+              </>
+            }
+            {
+              !editing &&
+              expanded &&
+              <>
+                <tr>
+                  <td colSpan={5}>
+                    <div className="file-drop-content-description">
+                      {file.description}
+                    </div>
+                  </td>
+                </tr>
+              </>
+            }
+          </React.Fragment>
         );
       } else {
         return (
-          <tr key={file.fileName}>
+          <tr key={file.folderId}>
             <td className="file-icon">
               <svg className="content-type-icon">
                 <use xlinkHref={'#file'} />

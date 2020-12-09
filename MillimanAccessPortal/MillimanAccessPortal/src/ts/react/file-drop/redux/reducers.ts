@@ -8,7 +8,10 @@ import * as State from './store';
 import { generateUniqueId } from '../../../generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
-import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
+import {
+  FileDropDirectoryContentModel, FileDropSettings, FileDropWithStats,
+  PermissionGroupsReturnModel,
+} from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, ModalState } from '../../shared-components/redux/store';
@@ -659,10 +662,78 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
   },
 );
 
+/** Reducer for File Drop contents in the cardAttributes state object */
+const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
+  {
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        expanded: action.expanded,
+      },
+    }),
+    SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+        editing: action.editing,
+        fileName: action.editing ? action.fileName : '',
+        description: action.editing ? action.description : '',
+        fileNameRaw: action.editing ? action.fileName : '',
+        descriptionRaw: action.editing ? action.description : '',
+      },
+    }),
+    UPDATE_FILE_OR_FOLDER_DESCRIPTION: (state, action: Action.UpdateFileOrFolderDescription) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        description: action.description,
+      },
+    }),
+    DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.UpdateFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.UpdateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+  },
+);
+
+/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
+function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(response.directories, (folder) => {
+    returnObject[folder.id] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: folder.description,
+      fileNameRaw: '',
+      descriptionRaw: folder.description,
+    };
+  });
+  _.forEach(response.files, (file) => {
+    returnObject[file.id] = {
+      editing: false,
+      expanded: false,
+      fileName: file.fileName,
+      description: file.description,
+      fileNameRaw: file.fileName,
+      descriptionRaw: file.description,
+    };
+  });
+  return returnObject;
+}
+
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
   clients: clientCardAttributes,
   fileDrops: fileDropCardAttributes,
+  fileDropContents: fileDropContentAttributes,
 });
 
 // ~~~~~~~~~~~~~~~
@@ -894,6 +965,22 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     permissionGroups: null,
   }),
   FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  DELETE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.DeleteFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.DeleteFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  UPDATE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.UpdateFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.UpdateFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
   }),

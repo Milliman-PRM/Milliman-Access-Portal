@@ -38,6 +38,7 @@
     }
 
     .content-type-icon,
+    .action-icon,
     .menu-icon {
         height: 1.25em;
         width: 1.25em;
@@ -54,14 +55,24 @@
     }
 
     .col-actions {
-        width: 5em;
+        width: 7em;
     }
 
     tr {
         border-bottom: 1px solid $grey;
 
+        &.expanded {
+            border-bottom: none;
+        }
+
         td {
             padding: .5em 0;
+        }
+
+        .file-drop-content-description {
+            padding: 0 1em .5em 2em;
+            font-style: italic;
+            white-space: pre-line;
         }
     }
 

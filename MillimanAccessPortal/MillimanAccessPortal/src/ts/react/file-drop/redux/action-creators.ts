@@ -103,6 +103,26 @@ export const closeModifiedFormModal =
 export const closePasswordNotificationModal =
   createActionCreator<Action.ClosePasswordNotificationModal>('CLOSE_PASSWORD_NOTIFICATION_MODAL');
 
+/** Enter File Drop edit mode */
+export const enterFileDropEditMode =
+  createActionCreator<Action.EnterFileDropEditMode>('ENTER_FILE_DROP_EDIT_MODE');
+
+/** Exit File Drop edit mode */
+export const exitFileDropEditMode =
+  createActionCreator<Action.ExitFileDropEditMode>('EXIT_FILE_DROP_EDIT_MODE');
+
+/** Set the File or Folder expansion status */
+export const setFileOrFolderExpansion =
+  createActionCreator<Action.SetFileOrFolderExpansion>('SET_FILE_OR_FOLDER_EXPANSION');
+
+/** Set the File or Folder editing status */
+export const setFileOrFolderEditing =
+  createActionCreator<Action.SetFileOrFolderEditing>('SET_FILE_OR_FOLDER_EDITING');
+
+/** Update the File or Folder description */
+export const updateFileOrFolderDescription =
+  createActionCreator<Action.UpdateFileOrFolderDescription>('UPDATE_FILE_OR_FOLDER_DESCRIPTION');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -154,6 +174,22 @@ export const setFileDropNotificationSetting =
 /** Get folder contents for a given File Drop */
 export const fetchFolderContents =
   createRequestActionCreator<Action.FetchFolderContents>('FETCH_FOLDER_CONTENTS');
+
+/** Delete a file from a File Drop */
+export const deleteFileDropFile =
+  createRequestActionCreator<Action.DeleteFileDropFile>('DELETE_FILE_DROP_FILE');
+
+/** Delete a folder from a File Drop */
+export const deleteFileDropFolder =
+  createRequestActionCreator<Action.DeleteFileDropFolder>('DELETE_FILE_DROP_FOLDER');
+
+/** Update File Drop file information */
+export const updateFileDropFile =
+  createRequestActionCreator<Action.UpdateFileDropFile>('UPDATE_FILE_DROP_FILE');
+
+/** Update a File Drop folder information */
+export const updateFileDropFolder =
+  createRequestActionCreator<Action.UpdateFileDropFolder>('UPDATE_FILE_DROP_FOLDER');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

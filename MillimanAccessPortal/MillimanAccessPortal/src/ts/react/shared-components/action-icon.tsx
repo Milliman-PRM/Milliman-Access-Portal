@@ -1,9 +1,12 @@
-﻿import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-file.svg';
+import '../../../images/icons/add-folder.svg';
 import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/add.svg';
 import '../../../images/icons/cancel.svg';
 import '../../../images/icons/checkmark.svg';
+import '../../../images/icons/collapse-card.svg';
 import '../../../images/icons/collapse-cards.svg';
 import '../../../images/icons/delete.svg';
 import '../../../images/icons/edit.svg';
@@ -30,10 +33,10 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
-  'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' | 'reload' |
-  'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' |
-  'sort-date-desc' | 'upload' | 'user' | 'userguide';
+  icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' |
+  'collapse-card' | 'collapse-cards' | 'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' |
+  'information' | 'reload' | 'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' |
+  'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;

@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\MillimanAccessPortal\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\..\MillimanAccessPortal\FileDropLib\FileDropLib.csproj" />
     <ProjectReference Include="..\..\MillimanAccessPortal\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\..\MillimanAccessPortal\MapDbContextLib\MapDbContextLib.csproj" />
   </ItemGroup>

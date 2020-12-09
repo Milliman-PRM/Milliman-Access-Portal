@@ -120,11 +120,14 @@ namespace MillimanAccessPortal.Services
                 try
                 {
                     FileSystemUtil.CopyFileWithRetry(uploadRecord.StoragePath, targetFullPath, false);
+                    FileInfo fi = new FileInfo(targetFullPath);
                     FileDropFile newFileRecord = new FileDropFile
                     {
                         FileName = taskKvp.Value.FileName,
                         DirectoryId = destinationDirectoryRecord.Id,
-                        CreatedByAccountId = taskKvp.Value.Account.Id,
+                        CreatedByAccountUserName = taskKvp.Value.Account.UserName,
+                        Size = fi.Length,
+                        UploadDateTimeUtc = fi.LastWriteTimeUtc,
                     };
 
                     dbContext.FileDropFile.Add(newFileRecord);

@@ -112,7 +112,7 @@ namespace MapTests
         /// <returns></returns>
         [Theory]
         [InlineData("user1", 1, 0, 0)] // 1-admin, 2-no role
-        [InlineData("user2", 1, 0, 0)] // 1-user, 2-no role
+        [InlineData("user2", 0, 0, 0)] // 1-user, 2-no role
         [InlineData("user3", 1, 1, 0)] // 1-no role, 2-admin
         [InlineData("user4", 0, 1, 0)] // 1-no role, 2-user
         [InlineData("user5", 1, 1, 0)] // 1-admin, 2-admin
