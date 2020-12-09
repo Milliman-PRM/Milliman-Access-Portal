@@ -34,8 +34,8 @@ interface FolderContentsProps {
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
   updateFileDropItemDescription: (id: Guid, description: string) => void;
-  saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
-  saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
+  saveFileDropFile: (fileDropId: Guid, fileId: Guid, description: string) => void;
+  saveFileDropFolder: (fileDropId: Guid, folderId: Guid, description: string) => void;
   enterCreateFolderMode: () => void;
   exitCreateFolderMode: () => void;
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
@@ -200,7 +200,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   icon="checkmark"
                   inline={true}
                   action={() => {
-                    this.props.saveFileDropFolderDescription(fileDropId, directory.id,
+                    this.props.saveFileDropFolder(fileDropId, directory.id,
                       folderAttributes.description);
                     this.props.editFileDropItem(directory.id, false, null, null);
                   }}
@@ -382,7 +382,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     icon="checkmark"
                     inline={true}
                     action={() => {
-                      this.props.saveFileDropFileDescription(fileDropId, file.id,
+                      this.props.saveFileDropFile(fileDropId, file.id,
                         fileAttributes.description);
                       this.props.editFileDropItem(file.id, false, null, null);
                     }}

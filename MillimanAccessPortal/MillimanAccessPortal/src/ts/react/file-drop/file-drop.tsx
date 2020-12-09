@@ -961,14 +961,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   updateFileDropItemDescription={(id, description) =>
                     this.props.updateFileOrFolderDescription({ id, description })
                   }
-                  saveFileDropFileDescription={(fileDropId, fileId, fileDescription) =>
+                  saveFileDropFile={(fileDropId, fileId, fileDescription) =>
                     this.props.updateFileDropFile({
                       fileDropId,
                       fileId,
                       fileDescription,
                     })
                   }
-                  saveFileDropFolderDescription={(fileDropId, folderId, folderDescription) =>
+                  saveFileDropFolder={(fileDropId, folderId, folderDescription) =>
                     this.props.updateFileDropFolder({
                       fileDropId,
                       folderId,

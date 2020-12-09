@@ -1,6 +1,6 @@
 ﻿/*
  * CODE OWNERS: Evan Klein
- * OBJECTIVE: Request model supporting the request to update an existing folder's name or description.
+ * OBJECTIVE: Request model supporting the request to update folder information, such as description.
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 

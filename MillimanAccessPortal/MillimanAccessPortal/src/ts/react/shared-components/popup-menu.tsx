@@ -4,11 +4,6 @@ import '../../../images/icons/menu.svg';
 
 import * as React from 'react';
 
-// interface PopupMenuProps {
-//   offsetX: string;
-//   offsetY: string;
-// }
-
 interface PopupMenuState {
   isOpen: boolean;
 }

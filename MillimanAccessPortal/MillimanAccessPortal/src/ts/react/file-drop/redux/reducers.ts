@@ -749,6 +749,10 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       setFileDropDirectoryContentModel(response),
     DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
       setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.UpdateFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.UpdateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
   },
 );
 
