@@ -582,6 +582,7 @@ const createFolder = createReducer<State.CreateFolderData>(null, {
     ...state,
     [action.field]: action.value,
   }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: () => null,
 });
 
 /** Reducer that combines the pending reducers */
@@ -716,6 +717,8 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
 const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
   {
     FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    CREATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.CreateFileDropFolderSucceeded) =>
       setFileDropDirectoryContentModel(response),
     SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
       ...state,
