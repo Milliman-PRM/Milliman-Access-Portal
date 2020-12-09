@@ -117,8 +117,8 @@ namespace MillimanAccessPortal.Services
 
         private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
         {
-            DateTime nextEventUtc = DateTime.Today + eventTimeAfterMidnightUtc;
-            if (nextEventUtc < DateTime.UtcNow)
+            DateTime nextEventUtc = DateTime.UtcNow.Date + eventTimeAfterMidnightUtc;
+            while (nextEventUtc < DateTime.UtcNow)
             {
                 nextEventUtc += TimeSpan.FromDays(1);
             }
