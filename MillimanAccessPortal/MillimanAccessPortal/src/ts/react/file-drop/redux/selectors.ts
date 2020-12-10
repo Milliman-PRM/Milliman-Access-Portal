@@ -166,9 +166,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
         isPersonalGroup: pgPending[pg].isPersonalGroup,
         assignedMapUserIds: pgPending[pg].assignedMapUserIds,
         assignedSftpAccountIds: pgPending[pg].assignedSftpAccountIds,
-        readAccess: pgPending[pg].readAccess,
-        writeAccess: pgPending[pg].writeAccess,
-        deleteAccess: pgPending[pg].deleteAccess,
+        permissions: pgPending[pg].permissions,
       }));
 
     // Updated Permission Groups
@@ -183,9 +181,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
           name: pendingPG.name,
           usersAdded: _.difference(pendingPG.assignedMapUserIds, rawPG.assignedMapUserIds),
           usersRemoved: _.difference(rawPG.assignedMapUserIds, pendingPG.assignedMapUserIds),
-          readAccess: pendingPG.readAccess,
-          writeAccess: pendingPG.writeAccess,
-          deleteAccess: pendingPG.deleteAccess,
+          permissions: pendingPG.permissions,
         };
       });
 

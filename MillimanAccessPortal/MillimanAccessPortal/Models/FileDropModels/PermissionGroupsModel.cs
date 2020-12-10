@@ -4,12 +4,8 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using MapDbContextLib.Context;
-using MapDbContextLib.Identity;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Models.FileDropModels
 {
@@ -37,9 +33,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public bool IsPersonalGroup { get; set; }
         public List<Guid> AssignedSftpAccountIds { get; set; }
         public List<Guid> AssignedMapUserIds { get; set; }
-        public bool ReadAccess { get; set; }
-        public bool WriteAccess { get; set; }
-        public bool DeleteAccess { get; set; }
+        public PermissionSet Permissions { get; set; }
     }
 }
 

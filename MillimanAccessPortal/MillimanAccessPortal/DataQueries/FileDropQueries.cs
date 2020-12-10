@@ -185,13 +185,23 @@ namespace MillimanAccessPortal.DataQueries
                                                   .Distinct()
                                                   .CountAsync()
                                 : (int?)null,
+                    CurrentUserPermissions = await _dbContext.SftpAccount
+                                                         .Where(a => a.FileDropId == eachDrop.Id)
+                                                         .Where(a => a.ApplicationUserId == userId)
+                                                         .Select(a => new PermissionSet
+                                                         {
+                                                             ReadAccess = a.FileDropUserPermissionGroup.ReadAccess,
+                                                             WriteAccess = a.FileDropUserPermissionGroup.WriteAccess,
+                                                             DeleteAccess = a.FileDropUserPermissionGroup.DeleteAccess,
+                                                         })
+                                                         .SingleOrDefaultAsync(),
                 });
             }
 
             return FileDropsModel;
         }
 
-        internal async Task<PermissionGroupsModel> GetPermissionGroupsModelForFileDropAsync(Guid FileDropId, Guid ClientId, Guid currentUserId)
+        internal async Task<PermissionGroupsModel> GetPermissionGroupsModelForFileDropAsync(Guid FileDropId, Guid ClientId, ApplicationUser currentUser)
         {
             var returnModel = new PermissionGroupsModel
             {
@@ -202,16 +212,16 @@ namespace MillimanAccessPortal.DataQueries
                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                           .ToListAsync())
                                 .Select(urc => new EligibleUserModel
-                                    {
-                                        Id = urc.User.Id,
-                                        UserName = urc.User.UserName,
-                                        FirstName = urc.User.FirstName,
-                                        LastName = urc.User.LastName,
-                                        IsAdmin = _dbContext.UserRoleInClient
-                                                            .Any(rc => rc.UserId == urc.UserId 
-                                                                    && rc.ClientId == urc.ClientId 
+                                {
+                                    Id = urc.User.Id,
+                                    UserName = urc.User.UserName,
+                                    FirstName = urc.User.FirstName,
+                                    LastName = urc.User.LastName,
+                                    IsAdmin = _dbContext.UserRoleInClient
+                                                            .Any(rc => rc.UserId == urc.UserId
+                                                                    && rc.ClientId == urc.ClientId
                                                                     && rc.Role.RoleEnum == RoleEnum.FileDropAdmin),
-                                    })
+                                })
                                 .ToDictionary(m => m.Id),
 
                 PermissionGroups = (await _dbContext.FileDropUserPermissionGroup
@@ -228,21 +238,24 @@ namespace MillimanAccessPortal.DataQueries
                                                 Id = g.Id,
                                                 Name = g.Name,
                                                 IsPersonalGroup = g.IsPersonalGroup,
-                                                ReadAccess = g.ReadAccess,
-                                                WriteAccess = g.WriteAccess,
-                                                DeleteAccess = g.DeleteAccess,
+                                                Permissions = new PermissionSet
+                                                {
+                                                    ReadAccess = g.ReadAccess,
+                                                    WriteAccess = g.WriteAccess,
+                                                    DeleteAccess = g.DeleteAccess,
+                                                },
                                                 AssignedSftpAccountIds = accounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => a.Id).ToList(),
                                                 AssignedMapUserIds = accounts.Where(a => a.ApplicationUserId.HasValue).Select(a => a.ApplicationUserId.Value).ToList(),
                                             };
                                         })
                                         .ToDictionary(m => m.Id),
-                ClientModel = await GetClientCardModelAsync(await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == ClientId), currentUserId),
+                ClientModel = await GetClientCardModelAsync(await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == ClientId), currentUser.Id),
             };
 
             return returnModel;
         }
 
-        internal async Task<PermissionGroupsModel> UpdatePermissionGroupsAsync(UpdatePermissionGroupsModel model, Guid currentUserId)
+        internal async Task<PermissionGroupsModel> UpdatePermissionGroupsAsync(UpdatePermissionGroupsModel model, ApplicationUser currentUser)
         {
             // audit logs to record after the database transaction succeeds
             List<Action> auditLogActions = new List<Action>();
@@ -335,9 +348,9 @@ namespace MillimanAccessPortal.DataQueries
 
                     // Update group properties
                     if (updatedGroupRecord.Name != modelForUpdatedGroup.Name ||
-                        updatedGroupRecord.ReadAccess != modelForUpdatedGroup.ReadAccess ||
-                        updatedGroupRecord.WriteAccess != modelForUpdatedGroup.WriteAccess ||
-                        updatedGroupRecord.DeleteAccess != modelForUpdatedGroup.DeleteAccess)
+                        updatedGroupRecord.ReadAccess != modelForUpdatedGroup.Permissions.ReadAccess ||
+                        updatedGroupRecord.WriteAccess != modelForUpdatedGroup.Permissions.WriteAccess ||
+                        updatedGroupRecord.DeleteAccess != modelForUpdatedGroup.Permissions.DeleteAccess)
                     {
                         var previousGroup = new FileDropUserPermissionGroup
                         {
@@ -350,9 +363,9 @@ namespace MillimanAccessPortal.DataQueries
                         };
                         auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(previousGroup, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
                         updatedGroupRecord.Name = modelForUpdatedGroup.Name;
-                        updatedGroupRecord.ReadAccess = modelForUpdatedGroup.ReadAccess;
-                        updatedGroupRecord.WriteAccess = modelForUpdatedGroup.WriteAccess;
-                        updatedGroupRecord.DeleteAccess = modelForUpdatedGroup.DeleteAccess;
+                        updatedGroupRecord.ReadAccess = modelForUpdatedGroup.Permissions.ReadAccess;
+                        updatedGroupRecord.WriteAccess = modelForUpdatedGroup.Permissions.WriteAccess;
+                        updatedGroupRecord.DeleteAccess = modelForUpdatedGroup.Permissions.DeleteAccess;
                     }
 
                     // Unassign accounts of users who are being removed from existing groups
@@ -476,9 +489,9 @@ namespace MillimanAccessPortal.DataQueries
                     FileDropUserPermissionGroup newFileDropUserPermissionGroup = new FileDropUserPermissionGroup
                     {
                         Name = newGroup.Name,
-                        ReadAccess = newGroup.ReadAccess,
-                        WriteAccess = newGroup.WriteAccess,
-                        DeleteAccess = newGroup.DeleteAccess,
+                        ReadAccess = newGroup.Permissions.ReadAccess,
+                        WriteAccess = newGroup.Permissions.WriteAccess,
+                        DeleteAccess = newGroup.Permissions.DeleteAccess,
                         FileDrop = fileDrop,
                         IsPersonalGroup = newGroup.IsPersonalGroup,
                     };
@@ -540,7 +553,7 @@ namespace MillimanAccessPortal.DataQueries
                     logAction();
                 }
 
-                return await GetPermissionGroupsModelForFileDropAsync(model.FileDropId, fileDrop.ClientId, currentUserId);
+                return await GetPermissionGroupsModelForFileDropAsync(model.FileDropId, fileDrop.ClientId, currentUser);
             }
         }
 
@@ -662,9 +675,9 @@ namespace MillimanAccessPortal.DataQueries
                         Directories = thisDirectory.ChildDirectories.Select(d => new FileDropDirectoryModel(d)).OrderBy(d => d.CanonicalPath).ToList(),
                         Files = thisDirectory.Files.Select(f => new FileDropFileModel(f)).OrderBy(f => f.FileName).ToList(),
                     };
-                    model.RequestingUserPermissions["read"] = account.FileDropUserPermissionGroup.ReadAccess;
-                    model.RequestingUserPermissions["write"] = account.FileDropUserPermissionGroup.WriteAccess;
-                    model.RequestingUserPermissions["delete"] = account.FileDropUserPermissionGroup.DeleteAccess;
+                    model.CurrentUserPermissions.ReadAccess = account.FileDropUserPermissionGroup.ReadAccess;
+                    model.CurrentUserPermissions.WriteAccess = account.FileDropUserPermissionGroup.WriteAccess;
+                    model.CurrentUserPermissions.DeleteAccess = account.FileDropUserPermissionGroup.DeleteAccess;
                     return model;
                 }
                 catch (ArgumentNullException ex)

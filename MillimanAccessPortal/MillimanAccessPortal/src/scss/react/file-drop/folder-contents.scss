@@ -74,6 +74,15 @@
             font-style: italic;
             white-space: pre-line;
         }
+
+        &.add-row {
+            color: $green;
+            cursor: pointer;
+
+            &:hover {
+                color: darken( $green, 10% );
+            }
+        }
     }
 
     .folder,

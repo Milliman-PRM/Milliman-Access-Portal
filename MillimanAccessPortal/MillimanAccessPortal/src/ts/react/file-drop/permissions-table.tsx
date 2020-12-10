@@ -209,7 +209,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.readAccess}
+                selected={thisPG.permissions.readAccess}
               />
             </td>
             <td className="content-center">
@@ -219,7 +219,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.writeAccess}
+                selected={thisPG.permissions.writeAccess}
               />
             </td>
             <td className="content-center">
@@ -229,7 +229,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.deleteAccess}
+                selected={thisPG.permissions.deleteAccess}
               />
             </td>
             {

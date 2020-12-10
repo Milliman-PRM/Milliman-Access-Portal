@@ -24,9 +24,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public bool IsPersonalGroup { get; set; }
         public List<NonUserSftpAccount> AssignedSftpAccounts { get; set; } = new List<NonUserSftpAccount>();
         public List<Guid> AssignedMapUserIds { get; set; } = new List<Guid>();
-        public bool ReadAccess { get; set; }
-        public bool WriteAccess { get; set; }
-        public bool DeleteAccess { get; set; }
+        public PermissionSet Permissions { get; set; }
     }
 
     public class UpdatedPermissionGroup
@@ -35,9 +33,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public string Name { get; set; }
         public List<Guid> UsersAdded { get; set; } = new List<Guid>();
         public List<Guid> UsersRemoved { get; set; } = new List<Guid>();
-        public bool ReadAccess { get; set; }
-        public bool WriteAccess { get; set; }
-        public bool DeleteAccess { get; set; }
+        public PermissionSet Permissions { get; set; }
 
         /// <summary>
         /// For accounts not associated with MAP users
@@ -55,9 +51,9 @@ namespace MillimanAccessPortal.Models.FileDropModels
             {
                 Id = source.Id,
                 Name = source.Name,
-                ReadAccess = source.ReadAccess,
-                WriteAccess = source.WriteAccess,
-                DeleteAccess = source.DeleteAccess,
+                ReadAccess = source.Permissions.ReadAccess,
+                WriteAccess = source.Permissions.WriteAccess,
+                DeleteAccess = source.Permissions.DeleteAccess,
             };
         }
     }
