@@ -58,6 +58,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_FILE_DROP_FILE', API.deleteFileDropFile);
   yield takeLatestRequest('DELETE_FILE_DROP_FOLDER', API.deleteFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FILE', API.updateFileDropFile);
+  yield takeLatestRequest('CREATE_FILE_DROP_FOLDER', API.createFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FOLDER', API.updateFileDropFolder);
   yield takeLatestRequest('RENAME_FILE_DROP_FILE', API.renameFileDropFile);
   yield takeLatestRequest('RENAME_FILE_DROP_FOLDER', API.renameFileDropFolder);
@@ -132,6 +133,7 @@ export default function* rootSaga() {
     'DELETE_FILE_DROP_FILE_FAILED',
     'DELETE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FILE_FAILED',
+    'CREATE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FOLDER_FAILED',
     'RENAME_FILE_DROP_FILE_FAILED',
     'RENAME_FILE_DROP_FOLDER_FAILED',

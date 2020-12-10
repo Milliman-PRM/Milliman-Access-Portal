@@ -207,6 +207,23 @@ export interface ExitFileDropEditMode {
   type: 'EXIT_FILE_DROP_EDIT_MODE';
 }
 
+/** Enter Create Folder mode */
+export interface EnterCreateFolderMode {
+  type: 'ENTER_CREATE_FOLDER_MODE';
+}
+
+/** Exit Create Folder mode */
+export interface ExitCreateFolderMode {
+  type: 'EXIT_CREATE_FOLDER_MODE';
+}
+
+/** Update the Create Folder values */
+export interface UpdateCreateFolderValues {
+  type: 'UPDATE_CREATE_FOLDER_VALUES';
+  field: 'name' | 'description';
+  value: string;
+}
+
 /** Set Permission Group  */
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -534,7 +551,30 @@ export interface UpdateFileDropFileFailed {
 
 /**
  * POST:
- *   Update a folder description.
+ *   Create a folder with a name and optionally a description.
+ */
+export interface CreateFileDropFolder {
+  type: 'CREATE_FILE_DROP_FOLDER';
+  request: {
+    fileDropId: Guid;
+    containingFileDropDirectoryId: Guid;
+    newFolderName: string;
+    description: string;
+  };
+}
+/** Action called upon successful return of the CreateFileDropFolder API call */
+export interface CreateFileDropFolderSucceeded {
+  type: 'CREATE_FILE_DROP_FOLDER_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the CreateFileDropFolder API call */
+export interface CreateFileDropFolderFailed {
+  type: 'CREATE_FILE_DROP_FOLDER_FAILED';
+  error: TSError;
+}
+/**
+ * POST:
+ *   Update a folder name/description.
  */
 export interface UpdateFileDropFolder {
   type: 'UPDATE_FILE_DROP_FOLDER';
@@ -756,6 +796,9 @@ export type FileDropPageActions =
   | SetFileOrFolderEditing
   | UpdateFileOrFolderName
   | UpdateFileOrFolderDescription
+  | EnterCreateFolderMode
+  | ExitCreateFolderMode
+  | UpdateCreateFolderValues
   ;
 
 /** Actions that schedule another action */
@@ -783,6 +826,7 @@ export type FileDropRequestActions =
   | DeleteFileDropFile
   | DeleteFileDropFolder
   | UpdateFileDropFile
+  | CreateFileDropFolder
   | UpdateFileDropFolder
   | RenameFileDropFile
   | RenameFileDropFolder
@@ -807,6 +851,7 @@ export type FileDropSuccessResponseActions =
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileSucceeded
+  | CreateFileDropFolderSucceeded
   | UpdateFileDropFolderSucceeded
   | RenameFileDropFileSucceeded
   | RenameFileDropFolderSucceeded
@@ -831,6 +876,7 @@ export type FileDropErrorActions =
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileFailed
+  | CreateFileDropFolderFailed
   | UpdateFileDropFolderFailed
   | RenameFileDropFileFailed
   | RenameFileDropFolderFailed

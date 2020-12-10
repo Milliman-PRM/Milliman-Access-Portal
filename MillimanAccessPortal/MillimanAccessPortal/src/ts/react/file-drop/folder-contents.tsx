@@ -1,18 +1,20 @@
 import '../../../scss/react/file-drop/folder-contents.scss';
 
+import '../../../images/icons/add-file.svg';
+import '../../../images/icons/add-folder.svg';
 import '../../../images/icons/file.svg';
 import '../../../images/icons/folder.svg';
 import '../../../images/icons/menu.svg';
 
 import * as moment from 'moment';
 import * as React from 'react';
-import { FileDropDirectory, FileDropFile, Guid } from '../models';
+import { FileDropDirectory, FileDropFile, Guid, PermissionSet } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import { CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -22,6 +24,9 @@ interface FolderContentsProps {
   fileDropName: string;
   fileDropId: Guid;
   fileDropContentAttributes: Dict<FileAndFolderAttributes>;
+  currentUserPermissions: PermissionSet;
+  createFolder: CreateFolderData;
+  browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
   deleteFile: (fileDropId: Guid, fileId: Guid) => void;
@@ -30,8 +35,13 @@ interface FolderContentsProps {
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
   updateFileDropItemName: (id: Guid, name: string) => void;
   updateFileDropItemDescription: (id: Guid, description: string) => void;
-  saveFileDropFileDescription: (fileDropId: Guid, fileId: Guid, description: string) => void;
-  saveFileDropFolderDescription: (fileDropId: Guid, folderId: Guid, description: string) => void;
+  saveFileDropFile: (fileDropId: Guid, fileId: Guid, description: string) => void;
+  saveFileDropFolder: (fileDropId: Guid, folderId: Guid, description: string) => void;
+  enterCreateFolderMode: () => void;
+  exitCreateFolderMode: () => void;
+  updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
+  createFileDropFolder: (
+    fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
   renameFileDropFile: (fileDropId: Guid, fileId: Guid, name: string) => void;
   renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
 }
@@ -79,6 +89,71 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         </React.Fragment>
       );
     });
+  }
+
+  public renderCreateFolder() {
+    const { createFolder, directories, fileDropId, thisDirectory } = this.props;
+    const existingFolderNames = directories.map((directory) => directory.canonicalPath.split('/').slice(-1)[0]);
+    return (
+      <>
+        <tr className="folder-row expanded">
+          <td className="folder-icon">
+            <svg className="content-type-icon">
+              <use xlinkHref={'#folder'} />
+            </svg>
+          </td>
+          <td>
+            <Input
+              error={existingFolderNames.indexOf(createFolder.name.trim()) > -1 ? 'Folder name already exists' : null}
+              label="New Folder Name"
+              name="new-folder-input"
+              type="text"
+              value={createFolder.name}
+              autoFocus={true}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                this.props.updateCreateFolderValues('name', target.value)}
+            />
+          </td>
+          <td colSpan={2} />
+          <td className="col-actions">
+            {
+              createFolder.name.trim().length > 0 &&
+              existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
+              <ActionIcon
+                label="Create Folder"
+                icon="checkmark"
+                inline={true}
+                action={() =>
+                  this.props.createFileDropFolder(
+                    fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+                }
+              />
+            }
+            <ActionIcon
+              label="Discard Changes"
+              icon="cancel"
+              inline={true}
+              action={() => this.props.exitCreateFolderMode()}
+            />
+          </td>
+        </tr>
+        <tr>
+          <td />
+          <td colSpan={4}>
+            <TextAreaInput
+              error={null}
+              label="Description"
+              name="description"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                this.props.updateCreateFolderValues('description', target.value)}
+              value={createFolder.description}
+              maxRows={3}
+            />
+          </td>
+        </tr>
+
+      </>
+    );
   }
 
   public renderFolders() {
@@ -141,7 +216,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   inline={true}
                   action={() => {
                     if (folderAttributes.description !== folderAttributes.descriptionRaw) {
-                      this.props.saveFileDropFolderDescription(fileDropId, directory.id,
+                      this.props.saveFileDropFolder(fileDropId, directory.id,
                         folderAttributes.description);
                     }
                     if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
@@ -166,29 +241,45 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   }}
                 />
               }
-              <PopupMenu>
-                <ul>
-                  <li
-                    onClick={() => this.props.editFileDropItem(directory.id, true, folderName, directory.description)}
-                  >
-                    Edit
-                  </li>
-                  <li>Move</li>
-                  <li
-                    className="warning"
-                    onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
-                  >
-                    Delete
-                  </li>
-                </ul>
-              </PopupMenu>
+              {
+                this.props.currentUserPermissions &&
+                (this.props.currentUserPermissions.writeAccess ||
+                  this.props.currentUserPermissions.deleteAccess) &&
+                <PopupMenu>
+                  <ul>
+                    {
+                      this.props.currentUserPermissions.writeAccess &&
+                      <>
+                        <li
+                          onClick={() =>
+                            this.props.editFileDropItem(directory.id, true, folderName, directory.description)
+                          }
+                        >
+                          Edit
+                        </li>
+                        <li>Move</li>
+                      </>
+                    }
+                    {
+                      this.props.currentUserPermissions.deleteAccess &&
+                      <li
+                        className="warning"
+                        onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                      >
+                        Delete
+                      </li>
+                    }
+                  </ul>
+                </PopupMenu>
+              }
             </td>
           </tr>
           {
             editing &&
             <>
               <tr>
-                <td colSpan={5}>
+                <td />
+                <td colSpan={4}>
                   <TextAreaInput
                     error=""
                     autoFocus={true}
@@ -197,7 +288,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                       this.props.updateFileDropItemDescription(directory.id, target.value)}
                     value={folderAttributes.description}
-                    maxRows={5}
+                    maxRows={3}
                   />
                 </td>
               </tr>
@@ -272,14 +363,21 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       this.props.updateFileDropItemName(file.id, target.value)}
                     error={null}
                   /> :
-                  <a
-                    href={encodeURI(fileDownloadURL)}
-                    download={true}
-                    className="file-download"
-                    title={file.description ? file.description : null}
-                  >
-                    {file.fileName}
-                  </a>
+                  {
+                    (this.props.currentUserPermissions &&
+                    this.props.currentUserPermissions.readAccess) ? (
+                      <a
+                        href={encodeURI(fileDownloadURL)}
+                        download={true}
+                        className="file-download"
+                        title={file.description ? file.description : null}
+                      >
+                        {file.fileName}
+                      </a>
+                    ) : (
+                      <span>{file.fileName}</span>
+                    )
+                  }
                 }
               </td>
               <td className="col-file-size">{file.size}</td>
@@ -320,7 +418,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     inline={true}
                     action={() => {
                       if (fileAttributes.description !== fileAttributes.descriptionRaw) {
-                        this.props.saveFileDropFileDescription(fileDropId, file.id, fileAttributes.description);
+                        this.props.saveFileDropFile(fileDropId, file.id, fileAttributes.description);
                       }
                       if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
                         this.props.renameFileDropFile(fileDropId, file.id, fileAttributes.fileName);
@@ -342,20 +440,37 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     }}
                   />
                 }
-                <PopupMenu>
-                  <ul>
-                    <li onClick={() => this.props.editFileDropItem(file.id, true, file.fileName, file.description)}>
-                      Edit
-                    </li>
-                    <li>Move</li>
-                    <li
-                      className="warning"
-                      onClick={() => this.props.deleteFile(fileDropId, file.id)}
-                    >
-                      Delete
-                    </li>
-                  </ul>
-                </PopupMenu>
+                {
+                  this.props.currentUserPermissions &&
+                  (this.props.currentUserPermissions.writeAccess ||
+                    this.props.currentUserPermissions.deleteAccess) &&
+                  <PopupMenu>
+                    <ul>
+                      {
+                        this.props.currentUserPermissions.writeAccess &&
+                        <>
+                          <li
+                            onClick={() =>
+                              this.props.editFileDropItem(file.id, true, file.fileName, file.description)
+                            }
+                          >
+                            Edit
+                          </li>
+                          <li>Move</li>
+                        </>
+                      }
+                      {
+                        this.props.currentUserPermissions.deleteAccess &&
+                        <li
+                          className="warning"
+                          onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                        >
+                          Delete
+                        </li>
+                      }
+                    </ul>
+                  </PopupMenu>
+                }
               </td>
             </tr >
             {
@@ -424,7 +539,38 @@ export class FolderContents extends React.Component<FolderContentsProps> {
     });
   }
 
+  public renderAddButtons() {
+    return (
+      <>
+        {
+          this.props.browseRef &&
+          <tr className="add-row" onClick={() => this.props.browseRef.current.click()}>
+            <td className="file-icon">
+              <svg className="content-type-icon">
+                <use xlinkHref={'#add-file'} />
+              </svg>
+            </td>
+            <td colSpan={4}>
+              Add File
+            </td>
+          </tr>
+        }
+        <tr className="add-row" onClick={() => this.props.enterCreateFolderMode()}>
+          <td className="folder-icon">
+            <svg className="content-type-icon">
+              <use xlinkHref={'#add-folder'} />
+            </svg>
+          </td>
+          <td colSpan={4}>
+            Add Folder
+          </td>
+        </tr>
+      </>
+    );
+  }
+
   public render() {
+    const { createFolder } = this.props;
 
     return (
       <div>
@@ -441,8 +587,17 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </tr>
           </thead>
           <tbody>
+            {
+              createFolder &&
+              this.renderCreateFolder()
+            }
             {this.renderFolders()}
             {this.renderFiles()}
+            {
+              this.props.currentUserPermissions &&
+              this.props.currentUserPermissions.writeAccess &&
+              this.renderAddButtons()
+            }
           </tbody>
         </table>
       </div>

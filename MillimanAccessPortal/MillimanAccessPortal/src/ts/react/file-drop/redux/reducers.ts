@@ -31,6 +31,32 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
   return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
 };
 
+/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
+function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(response.directories, (folder) => {
+    returnObject[folder.id] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: folder.description,
+      fileNameRaw: '',
+      descriptionRaw: folder.description,
+    };
+  });
+  _.forEach(response.files, (file) => {
+    returnObject[file.id] = {
+      editing: false,
+      expanded: false,
+      fileName: file.fileName,
+      description: file.description,
+      fileNameRaw: file.fileName,
+      descriptionRaw: file.description,
+    };
+  });
+  return returnObject;
+}
+
 // ~~~~~~~~~~~~~~~
 // Default Objects
 // ~~~~~~~~~~~~~~~
@@ -79,6 +105,11 @@ const _initialFileDropWithStats: FileDropWithStats = {
   description: null,
   isSuspended: false,
   userCount: null,
+  currentUserPermissions: {
+    readAccess: false,
+    writeAccess: false,
+    deleteAccess: false,
+  },
 };
 
 const _initialAfterFormModal: State.AfterFormModal = {
@@ -331,7 +362,10 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       ...state.permissionGroups,
       [action.pgId]: {
         ...state.permissionGroups[action.pgId],
-        [action.permission]: action.value,
+        permissions: {
+          ...state.permissionGroups[action.pgId].permissions,
+          [action.permission]: action.value,
+        },
       },
     },
   }),
@@ -399,9 +433,11 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
         isPersonalGroup: action.isSingleGroup,
         assignedMapUserIds: [],
         assignedSftpAccountIds: [],
-        readAccess: false,
-        writeAccess: false,
-        deleteAccess: false,
+        permissions: {
+          readAccess: false,
+          writeAccess: false,
+          deleteAccess: false,
+        },
       },
     },
   }),
@@ -535,6 +571,20 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
   },
 });
 
+/** Reducer for the Create Folder mode */
+const createFolder = createReducer<State.CreateFolderData>(null, {
+  ENTER_CREATE_FOLDER_MODE: () => ({
+    name: '',
+    description: '',
+  }),
+  EXIT_CREATE_FOLDER_MODE: () => null,
+  UPDATE_CREATE_FOLDER_VALUES: (state, action: Action.UpdateCreateFolderValues) => ({
+    ...state,
+    [action.field]: action.value,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: () => null,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -547,6 +597,7 @@ const pending = combineReducers({
   permissionGroupsEditMode,
   afterFormModal,
   uploads: pendingUploads,
+  createFolder,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -667,6 +718,8 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
   {
     FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) =>
       setFileDropDirectoryContentModel(response),
+    CREATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.CreateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
     SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
       ...state,
       [action.id]: {
@@ -709,32 +762,6 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       setFileDropDirectoryContentModel(response),
   },
 );
-
-/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
-function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
-  const returnObject: Dict<State.FileAndFolderAttributes> = {};
-  _.forEach(response.directories, (folder) => {
-    returnObject[folder.id] = {
-      editing: false,
-      expanded: false,
-      fileName: '',
-      description: folder.description,
-      fileNameRaw: '',
-      descriptionRaw: folder.description,
-    };
-  });
-  _.forEach(response.files, (file) => {
-    returnObject[file.id] = {
-      editing: false,
-      expanded: false,
-      fileName: file.fileName,
-      description: file.description,
-      fileNameRaw: file.fileName,
-      descriptionRaw: file.description,
-    };
-  });
-  return returnObject;
-}
 
 /** Reducer that combines the cardAttributes reducers */
 const cardAttributes = combineReducers({
@@ -984,6 +1011,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDropContents: action.response,
   }),
   UPDATE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.UpdateFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.CreateFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
   }),

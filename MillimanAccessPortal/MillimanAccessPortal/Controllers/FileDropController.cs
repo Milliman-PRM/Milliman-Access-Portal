@@ -234,7 +234,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropModel.Id;
-            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser.Id);
+            model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser);
 
             return Json(model);
         }
@@ -416,7 +416,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
-            PermissionGroupsModel model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId, currentUser.Id);
+            PermissionGroupsModel model = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(FileDropId, ClientId, currentUser);
 
             return Json(model);
         }
@@ -446,7 +446,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 ApplicationUser currentUser = await _userManager.GetUserAsync(User);
-                PermissionGroupsModel returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model, currentUser.Id);
+                PermissionGroupsModel returnModel = await _fileDropQueries.UpdatePermissionGroupsAsync(model, currentUser);
                 return Json(returnModel);
             }
             catch (ApplicationException ex)
@@ -973,6 +973,92 @@ namespace MillimanAccessPortal.Controllers
                 Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Failed to return requested file {Path.GetFileName(fullFilePathFromDb)}");
                 Response.Headers.Add("Warning", $"Failed to return requested file {Path.GetFileName(CanonicalFilePath)}");
                 return StatusCode(StatusCodes.Status500InternalServerError);
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateFileDropFolder([FromBody] CreateFileDropFolderRequestModel requestModel)
+        {
+            ApplicationUser user = await _userManager.GetUserAsync(User);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
+
+            #region Validation
+            if (fileDrop == null)
+            {
+                // file drop not found
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
+                Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            #endregion
+
+            SftpAccount authorizedAccount = await _dbContext.SftpAccount
+                                                            .Include(a => a.FileDropUserPermissionGroup)
+                                                                .ThenInclude(g => g.FileDrop)
+                                                            .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                                            .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                            .Where(a => a.FileDropId == requestModel.FileDropId)
+                                                            .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
+                                                            .SingleOrDefaultAsync();
+
+            FileDropDirectory containingDirectoryRecord = _dbContext.FileDropDirectory.Find(requestModel.ContainingFileDropDirectoryId);
+            IEnumerable<FileDropDirectory> existingSiblingDirectories = _dbContext.FileDropDirectory.Where(d => d.ParentDirectoryId == requestModel.ContainingFileDropDirectoryId).ToList();
+            #region Validation
+            if (containingDirectoryRecord == null || containingDirectoryRecord.FileDropId != fileDrop.Id)
+            {
+                // invalid containing directory
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid parent directory ID {requestModel.ContainingFileDropDirectoryId} specified");
+                Response.Headers.Add("Warning", "An invalid parent directory was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (existingSiblingDirectories.Any(d => Path.GetFileName(d.CanonicalFileDropPath).Equals(requestModel.NewFolderName, StringComparison.InvariantCultureIgnoreCase)))
+            {
+                // directory already exists
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} directory {requestModel.NewFolderName} already exists in the requested containing directory {containingDirectoryRecord.CanonicalFileDropPath}");
+                Response.Headers.Add("Warning", "The requested new directory already exists.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded || authorizedAccount == null)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
+            FileDropOperations.CreateDirectory(Path.Combine(containingDirectoryRecord.CanonicalFileDropPath, requestModel.NewFolderName),
+                                               Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath),
+                                               fileDrop.Name,
+                                               requestModel.Description,
+                                               fileDrop.Id,
+                                               fileDrop.Client.Id,
+                                               fileDrop.Client.Name,
+                                               authorizedAccount,
+                                               user);
+            try
+            {
+                DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, authorizedAccount, containingDirectoryRecord.CanonicalFileDropPath);
+                return Json(returnModel);
+            }
+            catch (ApplicationException ex)
+            {
+                Log.Warning(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
+                Response.Headers.Add("Warning", "The containing folder was not found while building the folder contents list.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} {ex.Message}");
+                Response.Headers.Add("Warning", "Error. Please contact support if this issue continues.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
         }
 
