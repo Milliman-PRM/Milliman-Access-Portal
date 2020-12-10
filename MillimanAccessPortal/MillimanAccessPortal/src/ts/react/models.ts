@@ -378,9 +378,6 @@ export interface PGChangeModel {
   usersAdded: Guid[];
   usersRemoved: Guid[];
   permissions: PermissionSet;
-  // readAccess: boolean;
-  // writeAccess: boolean;
-  // deleteAccess: boolean;
 }
 
 export interface PermissionGroupsChangesModel {
