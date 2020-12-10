@@ -363,21 +363,18 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       this.props.updateFileDropItemName(file.id, target.value)}
                     error={null}
                   /> :
-                  {
-                    (this.props.currentUserPermissions &&
-                    this.props.currentUserPermissions.readAccess) ? (
-                      <a
-                        href={encodeURI(fileDownloadURL)}
-                        download={true}
-                        className="file-download"
-                        title={file.description ? file.description : null}
-                      >
-                        {file.fileName}
-                      </a>
-                    ) : (
-                      <span>{file.fileName}</span>
-                    )
-                  }
+                  (this.props.currentUserPermissions && this.props.currentUserPermissions.readAccess) ? (
+                    <a
+                      href={encodeURI(fileDownloadURL)}
+                      download={true}
+                      className="file-download"
+                      title={file.description ? file.description : null}
+                    >
+                      {file.fileName}
+                    </a>
+                  ) : (
+                    <span>{file.fileName}</span>
+                  )
                 }
               </td>
               <td className="col-file-size">{file.size}</td>
