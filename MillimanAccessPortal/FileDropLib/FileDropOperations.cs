@@ -143,6 +143,12 @@ namespace FileDropLib
 
                             db.FileDropFile.Remove(fileRecord);
                             db.SaveChanges();
+
+                            new AuditLogger().Log(AuditEventType.SftpFileRemoved.ToEvent((FileDropFileLogModel)fileRecord,
+                                                                                         (FileDropDirectoryLogModel)fileRecord.Directory,
+                                                                                         new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
+                                                                                         account,
+                                                                                         user), user?.UserName);
                         }
                         break;
 
