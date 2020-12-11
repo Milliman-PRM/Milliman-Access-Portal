@@ -355,17 +355,19 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <td>
                 {editing ?
                   <div>
-                    <Input
-                      type="text"
-                      name="fileName"
-                      label="File Name"
-                      value={this.getFileNameSansExtension(fileAttributes.fileName)}
-                      onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
-                        this.props.updateFileDropItemName(file.id,
-                          target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
-                      error={null}
-                    />
-                    <span>{this.getFileExtension(fileAttributes.fileName)}</span>
+                    <div className="file-rename-input">
+                      <Input
+                        type="text"
+                        name="fileName"
+                        label="File Name"
+                        value={this.getFileNameSansExtension(fileAttributes.fileName)}
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                          this.props.updateFileDropItemName(file.id,
+                            target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
+                        error={null}
+                      />
+                    </div>
+                    <span className="file-rename-extension">{this.getFileExtension(fileAttributes.fileName)}</span>
                   </div> :
                   (this.props.currentUserPermissions && this.props.currentUserPermissions.readAccess) ? (
                     <a
