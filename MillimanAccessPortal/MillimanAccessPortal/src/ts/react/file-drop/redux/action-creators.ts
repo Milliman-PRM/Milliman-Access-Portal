@@ -47,6 +47,22 @@ export const openDeleteFileDropConfirmationModal =
 export const closeDeleteFileDropConfirmationModal =
   createActionCreator<Action.CloseDeleteFileDropConfirmationModal>('CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL');
 
+/** Open the Move File Drop File modal */
+export const openMoveFileDropFileModal =
+  createActionCreator<Action.OpenMoveFileDropFileModal>('OPEN_MOVE_FILE_DROP_FILE_MODAL');
+
+/** Close the Move File Drop File modal */
+export const closeMoveFileDropFileModal =
+  createActionCreator<Action.CloseMoveFileDropFileModal>('CLOSE_MOVE_FILE_DROP_FILE_MODAL');
+
+/** Open the Move File Drop Folder modal */
+export const openMoveFileDropFolderModal =
+  createActionCreator<Action.OpenMoveFileDropFolderModal>('OPEN_MOVE_FILE_DROP_FOLDER_MODAL');
+
+/** Close the Move File Drop Folder modal */
+export const closeMoveFileDropFolderModal =
+  createActionCreator<Action.CloseMoveFileDropFolderModal>('CLOSE_MOVE_FILE_DROP_FOLDER_MODAL');
+
 /** Put a File Drop in edit mode */
 export const editFileDrop =
   createActionCreator<Action.EditFileDrop>('EDIT_FILE_DROP');

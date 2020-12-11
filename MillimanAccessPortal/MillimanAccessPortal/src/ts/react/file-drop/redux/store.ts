@@ -84,6 +84,16 @@ export interface CreateFolderData {
   description: string;
 }
 
+/** State object for Move File Drop File modal */
+export interface MoveFileData {
+  fileName: string;
+}
+
+/** State object for Move File Drop Folder modal */
+export interface MoveFolderData {
+  folderName: string;
+}
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -98,6 +108,8 @@ export interface FileDropPendingState {
   afterFormModal: AfterFormModal;
   uploads: Dict<FileDropUploadState>;
   createFolder?: CreateFolderData;
+  moveFile: MoveFileData;
+  moveFolder: MoveFolderData;
 }
 
 /** State representing user-selected entities */
@@ -142,6 +154,8 @@ export interface FileDropModals {
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
   passwordNotification: ModalState;
+  moveFileDropFile: ModalState;
+  moveFileDropFolder: ModalState;
 }
 
 /** Top-Level File Drop state */

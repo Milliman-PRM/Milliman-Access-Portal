@@ -41,6 +41,7 @@ interface FolderContentsProps {
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
   createFileDropFolder: (
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
+  moveFileDropFile: (fileDropId: Guid, fileId: Guid, fileName: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -416,7 +417,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           >
                             Edit
                           </li>
-                          <li>Move</li>
+                          <li
+                            onClick={() =>
+                              this.props.moveFileDropFile(fileDropId, file.id, file.fileName)
+                            }
+                          >
+                            Move
+                          </li>
                         </>
                       }
                       {

@@ -112,6 +112,14 @@ const _initialFileDropWithStats: FileDropWithStats = {
   },
 };
 
+const _initialMoveFile: State.MoveFileData = {
+  fileName: null,
+};
+
+const _initialMoveFolder: State.MoveFolderData = {
+  folderName: null,
+};
+
 const _initialAfterFormModal: State.AfterFormModal = {
   entityType: null,
   entityToSelect: null,
@@ -330,6 +338,22 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
   }),
   DELETE_FILE_DROP_SUCCEEDED: () => ({
     ..._initialFileDropWithStats,
+  }),
+});
+
+/** Reducer for the Move File Drop File modal */
+const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFile, {
+  OPEN_MOVE_FILE_DROP_FILE_MODAL: (state, action: Action.OpenMoveFileDropFileModal) => ({
+    ...state,
+    fileName: action.fileName,
+  }),
+});
+
+/** Reducer for the Move File Drop Folder modal */
+const pendingMoveFileDropFolder = createReducer<State.MoveFolderData>(_initialMoveFolder, {
+  OPEN_MOVE_FILE_DROP_FOLDER_MODAL: (state, action: Action.OpenMoveFileDropFolderModal) => ({
+    ...state,
+    folderName: action.folderName,
   }),
 });
 
@@ -598,6 +622,8 @@ const pending = combineReducers({
   afterFormModal,
   uploads: pendingUploads,
   createFolder,
+  moveFile: pendingMoveFileDropFile,
+  moveFolder: pendingMoveFileDropFolder,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -842,6 +868,12 @@ const modals = combineReducers({
   ]),
   passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
     'CLOSE_PASSWORD_NOTIFICATION_MODAL',
+  ]),
+  moveFileDropFile: createModalReducer(['OPEN_MOVE_FILE_DROP_FILE_MODAL'], [
+    'CLOSE_MOVE_FILE_DROP_FILE_MODAL',
+  ]),
+  moveFileDropFolder: createModalReducer(['OPEN_MOVE_FILE_DROP_FOLDER_MODAL'], [
+    'OPEN_MOVE_FILE_DROP_FOLDER_MODAL',
   ]),
 });
 

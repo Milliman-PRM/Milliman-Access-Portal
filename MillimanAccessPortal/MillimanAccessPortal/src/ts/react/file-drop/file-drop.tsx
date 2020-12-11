@@ -457,6 +457,38 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.moveFileDropFile.isOpen}
+          onRequestClose={() => this.props.closeMoveFileDropFileModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">Move file {pending.moveFile.fileName} to...</h3>
+          <span className="modal-text">
+            Please store the provided password in a secure location, such as a password manager.
+          </span>
+          <span className="modal-text">
+            Once this window is closed, you will no longer be able to access this password, and must generate a new
+            credential if this information is lost.
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeMoveFileDropFileModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="blue-button"
+              onClick={() => this.props.closeMoveFileDropFileModal({})}
+            >
+              Move
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -982,6 +1014,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.createFileDropFolder({
                       fileDropId, containingFileDropDirectoryId, newFolderName, description,
                     })
+                  }
+                  moveFileDropFile={(_fileDropId, _fileId, fileName) =>
+                    this.props.openMoveFileDropFileModal({ fileName })
                   }
                 />
               }
