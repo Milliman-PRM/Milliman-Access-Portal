@@ -354,15 +354,19 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </td>
               <td>
                 {editing ?
-                  <Input
-                    type="text"
-                    name="fileName"
-                    label="File Name"
-                    value={fileAttributes.fileName}
-                    onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
-                      this.props.updateFileDropItemName(file.id, target.value)}
-                    error={null}
-                  /> :
+                  <div>
+                    <Input
+                      type="text"
+                      name="fileName"
+                      label="File Name"
+                      value={this.getFileNameSansExtension(fileAttributes.fileName)}
+                      onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                        this.props.updateFileDropItemName(file.id,
+                          target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
+                      error={null}
+                    />
+                    <span>{this.getFileExtension(fileAttributes.fileName)}</span>
+                  </div> :
                   (this.props.currentUserPermissions && this.props.currentUserPermissions.readAccess) ? (
                     <a
                       href={encodeURI(fileDownloadURL)}
@@ -597,5 +601,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         </table>
       </div>
     );
+  }
+
+  private getFileNameSansExtension(fileName: string) {
+    return fileName.lastIndexOf('.') > -1 ? fileName.slice(0, fileName.lastIndexOf('.')) : fileName;
+  }
+
+  private getFileExtension(fileName: string) {
+    return fileName.lastIndexOf('.') > -1 ? fileName.slice(fileName.lastIndexOf('.')) : '';
   }
 }
