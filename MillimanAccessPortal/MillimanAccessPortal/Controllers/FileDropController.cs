@@ -1397,9 +1397,6 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = await _dbContext.FileDrop
                                                 .Include(d => d.Client)
                                                 .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
-            FileDropFile fileRecord = await _dbContext.FileDropFile
-                                                      .Include(f => f.Directory)
-                                                      .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
 
             #region Validation
             if (fileDrop == null)
@@ -1428,12 +1425,27 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDropDirectory destinationDirectory = fileRecord.Directory;  //TODO Replace this line with the below conditional assignment
-            //FileDropDirectory destinationDirectory = requestModel.NewFolderId == fileRecord.DirectoryId
-            //                                       ? fileRecord.Directory
-            //                                       : await _dbContext.FileDropDirectory.FindAsync(requestModel.NewFolderId);
+            FileDropFile fileRecord = await _dbContext.FileDropFile
+                                                      .Include(f => f.Directory)
+                                                      .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
 
-            #region More validation
+            FileDropDirectory destinationDirectory = requestModel.NewFolderId == fileRecord.DirectoryId
+                                                   ? fileRecord.Directory
+                                                   : await _dbContext.FileDropDirectory.FindAsync(requestModel.NewFolderId);
+
+            #region Validation
+            if (fileRecord == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropFile with requested Id {requestModel.FileId} not found");
+                Response.Headers.Add("Warning", "The requested file was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (Path.GetExtension(requestModel.FileName).Equals(Path.GetExtension(fileRecord.FileName), StringComparison.OrdinalIgnoreCase))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} request to modify the filename extension is not allowed");
+                Response.Headers.Add("Warning", "The file name extension cannot be modified.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             if (destinationDirectory == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} Record for requested destination directory not found");
@@ -1448,15 +1460,29 @@ namespace MillimanAccessPortal.Controllers
             string fileExistingCanonicalPath = Path.Combine(fileRecord.Directory.CanonicalFileDropPath, fileRecord.FileName);
             string fileFutureCanonicalPath = Path.Combine(destinationDirectory.CanonicalFileDropPath, requestModel.FileName);
 
-            FileDropOperations.RenameFile(fileExistingCanonicalPath,
-                                          fileFutureCanonicalPath,
-                                          Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
-                                          fileDrop.Name,
-                                          fileDrop.Id,
-                                          fileDrop.ClientId,
-                                          fileDrop.Client.Name,
-                                          account,
-                                          user);
+            var opResult = FileDropOperations.RenameFile(fileExistingCanonicalPath,
+                                                         fileFutureCanonicalPath,
+                                                         Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
+                                                         fileDrop.Name,
+                                                         fileDrop.Id,
+                                                         fileDrop.ClientId,
+                                                         fileDrop.Client.Name,
+                                                         account,
+                                                         user);
+            if (opResult != FileDropOperations.FileDropOperationResult.OK)
+            {
+                string warningMessage = opResult switch
+                {
+                    FileDropOperations.FileDropOperationResult.NO_SUCH_FILE => "The file was not found",
+                    FileDropOperations.FileDropOperationResult.NO_SUCH_PATH => "The target directory does not exist",
+                    FileDropOperations.FileDropOperationResult.FILE_ALREADY_EXISTS => "A file with the new name already exists",
+                    FileDropOperations.FileDropOperationResult.FAILURE => "Failed to rename the file",
+                    _ => "Unhandled error"
+                };
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropOperations.RenameFile returned result {opResult.GetDisplayNameString()} with message {warningMessage}");
+                Response.Headers.Add("Warning", warningMessage);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             try
