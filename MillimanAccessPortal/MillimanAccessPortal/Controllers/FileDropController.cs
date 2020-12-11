@@ -1440,10 +1440,10 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested file was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            if (Path.GetExtension(requestModel.FileName).Equals(Path.GetExtension(fileRecord.FileName), StringComparison.OrdinalIgnoreCase))
+            if (!Path.GetExtension(requestModel.FileName).Equals(Path.GetExtension(fileRecord.FileName), StringComparison.OrdinalIgnoreCase))
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} request to modify the filename extension is not allowed");
-                Response.Headers.Add("Warning", "The file name extension cannot be modified.");
+                Response.Headers.Add("Warning", "The file extension cannot be modified.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             if (destinationDirectory == null)
