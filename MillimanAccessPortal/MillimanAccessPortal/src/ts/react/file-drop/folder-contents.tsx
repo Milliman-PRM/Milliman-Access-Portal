@@ -420,8 +420,6 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
                         this.props.renameFileDropFile(fileDropId, file.id, thisDirectory.id, fileAttributes.fileName);
                       }
-
-                      this.props.editFileDropItem(file.id, false, null, null);
                     }}
                   />
                 }

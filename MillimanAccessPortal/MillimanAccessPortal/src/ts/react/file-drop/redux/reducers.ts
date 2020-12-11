@@ -727,6 +727,17 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         expanded: action.expanded,
       },
     }),
+    RENAME_FILE_DROP_FILE: (state, action: Action.RenameFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          editing: false,
+        },
+      };
+    },
     SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
       ...state,
       [action.id]: {
