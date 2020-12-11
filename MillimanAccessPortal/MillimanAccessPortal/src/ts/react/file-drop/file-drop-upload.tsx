@@ -19,8 +19,12 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
+  disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
-  browseRef?: Array<React.RefObject<HTMLElement>>;
+  browseRef?: React.RefObject<HTMLInputElement>;
+  writeAccess: boolean;
+  postErrorToast: (toastMsg: string) => void;
+  postSuccessToast: (toastMsg: string) => void;
   beginUpload: (
     uploadId: string, clientId: Guid, fileDropId: Guid, folderId: Guid, canonicalPath: string, fileName: string,
   ) => void;
@@ -59,8 +63,8 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     }));
 
     // Hook up the file upload input
-    if (this.props.browseRef && this.props.browseRef.length > 0 && this.props.browseRef[0].current) {
-      this.resumable.assignBrowse(this.props.browseRef.map((ref) => ref.current), false);
+    if (this.props.browseRef && this.props.browseRef.current) {
+      this.resumable.assignBrowse(this.props.browseRef.current, false);
     }
     if (this.props.dragRef && this.props.dragRef.current) {
       this.resumable.assignDrop(this.props.dragRef.current);
@@ -71,6 +75,17 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       if (!this.props.cancelable) {
         this.canceled = false;
         const file: File = resumableFile.file;
+
+        // Make sure that the user has write permissions
+        if (!this.props.writeAccess) {
+          return false;
+        }
+
+        // Make sure that the fileName doesn't already exist
+        if (this.props.disallowedFileNames.indexOf(file.name) > -1) {
+          this.props.postErrorToast('A file with that name already exists.');
+          return false;
+        }
 
         // Make sure the file matches the expected magic numbers
         const sniffer = new FileSniffer(file);
@@ -196,6 +211,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
                 this.props.finalizeFileDropUpload(
                   this.props.uploadId, this.props.fileDropId, this.props.folderId, this.props.canonicalPath,
                 );
+                this.props.postSuccessToast('File upload completed successfully.');
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
@@ -273,8 +289,8 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
     if (nextProps.canceled === true) {
       this.resumable.cancel();
     }
-    if (nextProps.browseRef && nextProps.browseRef.length > 0 && nextProps.browseRef[0].current) {
-      this.resumable.assignBrowse(nextProps.browseRef.map((ref) => ref.current), false);
+    if (nextProps.browseRef && nextProps.browseRef.current) {
+      this.resumable.assignBrowse(nextProps.browseRef.current, false);
     }
     if (nextProps.dragRef && nextProps.dragRef.current) {
       this.resumable.assignDrop(nextProps.dragRef.current);
@@ -285,6 +301,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
   }
 
   public render() {
-    return <div />;
+    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }}/>;
   }
 }

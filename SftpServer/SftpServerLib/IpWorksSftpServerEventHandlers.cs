@@ -446,6 +446,7 @@ namespace SftpServerLib
             evtData.StatusCode = (int)FileDropOperations.CreateDirectory(evtData.Path,
                                                                          connection.FileDropRootPathAbsolute,
                                                                          connection.FileDropName,
+                                                                         string.Empty,
                                                                          connection.FileDropId,
                                                                          connection.ClientId,
                                                                          connection.ClientName,

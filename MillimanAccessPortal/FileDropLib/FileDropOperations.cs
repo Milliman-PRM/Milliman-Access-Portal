@@ -266,6 +266,7 @@ namespace FileDropLib
         public static FileDropOperationResult CreateDirectory(string canonicalPath,
                                                               string fileDropRootPath,
                                                               string fileDropName,
+                                                              string description,
                                                               Guid? fileDropId,
                                                               Guid? clientId,
                                                               string clientName,
@@ -287,7 +288,7 @@ namespace FileDropLib
 
             FileDropOperationResult returnVal = (FileDropOperationResult)sftpStatus;
 
-            using (var db = FileDropOperations.NewMapDbContext)
+            using (var db = NewMapDbContext)
             {
                 switch (beforeExec)
                 {
@@ -312,7 +313,34 @@ namespace FileDropLib
                         }
                         break;
 
+                    case null:
                     case false:
+                        if (beforeExec == null)
+                        {
+                            try
+                            {
+                                Directory.CreateDirectory(requestedAbsolutePath);
+                            }
+                            catch (UnauthorizedAccessException ex)
+                            {
+                                Log.Error(ex, $"Unauthorized request to create file drop directory {requestedAbsolutePath}");
+                                returnVal = FileDropOperationResult.PERMISSION_DENIED;
+                                break;
+                            }
+                            catch (DirectoryNotFoundException ex)
+                            {
+                                Log.Error(ex, $"Path not found during request to create file drop directory {requestedAbsolutePath}");
+                                returnVal = FileDropOperationResult.NO_SUCH_PATH;
+                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, "Failed to create file drop directory {requestedAbsolutePath}");
+                                returnVal = FileDropOperationResult.FAILURE;
+                                break;
+                            }
+                        }
+
                         // Validation:
                         if (!Directory.Exists(requestedAbsolutePath))
                         {
@@ -326,7 +354,7 @@ namespace FileDropLib
                             CanonicalFileDropPath = requestedCanonicalPath,
                             FileDropId = fileDropId.Value,
                             ParentDirectoryId = parentRecord?.Id,
-                            Description = string.Empty,
+                            Description = description,
                         };
                         db.FileDropDirectory.Add(newDirRecord);
                         db.SaveChanges();
