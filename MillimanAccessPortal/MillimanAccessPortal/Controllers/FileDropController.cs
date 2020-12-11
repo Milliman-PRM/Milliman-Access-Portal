@@ -1311,6 +1311,10 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = await _dbContext.FileDrop
                                                 .Include(d => d.Client)
                                                 .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
+            FileDropFile fileRecord = await _dbContext.FileDropFile
+                                                      .Include(f => f.Directory)
+                                                      .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
+
             #region Validation
             if (fileDrop == null)
             {
@@ -1321,7 +1325,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                      //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
@@ -1339,28 +1342,33 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            FileDropDirectory destinationDirectory = fileRecord.Directory;  //TODO Replace this line with the below conditional assignment
+            //FileDropDirectory destinationDirectory = requestModel.NewFolderId == fileRecord.DirectoryId
+            //                                       ? fileRecord.Directory
+            //                                       : await _dbContext.FileDropDirectory.FindAsync(requestModel.NewFolderId);
+
+            #region More validation
+            if (destinationDirectory == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} Record for requested destination directory not found");
+                Response.Headers.Add("Warning", "The requested destination directory was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
             #region Rename the folder
-            var fileRecord = await _dbContext.FileDropFile
-                                            .Include(f => f.Directory)
-                                            .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
 
             string fileDropGlobalRoot = _applicationConfig.GetValue<string>("Storage:FileDropRoot");
-            string fileExistingAbsolutePath = Path.Combine(fileDropGlobalRoot, 
-                                                           fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                                                             fileRecord.Directory.CanonicalFileDropPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                                                             fileRecord.FileName);
-            string fileFutureAbsolutePath = Path.Combine(fileDropGlobalRoot,
-                                                           fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                                                           fileRecord.Directory.CanonicalFileDropPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
-                                                           requestModel.FileName);
+            string fileExistingCanonicalPath = Path.Combine(fileRecord.Directory.CanonicalFileDropPath, fileRecord.FileName);
+            string fileFutureCanonicalPath = Path.Combine(destinationDirectory.CanonicalFileDropPath, requestModel.FileName);
 
-            FileDropOperations.RenameFile(fileExistingAbsolutePath,
-                                          fileFutureAbsolutePath,
+            FileDropOperations.RenameFile(fileExistingCanonicalPath,
+                                          fileFutureCanonicalPath,
                                           Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
                                           fileDrop.Name,
-                                          requestModel.FileName,
-                                          requestModel.FileId,
                                           fileDrop.Id,
+                                          fileDrop.ClientId,
+                                          fileDrop.Client.Name,
                                           account,
                                           user);
             #endregion

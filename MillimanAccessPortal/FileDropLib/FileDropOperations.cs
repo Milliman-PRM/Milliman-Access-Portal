@@ -348,90 +348,102 @@ namespace FileDropLib
                                                          string newPath,
                                                          string fileDropRootPath,
                                                          string fileDropName,
-                                                         string fileName,
-                                                         Guid fileId,
                                                          Guid? fileDropId,
+                                                         Guid? clientId,  // TODO Evan let's discuss these 2.  It's too late for me to start into that tonight
+                                                         string clientName,// TODO Evan let's discuss these 2.  It's too late for me to start into that tonight
                                                          SftpAccount account,
                                                          ApplicationUser user,
                                                          bool? beforeExec = null,
                                                          int sftpStatus = 0)
         {
-      using (var db = NewMapDbContext)
-        switch (beforeExec)
-        {
-          case true:
-            string recordNameString = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetFullPath(oldPath).Replace(Path.GetFullPath(fileDropRootPath), ""));
-            if (recordNameString == "/")
+            using (var db = NewMapDbContext)
+            switch (beforeExec)
             {
-              Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {account?.UserName} (Id {account?.Id})");
-              return FileDropOperationResult.FAILURE;
+                case true:
+                    // oldPath and newPath are absolute
+                    string recordNameString = Path.GetFileName(oldPath);
+                    bool sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == fileDropId && EF.Functions.ILike(f.FileName, recordNameString));
+
+                    if (!sourceRecordFound || !File.Exists(oldPath))
+                    {
+                        Log.Warning($"Request to rename or move {oldPath} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  File or corresponding database record not found.  Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.FAILURE;
+                    }
+                    break;
+
+                case null:
+                case false:
+                    // oldPath and newPath are canonical
+                    string absoluteOldPath = Path.Combine(fileDropRootPath, oldPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                    string absoluteNewPath = Path.Combine(fileDropRootPath, newPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+
+                    if (sftpStatus == 0)
+                    {
+                        FileDropFile currentFileRecord = db.FileDropFile
+                                                            .Where(f => f.Directory.FileDropId == fileDropId)
+                                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(oldPath))))
+                                                            .Where(f => EF.Functions.ILike(f.FileName, Path.GetFileName(oldPath)))
+                                                            .FirstOrDefault();
+
+                        if (currentFileRecord == null)
+                        {
+                            return FileDropOperationResult.FAILURE;
+                        }
+
+                        currentFileRecord.FileName = Path.GetFileName(newPath);
+
+                        if (Path.GetDirectoryName(oldPath) != Path.GetDirectoryName(newPath))
+                        {
+                            FileDropDirectory newDirectoryRecord = db.FileDropDirectory
+                                                                        .Where(d => d.FileDropId == fileDropId)
+                                                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath))));
+                            if (newDirectoryRecord == null)
+                            {
+                                return FileDropOperationResult.FAILURE;
+                            }
+
+                            currentFileRecord.DirectoryId = newDirectoryRecord.Id;
+                        }
+
+                        if (beforeExec == null)
+                        {
+                            if (!File.Exists(absoluteOldPath))
+                            {
+                                return FileDropOperationResult.NO_SUCH_PATH;
+                            }
+                            if (File.Exists(absoluteNewPath))
+                            {
+                                return FileDropOperationResult.FILE_ALREADY_EXISTS;
+                            }
+                            try
+                            {
+                                FileSystemUtil.MoveFileWithRetry(absoluteOldPath, absoluteNewPath);
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"Failed to move file {absoluteOldPath} to {absoluteNewPath}");
+                                return FileDropOperationResult.FAILURE;
+                            }
+                        }
+
+                        db.SaveChanges();
+
+                        Log.Information($"Renamed {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}).  Account {account?.UserName} (Id {account?.Id})");
+                        new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
+                        {
+                            From = oldPath,
+                            To = newPath,
+                            IsDirectory = false,
+                            FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
+                            Account = account,
+                            User = user,
+                        }), user?.UserName);
+                    }
+                break;
             }
 
-            // confirm db connectivity and that the source record exists in the db
-            bool sourceRecordFound = db.FileDropFile.Any(f => f.Id == fileId);
-            if (!sourceRecordFound)
-            {
-              Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Corresponding database record not found.  Account {account?.UserName} (Id {account?.Id})");
-              return FileDropOperationResult.FAILURE;
-            }
-            break;
-
-          case null:
-          case false:
-            if (beforeExec == null)
-            {
-              if (!File.Exists(oldPath))
-              {
-                return FileDropOperationResult.NO_SUCH_PATH;
-              }
-              if (File.Exists(newPath))
-              {
-                return FileDropOperationResult.FILE_ALREADY_EXISTS;
-              }
-              try
-              {
-                FileSystemUtil.MoveFileWithRetry(oldPath, newPath);
-              }
-              catch (Exception ex)
-              {
-                Log.Error(ex, $"Failed to move file {oldPath} to {newPath}");
-                return FileDropOperationResult.FAILURE;
-              }
-            }
-
-            if (sftpStatus == 0)
-            {
-              string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
-              string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
-
-              FileDropFile currentFileRecord = db.FileDropFile
-                                                 .Where(f => f.Id == fileId)
-                                                 .FirstOrDefault();
-
-              if (currentFileRecord == null)
-              {
-                return FileDropOperationResult.FAILURE;
-              }
-
-              currentFileRecord.FileName = fileName;
-              db.SaveChanges();
-
-              Log.Information($"Renamed {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}).  Account {account?.UserName} (Id {account?.Id})");
-              new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
-              {
-                From = oldPath,
-                To = newPath,
-                IsDirectory = false,
-                FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
-                Account = account,
-                User = user,
-              }), user?.UserName);
-            }
-            break;
+          return FileDropOperationResult.OK;
         }
-
-      return FileDropOperationResult.OK;
-    }
 
         public static FileDropOperationResult RenameDirectory(string oldPath,
                                                               string newPath,

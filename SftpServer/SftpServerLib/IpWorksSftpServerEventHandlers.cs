@@ -526,7 +526,6 @@ namespace SftpServerLib
                 return;
             }
 
-
             FileAttributes attributes = FileAttributes.Offline;
             try
             {
@@ -560,9 +559,9 @@ namespace SftpServerLib
                                                                                  connection.MapUser,
                                                                                  evtData.BeforeExec,
                                                                                  evtData.StatusCode);
-                    return;  // TODO delete this
+                    break;
 
-                /*// rename file
+                // rename file
                 default:
                     evtData.StatusCode = (int)FileDropOperations.RenameFile(evtData.Path,
                                                                             evtData.NewPath,
@@ -575,120 +574,7 @@ namespace SftpServerLib
                                                                             connection.MapUser,
                                                                             evtData.BeforeExec,
                                                                             evtData.StatusCode);
-                    break;*/
-            }
-
-            if (evtData.BeforeExec)
-            {
-                using (var db = FileDropOperations.NewMapDbContext)
-                {
-                    bool sourceRecordFound = false;
-                    string recordNameString = string.Empty;
-
-                    switch (attributes)
-                    {
-                        // rename a file
-                        case FileAttributes a when (a & FileAttributes.Directory) != FileAttributes.Directory:
-                            recordNameString = Path.GetFileName(evtData.Path);
-                            sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == connection.FileDropId && EF.Functions.ILike(f.FileName, recordNameString));
-                            break;
-                    }
-
-                    // confirm db connectivity and that the source record exists in the db
-                    if (!sourceRecordFound)
-                    {
-                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}) cannot be performed.  Corresponding database record not found.  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
-                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                        return;
-                    }
-                }
-            }
-            else
-            {
-                if (evtData.StatusCode == 0)
-                {
-                    using (var db = FileDropOperations.NewMapDbContext)
-                    {
-                        switch (attributes)
-                        {
-                            // renamed a directory
-                            case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
-                                List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
-                                                                                         .Where(d => d.FileDropId == connection.FileDropId)
-                                                                                         .Include(d => d.ParentDirectory)
-                                                                                         .Include(d => d.ChildDirectories)
-                                                                                         .ToList();
-
-                                FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, evtData.Path));
-                                if (directoryRecord == null)
-                                {
-                                    evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                    return;
-                                }
-
-                                RepathDirectoryRecord(directoryRecord, evtData.NewPath, true);
-
-                                string newCanonicalParentPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
-                                if (!newCanonicalParentPath.Equals(directoryRecord.ParentDirectory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
-                                { // This move involves a change in parent directory
-                                    FileDropDirectory newParentDirectoryRecord = allDirectoriesInThisFileDrop
-                                                                                   .Where(d => d.FileDropId == connection.FileDropId)
-                                                                                   .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalParentPath));
-                                    if (newParentDirectoryRecord == null)
-                                    {
-                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                        return;
-                                    }
-
-                                    directoryRecord.ParentDirectoryId = newParentDirectoryRecord.Id;
-                                }
-                                break;
-
-                            // renamed a not-directory
-                            default:
-                                FileDropFile fileRecord = db.FileDropFile
-                                                            .Include(f => f.Directory)
-                                                            .Where(f => f.Directory.FileDropId == connection.FileDropId)
-                                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, Path.GetFileName(evtData.Path)));
-                                if (fileRecord == null)
-                                {
-                                    evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                    return;
-                                }
-
-                                fileRecord.FileName = Path.GetFileName(evtData.NewPath);
-
-                                string newCanonicalDirectoryPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(evtData.NewPath));
-                                if (!newCanonicalDirectoryPath.Equals(fileRecord.Directory.CanonicalFileDropPath, StringComparison.InvariantCultureIgnoreCase))
-                                { // This move involves a change in containing directory
-                                    FileDropDirectory newDirectoryRecord = db.FileDropDirectory
-                                                                             .Where(d => d.FileDropId == connection.FileDropId)
-                                                                             .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalDirectoryPath));
-                                    if (newDirectoryRecord == null)
-                                    {
-                                        evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
-                                        return;
-                                    }
-
-                                    fileRecord.DirectoryId = newDirectoryRecord.Id;
-                                }
-                                break;
-                        }
-
-                        db.SaveChanges();
-
-                        Log.Information($"Renamed {evtData.Path} to {evtData.NewPath} in FileDrop <{connection.FileDropName}> (Id {connection.FileDropId}).  Account {connection.Account?.UserName} (Id {connection.Account?.Id})");
-                        new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
-                        {
-                            From = evtData.Path,
-                            To = evtData.NewPath,
-                            IsDirectory = (attributes & FileAttributes.Directory) == FileAttributes.Directory,
-                            FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName },
-                            Account = connection.Account,
-                            User = connection.MapUser,
-                        }), connection.MapUser?.UserName);
-                    }
-                }
+                    break;
             }
         }
 
