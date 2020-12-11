@@ -570,8 +570,8 @@ namespace FileDropLib
                         Log.Information($"Renamed {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}).  Account {account?.UserName} (Id {account?.Id})");
                         new AuditLogger().Log(AuditEventType.SftpRename.ToEvent(new SftpRenameLogModel
                         {
-                            From = oldPath,
-                            To = newPath,
+                            From = canonicalOldPath,
+                            To = canonicalNewPath,
                             IsDirectory = true,
                             FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                             Account = account,
