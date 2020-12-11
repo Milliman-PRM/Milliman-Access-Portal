@@ -397,6 +397,11 @@ namespace FileDropLib
                         Log.Warning($"Request to rename or move {oldPath} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  File or corresponding database record not found.  Account {account?.UserName} (Id {account?.Id})");
                         return FileDropOperationResult.FAILURE;
                     }
+                    if (!Path.GetExtension(newPath).Equals(Path.GetExtension(oldPath), StringComparison.OrdinalIgnoreCase))
+                    {
+                        Log.Warning($"Request to rename or move {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed because modifying the file name extension is not allowed.  Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.OP_UNSUPPORTED;
+                    }
                     break;
 
                 case null:
@@ -408,14 +413,13 @@ namespace FileDropLib
                     if (sftpStatus == 0)
                     {
                         FileDropFile currentFileRecord = db.FileDropFile
-                                                            .Where(f => f.Directory.FileDropId == fileDropId)
-                                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(oldPath))))
-                                                            .Where(f => EF.Functions.ILike(f.FileName, Path.GetFileName(oldPath)))
-                                                            .FirstOrDefault();
-
+                                                           .Where(f => f.Directory.FileDropId == fileDropId)
+                                                           .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(oldPath))))
+                                                           .Where(f => EF.Functions.ILike(f.FileName, Path.GetFileName(oldPath)))
+                                                           .FirstOrDefault();
                         if (currentFileRecord == null)
                         {
-                            return FileDropOperationResult.FAILURE;
+                            return FileDropOperationResult.NO_SUCH_FILE;
                         }
 
                         currentFileRecord.FileName = Path.GetFileName(newPath);
@@ -427,7 +431,7 @@ namespace FileDropLib
                                                                         .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath))));
                             if (newDirectoryRecord == null)
                             {
-                                return FileDropOperationResult.FAILURE;
+                                return FileDropOperationResult.NO_SUCH_PATH;
                             }
 
                             currentFileRecord.DirectoryId = newDirectoryRecord.Id;
@@ -437,7 +441,7 @@ namespace FileDropLib
                         {
                             if (!File.Exists(absoluteOldPath))
                             {
-                                return FileDropOperationResult.NO_SUCH_PATH;
+                                return FileDropOperationResult.NO_SUCH_FILE;
                             }
                             if (File.Exists(absoluteNewPath))
                             {
