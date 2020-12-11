@@ -42,7 +42,7 @@ interface FolderContentsProps {
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
   createFileDropFolder: (
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
-  renameFileDropFile: (fileDropId: Guid, fileId: Guid, name: string) => void;
+  renameFileDropFile: (fileDropId: Guid, fileId: Guid, newFolderId: Guid, name: string) => void;
   renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
 }
 
@@ -313,7 +313,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads, fileDropContentAttributes } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes, thisDirectory } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -418,10 +418,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         this.props.saveFileDropFile(fileDropId, file.id, fileAttributes.description);
                       }
                       if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
-                        this.props.renameFileDropFile(fileDropId, file.id, fileAttributes.fileName);
+                        this.props.renameFileDropFile(fileDropId, file.id, thisDirectory.id, fileAttributes.fileName);
                       }
-
-                      this.props.editFileDropItem(file.id, false, null, null);
                     }}
                   />
                 }
