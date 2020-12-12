@@ -1005,8 +1005,19 @@ namespace MillimanAccessPortal.Controllers
                                                             .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                             .SingleOrDefaultAsync();
 
+            #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded || authorizedAccount == null)
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+            #endregion
+
             FileDropDirectory containingDirectoryRecord = _dbContext.FileDropDirectory.Find(requestModel.ContainingFileDropDirectoryId);
             IEnumerable<FileDropDirectory> existingSiblingDirectories = _dbContext.FileDropDirectory.Where(d => d.ParentDirectoryId == requestModel.ContainingFileDropDirectoryId).ToList();
+
             #region Validation
             if (containingDirectoryRecord == null || containingDirectoryRecord.FileDropId != fileDrop.Id)
             {
@@ -1015,22 +1026,19 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "An invalid parent directory was requested.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            if (requestModel.NewFolderName.Any(c => Path.GetInvalidFileNameChars().Contains(c)))
+            {
+                // invalid character in new file name
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid character in requested new folder name {requestModel.NewFolderName}");
+                Response.Headers.Add("Warning", "The requested folder name contains an invalid character.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             if (existingSiblingDirectories.Any(d => Path.GetFileName(d.CanonicalFileDropPath).Equals(requestModel.NewFolderName, StringComparison.InvariantCultureIgnoreCase)))
             {
                 // directory already exists
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} directory {requestModel.NewFolderName} already exists in the requested containing directory {containingDirectoryRecord.CanonicalFileDropPath}");
                 Response.Headers.Add("Warning", "The requested new directory already exists.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            #region Authorization
-            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || authorizedAccount == null)
-            {
-                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
-                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
-                return Unauthorized();
             }
             #endregion
 
