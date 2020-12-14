@@ -592,13 +592,14 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            #region Authorization
             FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.ApplicationUser)
-                                      .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
+            #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
             if (!adminRoleResult.Succeeded && !account.FileDropUserPermissionGroupId.HasValue)
             {
@@ -630,7 +631,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike($"{User.Identity.Name}-{fileDrop.ShortHash}", a.UserName))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Validation
@@ -686,7 +688,8 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Where(a => EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName))  // Does not find non-user accounts (future feature)
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
 
             if (account == null)
@@ -743,9 +746,10 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == fileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
@@ -802,8 +806,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                   .Where(a => a.FileDropId == requestModel.FileDropId)
                                                   .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                   .SingleOrDefaultAsync();
@@ -860,8 +864,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == fileDropId)
                                       .SingleOrDefaultAsync();
 
@@ -921,8 +925,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                   .Where(a => a.FileDropId == FileDropId)
                                                   .Where(a => a.FileDropUserPermissionGroup.ReadAccess)
                                                   .SingleOrDefaultAsync();
@@ -999,8 +1003,8 @@ namespace MillimanAccessPortal.Controllers
             SftpAccount authorizedAccount = await _dbContext.SftpAccount
                                                             .Include(a => a.FileDropUserPermissionGroup)
                                                                 .ThenInclude(g => g.FileDrop)
-                                                            .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                                            .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                                            .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                                            .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                             .Where(a => a.FileDropId == requestModel.FileDropId)
                                                             .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                             .SingleOrDefaultAsync();
@@ -1091,11 +1095,12 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.DeleteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1154,11 +1159,12 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.DeleteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1217,11 +1223,12 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.WriteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1279,11 +1286,12 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.WriteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1339,14 +1347,15 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.WriteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1418,14 +1427,15 @@ namespace MillimanAccessPortal.Controllers
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
+                                      .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue || !account.FileDropUserPermissionGroup.WriteAccess)
+            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
