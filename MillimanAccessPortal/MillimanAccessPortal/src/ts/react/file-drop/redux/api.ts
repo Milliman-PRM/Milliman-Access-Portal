@@ -89,6 +89,14 @@ export const updateFileDropFolder =
     FileDropAction.UpdateFileDropFolder, FileDropAction.UpdateFileDropFolderSucceeded
   >('POST', '/FileDrop/UpdateFileDropFolder');
 
+export const renameFileDropFile =
+  createJsonRequestor<FileDropAction.RenameFileDropFile, FileDropAction.RenameFileDropFileSucceeded>
+    ('POST', '/FileDrop/RenameFileDropFile');
+
+export const renameFileDropFolder =
+  createJsonRequestor<FileDropAction.RenameFileDropFolder, FileDropAction.RenameFileDropFolderSucceeded>
+    ('POST', '/FileDrop/RenameFileDropFolder');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

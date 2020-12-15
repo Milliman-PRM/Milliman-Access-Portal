@@ -69,6 +69,19 @@
             padding: .5em 0;
         }
 
+        .file-rename-input {
+            width: 85%;
+            float: left;
+        }
+
+        .file-rename-extension {
+            position: relative;
+            top: 1.5rem;
+            left: 0.5rem;
+            font-size: 1.25rem;
+            color: grey;
+        }
+
         .file-drop-content-description {
             padding: 0 1em .5em 2em;
             font-style: italic;

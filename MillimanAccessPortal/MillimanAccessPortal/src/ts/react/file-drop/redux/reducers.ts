@@ -727,6 +727,17 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         expanded: action.expanded,
       },
     }),
+    RENAME_FILE_DROP_FILE: (state, action: Action.RenameFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          editing: false,
+        },
+      };
+    },
     SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
       ...state,
       [action.id]: {
@@ -745,6 +756,13 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         description: action.description,
       },
     }),
+    UPDATE_FILE_OR_FOLDER_NAME: (state, action: Action.UpdateFileOrFolderName) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        fileName: action.name,
+      },
+    }),
     DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
       setFileDropDirectoryContentModel(response),
     DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
@@ -752,6 +770,10 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
     UPDATE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.UpdateFileDropFileSucceeded) =>
       setFileDropDirectoryContentModel(response),
     UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.UpdateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    RENAME_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.RenameFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    RENAME_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.RenameFileDropFolderSucceeded) =>
       setFileDropDirectoryContentModel(response),
   },
 );
@@ -1012,6 +1034,14 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDropContents: action.response,
   }),
   UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.UpdateFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.RenameFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.RenameFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
   }),

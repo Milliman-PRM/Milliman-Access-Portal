@@ -45,7 +45,20 @@ namespace MapCommonLib
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
         public static void MoveDirectoryWithRetry(string oldPath, string newPath, int attempts = 5, int baseIntervalMs = 200)
         {
-            StaticUtil.ApplyRetryOperation<IOException>(() => Directory.Move(oldPath, newPath), attempts, baseIntervalMs);
+            StaticUtil.ApplyRetryOperation<IOException>(() => Directory.Move(oldPath, newPath), attempts, baseIntervalMs);      
+        }
+
+        /// <summary>
+        /// Try to rename a file until success
+        /// </summary>
+        /// <remarks>Time before retry increases after each attempt.</remarks>
+        /// <param name="oldPath">Path to the existing file to be moved</param>
+        /// <param name="newPath">New path to move to</param>
+        /// <param name="attempts">Times to try deleting the file before giving up</param>
+        /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
+        public static void MoveFileWithRetry(string oldPath, string newPath, int attempts = 5, int baseIntervalMs = 200)
+        {
+            StaticUtil.ApplyRetryOperation<IOException>(() => File.Move(oldPath, newPath), attempts, baseIntervalMs);
         }
 
         /// <summary>
