@@ -626,14 +626,14 @@ namespace MillimanAccessPortal.DataQueries
             return returnModel;
         }
 
-        internal async Task<FileDropUploadTaskStatus> GetUploadTaskStatusAsync(Guid taskId, Guid fileDropId)
+        internal async Task<UploadStatusModel> GetUploadTaskStatusAsync(Guid taskId, Guid fileDropId)
         {
             FileDropUploadTask requestedTask = _fileDropUploadTaskTracker.GetExistingTask(taskId);
 
             if (requestedTask == null)
             {
                 Log.Information($"GetUploadTaskStatusAsync: requested task with Id {taskId} not found, returning status {FileDropUploadTaskStatus.Unknown}");
-                return FileDropUploadTaskStatus.Unknown;
+                return new UploadStatusModel { Status = FileDropUploadTaskStatus.Unknown };
             }
 
             FileDropDirectory directory = await _dbContext.FileDropDirectory.FindAsync(requestedTask.FileDropDirectoryId);
@@ -644,7 +644,7 @@ namespace MillimanAccessPortal.DataQueries
                 throw new ApplicationException("An error was encountered.");  // Don't want to be too clear about this
             }
 
-            return requestedTask.Status;
+            return new UploadStatusModel { Status = requestedTask.Status, FileName = requestedTask.FileName };
         }
 
         /// <summary>
@@ -686,7 +686,7 @@ namespace MillimanAccessPortal.DataQueries
                 }
                 catch (Exception ex)
                 {
-                    throw new Exception($"Error building return model, parameters: canonical path {canonicalPath}, FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                    throw new Exception($"Error building return model, parameters: canonical path {canonicalPath}, FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})", ex);
                 }
             }
         }
