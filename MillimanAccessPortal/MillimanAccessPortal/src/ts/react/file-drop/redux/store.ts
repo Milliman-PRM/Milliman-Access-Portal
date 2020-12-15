@@ -47,6 +47,7 @@ export interface FileDropPendingReturnState {
   permissionsUpdate: boolean;
   activityLog: boolean;
   settings: boolean;
+  move: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -91,6 +92,7 @@ export interface MoveFileData {
   fileName: string;
   initialCanonicalPath: string;
   currentCanonicalPath: string;
+  newFolderId: Guid;
 }
 
 /** State object for Move File Drop Folder modal */

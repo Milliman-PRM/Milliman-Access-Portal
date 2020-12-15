@@ -71,6 +71,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissionsUpdate: false,
   activityLog: false,
   settings: false,
+  move: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -118,6 +119,7 @@ const _initialMoveFile: State.MoveFileData = {
   fileName: null,
   initialCanonicalPath: null,
   currentCanonicalPath: null,
+  newFolderId: null,
 };
 
 const _initialMoveFolder: State.MoveFolderData = {
@@ -267,6 +269,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     settings: false,
   }),
+  RENAME_FILE_DROP_FILE: (state) => ({
+    ...state,
+    move: true,
+  }),
+  RENAME_FILE_DROP_FILE_SUCCEEDED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  RENAME_FILE_DROP_FILE_FAILED: (state) => ({
+    ...state,
+    move: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -358,6 +372,10 @@ const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFi
   FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
     ...state,
     currentCanonicalPath: action.request.canonicalPath,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+    ...state,
+    newFolderId: action.response.thisDirectory.id,
   }),
 });
 
@@ -905,11 +923,13 @@ const modals = combineReducers({
   ]),
   moveFileDropFile: createModalReducer(['OPEN_MOVE_FILE_DROP_FILE_MODAL'], [
     'CLOSE_MOVE_FILE_DROP_FILE_MODAL',
-    '',
+    'RENAME_FILE_DROP_FILE_SUCCEEDED',
+    'RENAME_FILE_DROP_FILE_FAILED',
   ]),
   moveFileDropFolder: createModalReducer(['OPEN_MOVE_FILE_DROP_FOLDER_MODAL'], [
     'OPEN_MOVE_FILE_DROP_FOLDER_MODAL',
-    'MOVE_FILE_DROP_FOLDER_SUCCEEDED',
+    'RENAME_FILE_DROP_FOLDER_SUCCEEDED',
+    'RENAME_FILE_DROP_FOLDER_FAILED',
   ]),
 });
 

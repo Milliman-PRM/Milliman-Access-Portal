@@ -470,12 +470,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             {pending.moveFile.currentCanonicalPath !== '/' ?
               <a
                 style={{ color: 'blue', cursor: 'pointer' }}
-                onClick={() =>
+                onClick={() => {
                   this.props.fetchFolderContentsForMove({
                     fileDropId: selected.fileDrop,
                     canonicalPath: '/',
-                  })
-                }
+                  });
+                }}
               >
                 {pending.moveFile.fileDropName}
               </a> :
@@ -491,12 +491,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   { index !== currentPathBreadcrumbs.length - 1 ?
                     <a
                       style={{ color: 'blue', cursor: 'pointer' }}
-                      onClick={() =>
+                      onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
                           canonicalPath: '/' + currentPathBreadcrumbs.slice(0, index + 1).join('/'),
-                        })
-                      }
+                        });
+                      }}
                     >
                       {e}
                     </a> :
@@ -515,11 +515,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <tr
                     style={{ cursor: 'pointer' }}
                     key={dir.id}
-                    onClick={() =>
+                    onClick={() => {
                       this.props.fetchFolderContentsForMove({
                         fileDropId: selected.fileDrop,
                         canonicalPath: dir.canonicalPath,
-                      })}
+                      });
+                    }}
                   >
                     <td className="folder-icon">
                       <svg className="content-type-icon">
@@ -555,10 +556,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               onClick={() => this.props.renameFileDropFile({
                 fileDropId: selected.fileDrop,
                 fileId: pending.moveFile.fileId,
-                newCanonicalPath: pending.moveFile.currentCanonicalPath,
+                newFolderId: pending.moveFile.newFolderId,
+                fileName: pending.moveFile.fileName,
               })}
             >
               Move
+              {pending.async.move
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
             </button>
           </div>
         </Modal>

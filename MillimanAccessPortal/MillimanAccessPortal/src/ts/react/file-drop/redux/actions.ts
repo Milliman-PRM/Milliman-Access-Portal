@@ -488,6 +488,7 @@ export interface FetchFolderContentsFailed {
  */
 export interface FetchFolderContentsForMove {
   type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE';
+  folderId: Guid;
   request: {
     fileDropId: Guid;
     canonicalPath: string;
