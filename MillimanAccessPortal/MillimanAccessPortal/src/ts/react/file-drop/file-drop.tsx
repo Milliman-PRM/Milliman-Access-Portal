@@ -620,10 +620,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           null
         );
     };
-    const activeUploads = (fileDropId: Guid) => {
+    const fileDropUploads = (fileDropId: Guid) => {
       return Object.keys(pending.uploads)
-        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId)
-        .map((uploadId) => {
+        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId);
+    };
+    const fileDropUploadsStatus = (fileDropId: Guid) => {
+      return fileDropUploads(fileDropId).filter((uploadId) => {
+        return pending.uploads[uploadId].errorMsg !== null;
+      }).length > 0 ? 'error' : 'message';
+    };
+    const activeUploads = (fileDropId: Guid) => {
+      return fileDropUploads(fileDropId).map((uploadId) => {
           const upload = pending.uploads[uploadId];
           return (
             <div key={uploadId} className="file-drop-card-upload">
@@ -682,7 +689,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 }}
                 suspended={entity.isSuspended}
                 bannerMessage={fdActiveUploads.length > 0 ? {
-                  level: 'informational',
+                  level: fileDropUploadsStatus(entity.id),
                   message: (
                     <div
                       className="upload-message-container"
