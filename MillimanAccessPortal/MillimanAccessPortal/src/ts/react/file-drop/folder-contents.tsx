@@ -33,6 +33,7 @@ interface FolderContentsProps {
   deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
+  updateFileDropItemName: (id: Guid, name: string) => void;
   updateFileDropItemDescription: (id: Guid, description: string) => void;
   saveFileDropFile: (fileDropId: Guid, fileId: Guid, description: string) => void;
   saveFileDropFolder: (fileDropId: Guid, folderId: Guid, description: string) => void;
@@ -41,6 +42,8 @@ interface FolderContentsProps {
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
   createFileDropFolder: (
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
+  renameFileDropFile: (fileDropId: Guid, fileId: Guid, newFolderId: Guid, name: string) => void;
+  renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
   moveFileDropFile: (
     fileDropId: Guid, fileId: Guid, fileDropName: string, canonicalPath: string, fileName: string) => void;
 }
@@ -172,12 +175,23 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </svg>
             </td>
             <td>
-              <span
-                className="folder"
-                onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
-              >
-                {folderName}
-              </span>
+              {editing ?
+                <Input
+                  type="text"
+                  name="folderName"
+                  label="Folder Name"
+                  value={folderAttributes.fileName}
+                  onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                    this.props.updateFileDropItemName(directory.id, target.value)}
+                  error={null}
+                /> :
+                <span
+                  className="folder"
+                  onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+                >
+                  {folderName}
+                </span>
+              }
             </td>
             <td className="col-file-size" />
             <td className="col-date-modified" />
@@ -196,14 +210,23 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {
                 folderAttributes &&
                 folderAttributes.editing &&
-                folderAttributes.description !== folderAttributes.descriptionRaw &&
+                (folderAttributes.description !== folderAttributes.descriptionRaw ||
+                  folderAttributes.fileName !== folderAttributes.fileNameRaw) &&
                 <ActionIcon
                   label="Submit Changes"
                   icon="checkmark"
                   inline={true}
                   action={() => {
-                    this.props.saveFileDropFolder(fileDropId, directory.id,
-                      folderAttributes.description);
+                    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
+                      this.props.saveFileDropFolder(fileDropId, directory.id,
+                        folderAttributes.description);
+                    }
+                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
+                      const parentCanonicalPath = directory.canonicalPath.slice()
+                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1);
+                      this.props.renameFileDropFolder(fileDropId, directory.id, parentCanonicalPath,
+                        folderAttributes.fileName);
+                    }
                     this.props.editFileDropItem(directory.id, false, null, null);
                   }}
                 />
@@ -231,7 +254,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       <>
                         <li
                           onClick={() =>
-                            this.props.editFileDropItem(directory.id, true, null, directory.description)
+                            this.props.editFileDropItem(directory.id, true, folderName, directory.description)
                           }
                         >
                           Edit
@@ -292,7 +315,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads, fileDropContentAttributes, fileDropName } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes, thisDirectory, fileDropName } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -332,9 +355,23 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 </svg>
               </td>
               <td>
-                {
-                  (this.props.currentUserPermissions &&
-                  this.props.currentUserPermissions.readAccess) ? (
+                {editing ?
+                  <div>
+                    <div className="file-rename-input">
+                      <Input
+                        type="text"
+                        name="fileName"
+                        label="File Name"
+                        value={this.getFileNameSansExtension(fileAttributes.fileName)}
+                        onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
+                          this.props.updateFileDropItemName(file.id,
+                            target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
+                        error={null}
+                      />
+                    </div>
+                    <span className="file-rename-extension">{this.getFileExtension(fileAttributes.fileName)}</span>
+                  </div> :
+                  (this.props.currentUserPermissions && this.props.currentUserPermissions.readAccess) ? (
                     <a
                       href={encodeURI(fileDownloadURL)}
                       download={true}
@@ -378,15 +415,19 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 {
                   fileAttributes &&
                   fileAttributes.editing &&
-                  fileAttributes.description !== fileAttributes.descriptionRaw &&
+                  (fileAttributes.description !== fileAttributes.descriptionRaw ||
+                   fileAttributes.fileName !== fileAttributes.fileNameRaw) &&
                   <ActionIcon
                     label="Submit Changes"
                     icon="checkmark"
                     inline={true}
                     action={() => {
-                      this.props.saveFileDropFile(fileDropId, file.id,
-                        fileAttributes.description);
-                      this.props.editFileDropItem(file.id, false, null, null);
+                      if (fileAttributes.description !== fileAttributes.descriptionRaw) {
+                        this.props.saveFileDropFile(fileDropId, file.id, fileAttributes.description);
+                      }
+                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
+                        this.props.renameFileDropFile(fileDropId, file.id, thisDirectory.id, fileAttributes.fileName);
+                      }
                     }}
                   />
                 }
@@ -570,5 +611,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         </table>
       </div>
     );
+  }
+
+  private getFileNameSansExtension(fileName: string) {
+    return fileName.lastIndexOf('.') > -1 ? fileName.slice(0, fileName.lastIndexOf('.')) : fileName;
+  }
+
+  private getFileExtension(fileName: string) {
+    return fileName.lastIndexOf('.') > -1 ? fileName.slice(fileName.lastIndexOf('.')) : '';
   }
 }
