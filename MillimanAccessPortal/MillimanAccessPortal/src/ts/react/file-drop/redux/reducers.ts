@@ -114,6 +114,7 @@ const _initialFileDropWithStats: FileDropWithStats = {
 
 const _initialMoveFile: State.MoveFileData = {
   fileDropName: null,
+  fileId: null,
   fileName: null,
   initialCanonicalPath: null,
   currentCanonicalPath: null,
@@ -350,6 +351,7 @@ const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFi
   OPEN_MOVE_FILE_DROP_FILE_MODAL: (state, action: Action.OpenMoveFileDropFileModal) => ({
     ...state,
     fileDropName: action.fileDropName,
+    fileId: action.fileId,
     fileName: action.fileName,
     initialCanonicalPath: action.initialCanonicalPath,
   }),
@@ -881,9 +883,11 @@ const modals = combineReducers({
   ]),
   moveFileDropFile: createModalReducer(['OPEN_MOVE_FILE_DROP_FILE_MODAL'], [
     'CLOSE_MOVE_FILE_DROP_FILE_MODAL',
+    '',
   ]),
   moveFileDropFolder: createModalReducer(['OPEN_MOVE_FILE_DROP_FOLDER_MODAL'], [
     'OPEN_MOVE_FILE_DROP_FOLDER_MODAL',
+    'MOVE_FILE_DROP_FOLDER_SUCCEEDED',
   ]),
 });
 

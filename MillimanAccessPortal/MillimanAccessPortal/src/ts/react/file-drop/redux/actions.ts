@@ -727,6 +727,7 @@ export interface ChangeMoveDestination {
 export interface OpenMoveFileDropFileModal {
   type: 'OPEN_MOVE_FILE_DROP_FILE_MODAL';
   fileDropName: string;
+  fileId: Guid;
   fileName: string;
   initialCanonicalPath: string;
 }

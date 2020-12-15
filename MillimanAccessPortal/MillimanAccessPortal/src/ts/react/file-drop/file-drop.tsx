@@ -552,7 +552,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <button
               className="blue-button"
               disabled={pending.moveFile.initialCanonicalPath === pending.moveFile.currentCanonicalPath}
-              onClick={() => this.props.closeMoveFileDropFileModal({})}
+              onClick={() => this.props.renameFileDropFile({
+                fileDropId: selected.fileDrop,
+                fileId: pending.moveFile.fileId,
+                newCanonicalPath: pending.moveFile.currentCanonicalPath,
+              })}
             >
               Move
             </button>
@@ -1084,10 +1088,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       fileDropId, containingFileDropDirectoryId, newFolderName, description,
                     })
                   }
-                  moveFileDropFile={(fileDropId, fileDropName, canonicalPath, fileName) => {
+                  moveFileDropFile={(fileDropId, fileId, fileDropName, canonicalPath, fileName) => {
                     this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
                     this.props.openMoveFileDropFileModal({
                       fileDropName,
+                      fileId,
                       fileName,
                       initialCanonicalPath: canonicalPath,
                     });

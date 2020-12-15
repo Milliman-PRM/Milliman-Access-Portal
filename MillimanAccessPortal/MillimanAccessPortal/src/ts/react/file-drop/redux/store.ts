@@ -87,6 +87,7 @@ export interface CreateFolderData {
 /** State object for Move File Drop File modal */
 export interface MoveFileData {
   fileDropName: string;
+  fileId: Guid;
   fileName: string;
   initialCanonicalPath: string;
   currentCanonicalPath: string;
