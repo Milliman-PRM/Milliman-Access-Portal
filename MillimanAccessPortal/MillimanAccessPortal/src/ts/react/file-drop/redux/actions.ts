@@ -476,6 +476,28 @@ export interface FetchFolderContentsFailed {
 }
 
 /**
+ * GET:
+ *   Folder contents for the the move file/folder modals
+ */
+export interface FetchFolderContentsForMove {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE';
+  request: {
+    fileDropId: Guid;
+    canonicalPath: string;
+  };
+}
+/** Action called upon successful return of the FetchFolderContentsForMove API call */
+export interface FetchFolderContentsForMoveSucceeded {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the FetchFolderContentsForMove API call */
+export interface FetchFolderContentsForMoveFailed {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE_FAILED';
+  error: TSError;
+}
+
+/**
  * DELETE:
  *   Delete a file from a File Drop
  */
@@ -695,10 +717,18 @@ export interface FinalizeFileDropUpload {
   canonicalPath: string;
 }
 
+/** Move File Drop item destination */
+export interface ChangeMoveDestination {
+  type: 'CHANGE_MOVE_DESTINATION';
+  canonicalPath: string;
+}
+
 /** Open the Move File Drop File Modal */
 export interface OpenMoveFileDropFileModal {
   type: 'OPEN_MOVE_FILE_DROP_FILE_MODAL';
+  fileDropName: string;
   fileName: string;
+  initialCanonicalPath: string;
 }
 
 /** Close the Move File Drop File Modal */
@@ -754,6 +784,7 @@ export type FileDropPageActions =
   | BeginFileDropUploadCancel
   | ToggleFileDropCardExpansion
   | FinalizeFileDropUpload
+  | ChangeMoveDestination
   | EnterFileDropEditMode
   | ExitFileDropEditMode
   | SetFileOrFolderExpansion
@@ -790,6 +821,7 @@ export type FileDropRequestActions =
   | GenerateNewSftpPassword
   | SetFileDropNotificationSetting
   | FetchFolderContents
+  | FetchFolderContentsForMove
   | DeleteFileDropFile
   | DeleteFileDropFolder
   | UpdateFileDropFile
@@ -813,6 +845,7 @@ export type FileDropSuccessResponseActions =
   | GenerateNewSftpPasswordSucceeded
   | SetFileDropNotificationSettingSucceeded
   | FetchFolderContentsSucceeded
+  | FetchFolderContentsForMoveSucceeded
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileSucceeded
@@ -836,6 +869,7 @@ export type FileDropErrorActions =
   | GenerateNewSftpPasswordFailed
   | SetFileDropNotificationSettingFailed
   | FetchFolderContentsFailed
+  | FetchFolderContentsForMoveFailed
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileFailed

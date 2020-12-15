@@ -55,6 +55,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
   yield takeLatestRequest('SET_FILE_DROP_NOTIFICATION_SETTING', API.setFileDropNotificationSetting);
   yield takeLatestRequest('FETCH_FOLDER_CONTENTS', API.fetchFolderContents);
+  yield takeLatestRequest('FETCH_FOLDER_CONTENTS_FOR_MOVE', API.fetchFolderContentsForMove);
   yield takeLatestRequest('DELETE_FILE_DROP_FILE', API.deleteFileDropFile);
   yield takeLatestRequest('DELETE_FILE_DROP_FOLDER', API.deleteFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FILE', API.updateFileDropFile);
@@ -126,6 +127,7 @@ export default function* rootSaga() {
     'GENERATE_NEW_SFTP_PASSWORD_FAILED',
     'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED',
     'FETCH_FOLDER_CONTENTS_FAILED',
+    'FETCH_FOLDER_CONTENTS_FOR_MOVE_FAILED',
     'DELETE_FILE_DROP_FILE_FAILED',
     'DELETE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FILE_FAILED',

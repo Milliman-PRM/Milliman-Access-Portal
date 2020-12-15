@@ -113,7 +113,10 @@ const _initialFileDropWithStats: FileDropWithStats = {
 };
 
 const _initialMoveFile: State.MoveFileData = {
+  fileDropName: null,
   fileName: null,
+  initialCanonicalPath: null,
+  currentCanonicalPath: null,
 };
 
 const _initialMoveFolder: State.MoveFolderData = {
@@ -141,6 +144,7 @@ const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
   fileDropContents: null,
+  fileDropContentsForMove: null,
   permissionGroups: null,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
@@ -345,7 +349,13 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
 const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFile, {
   OPEN_MOVE_FILE_DROP_FILE_MODAL: (state, action: Action.OpenMoveFileDropFileModal) => ({
     ...state,
+    fileDropName: action.fileDropName,
     fileName: action.fileName,
+    initialCanonicalPath: action.initialCanonicalPath,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
+    ...state,
+    currentCanonicalPath: action.request.canonicalPath,
   }),
 });
 
@@ -1026,6 +1036,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
     ...state,
     fileDropContents: action.response,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+    ...state,
+    fileDropContentsForMove: action.response,
   }),
   DELETE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.DeleteFileDropFileSucceeded) => ({
     ...state,

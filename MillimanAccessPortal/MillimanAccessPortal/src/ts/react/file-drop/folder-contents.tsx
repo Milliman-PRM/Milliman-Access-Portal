@@ -41,7 +41,7 @@ interface FolderContentsProps {
   updateCreateFolderValues: (field: 'name' | 'description', value: string) => void;
   createFileDropFolder: (
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
-  moveFileDropFile: (fileDropId: Guid, fileId: Guid, fileName: string) => void;
+  moveFileDropFile: (fileDropId: Guid, fileDropName: string, canonicalPath: string, fileName: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -291,7 +291,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads, fileDropContentAttributes } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes, fileDropName } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -419,7 +419,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           </li>
                           <li
                             onClick={() =>
-                              this.props.moveFileDropFile(fileDropId, file.id, file.fileName)
+                              this.props.moveFileDropFile(fileDropId, fileDropName, path, file.fileName)
                             }
                           >
                             Move

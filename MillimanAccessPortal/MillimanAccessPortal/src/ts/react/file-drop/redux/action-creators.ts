@@ -203,6 +203,10 @@ export const setFileDropNotificationSetting =
 export const fetchFolderContents =
   createRequestActionCreator<Action.FetchFolderContents>('FETCH_FOLDER_CONTENTS');
 
+/** Get folder contents for the move file/folder modals for a given File Drop */
+export const fetchFolderContentsForMove =
+  createRequestActionCreator<Action.FetchFolderContentsForMove>('FETCH_FOLDER_CONTENTS_FOR_MOVE');
+
 /** Delete a file from a File Drop */
 export const deleteFileDropFile =
   createRequestActionCreator<Action.DeleteFileDropFile>('DELETE_FILE_DROP_FILE');
@@ -274,6 +278,9 @@ export const toggleFileDropCardExpansion =
 
 export const finalizeFileDropUpload =
   createActionCreator<Action.FinalizeFileDropUpload>('FINALIZE_FILE_DROP_UPLOAD');
+
+export const changeMoveDestination =
+  createActionCreator<Action.ChangeMoveDestination>('CHANGE_MOVE_DESTINATION');
 
 // Upload Action Creators
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;

@@ -86,7 +86,10 @@ export interface CreateFolderData {
 
 /** State object for Move File Drop File modal */
 export interface MoveFileData {
+  fileDropName: string;
   fileName: string;
+  initialCanonicalPath: string;
+  currentCanonicalPath: string;
 }
 
 /** State object for Move File Drop Folder modal */
@@ -127,6 +130,7 @@ export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
   fileDropContents: FileDropDirectoryContentModel;
+  fileDropContentsForMove: FileDropDirectoryContentModel;
   permissionGroups: PermissionGroupsReturnModel;
   activityLogEvents: FileDropEvent[];
   fileDropSettings: FileDropSettings;

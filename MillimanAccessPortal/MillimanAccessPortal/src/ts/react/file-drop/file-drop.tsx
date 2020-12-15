@@ -465,14 +465,82 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
-          <h3 className="title blue">Move file {pending.moveFile.fileName} to...</h3>
+          <h3 className="title blue">Move file <strong>{pending.moveFile.fileName}</strong> to...</h3>
           <span className="modal-text">
-            Please store the provided password in a secure location, such as a password manager.
+            {pending.moveFile.currentCanonicalPath !== '/' ?
+              <a
+                style={{ color: 'blue', cursor: 'pointer' }}
+                onClick={() =>
+                  this.props.fetchFolderContentsForMove({
+                    fileDropId: selected.fileDrop,
+                    canonicalPath: '/',
+                  })
+                }
+              >
+                {pending.moveFile.fileDropName}
+              </a> :
+              <strong>
+                {pending.moveFile.fileDropName}
+              </strong>
+            }
+            {pending.moveFile.currentCanonicalPath &&
+             pending.moveFile.currentCanonicalPath.split('/').slice(1).map((e, index) => {
+              const currentPathBreadcrumbs = pending.moveFile.currentCanonicalPath.split('/').slice(1);
+              return (
+                <span key={index}>/
+                  { index !== currentPathBreadcrumbs.length - 1 ?
+                    <a
+                      style={{ color: 'blue', cursor: 'pointer' }}
+                      onClick={() =>
+                        this.props.fetchFolderContentsForMove({
+                          fileDropId: selected.fileDrop,
+                          canonicalPath: '/' + currentPathBreadcrumbs.slice(0, index + 1).join('/'),
+                        })
+                      }
+                    >
+                      {e}
+                    </a> :
+                    <strong>
+                      {e}
+                    </strong>
+                  }
+                </span>
+              );
+            })}
           </span>
-          <span className="modal-text">
-            Once this window is closed, you will no longer be able to access this password, and must generate a new
-            credential if this information is lost.
-          </span>
+          <table className="folder-content-table">
+            <tbody>
+              {data.fileDropContentsForMove && data.fileDropContentsForMove.directories.map((dir) => {
+                return (
+                  <tr
+                    style={{ cursor: 'pointer' }}
+                    key={dir.id}
+                    onClick={() =>
+                      this.props.fetchFolderContentsForMove({
+                        fileDropId: selected.fileDrop,
+                        canonicalPath: dir.canonicalPath,
+                      })}
+                  >
+                    <td className="folder-icon">
+                      <svg className="content-type-icon">
+                        <use xlinkHref={'#folder'} />
+                      </svg>
+                    </td>
+                    <td>
+                      {dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1)}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <button
+            className="link-button move-item-add-folder-button"
+            type="button"
+            onClick={() => this.props.closeMoveFileDropFileModal({})}
+          >
+            Create new folder +
+          </button>
           <div className="button-container">
             <button
               className="link-button"
@@ -483,6 +551,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
             <button
               className="blue-button"
+              disabled={pending.moveFile.initialCanonicalPath === pending.moveFile.currentCanonicalPath}
               onClick={() => this.props.closeMoveFileDropFileModal({})}
             >
               Move
@@ -1015,9 +1084,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       fileDropId, containingFileDropDirectoryId, newFolderName, description,
                     })
                   }
-                  moveFileDropFile={(_fileDropId, _fileId, fileName) =>
-                    this.props.openMoveFileDropFileModal({ fileName })
-                  }
+                  moveFileDropFile={(fileDropId, fileDropName, canonicalPath, fileName) => {
+                    this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
+                    this.props.openMoveFileDropFileModal({
+                      fileDropName,
+                      fileName,
+                      initialCanonicalPath: canonicalPath,
+                    });
+                  }}
                 />
               }
             </div>
