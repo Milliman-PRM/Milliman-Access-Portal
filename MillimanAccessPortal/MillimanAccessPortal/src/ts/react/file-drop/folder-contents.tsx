@@ -46,6 +46,8 @@ interface FolderContentsProps {
   renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
   moveFileDropFile: (
     fileDropId: Guid, fileId: Guid, fileDropName: string, canonicalPath: string, fileName: string) => void;
+  moveFileDropFolder: (
+    fileDropId: Guid, folderId: Guid, fileDropName: string, canonicalPath: string, folderName: string) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -159,7 +161,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFolders() {
-    const { directories, fileDropId, fileDropContentAttributes, navigateTo } = this.props;
+    const { directories, fileDropId, fileDropContentAttributes, navigateTo, fileDropName } = this.props;
     return directories.map((directory) => {
       const [folderName] = directory.canonicalPath.split('/').slice(-1);
       const folderAttributes = fileDropContentAttributes[directory.id];
@@ -259,7 +261,14 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         >
                           Edit
                         </li>
-                        <li>Move</li>
+                        <li
+                          onClick={() =>
+                            this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName,
+                              directory.canonicalPath.slice(-folderAttributes.fileName.length), folderName)
+                          }
+                        >
+                          Move
+                        </li>
                       </>
                     }
                     {

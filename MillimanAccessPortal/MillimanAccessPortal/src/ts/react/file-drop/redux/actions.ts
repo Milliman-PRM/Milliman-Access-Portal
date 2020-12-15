@@ -783,31 +783,20 @@ export interface ChangeMoveDestination {
   canonicalPath: string;
 }
 
-/** Open the Move File Drop File Modal */
-export interface OpenMoveFileDropFileModal {
-  type: 'OPEN_MOVE_FILE_DROP_FILE_MODAL';
+/** Open the Move File Drop Item Modal */
+export interface OpenMoveFileDropItemModal {
+  type: 'OPEN_MOVE_FILE_DROP_ITEM_MODAL';
+  itemType: 'file' | 'folder';
   fileDropName: string;
-  fileId: Guid;
-  fileName: string;
+  itemId: Guid;
+  itemName: string;
   initialCanonicalPath: string;
 }
 
-/** Close the Move File Drop File Modal */
-export interface CloseMoveFileDropFileModal {
-  type: 'CLOSE_MOVE_FILE_DROP_FILE_MODAL';
+/** Close the Move File Drop Item Modal */
+export interface CloseMoveFileDropItemModal {
+  type: 'CLOSE_MOVE_FILE_DROP_ITEM_MODAL';
 }
-
-/** Open the Move File Drop Folder Modal */
-export interface OpenMoveFileDropFolderModal {
-  type: 'OPEN_MOVE_FILE_DROP_FOLDER_MODAL';
-  folderName: string;
-}
-
-/** Close the Move File Drop Folder Modal */
-export interface CloseMoveFileDropFolderModal {
-  type: 'CLOSE_MOVE_FILE_DROP_FOLDER_MODAL';
-}
-
 
 // ~~~~~~~~~~~~~
 // Action Unions
@@ -855,10 +844,8 @@ export type FileDropPageActions =
   | EnterCreateFolderMode
   | ExitCreateFolderMode
   | UpdateCreateFolderValues
-  | OpenMoveFileDropFileModal
-  | CloseMoveFileDropFileModal
-  | OpenMoveFileDropFolderModal
-  | CloseMoveFileDropFolderModal
+  | OpenMoveFileDropItemModal
+  | CloseMoveFileDropItemModal
   ;
 
 /** Actions that schedule another action */
@@ -968,6 +955,5 @@ export type OpenModalAction =
   | OpenDeleteFileDropConfirmationModal
   | OpenModifiedFormModal
   | GenerateNewSftpPasswordSucceeded
-  | OpenMoveFileDropFileModal
-  | OpenMoveFileDropFolderModal
+  | OpenMoveFileDropItemModal
   ;

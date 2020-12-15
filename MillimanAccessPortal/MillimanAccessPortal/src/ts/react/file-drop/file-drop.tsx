@@ -458,16 +458,19 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           </div>
         </Modal>
         <Modal
-          isOpen={modals.moveFileDropFile.isOpen}
-          onRequestClose={() => this.props.closeMoveFileDropFileModal({})}
+          isOpen={modals.moveFileDropItem.isOpen}
+          onRequestClose={() => this.props.closeMoveFileDropItemModal({})}
           ariaHideApp={false}
           className="modal"
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
-          <h3 className="title blue">Move file <strong>{pending.moveFile.fileName}</strong> to...</h3>
+          <h3 className="title blue">Move a {pending.moveItem.itemType}</h3>
           <span className="modal-text">
-            {pending.moveFile.currentCanonicalPath !== '/' ?
+            Move {pending.moveItem.itemType} <strong>{pending.moveItem.itemName}</strong> to...
+          </span>
+          <span className="modal-text">
+            {pending.moveItem.currentCanonicalPath !== '/' ?
               <a
                 style={{ color: 'blue', cursor: 'pointer' }}
                 onClick={() => {
@@ -477,15 +480,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   });
                 }}
               >
-                {pending.moveFile.fileDropName}
+                {pending.moveItem.fileDropName}
               </a> :
               <strong>
-                {pending.moveFile.fileDropName}
+                {pending.moveItem.fileDropName}
               </strong>
             }
-            {pending.moveFile.currentCanonicalPath &&
-             pending.moveFile.currentCanonicalPath.split('/').slice(1).map((e, index) => {
-              const currentPathBreadcrumbs = pending.moveFile.currentCanonicalPath.split('/').slice(1);
+            {pending.moveItem.currentCanonicalPath &&
+             pending.moveItem.currentCanonicalPath.split('/').slice(1).map((e, index) => {
+              const currentPathBreadcrumbs = pending.moveItem.currentCanonicalPath.split('/').slice(1);
               return (
                 <span key={index}>/
                   { index !== currentPathBreadcrumbs.length - 1 ?
@@ -538,7 +541,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <button
             className="link-button move-item-add-folder-button"
             type="button"
-            onClick={() => this.props.closeMoveFileDropFileModal({})}
+            onClick={() => this.props.closeMoveFileDropItemModal({})}
           >
             Create new folder +
           </button>
@@ -546,19 +549,32 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <button
               className="link-button"
               type="button"
-              onClick={() => this.props.closeMoveFileDropFileModal({})}
+              onClick={() => this.props.closeMoveFileDropItemModal({})}
             >
               Cancel
             </button>
             <button
               className="blue-button"
-              disabled={pending.moveFile.initialCanonicalPath === pending.moveFile.currentCanonicalPath}
-              onClick={() => this.props.renameFileDropFile({
-                fileDropId: selected.fileDrop,
-                fileId: pending.moveFile.fileId,
-                newFolderId: pending.moveFile.newFolderId,
-                fileName: pending.moveFile.fileName,
-              })}
+              disabled={pending.moveItem.initialCanonicalPath === pending.moveItem.currentCanonicalPath}
+              onClick={() => {
+                if (pending.moveItem.itemType === 'file') {
+                  this.props.renameFileDropFile({
+                    fileDropId: selected.fileDrop,
+                    fileId: pending.moveItem.itemId,
+                    newFolderId: pending.moveItem.newFolderId,
+                    fileName: pending.moveItem.itemName,
+                  });
+                }
+
+                if (pending.moveItem.itemType === 'folder') {
+                  this.props.renameFileDropFolder({
+                    fileDropId: selected.fileDrop,
+                    directoryId: pending.moveItem.itemId,
+                    parentCanonicalPath: pending.moveItem.newFolderId,
+                    directoryName: pending.moveItem.itemName,
+                  });
+                }
+              }}
             >
               Move
               {pending.async.move
@@ -1115,10 +1131,21 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                   moveFileDropFile={(fileDropId, fileId, fileDropName, canonicalPath, fileName) => {
                     this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
-                    this.props.openMoveFileDropFileModal({
+                    this.props.openMoveFileDropItemModal({
+                      itemType: 'file',
                       fileDropName,
-                      fileId,
-                      fileName,
+                      itemId: fileId,
+                      itemName: fileName,
+                      initialCanonicalPath: canonicalPath,
+                    });
+                  }}
+                  moveFileDropFolder={(fileDropId, folderId, fileDropName, canonicalPath, folderName) => {
+                    this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
+                    this.props.openMoveFileDropItemModal({
+                      itemType: 'folder',
+                      fileDropName,
+                      itemId: folderId,
+                      itemName: folderName,
                       initialCanonicalPath: canonicalPath,
                     });
                   }}

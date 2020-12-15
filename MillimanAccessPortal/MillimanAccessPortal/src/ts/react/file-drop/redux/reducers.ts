@@ -113,17 +113,14 @@ const _initialFileDropWithStats: FileDropWithStats = {
   },
 };
 
-const _initialMoveFile: State.MoveFileData = {
+const _initialMoveItem: State.MoveItemData = {
   fileDropName: null,
-  fileId: null,
-  fileName: null,
+  itemType: null,
+  itemId: null,
+  itemName: null,
   initialCanonicalPath: null,
   currentCanonicalPath: null,
   newFolderId: null,
-};
-
-const _initialMoveFolder: State.MoveFolderData = {
-  folderName: null,
 };
 
 const _initialAfterFormModal: State.AfterFormModal = {
@@ -281,6 +278,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     move: false,
   }),
+  RENAME_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    move: true,
+  }),
+  RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  RENAME_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    move: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -360,13 +369,14 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
   }),
 });
 
-/** Reducer for the Move File Drop File modal */
-const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFile, {
-  OPEN_MOVE_FILE_DROP_FILE_MODAL: (state, action: Action.OpenMoveFileDropFileModal) => ({
+/** Reducer for the Move File Drop Item modal */
+const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveItem, {
+  OPEN_MOVE_FILE_DROP_ITEM_MODAL: (state, action: Action.OpenMoveFileDropItemModal) => ({
     ...state,
+    itemType: action.itemType,
     fileDropName: action.fileDropName,
-    fileId: action.fileId,
-    fileName: action.fileName,
+    itemId: action.itemId,
+    itemName: action.itemName,
     initialCanonicalPath: action.initialCanonicalPath,
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
@@ -376,14 +386,6 @@ const pendingMoveFileDropFile = createReducer<State.MoveFileData>(_initialMoveFi
   FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
     ...state,
     newFolderId: action.response.thisDirectory.id,
-  }),
-});
-
-/** Reducer for the Move File Drop Folder modal */
-const pendingMoveFileDropFolder = createReducer<State.MoveFolderData>(_initialMoveFolder, {
-  OPEN_MOVE_FILE_DROP_FOLDER_MODAL: (state, action: Action.OpenMoveFileDropFolderModal) => ({
-    ...state,
-    folderName: action.folderName,
   }),
 });
 
@@ -652,8 +654,7 @@ const pending = combineReducers({
   afterFormModal,
   uploads: pendingUploads,
   createFolder,
-  moveFile: pendingMoveFileDropFile,
-  moveFolder: pendingMoveFileDropFolder,
+  moveItem: pendingMoveFileDropItem,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -921,13 +922,10 @@ const modals = combineReducers({
   passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
     'CLOSE_PASSWORD_NOTIFICATION_MODAL',
   ]),
-  moveFileDropFile: createModalReducer(['OPEN_MOVE_FILE_DROP_FILE_MODAL'], [
-    'CLOSE_MOVE_FILE_DROP_FILE_MODAL',
+  moveFileDropItem: createModalReducer(['OPEN_MOVE_FILE_DROP_ITEM_MODAL'], [
+    'CLOSE_MOVE_FILE_DROP_ITEM_MODAL',
     'RENAME_FILE_DROP_FILE_SUCCEEDED',
     'RENAME_FILE_DROP_FILE_FAILED',
-  ]),
-  moveFileDropFolder: createModalReducer(['OPEN_MOVE_FILE_DROP_FOLDER_MODAL'], [
-    'OPEN_MOVE_FILE_DROP_FOLDER_MODAL',
     'RENAME_FILE_DROP_FOLDER_SUCCEEDED',
     'RENAME_FILE_DROP_FOLDER_FAILED',
   ]),
