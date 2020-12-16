@@ -19,7 +19,6 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
-  disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
   writeAccess: boolean;

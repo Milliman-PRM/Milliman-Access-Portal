@@ -108,9 +108,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   key={upload}
                   uploadId={upload}
                   clientId={uploadObject.clientId || selected.client}
-                  disallowedFileNames={data.fileDropContents
-                    && data.fileDropContents.files
-                    && data.fileDropContents.files.map((file) => file.fileName)}
                   fileDropId={uploadObject.fileDropId || selected.fileDrop}
                   fileName={uploadObject.fileName}
                   folderId={uploadObject.folderId || selected.fileDropFolder.folderId}
