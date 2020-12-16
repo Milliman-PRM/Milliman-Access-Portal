@@ -204,8 +204,9 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
         // Start a monitor that polls for status of asynchronous backend data finalization
         this.statusMonitor = new StatusMonitor<{}>(
           `/FileDrop/GetFileUploadStatus?taskId=${fileGUID}&FileDropId=${this.props.fileDropId}`,
-          (fileUpload: FileUpload) => {
-            if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
+          (fileUpload: FileDropFileUpload) => {
+            if (fileUpload.status === FileDropUploadTaskStatus.Completed ||
+                fileUpload.status === FileDropUploadTaskStatus.CompletedRenamed) {
               this.progressMonitor.deactivate();
               if (!this.canceled) {
                 this.props.finalizeFileDropUpload(
