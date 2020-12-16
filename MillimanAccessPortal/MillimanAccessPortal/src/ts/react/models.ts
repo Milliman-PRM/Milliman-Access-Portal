@@ -683,6 +683,11 @@ export interface FileUpload {
   id: string;
   initiatedDateTimeUtc: string;
   clientFileIdentifier: string;
-  status: FileUploadStatus | FileDropUploadTaskStatus;
+  status: FileUploadStatus;
   statusMessage: string;
+}
+
+export interface FileDropFileUpload {
+  status: FileDropUploadTaskStatus;
+  fileName: string;
 }
