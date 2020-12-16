@@ -205,7 +205,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
                 this.props.finalizeFileDropUpload(
                   this.props.uploadId, this.props.fileDropId, this.props.folderId, this.props.canonicalPath,
                 );
-                this.props.postSuccessToast('File upload completed successfully.');
+                this.props.postSuccessToast(`'${fileUpload.fileName}' uploaded successfully.`);
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
