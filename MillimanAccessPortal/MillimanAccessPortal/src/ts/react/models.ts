@@ -665,6 +665,7 @@ export enum FileDropUploadTaskStatus {
   Copying = 4,
   Completed = 5,
   Error = 6,
+  CompletedRenamed = 7,
 }
 
 export interface ResumableInfo {
