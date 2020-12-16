@@ -6,7 +6,7 @@ import { StatusMonitor } from '../../status-monitor';
 import { FileScanner } from '../../upload/file-scanner';
 import { FileSniffer } from '../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor';
-import { FileDropUploadTaskStatus, FileUpload, Guid, ResumableInfo } from '../models';
+import { FileDropFileUpload, FileDropUploadTaskStatus, Guid, ResumableInfo } from '../models';
 
 const resumable = require('resumablejs');
 
@@ -217,7 +217,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
               this.props.setUploadError(
                 this.props.uploadId,
-                fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
+                'Something went wrong during upload. Please try again.',
               );
               this.statusMonitor.stop();
             }
