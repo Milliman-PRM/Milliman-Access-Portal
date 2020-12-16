@@ -81,12 +81,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
           return false;
         }
 
-        // Make sure that the fileName doesn't already exist
-        if (this.props.disallowedFileNames.indexOf(file.name) > -1) {
-          this.props.postErrorToast('A file with that name already exists.');
-          return false;
-        }
-
         // Make sure the file matches the expected magic numbers
         const sniffer = new FileSniffer(file);
         if (!await sniffer.extensionMatchesInitialBytes()) {
