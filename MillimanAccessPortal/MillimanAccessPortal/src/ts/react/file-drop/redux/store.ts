@@ -48,6 +48,7 @@ export interface FileDropPendingReturnState {
   activityLog: boolean;
   settings: boolean;
   move: boolean;
+  createFolderMoveMode: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -94,6 +95,8 @@ export interface MoveItemData {
   initialCanonicalPath: string;
   currentCanonicalPath: string;
   newFolderId: Guid;
+  createNewFolderMode: boolean;
+  newFolderName: string;
 }
 
 /** All state that represents the user interactions with the page */

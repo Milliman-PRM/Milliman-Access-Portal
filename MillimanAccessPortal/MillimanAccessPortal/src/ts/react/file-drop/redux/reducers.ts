@@ -72,6 +72,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   activityLog: false,
   settings: false,
   move: false,
+  createFolderMoveMode: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -121,6 +122,8 @@ const _initialMoveItem: State.MoveItemData = {
   initialCanonicalPath: null,
   currentCanonicalPath: null,
   newFolderId: null,
+  createNewFolderMode: false,
+  newFolderName: null,
 };
 
 const _initialAfterFormModal: State.AfterFormModal = {
@@ -290,6 +293,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     move: false,
   }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE: (state) => ({
+    ...state,
+    createFolderMoveMode: true,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state) => ({
+    ...state,
+    createFolderMoveMode: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED: (state) => ({
+    ...state,
+    createFolderMoveMode: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -378,14 +393,30 @@ const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveIt
     itemId: action.itemId,
     itemName: action.itemName,
     initialCanonicalPath: action.initialCanonicalPath,
+    createNewFolderMode: false,
+    newFolderName: null,
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
     ...state,
     currentCanonicalPath: action.request.canonicalPath,
+    createNewFolderMode: false,
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
     ...state,
     newFolderId: action.response.thisDirectory.id,
+  }),
+  SET_ENTER_NEW_FOLDER_FOR_MOVE_MODE: (state, action: Action.SetEnterNewFolderForMoveMode) => ({
+    ...state,
+    createNewFolderMode: action.value,
+    newFolderName: '',
+  }),
+  SET_NEW_FOLDER_NAME_FOR_MOVE: (state, action: Action.SetNewFolderNameForMove) => ({
+    ...state,
+    newFolderName: action.newFolderName,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state) => ({
+    ...state,
+    createNewFolderMode: false,
   }),
 });
 
@@ -1083,6 +1114,11 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
     ...state,
+    fileDropContentsForMove: action.response,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state, action: Action.CreateFileDropFolderForMoveSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
     fileDropContentsForMove: action.response,
   }),
   DELETE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.DeleteFileDropFileSucceeded) => ({

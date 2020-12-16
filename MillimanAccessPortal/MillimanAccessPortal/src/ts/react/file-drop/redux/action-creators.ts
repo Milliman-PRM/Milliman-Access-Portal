@@ -55,6 +55,14 @@ export const openMoveFileDropItemModal =
 export const closeMoveFileDropItemModal =
   createActionCreator<Action.CloseMoveFileDropItemModal>('CLOSE_MOVE_FILE_DROP_ITEM_MODAL');
 
+/** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
+export const setEnterNewFolderForMoveMode =
+  createActionCreator<Action.SetEnterNewFolderForMoveMode>('SET_ENTER_NEW_FOLDER_FOR_MOVE_MODE');
+
+/** Change the value of the new folder name when creating a new folder to move a file/folder into */
+export const setNewFolderNameForMove =
+  createActionCreator<Action.SetNewFolderNameForMove>('SET_NEW_FOLDER_NAME_FOR_MOVE');
+
 /** Put a File Drop in edit mode */
 export const editFileDrop =
   createActionCreator<Action.EditFileDrop>('EDIT_FILE_DROP');
@@ -227,8 +235,13 @@ export const updateFileDropFolder =
 export const renameFileDropFile =
   createRequestActionCreator<Action.RenameFileDropFile>('RENAME_FILE_DROP_FILE');
 
+/** Update a folder's name */
 export const renameFileDropFolder =
   createRequestActionCreator<Action.RenameFileDropFolder>('RENAME_FILE_DROP_FOLDER');
+
+/** Create a new folder within the Move File Drop Item modal */
+export const createFileDropFolderForMove =
+  createRequestActionCreator<Action.CreateFileDropFolderForMove>('CREATE_FILE_DROP_FOLDER_FOR_MOVE');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions

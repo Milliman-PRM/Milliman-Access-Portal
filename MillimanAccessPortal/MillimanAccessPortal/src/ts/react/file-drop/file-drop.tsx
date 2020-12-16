@@ -538,13 +538,61 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               })}
             </tbody>
           </table>
-          <button
-            className="link-button move-item-add-folder-button"
-            type="button"
-            onClick={() => this.props.closeMoveFileDropItemModal({})}
-          >
-            Create new folder +
-          </button>
+          {pending.moveItem.createNewFolderMode ?
+            <div>
+              <div style={{ width: '85%', display: 'inline-block', margin: '0 !important' }}>
+                <Input
+                  autoFocus={true}
+                  error={null}
+                  label="New Folder Name"
+                  name="New Folder Name"
+                  onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                    this.props.setNewFolderNameForMove({ newFolderName: target.value });
+                  }}
+                  placeholderText="Enter folder name..."
+                  type="text"
+                  value={pending.moveItem.newFolderName}
+                />
+              </div>
+              <div style={{ width: '15%', float: 'right', marginTop: '1rem' }}>
+                {pending.async.createFolderMoveMode ?
+                  <div className="move-item-new-folder-spinner">
+                    <ButtonSpinner version="bars" spinnerColor="black" />
+                  </div> :
+                  <div>
+                    {pending.moveItem.newFolderName.trim() &&
+                      <ActionIcon
+                        label="Create folder"
+                        icon="checkmark"
+                        inline={true}
+                        action={() =>
+                          this.props.createFileDropFolderForMove({
+                            fileDropId: selected.fileDrop,
+                            containingFileDropDirectoryId: pending.moveItem.newFolderId,
+                            newFolderName: pending.moveItem.newFolderName,
+                            description: '',
+                          })
+                        }
+                      />
+                    }
+                    <ActionIcon
+                      label="Discard Changes"
+                      icon="cancel"
+                      inline={true}
+                      action={() => this.props.setEnterNewFolderForMoveMode({ value: false })}
+                    />
+                  </div>
+                }
+              </div>
+            </div> :
+            <button
+              className="link-button move-item-add-folder-button"
+              type="button"
+              onClick={() => this.props.setEnterNewFolderForMoveMode({ value: true })}
+            >
+              Create new folder +
+            </button>
+          }
           <div className="button-container">
             <button
               className="link-button"

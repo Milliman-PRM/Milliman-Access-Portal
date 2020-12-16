@@ -798,6 +798,42 @@ export interface CloseMoveFileDropItemModal {
   type: 'CLOSE_MOVE_FILE_DROP_ITEM_MODAL';
 }
 
+/** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
+export interface SetEnterNewFolderForMoveMode {
+  type: 'SET_ENTER_NEW_FOLDER_FOR_MOVE_MODE';
+  value: boolean;
+}
+
+/** Change the value of the new folder name when creating a new folder to move a file/folder into */
+export interface SetNewFolderNameForMove {
+  type: 'SET_NEW_FOLDER_NAME_FOR_MOVE';
+  newFolderName: string;
+}
+
+/**
+ * POST:
+ *   Create a new folder to be displayed in the Move File Drop Item modal.
+ */
+export interface CreateFileDropFolderForMove {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE';
+  request: {
+    fileDropId: Guid;
+    containingFileDropDirectoryId: Guid;
+    newFolderName: string;
+    description: string;
+  };
+}
+/** Action called upon successful return of the CreateFileDropFolderForMove API call. */
+export interface CreateFileDropFolderForMoveSucceeded {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon failed return of the CreateFileDropFolderForMove API call. */
+export interface CreateFileDropFolderForMoveFailed {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED';
+  error: TSError;
+}
+
 // ~~~~~~~~~~~~~
 // Action Unions
 // ~~~~~~~~~~~~~
@@ -846,6 +882,8 @@ export type FileDropPageActions =
   | UpdateCreateFolderValues
   | OpenMoveFileDropItemModal
   | CloseMoveFileDropItemModal
+  | SetEnterNewFolderForMoveMode
+  | SetNewFolderNameForMove
   ;
 
 /** Actions that schedule another action */
@@ -878,6 +916,7 @@ export type FileDropRequestActions =
   | UpdateFileDropFolder
   | RenameFileDropFile
   | RenameFileDropFolder
+  | CreateFileDropFolderForMove
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -904,6 +943,7 @@ export type FileDropSuccessResponseActions =
   | UpdateFileDropFolderSucceeded
   | RenameFileDropFileSucceeded
   | RenameFileDropFolderSucceeded
+  | CreateFileDropFolderForMoveSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -930,6 +970,7 @@ export type FileDropErrorActions =
   | UpdateFileDropFolderFailed
   | RenameFileDropFileFailed
   | RenameFileDropFolderFailed
+  | CreateFileDropFolderForMoveFailed
   ;
 
 /** Actions that set filter text */

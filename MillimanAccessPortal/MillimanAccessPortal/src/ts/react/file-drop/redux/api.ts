@@ -101,6 +101,10 @@ export const renameFileDropFolder =
   createJsonRequestor<FileDropAction.RenameFileDropFolder, FileDropAction.RenameFileDropFolderSucceeded>
     ('POST', '/FileDrop/RenameFileDropFolder');
 
+export const createFileDropFolderForMove =
+  createJsonRequestor<FileDropAction.CreateFileDropFolderForMove, FileDropAction.CreateFileDropFolderForMoveSucceeded>
+    ('POST', '/FileDrop/CreateFileDropFolder');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~
