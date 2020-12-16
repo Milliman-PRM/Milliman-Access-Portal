@@ -624,10 +624,13 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       return Object.keys(pending.uploads)
         .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId);
     };
-    const fileDropUploadsStatus = (fileDropId: Guid) => {
+    const fileDropUploadErrorCount = (fileDropId: Guid) => {
       return fileDropUploads(fileDropId).filter((uploadId) => {
         return pending.uploads[uploadId].errorMsg !== null;
-      }).length > 0 ? 'error' : 'message';
+      }).length;
+    };
+    const fileDropUploadsStatus = (fileDropId: Guid) => {
+      return fileDropUploadErrorCount(fileDropId) > 0 ? 'error' : 'message';
     };
     const activeUploads = (fileDropId: Guid) => {
       return fileDropUploads(fileDropId).map((uploadId) => {
@@ -666,7 +669,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               )
               ? cardAttributes.fileDrops[entity.id].editing
               : false;
-            const fdActiveUploads = activeUploads(entity.id);
+            const fdUploads = activeUploads(entity.id);
+            const fdUploadsStatus = fileDropUploadsStatus(entity.id);
+            const numberOfBadUploads = fileDropUploadErrorCount(entity.id);
+            const numberOfGoodUploads = fdUploads.length - numberOfBadUploads;
             return (
               <Card
                 key={key}
@@ -688,8 +694,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 }}
                 suspended={entity.isSuspended}
-                bannerMessage={fdActiveUploads.length > 0 ? {
-                  level: fileDropUploadsStatus(entity.id),
+                bannerMessage={fdUploads.length > 0 ? {
+                  level: fdUploadsStatus,
                   message: (
                     <div
                       className="upload-message-container"
@@ -700,7 +706,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                      }
                     >
                       <span className="upload-notice">
-                        {`${fdActiveUploads.length} file${fdActiveUploads.length > 1 ? 's' : ''} currently uploading`}
+                        {`${numberOfGoodUploads} file${numberOfGoodUploads > 1 ? 's' : ''} currently uploading`}
+                        {
+                          numberOfGoodUploads > 0 &&
+                          numberOfBadUploads > 0 &&
+                          <br />
+                        }
+                        {
+                          numberOfBadUploads > 0 &&
+                          `${numberOfBadUploads} file${numberOfBadUploads > 1 ? 's' : ''} failed`
+                        }
                       </span>
                       <svg className={`expand-icon ${cardAttributes.fileDrops[entity.id].expanded ? 'inverted' : ''}`}>
                         <use xlinkHref={'#expand-card'} />
@@ -772,10 +787,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 </CardSectionMain>
                 {
-                  fdActiveUploads.length > 0 &&
+                  fdUploads.length > 0 &&
                   cardAttributes.fileDrops[entity.id].expanded &&
                   <CardExpansion expanded={true}>
-                    {fdActiveUploads}
+                    {fdUploads}
                   </CardExpansion>
                 }
               </Card>
