@@ -580,11 +580,8 @@ namespace MillimanAccessPortal.Controllers
                 List<UserRoleInClient> rolesToRemove = existingAssignedRoles.Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum && !roleAssignment.IsAssigned).ToList();
 
                 // If the current role is Admin, also remove the user's UserCreator role if it exists.
-                if (rolesToRemove.Where(r => r.Role.RoleEnum == RoleEnum.Admin).Any()) {
-                    if (existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).Any())
-                    {
-                        rolesToRemove.Add(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).FirstOrDefault());
-                    }
+                if (rolesToRemove.Any(r => r.Role.RoleEnum == RoleEnum.Admin)) {
+                    rolesToRemove.AddRange(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator));
                 }
 
                 rolesToRemove.ForEach(urc => 
@@ -606,7 +603,7 @@ namespace MillimanAccessPortal.Controllers
 
                     if (roleAssignment.RoleEnum == RoleEnum.Admin)
                     {
-                        if (existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator).Count() == 0)
+                        if (!existingAssignedRoles.Any(urc => urc.Role.RoleEnum == RoleEnum.UserCreator))
                         {
                             ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
                             DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
