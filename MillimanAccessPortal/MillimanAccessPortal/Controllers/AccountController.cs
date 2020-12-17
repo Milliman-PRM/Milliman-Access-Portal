@@ -1406,11 +1406,11 @@ namespace MillimanAccessPortal.Controllers
                     return Ok();
                 case var r when r.IsLockedOut:
                     Log.Information($"User {user.UserName} account locked out while checking two factor code.");
-                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new UserMessageModel("This account has been locked out, please try again later.")));
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "This account has been locked out, please try again later." }));
                     return Ok();
                 case var r when r.IsNotAllowed:
                     Log.Information("User {user.UserName} account not allowed.");
-                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new UserMessageModel("Login failed, please try again later.")));
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "Login failed, please try again later." }));
                     return Ok();
                 default:
                     Log.Information($"User {user.UserName} provided incorrect two-factor code.  Prompting again.");
