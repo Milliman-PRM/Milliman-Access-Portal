@@ -273,7 +273,7 @@ namespace MillimanAccessPortal.Controllers
                     case var r when r.RequiresTwoFactor:
                         Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, returnUrl }));
                         return Ok();
- 
+
                     case var r when r.Succeeded:
                         await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
@@ -689,9 +689,9 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // If the code is not valid (likely expired), re-send the welcome email and notify the user
-            DataProtectorTokenProvider<ApplicationUser> emailConfirmationTokenProvider = (DataProtectorTokenProvider<ApplicationUser>) _serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
+            DataProtectorTokenProvider<ApplicationUser> emailConfirmationTokenProvider = (DataProtectorTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(DataProtectorTokenProvider<ApplicationUser>));
             bool tokenIsValid;
-            for (tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user); !tokenIsValid && code.EndsWith('='); )
+            for (tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user); !tokenIsValid && code.EndsWith('=');)
             {
                 code = code.Remove(code.Length - 1);
                 tokenIsValid = await emailConfirmationTokenProvider.ValidateAsync("EmailConfirmation", code, _userManager, user);
@@ -1012,7 +1012,7 @@ namespace MillimanAccessPortal.Controllers
 
             PasswordResetSecurityTokenProvider<ApplicationUser> passwordResetTokenProvider = (PasswordResetSecurityTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(PasswordResetSecurityTokenProvider<ApplicationUser>));
             bool tokenIsValid;
-            for (tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user); !tokenIsValid && passwordResetToken.EndsWith('='); )
+            for (tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user); !tokenIsValid && passwordResetToken.EndsWith('=');)
             {
                 passwordResetToken = passwordResetToken.Remove(passwordResetToken.Length - 1);
                 tokenIsValid = await passwordResetTokenProvider.ValidateAsync("ResetPassword", passwordResetToken, _userManager, user);
@@ -1261,8 +1261,8 @@ namespace MillimanAccessPortal.Controllers
                                                          .Select(urc => urc.ClientId)
                                                          .Distinct()
                                                          .ToListAsync());
-                DateTime countableLastReviewTime = DateTime.UtcNow 
-                                                    - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays")) 
+                DateTime countableLastReviewTime = DateTime.UtcNow
+                                                    - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"))
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
                                                     .Where(c => myClientIds.Contains(c.Id))
@@ -1359,7 +1359,7 @@ namespace MillimanAccessPortal.Controllers
             var token = await _userManager.GenerateTwoFactorTokenAsync(user, provider);
 
             // TODO Convert this to html, looking like the prototype
-            string message = 
+            string message =
                 $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
                 $"This code will be valid for 5 minutes.";
@@ -1402,17 +1402,16 @@ namespace MillimanAccessPortal.Controllers
                         ? (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name
                         : GetExternalAuthenticationScheme(user.UserName).Name;
                     await SignInCommon(user, scheme);
-                    return LocalRedirect(model.ReturnUrl ?? Url.Content("~/"));
-
+                    Response.Headers.Add("NavigateTo", model.ReturnUrl ?? "/");
+                    return Ok();
                 case var r when r.IsLockedOut:
                     Log.Information($"User {user.UserName} account locked out while checking two factor code.");
-                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "This account has been locked out, please try again later." }));
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new UserMessageModel("This account has been locked out, please try again later.")));
                     return Ok();
-
                 case var r when r.IsNotAllowed:
-                    Log.Information("User account not allowed.");
-                    return View("UserMessage", new UserMessageModel("Login failed, please try again later."));
-
+                    Log.Information("User {user.UserName} account not allowed.");
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new UserMessageModel("Login failed, please try again later.")));
+                    return Ok();
                 default:
                     Log.Information($"User {user.UserName} provided incorrect two-factor code.  Prompting again.");
                     Response.Headers.Add("Warning", $"The submitted code was incorrect, please try again.");
@@ -1568,7 +1567,7 @@ namespace MillimanAccessPortal.Controllers
                 string.IsNullOrWhiteSpace(model.User.Phone)
             )
             {
-                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");                
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");
                 Response.Headers.Add("Warning", "All account fields are required.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
