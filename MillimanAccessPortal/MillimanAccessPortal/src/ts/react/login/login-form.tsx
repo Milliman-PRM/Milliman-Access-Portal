@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as Yup from 'yup';
 
 import { getUrlParameter } from '../../get-url-parameters';
-import { postData } from '../../shared';
+import { postData, postJsonDataNoSession } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
@@ -38,12 +38,25 @@ export class LoginForm extends Form<{}, LoginFormState> {
   public constructor(props: {}) {
     super(props);
 
+    function getParameterByName(name: string, url = window.location.href) {
+      name = name.replace(/[\[\]]/g, '\\$&');
+      const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+      const results = regex.exec(url);
+      if (!results) {
+        return null;
+      }
+      if (!results[2]) {
+        return '';
+      }
+      return decodeURIComponent(results[2].replace(/\+/g, ' '));
+    }
+
     this.state = {
       userConfirmed: false,
       awaitingConfirmation: false,
       awaitingLogin: false,
       loginWarning: null,
-      data: { username: '', password: '' },
+      data: { username: '', password: '', redirectUrl: getParameterByName('ReturnUrl') },
       errors: {},
       formIsValid: false,
     };
@@ -132,7 +145,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       return;
     }
 
-    postData(window.location.href, this.state.data, true)
+    await postJsonDataNoSession(window.location.href, this.state.data)
       .then((response) => {
         const loginWarning = response.headers.get('Warning');
         const redirectUrl = response.headers.get('NavigateTo');

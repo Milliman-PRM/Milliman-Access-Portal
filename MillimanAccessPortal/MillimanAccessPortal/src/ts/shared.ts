@@ -673,6 +673,27 @@ export function postJsonData<TResponse = any>(url: string = '', data: object = {
   });
 }
 
+export function postJsonDataNoSession(url: string = '', data: object = {}, method = 'POST') {
+  const antiforgeryToken = document.querySelector('input[name="__RequestVerificationToken"]').getAttribute('value');
+  return fetch(url, {
+    method,
+    cache: 'no-cache',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json',
+      'RequestVerificationToken': antiforgeryToken,
+    },
+    credentials: 'same-origin',
+    body: JSON.stringify(data),
+  })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(response.headers.get('Warning') || `${response.status}`);
+      }
+      return response;
+    });
+}
+
 export function isStringNotEmpty(value: string): boolean {
   return value !== null && value.trim() !== '';
 }
