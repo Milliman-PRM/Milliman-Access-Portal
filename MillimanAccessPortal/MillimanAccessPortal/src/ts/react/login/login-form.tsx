@@ -56,7 +56,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       awaitingConfirmation: false,
       awaitingLogin: false,
       loginWarning: null,
-      data: { username: '', password: '', redirectUrl: getParameterByName('ReturnUrl') },
+      data: { username: '', password: '', returnUrl: getParameterByName('ReturnUrl') },
       errors: {},
       formIsValid: false,
     };
