@@ -203,11 +203,11 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl = null)
+        public async Task<IActionResult> Login([FromBody] LoginRequestModel model)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["ReturnUrl"] = model.ReturnUrl;
 
             if (ModelState.IsValid)
             {
@@ -271,14 +271,14 @@ namespace MillimanAccessPortal.Controllers
                 switch (result)
                 {
                     case var r when r.RequiresTwoFactor:
-                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, returnUrl }));
+                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, model.ReturnUrl }));
                         return Ok();
 
                     case var r when r.Succeeded:
                         await SignInCommon(user, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name);
 
                         // Provide the location that should be navigated to (or fall back on default route)
-                        Response.Headers.Add("NavigateTo", returnUrl ?? "/");
+                        Response.Headers.Add("NavigateTo", model.ReturnUrl ?? "/");
                         return Ok();
 
                     case var r when r.IsLockedOut:
