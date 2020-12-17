@@ -514,27 +514,29 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <table className="folder-content-table">
             <tbody>
               {data.fileDropContentsForMove && data.fileDropContentsForMove.directories.map((dir) => {
-                return (
-                  <tr
-                    style={{ cursor: 'pointer' }}
-                    key={dir.id}
-                    onClick={() => {
-                      this.props.fetchFolderContentsForMove({
-                        fileDropId: selected.fileDrop,
-                        canonicalPath: dir.canonicalPath,
-                      });
-                    }}
-                  >
-                    <td className="folder-icon">
-                      <svg className="content-type-icon">
-                        <use xlinkHref={'#folder'} />
-                      </svg>
-                    </td>
-                    <td>
-                      {dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1)}
-                    </td>
-                  </tr>
-                );
+                if (dir.id !== pending.moveItem.itemId) {
+                  return (
+                    <tr
+                      style={{ cursor: 'pointer' }}
+                      key={dir.id}
+                      onClick={() => {
+                        this.props.fetchFolderContentsForMove({
+                          fileDropId: selected.fileDrop,
+                          canonicalPath: dir.canonicalPath,
+                        });
+                      }}
+                    >
+                      <td className="folder-icon">
+                        <svg className="content-type-icon">
+                          <use xlinkHref={'#folder'} />
+                        </svg>
+                      </td>
+                      <td>
+                        {dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1)}
+                      </td>
+                    </tr>
+                  );
+                }
               })}
             </tbody>
           </table>
@@ -618,7 +620,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   this.props.renameFileDropFolder({
                     fileDropId: selected.fileDrop,
                     directoryId: pending.moveItem.itemId,
-                    parentCanonicalPath: pending.moveItem.newFolderId,
+                    parentCanonicalPath: pending.moveItem.currentCanonicalPath,
                     directoryName: pending.moveItem.itemName,
                   });
                 }
