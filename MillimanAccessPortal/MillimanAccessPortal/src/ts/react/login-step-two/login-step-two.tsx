@@ -93,7 +93,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                     className="link-button"
                     onClick={() => false}
                   >
-                      Cancel
+                    Cancel
                   </button>
                 </a>
                 <button
@@ -124,7 +124,14 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
       this.setState({ errors: {} });
     }
 
-    postData(window.location.href, this.state.data, true)
+    const requestData = this.state.data.returnUrl ? this.state.data :
+    {
+      code: this.state.data.code,
+      rememberBrowser: this.state.data.rememberBrowser,
+      rememberMe: this.state.data.rememberMe,
+    };
+
+    postData(window.location.href, requestData, true)
       .then((response) => {
         if (response) {
           const redirectUrl = response.headers.get('NavigateTo');
