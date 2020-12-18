@@ -802,6 +802,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   className="card-container action-card-container"
                   onClick={() => {
                     this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                      this.props.selectUser({ id: null });
                       this.props.openCreateClientUserModal({
                         clientId: selected.client,
                       });
@@ -1039,7 +1040,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon="add"
                     action={() => {
                       this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                        this.props.selectUser({ id: 'new' });
+                        this.props.selectUser({ id: null });
                         this.props.openCreateClientUserModal({ clientId: selected.client });
                       });
                     }}
