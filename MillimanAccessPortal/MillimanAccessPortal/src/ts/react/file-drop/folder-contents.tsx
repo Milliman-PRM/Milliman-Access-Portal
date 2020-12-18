@@ -527,7 +527,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
         );
       } else {
         return (
-          <tr key={file.folderId}>
+          <tr key={file.uploadId}>
             <td className="file-icon">
               <svg className="content-type-icon">
                 <use xlinkHref={'#file'} />

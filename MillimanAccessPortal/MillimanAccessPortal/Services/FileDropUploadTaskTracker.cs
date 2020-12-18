@@ -28,6 +28,7 @@ namespace MillimanAccessPortal.Services
         Copying,
         Completed,
         Error,
+        CompletedRenamed,
     }
 
     public class FileDropUploadTask

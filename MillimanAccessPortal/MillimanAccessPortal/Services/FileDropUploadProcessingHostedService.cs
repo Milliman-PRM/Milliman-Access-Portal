@@ -6,19 +6,19 @@
 
 using MapCommonLib;
 using MapDbContextLib.Context;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.DependencyInjection;
-using System.IO;
-using Microsoft.EntityFrameworkCore;
 using Serilog;
-using MillimanAccessPortal.Controllers;
-using Microsoft.Extensions.Configuration;
 
 namespace MillimanAccessPortal.Services
 {
@@ -110,7 +110,31 @@ namespace MillimanAccessPortal.Services
 
                 var destinationDirectoryRecord = await dbContext.FileDropDirectory
                                                                 .Include(d => d.FileDrop)
+                                                                .Include(d => d.Files)
                                                                 .SingleOrDefaultAsync(d => d.Id == taskKvp.Value.FileDropDirectoryId);
+
+                bool fileRenamed = false;
+                while (destinationDirectoryRecord.Files.Select(f => f.FileName).Contains(taskKvp.Value.FileName, StringComparer.InvariantCultureIgnoreCase))
+                {
+                    // requested file name already exists
+                    string requestedNameSansExtension = Path.GetFileNameWithoutExtension(taskKvp.Value.FileName);
+                    string requestedExtension = Path.GetExtension(taskKvp.Value.FileName);
+
+                    Regex regex = new Regex(@" \((\d+)\)$");  // search for " (#)" at the end
+                    Match match = regex.Match(requestedNameSansExtension);
+                    if (match.Success)
+                    {
+                        int newNumber = int.Parse(match.Groups[1].Value) + 1;
+                        string replacement = match.Value.Replace(match.Groups[1].Value, newNumber.ToString());
+                        taskKvp.Value.FileName = taskKvp.Value.FileName.Replace(match.Value, replacement);
+                    }
+                    else
+                    {
+                        taskKvp.Value.FileName = requestedNameSansExtension + " (1)" + requestedExtension;
+                    }
+
+                    fileRenamed = true;
+                }
 
                 string targetFullPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), 
                                                      destinationDirectoryRecord.FileDrop.RootPath, 
@@ -145,7 +169,14 @@ namespace MillimanAccessPortal.Services
 
                 if (removeUploadSuccess)
                 {
-                    _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Completed);
+                    if (fileRenamed)
+                    {
+                        _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.CompletedRenamed);
+                    }
+                    else
+                    {
+                        _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Completed);
+                    }
                 }
             }
 
