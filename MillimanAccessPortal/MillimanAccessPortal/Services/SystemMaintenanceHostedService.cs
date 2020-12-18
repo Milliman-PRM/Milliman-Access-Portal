@@ -65,6 +65,7 @@ namespace MillimanAccessPortal.Services
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
+                TimeSpan clientReviewEarlyWarningDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewEarlyWarningDays"));
 
                 List<UserRoleInClient> adminRoleAssignments = dbContext.UserRoleInClient
                                                                        .Include(urc => urc.User)
@@ -82,10 +83,10 @@ namespace MillimanAccessPortal.Services
                                                                        .Distinct(new IdPropertyComparer<Client>())
                                                                        .ToList();
 
-                    List<Client> expiringClients = clientsToVerify.Where(c => DateTime.UtcNow.Date > c.LastAccessReview.LastReviewDateTimeUtc.Date + clientReviewRenewalPeriodDays)
+                    List<Client> relevantClients = clientsToVerify.Where(c => DateTime.UtcNow.Date > c.LastAccessReview.LastReviewDateTimeUtc.Date + clientReviewRenewalPeriodDays - clientReviewEarlyWarningDays)
                                                                   .ToList();
 
-                    if (expiringClients.Any())
+                    if (relevantClients.Any())
                     {
                         string mapUrl = hostEnvironment switch
                         {
@@ -98,12 +99,12 @@ namespace MillimanAccessPortal.Services
                         string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
                         emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
                         emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
-                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
+                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine;
 
-                        foreach (Client client in expiringClients)
+                        foreach (Client client in relevantClients.OrderBy(c => c.LastAccessReview.LastReviewDateTimeUtc))
                         {
                             DateTime deadline = client.LastAccessReview.LastReviewDateTimeUtc.Date + clientReviewRenewalPeriodDays;
-                            emailBody += $"  - Client Name: {client.Name}, deadline for review: {(client.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays).ToShortDateString()}";
+                            emailBody += Environment.NewLine + $"  - Client Name: {client.Name}, deadline for review: {(client.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays).ToShortDateString()}";
                         }
 
                         messageQueue.QueueEmail(user.Email, emailSubject, emailBody);
@@ -116,8 +117,8 @@ namespace MillimanAccessPortal.Services
 
         private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
         {
-            DateTime nextEventUtc = DateTime.Today + eventTimeAfterMidnightUtc;
-            if (nextEventUtc < DateTime.UtcNow)
+            DateTime nextEventUtc = DateTime.UtcNow.Date + eventTimeAfterMidnightUtc;
+            while (nextEventUtc < DateTime.UtcNow)
             {
                 nextEventUtc += TimeSpan.FromDays(1);
             }
