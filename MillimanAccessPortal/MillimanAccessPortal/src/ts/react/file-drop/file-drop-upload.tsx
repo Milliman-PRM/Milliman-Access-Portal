@@ -6,7 +6,7 @@ import { StatusMonitor } from '../../status-monitor';
 import { FileScanner } from '../../upload/file-scanner';
 import { FileSniffer } from '../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../upload/progress-monitor';
-import { FileDropUploadTaskStatus, FileUpload, Guid, ResumableInfo } from '../models';
+import { FileDropFileUpload, FileDropUploadTaskStatus, Guid, ResumableInfo } from '../models';
 
 const resumable = require('resumablejs');
 
@@ -19,7 +19,6 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
-  disallowedFileNames: string[];
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
   writeAccess: boolean;
@@ -78,12 +77,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
 
         // Make sure that the user has write permissions
         if (!this.props.writeAccess) {
-          return false;
-        }
-
-        // Make sure that the fileName doesn't already exist
-        if (this.props.disallowedFileNames.indexOf(file.name) > -1) {
-          this.props.postErrorToast('A file with that name already exists.');
           return false;
         }
 
@@ -204,20 +197,21 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
         // Start a monitor that polls for status of asynchronous backend data finalization
         this.statusMonitor = new StatusMonitor<{}>(
           `/FileDrop/GetFileUploadStatus?taskId=${fileGUID}&FileDropId=${this.props.fileDropId}`,
-          (fileUpload: FileUpload) => {
-            if (fileUpload.status === FileDropUploadTaskStatus.Completed) {
+          (fileUpload: FileDropFileUpload) => {
+            if (fileUpload.status === FileDropUploadTaskStatus.Completed ||
+                fileUpload.status === FileDropUploadTaskStatus.CompletedRenamed) {
               this.progressMonitor.deactivate();
               if (!this.canceled) {
                 this.props.finalizeFileDropUpload(
                   this.props.uploadId, this.props.fileDropId, this.props.folderId, this.props.canonicalPath,
                 );
-                this.props.postSuccessToast('File upload completed successfully.');
+                this.props.postSuccessToast(`'${fileUpload.fileName}' uploaded successfully.`);
               }
               this.statusMonitor.stop();
             } else if (fileUpload.status === FileDropUploadTaskStatus.Error) {
               this.props.setUploadError(
                 this.props.uploadId,
-                fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
+                'Something went wrong during upload. Please try again.',
               );
               this.statusMonitor.stop();
             }
