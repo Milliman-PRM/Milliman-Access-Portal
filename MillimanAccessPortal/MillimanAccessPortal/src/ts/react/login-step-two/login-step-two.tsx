@@ -6,7 +6,7 @@ import * as Yup from 'yup';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
 
-import { postData } from '../../shared';
+import { getParameterByName, postData } from '../../shared';
 
 import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
@@ -31,17 +31,13 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   public constructor(props: {}) {
     super(props);
 
-    const params = new URLSearchParams(window.location.search);
-
     this.state = {
       awaitingLogin: false,
       loginWarning: null,
-      username: params.get('Username'),
+      username: getParameterByName('Username'),
       data: {
         code: '',
-        returnUrl: params.get('returnUrl'),
-        rememberBrowser: 'false',
-        rememberMe: params.get('RememberMe'),
+        returnUrl: getParameterByName('ReturnUrl'),
       },
       errors: {},
       formIsValid: false,
@@ -87,7 +83,10 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                 error={errors.code}
               />
               <div className="button-container">
-                <a href={'/Account/Login?ReturnUrl=' + this.state.data.returnUrl} className="link-button">
+                <a
+                  href={'/Account/Login?ReturnUrl=' + encodeURIComponent(this.state.data.returnUrl)}
+                  className="link-button"
+                >
                   <button
                     type="button"
                     className="link-button"
@@ -115,7 +114,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
     e.preventDefault();
 
     const errors = { ...this.state.errors };
-    const errorMessage = await this.validateProperty({ name: 'code', value: this.state.data.code });
+    const errorMessage = await this.validateProperty({ name: 'code', value: this.state.data.codeCancel });
     if (errorMessage) {
       errors.code = errorMessage.code;
       this.setState({ errors });
@@ -127,8 +126,6 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
     const requestData = this.state.data.returnUrl ? this.state.data :
     {
       code: this.state.data.code,
-      rememberBrowser: this.state.data.rememberBrowser,
-      rememberMe: this.state.data.rememberMe,
     };
 
     postData(window.location.href, requestData, true)

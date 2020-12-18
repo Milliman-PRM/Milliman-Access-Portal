@@ -707,3 +707,16 @@ export function isEmailAddressValid(email: string): boolean {
   const emailRegex = /\S+@\S+\.\S+/;
   return email === null || email.trim() === '' || emailRegex.test(email);
 }
+
+export function getParameterByName(name: string, url = window.location.href) {
+  name = name.replace(/[\[\]]/g, '\\$&');
+  const regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)');
+  const results = regex.exec(url);
+  if (!results) {
+    return null;
+  }
+  if (!results[2]) {
+    return '';
+  }
+  return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
