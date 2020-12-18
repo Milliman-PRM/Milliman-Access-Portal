@@ -85,6 +85,7 @@ const _initialFilterValues: State.FileDropFilterState = {
   fileDrop: { text: '' },
   permissions: { text: '' },
   activityLog: { text: '' },
+  fileDropContents: { text: '' },
 };
 
 const _initialCreateFileDropData: State.FileDropFormStateData = {
@@ -805,6 +806,23 @@ const filters = createReducer<State.FileDropFilterState>(_initialFilterValues,
       ...state,
       permissions: _initialFilterValues.permissions,
       activityLog: _initialFilterValues.activityLog,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    ENTER_CREATE_FOLDER_MODE: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    BEGIN_FILE_DROP_FILE_UPLOAD: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
     }),
   },
 );
