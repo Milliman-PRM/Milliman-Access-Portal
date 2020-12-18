@@ -665,6 +665,7 @@ export enum FileDropUploadTaskStatus {
   Copying = 4,
   Completed = 5,
   Error = 6,
+  CompletedRenamed = 7,
 }
 
 export interface ResumableInfo {
@@ -682,6 +683,11 @@ export interface FileUpload {
   id: string;
   initiatedDateTimeUtc: string;
   clientFileIdentifier: string;
-  status: FileUploadStatus | FileDropUploadTaskStatus;
+  status: FileUploadStatus;
   statusMessage: string;
+}
+
+export interface FileDropFileUpload {
+  status: FileDropUploadTaskStatus;
+  fileName: string;
 }

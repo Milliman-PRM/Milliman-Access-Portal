@@ -578,6 +578,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 // remove existing roles no longer wanted
                 List<UserRoleInClient> rolesToRemove = existingAssignedRoles.Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum && !roleAssignment.IsAssigned).ToList();
+
+                // If the current role is Admin, also remove the user's UserCreator role if it exists.
+                if (rolesToRemove.Any(r => r.Role.RoleEnum == RoleEnum.Admin)) {
+                    rolesToRemove.AddRange(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator));
+                }
+
                 rolesToRemove.ForEach(urc => 
                 {
                     DbContext.UserRoleInClient.Remove(urc);
@@ -594,6 +600,17 @@ namespace MillimanAccessPortal.Controllers
 
                     Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
                     AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+
+                    if (roleAssignment.RoleEnum == RoleEnum.Admin)
+                    {
+                        if (!existingAssignedRoles.Any(urc => urc.Role.RoleEnum == RoleEnum.UserCreator))
+                        {
+                            ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
+                            DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
+                            Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
+                            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+                        }
+                    }
                 }
             }
             await DbContext.SaveChangesAsync();

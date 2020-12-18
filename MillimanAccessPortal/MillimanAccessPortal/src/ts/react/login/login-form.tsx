@@ -8,7 +8,7 @@ import * as React from 'react';
 import * as Yup from 'yup';
 
 import { getUrlParameter } from '../../get-url-parameters';
-import { postData } from '../../shared';
+import { getParameterByName, postData, postJsonDataNoSession } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
@@ -43,7 +43,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       awaitingConfirmation: false,
       awaitingLogin: false,
       loginWarning: null,
-      data: { username: '', password: '' },
+      data: { username: '', password: '', returnUrl: getParameterByName('ReturnUrl') },
       errors: {},
       formIsValid: false,
     };
@@ -132,7 +132,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       return;
     }
 
-    postData(window.location.href, this.state.data, true)
+    await postJsonDataNoSession(window.location.href, this.state.data)
       .then((response) => {
         const loginWarning = response.headers.get('Warning');
         const redirectUrl = response.headers.get('NavigateTo');

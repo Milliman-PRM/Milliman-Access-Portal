@@ -788,6 +788,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
             FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+
             #region Validation
             if (fileDrop == null)
             {
@@ -812,24 +813,6 @@ namespace MillimanAccessPortal.Controllers
                                                   .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                   .SingleOrDefaultAsync();
 
-            FileDropDirectory directory = await _dbContext.FileDropDirectory.Include(d => d.Files).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropDirectoryId);
-            #region Validation
-            if (directory == null || directory.FileDropId != requestModel.FileDropId)
-            {
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropDirectory with requested Id {requestModel.FileDropDirectoryId} does not belong to FileDrop with requested Id {requestModel.FileDropId}");
-                Response.Headers.Add("Warning", "Error completing the request.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            if (directory.Files.Select(f => f.FileName).Contains(requestModel.FileName, StringComparer.InvariantCultureIgnoreCase))
-            {
-                // file already exists
-                await _fileDropUploadTaskTracker.RemoveFileUploadAsync(requestModel.FileUploadId);
-                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} file name {requestModel.FileName} already exists in the directory");
-                Response.Headers.Add("Warning", "An invalid file name was requested.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
             if (!userRoleResult.Succeeded || account == null)
@@ -837,6 +820,17 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
                 return Unauthorized();
+            }
+            #endregion
+
+            FileDropDirectory directory = await _dbContext.FileDropDirectory.FindAsync(requestModel.FileDropDirectoryId);
+
+            #region Validation
+            if (directory == null || directory.FileDropId != requestModel.FileDropId)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropDirectory with requested Id {requestModel.FileDropDirectoryId} does not belong to FileDrop with requested Id {requestModel.FileDropId}");
+                Response.Headers.Add("Warning", "Error completing the request.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -880,17 +874,17 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDropUploadTaskStatus returnValue = FileDropUploadTaskStatus.Unknown;
             try
             {
-                returnValue = await _fileDropQueries.GetUploadTaskStatusAsync(taskId, fileDropId);
+                UploadStatusModel returnModel = await _fileDropQueries.GetUploadTaskStatusAsync(taskId, fileDropId);
+                return Json(returnModel);
             }
             catch (ApplicationException ex)
             {
                 Response.Headers.Add("Warning", ex.Message);
+                return Json(new UploadStatusModel());
             }
 
-            return Json(new { Status = returnValue });
         }
 
         [HttpGet]
