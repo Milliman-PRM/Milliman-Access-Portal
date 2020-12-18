@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
-    public class LoginViewModel
+    public class LoginRequestModel
     {
         [Required]
         public string Username { get; set; }
@@ -17,5 +13,7 @@ namespace MillimanAccessPortal.Models.AccountViewModels
 
         [Display(Name = "Remember me?")]
         public bool RememberMe { get; set; }
+
+        public string ReturnUrl { get; set; } = null;
     }
 }
