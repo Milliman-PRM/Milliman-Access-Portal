@@ -181,12 +181,6 @@ table {
         padding: 0 !important;
     }
 
-    .move-item-new-folder-spinner {
-        margin-left: 0.25rem;
-        width: 1.5rem;
-        height: 1.5rem;
-    }
-
     .move-item-text {
         font-size: 22px;
     }
@@ -194,8 +188,45 @@ table {
     .breadcrumbs {
         margin-bottom: 0;
 
+        .breadcrumb-link {
+            color: blue;
+            cursor: pointer;
+        }
+
         .move-file-slash {
             margin: 1rem;
+        }
+    }
+
+    .folder-content-table {
+        .folder-icon {
+            width: 2em;
+        }
+
+        .content-type-icon {
+            height: 1.25em;
+            width: 1.25em;
+        }
+    }
+
+    .create-new-folder-area {
+        .new-folder-input {
+            width: 85%;
+            display: inline-block;
+            margin: 0 !important;
+        }
+
+        .new-folder-button-container {
+            width: 15%;
+            float: right;
+            margin-top: 1rem;
+
+
+            .move-item-new-folder-spinner {
+                margin-left: 0.25rem;
+                width: 1.5rem;
+                height: 1.5rem;
+            }
         }
     }
 }

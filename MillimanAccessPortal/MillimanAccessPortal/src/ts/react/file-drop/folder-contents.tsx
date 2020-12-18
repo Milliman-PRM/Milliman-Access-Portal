@@ -264,8 +264,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         </li>
                         <li
                           onClick={() => {
-                            this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName,
-                              path, folderName);
+                            this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName, path, folderName);
                           }}
                         >
                           Move

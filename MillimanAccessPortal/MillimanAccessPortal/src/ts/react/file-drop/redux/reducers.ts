@@ -121,6 +121,7 @@ const _initialMoveItem: State.MoveItemData = {
   itemName: null,
   initialCanonicalPath: null,
   currentCanonicalPath: null,
+  breadcrumbs: null,
   newFolderId: null,
   createNewFolderMode: false,
   newFolderName: null,
@@ -399,13 +400,14 @@ const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveIt
   FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
     ...state,
     currentCanonicalPath: action.request.canonicalPath,
+    breadcrumbs: action.request.canonicalPath.split('/').slice(1),
     createNewFolderMode: false,
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
     ...state,
     newFolderId: action.response.thisDirectory.id,
   }),
-  SET_ENTER_NEW_FOLDER_FOR_MOVE_MODE: (state, action: Action.SetEnterNewFolderForMoveMode) => ({
+  SET_NEW_FOLDER_MODE_STATUS: (state, action: Action.SetNewFolderModeStatus) => ({
     ...state,
     createNewFolderMode: action.value,
     newFolderName: '',
@@ -415,6 +417,10 @@ const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveIt
     newFolderName: action.newFolderName,
   }),
   CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state) => ({
+    ...state,
+    createNewFolderMode: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED: (state) => ({
     ...state,
     createNewFolderMode: false,
   }),

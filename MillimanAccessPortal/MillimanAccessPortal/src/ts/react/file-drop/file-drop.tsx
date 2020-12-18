@@ -469,7 +469,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <span className="modal-text breadcrumbs">
             {pending.moveItem.currentCanonicalPath !== '/' ?
               <a
-                style={{ color: 'blue', cursor: 'pointer' }}
+                className="breadcrumb-link"
                 onClick={() => {
                   this.props.fetchFolderContentsForMove({
                     fileDropId: selected.fileDrop,
@@ -483,29 +483,25 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 {pending.moveItem.fileDropName}
               </strong>
             }
-            {pending.moveItem.currentCanonicalPath &&
-             pending.moveItem.currentCanonicalPath.split('/').slice(1).map((e, index) => {
-              const currentPathBreadcrumbs = pending.moveItem.currentCanonicalPath.split('/').slice(1);
+            {pending.moveItem.breadcrumbs && pending.moveItem.breadcrumbs.map((e, index) => {
               return (
                 <span key={index}>
                   <span className="move-file-slash">/</span>
-                  { index !== currentPathBreadcrumbs.length - 1 ?
+                  {index === pending.moveItem.breadcrumbs.length - 1 ?
+                    <strong>
+                      {e}
+                    </strong> :
                     <a
                       style={{ color: 'blue', cursor: 'pointer' }}
                       onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
-                          canonicalPath: '/' + currentPathBreadcrumbs.slice(0, index + 1).join('/'),
+                          canonicalPath: '/' + pending.moveItem.breadcrumbs.slice(0, index + 1).join('/'),
                         });
                       }}
                     >
                       {e}
-                    </a> :
-                    <span>
-                      <strong>
-                        {e}
-                      </strong>
-                    </span>
+                    </a>
                   }
                 </span>
               );
@@ -514,6 +510,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <table className="folder-content-table">
             <tbody>
               {data.fileDropContentsForMove && data.fileDropContentsForMove.directories.map((dir) => {
+                const directoryName = dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1);
                 if (dir.id !== pending.moveItem.itemId) {
                   return (
                     <tr
@@ -532,7 +529,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                         </svg>
                       </td>
                       <td>
-                        {dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1)}
+                        {directoryName}
                       </td>
                     </tr>
                   );
@@ -541,8 +538,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </tbody>
           </table>
           {pending.moveItem.createNewFolderMode ?
-            <div>
-              <div style={{ width: '85%', display: 'inline-block', margin: '0 !important' }}>
+            <div className="create-new-folder-area">
+              <div className="new-folder-input">
                 <Input
                   autoFocus={true}
                   error={null}
@@ -556,7 +553,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   value={pending.moveItem.newFolderName}
                 />
               </div>
-              <div style={{ width: '15%', float: 'right', marginTop: '1rem' }}>
+              <div className="new-folder-button-container">
                 {pending.async.createFolderMoveMode ?
                   <div className="move-item-new-folder-spinner">
                     <ButtonSpinner version="bars" spinnerColor="black" />
@@ -581,7 +578,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       label="Discard Changes"
                       icon="cancel"
                       inline={true}
-                      action={() => this.props.setEnterNewFolderForMoveMode({ value: false })}
+                      action={() => this.props.setNewFolderModeStatus({ value: false })}
                     />
                   </div>
                 }
@@ -590,7 +587,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <button
               className="link-button move-item-add-folder-button"
               type="button"
-              onClick={() => this.props.setEnterNewFolderForMoveMode({ value: true })}
+              onClick={() => this.props.setNewFolderModeStatus({ value: true })}
             >
               Create new folder +
             </button>
