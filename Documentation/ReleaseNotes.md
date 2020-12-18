@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+#### v1.10.1
+
+- Fixed a bug causing two factor authentication to fail when no subsequent URL is included in the login request
+- Modified the URL of login requests to prevent internal logging of user passwords
+- Fixed a bug that prevented users with newly assigned client admin role from adding a new user to the system
+- Improved the content of the notification email for expired or approaching client access review deadlines
+
 ### v1.10.0
 
 - Introduced HITRUST compliance features
