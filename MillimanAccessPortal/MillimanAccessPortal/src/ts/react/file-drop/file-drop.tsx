@@ -458,15 +458,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           isOpen={modals.moveFileDropItem.isOpen}
           onRequestClose={() => this.props.closeMoveFileDropItemModal({})}
           ariaHideApp={false}
-          className="modal"
+          className="modal move-item-modal"
           overlayClassName="modal-overlay"
           closeTimeoutMS={100}
         >
           <h3 className="title blue">Move a {pending.moveItem.itemType}</h3>
-          <span className="modal-text">
+          <span className="modal-text move-item-text">
             Move {pending.moveItem.itemType} <strong>{pending.moveItem.itemName}</strong> to...
           </span>
-          <span className="modal-text">
+          <span className="modal-text breadcrumbs">
             {pending.moveItem.currentCanonicalPath !== '/' ?
               <a
                 style={{ color: 'blue', cursor: 'pointer' }}
@@ -487,7 +487,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
              pending.moveItem.currentCanonicalPath.split('/').slice(1).map((e, index) => {
               const currentPathBreadcrumbs = pending.moveItem.currentCanonicalPath.split('/').slice(1);
               return (
-                <span key={index}>/
+                <span key={index}>
+                  <span className="move-file-slash">/</span>
                   { index !== currentPathBreadcrumbs.length - 1 ?
                     <a
                       style={{ color: 'blue', cursor: 'pointer' }}
@@ -500,9 +501,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     >
                       {e}
                     </a> :
-                    <strong>
-                      {e}
-                    </strong>
+                    <span>
+                      <strong>
+                        {e}
+                      </strong>
+                    </span>
                   }
                 </span>
               );

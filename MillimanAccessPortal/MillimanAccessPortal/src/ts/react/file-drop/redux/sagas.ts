@@ -111,9 +111,9 @@ export default function* rootSaga() {
   yield takeEveryToast('DELETE_FILE_DROP_FOLDER_SUCCEEDED', 'Folder successfully deleted.');
   yield takeEveryToast('UPDATE_FILE_DROP_FILE_SUCCEEDED', 'File updated successfully.');
   yield takeEveryToast('UPDATE_FILE_DROP_FOLDER_SUCCEEDED', 'Folder updated successfully.');
-  yield takeEveryToast('RENAME_FILE_DROP_FILE_SUCCEEDED', 'File renamed successfully.');
-  yield takeEveryToast('RENAME_FILE_DROP_FOLDER_SUCCEEDED', 'Folder renamed successfully.');
-  yield takeEveryToast('CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCCEEDED', 'Folder created successfully.');
+  yield takeEveryToast('RENAME_FILE_DROP_FILE_SUCCEEDED', 'File updated successfully.');
+  yield takeEveryToast('RENAME_FILE_DROP_FOLDER_SUCCEEDED', 'Folder updated successfully.');
+  yield takeEveryToast('CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED', 'Folder created successfully.');
 
   // Toasts (Errors/Warnings)
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',

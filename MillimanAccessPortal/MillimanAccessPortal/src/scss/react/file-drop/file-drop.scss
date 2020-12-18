@@ -175,13 +175,27 @@ table {
     }
 }
 
-.move-item-add-folder-button {
-    margin: 0;
-    padding: 0 !important;
-}
+.move-item-modal {
+    .move-item-add-folder-button {
+        margin: 0;
+        padding: 0 !important;
+    }
 
-.move-item-new-folder-spinner {
-    margin-left: 0.25rem;
-    width: 1.5rem;
-    height: 1.5rem;
+    .move-item-new-folder-spinner {
+        margin-left: 0.25rem;
+        width: 1.5rem;
+        height: 1.5rem;
+    }
+
+    .move-item-text {
+        font-size: 22px;
+    }
+
+    .breadcrumbs {
+        margin-bottom: 0;
+
+        .move-file-slash {
+            margin: 1rem;
+        }
+    }
 }

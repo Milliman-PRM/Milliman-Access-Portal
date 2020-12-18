@@ -264,10 +264,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         </li>
                         <li
                           onClick={() => {
-                            const parentCanonicalPath = directory.canonicalPath.slice()
-                              .substr(0, directory.canonicalPath.lastIndexOf('/') + 1);
                             this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName,
-                              parentCanonicalPath, folderName);
+                              path, folderName);
                           }}
                         >
                           Move
