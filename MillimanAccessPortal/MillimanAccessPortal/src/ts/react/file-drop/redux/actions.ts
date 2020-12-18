@@ -799,8 +799,8 @@ export interface CloseMoveFileDropItemModal {
 }
 
 /** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
-export interface SetEnterNewFolderForMoveMode {
-  type: 'SET_ENTER_NEW_FOLDER_FOR_MOVE_MODE';
+export interface SetNewFolderModeStatus {
+  type: 'SET_NEW_FOLDER_MODE_STATUS';
   value: boolean;
 }
 
@@ -882,7 +882,7 @@ export type FileDropPageActions =
   | UpdateCreateFolderValues
   | OpenMoveFileDropItemModal
   | CloseMoveFileDropItemModal
-  | SetEnterNewFolderForMoveMode
+  | SetNewFolderModeStatus
   | SetNewFolderNameForMove
   ;
 

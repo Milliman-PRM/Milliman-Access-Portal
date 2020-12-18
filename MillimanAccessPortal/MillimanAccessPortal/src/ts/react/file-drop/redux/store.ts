@@ -94,6 +94,7 @@ export interface MoveItemData {
   itemName: string;
   initialCanonicalPath: string;
   currentCanonicalPath: string;
+  breadcrumbs: string[];
   newFolderId: Guid;
   createNewFolderMode: boolean;
   newFolderName: string;
