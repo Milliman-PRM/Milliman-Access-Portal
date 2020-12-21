@@ -29,8 +29,8 @@ interface FolderContentsProps {
   browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
-  deleteFile: (fileDropId: Guid, fileId: Guid) => void;
-  deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
+  deleteFile: (fileName: string, fileId: Guid) => void;
+  deleteFolder: (folderName: string, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
   updateFileDropItemName: (id: Guid, name: string) => void;
@@ -264,7 +264,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       this.props.currentUserPermissions.deleteAccess &&
                       <li
                         className="warning"
-                        onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                        onClick={() => this.props.deleteFolder(folderName, directory.id)}
                       >
                         Delete
                       </li>
@@ -464,7 +464,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         this.props.currentUserPermissions.deleteAccess &&
                         <li
                           className="warning"
-                          onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                          onClick={() => this.props.deleteFile(file.fileName, file.id)}
                         >
                           Delete
                         </li>

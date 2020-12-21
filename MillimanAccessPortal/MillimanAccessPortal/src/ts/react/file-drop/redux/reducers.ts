@@ -9,8 +9,7 @@ import { generateUniqueId } from '../../../generate-unique-identifier';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import {
-  FileDropDirectoryContentModel, FileDropSettings, FileDropWithStats,
-  PermissionGroupsReturnModel,
+  FileDropDirectoryContentModel, FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -71,6 +70,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissionsUpdate: false,
   activityLog: false,
   settings: false,
+  deleteItem: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -150,6 +150,12 @@ const _initialUpload: State.FileDropUploadState = {
   checksumProgress: ProgressSummary.empty(),
   uploadProgress: ProgressSummary.empty(),
   errorMsg: null,
+};
+
+const _initialItemToDelete: State.DeleteItemData = {
+  itemType: null,
+  itemName: null,
+  itemId: null,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -253,6 +259,30 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   FETCH_SETTINGS_FAILED: (state) => ({
     ...state,
     settings: false,
+  }),
+  DELETE_FILE_DROP_FILE: (state) => ({
+    ...state,
+    deleteItem: true,
+  }),
+  DELETE_FILE_DROP_FILE_SUCCEEDED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FILE_FAILED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    deleteItem: true,
+  }),
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    deleteItem: false,
   }),
 });
 
@@ -585,6 +615,15 @@ const createFolder = createReducer<State.CreateFolderData>(null, {
   CREATE_FILE_DROP_FOLDER_SUCCEEDED: () => null,
 });
 
+const deleteItem = createReducer<State.DeleteItemData>(_initialItemToDelete, {
+  OPEN_DELETE_FILE_DROP_ITEM_MODAL: (state, action: Action.OpenDeleteFileDropItemModal) => ({
+    ...state,
+    itemId: action.itemId,
+    itemName: action.itemName,
+    itemType: action.itemType,
+  }),
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -598,6 +637,7 @@ const pending = combineReducers({
   afterFormModal,
   uploads: pendingUploads,
   createFolder,
+  itemToDelete: deleteItem,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -864,6 +904,13 @@ const modals = combineReducers({
   ]),
   passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
     'CLOSE_PASSWORD_NOTIFICATION_MODAL',
+  ]),
+  deleteFileDropItem: createModalReducer(['OPEN_DELETE_FILE_DROP_ITEM_MODAL'], [
+    'CLOSE_DELETE_FILE_DROP_ITEM_MODAL',
+    'DELETE_FILE_DROP_FILE_SUCCEEDED',
+    'DELETE_FILE_DROP_FILE_FAILED',
+    'DELETE_FILE_DROP_FOLDER_SUCCEEDED',
+    'DELETE_FILE_DROP_FOLDER_FAILED',
   ]),
 });
 

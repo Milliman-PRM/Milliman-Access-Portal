@@ -454,6 +454,57 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.deleteFileDropItem.isOpen}
+          onRequestClose={() => this.props.closeDeleteFileDropItemModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title red">Delete {pending.itemToDelete.itemType}</h3>
+          {pending.itemToDelete.itemType === 'folder' ?
+            <span className="modal-text">
+              <strong>{pending.itemToDelete.itemName}</strong> may contain files and folders that will be deleted by
+               this action and will not be recoverable. <strong>Are you sure you want to proceed?</strong>
+            </span> :
+            < span className="modal-text">Are you sure you want to delete the file
+              <strong> {pending.itemToDelete.itemName}?</strong>
+            </span>
+          }
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeDeleteFileDropItemModal({})}
+            >
+              Close
+            </button>
+            <button
+              className="red-button"
+              onClick={() => {
+                if (pending.itemToDelete.itemType === 'folder') {
+                  this.props.deleteFileDropFolder({
+                    fileDropId: selected.fileDrop,
+                    folderId: pending.itemToDelete.itemId,
+                  });
+                }
+                if (pending.itemToDelete.itemType === 'file') {
+                  this.props.deleteFileDropFile({
+                    fileDropId: selected.fileDrop,
+                    fileId: pending.itemToDelete.itemId,
+                  });
+                }
+              }}
+            >
+              Delete
+              {pending.async.deleteItem
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -947,10 +998,18 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   thisDirectory={this.props.data.fileDropContents.thisDirectory}
                   createFolder={this.props.pending.createFolder}
                   browseRef={this.browseUploadRef}
-                  deleteFile={(fileDropId, fileId) =>
-                    this.props.deleteFileDropFile({ fileDropId, fileId })}
-                  deleteFolder={(fileDropId, folderId) =>
-                    this.props.deleteFileDropFolder({ fileDropId, folderId })}
+                  deleteFile={(fileName, fileId) =>
+                    this.props.openDeleteFileDropItemModal({
+                      itemType: 'file',
+                      itemName: fileName,
+                      itemId: fileId,
+                    })}
+                  deleteFolder={(folderName, folderId) =>
+                    this.props.openDeleteFileDropItemModal({
+                      itemType: 'folder',
+                      itemName: folderName,
+                      itemId: folderId,
+                    })}
                   expandFileOrFolder={(id, expanded) => this.props.setFileOrFolderExpansion({ id, expanded })}
                   editFileDropItem={(id, editing, fileName, description) =>
                     this.props.setFileOrFolderEditing({ id, editing, fileName, description })

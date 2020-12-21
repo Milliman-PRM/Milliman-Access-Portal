@@ -5,8 +5,8 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
 import {
-  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent, FileDropSettings,
-  FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
+  FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -47,6 +47,7 @@ export interface FileDropPendingReturnState {
   permissionsUpdate: boolean;
   activityLog: boolean;
   settings: boolean;
+  deleteItem: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -84,6 +85,12 @@ export interface CreateFolderData {
   description: string;
 }
 
+export interface DeleteItemData {
+  itemType: 'file' | 'folder';
+  itemName: string;
+  itemId: Guid;
+}
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -98,6 +105,7 @@ export interface FileDropPendingState {
   afterFormModal: AfterFormModal;
   uploads: Dict<FileDropUploadState>;
   createFolder?: CreateFolderData;
+  itemToDelete: DeleteItemData;
 }
 
 /** State representing user-selected entities */
@@ -142,6 +150,7 @@ export interface FileDropModals {
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
   passwordNotification: ModalState;
+  deleteFileDropItem: ModalState;
 }
 
 /** Top-Level File Drop state */
