@@ -454,6 +454,185 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             </button>
           </div>
         </Modal>
+        <Modal
+          isOpen={modals.moveFileDropItem.isOpen}
+          onRequestClose={() => this.props.closeMoveFileDropItemModal({})}
+          ariaHideApp={false}
+          className="modal move-item-modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h3 className="title blue">Move a {pending.moveItem.itemType}</h3>
+          <span className="modal-text move-item-text">
+            Move {pending.moveItem.itemType} <strong>{pending.moveItem.itemName}</strong> to...
+          </span>
+          <span className="modal-text breadcrumbs">
+            {pending.moveItem.currentCanonicalPath !== '/' ?
+              <a
+                className="breadcrumb-link"
+                onClick={() => {
+                  this.props.fetchFolderContentsForMove({
+                    fileDropId: selected.fileDrop,
+                    canonicalPath: encodeURIComponent('/'),
+                  });
+                }}
+              >
+                {pending.moveItem.fileDropName}
+              </a> :
+              <strong>
+                {pending.moveItem.fileDropName}
+              </strong>
+            }
+            {pending.moveItem.breadcrumbs && pending.moveItem.breadcrumbs.map((e, index) => {
+              return (
+                <span key={index}>
+                  <span className="move-file-slash">/</span>
+                  {index === pending.moveItem.breadcrumbs.length - 1 ?
+                    <strong>
+                      {e}
+                    </strong> :
+                    <a
+                      style={{ color: 'blue', cursor: 'pointer' }}
+                      onClick={() => {
+                        this.props.fetchFolderContentsForMove({
+                          fileDropId: selected.fileDrop,
+                          canonicalPath: encodeURIComponent(
+                            '/' + pending.moveItem.breadcrumbs.slice(0, index + 1).join('/'),
+                          ),
+                        });
+                      }}
+                    >
+                      {e}
+                    </a>
+                  }
+                </span>
+              );
+            })}
+          </span>
+          <table className="folder-content-table">
+            <tbody>
+              {data.fileDropContentsForMove && data.fileDropContentsForMove.directories.map((dir) => {
+                const directoryName = dir.canonicalPath.slice(dir.canonicalPath.lastIndexOf('/') + 1);
+                if (dir.id !== pending.moveItem.itemId) {
+                  return (
+                    <tr
+                      style={{ cursor: 'pointer' }}
+                      key={dir.id}
+                      onClick={() => {
+                        this.props.fetchFolderContentsForMove({
+                          fileDropId: selected.fileDrop,
+                          canonicalPath: encodeURIComponent(dir.canonicalPath),
+                        });
+                      }}
+                    >
+                      <td className="folder-icon">
+                        <svg className="content-type-icon">
+                          <use xlinkHref={'#folder'} />
+                        </svg>
+                      </td>
+                      <td>
+                        {directoryName}
+                      </td>
+                    </tr>
+                  );
+                }
+              })}
+            </tbody>
+          </table>
+          {pending.moveItem.createNewFolderMode ?
+            <div className="create-new-folder-area">
+              <div className="new-folder-input">
+                <Input
+                  autoFocus={true}
+                  error={null}
+                  label="New Folder Name"
+                  name="New Folder Name"
+                  onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                    this.props.setNewFolderNameForMove({ newFolderName: target.value });
+                  }}
+                  placeholderText="Enter folder name..."
+                  type="text"
+                  value={pending.moveItem.newFolderName}
+                />
+              </div>
+              <div className="new-folder-button-container">
+                {pending.async.createFolderMoveMode ?
+                  <div className="move-item-new-folder-spinner">
+                    <ButtonSpinner version="bars" spinnerColor="black" />
+                  </div> :
+                  <div>
+                    {pending.moveItem.newFolderName.trim() &&
+                      <ActionIcon
+                        label="Create folder"
+                        icon="checkmark"
+                        inline={true}
+                        action={() =>
+                          this.props.createFileDropFolderForMove({
+                            fileDropId: selected.fileDrop,
+                            containingFileDropDirectoryId: pending.moveItem.newFolderId,
+                            newFolderName: pending.moveItem.newFolderName,
+                            description: '',
+                          })
+                        }
+                      />
+                    }
+                    <ActionIcon
+                      label="Discard Changes"
+                      icon="cancel"
+                      inline={true}
+                      action={() => this.props.setNewFolderModeStatus({ value: false })}
+                    />
+                  </div>
+                }
+              </div>
+            </div> :
+            <button
+              className="link-button move-item-add-folder-button"
+              type="button"
+              onClick={() => this.props.setNewFolderModeStatus({ value: true })}
+            >
+              Create new folder +
+            </button>
+          }
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => this.props.closeMoveFileDropItemModal({})}
+            >
+              Cancel
+            </button>
+            <button
+              className="blue-button"
+              disabled={pending.moveItem.initialCanonicalPath === pending.moveItem.currentCanonicalPath}
+              onClick={() => {
+                if (pending.moveItem.itemType === 'file') {
+                  this.props.renameFileDropFile({
+                    fileDropId: selected.fileDrop,
+                    fileId: pending.moveItem.itemId,
+                    newFolderId: pending.moveItem.newFolderId,
+                    fileName: pending.moveItem.itemName,
+                  });
+                }
+
+                if (pending.moveItem.itemType === 'folder') {
+                  this.props.renameFileDropFolder({
+                    fileDropId: selected.fileDrop,
+                    directoryId: pending.moveItem.itemId,
+                    parentCanonicalPath: pending.moveItem.currentCanonicalPath,
+                    directoryName: pending.moveItem.itemName,
+                  });
+                }
+              }}
+            >
+              Move
+              {pending.async.move
+                ? <ButtonSpinner version="circle" />
+                : null
+              }
+            </button>
+          </div>
+        </Modal>
       </>
     );
   }
@@ -672,7 +851,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   } else {
                     this.props.selectFileDrop({ id: entity.id });
                     if (selected.fileDrop !== entity.id) {
-                      this.props.fetchFolderContents({ fileDropId: entity.id, canonicalPath: '/' });
+                      this.props.fetchFolderContents({
+                        fileDropId: entity.id,
+                        canonicalPath: encodeURIComponent('/'),
+                      });
                     }
                     this.props.selectFileDropTab({ tab: 'files' });
                   }
@@ -857,7 +1039,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  this.props.fetchFolderContents({ fileDropId: selected.fileDrop, canonicalPath: '/' });
+                  this.props.fetchFolderContents({
+                    fileDropId: selected.fileDrop,
+                    canonicalPath: encodeURIComponent('/'),
+                  });
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
@@ -999,6 +1184,32 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       directoryName,
                     })
                   }
+                  moveFileDropFile={(fileDropId, fileId, fileDropName, canonicalPath, fileName) => {
+                    this.props.fetchFolderContentsForMove({
+                      fileDropId,
+                      canonicalPath: encodeURIComponent(canonicalPath),
+                    });
+                    this.props.openMoveFileDropItemModal({
+                      itemType: 'file',
+                      fileDropName,
+                      itemId: fileId,
+                      itemName: fileName,
+                      initialCanonicalPath: canonicalPath,
+                    });
+                  }}
+                  moveFileDropFolder={(fileDropId, folderId, fileDropName, canonicalPath, folderName) => {
+                    this.props.fetchFolderContentsForMove({
+                      fileDropId,
+                      canonicalPath: encodeURIComponent(canonicalPath),
+                    });
+                    this.props.openMoveFileDropItemModal({
+                      itemType: 'folder',
+                      fileDropName,
+                      itemId: folderId,
+                      itemName: folderName,
+                      initialCanonicalPath: canonicalPath,
+                    });
+                  }}
                 />
               }
             </div>

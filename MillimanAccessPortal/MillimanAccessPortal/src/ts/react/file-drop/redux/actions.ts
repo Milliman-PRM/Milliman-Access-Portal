@@ -483,6 +483,29 @@ export interface FetchFolderContentsFailed {
 }
 
 /**
+ * GET:
+ *   Folder contents for the the move file/folder modals
+ */
+export interface FetchFolderContentsForMove {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE';
+  folderId: Guid;
+  request: {
+    fileDropId: Guid;
+    canonicalPath: string;
+  };
+}
+/** Action called upon successful return of the FetchFolderContentsForMove API call */
+export interface FetchFolderContentsForMoveSucceeded {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon return of an error from the FetchFolderContentsForMove API call */
+export interface FetchFolderContentsForMoveFailed {
+  type: 'FETCH_FOLDER_CONTENTS_FOR_MOVE_FAILED';
+  error: TSError;
+}
+
+/**
  * DELETE:
  *   Delete a file from a File Drop
  */
@@ -754,6 +777,62 @@ export interface FinalizeFileDropUpload {
   canonicalPath: string;
 }
 
+/** Move File Drop item destination */
+export interface ChangeMoveDestination {
+  type: 'CHANGE_MOVE_DESTINATION';
+  canonicalPath: string;
+}
+
+/** Open the Move File Drop Item Modal */
+export interface OpenMoveFileDropItemModal {
+  type: 'OPEN_MOVE_FILE_DROP_ITEM_MODAL';
+  itemType: 'file' | 'folder';
+  fileDropName: string;
+  itemId: Guid;
+  itemName: string;
+  initialCanonicalPath: string;
+}
+
+/** Close the Move File Drop Item Modal */
+export interface CloseMoveFileDropItemModal {
+  type: 'CLOSE_MOVE_FILE_DROP_ITEM_MODAL';
+}
+
+/** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
+export interface SetNewFolderModeStatus {
+  type: 'SET_NEW_FOLDER_MODE_STATUS';
+  value: boolean;
+}
+
+/** Change the value of the new folder name when creating a new folder to move a file/folder into */
+export interface SetNewFolderNameForMove {
+  type: 'SET_NEW_FOLDER_NAME_FOR_MOVE';
+  newFolderName: string;
+}
+
+/**
+ * POST:
+ *   Create a new folder to be displayed in the Move File Drop Item modal.
+ */
+export interface CreateFileDropFolderForMove {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE';
+  request: {
+    fileDropId: Guid;
+    containingFileDropDirectoryId: Guid;
+    newFolderName: string;
+    description: string;
+  };
+}
+/** Action called upon successful return of the CreateFileDropFolderForMove API call. */
+export interface CreateFileDropFolderForMoveSucceeded {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED';
+  response: FileDropDirectoryContentModel;
+}
+/** Action called upon failed return of the CreateFileDropFolderForMove API call. */
+export interface CreateFileDropFolderForMoveFailed {
+  type: 'CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED';
+  error: TSError;
+}
 
 // ~~~~~~~~~~~~~
 // Action Unions
@@ -791,6 +870,7 @@ export type FileDropPageActions =
   | BeginFileDropUploadCancel
   | ToggleFileDropCardExpansion
   | FinalizeFileDropUpload
+  | ChangeMoveDestination
   | EnterFileDropEditMode
   | ExitFileDropEditMode
   | SetFileOrFolderExpansion
@@ -800,6 +880,10 @@ export type FileDropPageActions =
   | EnterCreateFolderMode
   | ExitCreateFolderMode
   | UpdateCreateFolderValues
+  | OpenMoveFileDropItemModal
+  | CloseMoveFileDropItemModal
+  | SetNewFolderModeStatus
+  | SetNewFolderNameForMove
   ;
 
 /** Actions that schedule another action */
@@ -824,6 +908,7 @@ export type FileDropRequestActions =
   | GenerateNewSftpPassword
   | SetFileDropNotificationSetting
   | FetchFolderContents
+  | FetchFolderContentsForMove
   | DeleteFileDropFile
   | DeleteFileDropFolder
   | UpdateFileDropFile
@@ -831,6 +916,7 @@ export type FileDropRequestActions =
   | UpdateFileDropFolder
   | RenameFileDropFile
   | RenameFileDropFolder
+  | CreateFileDropFolderForMove
   ;
 
 /** Actions that marks the succesful response of an Ajax request */
@@ -849,6 +935,7 @@ export type FileDropSuccessResponseActions =
   | GenerateNewSftpPasswordSucceeded
   | SetFileDropNotificationSettingSucceeded
   | FetchFolderContentsSucceeded
+  | FetchFolderContentsForMoveSucceeded
   | DeleteFileDropFileSucceeded
   | DeleteFileDropFolderSucceeded
   | UpdateFileDropFileSucceeded
@@ -856,6 +943,7 @@ export type FileDropSuccessResponseActions =
   | UpdateFileDropFolderSucceeded
   | RenameFileDropFileSucceeded
   | RenameFileDropFolderSucceeded
+  | CreateFileDropFolderForMoveSucceeded
   ;
 
 /** Actions that marks the errored response of an Ajax request */
@@ -874,6 +962,7 @@ export type FileDropErrorActions =
   | GenerateNewSftpPasswordFailed
   | SetFileDropNotificationSettingFailed
   | FetchFolderContentsFailed
+  | FetchFolderContentsForMoveFailed
   | DeleteFileDropFileFailed
   | DeleteFileDropFolderFailed
   | UpdateFileDropFileFailed
@@ -881,6 +970,7 @@ export type FileDropErrorActions =
   | UpdateFileDropFolderFailed
   | RenameFileDropFileFailed
   | RenameFileDropFolderFailed
+  | CreateFileDropFolderForMoveFailed
   ;
 
 /** Actions that set filter text */
@@ -906,4 +996,5 @@ export type OpenModalAction =
   | OpenDeleteFileDropConfirmationModal
   | OpenModifiedFormModal
   | GenerateNewSftpPasswordSucceeded
+  | OpenMoveFileDropItemModal
   ;
