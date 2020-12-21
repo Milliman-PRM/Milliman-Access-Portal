@@ -33,7 +33,7 @@ export interface SelectFileDrop {
 /** Set filter text for the filter inputs */
 export interface SetFilterText {
   type: 'SET_FILTER_TEXT';
-  filter: 'client' | 'fileDrop' | 'permissions' | 'activityLog';
+  filter: 'client' | 'fileDrop' | 'permissions' | 'activityLog' | 'fileDropContents';
   text: string;
 }
 
