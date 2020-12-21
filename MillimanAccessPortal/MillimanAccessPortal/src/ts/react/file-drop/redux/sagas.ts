@@ -70,7 +70,7 @@ export default function* rootSaga() {
     const activeFileDropFolder = yield select(Selector.activeSelectedFileDropFolder);
     if (action.folderId === activeFileDropFolder) {
       yield put(ActionCreator.fetchFolderContents({
-        canonicalPath: action.canonicalPath,
+        canonicalPath: encodeURIComponent(action.canonicalPath),
         fileDropId: action.fileDropId,
       }));
     }
