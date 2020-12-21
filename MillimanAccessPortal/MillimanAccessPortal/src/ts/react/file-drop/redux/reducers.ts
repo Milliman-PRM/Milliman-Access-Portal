@@ -399,8 +399,8 @@ const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveIt
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
     ...state,
-    currentCanonicalPath: action.request.canonicalPath,
-    breadcrumbs: action.request.canonicalPath.split('/').slice(1),
+    currentCanonicalPath: decodeURIComponent(action.request.canonicalPath),
+    breadcrumbs: decodeURIComponent(action.request.canonicalPath).split('/').slice(1),
     createNewFolderMode: false,
   }),
   FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
