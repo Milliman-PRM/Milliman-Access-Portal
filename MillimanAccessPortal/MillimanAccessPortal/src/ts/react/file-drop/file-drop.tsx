@@ -473,7 +473,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                 onClick={() => {
                   this.props.fetchFolderContentsForMove({
                     fileDropId: selected.fileDrop,
-                    canonicalPath: '/',
+                    canonicalPath: encodeURIComponent('/'),
                   });
                 }}
               >
@@ -496,7 +496,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
-                          canonicalPath: '/' + pending.moveItem.breadcrumbs.slice(0, index + 1).join('/'),
+                          canonicalPath: encodeURIComponent(
+                            '/' + pending.moveItem.breadcrumbs.slice(0, index + 1).join('/'),
+                          ),
                         });
                       }}
                     >
@@ -519,7 +521,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
-                          canonicalPath: dir.canonicalPath,
+                          canonicalPath: encodeURIComponent(dir.canonicalPath),
                         });
                       }}
                     >
@@ -849,7 +851,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   } else {
                     this.props.selectFileDrop({ id: entity.id });
                     if (selected.fileDrop !== entity.id) {
-                      this.props.fetchFolderContents({ fileDropId: entity.id, canonicalPath: '/' });
+                      this.props.fetchFolderContents({
+                        fileDropId: entity.id,
+                        canonicalPath: encodeURIComponent('/'),
+                      });
                     }
                     this.props.selectFileDropTab({ tab: 'files' });
                   }
@@ -1034,7 +1039,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  this.props.fetchFolderContents({ fileDropId: selected.fileDrop, canonicalPath: '/' });
+                  this.props.fetchFolderContents({
+                    fileDropId: selected.fileDrop,
+                    canonicalPath: encodeURIComponent('/'),
+                  });
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
@@ -1177,7 +1185,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     })
                   }
                   moveFileDropFile={(fileDropId, fileId, fileDropName, canonicalPath, fileName) => {
-                    this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
+                    this.props.fetchFolderContentsForMove({
+                      fileDropId,
+                      canonicalPath: encodeURIComponent(canonicalPath),
+                    });
                     this.props.openMoveFileDropItemModal({
                       itemType: 'file',
                       fileDropName,
@@ -1187,7 +1198,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     });
                   }}
                   moveFileDropFolder={(fileDropId, folderId, fileDropName, canonicalPath, folderName) => {
-                    this.props.fetchFolderContentsForMove({ fileDropId, canonicalPath });
+                    this.props.fetchFolderContentsForMove({
+                      fileDropId,
+                      canonicalPath: encodeURIComponent(canonicalPath),
+                    });
                     this.props.openMoveFileDropItemModal({
                       itemType: 'folder',
                       fileDropName,

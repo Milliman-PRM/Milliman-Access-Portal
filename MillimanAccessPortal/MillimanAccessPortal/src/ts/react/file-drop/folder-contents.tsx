@@ -80,7 +80,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             className={`breadcrumb-link${i + 1 === breadCrumbObjectArray.length ? ' current' : ''}`}
             onClick={
               i + 1 < breadCrumbObjectArray.length
-                ? () => navigateTo(fileDropId, folder.breadCrumbPath)
+                ? () => navigateTo(fileDropId, encodeURIComponent(folder.breadCrumbPath))
                 : null
             }
           >
@@ -190,7 +190,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 /> :
                 <span
                   className="folder"
-                  onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+                  onClick={() => navigateTo(fileDropId, encodeURIComponent(directory.canonicalPath))}
                 >
                   {folderName}
                 </span>
