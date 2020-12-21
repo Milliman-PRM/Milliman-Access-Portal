@@ -55,6 +55,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('GENERATE_NEW_SFTP_PASSWORD', API.generateNewSftpPassword);
   yield takeLatestRequest('SET_FILE_DROP_NOTIFICATION_SETTING', API.setFileDropNotificationSetting);
   yield takeLatestRequest('FETCH_FOLDER_CONTENTS', API.fetchFolderContents);
+  yield takeLatestRequest('FETCH_FOLDER_CONTENTS_FOR_MOVE', API.fetchFolderContentsForMove);
   yield takeLatestRequest('DELETE_FILE_DROP_FILE', API.deleteFileDropFile);
   yield takeLatestRequest('DELETE_FILE_DROP_FOLDER', API.deleteFileDropFolder);
   yield takeLatestRequest('UPDATE_FILE_DROP_FILE', API.updateFileDropFile);
@@ -62,6 +63,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('UPDATE_FILE_DROP_FOLDER', API.updateFileDropFolder);
   yield takeLatestRequest('RENAME_FILE_DROP_FILE', API.renameFileDropFile);
   yield takeLatestRequest('RENAME_FILE_DROP_FOLDER', API.renameFileDropFolder);
+  yield takeLatestRequest('CREATE_FILE_DROP_FOLDER_FOR_MOVE', API.createFileDropFolderForMove);
 
   // Refresh the File Drop Folder contents if the upload that just finished was in the active File Drop folder
   yield takeLatest('FINALIZE_FILE_DROP_UPLOAD', function*(action: Action.FinalizeFileDropUpload) {
@@ -109,8 +111,9 @@ export default function* rootSaga() {
   yield takeEveryToast('DELETE_FILE_DROP_FOLDER_SUCCEEDED', 'Folder successfully deleted.');
   yield takeEveryToast('UPDATE_FILE_DROP_FILE_SUCCEEDED', 'File updated successfully.');
   yield takeEveryToast('UPDATE_FILE_DROP_FOLDER_SUCCEEDED', 'Folder updated successfully.');
-  yield takeEveryToast('RENAME_FILE_DROP_FILE_SUCCEEDED', 'File renamed successfully.');
-  yield takeEveryToast('RENAME_FILE_DROP_FOLDER_SUCCEEDED', 'Folder renamed successfully.');
+  yield takeEveryToast('RENAME_FILE_DROP_FILE_SUCCEEDED', 'File updated successfully.');
+  yield takeEveryToast('RENAME_FILE_DROP_FOLDER_SUCCEEDED', 'Folder updated successfully.');
+  yield takeEveryToast('CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED', 'Folder created successfully.');
 
   // Toasts (Errors/Warnings)
   yield takeEveryToast('PROMPT_STATUS_REFRESH_STOPPED',
@@ -130,6 +133,7 @@ export default function* rootSaga() {
     'GENERATE_NEW_SFTP_PASSWORD_FAILED',
     'SET_FILE_DROP_NOTIFICATION_SETTING_FAILED',
     'FETCH_FOLDER_CONTENTS_FAILED',
+    'FETCH_FOLDER_CONTENTS_FOR_MOVE_FAILED',
     'DELETE_FILE_DROP_FILE_FAILED',
     'DELETE_FILE_DROP_FOLDER_FAILED',
     'UPDATE_FILE_DROP_FILE_FAILED',
@@ -137,6 +141,7 @@ export default function* rootSaga() {
     'UPDATE_FILE_DROP_FOLDER_FAILED',
     'RENAME_FILE_DROP_FILE_FAILED',
     'RENAME_FILE_DROP_FOLDER_FAILED',
+    'CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

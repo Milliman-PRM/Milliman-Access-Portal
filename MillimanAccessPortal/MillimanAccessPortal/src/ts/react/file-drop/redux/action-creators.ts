@@ -47,6 +47,22 @@ export const openDeleteFileDropConfirmationModal =
 export const closeDeleteFileDropConfirmationModal =
   createActionCreator<Action.CloseDeleteFileDropConfirmationModal>('CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL');
 
+/** Open the Move File Drop Item modal */
+export const openMoveFileDropItemModal =
+  createActionCreator<Action.OpenMoveFileDropItemModal>('OPEN_MOVE_FILE_DROP_ITEM_MODAL');
+
+/** Close the Move File Drop Item modal */
+export const closeMoveFileDropItemModal =
+  createActionCreator<Action.CloseMoveFileDropItemModal>('CLOSE_MOVE_FILE_DROP_ITEM_MODAL');
+
+/** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
+export const setNewFolderModeStatus =
+  createActionCreator<Action.SetNewFolderModeStatus>('SET_NEW_FOLDER_MODE_STATUS');
+
+/** Change the value of the new folder name when creating a new folder to move a file/folder into */
+export const setNewFolderNameForMove =
+  createActionCreator<Action.SetNewFolderNameForMove>('SET_NEW_FOLDER_NAME_FOR_MOVE');
+
 /** Put a File Drop in edit mode */
 export const editFileDrop =
   createActionCreator<Action.EditFileDrop>('EDIT_FILE_DROP');
@@ -191,6 +207,10 @@ export const setFileDropNotificationSetting =
 export const fetchFolderContents =
   createRequestActionCreator<Action.FetchFolderContents>('FETCH_FOLDER_CONTENTS');
 
+/** Get folder contents for the Move File Drop Item modal */
+export const fetchFolderContentsForMove =
+  createRequestActionCreator<Action.FetchFolderContentsForMove>('FETCH_FOLDER_CONTENTS_FOR_MOVE');
+
 /** Delete a file from a File Drop */
 export const deleteFileDropFile =
   createRequestActionCreator<Action.DeleteFileDropFile>('DELETE_FILE_DROP_FILE');
@@ -215,8 +235,13 @@ export const updateFileDropFolder =
 export const renameFileDropFile =
   createRequestActionCreator<Action.RenameFileDropFile>('RENAME_FILE_DROP_FILE');
 
+/** Update a folder's name */
 export const renameFileDropFolder =
   createRequestActionCreator<Action.RenameFileDropFolder>('RENAME_FILE_DROP_FOLDER');
+
+/** Create a new folder within the Move File Drop Item modal */
+export const createFileDropFolderForMove =
+  createRequestActionCreator<Action.CreateFileDropFolderForMove>('CREATE_FILE_DROP_FOLDER_FOR_MOVE');
 
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
@@ -269,6 +294,9 @@ export const toggleFileDropCardExpansion =
 
 export const finalizeFileDropUpload =
   createActionCreator<Action.FinalizeFileDropUpload>('FINALIZE_FILE_DROP_UPLOAD');
+
+export const changeMoveDestination =
+  createActionCreator<Action.ChangeMoveDestination>('CHANGE_MOVE_DESTINATION');
 
 // Upload Action Creators
 export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;

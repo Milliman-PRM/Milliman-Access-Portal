@@ -66,6 +66,10 @@ export const fetchFolderContents =
   createJsonRequestor<FileDropAction.FetchFolderContents, FileDropAction.FetchFolderContentsSucceeded>
     ('GET', '/FileDrop/GetFolderContents');
 
+export const fetchFolderContentsForMove =
+  createJsonRequestor<FileDropAction.FetchFolderContentsForMove, FileDropAction.FetchFolderContentsForMoveSucceeded>
+    ('GET', '/FileDrop/GetFolderContents');
+
 export const deleteFileDropFile =
   createJsonRequestor<FileDropAction.DeleteFileDropFile, FileDropAction.DeleteFileDropFileSucceeded>
     ('DELETE', '/FileDrop/DeleteFileDropFile');
@@ -96,6 +100,10 @@ export const renameFileDropFile =
 export const renameFileDropFolder =
   createJsonRequestor<FileDropAction.RenameFileDropFolder, FileDropAction.RenameFileDropFolderSucceeded>
     ('POST', '/FileDrop/RenameFileDropFolder');
+
+export const createFileDropFolderForMove =
+  createJsonRequestor<FileDropAction.CreateFileDropFolderForMove, FileDropAction.CreateFileDropFolderForMoveSucceeded>
+    ('POST', '/FileDrop/CreateFileDropFolder');
 
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call

@@ -47,6 +47,8 @@ export interface FileDropPendingReturnState {
   permissionsUpdate: boolean;
   activityLog: boolean;
   settings: boolean;
+  move: boolean;
+  createFolderMoveMode: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -84,6 +86,20 @@ export interface CreateFolderData {
   description: string;
 }
 
+/** State object for Move File Drop Item modal */
+export interface MoveItemData {
+  fileDropName: string;
+  itemType: 'file' | 'folder';
+  itemId: Guid;
+  itemName: string;
+  initialCanonicalPath: string;
+  currentCanonicalPath: string;
+  breadcrumbs: string[];
+  newFolderId: Guid;
+  createNewFolderMode: boolean;
+  newFolderName: string;
+}
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -98,6 +114,7 @@ export interface FileDropPendingState {
   afterFormModal: AfterFormModal;
   uploads: Dict<FileDropUploadState>;
   createFolder?: CreateFolderData;
+  moveItem: MoveItemData;
 }
 
 /** State representing user-selected entities */
@@ -115,6 +132,7 @@ export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
   fileDropContents: FileDropDirectoryContentModel;
+  fileDropContentsForMove: FileDropDirectoryContentModel;
   permissionGroups: PermissionGroupsReturnModel;
   activityLogEvents: FileDropEvent[];
   fileDropSettings: FileDropSettings;
@@ -133,6 +151,7 @@ export interface FileDropFilterState {
   fileDrop: FilterState;
   permissions: FilterState;
   activityLog: FilterState;
+  fileDropContents: FilterState;
 }
 
 /** State representing modals */
@@ -142,6 +161,7 @@ export interface FileDropModals {
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
   passwordNotification: ModalState;
+  moveFileDropItem: ModalState;
 }
 
 /** Top-Level File Drop state */
