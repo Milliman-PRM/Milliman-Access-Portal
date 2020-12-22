@@ -130,10 +130,24 @@ table {
 
     .filename {
         margin-bottom: .5em;
+        display: flex;
+        flex-flow: row nowrap;
+        align-items: center;
     }
 
+    .upload-filename {
+        flex: 1 1 auto;
+    }
+
+    .spinner-small-r {
+        height: 1em;
+        width: 1em;
+        font-size: inherit;
+        flex: 0 0 auto;
+    }
+    
     .action-icon-container-inline {
-        float: right;
+        flex: 0 0 auto;
 
         .action-icon {
             height: 1em;

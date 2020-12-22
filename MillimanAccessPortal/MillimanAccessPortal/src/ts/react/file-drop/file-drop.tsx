@@ -818,7 +818,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           return (
             <div key={uploadId} className="file-drop-card-upload">
               <div className="filename">
-                {upload.fileName}
+                <span className="upload-filename">{upload.fileName}</span>
+                {
+                  upload.cancelable &&
+                  !upload.errorMsg &&
+                  <ButtonSpinner version="circle" />
+                }
                 <ActionIcon
                   icon={'cancel'}
                   disabled={!upload.cancelable}
