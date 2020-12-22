@@ -110,6 +110,25 @@
 
     .file-upload-row {
         margin-bottom: 1em;
+        display: flex;
+        flex-flow: row nowrap;
+
+        .file-name {
+            flex: 1 0 auto;
+        }
+
+        .spinner-small-r,
+        .action-icon-container-inline {
+            flex: 0 0 auto;
+            height: 2.25em;
+            width: 2.25em;
+        }
+        
+        .spinner-small-r {
+            border-color: rgba($charcoal, .2);
+            border-left: .2em solid $charcoal;
+            margin-right: .5em;
+        }
 
         .action-icon-container-inline {
             float: right;

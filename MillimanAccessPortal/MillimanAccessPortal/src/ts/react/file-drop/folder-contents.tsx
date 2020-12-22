@@ -10,6 +10,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid, PermissionSet } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
@@ -535,7 +536,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             </td>
             <td colSpan={4}>
               <div className="file-upload-row">
-                {file.fileName}
+                <span className="file-name">{file.fileName}</span>
+                {
+                  file.cancelable &&
+                  !file.errorMsg &&
+                  <ButtonSpinner version="circle" spinnerColor="black" />
+                }
                 <ActionIcon
                   icon={'cancel'}
                   disabled={!file.cancelable}
