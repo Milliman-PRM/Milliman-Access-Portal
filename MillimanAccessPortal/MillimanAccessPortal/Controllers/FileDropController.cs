@@ -749,7 +749,7 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == fileDropId)
-                                      .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                      .Where(a => a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
