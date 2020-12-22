@@ -386,6 +386,24 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.fetchSettings({ fileDropId: selected.fileDrop });
                     this.props.selectFileDropTab({ tab: 'settings' });
                     break;
+                  case 'Edit File':
+                    this.props.setFileOrFolderEditing({
+                      id: entityToSelect,
+                      editing: false,
+                      fileName: null,
+                      description: null,
+                    });
+                    this.props.setFileOrFolderExpansion({ id: entityToSelect, expanded: false });
+                    break;
+                  case 'Edit Folder':
+                    this.props.setFileOrFolderEditing({
+                      id: entityToSelect,
+                      editing: false,
+                      fileName: null,
+                      description: null,
+                    });
+                    this.props.setFileOrFolderExpansion({ id: entityToSelect, expanded: false });
+                    break;
                 }
               }}
             >
@@ -1056,6 +1074,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       directoryId,
                       parentCanonicalPath,
                       directoryName,
+                    })
+                  }
+                  discardChanges={(id, type) =>
+                    this.props.openModifiedFormModal({
+                      afterFormModal: {
+                        entityToSelect: id,
+                        entityType: type,
+                      },
                     })
                   }
                 />

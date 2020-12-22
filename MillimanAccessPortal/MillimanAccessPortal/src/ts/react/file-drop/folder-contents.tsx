@@ -14,7 +14,7 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import { AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -44,6 +44,7 @@ interface FolderContentsProps {
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
   renameFileDropFile: (fileDropId: Guid, fileId: Guid, newFolderId: Guid, name: string) => void;
   renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
+  discardChanges: (id: Guid, type: AfterFormEntityTypes) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -236,8 +237,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   icon="cancel"
                   inline={true}
                   action={() => {
-                    this.props.editFileDropItem(directory.id, false, null, null);
-                    this.props.expandFileOrFolder(directory.id, false);
+                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw ||
+                      folderAttributes.description !== folderAttributes.descriptionRaw) {
+                      this.props.discardChanges(directory.id, 'Edit Folder');
+                    } else {
+                      this.props.editFileDropItem(directory.id, false, null, null);
+                      this.props.expandFileOrFolder(directory.id, false);
+                    }
                   }}
                 />
               }
@@ -436,8 +442,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     icon="cancel"
                     inline={true}
                     action={() => {
-                      this.props.editFileDropItem(file.id, false, null, null);
-                      this.props.expandFileOrFolder(file.id, false);
+                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw ||
+                        fileAttributes.description !== fileAttributes.descriptionRaw) {
+                        this.props.discardChanges(file.id, 'Edit File');
+                      } else {
+                        this.props.editFileDropItem(file.id, false, null, null);
+                        this.props.expandFileOrFolder(file.id, false);
+                      }
                     }}
                   />
                 }

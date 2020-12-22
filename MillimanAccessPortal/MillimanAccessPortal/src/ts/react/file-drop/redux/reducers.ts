@@ -408,7 +408,7 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     };
   },
   DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) =>
-    _.cloneDeep(action.originalValues),
+    action.originalValues ? _.cloneDeep(action.originalValues) : _initialPermissionGroupsTab,
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
     const { assignedMapUserIds } = state.permissionGroups[action.pgId];
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
