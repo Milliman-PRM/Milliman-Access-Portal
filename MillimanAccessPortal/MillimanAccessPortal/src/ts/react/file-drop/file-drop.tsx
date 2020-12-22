@@ -894,7 +894,9 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                      }
                     >
                       <span className="upload-notice">
-                        {`${numberOfGoodUploads} file${numberOfGoodUploads > 1 ? 's' : ''} currently uploading`}
+                        {
+                          numberOfGoodUploads > 0 &&
+                          `${numberOfGoodUploads} file${numberOfGoodUploads > 1 ? 's' : ''} currently uploading`}
                         {
                           numberOfGoodUploads > 0 &&
                           numberOfBadUploads > 0 &&
