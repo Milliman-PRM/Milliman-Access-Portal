@@ -123,17 +123,25 @@
             height: 2.25em;
             width: 2.25em;
         }
-        
+
         .spinner-small-r {
             border-color: rgba($charcoal, .2);
             border-left: .2em solid $charcoal;
             margin-right: .5em;
         }
-
-        .action-icon-container-inline {
-            float: right;
-        }
     }
+
+    .action-icon-container-inline {
+
+        &[title="Submit Changes"] svg {
+            color: $green;
+        }
+
+        &[title="Discard Changes"] svg,
+        &[title="Cancel Upload"] svg {
+            color: $red;
+    }
+}
 
     .progress-bars {
         margin-bottom: .5em;

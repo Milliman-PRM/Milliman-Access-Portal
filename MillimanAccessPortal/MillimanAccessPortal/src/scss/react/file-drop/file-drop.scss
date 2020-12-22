@@ -145,7 +145,11 @@ table {
         font-size: inherit;
         flex: 0 0 auto;
     }
-    
+
+    [title="Cancel Upload"] svg {
+        color: $red;
+    }
+
     .action-icon-container-inline {
         flex: 0 0 auto;
 
