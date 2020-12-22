@@ -44,6 +44,10 @@ interface FolderContentsProps {
     fileDropId: Guid, containingFileDropDirectoryId: Guid, newFolderName: string, description: string) => void;
   renameFileDropFile: (fileDropId: Guid, fileId: Guid, newFolderId: Guid, name: string) => void;
   renameFileDropFolder: (fileDropId: Guid, folderId: Guid, parentCanonicalPath: string, name: string) => void;
+  moveFileDropFile: (
+    fileDropId: Guid, fileId: Guid, fileDropName: string, canonicalPath: string, fileName: string) => void;
+  moveFileDropFolder: (
+    fileDropId: Guid, folderId: Guid, fileDropName: string, canonicalPath: string, folderName: string) => void;
   discardChanges: (id: Guid, type: AfterFormEntityTypes) => void;
 }
 
@@ -77,7 +81,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             className={`breadcrumb-link${i + 1 === breadCrumbObjectArray.length ? ' current' : ''}`}
             onClick={
               i + 1 < breadCrumbObjectArray.length
-                ? () => navigateTo(fileDropId, folder.breadCrumbPath)
+                ? () => navigateTo(fileDropId, encodeURIComponent(folder.breadCrumbPath))
                 : null
             }
           >
@@ -158,7 +162,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFolders() {
-    const { directories, fileDropId, fileDropContentAttributes, navigateTo } = this.props;
+    const { directories, fileDropId, fileDropContentAttributes, navigateTo, fileDropName } = this.props;
+    const { canonicalPath: path } = this.props.thisDirectory;
     return directories.map((directory) => {
       const [folderName] = directory.canonicalPath.split('/').slice(-1);
       const folderAttributes = fileDropContentAttributes[directory.id];
@@ -186,7 +191,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 /> :
                 <span
                   className="folder"
-                  onClick={() => navigateTo(fileDropId, directory.canonicalPath)}
+                  onClick={() => navigateTo(fileDropId, encodeURIComponent(directory.canonicalPath))}
                 >
                   {folderName}
                 </span>
@@ -263,7 +268,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         >
                           Edit
                         </li>
-                        <li>Move</li>
+                        <li
+                          onClick={() => {
+                            this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName, path, folderName);
+                          }}
+                        >
+                          Move
+                        </li>
                       </>
                     }
                     {
@@ -319,7 +330,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderFiles() {
-    const { files, fileDropId, activeUploads, fileDropContentAttributes, thisDirectory } = this.props;
+    const { files, fileDropId, activeUploads, fileDropContentAttributes, thisDirectory, fileDropName } = this.props;
     const { canonicalPath: path } = this.props.thisDirectory;
     const baseAllFilesArray: Array<FileDropFile | FileDropUploadState> = [];
     const baseArrayWithFiles = baseAllFilesArray.concat(files);
@@ -468,7 +479,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           >
                             Edit
                           </li>
-                          <li>Move</li>
+                          <li
+                            onClick={() =>
+                              this.props.moveFileDropFile(fileDropId, file.id, fileDropName, path, file.fileName)
+                            }
+                          >
+                            Move
+                          </li>
                         </>
                       }
                       {
