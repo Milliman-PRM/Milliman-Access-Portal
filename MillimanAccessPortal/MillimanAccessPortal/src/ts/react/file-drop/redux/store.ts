@@ -151,6 +151,7 @@ export interface FileDropFilterState {
   fileDrop: FilterState;
   permissions: FilterState;
   activityLog: FilterState;
+  fileDropContents: FilterState;
 }
 
 /** State representing modals */

@@ -2,8 +2,8 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
-  PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropDirectory, FileDropFile, FileDropWithStats,
+  Guid, PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
 } from '../../models';
 import { Dict } from '../../shared-components/redux/store';
 import { FileDropState, FileDropUploadState } from './store';
@@ -138,6 +138,29 @@ export function activeSelectedFileDropFolderUploads(state: FileDropState) {
   } else {
     return [];
   }
+}
+
+/** Select all the directories selected by the File Drop contents filter. */
+export function fileDropDirectories(state: FileDropState) {
+  if (!state.data.fileDropContents) { return []; }
+  const filterTextLower = state.filters.fileDropContents.text.toLowerCase().trim();
+  const filteredDirectories = _.filter(state.data.fileDropContents.directories, (directory: FileDropDirectory) => {
+    const directoryName = directory.canonicalPath.slice(directory.canonicalPath.lastIndexOf('/'));
+    return directoryName.toLowerCase().indexOf(filterTextLower) !== -1
+      || filterTextLower === '';
+  });
+  return _.sortBy(filteredDirectories, ['canonicalPath']);
+}
+
+/**  Select all the files selected by the File Drop contents filter. */
+export function fileDropFiles(state: FileDropState) {
+  if (!state.data.fileDropContents) { return []; }
+  const filterTextLower = state.filters.fileDropContents.text.toLowerCase().trim();
+  const filteredFiles = _.filter(state.data.fileDropContents.files, (file: FileDropFile) => (
+    file.fileName.toLowerCase().indexOf(filterTextLower) !== -1
+    || filterTextLower === ''
+  ));
+  return _.sortBy(filteredFiles, ['fileName']);
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~

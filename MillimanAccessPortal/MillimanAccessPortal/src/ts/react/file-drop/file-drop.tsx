@@ -18,7 +18,9 @@ import { generateUniqueId } from '../../generate-unique-identifier';
 import {
   AvailableEligibleUsers,
   FileDropClientWithStats,
+  FileDropDirectory,
   FileDropEvent,
+  FileDropFile,
   FileDropNotificationTypeEnum,
   FileDropWithStats,
   Guid,
@@ -55,6 +57,8 @@ interface FileDropProps {
   data: State.FileDropDataState;
   clients: ClientEntity[];
   fileDrops: FileDropWithStats[];
+  directories: FileDropDirectory[];
+  files: FileDropFile[];
   permissionGroups: PermissionGroupsReturnModel;
   activityLog: FileDropEvent[];
   selected: State.FileDropSelectedState;
@@ -1078,14 +1082,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFilesTab() {
+    const { filters, directories, files } = this.props;
     const { fileDropContents } = this.props.cardAttributes;
     return (
       <>
         <PanelSectionToolbar>
           <Filter
             placeholderText={'Filter files or folders...'}
-            setFilterText={() => false}
-            filterText={''}
+            setFilterText={(text) => this.props.setFilterText({ filter: 'fileDropContents', text })}
+            filterText={filters.fileDropContents.text}
           />
           {
             this.props.data.fileDropContents &&
@@ -1116,8 +1121,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               {
                 this.props.data.fileDropContents &&
                 <FolderContents
-                  directories={this.props.data.fileDropContents.directories}
-                  files={this.props.data.fileDropContents.files}
+                  directories={directories}
+                  files={files}
                   activeUploads={this.props.activeSelectedFileDropFolderUploads}
                   fileDropId={this.props.selected.fileDrop}
                   fileDropName={this.props.activeSelectedFileDrop.name}
@@ -1569,6 +1574,8 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     data,
     clients: Selector.clientEntities(state),
     fileDrops: Selector.fileDropEntities(state),
+    directories: Selector.fileDropDirectories(state),
+    files: Selector.fileDropFiles(state),
     permissionGroups: Selector.permissionGroupEntities(state),
     activityLog: Selector.activityLogEntities(state),
     selected,
