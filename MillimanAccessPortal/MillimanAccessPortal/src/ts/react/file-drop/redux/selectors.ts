@@ -310,6 +310,19 @@ export function permissionGroupEntities(state: FileDropState) {
   }
 }
 
+/** Return whether a user has sufficient permissions to view and generate SFTP credentials. */
+export function userHasFileDropPermissions(state: FileDropState) {
+  const fileDropSettings = state.data.fileDropSettings;
+  const fileDropContents = state.data.fileDropContents;
+  return fileDropSettings.assignedPermissionGroupId &&
+    fileDropContents &&
+    fileDropContents.currentUserPermissions && (
+      fileDropContents.currentUserPermissions.readAccess ||
+      fileDropContents.currentUserPermissions.writeAccess ||
+      fileDropContents.currentUserPermissions.deleteAccess
+    );
+}
+
 /** Return a list of Guids of all files and folders that have unsaved changes */
 export function filesOrFoldersModified(state: FileDropState) {
   return _.keysIn(_.filter(state.cardAttributes.fileDropContents, (f) =>

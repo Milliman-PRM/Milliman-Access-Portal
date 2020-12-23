@@ -595,13 +595,18 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.ApplicationUser)
+                                      .Include(a => a.FileDropUserPermissionGroup)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
-            if (!adminRoleResult.Succeeded && !account.FileDropUserPermissionGroupId.HasValue)
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, clientId));
+            if (!adminRoleResult.Succeeded && 
+                !(userRoleResult.Succeeded && account.FileDropUserPermissionGroupId.HasValue && (account.FileDropUserPermissionGroup.ReadAccess 
+                                                                                              || account.FileDropUserPermissionGroup.WriteAccess 
+                                                                                              || account.FileDropUserPermissionGroup.DeleteAccess)))
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to access account settings for this file drop.");
@@ -633,10 +638,14 @@ namespace MillimanAccessPortal.Controllers
                                                   .Include(a => a.ApplicationUser)
                                                   .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                                   .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                  .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                  .Where(a => a.FileDropUserPermissionGroup.ReadAccess 
+                                                           || a.FileDropUserPermissionGroup.WriteAccess 
+                                                           || a.FileDropUserPermissionGroup.DeleteAccess)
                                                   .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Validation
-            if (account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (account == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} User {User.Identity.Name} cannot generate credentials for file drop {fileDrop.Id} (named \"{fileDrop.Name}\") because there is no authorized sftp account");
                 Response.Headers.Add("Warning", "You may not generate a password because you are not currently authorized to this file drop.");
@@ -645,6 +654,13 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!userRoleResult.Succeeded) 
+            {
+                Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to the requested file drop.");
+                return Unauthorized();
+            }
             if (account.IsSuspended)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update credentials.");
@@ -688,6 +704,7 @@ namespace MillimanAccessPortal.Controllers
             FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
+                                                  .Include(a => a.FileDropUserPermissionGroup)
                                                   .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                                   .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
@@ -700,6 +717,17 @@ namespace MillimanAccessPortal.Controllers
             }
 
             #region Authorization
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
+            if (!adminRoleResult.Succeeded && 
+                !(userRoleResult.Succeeded && (account.FileDropUserPermissionGroup.ReadAccess 
+                                            || account.FileDropUserPermissionGroup.WriteAccess 
+                                            || account.FileDropUserPermissionGroup.DeleteAccess))) {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} User {account.UserName} is not authorized to this action");
+                Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
+                return Unauthorized();
+            }
+
             if (account.IsSuspended)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update account settings.");
@@ -749,7 +777,9 @@ namespace MillimanAccessPortal.Controllers
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
                                       .Where(a => a.FileDropId == fileDropId)
-                                      .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                      .Where(a => a.FileDropUserPermissionGroup.ReadAccess 
+                                               || a.FileDropUserPermissionGroup.WriteAccess 
+                                               || a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
@@ -859,13 +889,15 @@ namespace MillimanAccessPortal.Controllers
                                           .ThenInclude(g => g.FileDrop)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => !a.FileDropUserPermissionGroupId.HasValue)
+                                      .Where(a => !a.FileDropUserPermissionGroup.WriteAccess)
                                       .Where(a => a.FileDropId == fileDropId)
                                       .SingleOrDefaultAsync();
 
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!adminRoleResult.Succeeded && (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue))
+            if (!adminRoleResult.Succeeded && (!userRoleResult.Succeeded || account == null))
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to access this file drop.");
@@ -1093,7 +1125,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1157,7 +1189,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1221,7 +1253,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1284,7 +1316,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1348,7 +1380,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
@@ -1428,7 +1460,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
-            if (!userRoleResult.Succeeded || account == null || !account.FileDropUserPermissionGroupId.HasValue)
+            if (!userRoleResult.Succeeded || account == null)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to perform the requested action.");
