@@ -77,6 +77,19 @@ export interface CloseDeleteFileDropConfirmationModal {
   type: 'CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL';
 }
 
+/** Open the modal used to confirm File Drop File/Folder deletion */
+export interface OpenDeleteFileDropItemModal {
+  type: 'OPEN_DELETE_FILE_DROP_ITEM_MODAL';
+  itemType: 'file' | 'folder';
+  itemName: string;
+  itemId: Guid;
+}
+
+/** Close the modal used to confirm File Drop File/Folder deletion */
+export interface CloseDeleteFileDropItemModal {
+  type: 'CLOSE_DELETE_FILE_DROP_ITEM_MODAL';
+}
+
 /** Put the File Drop in edit mode */
 export interface EditFileDrop {
   type: 'EDIT_FILE_DROP';
@@ -884,6 +897,8 @@ export type FileDropPageActions =
   | CloseMoveFileDropItemModal
   | SetNewFolderModeStatus
   | SetNewFolderNameForMove
+  | OpenDeleteFileDropItemModal
+  | CloseDeleteFileDropItemModal
   ;
 
 /** Actions that schedule another action */
@@ -997,4 +1012,5 @@ export type OpenModalAction =
   | OpenModifiedFormModal
   | GenerateNewSftpPasswordSucceeded
   | OpenMoveFileDropItemModal
+  | OpenDeleteFileDropItemModal
   ;
