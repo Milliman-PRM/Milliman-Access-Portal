@@ -108,11 +108,7 @@ const _initialFileDropWithStats: FileDropWithStats = {
   description: null,
   isSuspended: false,
   userCount: null,
-  currentUserPermissions: {
-    readAccess: false,
-    writeAccess: false,
-    deleteAccess: false,
-  },
+  currentUserPermissions: null,
 };
 
 const _initialMoveItem: State.MoveItemData = {
