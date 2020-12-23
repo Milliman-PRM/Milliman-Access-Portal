@@ -380,7 +380,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     );
                     break;
                   case 'Undo Changes':
-                    // This action is triggered for every outcome
                     break;
                   case 'Undo Changes and Close Form':
                     this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
