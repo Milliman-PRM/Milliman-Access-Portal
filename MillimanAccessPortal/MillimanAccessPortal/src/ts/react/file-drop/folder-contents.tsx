@@ -122,6 +122,11 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               autoFocus={true}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                 this.props.updateCreateFolderValues('name', target.value)}
+              onSubmitCallback={() =>
+                this.props.createFileDropFolder(fileDropId, thisDirectory.id, createFolder.name,
+                  createFolder.description)
+              }
+              usesOnSubmitCallback={true}
             />
           </td>
           <td colSpan={2} />
@@ -200,6 +205,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                     this.props.updateFileDropItemName(directory.id, target.value)}
                   error={null}
+                  onSubmitCallback={() =>
+                    this.updateFolder(fileDropId, directory.id, folderAttributes, directory.canonicalPath)
+                  }
+                  usesOnSubmitCallback={true}
                 /> :
                 <span
                   className="folder"
@@ -241,18 +250,9 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   label="Submit Changes"
                   icon="checkmark"
                   inline={true}
-                  action={() => {
-                    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
-                      this.props.saveFileDropFolder(fileDropId, directory.id,
-                        folderAttributes.description);
-                    }
-                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
-                      const parentCanonicalPath = directory.canonicalPath.slice()
-                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1);
-                      this.props.renameFileDropFolder(fileDropId, directory.id, parentCanonicalPath,
-                        folderAttributes.fileName);
-                    }
-                  }}
+                  action={() =>
+                    this.updateFolder(fileDropId, directory.id, folderAttributes, directory.canonicalPath)
+                  }
                 />
               }
               {
@@ -404,6 +404,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           this.props.updateFileDropItemName(file.id,
                             target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
                         error={null}
+                        onSubmitCallback={() => this.updateFile(fileDropId, file.id, fileAttributes, thisDirectory.id)}
+                        usesOnSubmitCallback={true}
                       />
                     </div>
                     <span className="file-rename-extension">{this.getFileExtension(fileAttributes.fileName)}</span>
@@ -467,14 +469,9 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     label="Submit Changes"
                     icon="checkmark"
                     inline={true}
-                    action={() => {
-                      if (fileAttributes.description !== fileAttributes.descriptionRaw) {
-                        this.props.saveFileDropFile(fileDropId, file.id, fileAttributes.description);
-                      }
-                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
-                        this.props.renameFileDropFile(fileDropId, file.id, thisDirectory.id, fileAttributes.fileName);
-                      }
-                    }}
+                    action={() =>
+                      this.updateFile(fileDropId, file.id, fileAttributes, thisDirectory.id)
+                    }
                   />
                 }
                 {
@@ -672,5 +669,26 @@ export class FolderContents extends React.Component<FolderContentsProps> {
 
   private getFileExtension(fileName: string) {
     return fileName.lastIndexOf('.') > -1 ? fileName.slice(fileName.lastIndexOf('.')) : '';
+  }
+
+  private updateFolder(fileDropId: Guid, folderId: Guid, folderAttributes: FileAndFolderAttributes,
+                       canonicalPath: string) {
+    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
+      this.props.saveFileDropFolder(fileDropId, folderId, folderAttributes.description);
+    }
+    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
+      const parentCanonicalPath = canonicalPath.slice().substr(0, canonicalPath.lastIndexOf('/') + 1);
+      this.props.renameFileDropFolder(fileDropId, folderId, parentCanonicalPath, folderAttributes.fileName);
+    }
+  }
+
+  private updateFile(fileDropId: Guid, fileId: Guid, fileAttributes: FileAndFolderAttributes,
+                     currentDirectoryId: Guid) {
+    if (fileAttributes.description !== fileAttributes.descriptionRaw) {
+      this.props.saveFileDropFile(fileDropId, fileId, fileAttributes.description);
+    }
+    if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
+      this.props.renameFileDropFile(fileDropId, fileId, currentDirectoryId, fileAttributes.fileName);
+    }
   }
 }

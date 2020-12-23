@@ -578,7 +578,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             {pending.moveItem.breadcrumbs && pending.moveItem.breadcrumbs.map((e, index) => {
               return (
                 <span key={index}>
-                  { e !== '' && // Prevents slash from appearing at root directory.
+                  { e !== '' &&
                     <span className="move-file-slash">/</span>
                   }
                   {index === pending.moveItem.breadcrumbs.length - 1 ?
