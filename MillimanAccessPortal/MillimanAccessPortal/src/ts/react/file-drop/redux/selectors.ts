@@ -321,6 +321,12 @@ export function userHasFileDropPermissions(state: FileDropState) {
       fileDropContents.currentUserPermissions.writeAccess ||
       fileDropContents.currentUserPermissions.deleteAccess
     );
+
+/** Return a list of Guids of all files and folders that have unsaved changes */
+export function filesOrFoldersModified(state: FileDropState) {
+  return _.keysIn(_.filter(state.cardAttributes.fileDropContents, (f) =>
+    f.editing && (f.fileName !== f.fileNameRaw || f.description !== f.descriptionRaw),
+  ));
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~
