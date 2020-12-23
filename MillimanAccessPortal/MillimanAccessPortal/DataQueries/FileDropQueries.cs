@@ -4,9 +4,9 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using AuditLogLib.Services;
 using AuditLogLib.Event;
 using AuditLogLib.Models;
+using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -79,6 +79,9 @@ namespace MillimanAccessPortal.DataQueries
                                                                               && urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                                    .SelectMany(urc => urc.User.SftpAccounts
                                                                                               .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                                                              .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                                                                       || a.FileDropUserPermissionGroup.WriteAccess
+                                                                                                       || a.FileDropUserPermissionGroup.DeleteAccess)
                                                                                               .Select(a => a.FileDrop.Client)),
                                                          new IdPropertyComparer<Client>()
                                                      )
@@ -123,17 +126,38 @@ namespace MillimanAccessPortal.DataQueries
 
         private async Task<ClientCardModel> GetClientCardModelAsync(Client client, Guid userId)
         {
+            bool userIsAdmin = await _dbContext.UserRoleInClient
+                                               .AnyAsync(urc => urc.UserId == userId &&
+                                                                urc.Role.RoleEnum == RoleEnum.FileDropAdmin &&
+                                                                urc.ClientId == client.Id);
+
             return new ClientCardModel(client)
             {
-                UserCount = (await _dbContext.ApplicationUser
-                                             .Where(u => u.SftpAccounts
-                                                          .Where(a => a.FileDropUserPermissionGroupId.HasValue)
-                                                          .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
-                                             .ToListAsync())
-                                .Distinct(new IdPropertyComparer<ApplicationUser>())
-                                .Count(),
+                UserCount = await _dbContext.ApplicationUser
+                                            .Where(u => u.SftpAccounts
+                                                         .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                         .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                                  || a.FileDropUserPermissionGroup.WriteAccess
+                                                                  || a.FileDropUserPermissionGroup.DeleteAccess)
+                                                         .Any(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id))
+                                            .Select(u => u.Id)
+                                            .Distinct()
+                                            .CountAsync(),
 
-                FileDropCount = await _dbContext.FileDrop.CountAsync(d => d.ClientId == client.Id),
+                FileDropCount = userIsAdmin
+                                       ? await _dbContext.FileDrop
+                                                         .Where(d => d.ClientId == client.Id)
+                                                         .CountAsync()
+                                       : await _dbContext.SftpAccount
+                                                         .Where(a => a.ApplicationUser.Id == userId)
+                                                         .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                         .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                                  || a.FileDropUserPermissionGroup.WriteAccess
+                                                                  || a.FileDropUserPermissionGroup.DeleteAccess)
+                                                         .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id)
+                                                         .Select(a => a.FileDropUserPermissionGroup.FileDropId)
+                                                         .Distinct()
+                                                         .CountAsync(),
 
                 CanManageFileDrops = await _dbContext.UserRoleInClient
                                                      .AnyAsync(ur => ur.ClientId == client.Id &&
@@ -143,6 +167,7 @@ namespace MillimanAccessPortal.DataQueries
                 AuthorizedFileDropUser = await _dbContext.SftpAccount
                                                         .AnyAsync(a => a.ApplicationUserId == userId &&
                                                                        a.FileDropUserPermissionGroupId.HasValue &&
+                                                                       (a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess) &&
                                                                        a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
             };
         }
@@ -160,7 +185,10 @@ namespace MillimanAccessPortal.DataQueries
                                                          .ToListAsync()
                                        : (await _dbContext.SftpAccount
                                                           .Where(a => a.ApplicationUser.Id == userId)
-                                                          //.Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                          .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                          .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                                   || a.FileDropUserPermissionGroup.WriteAccess
+                                                                   || a.FileDropUserPermissionGroup.DeleteAccess)
                                                           .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == clientId)
                                                           .Select(a => a.FileDropUserPermissionGroup.FileDrop)
                                                           .ToListAsync())
@@ -180,21 +208,25 @@ namespace MillimanAccessPortal.DataQueries
                     UserCount = userIsAdmin
                                 ? await _dbContext.SftpAccount
                                                   .Where(a => a.ApplicationUserId.HasValue)
-                                                  .Where(a => a.FileDropUserPermissionGroup.FileDropId == eachDrop.Id)
+                                                  .Where(a => a.FileDropId == eachDrop.Id)
+                                                  .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                  .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                           || a.FileDropUserPermissionGroup.WriteAccess
+                                                           || a.FileDropUserPermissionGroup.DeleteAccess)
                                                   .Select(a => a.ApplicationUserId.Value)
                                                   .Distinct()
                                                   .CountAsync()
                                 : (int?)null,
                     CurrentUserPermissions = await _dbContext.SftpAccount
-                                                         .Where(a => a.FileDropId == eachDrop.Id)
-                                                         .Where(a => a.ApplicationUserId == userId)
-                                                         .Select(a => new PermissionSet
-                                                         {
-                                                             ReadAccess = a.FileDropUserPermissionGroup.ReadAccess,
-                                                             WriteAccess = a.FileDropUserPermissionGroup.WriteAccess,
-                                                             DeleteAccess = a.FileDropUserPermissionGroup.DeleteAccess,
-                                                         })
-                                                         .SingleOrDefaultAsync(),
+                                                             .Where(a => a.FileDropId == eachDrop.Id)
+                                                             .Where(a => a.ApplicationUserId == userId)
+                                                             .Select(a => new PermissionSet
+                                                             {
+                                                                 ReadAccess = a.FileDropUserPermissionGroup.ReadAccess,
+                                                                 WriteAccess = a.FileDropUserPermissionGroup.WriteAccess,
+                                                                 DeleteAccess = a.FileDropUserPermissionGroup.DeleteAccess,
+                                                             })
+                                                             .SingleOrDefaultAsync(),
                 });
             }
 
@@ -244,8 +276,14 @@ namespace MillimanAccessPortal.DataQueries
                                                     WriteAccess = g.WriteAccess,
                                                     DeleteAccess = g.DeleteAccess,
                                                 },
-                                                AssignedSftpAccountIds = accounts.Where(a => !a.ApplicationUserId.HasValue).Select(a => a.Id).ToList(),
-                                                AssignedMapUserIds = accounts.Where(a => a.ApplicationUserId.HasValue).Select(a => a.ApplicationUserId.Value).ToList(),
+                                                AssignedSftpAccountIds = accounts.Where(a => !a.ApplicationUserId.HasValue)
+                                                                                 .Select(a => a.Id)
+                                                                                 .Distinct()
+                                                                                 .ToList(),
+                                                AssignedMapUserIds = accounts.Where(a => a.ApplicationUserId.HasValue)
+                                                                             .Select(a => a.ApplicationUserId.Value)
+                                                                             .Distinct()
+                                                                             .ToList(),
                                             };
                                         })
                                         .ToDictionary(m => m.Id),

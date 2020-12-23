@@ -75,6 +75,7 @@ interface FileDropProps {
   permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
   unassignedEligibleUsers: AvailableEligibleUsers[];
+  userHasPermissions: boolean;
   filesOrFoldersModified: Guid[];
 }
 
@@ -1550,6 +1551,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderSettingsTab() {
     const { fileDrop } = this.props.selected;
+    const { userHasPermissions } = this.props;
     const { fileDropSettings } = this.props.data;
     const uploadNotification = fileDropSettings && fileDropSettings.notifications
       ? fileDropSettings.notifications.filter((x) =>
@@ -1596,7 +1598,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </table>
                 </FormSection>
                 {
-                  fileDropSettings.assignedPermissionGroupId &&
+                  userHasPermissions &&
                   <FormSection title="SFTP Credentials">
                     {
                       !fileDropSettings.userHasPassword &&
@@ -1645,7 +1647,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </ FormSection>
                 }
                 {
-                  fileDropSettings.assignedPermissionGroupId &&
+                  userHasPermissions &&
                   uploadNotification &&
                   uploadNotification.canModify &&
                   <FormSection title="Notification Settings">
@@ -1719,6 +1721,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
     unassignedEligibleUsers: Selector.unassignedEligibleUsers(state),
+    userHasPermissions: Selector.userHasFileDropPermissions(state),
     filesOrFoldersModified: Selector.filesOrFoldersModified(state),
   };
 }

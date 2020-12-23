@@ -655,6 +655,7 @@ namespace SftpServerLib
                 {
                     SftpAccount userAccount = db.SftpAccount
                                                 .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                                .Where(a => a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess)
                                                 .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
