@@ -256,6 +256,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 this.props.currentUserPermissions &&
                 (this.props.currentUserPermissions.writeAccess ||
                   this.props.currentUserPermissions.deleteAccess) &&
+                !folderAttributes.editing &&
                 <PopupMenu>
                   <ul>
                     {
@@ -467,6 +468,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   this.props.currentUserPermissions &&
                   (this.props.currentUserPermissions.writeAccess ||
                     this.props.currentUserPermissions.deleteAccess) &&
+                  !fileAttributes.editing &&
                   <PopupMenu>
                     <ul>
                       {
