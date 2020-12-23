@@ -15,7 +15,7 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import { AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -30,8 +30,8 @@ interface FolderContentsProps {
   browseRef?: React.RefObject<HTMLInputElement>;
   navigateTo: (fileDropId: Guid, canonicalPath: string) => void;
   beginFileDropUploadCancel: (uploadId: string) => void;
-  deleteFile: (fileDropId: Guid, fileId: Guid) => void;
-  deleteFolder: (fileDropId: Guid, folderId: Guid) => void;
+  deleteFile: (fileName: string, fileId: Guid) => void;
+  deleteFolder: (folderName: string, folderId: Guid) => void;
   expandFileOrFolder: (id: Guid, expanded: boolean) => void;
   editFileDropItem: (id: Guid, editing: boolean, fileName: string, description: string) => void;
   updateFileDropItemName: (id: Guid, name: string) => void;
@@ -49,6 +49,7 @@ interface FolderContentsProps {
     fileDropId: Guid, fileId: Guid, fileDropName: string, canonicalPath: string, fileName: string) => void;
   moveFileDropFolder: (
     fileDropId: Guid, folderId: Guid, fileDropName: string, canonicalPath: string, folderName: string) => void;
+  discardChanges: (id: Guid, type: AfterFormEntityTypes) => void;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -242,8 +243,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   icon="cancel"
                   inline={true}
                   action={() => {
-                    this.props.editFileDropItem(directory.id, false, null, null);
-                    this.props.expandFileOrFolder(directory.id, false);
+                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw ||
+                      folderAttributes.description !== folderAttributes.descriptionRaw) {
+                      this.props.discardChanges(directory.id, 'Edit Folder');
+                    } else {
+                      this.props.editFileDropItem(directory.id, false, null, null);
+                      this.props.expandFileOrFolder(directory.id, false);
+                    }
                   }}
                 />
               }
@@ -276,7 +282,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       this.props.currentUserPermissions.deleteAccess &&
                       <li
                         className="warning"
-                        onClick={() => this.props.deleteFolder(fileDropId, directory.id)}
+                        onClick={() => this.props.deleteFolder(folderName, directory.id)}
                       >
                         Delete
                       </li>
@@ -448,8 +454,13 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                     icon="cancel"
                     inline={true}
                     action={() => {
-                      this.props.editFileDropItem(file.id, false, null, null);
-                      this.props.expandFileOrFolder(file.id, false);
+                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw ||
+                        fileAttributes.description !== fileAttributes.descriptionRaw) {
+                        this.props.discardChanges(file.id, 'Edit File');
+                      } else {
+                        this.props.editFileDropItem(file.id, false, null, null);
+                        this.props.expandFileOrFolder(file.id, false);
+                      }
                     }}
                   />
                 }
@@ -482,7 +493,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         this.props.currentUserPermissions.deleteAccess &&
                         <li
                           className="warning"
-                          onClick={() => this.props.deleteFile(fileDropId, file.id)}
+                          onClick={() => this.props.deleteFile(file.fileName, file.id)}
                         >
                           Delete
                         </li>
