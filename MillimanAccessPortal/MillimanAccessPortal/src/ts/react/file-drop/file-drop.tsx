@@ -683,7 +683,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               type="button"
               onClick={() => this.props.setNewFolderModeStatus({ value: true })}
             >
-              Create new folder +
+              Create new folder
             </button>
           }
           <div className="button-container">
