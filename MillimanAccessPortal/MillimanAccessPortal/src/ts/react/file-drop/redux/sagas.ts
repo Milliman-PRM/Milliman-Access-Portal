@@ -76,6 +76,14 @@ export default function* rootSaga() {
     }
   });
 
+  // Refresh the list of File Drops when permissions are successfully updated to capture permission changes better
+  yield takeLatest('UPDATE_PERMISSION_GROUPS_SUCCEEDED', function*() {
+    const activeClient = yield select(Selector.activeSelectedClient);
+    yield put(ActionCreator.fetchFileDrops({
+      clientId: activeClient.id,
+    }));
+  });
+
   // Session and Status Checks
   // yield takeLatestRequest('FETCH_STATUS_REFRESH', API.fetchStatusRefresh);
   yield takeLatestRequest('FETCH_SESSION_CHECK', API.fetchSessionCheck);

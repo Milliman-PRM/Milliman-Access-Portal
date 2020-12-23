@@ -1390,6 +1390,28 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 />
               }
+              {
+                (currentUserPermissions === null ||
+                (!currentUserPermissions.readAccess &&
+                 !currentUserPermissions.writeAccess &&
+                 !currentUserPermissions.deleteAccess)) &&
+                <div>
+                  <p>To view files and folders in this File Drop, please set up your user permissions.</p>
+                  <button
+                    className="button blue-button"
+                    onClick={() => {
+                      this.props.fetchPermissionGroups({
+                        clientId: this.props.activeSelectedClient.id,
+                        fileDropId: this.props.activeSelectedFileDrop.id,
+                      });
+                      this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.setEditModeForPermissionGroups({ editModeEnabled: true });
+                    }}
+                  >
+                    Set User Permissions
+                  </button>
+                </div>
+              }
             </div>
           </ContentPanelForm>
         </ContentPanelSectionContent>
