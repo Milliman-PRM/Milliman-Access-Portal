@@ -50,6 +50,7 @@ export interface FileDropPendingReturnState {
   move: boolean;
   createFolderMoveMode: boolean;
   deleteItem: boolean;
+  createFileDropFolder: boolean;
 }
 
 /** Data used in the Create File Drop modal form */

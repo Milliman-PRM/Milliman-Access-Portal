@@ -1173,7 +1173,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFilesTab() {
-    const { filters, directories, files, filesOrFoldersModified } = this.props;
+    const { filters, directories, files, filesOrFoldersModified, pending } = this.props;
     const { fileDropContents } = this.props.cardAttributes;
     return (
       <>
@@ -1331,6 +1331,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       },
                     })
                   }
+                  async={pending.async}
                 />
               }
             </div>

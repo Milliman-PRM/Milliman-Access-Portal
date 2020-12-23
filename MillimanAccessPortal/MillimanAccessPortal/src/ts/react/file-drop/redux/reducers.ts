@@ -73,6 +73,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   move: false,
   createFolderMoveMode: false,
   deleteItem: false,
+  createFileDropFolder: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -336,6 +337,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   DELETE_FILE_DROP_FOLDER_FAILED: (state) => ({
     ...state,
     deleteItem: false,
+  }),
+  CREATE_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    createFileDropFolder: true,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
   }),
 });
 

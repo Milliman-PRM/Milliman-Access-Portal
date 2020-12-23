@@ -10,11 +10,15 @@ import * as moment from 'moment';
 import * as React from 'react';
 import { FileDropDirectory, FileDropFile, Guid, PermissionSet } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import {
+  AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes,
+  FileDropPendingReturnState, FileDropUploadState,
+} from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -49,6 +53,7 @@ interface FolderContentsProps {
   moveFileDropFolder: (
     fileDropId: Guid, folderId: Guid, fileDropName: string, canonicalPath: string, folderName: string) => void;
   discardChanges: (id: Guid, type: AfterFormEntityTypes) => void;
+  async: FileDropPendingReturnState;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -97,7 +102,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderCreateFolder() {
-    const { createFolder, directories, fileDropId, thisDirectory } = this.props;
+    const { createFolder, directories, fileDropId, thisDirectory, async } = this.props;
     const existingFolderNames = directories.map((directory) => directory.canonicalPath.split('/').slice(-1)[0]);
     return (
       <>
@@ -121,25 +126,32 @@ export class FolderContents extends React.Component<FolderContentsProps> {
           </td>
           <td colSpan={2} />
           <td className="col-actions">
-            {
-              createFolder.name.trim().length > 0 &&
-              existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
-              <ActionIcon
-                label="Create Folder"
-                icon="checkmark"
-                inline={true}
-                action={() =>
-                  this.props.createFileDropFolder(
-                    fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+            {!async.createFileDropFolder ?
+              <div>
+                {
+                  createFolder.name.trim().length > 0 &&
+                  existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
+                  <ActionIcon
+                    label="Create Folder"
+                    icon="checkmark"
+                    inline={true}
+                    action={() =>
+                      this.props.createFileDropFolder(
+                        fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+                    }
+                  />
                 }
-              />
+                <ActionIcon
+                  label="Discard Changes"
+                  icon="cancel"
+                  inline={true}
+                  action={() => this.props.exitCreateFolderMode()}
+                />
+              </div> :
+              <div className="spinner">
+                <ButtonSpinner version="bars" spinnerColor="black" />
+              </div>
             }
-            <ActionIcon
-              label="Discard Changes"
-              icon="cancel"
-              inline={true}
-              action={() => this.props.exitCreateFolderMode()}
-            />
           </td>
         </tr>
         <tr>
