@@ -578,13 +578,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             {pending.moveItem.breadcrumbs && pending.moveItem.breadcrumbs.map((e, index) => {
               return (
                 <span key={index}>
-                  <span className="move-file-slash">/</span>
+                  { e !== '' && // Prevents slash from appearing at root directory.
+                    <span className="move-file-slash">/</span>
+                  }
                   {index === pending.moveItem.breadcrumbs.length - 1 ?
                     <strong>
                       {e}
                     </strong> :
                     <a
-                      style={{ color: 'blue', cursor: 'pointer' }}
+                      className="breadcrumb-link"
                       onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
