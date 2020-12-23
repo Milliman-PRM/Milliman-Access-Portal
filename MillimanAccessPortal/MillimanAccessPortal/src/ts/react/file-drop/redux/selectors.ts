@@ -310,6 +310,19 @@ export function permissionGroupEntities(state: FileDropState) {
   }
 }
 
+/** Return whether a user has sufficient permissions to view and generate SFTP credentials. */
+export function userHasFileDropPermissions(state: FileDropState) {
+  const fileDropSettings = state.data.fileDropSettings;
+  const fileDropContents = state.data.fileDropContents;
+  return fileDropSettings.assignedPermissionGroupId &&
+    fileDropContents &&
+    fileDropContents.currentUserPermissions && (
+      fileDropContents.currentUserPermissions.readAccess ||
+      fileDropContents.currentUserPermissions.writeAccess ||
+      fileDropContents.currentUserPermissions.deleteAccess
+    );
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Activity Log Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~
