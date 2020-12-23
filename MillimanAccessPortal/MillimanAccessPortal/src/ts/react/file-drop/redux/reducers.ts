@@ -41,6 +41,7 @@ function setFileDropDirectoryContentModel(response: FileDropDirectoryContentMode
       description: folder.description,
       fileNameRaw: '',
       descriptionRaw: folder.description,
+      saving: false,
     };
   });
   _.forEach(response.files, (file) => {
@@ -51,6 +52,7 @@ function setFileDropDirectoryContentModel(response: FileDropDirectoryContentMode
       description: file.description,
       fileNameRaw: file.fileName,
       descriptionRaw: file.description,
+      saving: false,
     };
   });
   return returnObject;
@@ -886,7 +888,18 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         [fileId]: {
           ...state[fileId],
           expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
-          editing: false,
+          saving: true,
+        },
+      };
+    },
+    UPDATE_FILE_DROP_FILE: (state, action: Action.UpdateFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          saving: true,
         },
       };
     },
@@ -913,6 +926,20 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       [action.id]: {
         ...state[action.id],
         fileName: action.name,
+      },
+    }),
+    RENAME_FILE_DROP_FOLDER: (state, action: Action.RenameFileDropFolder) => ({
+      ...state,
+      [action.request.directoryId]: {
+        ...state[action.request.directoryId],
+        saving: true,
+      },
+    }),
+    UPDATE_FILE_DROP_FOLDER: (state, action: Action.UpdateFileDropFolder) => ({
+      ...state,
+      [action.request.folderId]: {
+        ...state[action.request.folderId],
+        saving: true,
       },
     }),
     DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>

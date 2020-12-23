@@ -30,6 +30,7 @@ export interface FileAndFolderAttributes {
   description?: string;
   fileNameRaw?: string;
   descriptionRaw?: string;
+  saving?: boolean;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~

@@ -226,8 +226,17 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {
                 folderAttributes &&
                 folderAttributes.editing &&
+                folderAttributes.saving &&
+                <div className="spinner">
+                  <ButtonSpinner version="bars" spinnerColor="black" />
+                </div>
+              }
+              {
+                folderAttributes &&
+                folderAttributes.editing &&
                 (folderAttributes.description !== folderAttributes.descriptionRaw ||
                   folderAttributes.fileName !== folderAttributes.fileNameRaw) &&
+                !folderAttributes.saving &&
                 <ActionIcon
                   label="Submit Changes"
                   icon="checkmark"
@@ -243,12 +252,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                       this.props.renameFileDropFolder(fileDropId, directory.id, parentCanonicalPath,
                         folderAttributes.fileName);
                     }
-                    this.props.editFileDropItem(directory.id, false, null, null);
                   }}
                 />
               }
               {
                 editing &&
+                !folderAttributes.saving &&
                 <ActionIcon
                   label="Discard Changes"
                   icon="cancel"
@@ -443,8 +452,17 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 {
                   fileAttributes &&
                   fileAttributes.editing &&
+                  fileAttributes.saving &&
+                  <div className="spinner">
+                    <ButtonSpinner version="bars" spinnerColor="black" />
+                  </div>
+                }
+                {
+                  fileAttributes &&
+                  fileAttributes.editing &&
                   (fileAttributes.description !== fileAttributes.descriptionRaw ||
                    fileAttributes.fileName !== fileAttributes.fileNameRaw) &&
+                  !fileAttributes.saving &&
                   <ActionIcon
                     label="Submit Changes"
                     icon="checkmark"
@@ -461,6 +479,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 }
                 {
                   editing &&
+                  !fileAttributes.saving &&
                   <ActionIcon
                     label="Discard Changes"
                     icon="cancel"
