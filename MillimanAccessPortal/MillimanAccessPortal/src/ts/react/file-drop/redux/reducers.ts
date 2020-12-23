@@ -710,12 +710,16 @@ const createFolder = createReducer<State.CreateFolderData>(null, {
 });
 
 const deleteItem = createReducer<State.DeleteItemData>(_initialItemToDelete, {
-  OPEN_DELETE_FILE_DROP_ITEM_MODAL: (state, action: Action.OpenDeleteFileDropItemModal) => ({
-    ...state,
+  OPEN_DELETE_FILE_DROP_ITEM_MODAL: (_state, action: Action.OpenDeleteFileDropItemModal) => ({
     itemId: action.itemId,
     itemName: action.itemName,
     itemType: action.itemType,
   }),
+  CLOSE_DELETE_FILE_DROP_ITEM_MODAL: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FILE_SUCCEEDED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FILE_FAILED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FOLDER_FAILED: () => _initialItemToDelete,
 });
 
 /** Reducer that combines the pending reducers */
@@ -910,6 +914,18 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       setFileDropDirectoryContentModel(response),
     RENAME_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.RenameFileDropFolderSucceeded) =>
       setFileDropDirectoryContentModel(response),
+    SELECT_CLIENT: () => {
+      return {};
+    },
+    SELECT_FILE_DROP: () => {
+      return {};
+    },
+    OPEN_CREATE_FILE_DROP_MODAL: () => {
+      return {};
+    },
+    SELECT_FILE_DROP_TAB: () => {
+      return {};
+    },
   },
 );
 

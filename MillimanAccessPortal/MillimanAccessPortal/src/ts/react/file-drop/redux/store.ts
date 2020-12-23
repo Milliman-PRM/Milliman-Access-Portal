@@ -73,6 +73,7 @@ export type AfterFormEntityTypes =
   | 'Select File Drop'
   | 'Edit File'
   | 'Edit Folder'
+  | 'Navigate To'
   | AvailableFileDropTabs;
 
 export interface AfterFormModal {
