@@ -15,6 +15,8 @@ import '../../../images/icons/error.svg';
 import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/expand-cards.svg';
 import '../../../images/icons/information.svg';
+import '../../../images/icons/move-file.svg';
+import '../../../images/icons/move-folder.svg';
 import '../../../images/icons/reload.svg';
 import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/sort-alphabetically-asc.svg';
@@ -35,8 +37,8 @@ export interface ActionIconProps {
   label: string;
   icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' |
   'collapse-card' | 'collapse-cards' | 'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' |
-  'information' | 'reload' | 'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' |
-  'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' | 'userguide';
+  'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' | 'sort-alphabetically-asc' |
+  'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
