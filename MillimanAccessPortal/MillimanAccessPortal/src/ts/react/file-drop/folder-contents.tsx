@@ -267,14 +267,24 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                             this.props.editFileDropItem(directory.id, true, folderName, directory.description)
                           }
                         >
-                          Edit
+                          <ActionIcon
+                            icon="edit"
+                            inline={true}
+                            label="Edit"
+                          />
+                          <span className="menu-text">Edit</span>
                         </li>
                         <li
                           onClick={() => {
                             this.props.moveFileDropFolder(fileDropId, directory.id, fileDropName, path, folderName);
                           }}
                         >
-                          Move
+                          <ActionIcon
+                            icon="move-folder"
+                            inline={true}
+                            label="Move"
+                          />
+                          <span className="menu-text">Move</span>
                         </li>
                       </>
                     }
@@ -284,7 +294,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         className="warning"
                         onClick={() => this.props.deleteFolder(folderName, directory.id)}
                       >
-                        Delete
+                        <ActionIcon
+                          icon="delete"
+                          inline={true}
+                          label="Edit"
+                        />
+                        <span className="menu-text">Delete</span>
                       </li>
                     }
                   </ul>
@@ -478,14 +493,24 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                               this.props.editFileDropItem(file.id, true, file.fileName, file.description)
                             }
                           >
-                            Edit
+                            <ActionIcon
+                              icon="edit"
+                              inline={true}
+                              label="Edit"
+                            />
+                            <span className="menu-text">Edit</span>
                           </li>
                           <li
                             onClick={() =>
                               this.props.moveFileDropFile(fileDropId, file.id, fileDropName, path, file.fileName)
                             }
                           >
-                            Move
+                            <ActionIcon
+                              icon="move-file"
+                              inline={true}
+                              label="Move File"
+                            />
+                            <span className="menu-text">Move</span>
                           </li>
                         </>
                       }
@@ -495,7 +520,12 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           className="warning"
                           onClick={() => this.props.deleteFile(file.fileName, file.id)}
                         >
-                          Delete
+                          <ActionIcon
+                            icon="delete"
+                            inline={true}
+                            label="Delete File"
+                          />
+                          <span className="menu-text">Delete</span>
                         </li>
                       }
                     </ul>
