@@ -5,8 +5,12 @@
     display: inline;
     width: 7em;
     height: 100%;
-    padding: 0 0 0 .5em;
+    padding: .5em;
     margin: 0;
+
+    &.open {
+        background-color: $off-white;
+    }
 
     .menu-button {
         cursor: pointer;
@@ -20,9 +24,9 @@
     .popup-menu {
         position: absolute;
         right: 2em;
-        top: -5px;
-        background-color: darken($white, .1);
-        border: 1px solid $light-grey;
+        top: 0;
+        background-color: $white;
+        border: 1px solid $off-white;
         padding: 0;
         cursor: pointer;
         z-index: 999;
@@ -32,16 +36,22 @@
             margin: 0;
             padding: 0;
 
-            li {
+            li,
+            a {
                 display: flex;
                 flex-flow: row nowrap;
                 cursor: pointer;
                 padding: .1em .5em;
                 line-height: 1.75em;
 
+                a {
+                    color: $charcoal;
+                    padding: 0;
+                }
+
                 &:hover {
                     font-weight: bold;
-                    background-color: #F5F5F5;
+                    background-color: $off-white;
                 }
 
                 &.warning {
@@ -72,7 +82,8 @@
 
                 .menu-text {
                     flex: 1 1 auto;
-                    padding: 0 .5em 0 1em;
+                    padding: 0 2em 0 1em;
+                    text-align: left;
                 }
             }
         }
