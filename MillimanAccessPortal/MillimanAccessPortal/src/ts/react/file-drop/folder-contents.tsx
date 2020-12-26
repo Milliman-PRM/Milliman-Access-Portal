@@ -481,10 +481,27 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 }
                 {
                   this.props.currentUserPermissions &&
-                  (this.props.currentUserPermissions.writeAccess ||
-                    this.props.currentUserPermissions.deleteAccess) &&
+                  (this.props.currentUserPermissions.readAccess ||
+                   this.props.currentUserPermissions.writeAccess ||
+                   this.props.currentUserPermissions.deleteAccess) &&
                   <PopupMenu>
                     <ul>
+                      {
+                        this.props.currentUserPermissions.readAccess &&
+                        <li>
+                          <a
+                            href={encodeURI(fileDownloadURL)}
+                            download={true}
+                          >
+                            <ActionIcon
+                              icon="download"
+                              inline={true}
+                              label="Download File"
+                            />
+                            <span className="menu-text">Download</span>
+                          </a>
+                        </li>
+                      }
                       {
                         this.props.currentUserPermissions.writeAccess &&
                         <>
