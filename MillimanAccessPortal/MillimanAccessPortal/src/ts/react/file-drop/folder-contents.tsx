@@ -387,7 +387,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               </td>
               <td>
                 {editing ?
-                  <div>
+                  <div className="file-rename-container">
                     <div className="file-rename-input">
                       <Input
                         type="text"
@@ -501,7 +501,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                             <span className="menu-text">Download</span>
                           </a>
                         </li>
-                      }
+                    }
                       {
                         this.props.currentUserPermissions.writeAccess &&
                         <>

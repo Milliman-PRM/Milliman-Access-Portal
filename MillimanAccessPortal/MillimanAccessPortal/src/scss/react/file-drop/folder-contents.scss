@@ -67,17 +67,22 @@
             padding: .5em 0;
         }
 
-        .file-rename-input {
-            width: 85%;
-            float: left;
-        }
+        .file-rename-container {
+            display: flex;
+            flex-flow: row nowrap;
+            align-items: flex-end;
 
-        .file-rename-extension {
-            position: relative;
-            top: 1.5rem;
-            left: 0.5rem;
-            font-size: 1.25rem;
-            color: grey;
+            .file-rename-input {
+                width: 85%;
+                float: left;
+            }
+
+            .file-rename-extension {
+                position: relative;
+                font-size: 1.25rem;
+                color: grey;
+                padding: .5em .5em .5em .25em;
+            }
         }
 
         .file-drop-content-description {
@@ -140,8 +145,8 @@
         &[title="Discard Changes"] svg,
         &[title="Cancel Upload"] svg {
             color: $red;
+        }
     }
-}
 
     .progress-bars {
         margin-bottom: .5em;
