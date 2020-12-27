@@ -127,7 +127,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
               <ActionIcon
                 label="Create Folder"
-                icon="checkmark"
+                icon="check-circle"
                 inline={true}
                 action={() =>
                   this.props.createFileDropFolder(
@@ -137,7 +137,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
             }
             <ActionIcon
               label="Discard Changes"
-              icon="cancel"
+              icon="cancel-circle"
               inline={true}
               action={() => this.props.exitCreateFolderMode()}
             />
@@ -219,7 +219,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   folderAttributes.fileName !== folderAttributes.fileNameRaw) &&
                 <ActionIcon
                   label="Submit Changes"
-                  icon="checkmark"
+                  icon="check-circle"
                   inline={true}
                   action={() => {
                     if (folderAttributes.description !== folderAttributes.descriptionRaw) {
@@ -240,7 +240,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 editing &&
                 <ActionIcon
                   label="Discard Changes"
-                  icon="cancel"
+                  icon="cancel-circle"
                   inline={true}
                   action={() => {
                     if (folderAttributes.fileName !== folderAttributes.fileNameRaw ||
@@ -450,7 +450,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                    fileAttributes.fileName !== fileAttributes.fileNameRaw) &&
                   <ActionIcon
                     label="Submit Changes"
-                    icon="checkmark"
+                    icon="check-circle"
                     inline={true}
                     action={() => {
                       if (fileAttributes.description !== fileAttributes.descriptionRaw) {
@@ -466,7 +466,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   editing &&
                   <ActionIcon
                     label="Discard Changes"
-                    icon="cancel"
+                    icon="cancel-circle"
                     inline={true}
                     action={() => {
                       if (fileAttributes.fileName !== fileAttributes.fileNameRaw ||
@@ -601,7 +601,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   <ButtonSpinner version="circle" spinnerColor="black" />
                 }
                 <ActionIcon
-                  icon={'cancel'}
+                  icon="cancel-circle"
                   disabled={!file.cancelable}
                   label="Cancel Upload"
                   action={() => this.props.beginFileDropUploadCancel(file.uploadId)}

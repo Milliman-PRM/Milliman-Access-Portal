@@ -666,7 +666,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     {pending.moveItem.newFolderName.trim() &&
                       <ActionIcon
                         label="Create folder"
-                        icon="checkmark"
+                        icon="check-circle"
                         inline={true}
                         action={() =>
                           this.props.createFileDropFolderForMove({
@@ -680,7 +680,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     }
                     <ActionIcon
                       label="Discard Changes"
-                      icon="cancel"
+                      icon="cancel-circle"
                       inline={true}
                       action={() => this.props.setNewFolderModeStatus({ value: false })}
                     />
@@ -924,7 +924,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <ButtonSpinner version="circle" />
                 }
                 <ActionIcon
-                  icon={'cancel'}
+                  icon="cancel-circle"
                   disabled={!upload.cancelable}
                   label="Cancel Upload"
                   action={() => this.props.beginFileDropUploadCancel({ uploadId })}
@@ -1435,7 +1435,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const cancelEditPermissionGroupsButton = (
       <ActionIcon
         label={permissionGroupChangesPending ? 'Discard Changes' : 'Exit Edit Mode'}
-        icon="cancel"
+        icon="cancel-circle"
         action={() => {
           if (permissionGroupChangesPending) {
             this.props.openModifiedFormModal({
