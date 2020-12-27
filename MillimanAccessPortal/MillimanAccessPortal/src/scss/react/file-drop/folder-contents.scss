@@ -125,8 +125,8 @@
         .spinner-small-r,
         .action-icon-container-inline {
             flex: 0 0 auto;
-            height: 2.25em;
-            width: 2.25em;
+            height: 2em;
+            width: 2em;
         }
 
         .spinner-small-r {
@@ -137,6 +137,11 @@
     }
 
     .action-icon-container-inline {
+
+        svg {
+            height: 1.75em;
+            width: 1.75em;
+        }
 
         &[title="Submit Changes"] svg {
             color: $green;
