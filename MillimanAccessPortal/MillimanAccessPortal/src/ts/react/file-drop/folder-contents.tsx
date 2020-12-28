@@ -729,7 +729,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
       this.props.saveFileDropFolder(fileDropId, folderId, folderAttributes.description);
     }
     if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
-      const parentCanonicalPath = canonicalPath.slice().substr(0, canonicalPath.lastIndexOf('/') + 1);
+      const parentCanonicalPath = canonicalPath.slice().substr(0, canonicalPath.lastIndexOf('/')) || '/';
       this.props.renameFileDropFolder(fileDropId, folderId, parentCanonicalPath, folderAttributes.fileName);
     }
   }
