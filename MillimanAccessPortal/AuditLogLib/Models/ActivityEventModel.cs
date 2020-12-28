@@ -9,6 +9,7 @@ using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
 using System.Dynamic;
+using System.IO;
 
 namespace AuditLogLib.Models
 {
@@ -166,27 +167,30 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
-                        descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
                         return descriptionString;
 
                     case 8111:  // SFTP Directory Removed
-                        descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
                         return descriptionString;
 
                     case 8112:  // SFTP File Write Authorized
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for upload to \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for upload to \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
                         return descriptionString;
 
                     case 8113:  // SFTP File Read Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for download from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for download from \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
                         return descriptionString;
 
                     case 8114:  // SFTP File Removed
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath}\"";
+                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
                         return descriptionString;
 
                     case 8115:  // SFTP File Or Directory Renamed
-                        descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")}\" renamed to \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")}\"";
+                        descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} " +
+                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\" " +
+                                             "renamed/moved to " +
+                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\" ";
                         return descriptionString;
                 }
             }
