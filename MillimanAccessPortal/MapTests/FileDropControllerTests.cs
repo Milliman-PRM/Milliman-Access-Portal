@@ -373,7 +373,7 @@ namespace MapTests
 
         [Theory]
         [InlineData("user8", 99, "/", "The requested file drop was not found")] // file drop not found
-        [InlineData("user4", 2, "/BogusPath", "The requested folder was not found")] // user authorized, bad path
+        [InlineData("user6", 2, "/BogusPath", "The requested folder was not found")] // user authorized, bad path
         public async Task GetFolderContents_Invalid(string userName, int fileDropUidSeed, string canonicalPath, string partialWarningHeader)
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))

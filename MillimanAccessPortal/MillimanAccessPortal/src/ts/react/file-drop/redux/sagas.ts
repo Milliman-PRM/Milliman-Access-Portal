@@ -70,10 +70,18 @@ export default function* rootSaga() {
     const activeFileDropFolder = yield select(Selector.activeSelectedFileDropFolder);
     if (action.folderId === activeFileDropFolder) {
       yield put(ActionCreator.fetchFolderContents({
-        canonicalPath: action.canonicalPath,
+        canonicalPath: encodeURIComponent(action.canonicalPath),
         fileDropId: action.fileDropId,
       }));
     }
+  });
+
+  // Refresh the list of File Drops when permissions are successfully updated to capture permission changes better
+  yield takeLatest('UPDATE_PERMISSION_GROUPS_SUCCEEDED', function*() {
+    const activeClient = yield select(Selector.activeSelectedClient);
+    yield put(ActionCreator.fetchFileDrops({
+      clientId: activeClient.id,
+    }));
   });
 
   // Session and Status Checks

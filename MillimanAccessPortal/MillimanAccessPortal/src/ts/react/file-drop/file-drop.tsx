@@ -75,6 +75,7 @@ interface FileDropProps {
   permissionGroupChangesReady: boolean;
   pendingPermissionGroupsChanges: PermissionGroupsChangesModel;
   unassignedEligibleUsers: AvailableEligibleUsers[];
+  userHasPermissions: boolean;
   filesOrFoldersModified: Guid[];
 }
 
@@ -337,6 +338,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               onClick={() => {
                 const { fileDrops } = this.props;
                 const { entityToSelect, entityType } = pending.afterFormModal;
+                const { currentUserPermissions } = this.props.data.fileDrops[selected.fileDrop];
                 this.props.discardPendingPermissionGroupChanges({ originalValues: data.permissionGroups });
                 switch (entityType) {
                   case 'Select Client':
@@ -380,14 +382,22 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     );
                     break;
                   case 'Undo Changes':
-                    // This action is triggered for every outcome
                     break;
                   case 'Undo Changes and Close Form':
                     this.props.setEditModeForPermissionGroups({ editModeEnabled: false });
                     break;
                   case 'files':
-                    // Once this is implemented, a fetch to the files action should be called here
                     this.handleUnsavedFileAndFolderChanges();
+                    if (currentUserPermissions &&
+                        (currentUserPermissions.readAccess ||
+                         currentUserPermissions.writeAccess ||
+                         currentUserPermissions.deleteAccess)
+                    ) {
+                      this.props.fetchFolderContents({
+                        fileDropId: selected.fileDrop,
+                        canonicalPath: '/',
+                      });
+                    }
                     this.props.selectFileDropTab({ tab: 'files' });
                     break;
                   case 'permissions':
@@ -658,7 +668,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     {pending.moveItem.newFolderName.trim() &&
                       <ActionIcon
                         label="Create folder"
-                        icon="checkmark"
+                        icon="check-circle"
                         inline={true}
                         action={() =>
                           this.props.createFileDropFolderForMove({
@@ -672,7 +682,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     }
                     <ActionIcon
                       label="Discard Changes"
-                      icon="cancel"
+                      icon="cancel-circle"
                       inline={true}
                       action={() => this.props.setNewFolderModeStatus({ value: false })}
                     />
@@ -891,17 +901,32 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           null
         );
     };
-    const activeUploads = (fileDropId: Guid) => {
+    const fileDropUploads = (fileDropId: Guid) => {
       return Object.keys(pending.uploads)
-        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId)
-        .map((uploadId) => {
+        .filter((uploadId) => pending.uploads[uploadId].fileDropId === fileDropId);
+    };
+    const fileDropUploadErrorCount = (fileDropId: Guid) => {
+      return fileDropUploads(fileDropId).filter((uploadId) => {
+        return pending.uploads[uploadId].errorMsg !== null;
+      }).length;
+    };
+    const fileDropUploadsStatus = (fileDropId: Guid) => {
+      return fileDropUploadErrorCount(fileDropId) > 0 ? 'error' : 'message';
+    };
+    const activeUploads = (fileDropId: Guid) => {
+      return fileDropUploads(fileDropId).map((uploadId) => {
           const upload = pending.uploads[uploadId];
           return (
             <div key={uploadId} className="file-drop-card-upload">
               <div className="filename">
-                {upload.fileName}
+                <span className="upload-filename">{upload.fileName}</span>
+                {
+                  upload.cancelable &&
+                  !upload.errorMsg &&
+                  <ButtonSpinner version="circle" />
+                }
                 <ActionIcon
-                  icon={'cancel'}
+                  icon="cancel-circle"
                   disabled={!upload.cancelable}
                   label="Cancel Upload"
                   action={() => this.props.beginFileDropUploadCancel({ uploadId })}
@@ -930,7 +955,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               )
               ? cardAttributes.fileDrops[entity.id].editing
               : false;
-            const fdActiveUploads = activeUploads(entity.id);
+            const fdUploads = activeUploads(entity.id);
+            const fdUploadsStatus = fileDropUploadsStatus(entity.id);
+            const numberOfBadUploads = fileDropUploadErrorCount(entity.id);
+            const numberOfGoodUploads = fdUploads.length - numberOfBadUploads;
+            const { currentUserPermissions } = this.props.data.fileDrops[entity.id];
             return (
               <Card
                 key={key}
@@ -945,7 +974,12 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     });
                   } else {
                     this.props.selectFileDrop({ id: entity.id });
-                    if (selected.fileDrop !== entity.id) {
+                    if (selected.fileDrop !== entity.id &&
+                        currentUserPermissions &&
+                        (currentUserPermissions.readAccess ||
+                         currentUserPermissions.writeAccess ||
+                         currentUserPermissions.deleteAccess)
+                       ) {
                       this.props.fetchFolderContents({
                         fileDropId: entity.id,
                         canonicalPath: encodeURIComponent('/'),
@@ -955,8 +989,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 }}
                 suspended={entity.isSuspended}
-                bannerMessage={fdActiveUploads.length > 0 ? {
-                  level: 'informational',
+                bannerMessage={fdUploads.length > 0 ? {
+                  level: fdUploadsStatus,
                   message: (
                     <div
                       className="upload-message-container"
@@ -967,7 +1001,18 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                      }
                     >
                       <span className="upload-notice">
-                        {`${fdActiveUploads.length} file${fdActiveUploads.length > 1 ? 's' : ''} currently uploading`}
+                        {
+                          numberOfGoodUploads > 0 &&
+                          `${numberOfGoodUploads} file${numberOfGoodUploads > 1 ? 's' : ''} currently uploading`}
+                        {
+                          numberOfGoodUploads > 0 &&
+                          numberOfBadUploads > 0 &&
+                          <br />
+                        }
+                        {
+                          numberOfBadUploads > 0 &&
+                          `${numberOfBadUploads} file${numberOfBadUploads > 1 ? 's' : ''} failed`
+                        }
                       </span>
                       <svg className={`expand-icon ${cardAttributes.fileDrops[entity.id].expanded ? 'inverted' : ''}`}>
                         <use xlinkHref={'#expand-card'} />
@@ -1039,10 +1084,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   }
                 </CardSectionMain>
                 {
-                  fdActiveUploads.length > 0 &&
+                  fdUploads.length > 0 &&
                   cardAttributes.fileDrops[entity.id].expanded &&
                   <CardExpansion expanded={true}>
-                    {fdActiveUploads}
+                    {fdUploads}
                   </CardExpansion>
                 }
               </Card>
@@ -1102,9 +1147,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFileDropManagementPanel() {
-    const { activeSelectedClient, pending, permissionGroupChangesPending,
-      selected, filesOrFoldersModified,
+    const {
+      activeSelectedClient, activeSelectedFileDrop, filesOrFoldersModified, pending,
+      permissionGroupChangesPending, selected,
     } = this.props;
+    const { currentUserPermissions } = this.props.data.fileDrops[activeSelectedFileDrop.id];
     const tabList: Array<{
       id: State.AvailableFileDropTabs;
       label: string;
@@ -1136,10 +1183,16 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             } else {
               switch (tab) {
                 case 'files':
-                  this.props.fetchFolderContents({
-                    fileDropId: selected.fileDrop,
-                    canonicalPath: encodeURIComponent('/'),
-                  });
+                  if (currentUserPermissions && (
+                        currentUserPermissions.readAccess ||
+                        currentUserPermissions.writeAccess ||
+                        currentUserPermissions.deleteAccess)
+                      ) {
+                    this.props.fetchFolderContents({
+                      fileDropId: selected.fileDrop,
+                      canonicalPath: encodeURIComponent('/'),
+                    });
+                  }
                   break;
                 case 'permissions':
                   this.props.fetchPermissionGroups({ clientId: selected.client, fileDropId: selected.fileDrop });
@@ -1177,6 +1230,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   private renderFilesTab() {
     const { filters, directories, files, filesOrFoldersModified, pending } = this.props;
     const { fileDropContents } = this.props.cardAttributes;
+    const { currentUserPermissions } = this.props.data.fileDrops[this.props.selected.fileDrop];
     return (
       <>
         <PanelSectionToolbar>
@@ -1212,6 +1266,10 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               ref={this.dragUploadRef}
             >
               {
+                currentUserPermissions &&
+                (currentUserPermissions.readAccess ||
+                 currentUserPermissions.writeAccess ||
+                 currentUserPermissions.deleteAccess) &&
                 this.props.data.fileDropContents &&
                 <FolderContents
                   directories={directories}
@@ -1336,6 +1394,28 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   async={pending.async}
                 />
               }
+              {
+                (currentUserPermissions === null ||
+                (!currentUserPermissions.readAccess &&
+                 !currentUserPermissions.writeAccess &&
+                 !currentUserPermissions.deleteAccess)) &&
+                <div>
+                  <p>To view files and folders in this File Drop, please set up your user permissions.</p>
+                  <button
+                    className="button blue-button"
+                    onClick={() => {
+                      this.props.fetchPermissionGroups({
+                        clientId: this.props.activeSelectedClient.id,
+                        fileDropId: this.props.activeSelectedFileDrop.id,
+                      });
+                      this.props.selectFileDropTab({ tab: 'permissions' });
+                      this.props.setEditModeForPermissionGroups({ editModeEnabled: true });
+                    }}
+                  >
+                    Set User Permissions
+                  </button>
+                </div>
+              }
             </div>
           </ContentPanelForm>
         </ContentPanelSectionContent>
@@ -1358,7 +1438,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const cancelEditPermissionGroupsButton = (
       <ActionIcon
         label={permissionGroupChangesPending ? 'Discard Changes' : 'Exit Edit Mode'}
-        icon="cancel"
+        icon="cancel-circle"
         action={() => {
           if (permissionGroupChangesPending) {
             this.props.openModifiedFormModal({
@@ -1553,6 +1633,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderSettingsTab() {
     const { fileDrop } = this.props.selected;
+    const { userHasPermissions } = this.props;
     const { fileDropSettings } = this.props.data;
     const uploadNotification = fileDropSettings && fileDropSettings.notifications
       ? fileDropSettings.notifications.filter((x) =>
@@ -1599,7 +1680,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </table>
                 </FormSection>
                 {
-                  fileDropSettings.assignedPermissionGroupId &&
+                  userHasPermissions &&
                   <FormSection title="SFTP Credentials">
                     {
                       !fileDropSettings.userHasPassword &&
@@ -1648,7 +1729,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </ FormSection>
                 }
                 {
-                  fileDropSettings.assignedPermissionGroupId &&
+                  userHasPermissions &&
                   uploadNotification &&
                   uploadNotification.canModify &&
                   <FormSection title="Notification Settings">
@@ -1722,6 +1803,7 @@ function mapStateToProps(state: State.FileDropState): FileDropProps {
     permissionGroupChangesReady: Selector.permissionGroupChangesReady(state),
     pendingPermissionGroupsChanges: Selector.pendingPermissionGroupsChanges(state),
     unassignedEligibleUsers: Selector.unassignedEligibleUsers(state),
+    userHasPermissions: Selector.userHasFileDropPermissions(state),
     filesOrFoldersModified: Selector.filesOrFoldersModified(state),
   };
 }

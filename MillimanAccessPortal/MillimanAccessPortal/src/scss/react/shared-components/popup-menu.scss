@@ -3,10 +3,14 @@
 .popup-container {
     position: relative;
     display: inline;
-    width: 100%;
+    width: 7em;
     height: 100%;
-    padding: 0 0 0 .5em;
+    padding: .5em;
     margin: 0;
+
+    &.open {
+        background-color: $light-grey;
+    }
 
     .menu-button {
         cursor: pointer;
@@ -21,43 +25,65 @@
         position: absolute;
         right: 2em;
         top: 0;
-        background-color: $white;
+        background-color: $off-white;
+        border: 1px solid $light-grey;
         padding: 0;
-        border: 1px solid $charcoal;
-        border-radius: .25em;
         cursor: pointer;
-
-        &:after {
-            content: "";
-            position: absolute;
-            top: 50%; // half way down (vertical center).
-            margin-top: -15px; // adjust position, arrow has a height of 30px.
-            right: -30px;
-            border: 1px solid $charcoal;
-            border-left-color: #FFF;
-            z-index: 1;
-        }
+        z-index: 999;
 
         ul {
             list-style: none;
             margin: 0;
             padding: 0;
 
-            li {
+            li,
+            a {
+                display: flex;
+                flex-flow: row nowrap;
                 cursor: pointer;
-                padding: 0 1em;
+                padding: .1em .5em;
+                line-height: 1.75em;
+
+                a {
+                    color: $charcoal;
+                    padding: 0;
+                }
 
                 &:hover {
                     font-weight: bold;
+                    background-color: $light-grey;
                 }
 
                 &.warning {
                     color: $red;
 
+                    svg {
+                        color: $red;
+                    }
+
                     &:hover {
                         color: $white;
                         background-color: $red;
+
+                        svg {
+                            color: $white;
+                        }
                     }
+                }
+
+                .action-icon-container-inline {
+                    flex: 0 0 auto;
+
+                    svg {
+                        height: 1.25em;
+                        width: 1.25em;
+                    }
+                }
+
+                .menu-text {
+                    flex: 1 1 auto;
+                    padding: 0 2em 0 1em;
+                    text-align: left;
                 }
             }
         }

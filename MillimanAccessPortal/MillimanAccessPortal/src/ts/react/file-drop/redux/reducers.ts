@@ -127,11 +127,7 @@ const _initialFileDropWithStats: FileDropWithStats = {
   description: null,
   isSuspended: false,
   userCount: null,
-  currentUserPermissions: {
-    readAccess: false,
-    writeAccess: false,
-    deleteAccess: false,
-  },
+  currentUserPermissions: null,
 };
 
 const _initialMoveItem: State.MoveItemData = {
@@ -1249,9 +1245,22 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: action.response,
   }),
+  SELECT_CLIENT: (state) => ({
+    ...state,
+    fileDrops: _initialData.fileDrops,
+    fileDropContents: _initialData.fileDropContents,
+    permissionGroups: _initialData.permissionGroups,
+    activityLogEvents: _initialData.activityLogEvents,
+    fileDropSettings: _initialData.fileDropSettings,
+    fileDropContentsForMove: _initialData.fileDropContentsForMove,
+  }),
   SELECT_FILE_DROP: (state) => ({
     ...state,
-    permissionGroups: null,
+    fileDropContents: _initialData.fileDropContents,
+    permissionGroups: _initialData.permissionGroups,
+    activityLogEvents: _initialData.activityLogEvents,
+    fileDropSettings: _initialData.fileDropSettings,
+    fileDropContentsForMove: _initialData.fileDropContentsForMove,
   }),
   FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
     ...state,
