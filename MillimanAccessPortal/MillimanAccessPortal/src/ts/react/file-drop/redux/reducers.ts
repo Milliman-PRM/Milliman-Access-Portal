@@ -58,6 +58,22 @@ function setFileDropDirectoryContentModel(response: FileDropDirectoryContentMode
   return returnObject;
 }
 
+function unsetSaveStatusForFileDropDirectoryContentModel(currentState: Dict<State.FileAndFolderAttributes>) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(currentState, (item, key) => {
+    returnObject[key] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: item.description,
+      fileNameRaw: '',
+      descriptionRaw: item.description,
+      saving: false,
+    };
+  });
+  return returnObject;
+}
+
 // ~~~~~~~~~~~~~~~
 // Default Objects
 // ~~~~~~~~~~~~~~~
@@ -892,6 +908,7 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         },
       };
     },
+    RENAME_FILE_DROP_FILE_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
     UPDATE_FILE_DROP_FILE: (state, action: Action.UpdateFileDropFile) => {
       const { fileId } = action.request;
       return {
@@ -935,6 +952,7 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         saving: true,
       },
     }),
+    RENAME_FILE_DROP_FOLDER_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
     UPDATE_FILE_DROP_FOLDER: (state, action: Action.UpdateFileDropFolder) => ({
       ...state,
       [action.request.folderId]: {
