@@ -512,7 +512,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   (this.props.currentUserPermissions.readAccess ||
                    this.props.currentUserPermissions.writeAccess ||
                    this.props.currentUserPermissions.deleteAccess) &&
-                  !fileAttributes.editing &&
+                  (fileAttributes && !fileAttributes.editing) &&
                   <PopupMenu>
                     <ul>
                       {
