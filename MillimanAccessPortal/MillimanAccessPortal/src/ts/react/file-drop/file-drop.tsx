@@ -657,6 +657,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   placeholderText="Enter folder name..."
                   type="text"
                   value={pending.moveItem.newFolderName}
+                  onSubmitCallback={() =>
+                    this.props.createFileDropFolderForMove({
+                      fileDropId: selected.fileDrop,
+                      containingFileDropDirectoryId: pending.moveItem.newFolderId,
+                      newFolderName: pending.moveItem.newFolderName,
+                      description: '',
+                    })
+                  }
+                  usesOnSubmitCallback={true}
                 />
               </div>
               <div className="new-folder-button-container">
