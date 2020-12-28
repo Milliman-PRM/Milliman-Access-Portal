@@ -1401,7 +1401,7 @@ namespace MillimanAccessPortal.Controllers
                                                            requestModel.ParentCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar),
                                                            requestModel.DirectoryName);
 
-            FileDropOperations.RenameDirectory(folderExistingAbsolutePath,
+            var opResult = FileDropOperations.RenameDirectory(folderExistingAbsolutePath,
                                                folderFutureAbsolutePath,
                                                Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)),
                                                fileDrop.Name,
@@ -1410,6 +1410,21 @@ namespace MillimanAccessPortal.Controllers
                                                fileDrop.Client.Name,
                                                account,
                                                user);
+
+            if (opResult != FileDropOperations.FileDropOperationResult.OK)
+            {
+                string warningMessage = opResult switch
+                {
+                    FileDropOperations.FileDropOperationResult.NO_SUCH_FILE => "The folder was not found",
+                    FileDropOperations.FileDropOperationResult.NO_SUCH_PATH => "The target directory does not exist",
+                    FileDropOperations.FileDropOperationResult.FILE_ALREADY_EXISTS => "A file or folder with the new name already exists",
+                    FileDropOperations.FileDropOperationResult.FAILURE => "Failed to rename the folder",
+                    _ => "Unhandled error"
+                };
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropOperations.RenameFolder returned result {opResult.GetDisplayNameString()} with message {warningMessage}");
+                Response.Headers.Add("Warning", warningMessage);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             try
