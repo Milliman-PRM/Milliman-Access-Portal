@@ -142,7 +142,8 @@
             width: 1.75em;
         }
 
-        &[title="Submit Changes"] svg {
+        &[title="Submit Changes"] svg,
+        &[title="Create Folder"] svg {
             color: $green;
         }
 
