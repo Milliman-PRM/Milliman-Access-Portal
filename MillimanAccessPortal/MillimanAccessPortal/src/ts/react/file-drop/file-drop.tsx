@@ -588,13 +588,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             {pending.moveItem.breadcrumbs && pending.moveItem.breadcrumbs.map((e, index) => {
               return (
                 <span key={index}>
-                  <span className="move-file-slash">/</span>
+                  { e !== '' &&
+                    <span className="move-file-slash">/</span>
+                  }
                   {index === pending.moveItem.breadcrumbs.length - 1 ?
                     <strong>
                       {e}
                     </strong> :
                     <a
-                      style={{ color: 'blue', cursor: 'pointer' }}
+                      className="breadcrumb-link"
                       onClick={() => {
                         this.props.fetchFolderContentsForMove({
                           fileDropId: selected.fileDrop,
@@ -655,6 +657,15 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   placeholderText="Enter folder name..."
                   type="text"
                   value={pending.moveItem.newFolderName}
+                  onSubmitCallback={() =>
+                    this.props.createFileDropFolderForMove({
+                      fileDropId: selected.fileDrop,
+                      containingFileDropDirectoryId: pending.moveItem.newFolderId,
+                      newFolderName: pending.moveItem.newFolderName,
+                      description: '',
+                    })
+                  }
+                  usesOnSubmitCallback={true}
                 />
               </div>
               <div className="new-folder-button-container">
@@ -693,7 +704,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               type="button"
               onClick={() => this.props.setNewFolderModeStatus({ value: true })}
             >
-              Create new folder +
+              Create new folder
             </button>
           }
           <div className="button-container">
@@ -1226,7 +1237,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
   }
 
   private renderFilesTab() {
-    const { filters, directories, files, filesOrFoldersModified } = this.props;
+    const { filters, directories, files, filesOrFoldersModified, pending } = this.props;
     const { fileDropContents } = this.props.cardAttributes;
     const { currentUserPermissions } = this.props.data.fileDrops[this.props.selected.fileDrop];
     return (
@@ -1389,6 +1400,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                       },
                     })
                   }
+                  async={pending.async}
                 />
               }
               {

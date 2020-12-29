@@ -41,6 +41,7 @@ function setFileDropDirectoryContentModel(response: FileDropDirectoryContentMode
       description: folder.description,
       fileNameRaw: '',
       descriptionRaw: folder.description,
+      saving: false,
     };
   });
   _.forEach(response.files, (file) => {
@@ -51,6 +52,23 @@ function setFileDropDirectoryContentModel(response: FileDropDirectoryContentMode
       description: file.description,
       fileNameRaw: file.fileName,
       descriptionRaw: file.description,
+      saving: false,
+    };
+  });
+  return returnObject;
+}
+
+function unsetSaveStatusForFileDropDirectoryContentModel(currentState: Dict<State.FileAndFolderAttributes>) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(currentState, (item, key) => {
+    returnObject[key] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: item.description,
+      fileNameRaw: '',
+      descriptionRaw: item.description,
+      saving: false,
     };
   });
   return returnObject;
@@ -73,6 +91,7 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   move: false,
   createFolderMoveMode: false,
   deleteItem: false,
+  createFileDropFolder: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -332,6 +351,18 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
   DELETE_FILE_DROP_FOLDER_FAILED: (state) => ({
     ...state,
     deleteItem: false,
+  }),
+  CREATE_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    createFileDropFolder: true,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
   }),
 });
 
@@ -805,6 +836,13 @@ const selected = createReducer<State.FileDropSelectedState>(
         canonicalPath: action.response.thisDirectory.canonicalPath,
       },
     }),
+    FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+      ...state,
+      fileDropFolder: {
+        folderId: action.response.thisDirectory.id,
+        canonicalPath: action.response.thisDirectory.canonicalPath,
+      },
+    }),
   },
 );
 
@@ -869,7 +907,19 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
         [fileId]: {
           ...state[fileId],
           expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
-          editing: false,
+          saving: true,
+        },
+      };
+    },
+    RENAME_FILE_DROP_FILE_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
+    UPDATE_FILE_DROP_FILE: (state, action: Action.UpdateFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          saving: true,
         },
       };
     },
@@ -896,6 +946,21 @@ const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttribut
       [action.id]: {
         ...state[action.id],
         fileName: action.name,
+      },
+    }),
+    RENAME_FILE_DROP_FOLDER: (state, action: Action.RenameFileDropFolder) => ({
+      ...state,
+      [action.request.directoryId]: {
+        ...state[action.request.directoryId],
+        saving: true,
+      },
+    }),
+    RENAME_FILE_DROP_FOLDER_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
+    UPDATE_FILE_DROP_FOLDER: (state, action: Action.UpdateFileDropFolder) => ({
+      ...state,
+      [action.request.folderId]: {
+        ...state[action.request.folderId],
+        saving: true,
       },
     }),
     DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
@@ -1070,7 +1135,6 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
-    permissionGroups: null,
     fileDropSettings: _initialFileDropSettings,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({

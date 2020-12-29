@@ -87,7 +87,6 @@
 
         .file-drop-content-description {
             padding: 0 1em .5em 2em;
-            font-style: italic;
             white-space: pre-line;
         }
 
@@ -143,7 +142,8 @@
             width: 1.75em;
         }
 
-        &[title="Submit Changes"] svg {
+        &[title="Submit Changes"] svg,
+        &[title="Create Folder"] svg {
             color: $green;
         }
 
@@ -155,5 +155,11 @@
 
     .progress-bars {
         margin-bottom: .5em;
+    }
+
+    .spinner {
+        width: 1.5rem;
+        height: 1.5rem;
+        float: right;
     }
 }

@@ -15,7 +15,10 @@ import { Input, TextAreaInput } from '../shared-components/form/input';
 import { PopupMenu } from '../shared-components/popup-menu';
 import { Dict } from '../shared-components/redux/store';
 import { UploadStatusBar } from '../shared-components/upload-status-bar';
-import { AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes, FileDropUploadState } from './redux/store';
+import {
+  AfterFormEntityTypes, CreateFolderData, FileAndFolderAttributes,
+  FileDropPendingReturnState, FileDropUploadState,
+} from './redux/store';
 
 interface FolderContentsProps {
   thisDirectory: FileDropDirectory;
@@ -50,6 +53,7 @@ interface FolderContentsProps {
   moveFileDropFolder: (
     fileDropId: Guid, folderId: Guid, fileDropName: string, canonicalPath: string, folderName: string) => void;
   discardChanges: (id: Guid, type: AfterFormEntityTypes) => void;
+  async: FileDropPendingReturnState;
 }
 
 export class FolderContents extends React.Component<FolderContentsProps> {
@@ -98,7 +102,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
   }
 
   public renderCreateFolder() {
-    const { createFolder, directories, fileDropId, thisDirectory } = this.props;
+    const { createFolder, directories, fileDropId, thisDirectory, async } = this.props;
     const existingFolderNames = directories.map((directory) => directory.canonicalPath.split('/').slice(-1)[0]);
     return (
       <>
@@ -118,29 +122,41 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               autoFocus={true}
               onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                 this.props.updateCreateFolderValues('name', target.value)}
+              onSubmitCallback={() =>
+                this.props.createFileDropFolder(fileDropId, thisDirectory.id, createFolder.name,
+                  createFolder.description)
+              }
+              usesOnSubmitCallback={true}
             />
           </td>
           <td colSpan={2} />
           <td className="col-actions">
-            {
-              createFolder.name.trim().length > 0 &&
-              existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
-              <ActionIcon
-                label="Create Folder"
-                icon="check-circle"
-                inline={true}
-                action={() =>
-                  this.props.createFileDropFolder(
-                    fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+            {!async.createFileDropFolder ?
+              <div>
+                {
+                  createFolder.name.trim().length > 0 &&
+                  existingFolderNames.indexOf(createFolder.name.trim()) === -1 &&
+                  <ActionIcon
+                    label="Create Folder"
+                    icon="check-circle"
+                    inline={true}
+                    action={() =>
+                      this.props.createFileDropFolder(
+                        fileDropId, thisDirectory.id, createFolder.name, createFolder.description)
+                    }
+                  />
                 }
-              />
+                <ActionIcon
+                  label="Discard Changes"
+                  icon="cancel-circle"
+                  inline={true}
+                  action={() => this.props.exitCreateFolderMode()}
+                />
+              </div> :
+              <div className="spinner">
+                <ButtonSpinner version="bars" spinnerColor="black" />
+              </div>
             }
-            <ActionIcon
-              label="Discard Changes"
-              icon="cancel-circle"
-              inline={true}
-              action={() => this.props.exitCreateFolderMode()}
-            />
           </td>
         </tr>
         <tr>
@@ -189,6 +205,10 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) =>
                     this.props.updateFileDropItemName(directory.id, target.value)}
                   error={null}
+                  onSubmitCallback={() =>
+                    this.updateFolder(fileDropId, directory.id, folderAttributes, directory.canonicalPath)
+                  }
+                  usesOnSubmitCallback={true}
                 /> :
                 <span
                   className="folder"
@@ -215,29 +235,29 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               {
                 folderAttributes &&
                 folderAttributes.editing &&
+                folderAttributes.saving &&
+                <div className="spinner">
+                  <ButtonSpinner version="bars" spinnerColor="black" />
+                </div>
+              }
+              {
+                folderAttributes &&
+                folderAttributes.editing &&
                 (folderAttributes.description !== folderAttributes.descriptionRaw ||
                   folderAttributes.fileName !== folderAttributes.fileNameRaw) &&
+                !folderAttributes.saving &&
                 <ActionIcon
                   label="Submit Changes"
                   icon="check-circle"
                   inline={true}
-                  action={() => {
-                    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
-                      this.props.saveFileDropFolder(fileDropId, directory.id,
-                        folderAttributes.description);
-                    }
-                    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
-                      const parentCanonicalPath = directory.canonicalPath.slice()
-                        .substr(0, directory.canonicalPath.lastIndexOf('/') + 1);
-                      this.props.renameFileDropFolder(fileDropId, directory.id, parentCanonicalPath,
-                        folderAttributes.fileName);
-                    }
-                    this.props.editFileDropItem(directory.id, false, null, null);
-                  }}
+                  action={() =>
+                    this.updateFolder(fileDropId, directory.id, folderAttributes, directory.canonicalPath)
+                  }
                 />
               }
               {
                 editing &&
+                !folderAttributes.saving &&
                 <ActionIcon
                   label="Discard Changes"
                   icon="cancel-circle"
@@ -257,6 +277,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 this.props.currentUserPermissions &&
                 (this.props.currentUserPermissions.writeAccess ||
                   this.props.currentUserPermissions.deleteAccess) &&
+                (folderAttributes && !folderAttributes.editing) &&
                 <PopupMenu>
                   <ul>
                     {
@@ -398,6 +419,8 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                           this.props.updateFileDropItemName(file.id,
                             target.value.concat(this.getFileExtension(fileAttributes.fileName)))}
                         error={null}
+                        onSubmitCallback={() => this.updateFile(fileDropId, file.id, fileAttributes, thisDirectory.id)}
+                        usesOnSubmitCallback={true}
                       />
                     </div>
                     <span className="file-rename-extension">{this.getFileExtension(fileAttributes.fileName)}</span>
@@ -446,24 +469,29 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                 {
                   fileAttributes &&
                   fileAttributes.editing &&
+                  fileAttributes.saving &&
+                  <div className="spinner">
+                    <ButtonSpinner version="bars" spinnerColor="black" />
+                  </div>
+                }
+                {
+                  fileAttributes &&
+                  fileAttributes.editing &&
                   (fileAttributes.description !== fileAttributes.descriptionRaw ||
                    fileAttributes.fileName !== fileAttributes.fileNameRaw) &&
+                  !fileAttributes.saving &&
                   <ActionIcon
                     label="Submit Changes"
                     icon="check-circle"
                     inline={true}
-                    action={() => {
-                      if (fileAttributes.description !== fileAttributes.descriptionRaw) {
-                        this.props.saveFileDropFile(fileDropId, file.id, fileAttributes.description);
-                      }
-                      if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
-                        this.props.renameFileDropFile(fileDropId, file.id, thisDirectory.id, fileAttributes.fileName);
-                      }
-                    }}
+                    action={() =>
+                      this.updateFile(fileDropId, file.id, fileAttributes, thisDirectory.id)
+                    }
                   />
                 }
                 {
                   editing &&
+                  !fileAttributes.saving &&
                   <ActionIcon
                     label="Discard Changes"
                     icon="cancel-circle"
@@ -484,6 +512,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   (this.props.currentUserPermissions.readAccess ||
                    this.props.currentUserPermissions.writeAccess ||
                    this.props.currentUserPermissions.deleteAccess) &&
+                  (fileAttributes && !fileAttributes.editing) &&
                   <PopupMenu>
                     <ul>
                       {
@@ -692,5 +721,26 @@ export class FolderContents extends React.Component<FolderContentsProps> {
 
   private getFileExtension(fileName: string) {
     return fileName.lastIndexOf('.') > -1 ? fileName.slice(fileName.lastIndexOf('.')) : '';
+  }
+
+  private updateFolder(fileDropId: Guid, folderId: Guid, folderAttributes: FileAndFolderAttributes,
+                       canonicalPath: string) {
+    if (folderAttributes.description !== folderAttributes.descriptionRaw) {
+      this.props.saveFileDropFolder(fileDropId, folderId, folderAttributes.description);
+    }
+    if (folderAttributes.fileName !== folderAttributes.fileNameRaw) {
+      const parentCanonicalPath = canonicalPath.slice().substr(0, canonicalPath.lastIndexOf('/')) || '/';
+      this.props.renameFileDropFolder(fileDropId, folderId, parentCanonicalPath, folderAttributes.fileName);
+    }
+  }
+
+  private updateFile(fileDropId: Guid, fileId: Guid, fileAttributes: FileAndFolderAttributes,
+                     currentDirectoryId: Guid) {
+    if (fileAttributes.description !== fileAttributes.descriptionRaw) {
+      this.props.saveFileDropFile(fileDropId, fileId, fileAttributes.description);
+    }
+    if (fileAttributes.fileName !== fileAttributes.fileNameRaw) {
+      this.props.renameFileDropFile(fileDropId, fileId, currentDirectoryId, fileAttributes.fileName);
+    }
   }
 }
