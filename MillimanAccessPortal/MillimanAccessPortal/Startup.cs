@@ -299,7 +299,7 @@ namespace MillimanAccessPortal
             {
                 builder.TwoFactorUserIdCookie.Configure(options =>
                 {
-                    options.Cookie.MaxAge = TimeSpan.FromMinutes(5);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(15);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
                 });
                 builder.ApplicationCookie.Configure(options =>
                 {
