@@ -1362,7 +1362,7 @@ namespace MillimanAccessPortal.Controllers
             string message =
                 $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
-                $"This code will be valid for 5 minutes.";
+                $"This code will be valid for 15 minutes.";
 
             _messageSender.QueueEmail(user.Email, "Authentication Code", message);
 
@@ -1387,7 +1387,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
             if (user == null)
             {
-                return View("UserMessage", new UserMessageModel("The submitted code is invalid. Codes are valid for 5 minutes. Please login again."));
+                return View("UserMessage", new UserMessageModel("The submitted code is invalid. Codes are valid for 15 minutes. Please login again."));
             }
 
             // The following code protects for brute force attacks against the two factor codes.
