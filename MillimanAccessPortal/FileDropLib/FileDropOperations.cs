@@ -443,7 +443,7 @@ namespace FileDropLib
                             {
                                 return FileDropOperationResult.NO_SUCH_FILE;
                             }
-                            if (File.Exists(absoluteNewPath))
+                            if (File.Exists(absoluteNewPath) || Directory.Exists(absoluteNewPath))
                             {
                                 return FileDropOperationResult.FILE_ALREADY_EXISTS;
                             }
@@ -517,7 +517,7 @@ namespace FileDropLib
                         {
                                 return FileDropOperationResult.NO_SUCH_PATH;
                         }
-                        if (Directory.Exists(newPath))
+                        if (Directory.Exists(newPath) || File.Exists(newPath))
                         {
                                 return FileDropOperationResult.FILE_ALREADY_EXISTS;
                         }

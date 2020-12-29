@@ -155,6 +155,14 @@ export const exitCreateFolderMode =
 export const updateCreateFolderValues =
   createActionCreator<Action.UpdateCreateFolderValues>('UPDATE_CREATE_FOLDER_VALUES');
 
+/** Open Delete File Drop Item Modal */
+export const openDeleteFileDropItemModal =
+  createActionCreator<Action.OpenDeleteFileDropItemModal>('OPEN_DELETE_FILE_DROP_ITEM_MODAL');
+
+/** Close Delete File Drop Item Modal */
+export const closeDeleteFileDropItemModal =
+  createActionCreator<Action.CloseDeleteFileDropItemModal>('CLOSE_DELETE_FILE_DROP_ITEM_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~

@@ -55,7 +55,7 @@ export class PopupMenu extends React.Component<{}, PopupMenuState> {
     const { isOpen } = this.state;
 
     return (
-      <div className="popup-container">
+      <div className={`popup-container ${isOpen ? 'open' : null}`}>
         <span
           onClick={this.openMenu}
           className="menu-button"

@@ -5,8 +5,8 @@ import createSagaMiddleware from 'redux-saga';
 
 import { UploadState } from '../../../upload/Redux/store';
 import {
-  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent, FileDropSettings,
-  FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
+  FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -30,6 +30,7 @@ export interface FileAndFolderAttributes {
   description?: string;
   fileNameRaw?: string;
   descriptionRaw?: string;
+  saving?: boolean;
 }
 
 // ~~~~~~~~~~~~~~~~~~~~
@@ -49,6 +50,8 @@ export interface FileDropPendingReturnState {
   settings: boolean;
   move: boolean;
   createFolderMoveMode: boolean;
+  deleteItem: boolean;
+  createFileDropFolder: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -70,6 +73,9 @@ export type AfterFormEntityTypes =
   | 'Delete File Drop'
   | 'Select Client'
   | 'Select File Drop'
+  | 'Edit File'
+  | 'Edit Folder'
+  | 'Navigate To'
   | AvailableFileDropTabs;
 
 export interface AfterFormModal {
@@ -100,6 +106,13 @@ export interface MoveItemData {
   newFolderName: string;
 }
 
+/** State object for Delete File Drop Item modal */
+export interface DeleteItemData {
+  itemType: 'file' | 'folder';
+  itemName: string;
+  itemId: Guid;
+}
+
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
   async: FileDropPendingReturnState;
@@ -115,6 +128,7 @@ export interface FileDropPendingState {
   uploads: Dict<FileDropUploadState>;
   createFolder?: CreateFolderData;
   moveItem: MoveItemData;
+  itemToDelete: DeleteItemData;
 }
 
 /** State representing user-selected entities */
@@ -162,6 +176,7 @@ export interface FileDropModals {
   formModified: ModalState;
   passwordNotification: ModalState;
   moveFileDropItem: ModalState;
+  deleteFileDropItem: ModalState;
 }
 
 /** Top-Level File Drop state */
