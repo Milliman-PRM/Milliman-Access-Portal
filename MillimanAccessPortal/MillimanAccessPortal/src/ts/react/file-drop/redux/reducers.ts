@@ -836,6 +836,13 @@ const selected = createReducer<State.FileDropSelectedState>(
         canonicalPath: action.response.thisDirectory.canonicalPath,
       },
     }),
+    FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+      ...state,
+      fileDropFolder: {
+        folderId: action.response.thisDirectory.id,
+        canonicalPath: action.response.thisDirectory.canonicalPath,
+      },
+    }),
   },
 );
 
