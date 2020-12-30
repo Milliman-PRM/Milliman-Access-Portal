@@ -584,12 +584,12 @@ namespace MillimanAccessPortal.Controllers
                     rolesToRemove.AddRange(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator));
                 }
 
-                rolesToRemove.ForEach(urc => 
+                foreach (var urc in rolesToRemove)
                 {
                     DbContext.UserRoleInClient.Remove(urc);
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
 
-                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                });
+                }
                 AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
 
                 // add roles not already assigned
