@@ -589,6 +589,29 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInClient.Remove(urc);
                     Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
 
+                    if (urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                    {
+                        var accountsToReset = await DbContext.SftpAccount
+                                                             .Include(a => a.FileDrop)
+                                                             .Include(a => a.FileDropUserPermissionGroup)
+                                                             .Where(a => a.FileDrop.ClientId == model.ClientId)
+                                                             .Where(a => a.ApplicationUserId == model.UserId)
+                                                             .ToListAsync();
+
+                        accountsToReset.ForEach(a =>
+                        {
+                            if (a.FileDropUserPermissionGroup != null)
+                            {
+                                a.FileDropUserPermissionGroupId = null;
+                                AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                                if (a.FileDropUserPermissionGroup.IsPersonalGroup)
+                                {
+                                    AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                    DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                                }
+                            }
+                        });
+                    }
                 }
                 AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
 
