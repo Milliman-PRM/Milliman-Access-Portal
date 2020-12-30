@@ -4,6 +4,9 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using AuditLogLib.Event;
+using AuditLogLib.Models;
+using AuditLogLib.Services;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
@@ -71,6 +74,7 @@ namespace MillimanAccessPortal.Services
             using (var scope = _services.CreateScope())
             {
                 var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
 
                 FileUpload uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
 
@@ -157,6 +161,14 @@ namespace MillimanAccessPortal.Services
                     dbContext.FileDropFile.Add(newFileRecord);
                     await dbContext.SaveChangesAsync();
                     Log.Information($"ProcessOneUploadAsync success processing uploaded file from {uploadRecord.StoragePath} to {targetFullPath}");
+                    auditLogger.Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(new SftpFileOperationLogModel
+                    {
+                        FileName = taskKvp.Value.FileName,
+                        FileDropDirectory = (FileDropDirectoryLogModel)destinationDirectoryRecord,
+                        FileDrop = new FileDropLogModel { Id = destinationDirectoryRecord.FileDrop.Id, Name = destinationDirectoryRecord.FileDrop.Name, RootPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), destinationDirectoryRecord.FileDrop.RootPath) },
+                        Account = taskKvp.Value.Account,
+                        User = taskKvp.Value.Account.ApplicationUser,
+                    }), taskKvp.Value.Account.ApplicationUser.UserName);
                 }
                 catch (Exception ex)
                 {
