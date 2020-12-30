@@ -167,30 +167,30 @@ namespace AuditLogLib.Models
                         return descriptionString;
 
                     case 8110:  // SFTP Directory Created
-                        descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
+                        descriptionString += $"Directory created: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\"";
                         return descriptionString;
 
                     case 8111:  // SFTP Directory Removed
-                        descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
+                        descriptionString += $"Directory removed: \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\"";
                         return descriptionString;
 
                     case 8112:  // SFTP File Write Authorized
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for upload to \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
+                        descriptionString += $"File \"{Path.Combine(FileDropDirectoryModel.CanonicalFileDropPath, GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\" authorized for upload";
                         return descriptionString;
 
                     case 8113:  // SFTP File Read Authorized
-                        descriptionString += $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" authorized for download from \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
+                        descriptionString += $"File \"{Path.Combine(FileDropDirectoryModel.CanonicalFileDropPath, GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\" authorized for download";
                         return descriptionString;
 
                     case 8114:  // SFTP File Removed
-                        descriptionString += $"File \"{GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")}\" removed from \"{FileDropDirectoryModel.CanonicalFileDropPath?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\"";
+                        descriptionString += $"File \"{Path.Combine(FileDropDirectoryModel.CanonicalFileDropPath, GetNamedPropertyOfSpecifiedType<string>(eventData, "FileName")).TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\" removed";
                         return descriptionString;
 
                     case 8115:  // SFTP File Or Directory Renamed
                         descriptionString += $"{GetNamedPropertyOfSpecifiedType<string>(eventData, "Type")} " +
-                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\" " +
+                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "From")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\" " +
                                              "renamed/moved to " +
-                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar)}\" ";
+                                             $"\"{GetNamedPropertyOfSpecifiedType<string>(eventData, "To")?.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar).Replace('\\', '/')}\" ";
                         return descriptionString;
                 }
             }

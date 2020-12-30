@@ -995,6 +995,14 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning file {fullFilePathFromDb}");
+                _auditLogger.Log(AuditEventType.SftpFileReadAuthorized.ToEvent(new SftpFileOperationLogModel
+                {
+                    FileName = Path.GetFileName(CanonicalFilePath),
+                    FileDropDirectory = (FileDropDirectoryLogModel)fileRecord.Directory,
+                    FileDrop = new FileDropLogModel { Id = fileDrop.Id, Name = fileDrop.Name, RootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath) },
+                    Account = account,
+                    User = user,
+                }));
                 return PhysicalFile(fullFilePathFromDb, "application/octet-stream", Path.GetFileName(CanonicalFilePath));
             }
             catch (Exception ex)
