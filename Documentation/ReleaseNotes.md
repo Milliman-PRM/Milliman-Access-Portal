@@ -2,7 +2,7 @@
 
 ## Release Notes
 
-### v1.10.0
+### v1.11.0
 
 - Introduced a user interface for interacting with File Drops in MAP
 - Improved the formatting of emails notifying about expired or soon to expire client access review deadlines
