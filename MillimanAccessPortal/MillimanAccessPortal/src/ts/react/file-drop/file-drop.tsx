@@ -1447,7 +1447,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const cancelEditPermissionGroupsButton = (
       <ActionIcon
         label={permissionGroupChangesPending ? 'Discard Changes' : 'Exit Edit Mode'}
-        icon="cancel-circle"
+        icon="cancel"
         action={() => {
           if (permissionGroupChangesPending) {
             this.props.openModifiedFormModal({
