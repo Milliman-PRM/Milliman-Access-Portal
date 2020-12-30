@@ -604,6 +604,7 @@ namespace MillimanAccessPortal.Controllers
                             {
                                 a.FileDropUserPermissionGroupId = null;
                                 AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: account {a.UserName} removed from permission group <{a.FileDropUserPermissionGroup.Name}> because FileDropUser role was removed from user {RequestedUser.UserName}");
                                 if (a.FileDropUserPermissionGroup.IsPersonalGroup)
                                 {
                                     AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
