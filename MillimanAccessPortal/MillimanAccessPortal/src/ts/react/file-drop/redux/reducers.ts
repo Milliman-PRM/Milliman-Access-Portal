@@ -1309,6 +1309,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropContents: action.response,
   }),
+  OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
+    ...state,
+    permissionGroups: null,
+  }),
 });
 
 // ~~~~~~~~~~~~~~~~
