@@ -625,16 +625,17 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <div className="file-upload-row">
                 <span className="file-name">{file.fileName}</span>
                 {
-                  file.cancelable &&
                   !file.errorMsg &&
                   <ButtonSpinner version="circle" spinnerColor="black" />
                 }
-                <ActionIcon
-                  icon="cancel-circle"
-                  disabled={!file.cancelable}
-                  label="Cancel Upload"
-                  action={() => this.props.beginFileDropUploadCancel(file.uploadId)}
-                />
+                {
+                  file.cancelable &&
+                  <ActionIcon
+                    icon="cancel-circle"
+                    label="Cancel Upload"
+                    action={() => this.props.beginFileDropUploadCancel(file.uploadId)}
+                  />
+                }
               </div>
               <div>
                 <UploadStatusBar

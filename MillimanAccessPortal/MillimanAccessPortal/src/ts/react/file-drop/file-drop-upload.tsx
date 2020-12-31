@@ -29,6 +29,7 @@ interface FileDropUploadProps {
   ) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeFileDropUpload: (uploadId: string, fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
+  setUploadCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -164,6 +165,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
           );
           throw response;
         }
+        this.props.setUploadCancelable(this.props.uploadId, false);
         return response.json();
       })
       .then((fileGUID: string) => {
