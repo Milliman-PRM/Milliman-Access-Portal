@@ -2,6 +2,11 @@
 
 ## Release Notes
 
+### v1.11.0
+
+- Introduced a user interface for interacting with File Drops in MAP
+- Improved the formatting of emails notifying about expired or soon to expire client access review deadlines
+
 #### v1.10.1
 
 - Fixed a bug causing two factor authentication to fail when no subsequent URL is included in the login request
