@@ -390,9 +390,9 @@ export class FolderContents extends React.Component<FolderContentsProps> {
       if (isFile(file)) {
         const fileDownloadURL = [
           './FileDrop/DownloadFile?',
-          `FileDropId=${fileDropId}&`,
-          `FileDropFileId=${file.id}&`,
-          `CanonicalFilePath=${path}${path[path.length - 1] === '/' ? '' : '/'}${file.fileName}`,
+          `FileDropId=${encodeURIComponent(fileDropId)}&`,
+          `FileDropFileId=${encodeURIComponent(file.id)}&`,
+          `CanonicalFilePath=${encodeURIComponent(path + (path[path.length - 1] === '/' ? '' : '/') + file.fileName)}`,
         ].join('');
         const fileAttributes = fileDropContentAttributes[file.id];
         const editing = fileAttributes && fileAttributes.editing ? true : false;
@@ -427,7 +427,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   </div> :
                   (this.props.currentUserPermissions && this.props.currentUserPermissions.readAccess) ? (
                     <a
-                      href={encodeURI(fileDownloadURL)}
+                      href={fileDownloadURL}
                       download={true}
                       className="file-download"
                       title={file.description ? file.description : null}
@@ -519,7 +519,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                         this.props.currentUserPermissions.readAccess &&
                         <li>
                           <a
-                            href={encodeURI(fileDownloadURL)}
+                            href={fileDownloadURL}
                             download={true}
                           >
                             <ActionIcon
@@ -625,16 +625,17 @@ export class FolderContents extends React.Component<FolderContentsProps> {
               <div className="file-upload-row">
                 <span className="file-name">{file.fileName}</span>
                 {
-                  file.cancelable &&
                   !file.errorMsg &&
                   <ButtonSpinner version="circle" spinnerColor="black" />
                 }
-                <ActionIcon
-                  icon="cancel-circle"
-                  disabled={!file.cancelable}
-                  label="Cancel Upload"
-                  action={() => this.props.beginFileDropUploadCancel(file.uploadId)}
-                />
+                {
+                  file.cancelable &&
+                  <ActionIcon
+                    icon="cancel-circle"
+                    label="Cancel Upload"
+                    action={() => this.props.beginFileDropUploadCancel(file.uploadId)}
+                  />
+                }
               </div>
               <div>
                 <UploadStatusBar

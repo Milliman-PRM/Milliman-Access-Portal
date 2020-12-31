@@ -679,6 +679,13 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       errorMsg: action.errorMsg,
     },
   }),
+  SET_UPLOAD_CANCELABLE: (state, action: UploadActions.SetUploadCancelable) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      cancelable: action.cancelable,
+    },
+  }),
   BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: Action.BeginFileDropUploadCancel) => ({
     ...state,
     [action.uploadId]: {
@@ -1308,6 +1315,10 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.RenameFileDropFolderSucceeded) => ({
     ...state,
     fileDropContents: action.response,
+  }),
+  OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
+    ...state,
+    permissionGroups: null,
   }),
 });
 
