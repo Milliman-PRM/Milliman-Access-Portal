@@ -76,6 +76,12 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
         this.canceled = false;
         const file: File = resumableFile.file;
 
+        // Check file size before uploading
+        if (resumableFile.size > 3221225472) {
+          this.props.postErrorToast('Files over 3GB must be uploaded via SFTP Client.');
+          return false;
+        }
+
         // Make sure that the user has write permissions
         if (!this.props.writeAccess) {
           return false;
