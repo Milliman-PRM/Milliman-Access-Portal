@@ -56,14 +56,14 @@ export class PopupMenu extends React.Component<{}, PopupMenuState> {
 
     return (
       <div className={`popup-container ${isOpen ? 'open' : null}`}>
-        <span
+        <div
           onClick={this.openMenu}
           className="menu-button"
         >
           <svg className="menu-icon">
             <use xlinkHref={'#menu'} />
           </svg>
-        </span>
+        </div>
         {
           isOpen &&
           <div
