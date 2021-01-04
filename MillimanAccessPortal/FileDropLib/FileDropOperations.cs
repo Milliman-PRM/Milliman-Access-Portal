@@ -18,6 +18,8 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
+using Prm.EmailQueue;
+using MapDbContextLib.Models;
 
 namespace FileDropLib
 {
@@ -582,6 +584,38 @@ namespace FileDropLib
             }
 
             return FileDropOperationResult.OK;
+        }
+
+        public static void HandleUserNotifications(Guid FileDropId, string FileDropName, string FileName)
+        {
+            using (var db = NewMapDbContext)
+            {
+                List<SftpAccount> accountsToNotify = db.SftpAccount
+                           .Include(a => a.ApplicationUser)
+                           .Where(a => a.FileDropUserPermissionGroup.FileDropId == FileDropId)
+                           .Where(a => !a.IsSuspended)
+                           .Where(a => !a.ApplicationUser.IsSuspended)
+                           .ToList();
+
+                if (accountsToNotify.Any())
+                {
+                    List<ApplicationUser> usersToNotify = accountsToNotify
+                                        .Where(a => a.NotificationSubscriptions
+                                            .Any(n => n.NotificationType == FileDropNotificationType.FileWrite && n.IsEnabled))
+                                        .Select(a => a.ApplicationUser)
+                                        .ToList();
+                    string subject = "MAP file drop notification";
+                    string message = $"File \"{FileName}\" has been uploaded to file drop \"{FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
+                        $"You are subscribed to MAP notifications for this file drop. " +
+                        $"To manage your notifications, log into MAP and go to \"My Settings\" for file drop \"{FileDropName}\". ";
+
+                    MailSender mailSender = new MailSender();
+                    foreach (ApplicationUser user in usersToNotify)
+                    {
+                        mailSender.QueueMessage(user.Email, subject, message, "map.support@milliman.com", "Milliman Access Portal notifications");
+                    }
+                }
+            }
         }
 
         /// <summary>

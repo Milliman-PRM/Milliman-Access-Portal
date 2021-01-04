@@ -22,6 +22,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
+using FileDropLib;
 
 namespace MillimanAccessPortal.Services
 {
@@ -160,6 +161,9 @@ namespace MillimanAccessPortal.Services
 
                     dbContext.FileDropFile.Add(newFileRecord);
                     await dbContext.SaveChangesAsync();
+
+                    FileDropOperations.HandleUserNotifications(destinationDirectoryRecord.FileDrop.Id, destinationDirectoryRecord.FileDrop.Name, taskKvp.Value.FileName);
+
                     Log.Information($"ProcessOneUploadAsync success processing uploaded file from {uploadRecord.StoragePath} to {targetFullPath}");
                     auditLogger.Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(new SftpFileOperationLogModel
                     {
