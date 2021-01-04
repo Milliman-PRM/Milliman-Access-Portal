@@ -629,7 +629,7 @@ export class FolderContents extends React.Component<FolderContentsProps> {
                   <ButtonSpinner version="circle" spinnerColor="black" />
                 }
                 {
-                  file.cancelable &&
+                  (file.cancelable || file.errorMsg) &&
                   <ActionIcon
                     icon="cancel-circle"
                     label="Cancel Upload"

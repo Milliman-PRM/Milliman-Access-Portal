@@ -937,7 +937,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <ButtonSpinner version="circle" />
                 }
                 {
-                  upload.cancelable &&
+                  (upload.cancelable || upload.errorMsg) &&
                   <ActionIcon
                     icon="cancel-circle"
                     label="Cancel Upload"
