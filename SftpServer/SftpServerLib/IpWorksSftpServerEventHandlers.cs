@@ -248,7 +248,6 @@ namespace SftpServerLib
                                                     .Single();
                             connection.OpenFileWrites.Add(evtData.Handle, fileDropFileId);
 
-                                                                   .ToList();
                             FileDropOperations.HandleUserNotifications(connection.FileDropId.GetValueOrDefault(), connection.FileDropName, evtData.Path.TrimStart('/'));
 
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
