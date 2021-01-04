@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -144,8 +145,6 @@ namespace MapTests
 
         private void ConfigureInjectedServices()
         {
-            string tokenProviderName = "MAPResetToken";
-
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(builder =>
@@ -160,7 +159,7 @@ namespace MapTests
                 .AddSignInManager()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(GlobalFunctions.PasswordResetTokenProviderName)
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(30)
                 .AddPasswordValidator<PasswordIsNotEmailValidator<ApplicationUser>>()
@@ -189,7 +188,7 @@ namespace MapTests
                 options.User.RequireUniqueEmail = true;
 
                 // Enable custom token provider for password resets
-                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
+                options.Tokens.PasswordResetTokenProvider = GlobalFunctions.PasswordResetTokenProviderName;
             });
 
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
