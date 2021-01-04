@@ -306,6 +306,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
   }
 
   public render() {
-    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }}/>;
+    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }} />;
   }
 }
