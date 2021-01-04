@@ -678,7 +678,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <div>
                     {pending.moveItem.newFolderName.trim() &&
                       <ActionIcon
-                        label="Create folder"
+                        label="Create Folder"
                         icon="check-circle"
                         inline={true}
                         action={() =>
