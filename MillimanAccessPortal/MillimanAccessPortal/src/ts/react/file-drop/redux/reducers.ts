@@ -182,6 +182,7 @@ const _initialUpload: State.FileDropUploadState = {
   checksumProgress: ProgressSummary.empty(),
   uploadProgress: ProgressSummary.empty(),
   errorMsg: null,
+  uploading: false,
 };
 
 const _initialItemToDelete: State.DeleteItemData = {
@@ -639,6 +640,7 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
         canonicalPath: action.canonicalPath,
         fileName: action.fileName,
         cancelable: true,
+        uploading: true,
       },
       [uniqueId]: {
         ..._initialUpload,

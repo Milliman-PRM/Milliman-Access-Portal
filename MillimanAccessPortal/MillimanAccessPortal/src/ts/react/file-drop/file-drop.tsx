@@ -123,10 +123,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   canonicalPath={uploadObject.canonicalPath || selected.fileDropFolder.canonicalPath}
                   cancelable={uploadObject.cancelable}
                   canceled={uploadObject.canceled}
+                  uploading={uploadObject.uploading}
                   postErrorToast={(toastMsg) => toastr.error('', toastMsg)}
                   postSuccessToast={(toastMsg) => toastr.success('', toastMsg)}
-                  dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
-                  browseRef={uploadObject.cancelable ? null : this.browseUploadRef}
+                  dragRef={uploadObject.uploading ? null : this.dragUploadRef}
+                  browseRef={uploadObject.uploading ? null : this.browseUploadRef}
                   writeAccess={(data.fileDropContents &&
                     data.fileDropContents.currentUserPermissions) ?
                     data.fileDropContents.currentUserPermissions.writeAccess : false
