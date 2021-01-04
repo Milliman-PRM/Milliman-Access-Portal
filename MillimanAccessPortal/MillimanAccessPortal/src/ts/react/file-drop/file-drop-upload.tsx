@@ -29,6 +29,7 @@ interface FileDropUploadProps {
   ) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeFileDropUpload: (uploadId: string, fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
+  setUploadCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -74,6 +75,14 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       if (!this.props.cancelable) {
         this.canceled = false;
         const file: File = resumableFile.file;
+
+        // Check file size before uploading
+        const gbLimit = 1;
+        const bytesInGB = 1073741824;
+        if (resumableFile.size > gbLimit * bytesInGB) {
+          this.props.postErrorToast(`Files over ${gbLimit.toString()}GB must be uploaded via SFTP Client.`);
+          return false;
+        }
 
         // Make sure that the user has write permissions
         if (!this.props.writeAccess) {
@@ -164,6 +173,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
           );
           throw response;
         }
+        this.props.setUploadCancelable(this.props.uploadId, false);
         return response.json();
       })
       .then((fileGUID: string) => {

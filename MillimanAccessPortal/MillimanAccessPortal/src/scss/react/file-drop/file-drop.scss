@@ -245,6 +245,14 @@ table {
                 width: 1.5rem;
                 height: 1.5rem;
             }
+
+            [title="Create Folder"] svg {
+                color: $green;
+            }
+
+            [title="Discard Changes"] svg {
+                color: $red;
+            }
         }
     }
 }

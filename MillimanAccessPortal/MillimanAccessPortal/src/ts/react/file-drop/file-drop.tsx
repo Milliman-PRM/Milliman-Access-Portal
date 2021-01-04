@@ -141,6 +141,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.finalizeFileDropUpload({ uploadId, fileDropId, folderId, canonicalPath })}
                   setUploadError={(uploadId, errorMsg) =>
                     this.props.setUploadError({ uploadId, errorMsg })}
+                  setUploadCancelable={(uploadId, cancelable) =>
+                    this.props.setUploadCancelable({ uploadId, cancelable })}
                   updateChecksumProgress={(uploadId, progress) =>
                     this.props.updateChecksumProgress({ uploadId, progress })}
                   updateUploadProgress={(uploadId, progress) =>
@@ -676,7 +678,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <div>
                     {pending.moveItem.newFolderName.trim() &&
                       <ActionIcon
-                        label="Create folder"
+                        label="Create Folder"
                         icon="check-circle"
                         inline={true}
                         action={() =>
@@ -930,16 +932,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <div className="filename">
                 <span className="upload-filename">{upload.fileName}</span>
                 {
-                  upload.cancelable &&
                   !upload.errorMsg &&
                   <ButtonSpinner version="circle" />
                 }
-                <ActionIcon
-                  icon="cancel-circle"
-                  disabled={!upload.cancelable}
-                  label="Cancel Upload"
-                  action={() => this.props.beginFileDropUploadCancel({ uploadId })}
-                />
+                {
+                  upload.cancelable &&
+                  <ActionIcon
+                    icon="cancel-circle"
+                    label="Cancel Upload"
+                    action={() => this.props.beginFileDropUploadCancel({ uploadId })}
+                  />
+                }
               </div>
               <UploadStatusBar
                 checksumProgress={upload.checksumProgress}
