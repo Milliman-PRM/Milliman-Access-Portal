@@ -19,6 +19,7 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
+  uploading: boolean;
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
   writeAccess: boolean;
@@ -72,7 +73,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
-      if (!this.props.cancelable) {
+      if (!this.props.canceled && !this.props.cancelable && !this.props.uploading) {
         this.canceled = false;
         const file: File = resumableFile.file;
 
@@ -305,6 +306,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
   }
 
   public render() {
-    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }}/>;
+    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }} />;
   }
 }

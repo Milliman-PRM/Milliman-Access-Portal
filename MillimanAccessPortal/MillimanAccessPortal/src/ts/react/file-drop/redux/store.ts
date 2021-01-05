@@ -21,6 +21,7 @@ export interface FileDropUploadState extends UploadState {
   folderId: Guid;
   canonicalPath: string;
   canceled: boolean;
+  uploading: boolean;
 }
 
 export interface FileAndFolderAttributes {
