@@ -19,6 +19,7 @@ interface FileDropUploadProps {
   canonicalPath: string;
   cancelable: boolean;
   canceled: boolean;
+  uploading: boolean;
   dragRef?: React.RefObject<HTMLElement>;
   browseRef?: React.RefObject<HTMLInputElement>;
   writeAccess: boolean;
@@ -29,6 +30,7 @@ interface FileDropUploadProps {
   ) => void;
   cancelFileUpload: (uploadId: string) => void;
   finalizeFileDropUpload: (uploadId: string, fileDropId: Guid, folderId: Guid, canonicalPath: string) => void;
+  setUploadCancelable: (uploadId: string, cancelable: boolean) => void;
   setUploadError: (uploadId: string, errorMsg: string) => void;
   updateChecksumProgress: (uploadId: string, progress: ProgressSummary) => void;
   updateUploadProgress: (uploadId: string, progress: ProgressSummary) => void;
@@ -71,9 +73,17 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
 
     // Define the process after a file is selected
     this.resumable.on('fileAdded', async (resumableFile: Resumable.ResumableFile) => {
-      if (!this.props.cancelable) {
+      if (!this.props.canceled && !this.props.cancelable && !this.props.uploading) {
         this.canceled = false;
         const file: File = resumableFile.file;
+
+        // Check file size before uploading
+        const gbLimit = 1;
+        const bytesInGB = 1073741824;
+        if (resumableFile.size > gbLimit * bytesInGB) {
+          this.props.postErrorToast(`Files over ${gbLimit.toString()}GB must be uploaded via SFTP Client.`);
+          return false;
+        }
 
         // Make sure that the user has write permissions
         if (!this.props.writeAccess) {
@@ -164,6 +174,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
           );
           throw response;
         }
+        this.props.setUploadCancelable(this.props.uploadId, false);
         return response.json();
       })
       .then((fileGUID: string) => {
@@ -295,6 +306,6 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
   }
 
   public render() {
-    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }}/>;
+    return <input type="file" ref={this.props.browseRef} style={{ display: 'none' }} />;
   }
 }

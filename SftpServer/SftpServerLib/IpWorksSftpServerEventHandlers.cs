@@ -15,7 +15,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
-using Prm.EmailQueue;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -186,7 +185,6 @@ namespace SftpServerLib
                                     db.SaveChanges();
                                 }
                             }
-
                             FileDropFile newFileDropFile = new FileDropFile
                             {
                                 FileName = fileName,
@@ -249,31 +247,7 @@ namespace SftpServerLib
                                                     .Single();
                             connection.OpenFileWrites.Add(evtData.Handle, fileDropFileId);
 
-                            #region Process user notifications for FileWrite event
-                            List<SftpAccount> accountsToNotify = db.SftpAccount
-                                                                   .Include(a => a.ApplicationUser)
-                                                                   .Where(a => a.FileDropUserPermissionGroup.FileDropId == connection.FileDropId)
-                                                                   .Where(a => !a.IsSuspended)
-                                                                   .Where(a => !a.ApplicationUser.IsSuspended)
-                                                                   .ToList();
-                            if (accountsToNotify.Any())
-                            {
-                                List<ApplicationUser> usersToNotify = accountsToNotify.Where(a => a.NotificationSubscriptions.Any(n => n.NotificationType == FileDropNotificationType.FileWrite
-                                                                                                                                    && n.IsEnabled))
-                                                                                      .Select(a => a.ApplicationUser)
-                                                                                      .ToList();
-                                string subject = "MAP file drop notification";
-                                string message = $"File \"{evtData.Path.TrimStart('/')}\" has been uploaded to file drop \"{connection.FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
-                                    $"You are subscribed to MAP notifications for this file drop. " +
-                                    $"To manage your notifications, log into MAP and go to \"My Settings\" for file drop \"{connection.FileDropName}\". ";
-
-                                MailSender mailSender = new MailSender();
-                                foreach (ApplicationUser user in usersToNotify)
-                                {
-                                    mailSender.QueueMessage(user.Email, subject, message, "map.support@milliman.com", "Milliman Access Portal notifications");
-                                }
-                            }
-                            #endregion
+                            FileDropOperations.HandleUserNotifications(connection.FileDropId.GetValueOrDefault(), connection.FileDropName, evtData.Path, FileDropNotificationType.FileWrite);
 
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
                                 new SftpFileOperationLogModel
@@ -984,6 +958,5 @@ namespace SftpServerLib
                 }
             }
         }
-
     }
 }

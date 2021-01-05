@@ -1200,12 +1200,15 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
                 List<Guid> authorizedClientIds = DbContext.UserRoleInClient
-                                                          .Where(urc => EF.Functions.ILike(User.Identity.Name, urc.User.UserName))
+                                                          .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
                                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                           .Select(urc => urc.ClientId)
                                                           .ToList();
-                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDropUserPermissionGroup.FileDrop.ClientId)
-                                                 && EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName)))
+                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDrop.ClientId)
+                                                 && (a.FileDropUserPermissionGroup.ReadAccess || 
+                                                     a.FileDropUserPermissionGroup.WriteAccess || 
+                                                     a.FileDropUserPermissionGroup.DeleteAccess)
+                                                 && EF.Functions.ILike(a.ApplicationUser.UserName, User.Identity.Name)))
                 {
                     FileDropUserResult = AuthorizationResult.Failed();
                 }

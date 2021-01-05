@@ -250,7 +250,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             !thisPG.isPersonalGroup &&
             thisPG.assignedMapUserIds.map((userId, index) => {
               const thisUser = eligibleUsers[userId];
-              return (
+              return thisUser ? (
                 <tr
                   key={thisUser.id}
                   className={
@@ -279,7 +279,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   </td>
                   <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
-              );
+              ) : null;
             })
           }
           {

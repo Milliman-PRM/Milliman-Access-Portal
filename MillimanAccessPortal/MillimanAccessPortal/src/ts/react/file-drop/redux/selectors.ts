@@ -223,6 +223,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
 export function permissionGroupChangesPending(state: FileDropState) {
   const { data, pending } = state;
   return data.permissionGroups
+    && data.permissionGroups.fileDropId
     && pending.permissionGroupsTab
     && (
       Object.keys(data.permissionGroups.permissionGroups).length

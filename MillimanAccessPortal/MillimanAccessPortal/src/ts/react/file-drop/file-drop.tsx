@@ -123,10 +123,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   canonicalPath={uploadObject.canonicalPath || selected.fileDropFolder.canonicalPath}
                   cancelable={uploadObject.cancelable}
                   canceled={uploadObject.canceled}
+                  uploading={uploadObject.uploading}
                   postErrorToast={(toastMsg) => toastr.error('', toastMsg)}
                   postSuccessToast={(toastMsg) => toastr.success('', toastMsg)}
-                  dragRef={uploadObject.cancelable ? null : this.dragUploadRef}
-                  browseRef={uploadObject.cancelable ? null : this.browseUploadRef}
+                  dragRef={uploadObject.uploading ? null : this.dragUploadRef}
+                  browseRef={uploadObject.uploading ? null : this.browseUploadRef}
                   writeAccess={(data.fileDropContents &&
                     data.fileDropContents.currentUserPermissions) ?
                     data.fileDropContents.currentUserPermissions.writeAccess : false
@@ -141,6 +142,8 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     this.props.finalizeFileDropUpload({ uploadId, fileDropId, folderId, canonicalPath })}
                   setUploadError={(uploadId, errorMsg) =>
                     this.props.setUploadError({ uploadId, errorMsg })}
+                  setUploadCancelable={(uploadId, cancelable) =>
+                    this.props.setUploadCancelable({ uploadId, cancelable })}
                   updateChecksumProgress={(uploadId, progress) =>
                     this.props.updateChecksumProgress({ uploadId, progress })}
                   updateUploadProgress={(uploadId, progress) =>
@@ -676,7 +679,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   <div>
                     {pending.moveItem.newFolderName.trim() &&
                       <ActionIcon
-                        label="Create folder"
+                        label="Create Folder"
                         icon="check-circle"
                         inline={true}
                         action={() =>
@@ -930,16 +933,17 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <div className="filename">
                 <span className="upload-filename">{upload.fileName}</span>
                 {
-                  upload.cancelable &&
                   !upload.errorMsg &&
                   <ButtonSpinner version="circle" />
                 }
-                <ActionIcon
-                  icon="cancel-circle"
-                  disabled={!upload.cancelable}
-                  label="Cancel Upload"
-                  action={() => this.props.beginFileDropUploadCancel({ uploadId })}
-                />
+                {
+                  (upload.cancelable || upload.errorMsg) &&
+                  <ActionIcon
+                    icon="cancel-circle"
+                    label="Cancel Upload"
+                    action={() => this.props.beginFileDropUploadCancel({ uploadId })}
+                  />
+                }
               </div>
               <UploadStatusBar
                 checksumProgress={upload.checksumProgress}
@@ -1447,7 +1451,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const cancelEditPermissionGroupsButton = (
       <ActionIcon
         label={permissionGroupChangesPending ? 'Discard Changes' : 'Exit Edit Mode'}
-        icon="cancel-circle"
+        icon="cancel"
         action={() => {
           if (permissionGroupChangesPending) {
             this.props.openModifiedFormModal({
