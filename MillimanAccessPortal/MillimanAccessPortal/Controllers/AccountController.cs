@@ -1360,7 +1360,7 @@ namespace MillimanAccessPortal.Controllers
             string message =
                 $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
-                $"This code will be valid for 5 minutes.";
+                $"This code will be valid for {_configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes")} minutes.";
 
             _messageSender.QueueEmail(user.Email, "Authentication Code", message);
 
