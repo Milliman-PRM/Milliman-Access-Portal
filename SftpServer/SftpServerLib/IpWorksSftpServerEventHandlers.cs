@@ -15,7 +15,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
-using Prm.EmailQueue;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -248,8 +247,7 @@ namespace SftpServerLib
                                                     .Single();
                             connection.OpenFileWrites.Add(evtData.Handle, fileDropFileId);
 
-                                                                   .ToList();
-                            FileDropOperations.HandleUserNotifications(connection.FileDropId.GetValueOrDefault(), connection.FileDropName, evtData.Path.TrimStart('/'));
+                            FileDropOperations.HandleUserNotifications(connection.FileDropId.GetValueOrDefault(), connection.FileDropName, evtData.Path, FileDropNotificationType.FileWrite);
 
                             new AuditLogger().Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(
                                 new SftpFileOperationLogModel

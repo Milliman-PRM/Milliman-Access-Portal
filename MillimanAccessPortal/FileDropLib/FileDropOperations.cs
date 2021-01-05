@@ -586,7 +586,7 @@ namespace FileDropLib
             return FileDropOperationResult.OK;
         }
 
-        public static void HandleUserNotifications(Guid FileDropId, string FileDropName, string FileName)
+        public static void HandleUserNotifications(Guid FileDropId, string FileDropName, string FilePath, FileDropNotificationType NotificationType)
         {
             using (var db = NewMapDbContext)
             {
@@ -601,11 +601,11 @@ namespace FileDropLib
                 {
                     List<ApplicationUser> usersToNotify = accountsToNotify
                                         .Where(a => a.NotificationSubscriptions
-                                            .Any(n => n.NotificationType == FileDropNotificationType.FileWrite && n.IsEnabled))
+                                            .Any(n => n.NotificationType == NotificationType && n.IsEnabled))
                                         .Select(a => a.ApplicationUser)
                                         .ToList();
                     string subject = "MAP file drop notification";
-                    string message = $"File \"{FileName}\" has been uploaded to file drop \"{FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
+                    string message = $"File \"{FilePath}\" has been uploaded to file drop \"{FileDropName}\". {Environment.NewLine}{Environment.NewLine}" +
                         $"You are subscribed to MAP notifications for this file drop. " +
                         $"To manage your notifications, log into MAP and go to \"My Settings\" for file drop \"{FileDropName}\". ";
 

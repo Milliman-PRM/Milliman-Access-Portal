@@ -23,6 +23,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Serilog;
 using FileDropLib;
+using MapDbContextLib.Models;
 
 namespace MillimanAccessPortal.Services
 {
@@ -162,7 +163,12 @@ namespace MillimanAccessPortal.Services
                     dbContext.FileDropFile.Add(newFileRecord);
                     await dbContext.SaveChangesAsync();
 
-                    FileDropOperations.HandleUserNotifications(destinationDirectoryRecord.FileDrop.Id, destinationDirectoryRecord.FileDrop.Name, taskKvp.Value.FileName);
+                    FileDropOperations.HandleUserNotifications(
+                        destinationDirectoryRecord.FileDrop.Id,
+                        destinationDirectoryRecord.FileDrop.Name,
+                        Path.Combine(destinationDirectoryRecord.CanonicalFileDropPath, taskKvp.Value.FileName).Replace('\\', '/'),
+                        FileDropNotificationType.FileWrite
+                    );                    
 
                     Log.Information($"ProcessOneUploadAsync success processing uploaded file from {uploadRecord.StoragePath} to {targetFullPath}");
                     auditLogger.Log(AuditEventType.SftpFileWriteAuthorized.ToEvent(new SftpFileOperationLogModel
