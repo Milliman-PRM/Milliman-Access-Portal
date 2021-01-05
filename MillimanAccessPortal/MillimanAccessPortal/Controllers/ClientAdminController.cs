@@ -584,12 +584,36 @@ namespace MillimanAccessPortal.Controllers
                     rolesToRemove.AddRange(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator));
                 }
 
-                rolesToRemove.ForEach(urc => 
+                foreach (var urc in rolesToRemove)
                 {
                     DbContext.UserRoleInClient.Remove(urc);
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
 
-                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                });
+                    if (urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                    {
+                        var accountsToReset = await DbContext.SftpAccount
+                                                             .Include(a => a.FileDrop)
+                                                             .Include(a => a.FileDropUserPermissionGroup)
+                                                             .Where(a => a.FileDrop.ClientId == model.ClientId)
+                                                             .Where(a => a.ApplicationUserId == model.UserId)
+                                                             .ToListAsync();
+
+                        accountsToReset.ForEach(a =>
+                        {
+                            if (a.FileDropUserPermissionGroup != null)
+                            {
+                                a.FileDropUserPermissionGroupId = null;
+                                AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: account {a.UserName} removed from permission group <{a.FileDropUserPermissionGroup.Name}> because FileDropUser role was removed from user {RequestedUser.UserName}");
+                                if (a.FileDropUserPermissionGroup.IsPersonalGroup)
+                                {
+                                    AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                    DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                                }
+                            }
+                        });
+                    }
+                }
                 AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
 
                 // add roles not already assigned

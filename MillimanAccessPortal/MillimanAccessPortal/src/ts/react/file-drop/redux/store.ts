@@ -3,13 +3,36 @@ import { applyMiddleware, createStore } from 'redux';
 import { composeWithDevTools } from 'redux-devtools-extension';
 import createSagaMiddleware from 'redux-saga';
 
+import { UploadState } from '../../../upload/Redux/store';
 import {
-  FileDropClientWithStats, FileDropEvent, FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
+  FileDropClientWithStats, FileDropDirectoryContentModel, FileDropEvent,
+  FileDropSettings, FileDropWithStats, Guid, PermissionGroupsReturnModel,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { fileDropReducerState } from './reducers';
 import sagas from './sagas';
+
+export interface FileDropUploadState extends UploadState {
+  uploadId: string;
+  clientId: Guid;
+  fileDropId: Guid;
+  fileName: string;
+  folderId: Guid;
+  canonicalPath: string;
+  canceled: boolean;
+  uploading: boolean;
+}
+
+export interface FileAndFolderAttributes {
+  expanded?: boolean;
+  editing?: boolean;
+  fileName?: string;
+  description?: string;
+  fileNameRaw?: string;
+  descriptionRaw?: string;
+  saving?: boolean;
+}
 
 // ~~~~~~~~~~~~~~~~~~~~
 // Define State Objects
@@ -26,6 +49,10 @@ export interface FileDropPendingReturnState {
   permissionsUpdate: boolean;
   activityLog: boolean;
   settings: boolean;
+  move: boolean;
+  createFolderMoveMode: boolean;
+  deleteItem: boolean;
+  createFileDropFolder: boolean;
 }
 
 /** Data used in the Create File Drop modal form */
@@ -47,6 +74,9 @@ export type AfterFormEntityTypes =
   | 'Delete File Drop'
   | 'Select Client'
   | 'Select File Drop'
+  | 'Edit File'
+  | 'Edit Folder'
+  | 'Navigate To'
   | AvailableFileDropTabs;
 
 export interface AfterFormModal {
@@ -56,6 +86,33 @@ export interface AfterFormModal {
 
 /** Available File Drop tabs */
 export type AvailableFileDropTabs = 'files' | 'permissions' | 'activityLog' | 'settings';
+
+/** State object for Create Folder mode */
+export interface CreateFolderData {
+  name: string;
+  description: string;
+}
+
+/** State object for Move File Drop Item modal */
+export interface MoveItemData {
+  fileDropName: string;
+  itemType: 'file' | 'folder';
+  itemId: Guid;
+  itemName: string;
+  initialCanonicalPath: string;
+  currentCanonicalPath: string;
+  breadcrumbs: string[];
+  newFolderId: Guid;
+  createNewFolderMode: boolean;
+  newFolderName: string;
+}
+
+/** State object for Delete File Drop Item modal */
+export interface DeleteItemData {
+  itemType: 'file' | 'folder';
+  itemName: string;
+  itemId: Guid;
+}
 
 /** All state that represents the user interactions with the page */
 export interface FileDropPendingState {
@@ -69,18 +126,28 @@ export interface FileDropPendingState {
   permissionGroupsTab: PermissionGroupsReturnModel;
   permissionGroupsEditMode: boolean;
   afterFormModal: AfterFormModal;
+  uploads: Dict<FileDropUploadState>;
+  createFolder?: CreateFolderData;
+  moveItem: MoveItemData;
+  itemToDelete: DeleteItemData;
 }
 
 /** State representing user-selected entities */
 export interface FileDropSelectedState {
   client: Guid;
   fileDrop: Guid | 'NEW FILE DROP';
+  fileDropFolder: {
+    folderId: Guid;
+    canonicalPath: string;
+  };
 }
 
 /** State representing raw (unaltered) data returned from the server */
 export interface FileDropDataState {
   clients: Dict<FileDropClientWithStats>;
   fileDrops: Dict<FileDropWithStats>;
+  fileDropContents: FileDropDirectoryContentModel;
+  fileDropContentsForMove: FileDropDirectoryContentModel;
   permissionGroups: PermissionGroupsReturnModel;
   activityLogEvents: FileDropEvent[];
   fileDropSettings: FileDropSettings;
@@ -90,6 +157,7 @@ export interface FileDropDataState {
 export interface FileDropCardAttributesState {
   clients: Dict<CardAttributes>;
   fileDrops: Dict<CardAttributes>;
+  fileDropContents: Dict<FileAndFolderAttributes>;
 }
 
 /** State representing filter strings */
@@ -98,6 +166,7 @@ export interface FileDropFilterState {
   fileDrop: FilterState;
   permissions: FilterState;
   activityLog: FilterState;
+  fileDropContents: FilterState;
 }
 
 /** State representing modals */
@@ -107,6 +176,8 @@ export interface FileDropModals {
   confirmDeleteFileDrop: ModalState;
   formModified: ModalState;
   passwordNotification: ModalState;
+  moveFileDropItem: ModalState;
+  deleteFileDropItem: ModalState;
 }
 
 /** Top-Level File Drop state */

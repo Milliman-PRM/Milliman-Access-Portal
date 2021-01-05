@@ -6,6 +6,7 @@
 
 using AuditLogLib;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -95,6 +96,7 @@ namespace MapTests
         public FileSystemTasks FileSystemTasks { get; set; } = default;
         public IUploadHelper UploadHelper { get; set; } = default;
         public IUrlHelper UrlHelper { get; set; } = default;
+        public IFileDropUploadTaskTracker FileDropUploadTaskTracker { get; set; } = default;
         public ClientAdminQueries ClientAdminQueries { get; set; } = default;
         #endregion
 
@@ -143,8 +145,6 @@ namespace MapTests
 
         private void ConfigureInjectedServices()
         {
-            string tokenProviderName = "MAPResetToken";
-
             var services = new ServiceCollection();
 
             services.AddDbContext<ApplicationDbContext>(builder =>
@@ -159,7 +159,7 @@ namespace MapTests
                 .AddSignInManager()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(GlobalFunctions.PasswordResetTokenProviderName)
                 .AddTop100000PasswordValidator<ApplicationUser>()
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(30)
                 .AddPasswordValidator<PasswordIsNotEmailValidator<ApplicationUser>>()
@@ -188,7 +188,7 @@ namespace MapTests
                 options.User.RequireUniqueEmail = true;
 
                 // Enable custom token provider for password resets
-                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
+                options.Tokens.PasswordResetTokenProvider = GlobalFunctions.PasswordResetTokenProviderName;
             });
 
             services.AddScoped<IAuthorizationHandler, MapAuthorizationHandler>();
@@ -255,6 +255,7 @@ namespace MapTests
             services.AddSingleton<IGoLiveTaskQueue, GoLiveTaskQueue>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
             services.AddSingleton<IUploadTaskQueue, UploadTaskQueue>();
+            services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
 
             services.AddTransient<IMessageQueue, MessageQueueServices>();
 
@@ -304,6 +305,7 @@ namespace MapTests
             GoLiveTaskQueue = ServiceProvider.GetService<IGoLiveTaskQueue>();
             PublicationPostProcessingTaskQueue = ServiceProvider.GetService<IPublicationPostProcessingTaskQueue>();
             UploadTaskQueue = ServiceProvider.GetService<IUploadTaskQueue>();
+            FileDropUploadTaskTracker = ServiceProvider.GetService<IFileDropUploadTaskTracker>();
             #endregion
         }
 
@@ -1236,24 +1238,24 @@ namespace MapTests
             #region Initialize FileDropPermissionGroups
             DbContext.FileDropUserPermissionGroup.AddRange(new List<FileDropUserPermissionGroup>
             {
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(1), Name = "user 2 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(2), Name = "user 4 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(3), Name = "user 6 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(4), Name = "user 6 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(5), Name = "user 7 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1) },
-                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(6), Name = "user 7 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2) },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(1), Name = "user 2 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1), ReadAccess = true },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(2), Name = "user 4 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2), ReadAccess = true },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(3), Name = "user 6 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1), ReadAccess = true },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(4), Name = "user 6 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2), ReadAccess = true },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(5), Name = "user 7 in FileDrop 1", FileDropId = TestUtil.MakeTestGuid(1), ReadAccess = true },
+                new FileDropUserPermissionGroup { Id = TestUtil.MakeTestGuid(6), Name = "user 7 in FileDrop 2", FileDropId = TestUtil.MakeTestGuid(2), ReadAccess = true },
             });
             #endregion
 
             #region Initialize SftpAccount
             DbContext.SftpAccount.AddRange(new List<SftpAccount>
                 {
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(2), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "SFTP user 1-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "SFTP user 2-aaa2" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "SFTP user 3-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "SFTP user 4-aaa2" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "SFTP user 5-aaa1" },
-                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "SFTP user 6-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(1), ApplicationUserId = TestUtil.MakeTestGuid(1), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(1), UserName = "user1-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(2), ApplicationUserId = TestUtil.MakeTestGuid(4), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(2), UserName = "user4-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(3), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(3), UserName = "user6-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(4), ApplicationUserId = TestUtil.MakeTestGuid(6), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(4), UserName = "user6-aaa2" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(1)) { Id = TestUtil.MakeTestGuid(5), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(5), UserName = "user7-aaa1" },
+                    new SftpAccount(fileDropId: TestUtil.MakeTestGuid(2)) { Id = TestUtil.MakeTestGuid(6), ApplicationUserId = TestUtil.MakeTestGuid(7), FileDropUserPermissionGroupId = TestUtil.MakeTestGuid(6), UserName = "user7-aaa2" },
                 });
             #endregion
 

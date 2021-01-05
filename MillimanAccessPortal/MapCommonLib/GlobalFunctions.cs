@@ -28,6 +28,9 @@ namespace MapCommonLib
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
 
+        public static readonly string PasswordResetTokenProviderName = "MAPResetToken";
+        public static readonly string TwoFactorEmailTokenProviderName = "TwoFactorEmailTokenProvider";
+
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
         public static bool IsValidEmail(string TestAddress)

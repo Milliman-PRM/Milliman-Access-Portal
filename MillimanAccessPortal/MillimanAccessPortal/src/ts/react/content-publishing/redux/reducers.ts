@@ -899,7 +899,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     const fileUploads = { ...state.pendingFormData.relatedFiles };
     for (const key in fileUploads) {
       if (fileUploads[key].uniqueUploadId === action.uploadId) {
-        fileUploads[key].fileUploadId = action.Guid;
+        fileUploads[key].fileUploadId = action.guid;
       }
     }
 

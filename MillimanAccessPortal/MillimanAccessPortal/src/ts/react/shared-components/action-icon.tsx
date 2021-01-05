@@ -1,17 +1,25 @@
-﻿import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-circle.svg';
+import '../../../images/icons/add-file.svg';
+import '../../../images/icons/add-folder.svg';
 import '../../../images/icons/add-group.svg';
 import '../../../images/icons/add-user.svg';
 import '../../../images/icons/add.svg';
+import '../../../images/icons/cancel-circle.svg';
 import '../../../images/icons/cancel.svg';
+import '../../../images/icons/check-circle.svg';
 import '../../../images/icons/checkmark.svg';
+import '../../../images/icons/collapse-card.svg';
 import '../../../images/icons/collapse-cards.svg';
 import '../../../images/icons/delete.svg';
+import '../../../images/icons/download.svg';
 import '../../../images/icons/edit.svg';
 import '../../../images/icons/email.svg';
 import '../../../images/icons/error.svg';
 import '../../../images/icons/expand-card.svg';
 import '../../../images/icons/expand-cards.svg';
 import '../../../images/icons/information.svg';
+import '../../../images/icons/move-file.svg';
+import '../../../images/icons/move-folder.svg';
 import '../../../images/icons/reload.svg';
 import '../../../images/icons/remove-circle.svg';
 import '../../../images/icons/sort-alphabetically-asc.svg';
@@ -30,10 +38,11 @@ import * as React from 'react';
 
 export interface ActionIconProps {
   label: string;
-  icon: 'add-circle' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'checkmark' | 'collapse-cards' |
-  'delete' | 'edit' | 'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' | 'reload' |
-  'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' |
-  'sort-date-desc' | 'upload' | 'user' | 'userguide';
+  icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'cancel-circle' |
+  'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'delete' | 'download' | 'edit' | 'email' |
+  'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' |
+  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' |
+  'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
