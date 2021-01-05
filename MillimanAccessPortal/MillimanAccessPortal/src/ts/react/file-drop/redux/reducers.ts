@@ -165,7 +165,7 @@ const _initialData: State.FileDropDataState = {
   fileDrops: {},
   fileDropContents: null,
   fileDropContentsForMove: null,
-  permissionGroups: null,
+  permissionGroups: _initialPermissionGroupsTab,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
 };
@@ -1130,7 +1130,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     clients: {
       ...action.response.clients,
     },
-    permissionGroups: null,
+    permissionGroups: _initialPermissionGroupsTab,
     fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
@@ -1320,7 +1320,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
   }),
   OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
     ...state,
-    permissionGroups: null,
+    permissionGroups: _initialPermissionGroupsTab,
   }),
 });
 
