@@ -76,8 +76,6 @@ namespace MillimanAccessPortal
             int accountActivationTokenTimespanDays = Configuration.GetValue<int?>("AccountActivationTokenTimespanDays") ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays;
             int passwordResetTokenTimespanHours = Configuration.GetValue<int?>("PasswordResetTokenTimespanHours") ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours;
 
-            string tokenProviderName = "MAPResetToken";
-
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentityCore<ApplicationUser>(config =>
@@ -92,7 +90,8 @@ namespace MillimanAccessPortal
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(GlobalFunctions.PasswordResetTokenProviderName)
+                .AddTokenProvider<TwoFactorTokenProvider<ApplicationUser>>(GlobalFunctions.TwoFactorEmailTokenProviderName)
                 ;
 
             #region Configure authentication services
@@ -299,7 +298,7 @@ namespace MillimanAccessPortal
             {
                 builder.TwoFactorUserIdCookie.Configure(options =>
                 {
-                    options.Cookie.MaxAge = TimeSpan.FromMinutes(5);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(Configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes"));  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
                 });
                 builder.ApplicationCookie.Configure(options =>
                 {
@@ -332,14 +331,19 @@ namespace MillimanAccessPortal
                 // User settings
                 options.User.RequireUniqueEmail = true;
 
-                // Enable custom token provider for password resets
-                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
+                // Replace default token provider(s) with customized alternative(s)
+                options.Tokens.PasswordResetTokenProvider = GlobalFunctions.PasswordResetTokenProviderName;
             });
 
-            // Configure custom security token provider
+            // Configure custom token providers
             services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromHours(passwordResetTokenTimespanHours);
+            });
+            
+            services.Configure<TwoFactorTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMinutes(Configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes"));
             });
 
             // Configure the default token provider used for account activation
