@@ -328,10 +328,17 @@ export interface FileDrop {
   name: string;
   description: string;
   isSuspended?: boolean;
+  currentUserPermissions?: PermissionSet;
 }
 
 export interface FileDropWithStats extends FileDrop {
   userCount: number;
+}
+
+export interface PermissionSet {
+  readAccess: boolean;
+  writeAccess: boolean;
+  deleteAccess: boolean;
 }
 
 export interface FileDropsReturnModel {
@@ -347,9 +354,7 @@ export interface PermissionGroupModel {
   assignedMapUserIds: Guid[];
   assignedSftpAccountIds: Guid[];
   isPersonalGroup: boolean;
-  readAccess: boolean;
-  writeAccess: boolean;
-  deleteAccess: boolean;
+  permissions: PermissionSet;
 }
 
 export interface FileDropEligibleUser {
@@ -372,9 +377,7 @@ export interface PGChangeModel {
   name: string;
   usersAdded: Guid[];
   usersRemoved: Guid[];
-  readAccess: boolean;
-  writeAccess: boolean;
-  deleteAccess: boolean;
+  permissions: PermissionSet;
 }
 
 export interface PermissionGroupsChangesModel {
@@ -625,4 +628,66 @@ export interface FileDropSettings {
 
 export enum FileDropNotificationTypeEnum {
   FileWritten = 0,
+}
+
+export interface FileDropDirectory {
+  id: Guid;
+  canonicalPath: string;
+  description: string;
+}
+
+export interface FileDropFile {
+  id: Guid;
+  fileName: string;
+  description: string;
+  size: string;
+  uploadDateTimeUtc: string;
+}
+
+export interface FileDropDirectoryContentModel {
+  thisDirectory: FileDropDirectory;
+  directories: FileDropDirectory[];
+  files: FileDropFile[];
+  currentUserPermissions: PermissionSet;
+}
+
+export enum FileUploadStatus {
+  InProgress = 0,
+  Complete = 1,
+  Error = 2,
+}
+
+export enum FileDropUploadTaskStatus {
+  Unknown = 0,
+  Requested = 1,
+  FinalizingUpload = 2,
+  ValidatingFile = 3,
+  Copying = 4,
+  Completed = 5,
+  Error = 6,
+  CompletedRenamed = 7,
+}
+
+export interface ResumableInfo {
+  ChunkNumber: number;
+  TotalChunks: number;
+  ChunkSize: number;
+  TotalSize: number;
+  FileName: string;
+  UID: string;
+  Checksum: string;
+  Type: string;
+}
+
+export interface FileUpload {
+  id: string;
+  initiatedDateTimeUtc: string;
+  clientFileIdentifier: string;
+  status: FileUploadStatus;
+  statusMessage: string;
+}
+
+export interface FileDropFileUpload {
+  status: FileDropUploadTaskStatus;
+  fileName: string;
 }

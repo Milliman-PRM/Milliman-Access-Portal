@@ -19,6 +19,7 @@
  */
 
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -29,6 +30,7 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Services;
 using Serilog;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.IO;
 using System.Text;
@@ -225,6 +227,28 @@ namespace MillimanAccessPortal.Controllers
             _uploadTaskQueue.QueueUploadFinalization(resumableInfo);
 
             return Json(fileUpload.Id);
+        }
+
+        internal async Task<bool> RemoveUploadedFile(Guid fileUploadId)
+        {
+            FileUpload fileUpload = _dbContext.FileUpload.Find(fileUploadId);
+
+            if (fileUpload == null || fileUpload.Status == FileUploadStatus.InProgress)
+            {
+                return false;
+            }
+
+            try
+            {
+                _dbContext.FileUpload.Remove(fileUpload);
+                FileSystemUtil.DeleteFileWithRetry(fileUpload.StoragePath);
+                await _dbContext.SaveChangesAsync();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 

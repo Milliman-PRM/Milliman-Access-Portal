@@ -744,8 +744,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
                       this.props.cancelFileUpload({ uploadId })}
-                    finalizeUpload={(uploadId, fileName, Guid) =>
-                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                    finalizeUpload={(uploadId, fileName, guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -836,8 +836,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.cancelFileUpload({ uploadId })}
                     removeExistingFile={(uploadId) =>
                       this.props.removeExistingFile({ uploadId })}
-                    finalizeUpload={(uploadId, fileName, Guid) =>
-                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                    finalizeUpload={(uploadId, fileName, guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -867,8 +867,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.cancelFileUpload({ uploadId })}
                     removeExistingFile={(uploadId) =>
                       this.props.removeExistingFile({ uploadId })}
-                    finalizeUpload={(uploadId, fileName, Guid) =>
-                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                    finalizeUpload={(uploadId, fileName, guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>
@@ -896,8 +896,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       this.props.cancelFileUpload({ uploadId })}
                     removeExistingFile={(uploadId) =>
                       this.props.removeExistingFile({ uploadId })}
-                    finalizeUpload={(uploadId, fileName, Guid) =>
-                      this.props.finalizeUpload({ uploadId, fileName, Guid })}
+                    finalizeUpload={(uploadId, fileName, guid) =>
+                      this.props.finalizeUpload({ uploadId, fileName, guid })}
                     setUploadError={(uploadId, errorMsg) =>
                       this.props.setUploadError({ uploadId, errorMsg })}
                     updateChecksumProgress={(uploadId, progress) =>

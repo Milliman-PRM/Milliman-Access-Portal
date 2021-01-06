@@ -7,6 +7,7 @@
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace SftpServerLib
@@ -32,6 +33,11 @@ namespace SftpServerLib
         public DateTime ClientAccessReviewDeadline { get; set; }
 
         public string FileDropRootPathAbsolute { get; set; } = null;
+
+        /// <summary>
+        /// Relates the file handle as reported by IP*Works to the corresponding FileDropFile Id
+        /// </summary>
+        public Dictionary<string,Guid> OpenFileWrites { get; set; } = new Dictionary<string, Guid>();
 
         public bool ReadAccess { get; set; } = false;
         public bool WriteAccess { get; set; } = false;

@@ -2,11 +2,11 @@ import * as _ from 'lodash';
 import * as moment from 'moment';
 
 import {
-  AvailableEligibleUsers, FileDropClientWithStats, FileDropWithStats, Guid,
-  PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
+  AvailableEligibleUsers, FileDropClientWithStats, FileDropDirectory, FileDropFile, FileDropWithStats,
+  Guid, PermissionGroupModel, PermissionGroupsChangesModel, PGChangeModel,
 } from '../../models';
 import { Dict } from '../../shared-components/redux/store';
-import { FileDropState } from './store';
+import { FileDropState, FileDropUploadState } from './store';
 
 // ~~~~~~~~~~
 // Interfaces
@@ -115,6 +115,54 @@ export function fileDropEntities(state: FileDropState) {
   return _.sortBy(filteredFileDrops, ['name']);
 }
 
+/** Return the highlighted File Drop if it is visible to the user */
+export function activeSelectedFileDrop(state: FileDropState) {
+  return (state.selected.fileDrop) ? state.data.fileDrops[state.selected.fileDrop] : null;
+}
+
+/** Return the actively selected File Drop Folder */
+export function activeSelectedFileDropFolder(state: FileDropState) {
+  return state.selected.fileDropFolder.folderId;
+}
+
+/** Return the active file uploads for the currently selected File Drop folder */
+export function activeSelectedFileDropFolderUploads(state: FileDropState) {
+  const { uploads } = state.pending;
+  if (state.selected.fileDropFolder.folderId) {
+    const selectedFolderUploads = Object.keys(uploads).filter((upload) => {
+      return uploads[upload].folderId === state.selected.fileDropFolder.folderId;
+    });
+    return selectedFolderUploads.map((uploadId) => {
+      return uploads[uploadId];
+    });
+  } else {
+    return [];
+  }
+}
+
+/** Select all the directories selected by the File Drop contents filter. */
+export function fileDropDirectories(state: FileDropState) {
+  if (!state.data.fileDropContents) { return []; }
+  const filterTextLower = state.filters.fileDropContents.text.toLowerCase().trim();
+  const filteredDirectories = _.filter(state.data.fileDropContents.directories, (directory: FileDropDirectory) => {
+    const directoryName = directory.canonicalPath.slice(directory.canonicalPath.lastIndexOf('/'));
+    return directoryName.toLowerCase().indexOf(filterTextLower) !== -1
+      || filterTextLower === '';
+  });
+  return _.sortBy(filteredDirectories, ['canonicalPath']);
+}
+
+/**  Select all the files selected by the File Drop contents filter. */
+export function fileDropFiles(state: FileDropState) {
+  if (!state.data.fileDropContents) { return []; }
+  const filterTextLower = state.filters.fileDropContents.text.toLowerCase().trim();
+  const filteredFiles = _.filter(state.data.fileDropContents.files, (file: FileDropFile) => (
+    file.fileName.toLowerCase().indexOf(filterTextLower) !== -1
+    || filterTextLower === ''
+  ));
+  return _.sortBy(filteredFiles, ['fileName']);
+}
+
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
 // Permission Group Selectors
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -141,9 +189,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
         isPersonalGroup: pgPending[pg].isPersonalGroup,
         assignedMapUserIds: pgPending[pg].assignedMapUserIds,
         assignedSftpAccountIds: pgPending[pg].assignedSftpAccountIds,
-        readAccess: pgPending[pg].readAccess,
-        writeAccess: pgPending[pg].writeAccess,
-        deleteAccess: pgPending[pg].deleteAccess,
+        permissions: pgPending[pg].permissions,
       }));
 
     // Updated Permission Groups
@@ -158,9 +204,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
           name: pendingPG.name,
           usersAdded: _.difference(pendingPG.assignedMapUserIds, rawPG.assignedMapUserIds),
           usersRemoved: _.difference(rawPG.assignedMapUserIds, pendingPG.assignedMapUserIds),
-          readAccess: pendingPG.readAccess,
-          writeAccess: pendingPG.writeAccess,
-          deleteAccess: pendingPG.deleteAccess,
+          permissions: pendingPG.permissions,
         };
       });
 
@@ -179,6 +223,7 @@ export function pendingPermissionGroupsChanges(state: FileDropState): Permission
 export function permissionGroupChangesPending(state: FileDropState) {
   const { data, pending } = state;
   return data.permissionGroups
+    && data.permissionGroups.fileDropId
     && pending.permissionGroupsTab
     && (
       Object.keys(data.permissionGroups.permissionGroups).length
@@ -264,6 +309,26 @@ export function permissionGroupEntities(state: FileDropState) {
   } else {
     return state.pending.permissionGroupsTab;
   }
+}
+
+/** Return whether a user has sufficient permissions to view and generate SFTP credentials. */
+export function userHasFileDropPermissions(state: FileDropState) {
+  const fileDropSettings = state.data.fileDropSettings;
+  const fileDropContents = state.data.fileDropContents;
+  return fileDropSettings.assignedPermissionGroupId &&
+    fileDropContents &&
+    fileDropContents.currentUserPermissions && (
+      fileDropContents.currentUserPermissions.readAccess ||
+      fileDropContents.currentUserPermissions.writeAccess ||
+      fileDropContents.currentUserPermissions.deleteAccess
+    );
+}
+
+/** Return a list of Guids of all files and folders that have unsaved changes */
+export function filesOrFoldersModified(state: FileDropState) {
+  return _.keysIn(_.filter(state.cardAttributes.fileDropContents, (f) =>
+    f.editing && (f.fileName !== f.fileNameRaw || f.description !== f.descriptionRaw),
+  ));
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~

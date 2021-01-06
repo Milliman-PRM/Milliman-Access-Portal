@@ -370,8 +370,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("CreatedByAccountId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("CreatedByAccountUserName")
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -390,8 +390,6 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("DirectoryId", "FileName")
                         .IsUnique();
@@ -1115,16 +1113,10 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
-                        .WithMany("Files")
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("MapDbContextLib.Context.FileDropDirectory", "Directory")
                         .WithMany("Files")
                         .HasForeignKey("DirectoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 

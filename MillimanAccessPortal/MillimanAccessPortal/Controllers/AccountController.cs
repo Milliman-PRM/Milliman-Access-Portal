@@ -1200,12 +1200,15 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
                 List<Guid> authorizedClientIds = DbContext.UserRoleInClient
-                                                          .Where(urc => EF.Functions.ILike(User.Identity.Name, urc.User.UserName))
+                                                          .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
                                                           .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                           .Select(urc => urc.ClientId)
                                                           .ToList();
-                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDropUserPermissionGroup.FileDrop.ClientId)
-                                                 && EF.Functions.ILike(User.Identity.Name, a.ApplicationUser.UserName)))
+                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDrop.ClientId)
+                                                 && (a.FileDropUserPermissionGroup.ReadAccess || 
+                                                     a.FileDropUserPermissionGroup.WriteAccess || 
+                                                     a.FileDropUserPermissionGroup.DeleteAccess)
+                                                 && EF.Functions.ILike(a.ApplicationUser.UserName, User.Identity.Name)))
                 {
                     FileDropUserResult = AuthorizationResult.Failed();
                 }
@@ -1332,8 +1335,6 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} GET action");
 
-            string provider = TokenOptions.DefaultEmailProvider;
-
             var user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
 
             #region validation
@@ -1349,20 +1350,20 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            if (!(await _userManager.GetValidTwoFactorProvidersAsync(user)).Contains(provider))
+            if (!(await _userManager.GetValidTwoFactorProvidersAsync(user)).Contains(GlobalFunctions.TwoFactorEmailTokenProviderName))
             {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}, the required two factor token provider ({provider}) is not available for user {user.UserName}");
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName}, the required two factor token provider ({GlobalFunctions.TwoFactorEmailTokenProviderName}) is not available for user {user.UserName}");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
-            var token = await _userManager.GenerateTwoFactorTokenAsync(user, provider);
+            var token = await _userManager.GenerateTwoFactorTokenAsync(user, GlobalFunctions.TwoFactorEmailTokenProviderName);
 
             // TODO Convert this to html, looking like the prototype
             string message =
                 $"Your two factor authentication code for logging into Milliman Access Portal is:{Environment.NewLine}{Environment.NewLine}" +
                 $"{token}{Environment.NewLine}{Environment.NewLine}" +
-                $"This code will be valid for 5 minutes.";
+                $"This code will be valid for {_configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes")} minutes.";
 
             _messageSender.QueueEmail(user.Email, "Authentication Code", message);
 
