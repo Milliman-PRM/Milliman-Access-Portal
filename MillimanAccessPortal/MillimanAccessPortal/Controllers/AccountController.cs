@@ -1183,7 +1183,7 @@ namespace MillimanAccessPortal.Controllers
             List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
             long order = 1;
 
-            // Add the Content Element
+            // Add the Content element
             NavBarElements.Add(new NavBarElementModel
             {
                 Order = order++,
@@ -1193,22 +1193,26 @@ namespace MillimanAccessPortal.Controllers
                 Icon = "content-grid",
             });
 
-            // Conditionally add the FileDrop Element
+            // Conditionally add the FileDrop element
             AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
             AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
             if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
             {
+                DateTime todayUtcDate = DateTime.UtcNow.Date;
+                TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
-                List<Guid> authorizedClientIds = DbContext.UserRoleInClient
-                                                          .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
-                                                          .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
-                                                          .Select(urc => urc.ClientId)
-                                                          .ToList();
-                if (!DbContext.SftpAccount.Any(a => authorizedClientIds.Contains(a.FileDrop.ClientId)
-                                                 && (a.FileDropUserPermissionGroup.ReadAccess || 
-                                                     a.FileDropUserPermissionGroup.WriteAccess || 
-                                                     a.FileDropUserPermissionGroup.DeleteAccess)
-                                                 && EF.Functions.ILike(a.ApplicationUser.UserName, User.Identity.Name)))
+                List<Guid> authorizedClientIds = await DbContext.UserRoleInClient
+                                                                .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                                .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                                                .Where(urc => todayUtcDate - urc.Client.LastAccessReview.LastReviewDateTimeUtc.Date < expirationTime)
+                                                                .Select(urc => urc.ClientId)
+                                                                .ToListAsync();
+                if (!await DbContext.SftpAccount.AnyAsync(a => authorizedClientIds.Contains(a.FileDrop.Client.Id)
+                                                      && (a.FileDropUserPermissionGroup.ReadAccess || 
+                                                          a.FileDropUserPermissionGroup.WriteAccess ||
+                                                          a.FileDropUserPermissionGroup.DeleteAccess)
+                                                      && EF.Functions.ILike(a.ApplicationUser.UserName, User.Identity.Name))
+                    || !authorizedClientIds.Any())
                 {
                     FileDropUserResult = AuthorizationResult.Failed();
                 }
@@ -1226,7 +1230,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the System Admin Element
+            // Conditionally add the System Admin element
             AuthorizationResult SystemAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
             if (SystemAdminResult.Succeeded)
             {
@@ -1240,7 +1244,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Client Admin Element
+            // Conditionally add the Client Admin element
             AuthorizationResult ClientAdminResult1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
             AuthorizationResult ClientAdminResult2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
             if (ClientAdminResult1.Succeeded || ClientAdminResult2.Succeeded)
@@ -1255,7 +1259,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Client Access Review Element
+            // Conditionally add the Client Access Review element
             if (ClientAdminResult1.Succeeded)
             {
                 List<Guid> myClientIds = (await DbContext.UserRoleInClient
@@ -1283,7 +1287,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Content Publishing Element
+            // Conditionally add the Content Publishing element
             AuthorizationResult ContentPublishResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentPublisher));
             if (ContentPublishResult.Succeeded)
             {
@@ -1297,7 +1301,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Conditionally add the Content Access Element
+            // Conditionally add the Content Access element
             AuthorizationResult ContentAccessResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.ContentAccessAdmin));
             if (ContentAccessResult.Succeeded)
             {
@@ -1311,7 +1315,7 @@ namespace MillimanAccessPortal.Controllers
                 });
             }
 
-            // Add the Account Settings Element
+            // Add the Account Settings element
             NavBarElements.Add(new NavBarElementModel
             {
                 Order = order++,
