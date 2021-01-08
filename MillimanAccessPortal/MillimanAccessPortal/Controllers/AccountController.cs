@@ -1198,15 +1198,15 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
             if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
             {
-                DateTime todayUtcDate = DateTime.UtcNow.Date;
                 TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
-                List<Guid> authorizedClientIds = await DbContext.UserRoleInClient
-                                                                .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
-                                                                .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
-                                                                .Where(urc => todayUtcDate - urc.Client.LastAccessReview.LastReviewDateTimeUtc.Date < expirationTime)
-                                                                .Select(urc => urc.ClientId)
-                                                                .ToListAsync();
+                List<Guid> authorizedClientIds = (await DbContext.UserRoleInClient
+                                                                 .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                                 .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
+                                                                 .Select(urc => urc.Client)
+                                                                 .ToListAsync())
+                                                  .FindAll(c => DateTime.UtcNow.Date - c.LastAccessReview.LastReviewDateTimeUtc.Date <= expirationTime)
+                                                  .ConvertAll(c => c.Id);
                 if (!await DbContext.SftpAccount.AnyAsync(a => authorizedClientIds.Contains(a.FileDrop.Client.Id)
                                                       && (a.FileDropUserPermissionGroup.ReadAccess || 
                                                           a.FileDropUserPermissionGroup.WriteAccess ||
