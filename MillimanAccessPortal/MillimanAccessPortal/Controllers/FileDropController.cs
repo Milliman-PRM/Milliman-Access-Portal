@@ -760,12 +760,21 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> GetFolderContents(Guid fileDropId, string canonicalPath)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == fileDropId);
             #region Validation
             if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested content cannot be displayed because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
