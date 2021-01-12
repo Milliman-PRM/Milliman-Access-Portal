@@ -7,6 +7,10 @@
 
 *If you have some ideas how to solve the problem(s), describe them here.*
 
+## Prototype links / Other Resources
+
+*List links or other references to resources that support or illustrate requirements or solutions.*
+
 ## Potential Tasks
 
   - [ ] Link to any related issues or User Stories
