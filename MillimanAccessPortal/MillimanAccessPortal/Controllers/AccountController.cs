@@ -271,7 +271,7 @@ namespace MillimanAccessPortal.Controllers
                 switch (result)
                 {
                     case var r when r.RequiresTwoFactor:
-                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, model.ReturnUrl }));
+                        Response.Headers.Add("NavigateTo", Url.Action(nameof(LoginStepTwo), new { model.Username, returnUrl = model.ReturnUrl }));
                         return Ok();
 
                     case var r when r.Succeeded:

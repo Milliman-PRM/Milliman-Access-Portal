@@ -37,7 +37,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
       username: getParameterByName('Username'),
       data: {
         code: '',
-        returnUrl: getParameterByName('returnUrl') || '',
+        returnUrl: getParameterByName('returnUrl') || '/',
       },
       errors: {},
       formIsValid: false,
@@ -84,7 +84,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
               />
               <div className="button-container">
                 <a
-                  href={'/Account/Login?ReturnUrl=' + encodeURIComponent(this.state.data.returnUrl)}
+                  href={'/Account/Login?returnUrl=' + encodeURIComponent(this.state.data.returnUrl)}
                   className="link-button"
                 >
                   <button
