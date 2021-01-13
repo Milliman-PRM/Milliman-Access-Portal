@@ -37,7 +37,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
       username: getParameterByName('Username'),
       data: {
         code: '',
-        returnUrl: getParameterByName('ReturnUrl'),
+        returnUrl: getParameterByName('returnUrl') || '',
       },
       errors: {},
       formIsValid: false,
