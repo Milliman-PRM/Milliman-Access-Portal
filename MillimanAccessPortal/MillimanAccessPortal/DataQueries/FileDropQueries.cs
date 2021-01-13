@@ -171,7 +171,7 @@ namespace MillimanAccessPortal.DataQueries
                                                                        (a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess) &&
                                                                        a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
 
-                IsAccessReviewExpired = DateTime.UtcNow.Date - client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_appConfig.GetValue<int>("")),
+                IsAccessReviewExpired = DateTime.UtcNow.Date - client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
             };
         }
 
