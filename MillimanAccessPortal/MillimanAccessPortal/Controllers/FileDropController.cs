@@ -45,11 +45,13 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace MillimanAccessPortal.Controllers
 {
     public class FileDropController : Controller
     {
+        private readonly Regex fileDropRegex = new Regex(@"(\.{2})|(\/)|(\\)");
         private readonly IAuditLogger _auditLogger;
         private readonly IConfiguration _applicationConfig;
         private readonly IAuthorizationService _authorizationService;
@@ -157,6 +159,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (fileDropRegex.Match(fileDropModel.Name).Success)
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a valid name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
