@@ -52,9 +52,9 @@ namespace MapCommonLib
         {
             try
             {
-                return string.IsNullOrWhiteSpace(TestValue) ||
-                       !FileDropValidationRegex.IsMatch(TestValue) ||
-                       TestValue.Any(v => Path.GetInvalidFileNameChars().Contains(v));
+                return !string.IsNullOrWhiteSpace(TestValue) &&
+                       !FileDropValidationRegex.IsMatch(TestValue) &&
+                       !TestValue.Any(v => Path.GetInvalidFileNameChars().Contains(v));
             }
             catch
             {

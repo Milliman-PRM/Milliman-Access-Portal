@@ -293,6 +293,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+
+            if (!GlobalFunctions.isValidFileDropItemName(fileDropModel.Name))
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} existing File Drop must have a valid name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             fileDropRecord.Name = fileDropModel.Name;
