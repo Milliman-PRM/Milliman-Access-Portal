@@ -85,8 +85,7 @@ namespace MillimanAccessPortal.DataQueries
                                                                                               .Select(a => a.FileDrop.Client)),
                                                          new IdPropertyComparer<Client>()
                                                      )
-                                                     .ToList()
-                                                     .FindAll(c => DateTime.UtcNow.Date - c.LastAccessReview.LastReviewDateTimeUtc.Date <= TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")));
+                                                     .ToList();
             List<Guid> clientIds = clientsWithRole.ConvertAll(c => c.Id);
             List<Guid> parentClientIds = clientsWithRole
                                             .Where(c => c.ParentClientId.HasValue)
