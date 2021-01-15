@@ -45,6 +45,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -157,6 +158,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (!GlobalFunctions.isValidFileDropItemName(fileDropModel.Name))
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a valid name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -297,6 +305,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} new File Drop must have a name");
                 Response.Headers.Add("Warning", "The provided FileDrop name was not provided.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (!GlobalFunctions.isValidFileDropItemName(fileDropModel.Name))
+            {
+                Log.Warning($"In action {ControllerContext.ActionDescriptor.DisplayName} existing File Drop must have a valid name");
+                Response.Headers.Add("Warning", "The provided FileDrop name was invalid.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1179,7 +1194,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDropOperations.CreateDirectory(Path.Combine(containingDirectoryRecord.CanonicalFileDropPath, requestModel.NewFolderName),
+            var opResult = FileDropOperations.CreateDirectory(Path.Combine(containingDirectoryRecord.CanonicalFileDropPath, requestModel.NewFolderName),
                                                Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath),
                                                fileDrop.Name,
                                                requestModel.Description,
@@ -1188,6 +1203,23 @@ namespace MillimanAccessPortal.Controllers
                                                fileDrop.Client.Name,
                                                authorizedAccount,
                                                user);
+
+            if (opResult != FileDropOperations.FileDropOperationResult.OK)
+            {
+                string warningMessage = opResult switch
+                {
+                    FileDropOperations.FileDropOperationResult.PERMISSION_DENIED => "Permission denied",
+                    FileDropOperations.FileDropOperationResult.NO_SUCH_PATH => "The target directory does not exist",
+                    FileDropOperations.FileDropOperationResult.FILE_ALREADY_EXISTS => "A file or folder with the new name already exists",
+                    FileDropOperations.FileDropOperationResult.INVALID_FILENAME => "Invalid folder name",
+                    FileDropOperations.FileDropOperationResult.FAILURE => "Failed to rename the folder",
+                    _ => "Unhandled error",
+                };
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropOperations.RenameFolder returned result {opResult.GetDisplayNameString()} with message {warningMessage}");
+                Response.Headers.Add("Warning", warningMessage);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             try
             {
                 DirectoryContentModel returnModel = await _fileDropQueries.CreateFolderContentModelAsync(requestModel.FileDropId, authorizedAccount, containingDirectoryRecord.CanonicalFileDropPath);
@@ -1556,8 +1588,9 @@ namespace MillimanAccessPortal.Controllers
                     FileDropOperations.FileDropOperationResult.NO_SUCH_FILE => "The folder was not found",
                     FileDropOperations.FileDropOperationResult.NO_SUCH_PATH => "The target directory does not exist",
                     FileDropOperations.FileDropOperationResult.FILE_ALREADY_EXISTS => "A file or folder with the new name already exists",
+                    FileDropOperations.FileDropOperationResult.INVALID_FILENAME => "Invalid folder name",
                     FileDropOperations.FileDropOperationResult.FAILURE => "Failed to rename the folder",
-                    _ => "Unhandled error"
+                    _ => "Unhandled error",
                 };
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} FileDropOperations.RenameFolder returned result {opResult.GetDisplayNameString()} with message {warningMessage}");
                 Response.Headers.Add("Warning", warningMessage);
@@ -1678,6 +1711,7 @@ namespace MillimanAccessPortal.Controllers
                     FileDropOperations.FileDropOperationResult.NO_SUCH_FILE => "The file was not found",
                     FileDropOperations.FileDropOperationResult.NO_SUCH_PATH => "The target directory does not exist",
                     FileDropOperations.FileDropOperationResult.FILE_ALREADY_EXISTS => "A file with the new name already exists",
+                    FileDropOperations.FileDropOperationResult.INVALID_FILENAME => "Invalid file name",
                     FileDropOperations.FileDropOperationResult.FAILURE => "Failed to rename the file",
                     _ => "Unhandled error"
                 };
