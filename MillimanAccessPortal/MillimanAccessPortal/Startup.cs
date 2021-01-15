@@ -306,6 +306,7 @@ namespace MillimanAccessPortal
                     options.LogoutPath = "/Account/LogOut";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                     options.SlidingExpiration = true;
+                    options.ReturnUrlParameter = "returnUrl";
                 });
             });
 
