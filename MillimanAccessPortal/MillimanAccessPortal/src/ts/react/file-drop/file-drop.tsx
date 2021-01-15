@@ -788,10 +788,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               indentation={entity.indent}
               bannerMessage={entity.isAccessReviewExpired ? {
                 level: 'informational',
-                message: (
-                  <span>Please contact your MAP Administrator.</span>
-                ),
-              } : null}
+                message: entity.canManageFileDrops ?
+                  (<span>Client Access Review required.</span>) :
+                  (<span>Please contact your MAP Administrator.</span>),
+                } : null
+              }
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.canManageFileDrops ? entity.code : null} />
