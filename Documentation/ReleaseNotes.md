@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+#### v1.11.1
+
+- Removed user visibility to File Drops associated with a Client that is past due for periodic administrative access review
+- Fixed a bug causing navigation to an invalid URL after user login in specific conditions
+- Fixed a bug that permitted a user to change a file or folder name to an invalid name
+- Fixed a bug that prevented certain valid email domains from being added to a Client's list of accepted user domains
+
 ### v1.11.0
 
 - Introduced a user interface for interacting with File Drops in MAP

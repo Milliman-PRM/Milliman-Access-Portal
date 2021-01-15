@@ -59,7 +59,7 @@ namespace MillimanAccessPortal.DataQueries
             _auditLog = auditLog;
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
             _serviceProvider = serviceProvider;
-    }
+        }
 
         /// <summary>
         /// Return a model representing all clients that the current user should see in the FileDrop view clients column
@@ -169,37 +169,46 @@ namespace MillimanAccessPortal.DataQueries
                                                                        a.FileDropUserPermissionGroupId.HasValue &&
                                                                        (a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess) &&
                                                                        a.FileDropUserPermissionGroup.FileDrop.ClientId == client.Id),
+
+                IsAccessReviewExpired = DateTime.UtcNow.Date - client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
             };
         }
 
         internal async Task<FileDropsModel> GetFileDropsModelForClientAsync(Guid clientId, Guid userId)
         {
+            List<FileDrop> fileDrops = new List<FileDrop>();
+
+            Client client = await _dbContext.Client.FindAsync(clientId);
+
+            FileDropsModel FileDropsModel = new FileDropsModel
+            {
+                ClientCard = await GetClientCardModelAsync(client, userId),
+            };
+
             bool userIsAdmin = await _dbContext.UserRoleInClient
                                                .AnyAsync(urc => urc.UserId == userId &&
                                                                 urc.Role.RoleEnum == RoleEnum.FileDropAdmin &&
                                                                 urc.ClientId == clientId);
 
-            List<FileDrop> fileDrops = userIsAdmin
-                                       ? await _dbContext.FileDrop
-                                                         .Where(d => d.ClientId == clientId)
-                                                         .ToListAsync()
-                                       : (await _dbContext.SftpAccount
-                                                          .Where(a => a.ApplicationUser.Id == userId)
-                                                          .Where(a => a.FileDropUserPermissionGroupId.HasValue)
-                                                          .Where(a => a.FileDropUserPermissionGroup.ReadAccess
-                                                                   || a.FileDropUserPermissionGroup.WriteAccess
-                                                                   || a.FileDropUserPermissionGroup.DeleteAccess)
-                                                          .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == clientId)
-                                                          .Select(a => a.FileDropUserPermissionGroup.FileDrop)
-                                                          .ToListAsync())
-                                                .Distinct(new IdPropertyComparer<FileDrop>())
-                                                .ToList();
-
-            Client client = await _dbContext.Client.FindAsync(clientId);
-            FileDropsModel FileDropsModel = new FileDropsModel
+            // only include file drop details if the client access review deadline is not expired
+            if (DateTime.UtcNow.Date - client.LastAccessReview.LastReviewDateTimeUtc.Date <= TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
             {
-                ClientCard = await GetClientCardModelAsync(client, userId),
-            };
+                fileDrops = userIsAdmin
+                            ? await _dbContext.FileDrop
+                                              .Where(d => d.ClientId == clientId)
+                                              .ToListAsync()
+                            : (await _dbContext.SftpAccount
+                                               .Where(a => a.ApplicationUser.Id == userId)
+                                               .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                               .Where(a => a.FileDropUserPermissionGroup.ReadAccess
+                                                        || a.FileDropUserPermissionGroup.WriteAccess
+                                                        || a.FileDropUserPermissionGroup.DeleteAccess)
+                                               .Where(a => a.FileDropUserPermissionGroup.FileDrop.ClientId == clientId)
+                                               .Select(a => a.FileDropUserPermissionGroup.FileDrop)
+                                               .ToListAsync())
+                                     .Distinct(new IdPropertyComparer<FileDrop>())
+                                     .ToList();
+            }
 
             foreach (FileDrop eachDrop in fileDrops)
             {

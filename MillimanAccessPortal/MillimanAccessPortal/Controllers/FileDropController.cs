@@ -182,6 +182,13 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            if (DateTime.UtcNow.Date - referencedClient.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrops for Client with requested Id {fileDropModel.ClientId} is for Client {referencedClient.Name} with expired content access review deadline of {referencedClient.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop cannot be created because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             if (_dbContext.FileDrop.Any(d => d.ClientId == referencedClient.Id &&
                                              EF.Functions.ILike(fileDropModel.Name, d.Name)))
             {
@@ -251,6 +258,10 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateFileDrop([FromBody][Bind("Id,Name,Description")] FileDrop fileDropModel)
         {
+            FileDrop fileDropRecord = await _dbContext.FileDrop
+                                                      .Include(d => d.Client)
+                                                      .SingleAsync(d => d.Id == fileDropModel.Id);
+
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDropModel.ClientId));
             if (!adminRoleResult.Succeeded)
@@ -259,16 +270,19 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
             }
+            if (DateTime.UtcNow.Date - fileDropRecord.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropModel.Id} is for Client {fileDropRecord.Client.Name} with expired content access review deadline of {fileDropRecord.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop cannot be updated because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
-            FileDrop fileDropRecord = await _dbContext.FileDrop
-                                                      .Include(d => d.Client)
-                                                      .SingleAsync(d => d.Id == fileDropModel.Id);
             FileDrop oldFileDrop = new FileDrop { Id = fileDropRecord.Id,
                                                   Name = fileDropRecord.Name,
                                                   Description = fileDropRecord.Description,
                                                   RootPath = fileDropRecord.RootPath,
-            };
+                                                };
 
             #region Validation
             if (ModelState.Any(v => v.Value.ValidationState == ModelValidationState.Invalid && !new[] { nameof(FileDrop.RootPath), nameof(FileDrop.ShortHash) }.Contains(v.Key)))  // RootPath & ShortHash can/should be invalid here
@@ -318,6 +332,8 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> FileDrops(Guid clientId)
         {
+            Client client = await _dbContext.Client.FindAsync(clientId);
+
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
             if (!adminRoleResult.Succeeded)
@@ -329,6 +345,12 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("Warning", "You are not authorized to File Drop access.");
                     return Unauthorized();
                 }
+            }
+            if (DateTime.UtcNow.Date - client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrops for Client with requested Id {clientId} is for Client {client.Name} with expired content access review deadline of {client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop information cannot be obtained because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -355,6 +377,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {id} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop cannot be deleted because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -420,6 +448,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> PermissionGroups(Guid FileDropId, Guid ClientId)
         {
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == FileDropId);
             #region Authorization
             var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, ClientId));
             if (!adminRoleResult.Succeeded)
@@ -427,6 +456,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop information cannot be obtained because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -440,7 +475,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateFileDropPermissionGroups([FromBody] UpdatePermissionGroupsModel model)
         {
-            var fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
+            var fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(fd => fd.Id == model.FileDropId);
             if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} requested FileDrop Id {model.FileDropId} not found");
@@ -455,6 +490,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {model.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The file drop cannot be updated because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -481,7 +522,8 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ActionLog(Guid fileDropId)
         {
-            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+            FileDrop fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId);
+            Guid clientId = fileDrop?.ClientId ?? Guid.Empty;
 
             #region Validation
             if (clientId == Guid.Empty)
@@ -499,6 +541,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to manage File Drops for this client.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop information cannot be obtained because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -525,13 +573,20 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
         {
-            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
+            Guid clientId = fileDrop?.ClientId ?? Guid.Empty;
 
             #region Validation
-            if (clientId == Guid.Empty)
+            if (fileDrop == null || clientId == Guid.Empty)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop information cannot be obtained because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -607,7 +662,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
@@ -626,6 +681,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
                 Response.Headers.Add("Warning", "You are not authorized to access account settings for this file drop.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop settings cannot be accessed because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -647,7 +708,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
@@ -681,6 +742,12 @@ namespace MillimanAccessPortal.Controllers
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} The sftp account for user {account.UserName} is suspended. The user may not update credentials.");
                 Response.Headers.Add("Warning", "Your account is suspended. You may not update account credentials.");
                 return Unauthorized();
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop settings cannot be updated because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
 
@@ -716,7 +783,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDrop fileDrop = _dbContext.FileDrop.Find(boundModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == boundModel.FileDropId);
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.FileDropUserPermissionGroup)
@@ -749,6 +816,13 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "Your account is suspended. You may not update account settings.");
                 return Unauthorized();
             }
+
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {boundModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file drop settings cannot be updated because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             #region update the settings
@@ -775,12 +849,21 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> GetFolderContents(Guid fileDropId, string canonicalPath)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(fileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == fileDropId);
             #region Validation
             if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested content cannot be displayed because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -831,7 +914,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> ProcessUploadedFile([FromBody] ProcessUploadedFileModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
 
             #region Validation
             if (fileDrop == null)
@@ -846,6 +929,12 @@ namespace MillimanAccessPortal.Controllers
                 // invalid file name
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid file name {requestModel.FileName} specified");
                 Response.Headers.Add("Warning", "An invalid file name was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The file cannot be uploaded because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -944,7 +1033,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == FileDropId);
             #region Validation
             if (fileDrop == null)
             {
@@ -960,6 +1049,12 @@ namespace MillimanAccessPortal.Controllers
                 // invalid file name
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} invalid canonical path <{CanonicalFilePath}> specified");
                 Response.Headers.Add("Warning", "An invalid file path was requested.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file cannot be downloaded because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1045,7 +1140,12 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested folder cannot be created because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             SftpAccount authorizedAccount = await _dbContext.SftpAccount
@@ -1143,12 +1243,18 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> DeleteFileDropFile([FromBody] RemoveFileDropFileRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = await _dbContext.FileDrop.FindAsync(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file cannot be deleted because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1207,12 +1313,18 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> DeleteFileDropFolder([FromBody] RemoveFileDropFolderRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested folder cannot be deleted because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1279,6 +1391,12 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file cannot be updated because the Client's access review deadline is expired.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
@@ -1340,6 +1458,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested folder cannot be updated because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1404,6 +1528,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested folder cannot be renamed because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
@@ -1501,6 +1631,12 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (DateTime.UtcNow.Date - fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc.Date > TimeSpan.FromDays(_applicationConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {requestModel.FileDropId} is for Client {fileDrop.Client.Name} with expired content access review deadline of {fileDrop.Client.LastAccessReview.LastReviewDateTimeUtc}");
+                Response.Headers.Add("Warning", "The requested file cannot be renamed because the Client's access review deadline is expired.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
