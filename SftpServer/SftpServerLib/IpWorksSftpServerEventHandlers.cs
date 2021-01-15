@@ -144,14 +144,14 @@ namespace SftpServerLib
             {
                 if (authResult == AuthorizationResult.NotAuthorized)
                 {
-                    Log.Information($"OnFileOpen event invoked for file {requiredAccess}, but access is denied for account {evtData.User}");
+                    Log.Information($"OnFileOpen event invoked for file {evtData.Path}, but access is denied for account {evtData.User}");
                     evtData.StatusCode = 3;  // SSH_FX_PERMISSION_DENIED 3
                     return;
                 }
 
                 if (containingDirectory == null)
                 {
-                    Log.Warning($"OnFileOpen event invoked for file {requiredAccess}, but containing directory {dirPathToFind} database record was not foundc");
+                    Log.Warning($"OnFileOpen event invoked for file {evtData.Path}, but containing directory {dirPathToFind} database record was not found");
                     evtData.StatusCode = 10;  // SSH_FX_NO_SUCH_PATH 10
                     return;
                 }
@@ -713,7 +713,7 @@ namespace SftpServerLib
                         connection.FileDropName = userAccount.FileDropUserPermissionGroup.FileDrop.Name;
                         connection.ClientId = userAccount.FileDropId;
                         connection.ClientName = userAccount.FileDropUserPermissionGroup.FileDrop.Client.Name;
-                        connection.ClientAccessReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
+                        connection.ClientAccessReviewDeadline = clientReviewDeadline;
                         connection.ReadAccess = userAccount.FileDropUserPermissionGroup.ReadAccess;
                         connection.WriteAccess = userAccount.FileDropUserPermissionGroup.WriteAccess;
                         connection.DeleteAccess = userAccount.FileDropUserPermissionGroup.DeleteAccess;
@@ -828,6 +828,8 @@ namespace SftpServerLib
                                 connection.DeleteAccess = connectedAccount.FileDropUserPermissionGroup.DeleteAccess;
                             }
 
+                            connection.ClientAccessReviewDeadline = connectedAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc 
+                                                                  + TimeSpan.FromDays(GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays"));
                         }
                     }
                 }
@@ -884,29 +886,32 @@ namespace SftpServerLib
 
             bool accountHasAccess = false;
 
-            switch (requiredAccess)
+            if (DateTime.UtcNow.Date <= connectionRecord.ClientAccessReviewDeadline)
             {
-                case RequiredAccess.NoRequirement:
-                    accountHasAccess = true;
-                    break;
+                switch (requiredAccess)
+                {
+                    case RequiredAccess.NoRequirement:
+                        accountHasAccess = true;
+                        break;
 
-                case RequiredAccess.AnyOneOrMore:
-                    accountHasAccess = connectionRecord.ReadAccess
-                                    || connectionRecord.WriteAccess
-                                    || connectionRecord.DeleteAccess;
-                    break;
+                    case RequiredAccess.AnyOneOrMore:
+                        accountHasAccess = connectionRecord.ReadAccess
+                                        || connectionRecord.WriteAccess
+                                        || connectionRecord.DeleteAccess;
+                        break;
 
-                case RequiredAccess.Read:
-                    accountHasAccess = connectionRecord.ReadAccess;
-                    break;
+                    case RequiredAccess.Read:
+                        accountHasAccess = connectionRecord.ReadAccess;
+                        break;
 
-                case RequiredAccess.Write:
-                    accountHasAccess = connectionRecord.WriteAccess;
-                    break;
+                    case RequiredAccess.Write:
+                        accountHasAccess = connectionRecord.WriteAccess;
+                        break;
 
-                case RequiredAccess.Delete:
-                    accountHasAccess = connectionRecord.DeleteAccess;
-                    break;
+                    case RequiredAccess.Delete:
+                        accountHasAccess = connectionRecord.DeleteAccess;
+                        break;
+                }
             }
 
             if (accountHasAccess)
