@@ -611,7 +611,7 @@ namespace SftpServerLib
 
             if (evtData.AuthMethod.Equals("password", StringComparison.InvariantCultureIgnoreCase))
             {
-                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.NoRequirement);
+                (AuthorizationResult result, SftpConnectionProperties connection) = GetAuthorizedConnectionProperties(evtData.ConnectionId, RequiredAccess.NoRequirement, true);
 
                 switch (result)
                 {
@@ -874,7 +874,7 @@ namespace SftpServerLib
             Authorized,
         }
 
-        protected static (AuthorizationResult result, SftpConnectionProperties connection) GetAuthorizedConnectionProperties(string connectionId, RequiredAccess requiredAccess)
+        protected static (AuthorizationResult result, SftpConnectionProperties connection) GetAuthorizedConnectionProperties(string connectionId, RequiredAccess requiredAccess, bool skipClientAccessReviewTest = false)
         {
             if (!_connections.Keys.Contains(connectionId))
             {
@@ -886,7 +886,7 @@ namespace SftpServerLib
 
             bool accountHasAccess = false;
 
-            if (DateTime.UtcNow.Date <= connectionRecord.ClientAccessReviewDeadline)
+            if (skipClientAccessReviewTest || DateTime.UtcNow.Date <= connectionRecord.ClientAccessReviewDeadline)
             {
                 switch (requiredAccess)
                 {
