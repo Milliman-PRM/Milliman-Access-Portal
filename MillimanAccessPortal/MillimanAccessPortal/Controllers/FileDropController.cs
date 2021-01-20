@@ -522,11 +522,10 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> ActionLog(Guid fileDropId)
         {
-            FileDrop fileDrop = await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId);
-            Guid clientId = fileDrop?.ClientId ?? Guid.Empty;
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
 
             #region Validation
-            if (clientId == Guid.Empty)
+            if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
@@ -535,7 +534,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -574,10 +573,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> DownloadFullActivityLog(Guid fileDropId)
         {
             FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
-            Guid clientId = fileDrop?.ClientId ?? Guid.Empty;
 
             #region Validation
-            if (fileDrop == null || clientId == Guid.Empty)
+            if (fileDrop == null)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
@@ -592,7 +590,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
             if (!adminRoleResult.Succeeded)
             {
                 Log.Information($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -650,11 +648,11 @@ namespace MillimanAccessPortal.Controllers
         [HttpGet]
         public async Task<IActionResult> AccountSettings(Guid fileDropId)
         {
-            Guid clientId = (await _dbContext.FileDrop.SingleOrDefaultAsync(d => d.Id == fileDropId))?.ClientId ?? Guid.Empty;
+            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
             ApplicationUser user = await _userManager.GetUserAsync(User);
 
             #region Validation
-            if (clientId == Guid.Empty)
+            if (fileDrop.ClientId == Guid.Empty)
             {
                 Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} FileDrop with requested Id {fileDropId} not found");
                 Response.Headers.Add("Warning", "The requested file drop was not found.");
@@ -662,7 +660,6 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
@@ -671,8 +668,8 @@ namespace MillimanAccessPortal.Controllers
                                       .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Authorization
-            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, clientId));
-            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, clientId));
+            var adminRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin, fileDrop.ClientId));
+            var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
             if (!adminRoleResult.Succeeded && 
                 !(userRoleResult.Succeeded && account.FileDropUserPermissionGroupId.HasValue && (account.FileDropUserPermissionGroup.ReadAccess 
                                                                                               || account.FileDropUserPermissionGroup.WriteAccess 
@@ -1383,7 +1380,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> UpdateFileDropFile([FromBody] UpdateFileDropFileRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
@@ -1452,7 +1451,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> UpdateFileDropFolder([FromBody] UpdateFileDropFolderRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
-            FileDrop fileDrop = _dbContext.FileDrop.Find(requestModel.FileDropId);
+            FileDrop fileDrop = await _dbContext.FileDrop
+                                                .Include(d => d.Client)
+                                                .SingleOrDefaultAsync(d => d.Id == requestModel.FileDropId);
             #region Validation
             if (fileDrop == null)
             {
