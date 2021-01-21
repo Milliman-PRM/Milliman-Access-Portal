@@ -162,7 +162,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
         />
         <NavBar currentView={this.currentView} userGuidePath={isFileDropAdmin ? 'FileDropAdmin' : null} />
         {this.renderClientPanel()}
-        {selected.client && this.renderFileDropPanel()}
+        {selected.client && !activeSelectedClient.isAccessReviewExpired && this.renderFileDropPanel()}
         {selected.fileDrop && this.renderFileDropManagementPanel()}
         <Modal
           isOpen={modals.createFileDrop.isOpen}
@@ -769,7 +769,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
             <Card
               key={key}
               selected={selected.client === entity.id}
-              disabled={!entity.authorizedFileDropUser && !entity.canManageFileDrops}
+              disabled={!entity.authorizedFileDropUser && !entity.canManageFileDrops || entity.isAccessReviewExpired}
               onSelect={() => {
                 if (permissionGroupChangesPending || filesOrFoldersModified.length > 0) {
                   this.props.openModifiedFormModal({
@@ -779,13 +779,20 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     },
                   });
                 } else {
-                   if (selected.client !== entity.id) {
-                     this.props.fetchFileDrops({ clientId: entity.id });
-                   }
-                   this.props.selectClient({ id: entity.id });
-                 }
+                  if (selected.client !== entity.id) {
+                    this.props.fetchFileDrops({ clientId: entity.id });
+                  }
+                  this.props.selectClient({ id: entity.id });
+                }
               }}
               indentation={entity.indent}
+              bannerMessage={entity.isAccessReviewExpired ? {
+                level: 'informational',
+                message: entity.canManageFileDrops ?
+                  (<span>Client Access Review required.</span>) :
+                  (<span>Please contact your MAP Administrator.</span>),
+                } : null
+              }
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.canManageFileDrops ? entity.code : null} />
