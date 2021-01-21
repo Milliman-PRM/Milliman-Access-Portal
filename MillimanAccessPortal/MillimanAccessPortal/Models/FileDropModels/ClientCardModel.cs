@@ -46,5 +46,10 @@ namespace MillimanAccessPortal.Models.FileDropModels
         /// Indication of the requesting user's assignment to a permission group of at least one FileDrop of the client
         /// </summary>
         public bool AuthorizedFileDropUser { get; set; }
+
+        /// <summary>
+        /// Indicates whether the last client access review for this client is past due
+        /// </summary>
+        public bool IsAccessReviewExpired { get; set; }
     }
 }
