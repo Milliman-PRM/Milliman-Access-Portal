@@ -320,6 +320,7 @@ export interface FileDropClientWithStats extends Client {
   userCount: number;
   canManageFileDrops: boolean;
   authorizedFileDropUser: boolean;
+  isAccessReviewExpired: boolean;
 }
 
 export interface FileDrop {
