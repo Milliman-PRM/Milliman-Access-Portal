@@ -284,6 +284,13 @@ namespace FileDropLib
                 return FileDropOperationResult.INVALID_FILENAME;
             }
 
+            string directoryName = Path.GetFileName(canonicalPath);
+            if (!GlobalFunctions.isValidFileDropItemName(directoryName))
+            {
+                Log.Warning($"Request to create {canonicalPath} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed. Invalid directory name. Account {account?.UserName} (Id {account?.Id})");
+                return FileDropOperationResult.INVALID_FILENAME;
+            }
+
             string requestedAbsolutePath = Path.Combine(fileDropRootPath, canonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
             string parentCanonicalPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(requestedCanonicalPath));
             string parentAbsolutePath = Path.Combine(fileDropRootPath, parentCanonicalPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
@@ -386,6 +393,7 @@ namespace FileDropLib
                                                          bool? beforeExec = null,
                                                          int sftpStatus = 0)
         {
+            string fileName = Path.GetFileName(newPath);
             using (var db = NewMapDbContext)
             switch (beforeExec)
             {
@@ -404,6 +412,12 @@ namespace FileDropLib
                         Log.Warning($"Request to rename or move {oldPath} to {newPath} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed because modifying the file name extension is not allowed.  Account {account?.UserName} (Id {account?.Id})");
                         return FileDropOperationResult.OP_UNSUPPORTED;
                     }
+                    if (!GlobalFunctions.isValidFileDropItemName(fileName))
+                    {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed. Invalid file name. Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.INVALID_FILENAME;
+                    }
+
                     break;
 
                 case null:
@@ -444,6 +458,10 @@ namespace FileDropLib
                             if (!File.Exists(absoluteOldPath))
                             {
                                 return FileDropOperationResult.NO_SUCH_FILE;
+                            }
+                            if (!GlobalFunctions.isValidFileDropItemName(fileName))
+                            {
+                                return FileDropOperationResult.INVALID_FILENAME;
                             }
                             if (File.Exists(absoluteNewPath) || Directory.Exists(absoluteNewPath))
                             {
@@ -491,6 +509,7 @@ namespace FileDropLib
                                                               bool? beforeExec = null,
                                                               int sftpStatus = 0)
         {
+            string newDirectoryName = Path.GetFileName(newPath);
             using (var db = NewMapDbContext)
             switch (beforeExec)
             {
@@ -500,6 +519,12 @@ namespace FileDropLib
                     {
                         Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Root directory cannot be renamed.  Account {account?.UserName} (Id {account?.Id})");
                         return FileDropOperationResult.FAILURE; 
+                    }
+
+                    if (!GlobalFunctions.isValidFileDropItemName(newDirectoryName))
+                    {
+                        Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed. Invalid directory name. Account {account?.UserName} (Id {account?.Id})");
+                        return FileDropOperationResult.INVALID_FILENAME;
                     }
 
                     // confirm db connectivity and that the source record exists in the db
@@ -518,6 +543,10 @@ namespace FileDropLib
                         if (!Directory.Exists(oldPath))
                         {
                                 return FileDropOperationResult.NO_SUCH_PATH;
+                        }
+                        if (!GlobalFunctions.isValidFileDropItemName(newDirectoryName))
+                        {
+                                return FileDropOperationResult.INVALID_FILENAME;
                         }
                         if (Directory.Exists(newPath) || File.Exists(newPath))
                         {

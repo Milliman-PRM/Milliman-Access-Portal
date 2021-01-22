@@ -699,12 +699,17 @@ export function isStringNotEmpty(value: string): boolean {
 }
 
 export function isDomainNameValid(domainName: string): boolean {
-  const domainNameRegex = /^[a-zA-Z0-9][a-zA-Z0-9-]{0,61}[a-zA-Z0-9](?:\.[a-zA-Z]{2,})+$/;
+  const domainNameRegex =
+    /^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
   return domainName !== null && domainName.trim() !== '' && domainNameRegex.test(domainName);
 }
 
 export function isEmailAddressValid(email: string): boolean {
-  const emailRegex = /\S+@\S+\.\S+/;
+  const emailRegex = new RegExp([
+    '^(([^<>()[\\]\\\\.,;:\\s@\']+(\\.[^ <>()[\\]\\\\.,;: \\s@\']+)*)',
+    '|(\'.+\'))@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|',
+    '(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$',
+  ].join(''));
   return email === null || email.trim() === '' || emailRegex.test(email);
 }
 
