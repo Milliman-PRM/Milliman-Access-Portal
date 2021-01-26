@@ -620,7 +620,7 @@ namespace MillimanAccessPortal.Controllers
                             var existingRolesInRootContentItem = await DbContext.UserRoleInRootContentItem
                                 .Where(r => r.UserId == RequestedUser.Id)
                                 .Where(r => r.RootContentItem.ClientId == model.ClientId)
-                                .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum)
+                                .Where(r => r.Role.RoleEnum == urc.Role.RoleEnum)
                                 .ToListAsync();
                             DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
                             break;
@@ -666,13 +666,13 @@ namespace MillimanAccessPortal.Controllers
                                 var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
                                                                               .Where(r => r.UserId == RequestedUser.Id)
                                                                               .Where(r => r.RootContentItemId == rootContentItem.Id)
-                                                                              .Where(r => r.Role.RoleEnum == RequestedRole.RoleEnum);
+                                                                              .Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum);
                                 if (existingRolesInRootContentItem.Count() == 0)
                                 {
                                     DbContext.UserRoleInRootContentItem.Add(new UserRoleInRootContentItem
                                     {
                                         UserId = RequestedUser.Id,
-                                        RoleId = RequestedRole.Id,
+                                        RoleId = roleRecord.Id,
                                         RootContentItemId = rootContentItem.Id,
                                     });
                                 }
