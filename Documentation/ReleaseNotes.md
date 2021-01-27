@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.11.2
+
+- Fixed a bug that caused updates to user roles to be incompletely applied
+
 #### v1.11.1
 
 - Removed user visibility to File Drops associated with a Client that is past due for periodic administrative access review

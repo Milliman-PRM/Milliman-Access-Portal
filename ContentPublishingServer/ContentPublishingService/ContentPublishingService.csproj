@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>dotnet-ContentPublishingService-D0ED2994-81A3-4B83-9B61-1FD6DE3C321D</UserSecretsId>
-    <Version>1.11.1</Version>
+    <Version>1.11.2</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
   </PropertyGroup>
