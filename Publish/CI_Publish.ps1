@@ -612,6 +612,48 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+    
+log_statement "Creating Content Publishing Server release"
+    
+octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Publishing service application release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the publishing service application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating MAP Query Admin release"
+
+octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "MAP Query Admin release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating Filedrop Release"
+
+octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Filedrop release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 if ($buildType -eq "Release") {
     
@@ -651,49 +693,6 @@ if ($buildType -eq "Release") {
         log_statement "errorlevel was $LASTEXITCODE"
         exit $error_code
     }
-    
-    log_statement "Creating Content Publishing Server release"
-    
-    octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-    
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Publishing service application release created successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to create Octopus release for the publishing service application"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-    
-    log_statement "Creating MAP Query Admin release"
-    
-    octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-    
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "MAP Query Admin release created successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-    
-    log_statement "Creating Filedrop Release"
-    
-    octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-    
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Filedrop release created successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to create Octopus release for FileDrop"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-    
     
     log_statement "Deploying FileDrop release"
     
