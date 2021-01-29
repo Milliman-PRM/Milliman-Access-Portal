@@ -44,6 +44,21 @@ namespace AuditLogLib.Event
         PasswordResetTokenInvalid,
     }
 
+    public enum LoginFailureReason
+    {
+        [Display(Name = "User Account Not Found")]
+        UserAccountNotFound,
+
+        [Display(Name = "PasswordSignInAsync Failed")]
+        PasswordSignInAsyncFailed,
+
+        [Display(Name = "Login Failed")]
+        LoginFailed,
+
+        [Display(Name = "Account Disabled")]
+        UserAccountDisabled,
+    }
+
     public enum ContentDisclaimerResetReason
     {
         [Display(Name = "Content disclaimer text was changed")]
@@ -142,11 +157,12 @@ namespace AuditLogLib.Event
             {
                 Scheme = scheme,
             });
-        public static readonly AuditEventType<string, string> LoginFailure = new AuditEventType<string, string>(
-            1002, "Login failure", (attemptedUsername, scheme) => new
+        public static readonly AuditEventType<string, string, LoginFailureReason> LoginFailure = new AuditEventType<string, string, LoginFailureReason>(
+            1002, "Login failure", (attemptedUsername, scheme, reason) => new
             {
                 AttemptedUsername = attemptedUsername,
                 AuthenticationScheme = scheme,
+                LoginFailureReason = reason,
             });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new
@@ -435,6 +451,12 @@ namespace AuditLogLib.Event
             3012, "Login account is suspended", (attemptedUserName) => new
             {
                 attemptedUserName,
+            });
+
+        public static readonly AuditEventType<string> UserNotifiedAboutDisabledAccount = new AuditEventType<string>(
+            3013, "User notified that their account is disabled following login.", (email) => new
+            {
+                RequestedEmail = email,
             });
 
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =

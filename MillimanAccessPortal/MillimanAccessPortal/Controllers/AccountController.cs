@@ -216,7 +216,7 @@ namespace MillimanAccessPortal.Controllers
                 if (user == null)
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} not found, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountNotFound));
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
@@ -225,9 +225,10 @@ namespace MillimanAccessPortal.Controllers
                 int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
                 if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
+                    await NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
-                    Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled));
+                    Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}");
                     return Ok();
                 }
 
@@ -295,7 +296,7 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.PasswordSignInAsyncFailed));
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
                 }
@@ -662,6 +663,26 @@ namespace MillimanAccessPortal.Controllers
             _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser, reason));
         }
 
+        /// <summary>
+        /// Sends a user an email notifying them that their account is disabled if they attempt to login with a disabled account.
+        /// </summary>
+        /// <param name="RequestedUser"></param>
+        /// <returns></returns>
+        [NonAction]
+        public async Task NotifyUserAboutDisabledAccount(ApplicationUser RequestedUser)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {RequestedUser.UserName}");
+
+            string emailBody;
+            string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
+
+            emailBody = $"Your MAP account is disabled due to inactivity.  Please contact your ";
+            emailBody += $"Milliman consultant, or email {supportEmailAlias}";
+
+            _messageSender.QueueEmail(RequestedUser.Email, "MAP account disabled", emailBody);
+            Log.Information($"Disabled account email queued to address {RequestedUser.Email}");
+            _auditLogger.Log(AuditEventType.UserNotifiedAboutDisabledAccount.ToEvent(RequestedUser.Email));
+        }
 
         // GET: /Account/EnableAccount
         [HttpGet]
