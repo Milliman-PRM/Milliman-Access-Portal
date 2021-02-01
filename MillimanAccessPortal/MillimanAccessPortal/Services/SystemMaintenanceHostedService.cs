@@ -22,7 +22,9 @@ namespace MillimanAccessPortal.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly Timer _clientAccessReviewNotificationTimer;
+        private readonly Timer _userAccountDisableNotificationTimer;
         private readonly TimeSpan _clientReviewNotificationTimeOfDayUtc;
+        private readonly TimeSpan _userAccountDisableNotificationTimeOfDayUtc;
 
         public SystemMaintenanceHostedService(
             IServiceProvider serviceProviderArg,
@@ -31,15 +33,21 @@ namespace MillimanAccessPortal.Services
             _serviceProvider = serviceProviderArg;
 
             _clientReviewNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9));
+            _userAccountDisableNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("UserAccountDisableNotificationTimeofDayHourUtc", 8));
 
             _clientAccessReviewNotificationTimer = new Timer(ClientAccessReviewNotificationHandler);
             _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+
+            _userAccountDisableNotificationTimer = new Timer(UserAccountDisableNotificationHandler);
+            _userAccountDisableNotificationTimer.Change(TimeSpanTillNextEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         public override void Dispose()
         {
             _clientAccessReviewNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _userAccountDisableNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _clientAccessReviewNotificationTimer.Dispose();
+            _userAccountDisableNotificationTimer.Dispose();
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -113,6 +121,11 @@ namespace MillimanAccessPortal.Services
             }
 
             thisTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+        }
+
+        private void UserAccountDisableNotificationHandler(object state)
+        {
+            
         }
 
         private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
