@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.DataQueries
             return returnModel;
         }
 
-        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId)
+        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId, int disableInactiveUserMonths, double disableInactiveUserWarningWeeks)
         {
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
@@ -130,7 +130,10 @@ namespace MillimanAccessPortal.DataQueries
                     memberModel.ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
                                                       .OfType<RoleEnum>()
                                                       .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
-                                                      .ToDictionary(p => p.Key, p => p.Value);
+                                                      .ToDictionary(p => p.Key, p => p.Value);                    
+                    memberModel.DisableAccountDate = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths);
+                    memberModel.IsAccountDisabled = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths) < DateTime.UtcNow;
+                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks) < DateTime.Now;
                     return memberModel;
                 });
 

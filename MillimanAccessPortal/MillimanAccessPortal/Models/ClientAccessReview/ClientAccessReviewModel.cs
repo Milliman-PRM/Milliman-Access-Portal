@@ -31,6 +31,9 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     public class ClientActorReviewModel : ClientActorModel
     {
         public DateTime? LastLoginDate { get; set; }
+        public DateTime? DisableAccountDate { get; set; }
+        public bool IsAccountDisabled { get; set; } = false;
+        public bool IsAccountNearDisabled { get; set; } = false;
         public Dictionary<RoleEnum, bool> ClientUserRoles { get; set; }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
                 Name = baseModel.Name,
                 UserEmail = baseModel.UserEmail,
                 IsSuspended = baseModel.IsSuspended,
-                LastLoginDate = user.LastLoginUtc,
+                LastLoginDate = user.LastLoginUtc,    
             };
         }
 

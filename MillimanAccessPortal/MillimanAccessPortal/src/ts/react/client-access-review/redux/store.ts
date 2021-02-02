@@ -49,6 +49,9 @@ export interface ClientAccessReviewModel {
 
 interface ClientActorReviewModel extends ClientActorModel {
   lastLoginDate?: string;
+  disableAccountDate?: string;
+  isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
   clientUserRoles: {
     Admin: boolean;
     ContentAccessAdmin: boolean;

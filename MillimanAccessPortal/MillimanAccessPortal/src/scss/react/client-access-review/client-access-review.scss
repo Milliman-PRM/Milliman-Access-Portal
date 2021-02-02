@@ -85,7 +85,9 @@
 
         .detail-label,
         .detail-value-name,
-        .detail-value-email {
+        .detail-value-email,
+        .detail-value-disabled,
+        .detail-value-near-disabled {
             display: block;
             letter-spacing: 0.32px;
         }
@@ -102,6 +104,18 @@
 
         .detail-value-email {
             font-size: .875rem;
+        }
+
+        .detail-value-disabled {
+            font-size: .875rem;
+            color: $red;
+            font-style: italic; 
+        }
+
+        .detail-value-near-disabled {
+            font-size: .875rem;
+            color: $orange;
+            font-style: italic;
         }
 
         .detail-list {

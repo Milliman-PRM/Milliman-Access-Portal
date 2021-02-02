@@ -544,7 +544,20 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           <tr key={user.userEmail} className="table-row-divider">
                             <td>
                               <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
-                              <span className="detail-value-email">{user.userEmail}</span></td>
+                              <span className="detail-value-email">{user.userEmail}</span><br />
+                              {user.isAccountDisabled &&
+                                <span className="detail-value-disabled">
+                                  Account disabled on {moment.utc(user.disableAccountDate)
+                                    .local().format('MMM DD, YYYY')}
+                                </span>
+                              }
+                              {user.isAccountNearDisabled &&
+                                <span className="detail-value-near-disabled">
+                                Account will be disabled on {moment.utc(user.disableAccountDate)
+                                  .local().format('MMM DD, YYYY')}
+                                </span>
+                              }
+                            </td>
                             <td>
                               {
                                 user.lastLoginDate
