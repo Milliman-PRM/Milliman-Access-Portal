@@ -162,6 +162,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in await query.ToListAsync())
             {
                 var userInfo = (UserInfo)user;
+                userInfo.setAccountDisableStatus(_configuration.GetValue("DisableInactiveUserMonths", 12));
                 await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }

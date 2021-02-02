@@ -28,6 +28,9 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public List<RootContentItemInfo> RootContentItems { get; set; }
         public Guid? ProfitCenterId { get; set; } = null;
         public Guid? ClientId { get; set; } = null;
+        public DateTime? LastLoginUtc { get; set; }
+        public DateTime? AccountDisableDate { get; set; }
+        public bool IsAccountDisabled { get; set; } = false;
 
         public static explicit operator UserInfo(ApplicationUser user)
         {
@@ -45,7 +48,18 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 UserName = user.UserName,
                 Email = user.Email,
                 IsSuspended = user.IsSuspended,
+                LastLoginUtc = user.LastLoginUtc,
             };
+        }
+
+
+        public void setAccountDisableStatus(int MonthsToDisableAccount)
+        {
+            if (this.LastLoginUtc?.AddMonths(MonthsToDisableAccount) < DateTime.UtcNow)
+            {
+                this.IsAccountDisabled = true;
+                this.AccountDisableDate = this.LastLoginUtc?.AddMonths(MonthsToDisableAccount);
+            }
         }
 
         public async Task QueryRelatedEntityCountsAsync(ApplicationDbContext dbContext, Guid? clientId, Guid? profitCenterId)
