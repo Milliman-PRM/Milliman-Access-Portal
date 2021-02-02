@@ -162,7 +162,7 @@ namespace AuditLogLib.Event
             {
                 AttemptedUsername = attemptedUsername,
                 AuthenticationScheme = scheme,
-                LoginFailureReason = reason,
+                LoginFailureReason = reason.GetDisplayNameString(),
             });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new

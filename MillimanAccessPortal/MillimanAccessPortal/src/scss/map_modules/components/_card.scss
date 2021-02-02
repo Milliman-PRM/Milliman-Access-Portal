@@ -229,6 +229,12 @@
           display: inline-block;
           margin: 0;
           width: 75%;
+
+          .warning {
+            color: $red;
+            font-style: italic;
+            font-size: 14px;
+          }
         }
       }
 

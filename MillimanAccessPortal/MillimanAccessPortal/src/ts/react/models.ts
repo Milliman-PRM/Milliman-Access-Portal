@@ -12,6 +12,8 @@ export interface User {
   userName: string;
   email: string;
   userRoles?: Dict<UserRole>;
+  isAccountDisabled?: boolean;
+  dateOfAccountDisable?: string;
 }
 export interface UserFull extends User {
   isLocal: boolean;

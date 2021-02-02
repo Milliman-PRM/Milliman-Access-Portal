@@ -1,5 +1,7 @@
 ﻿import * as _ from 'lodash';
 
+import * as moment from 'moment';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
@@ -838,7 +840,25 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   >
                     <use xlinkHref="#user" />
                   </svg>
+                  {entity.isAccountDisabled ?
+                    <svg
+                      className="card-user-role-indicator"
+                      style={{
+                        position: 'absolute',
+                        top: '20%',
+                        left: '13%',
+                        height: '1.25rem',
+                        width: '1.25rem',
+                        color: 'red',
+                        stroke: 'context fill red',
+                        strokeWidth: '3px',
+                      }}
+                    >
+                      <use href="#cancel" />
+                    </svg> : null
+}
                   {entity.userRoles &&
+                    !entity.isAccountDisabled &&
                     entity.userRoles[RoleEnum.Admin] &&
                     entity.userRoles[RoleEnum.Admin].isAssigned ?
                     <svg
@@ -860,7 +880,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <CardText
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
-                    subtext={entity.firstName && entity.lastName ? entity.email : ''}
+                    subtext={entity.isAccountDisabled ?
+                      'Account disabled on ' + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY') :
+                      (entity.firstName && entity.lastName ? entity.email : '')
+                    }
+                    subtextIsWarning={entity.isAccountDisabled}
                   />
                   {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>

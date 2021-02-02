@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
-            await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
+            await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false, ApplicationConfig.GetValue("DisableInactiveUserMonths", 12));
 
             return Json(Model);
         }
