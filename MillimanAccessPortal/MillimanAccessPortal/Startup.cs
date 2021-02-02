@@ -206,7 +206,7 @@ namespace MillimanAccessPortal
                                     Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
 
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
-                                    await accountController.NotifyUserAboutDisabledAccount(_applicationUser);
+                                    accountController.NotifyUserAboutDisabledAccount(_applicationUser);
 
                                     UriBuilder msg = new UriBuilder
                                     {
