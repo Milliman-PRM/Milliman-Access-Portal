@@ -223,9 +223,9 @@ namespace MillimanAccessPortal.Controllers
 
                 // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
                 int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
-                if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
+                if (user.LastLoginUtc?.AddMonths(idleUserAllowanceMonths) < DateTime.UtcNow)
                 {
-                    await NotifyUserAboutDisabledAccount(user);
+                    NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled));
                     Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}");
@@ -664,24 +664,23 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Sends a user an email notifying them that their account is disabled if they attempt to login with a disabled account.
+        /// Sends a user an email notifying them that their account is disabled.
         /// </summary>
         /// <param name="RequestedUser"></param>
         /// <returns></returns>
         [NonAction]
-        public async Task NotifyUserAboutDisabledAccount(ApplicationUser RequestedUser)
+        internal void NotifyUserAboutDisabledAccount(ApplicationUser RequestedUser)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {RequestedUser.UserName}");
 
             string emailBody;
             string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
 
-            emailBody = $"Your MAP account is disabled due to inactivity.  Please contact your ";
-            emailBody += $"Milliman consultant, or email {supportEmailAlias}";
+            emailBody = $"Your MAP account is currently disabled due to inactivity.  Please contact your ";
+            emailBody += $"Milliman consultant, or email us at {supportEmailAlias} for assistance.";
 
-            _messageSender.QueueEmail(RequestedUser.Email, "MAP account disabled", emailBody);
+            _messageSender.QueueEmail(RequestedUser.Email, "MAP account is disabled", emailBody);
             Log.Information($"Disabled account email queued to address {RequestedUser.Email}");
-            _auditLogger.Log(AuditEventType.UserNotifiedAboutDisabledAccount.ToEvent(RequestedUser.Email));
         }
 
         // GET: /Account/EnableAccount
@@ -701,6 +700,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user {userId} not found, aborting");
                 return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+            }
+            int disableInactiveUserMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
+            if (user.LastLoginUtc < DateTime.UtcNow.AddMonths(-disableInactiveUserMonths))
+            {
+                NotifyUserAboutDisabledAccount(user);
+                Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user account {userId} is disabled due to inactivity over the past {disableInactiveUserMonths} months, aborting");
+                return View("UserMessage", new UserMessageModel("Your MAP account is disabled due to inactivity.", "Please see your email for detail."));
             }
 
             if (user.EmailConfirmed)  // Account is already activated
