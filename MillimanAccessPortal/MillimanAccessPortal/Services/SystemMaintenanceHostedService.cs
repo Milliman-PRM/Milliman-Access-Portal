@@ -133,26 +133,42 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-                int idleUserAllowanceMonths = appConfiguration.GetValue("DisableInactiveUserMonths", 365);
+                TimeSpan userAccountDisableNotificationWarningDays = new TimeSpan(appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 15));
+                TimeSpan userAccountDisableAfterDays = new TimeSpan(appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 15));
+                TimeSpan timeSpanTillWarning = userAccountDisableAfterDays - userAccountDisableNotificationWarningDays;
 
-                List<ApplicationUser> userRoles = dbContext.UserRoleInClient
-                                                             .Select(usr => usr.User)
-                                                             .Where(usr => usr.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
-                                                             .ToList();
-                foreach(ApplicationUser user in userRoles)
+                IQueryable<UserRoleInClient> usersToNotifyQuery = dbContext.UserRoleInClient
+                                                             .Include(usr => usr.User)
+                                                             .Include(usr => usr.Client)
+                                                             .Where(usr => DateTime.UtcNow.Date > usr.User.LastLoginUtc + timeSpanTillWarning);
+
+                string emailSubject = "Your MAP account will be disabled soon";
+
+                string mapUrl = hostEnvironment switch
                 {
-                    string mapUrl = hostEnvironment switch
+                    var env when env.IsProduction() => "https://map.milliman.com",
+                    var env when env.IsStaging() => "https://map.milliman.com:44300",
+                    var env when env.IsDevelopment() => "https://localhost:44336",
+                    var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
+                    _ => "https://unhandled.environment",
+                };
+
+                foreach (UserRoleInClient usr in usersToNotifyQuery.AsEnumerable())
+                {
+                    TimeSpan daysBeforeDisabled = usr.User.LastLoginUtc.Value + userAccountDisableAfterDays - DateTime.UtcNow;
+
+                    string emailBody = "We have noticed you haven't logged into your MAP account for a long time. ";
+                    emailBody += $"As a result, you MAP account will be disabled unless you login within {daysBeforeDisabled.Days}";
+                    emailBody += $"Please login to MAP at {mapUrl} if you do not want your account disabled.";
+
+                    List<string> recepients = new List<string>
                     {
-                        var env when env.IsProduction() => "https://map.milliman.com",
-                        var env when env.IsStaging() => "https://map.milliman.com:44300",
-                        var env when env.IsDevelopment() => "https://localhost:44336",
-                        var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
-                        _ => "https://unhandled.environment",
+                        usr.User.Email,
+                        usr.Client.ConsultantEmail
                     };
 
-                    // email message
+                    messageQueue.QueueEmail(recepients, emailSubject, emailBody);                    
                 }
-
             }
             thisTimer.Change(TimeSpanTillNextEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
