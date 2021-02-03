@@ -30,10 +30,6 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
 
     public class ClientActorReviewModel : ClientActorModel
     {
-        public DateTime? LastLoginDate { get; set; }
-        public DateTime? DisableAccountDate { get; set; }
-        public bool IsAccountDisabled { get; set; } = false;
-        public bool IsAccountNearDisabled { get; set; } = false;
         public Dictionary<RoleEnum, bool> ClientUserRoles { get; set; }
 
         /// <summary>

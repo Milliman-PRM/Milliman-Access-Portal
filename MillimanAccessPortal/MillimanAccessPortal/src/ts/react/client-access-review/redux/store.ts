@@ -29,6 +29,10 @@ export interface ClientSummaryModel {
 export interface ClientActorModel {
   name: string;
   userEmail: string;
+  lastLoginDate?: string;
+  disableAccountDate?: string;
+  isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
 }
 
 export interface ClientAccessReviewModel {
@@ -48,10 +52,6 @@ export interface ClientAccessReviewModel {
 }
 
 interface ClientActorReviewModel extends ClientActorModel {
-  lastLoginDate?: string;
-  disableAccountDate?: string;
-  isAccountDisabled: boolean;
-  isAccountNearDisabled: boolean;
   clientUserRoles: {
     Admin: boolean;
     ContentAccessAdmin: boolean;

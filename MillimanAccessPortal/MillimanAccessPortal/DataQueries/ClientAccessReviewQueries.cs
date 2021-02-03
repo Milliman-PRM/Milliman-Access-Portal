@@ -133,7 +133,7 @@ namespace MillimanAccessPortal.DataQueries
                                                       .ToDictionary(p => p.Key, p => p.Value);                    
                     memberModel.DisableAccountDate = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths);
                     memberModel.IsAccountDisabled = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths) < DateTime.UtcNow;
-                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks) < DateTime.Now;
+                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks * 7) < DateTime.Now;
                     return memberModel;
                 });
 
@@ -217,16 +217,23 @@ namespace MillimanAccessPortal.DataQueries
                 ClientFileDropModel fileDropModel = new ClientFileDropModel { Id = d.Id, FileDropName = d.Name };
                 foreach (FileDropUserPermissionGroup group in d.PermissionGroups.OrderByDescending(pg => pg.IsPersonalGroup).ThenBy(pg => pg.Name))
                 {
+                    var fdUsers = group.SftpAccounts
+                        .Where(a => a.ApplicationUserId.HasValue)
+                        .OrderBy(a => a.ApplicationUser.LastName)
+                        .ThenBy(a => a.ApplicationUser.FirstName)
+                        .Select(a => (ClientActorModel)a.ApplicationUser).ToList();
+                    fdUsers.ForEach(u =>
+                    {
+                        u.DisableAccountDate = u.LastLoginDate?.AddMonths(disableInactiveUserMonths);
+                        u.IsAccountDisabled = u.LastLoginDate?.AddMonths(disableInactiveUserMonths) < DateTime.UtcNow;
+                        u.IsAccountNearDisabled = !u.IsAccountDisabled && u.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks * 7) < DateTime.Now;
+                    });
                     fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel
                     {
                         PermissionGroupName = group.Name,
                         IsPersonalGroup = group.IsPersonalGroup,
                         Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
-                        AuthorizedMapUsers = group.SftpAccounts
-                            .Where(a => a.ApplicationUserId.HasValue)
-                            .OrderBy(a => a.ApplicationUser.LastName)
-                            .ThenBy(a => a.ApplicationUser.FirstName)
-                            .Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
+                        AuthorizedMapUsers = fdUsers,
                         AuthorizedServiceAccounts = group.SftpAccounts
                             .Where(a => !a.ApplicationUserId.HasValue)
                             .Select(a => (ClientActorModel)a)
