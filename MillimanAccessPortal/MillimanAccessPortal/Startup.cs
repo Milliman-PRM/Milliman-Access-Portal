@@ -568,8 +568,10 @@ namespace MillimanAccessPortal
                 {
                     ApplicationDbContext db = context.RequestServices.GetService<ApplicationDbContext>();
                     var user = await db.ApplicationUser.SingleAsync(u => u.UserName == context.User.Identity.Name);
+                    TimeSpan renewInterval = TimeSpan.FromDays(Configuration.GetValue<int>("UserAgreementRenewalIntervalDays"));
 
-                    if (user.IsUserAgreementAccepted != true) // if false or null
+                    if (!user.UserAgreementAcceptedUtc.HasValue ||
+                        DateTime.UtcNow - user.UserAgreementAcceptedUtc > renewInterval) // need to accept now
                     {
                         UriBuilder userAgreementUri = new UriBuilder
                         {
@@ -577,7 +579,7 @@ namespace MillimanAccessPortal
                             Host = context.Request.Host.Host,
                             Port = context.Request.Host.Port.GetValueOrDefault(-1),
                             Path = redirectPath,
-                            Query = $"isRenewal={user.IsUserAgreementAccepted.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                            Query = $"isRenewal={user.UserAgreementAcceptedUtc.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
                         };
 
                         context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);

@@ -336,7 +336,8 @@ namespace MillimanAccessPortal.Controllers
                 Log.Error($"Account.UserAgreement: GET Requested user {User.Identity.Name} not found");
                 return RedirectToAction(nameof(Login));
             }
-            if (user.IsUserAgreementAccepted == true)
+            if (user.UserAgreementAcceptedUtc.HasValue &&
+                DateTime.UtcNow - user.UserAgreementAcceptedUtc.Value < TimeSpan.FromDays(_configuration.GetValue<int>("UserAgreementRenewalIntervalDays")))
             {
                 Log.Error($"Account.UserAgreement: GET Request for user {user.UserName} to accept, but user has already accepted");
                 return RedirectToAction(nameof(Login));
@@ -374,7 +375,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            user.IsUserAgreementAccepted = true;
+            user.UserAgreementAcceptedUtc = DateTime.Now;
             DbContext.SaveChanges();
 
             _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName);

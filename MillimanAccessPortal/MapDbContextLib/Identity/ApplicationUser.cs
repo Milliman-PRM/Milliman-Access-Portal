@@ -83,7 +83,7 @@ namespace MapDbContextLib.Identity
         //     Gets or sets the user's IsSuspended status.
         public virtual bool IsSuspended { get; set; }
 
-        public virtual bool? IsUserAgreementAccepted { get; set; }
+        public virtual DateTime? UserAgreementAcceptedUtc { get; set; }
 
         [ForeignKey("AuthenticationScheme")]
         public Guid? AuthenticationSchemeId { get; set; }
