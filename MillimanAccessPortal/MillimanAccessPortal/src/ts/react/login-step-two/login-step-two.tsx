@@ -81,6 +81,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                 value={this.state.data.code}
                 onChange={this.handleChange}
                 error={errors.code}
+                autoFocus={true}
               />
               <div className="button-container">
                 <a
