@@ -222,7 +222,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
-                int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);                
+                int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
                 if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
                     NotifyUserAboutDisabledAccount(user);
@@ -912,7 +912,28 @@ namespace MillimanAccessPortal.Controllers
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 if (user != null)
                 {
-                    if (await _userManager.IsEmailConfirmedAsync(user))
+                    if (user.LastLoginUtc < DateTime.UtcNow.AddMonths(-_configuration.GetValue("DisableInactiveUserMonths", 12)))
+                    {
+                        string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
+                        Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: request user with email {model.Email} has a disabled account, current user will be informed of the issue, aborting.");
+                        var messageModel = new UserMessageModel
+                        {
+                            PrimaryMessages = { $"This account is currently disabled. Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>." },
+                            Buttons = new List<ConfiguredButton>
+                            {
+                                new ConfiguredButton
+                                {
+                                    Value = "OK",
+                                    Action = nameof(Login),
+                                    Controller = nameof(AccountController).Replace("Controller", ""),
+                                    Method = "get",
+                                    ButtonClass = "link-button",
+                                },
+                            }
+                        };
+                        return View("UserMessage", messageModel);
+                    }
+                    else if (await _userManager.IsEmailConfirmedAsync(user))
                     {
                         await RequestPasswordReset(user, PasswordResetRequestReason.UserInitiated, Request.Scheme, Request.Host);
                         Log.Verbose($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{model.Email}> reset succeeded");
