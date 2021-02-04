@@ -102,6 +102,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
           inputIcon="password"
           hidden={!userConfirmed}
         />
+        <p className="terms-reminder" style={{ marginTop: !userConfirmed ? '-5em' : null }}>
+          By continuing to log in, you are agreeing to Milliman Access Portal's
+          <a href="us.milliman.com/legal/terms"> Terms of Use</a>.
+        </p>
         {loginWarning && <div className="error-message">{loginWarning}</div>}
         <div className={'button-container' + (userConfirmed ? ' visible' : ' hidden')}>
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
