@@ -223,7 +223,8 @@ namespace MillimanAccessPortal.Controllers
 
                 // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
                 int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
-                if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
+                if (!user.LastLoginUtc.HasValue ||
+                    user.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name));
