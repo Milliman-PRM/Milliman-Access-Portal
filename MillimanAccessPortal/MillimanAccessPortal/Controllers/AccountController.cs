@@ -222,8 +222,8 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
-                int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
-                if (user.LastLoginUtc?.AddMonths(idleUserAllowanceMonths) < DateTime.UtcNow)
+                int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);                
+                if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
                     NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
@@ -702,7 +702,7 @@ namespace MillimanAccessPortal.Controllers
                 return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
             }
             int disableInactiveUserMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
-            if (user.LastLoginUtc < DateTime.UtcNow.AddMonths(-disableInactiveUserMonths))
+            if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths))
             {
                 NotifyUserAboutDisabledAccount(user);
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: user account {userId} is disabled due to inactivity over the past {disableInactiveUserMonths} months, aborting");

@@ -111,7 +111,7 @@ namespace MillimanAccessPortal.DataQueries
             return returnModel;
         }
 
-        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId, int disableInactiveUserMonths, double disableInactiveUserWarningWeeks)
+        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId, int disableInactiveUserMonths, double disableInactiveUserWarningDays)
         {
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
@@ -132,8 +132,8 @@ namespace MillimanAccessPortal.DataQueries
                                                       .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
                                                       .ToDictionary(p => p.Key, p => p.Value);                    
                     memberModel.DisableAccountDate = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths);
-                    memberModel.IsAccountDisabled = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths) < DateTime.UtcNow;
-                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks * 7) < DateTime.Now;
+                    memberModel.IsAccountDisabled = memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths);
+                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths).AddDays(disableInactiveUserWarningDays);
                     return memberModel;
                 });
 
@@ -225,8 +225,8 @@ namespace MillimanAccessPortal.DataQueries
                     fdUsers.ForEach(u =>
                     {
                         u.DisableAccountDate = u.LastLoginDate?.AddMonths(disableInactiveUserMonths);
-                        u.IsAccountDisabled = u.LastLoginDate?.AddMonths(disableInactiveUserMonths) < DateTime.UtcNow;
-                        u.IsAccountNearDisabled = !u.IsAccountDisabled && u.LastLoginDate?.AddMonths(disableInactiveUserMonths).AddDays(-disableInactiveUserWarningWeeks * 7) < DateTime.Now;
+                        u.IsAccountDisabled = u.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths);
+                        u.IsAccountNearDisabled = !u.IsAccountDisabled && u.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths).AddDays(disableInactiveUserWarningDays);
                     });
                     fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel
                     {

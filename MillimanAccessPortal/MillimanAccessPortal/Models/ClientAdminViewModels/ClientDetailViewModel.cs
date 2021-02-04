@@ -173,7 +173,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                     }
                     EligibleUsers.AddRange(UsersAssignedToClientFamily
                         .Where(u => u.NormalizedEmail.Contains($"@{AcceptableDomain.ToUpper()}"))
-                        .Select(u => (UserInfoModel)u));                      
+                        .Select(u => (UserInfoModel)u));
                 }
                 // Subtract the assigned users from the overall list of eligible users
                 EligibleUsers = EligibleUsers
@@ -199,7 +199,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                         }));
 
                     assignedUser.UserRoles = assignedUserRoles.ToDictionary(ur => (int) ur.RoleEnum);
-                    assignedUser.IsAccountDisabled = assignedUser.LastLoginUtc?.AddMonths(MonthsBeforeDisableAccount) < DateTime.Now;
+                    assignedUser.IsAccountDisabled = assignedUser.LastLoginUtc < DateTime.Now.Date.AddMonths(-MonthsBeforeDisableAccount);
                     assignedUser.DateOfAccountDisable = assignedUser.LastLoginUtc?.AddMonths(MonthsBeforeDisableAccount);
                 }
                 foreach (UserInfoModel eligibleUser in EligibleUsers)

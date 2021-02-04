@@ -45,7 +45,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
                 Name = baseModel.Name,
                 UserEmail = baseModel.UserEmail,
                 IsSuspended = baseModel.IsSuspended,
-                LastLoginDate = user.LastLoginUtc,    
+                LastLoginDate = user.LastLoginUtc,
             };
         }
 

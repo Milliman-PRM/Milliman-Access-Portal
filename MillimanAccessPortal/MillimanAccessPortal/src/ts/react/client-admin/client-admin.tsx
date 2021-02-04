@@ -841,19 +841,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     <use xlinkHref="#user" />
                   </svg>
                   {entity.isAccountDisabled ?
-                    <svg
-                      className="card-user-role-indicator"
-                      style={{
-                        position: 'absolute',
-                        top: '20%',
-                        left: '13%',
-                        height: '1.25rem',
-                        width: '1.25rem',
-                        color: 'red',
-                        stroke: 'context fill red',
-                        strokeWidth: '3px',
-                      }}
-                    >
+                    <svg className="card-user-role-indicator disabled">
                       <use href="#cancel" />
                     </svg> : null
 }
@@ -861,19 +849,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     !entity.isAccountDisabled &&
                     entity.userRoles[RoleEnum.Admin] &&
                     entity.userRoles[RoleEnum.Admin].isAssigned ?
-                    <svg
-                      className="card-user-role-indicator"
-                      style={{
-                      position: 'absolute',
-                      top: '20%',
-                      left: '13%',
-                      height: '1.25rem',
-                      width: '1.25rem',
-                      color: '#42cc42',
-                      stroke: 'context fill #42cc42',
-                      strokeWidth: '3px',
-                      }}
-                    >
+                    <svg className="card-user-role-indicator admin">
                       <use href="#add" />
                     </svg> : null
                   }

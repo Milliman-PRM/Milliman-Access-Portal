@@ -545,18 +545,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                             <td>
                               <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
                               <span className="detail-value-email">{user.userEmail}</span><br />
-                              {user.isAccountDisabled &&
-                                <span className="detail-value-disabled">
-                                  Account disabled on {moment.utc(user.disableAccountDate)
-                                    .local().format('MMM DD, YYYY')}
-                                </span>
-                              }
-                              {user.isAccountNearDisabled &&
-                                <span className="detail-value-near-disabled">
-                                Account will be disabled on {moment.utc(user.disableAccountDate)
-                                  .local().format('MMM DD, YYYY')}
-                                </span>
-                              }
+                              {this.renderUserAccountStatus(user)}
                             </td>
                             <td>
                               {
@@ -871,6 +860,26 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <use xlinkHref={'#checkmark'} />
       </svg>
     );
+  }
+
+  private renderUserAccountStatus(user: ClientActorModel) {
+    if (user.isAccountDisabled) {
+      return (
+        <span className="detail-value-disabled">
+          Account disabled on {moment.utc(user.disableAccountDate)
+            .local().format('MMM DD, YYYY')}
+        </span>
+      );
+    }
+
+    if (user.isAccountNearDisabled) {
+      return (
+        <span className="detail-value-near-disabled">
+          Account will be disabled on {moment.utc(user.disableAccountDate)
+            .local().format('MMM DD, YYYY')}
+        </span>
+      );
+    }
   }
 
   private renderFileDropAccountStatusIcon(user: ClientActorModel) {

@@ -55,7 +55,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
 
         public void setAccountDisableStatus(int MonthsToDisableAccount)
         {
-            if (this.LastLoginUtc?.AddMonths(MonthsToDisableAccount) < DateTime.UtcNow)
+            if (this.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-MonthsToDisableAccount))
             {
                 this.IsAccountDisabled = true;
                 this.AccountDisableDate = this.LastLoginUtc?.AddMonths(MonthsToDisableAccount);
