@@ -159,13 +159,19 @@ namespace MillimanAccessPortal.Services
 
                     string emailBody = "We have noticed you haven't logged into your MAP account for a long time. ";
                     emailBody += $"As a result, you MAP account will be disabled unless you login within {daysBeforeDisabled.Days}";
-                    emailBody += $"Please login to MAP at {mapUrl} if you do not want your account disabled.";
+                    emailBody += $"Please login to MAP at {mapUrl} if you would like your account to stay active.";
 
-                    List<string> recepients = new List<string>
+                    List<ApplicationUser> clientAdmins = dbContext.UserRoleInClient.Where(urc => urc.ClientId == usr.ClientId)
+                                                                                    .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                                                    .Select(urc => urc.User)
+                                                                                    .ToList();
+
+                    List<string> recepients = new List<string>{usr.User.Email};
+
+                    foreach(ApplicationUser adminUsr in clientAdmins)
                     {
-                        usr.User.Email,
-                        usr.Client.ConsultantEmail
-                    };
+                        recepients.Add(adminUsr.Email);
+                    }
 
                     messageQueue.QueueEmail(recepients, emailSubject, emailBody);                    
                 }
