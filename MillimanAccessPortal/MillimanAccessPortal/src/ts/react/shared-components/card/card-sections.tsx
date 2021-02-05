@@ -16,7 +16,8 @@ export interface CardTextProps {
   text: string;
   textSuffix: string;
   subtext: string;
-  subtextIsWarning?: boolean;
+  issueIcon: 'none' | 'warning' | 'error';
+  issueIconText: string;
   editing: boolean;
   isNewChild: boolean;
   setText: (text: string) => void;
@@ -25,13 +26,14 @@ export class CardText extends React.Component<CardTextProps> {
   public static defaultProps = {
     textSuffix: '',
     subtitle: '',
-    subtextIsWarning: false,
+    issueIcon: 'none',
+    issueIconText: '',
     editing: false,
     isNewChild: false,
     setText: (): null => null,
   };
   public render() {
-    const { text, textSuffix, subtext, editing, isNewChild, setText, subtextIsWarning } = this.props;
+    const { text, textSuffix, subtext, editing, isNewChild, setText, issueIcon, issueIconText } = this.props;
     return (
       <div className="card-body-primary-container">
         <h2 className="card-body-primary-text">
@@ -54,9 +56,11 @@ export class CardText extends React.Component<CardTextProps> {
           subtext &&
           subtext.trim() !== '' &&
           <p className="card-body-secondary-text">
-            <span className={subtextIsWarning && 'warning'}>{subtext}</span>
+            <span>{subtext}</span>
           </p>
         }
+        {issueIcon === 'warning' && <svg className="corner-icon error"><use href="#error" /></svg>}
+        {issueIcon === 'error' && <svg className="corner-icon error"><use href="#error" /></svg>}
       </div>
     );
   }

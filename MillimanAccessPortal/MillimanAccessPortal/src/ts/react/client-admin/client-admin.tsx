@@ -856,11 +856,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   <CardText
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
-                    subtext={entity.isAccountDisabled ?
-                      'Account disabled on ' + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY') :
-                      (entity.firstName && entity.lastName ? entity.email : '')
+                    subtext={entity.firstName && entity.lastName ? entity.email : ''}
+                    issueIcon={entity.isAccountDisabled ? 'error' : 'none'}
+                    issueIconText={entity.isAccountDisabled ?
+                      'Account disabled on ' + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')
+                      : null
                     }
-                    subtextIsWarning={entity.isAccountDisabled}
                   />
                   {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>
