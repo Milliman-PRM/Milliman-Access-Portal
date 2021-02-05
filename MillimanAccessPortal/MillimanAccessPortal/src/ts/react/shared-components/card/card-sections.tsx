@@ -35,33 +35,45 @@ export class CardText extends React.Component<CardTextProps> {
   public render() {
     const { text, textSuffix, subtext, editing, isNewChild, setText, issueIcon, issueIconText } = this.props;
     return (
-      <div className="card-body-primary-container">
-        <h2 className="card-body-primary-text">
+      <>
+        <div className="card-body-primary-container">
+          <h2 className="card-body-primary-text">
+            {
+              editing
+                ? <input
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  onClick={(event) => event.stopPropagation()}
+                />
+                : text + (textSuffix ? ` ${textSuffix}` : '')
+            }
+            {isNewChild ?
+              <svg className="new-child-icon">
+                <use href="#expand-card" />
+              </svg> : null
+            }
+          </h2>
           {
-            editing
-              ? <input
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                onClick={(event) => event.stopPropagation()}
-              />
-              : text + (textSuffix ? ` ${textSuffix}` : '')
+            subtext &&
+            subtext.trim() !== '' &&
+            <p className="card-body-secondary-text">
+              <span>{subtext}</span>
+            </p>
           }
-          {isNewChild ?
-            <svg className="new-child-icon">
-              <use href="#expand-card" />
-            </svg> : null
-          }
-        </h2>
+        </div>
         {
-          subtext &&
-          subtext.trim() !== '' &&
-          <p className="card-body-secondary-text">
-            <span>{subtext}</span>
-          </p>
+          issueIcon === 'warning' &&
+          <div className="corner-icon warning" title={issueIconText}>
+            <svg><use href="#error" /></svg>
+          </div>
         }
-        {issueIcon === 'warning' && <svg className="corner-icon error"><use href="#error" /></svg>}
-        {issueIcon === 'error' && <svg className="corner-icon error"><use href="#error" /></svg>}
-      </div>
+        {
+          issueIcon === 'error' &&
+          <div className="corner-icon error" title={issueIconText}>
+            <svg><use href="#cancel" /></svg>
+          </div>
+        }
+      </>
     );
   }
 }

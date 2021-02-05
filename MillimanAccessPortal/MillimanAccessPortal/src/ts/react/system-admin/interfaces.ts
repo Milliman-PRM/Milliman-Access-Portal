@@ -26,6 +26,7 @@ export interface UserInfo {
   profitCenterId?: Guid;
   clientId?: Guid;
   isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
   accontDisableDate: string;
 }
 export interface ClientInfo extends Nestable {

@@ -342,6 +342,25 @@
                     stroke: context-fill $red;
                 }
             }
+
+            .corner-icon {
+                position: absolute;
+                top: 0.25em;
+                right: 4%;
+
+                svg {
+                    width: 1.3em;
+                    height: 1.3em;
+                }
+                
+                &.warning {
+                    color: $orange;
+                }
+
+                &.error {
+                    color: $red;
+                }
+            }
         }
 
         .card-stats-container {

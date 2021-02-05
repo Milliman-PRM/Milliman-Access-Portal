@@ -840,13 +840,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   >
                     <use xlinkHref="#user" />
                   </svg>
-                  {entity.isAccountDisabled ?
-                    <svg className="card-user-role-indicator disabled">
-                      <use href="#cancel" />
-                    </svg> : null
-}
                   {entity.userRoles &&
-                    !entity.isAccountDisabled &&
                     entity.userRoles[RoleEnum.Admin] &&
                     entity.userRoles[RoleEnum.Admin].isAssigned ?
                     <svg className="card-user-role-indicator admin">
@@ -857,9 +851,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
                     subtext={entity.firstName && entity.lastName ? entity.email : ''}
-                    issueIcon={entity.isAccountDisabled ? 'error' : 'none'}
-                    issueIconText={entity.isAccountDisabled ?
-                      'Account disabled on ' + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')
+                    issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                    issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                        + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')
                       : null
                     }
                   />

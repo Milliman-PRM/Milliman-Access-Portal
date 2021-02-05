@@ -31,6 +31,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public DateTime? LastLoginUtc { get; set; }
         public DateTime? AccountDisableDate { get; set; }
         public bool IsAccountDisabled { get; set; } = false;
+        public bool IsAccountNearDisabled { get; set; } = false;
 
         public static explicit operator UserInfo(ApplicationUser user)
         {
@@ -53,11 +54,12 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         }
 
 
-        public void setAccountDisableStatus(int MonthsToDisableAccount)
+        public void setAccountDisableStatus(int MonthsToDisableAccount, int DaysToWarnBeforeAccountDisable)
         {
-            if (this.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-MonthsToDisableAccount))
-            {
-                this.IsAccountDisabled = true;
+            this.IsAccountDisabled = this.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-MonthsToDisableAccount);
+            this.IsAccountNearDisabled = !this.IsAccountDisabled && this.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-MonthsToDisableAccount).AddDays(DaysToWarnBeforeAccountDisable);
+
+            if (this.IsAccountDisabled || this.IsAccountNearDisabled) {
                 this.AccountDisableDate = this.LastLoginUtc?.AddMonths(MonthsToDisableAccount);
             }
         }

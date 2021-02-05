@@ -13,6 +13,7 @@ export interface User {
   email: string;
   userRoles?: Dict<UserRole>;
   isAccountDisabled?: boolean;
+  isAccountNearDisabled?: boolean;
   dateOfAccountDisable?: string;
 }
 export interface UserFull extends User {
