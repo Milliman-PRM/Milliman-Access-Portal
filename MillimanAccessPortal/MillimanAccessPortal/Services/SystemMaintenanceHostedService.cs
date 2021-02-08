@@ -133,15 +133,16 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-                TimeSpan userAccountDisableNotificationWarningDays = new TimeSpan(appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 15));
-                TimeSpan userAccountDisableAfterDays = new TimeSpan(appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 15));
-                TimeSpan timeSpanTillWarning = userAccountDisableAfterDays - userAccountDisableNotificationWarningDays;
+                int userAccountDisableNotificationWarningDays = appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 14);
+                int userAccountDisableAfterDays = appConfiguration.GetValue("UserAccountDisableAfterDays", 365);   
 
-                IQueryable<UserRoleInClient> usersToNotifyQuery = dbContext.UserRoleInClient
-                                                             .Include(usr => usr.User)
-                                                             .Include(usr => usr.Client)
-                                                             .Where(usr => DateTime.UtcNow.Date > usr.User.LastLoginUtc + timeSpanTillWarning);
-
+                List<IGrouping<ApplicationUser, Client>> usersToNotify = dbContext.UserRoleInClient
+                                                                                  .Include(usr => usr.User)
+                                                                                  .Include(usr => usr.Client)
+                                                                                  .Where(usr => DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).Date == usr.User.LastLoginUtc.Value.AddDays(userAccountDisableAfterDays).Date)
+                                                                                  .GroupBy(urc => urc.User, urc => urc.Client)
+                                                                                  .ToList();
+               
                 string emailSubject = "Your MAP account will be disabled soon";
 
                 string mapUrl = hostEnvironment switch
@@ -153,26 +154,26 @@ namespace MillimanAccessPortal.Services
                     _ => "https://unhandled.environment",
                 };
 
-                foreach (UserRoleInClient usr in usersToNotifyQuery.AsEnumerable())
+                foreach (IGrouping<ApplicationUser, Client> userClients in usersToNotify)
                 {
-                    TimeSpan daysBeforeDisabled = usr.User.LastLoginUtc.Value + userAccountDisableAfterDays - DateTime.UtcNow;
+                    TimeSpan daysBeforeDisabled = userClients.Key.LastLoginUtc.Value + userAccountDisableAfterDays - DateTime.UtcNow;
 
                     string emailBody = "We have noticed you haven't logged into your MAP account for a long time. ";
                     emailBody += $"As a result, you MAP account will be disabled unless you login within {daysBeforeDisabled.Days}";
                     emailBody += $"Please login to MAP at {mapUrl} if you would like your account to stay active.";
 
-                    List<ApplicationUser> clientAdmins = dbContext.UserRoleInClient.Where(urc => urc.ClientId == usr.ClientId)
-                                                                                    .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
-                                                                                    .Select(urc => urc.User)
-                                                                                    .ToList();
+                    List<Guid> clientIDs = userClients.Select(c => c.Id).ToList();
+                    List<string> clientAdminsEmails = dbContext.UserRoleInClient
+                                                               .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                               .Where(urc => clientIDs.Contains(urc.ClientId))
+                                                               .Select(urc => urc.User.Email)
+                                                               .Distinct()
+                                                               .ToList();
+                    
+                    List<string> recepients = new List<string>{userClients.Key.Email};
 
-                    List<string> recepients = new List<string>{usr.User.Email};
-
-                    foreach(ApplicationUser adminUsr in clientAdmins)
-                    {
-                        recepients.Add(adminUsr.Email);
-                    }
-
+                    recepients.AddRange(clientAdminsEmails);    //TODO: Refactor using CC feature once available.
+                    
                     messageQueue.QueueEmail(recepients, emailSubject, emailBody);                    
                 }
             }
