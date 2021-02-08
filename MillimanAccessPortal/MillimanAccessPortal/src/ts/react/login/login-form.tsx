@@ -102,7 +102,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           inputIcon="password"
           hidden={!userConfirmed}
         />
-        <p className="terms-reminder" style={{ marginTop: !userConfirmed ? '-5em' : null }}>
+        <p className={'terms-reminder' + (userConfirmed ? ' vertical-push' : '')}>
           By continuing to log in, you are agreeing to Milliman Access Portal's
           <a href="/Account/UserAgreementReadOnly"> User Agreement</a>.
         </p>

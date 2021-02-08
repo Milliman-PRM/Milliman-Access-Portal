@@ -515,4 +515,14 @@
 
 .terms-reminder {
     font-size: 12px;
+    opacity: 1;
+    transition: all 0.3s ease;
+    -webkit-transition: all 0.3s ease;
+    position: relative;
+    top: -5em;
+
+    &.vertical-push {
+        position: relative;
+        top: 0em;
+    }
 }
