@@ -829,6 +829,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 selected={false}
                 disabled={selected.readonly}
                 onSelect={null}
+                bannerMessage={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  {
+                    level: entity.isAccountDisabled ? 'error' : 'informational',
+                    message:
+                      <div>{(entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ') +
+                        moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')}
+                      </div>,
+                  } : null
+                }
+                borderLevel={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  (entity.isAccountDisabled ? 'error' : 'informational') : 'default'
+                }
               >
                 <CardSectionMain>
                   <svg
@@ -851,13 +863,6 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     text={
                       entity.firstName && entity.lastName ? `${entity.firstName} ${entity.lastName}` : entity.email}
                     subtext={entity.firstName && entity.lastName ? entity.email : ''}
-                    issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
-                      ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
-                    issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
-                      ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
-                        + moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')
-                      : null
-                    }
                   />
                   {!selected.readonly || (edit.userEnabled && selected.user === entity.id) ?
                     <CardSectionButtons>

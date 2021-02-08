@@ -39,6 +39,18 @@ export class CardText extends React.Component<CardTextProps> {
         <div className="card-body-primary-container">
           <h2 className="card-body-primary-text">
             {
+              issueIcon === 'warning' &&
+              <span className="corner-icon warning" title={issueIconText}>
+                <svg><use href="#error" /></svg>
+              </span>
+            }
+            {
+              issueIcon === 'error' &&
+              <span className="corner-icon error" title={issueIconText}>
+                <svg><use href="#cancel" /></svg>
+              </span>
+            }
+            {
               editing
                 ? <input
                   value={text}
@@ -61,18 +73,6 @@ export class CardText extends React.Component<CardTextProps> {
             </p>
           }
         </div>
-        {
-          issueIcon === 'warning' &&
-          <div className="corner-icon warning" title={issueIconText}>
-            <svg><use href="#error" /></svg>
-          </div>
-        }
-        {
-          issueIcon === 'error' &&
-          <div className="corner-icon error" title={issueIconText}>
-            <svg><use href="#cancel" /></svg>
-          </div>
-        }
       </>
     );
   }
