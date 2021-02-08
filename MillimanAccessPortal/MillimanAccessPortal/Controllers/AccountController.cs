@@ -358,6 +358,17 @@ namespace MillimanAccessPortal.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> UserAgreementReadOnly()
+        {
+            UserAgreementReadOnlyViewModel model = new UserAgreementReadOnlyViewModel
+            {
+                AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured"
+            };
+            return View(model);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeclineUserAgreement(Guid validationId)
