@@ -4,8 +4,13 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { getJsonData, isEmailAddressValid, postData } from '../../../shared';
-import { ProfitCenterDetail } from '../interfaces';
 import { Input, MultiAddInput } from '../../shared-components/form/input';
+import { ProfitCenterDetail } from '../interfaces';
+
+// Toastr related imports
+import toastr = require('toastr');
+import '../../../lib-options';
+require('toastr/toastr.scss');
 
 interface CardModalProps extends Modal.Props {
   // render: (props: CardModalProps) => JSX.Element;
@@ -52,7 +57,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
           contact: response.contactName,
           email: response.contactEmail,
           phone: response.contactPhone,
-          quarterlyMaintenanceEmailRecipients: response.quarterlyMaintenanceEmailRecipients,
+          quarterlyMaintenanceEmailRecipients: response.quarterlyMaintenanceEmailRecipients || [],
         });
       });
     }
@@ -124,7 +129,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
               label="Quarterly Maintenance Email Recipients"
               type="text"
               list={this.state.quarterlyMaintenanceEmailRecipients}
-              value={this.state.quarterlyMaintenanceEmailRecipients}
+              value={''}
               addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                 if (itemAlreadyExists) {
                   toastr.warning('', 'That email already exists.');
