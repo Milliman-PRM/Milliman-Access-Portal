@@ -3,8 +3,9 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { getJsonData, postData } from '../../../shared';
+import { getJsonData, isEmailAddressValid, postData } from '../../../shared';
 import { ProfitCenterDetail } from '../interfaces';
+import { Input, MultiAddInput } from '../../shared-components/form/input';
 
 interface CardModalProps extends Modal.Props {
   // render: (props: CardModalProps) => JSX.Element;
@@ -17,6 +18,7 @@ interface CardModalState {
   contact: string;
   email: string;
   phone: string;
+  quarterlyMaintenanceEmailRecipients: string[];
 }
 
 export class CardModal extends React.Component<CardModalProps, CardModalState> {
@@ -33,6 +35,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
       contact: '',
       email: '',
       phone: '',
+      quarterlyMaintenanceEmailRecipients: [],
     };
   }
 
@@ -49,6 +52,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
           contact: response.contactName,
           email: response.contactEmail,
           phone: response.contactPhone,
+          quarterlyMaintenanceEmailRecipients: response.quarterlyMaintenanceEmailRecipients,
         });
       });
     }
@@ -67,60 +71,81 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
           <h3 className="title blue">Update Existing Profit Center</h3>
           <span className="modal-text">Profit Center Information</span>
           <form onSubmit={this.handleSubmit}>
-            <span>
-              <label htmlFor="pcName">Name:</label>
-              <input
-                name="pcName"
-                type="text"
-                onChange={this.handleChangeName}
-                value={this.state.name || ''}
-              />
-            </span>
-            <span>
-              <label htmlFor="pcCode">Code:</label>
-              <input
-                name="pcCode"
-                type="text"
-                onChange={this.handleChangeCode}
-                value={this.state.code || ''}
-              />
-            </span>
-            <span>
-              <label htmlFor="pcOffice">Office:</label>
-              <input
-                name="pcOffice"
-                type="text"
-                onChange={this.handleChangeOffice}
-                value={this.state.office || ''}
-              />
-            </span>
-            <span>
-              <label htmlFor="pcContact">Contact:</label>
-              <input
-                name="pcContact"
-                type="text"
-                onChange={this.handleChangeContact}
-                value={this.state.contact || ''}
-              />
-            </span>
-            <span>
-              <label htmlFor="pcEmail">Email:</label>
-              <input
-                name="pcEmail"
-                type="text"
-                onChange={this.handleChangeEmail}
-                value={this.state.email || ''}
-              />
-            </span>
-            <span>
-              <label htmlFor="pcPhone">Phone:</label>
-              <input
-                name="pcPhone"
-                type="text"
-                onChange={this.handleChangePhone}
-                value={this.state.phone || ''}
-              />
-            </span>
+            <Input
+              name="pcName"
+              label="Name"
+              value={this.state.name}
+              error={null}
+              type="text"
+              onChange={this.handleChangeName}
+            />
+            <Input
+              label="Code"
+              value={this.state.code}
+              error={null}
+              name="pcCode"
+              type="text"
+              onChange={this.handleChangeCode}
+            />
+            <Input
+              label="Office"
+              value={this.state.office}
+              error={null}
+              name="pcOffice"
+              type="text"
+              onChange={this.handleChangeOffice}
+            />
+            <Input
+              label="Contact"
+              name="pcContact"
+              value={this.state.contact}
+              error={null}
+              type="text"
+              onChange={this.handleChangeContact}
+            />
+            <Input
+              label="Email"
+              value={this.state.email}
+              error={null}
+              name="pcEmail"
+              type="text"
+              onChange={this.handleChangeEmail}
+            />
+            <Input
+              label="Phone"
+              value={this.state.phone}
+              error={null}
+              name="pcPhone"
+              type="text"
+              onChange={this.handleChangePhone}
+            />
+            <MultiAddInput
+              name="quarterlyMaintenanceEmailRecipients"
+              label="Quarterly Maintenance Email Recipients"
+              type="text"
+              list={this.state.quarterlyMaintenanceEmailRecipients}
+              value={this.state.quarterlyMaintenanceEmailRecipients}
+              addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
+                if (itemAlreadyExists) {
+                  toastr.warning('', 'That email already exists.');
+                } else if (!isEmailAddressValid(item)) {
+                  toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
+                } else {
+                  this.setState({
+                    quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.concat(item),
+                  });
+                }
+              }}
+              removeItemCallback={(index: number) => {
+                this.setState({
+                  quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.slice(0, index)
+                    .concat(this.state.quarterlyMaintenanceEmailRecipients.slice(index + 1)),
+                });
+              }}
+              readOnly={false}
+              onBlur={() => { return; }}
+              error={null}
+            />
             <div className="button-container">
               <button
                 className="link-button"
@@ -189,6 +214,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
       contactName: this.state.contact,
       contactEmail: this.state.email,
       contactPhone: this.state.phone,
+      quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients,
     })
     .then(() => {
       alert('Profit center updated.');
