@@ -103,8 +103,8 @@ export class LoginForm extends Form<{}, LoginFormState> {
           hidden={!userConfirmed}
         />
         <p className={'terms-reminder' + (userConfirmed ? ' vertical-push' : '')}>
-          By continuing to log in, you are agreeing to Milliman Access Portal's
-          <a href="/Account/UserAgreementReadOnly"> User Agreement</a>.
+          By continuing, you are agreeing to Milliman Access Portal's
+          <a href="/Account/UserAgreementReadOnly" target="_blank"> User Agreement</a>.
         </p>
         {loginWarning && <div className="error-message">{loginWarning}</div>}
         <div className={'button-container' + (userConfirmed ? ' visible' : ' hidden')}>

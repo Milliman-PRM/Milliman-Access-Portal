@@ -1,5 +1,7 @@
 ﻿import { convertMarkdownToHTML } from './convert-markdown';
 
+require('../scss/map.scss');
+
 import '../../src/scss/disclaimer.scss';
 
 document.addEventListener('DOMContentLoaded', () => {

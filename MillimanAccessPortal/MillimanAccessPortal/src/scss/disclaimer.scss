@@ -40,8 +40,8 @@ body {
 
     #disclaimer-acceptance {
         font-weight: bold;
-    } 
-    
+    }
+
     #disclaimer-form {
         flex: none;
         width: 100%;
@@ -56,4 +56,15 @@ body {
             text-align: right;
         }
     }
+
+    &.read-only {
+        max-height: 90vh;
+        height: 90vh;
+    }
+}
+
+#disclaimer-container.read-only + #page-footer {
+    display: flex;
+    position: absolute;
+    bottom: 0;
 }
