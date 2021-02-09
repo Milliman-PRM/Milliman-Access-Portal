@@ -387,7 +387,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            user.UserAgreementAcceptedUtc = DateTime.Now;
+            user.UserAgreementAcceptedUtc = DateTime.UtcNow;
             DbContext.SaveChanges();
 
             _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName);
