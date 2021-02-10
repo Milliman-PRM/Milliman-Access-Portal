@@ -134,12 +134,12 @@ namespace MillimanAccessPortal.Services
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
                 int userAccountDisableNotificationWarningDays = appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 14);
-                int userAccountDisableAfterDays = appConfiguration.GetValue("UserAccountDisableAfterDays", 365);   
+                int userAccountDisableAfterMonths = appConfiguration.GetValue("DisableInactiveUserMonths", 12);   
 
                 List<IGrouping<ApplicationUser, Client>> usersToNotify = dbContext.UserRoleInClient
                                                                                   .Include(usr => usr.User)
                                                                                   .Include(usr => usr.Client)
-                                                                                  .Where(usr => DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).Date == usr.User.LastLoginUtc.Value.AddDays(userAccountDisableAfterDays).Date)
+                                                                                  .Where(usr => DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).Date == usr.User.LastLoginUtc.Value.AddMonths(userAccountDisableAfterMonths).Date)
                                                                                   .GroupBy(urc => urc.User, urc => urc.Client)
                                                                                   .ToList();
                
