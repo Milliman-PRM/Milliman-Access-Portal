@@ -156,10 +156,8 @@ namespace MillimanAccessPortal.Services
 
                 foreach (IGrouping<ApplicationUser, Client> userClients in usersToNotify)
                 {
-                    TimeSpan daysBeforeDisabled = userClients.Key.LastLoginUtc.Value + userAccountDisableAfterDays - DateTime.UtcNow;
-
                     string emailBody = "We have noticed you haven't logged into your MAP account for a long time. ";
-                    emailBody += $"As a result, you MAP account will be disabled unless you login within {daysBeforeDisabled.Days}";
+                    emailBody += $"As a result, you MAP account will be disabled unless you login within {userAccountDisableNotificationWarningDays} days";
                     emailBody += $"Please login to MAP at {mapUrl} if you would like your account to stay active.";
 
                     List<Guid> clientIDs = userClients.Select(c => c.Id).ToList();
