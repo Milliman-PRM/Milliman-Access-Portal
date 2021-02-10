@@ -168,11 +168,9 @@ namespace MillimanAccessPortal.Services
                                                                .Distinct()
                                                                .ToList();
                     
-                    List<string> recepients = new List<string>{userClients.Key.Email};
+                    List<string> recipients = new List<string>{userClients.Key.Email};
 
-                    recepients.AddRange(clientAdminsEmails);    //TODO: Refactor using CC feature once available.
-                    
-                    messageQueue.QueueEmail(recepients, emailSubject, emailBody);                    
+                    messageQueue.QueueMessage(recipients, clientAdminsEmails, null, emailSubject, emailBody, null, null);
                 }
             }
             thisTimer.Change(TimeSpanTillNextEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
