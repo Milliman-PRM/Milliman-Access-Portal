@@ -74,6 +74,15 @@ namespace AuditLogLib.Event
         UserRemovedFromSelectionGroup,
     }
 
+    public enum ReenableDisabledAccountReason
+    {
+        [Display(Name = "Change in employee responsibilities")]
+        ChangeInEmployeeResponsibilities,
+
+        [Display(Name = "Returning employee")]
+        ReturningEmployee,
+    }
+
     public class HitrustReason
     {
         private static Dictionary<int, HitrustReason> AllReasons;

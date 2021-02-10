@@ -10,7 +10,7 @@ import {
   AccessStateBaseFormData, AccessStateData, AccessStateEdit,
   AccessStateSelected, AccessStateValid, PendingCreateClientUserState, PendingDataState,
   PendingDeleteClientState, PendingDiscardEditAfterSelectModal, PendingDiscardEditUserRoles,
-  PendingHitrustReason, PendingRemoveClientUserState, PendingUserRoleAssignments,
+  PendingHitrustReason, PendingReenableAccountReason, PendingRemoveClientUserState, PendingUserRoleAssignments,
 } from './store';
 
 import { CardAttributes } from '../../shared-components/card/card';
@@ -22,11 +22,17 @@ const _initialPendingData: PendingDataState = {
   clients: false,
   details: false,
   clientUsers: false,
+  requestReenableDisabledAccount: false,
 };
 const _initialPendingUserRoleAssignements: PendingUserRoleAssignments = {
   roleAssignments: [],
 };
 const _initialHitrustReason: PendingHitrustReason = {
+  reason: 0,
+};
+const _initialRequestReenableDisabledAccountReason: PendingReenableAccountReason = {
+  userId: null,
+  userEmail: null,
   reason: 0,
 };
 const _initialPendingDeleteClient: PendingDeleteClientState = {
@@ -221,6 +227,23 @@ const pendingHitrustReason = createReducer<PendingHitrustReason>(_initialHitrust
     ...state,
     reason: action.reason,
   }),
+});
+
+const pendingRequestReenableDisabledAccountReason =
+  createReducer<PendingReenableAccountReason>(_initialRequestReenableDisabledAccountReason, {
+    OPEN_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL:
+      (state, action: AccessActions.OpenRequestReenableDisabledAccountModal) => ({
+        ...state,
+        reason: 0,
+        userEmail: action.userEmail,
+        userId: action.userId,
+    }),
+    SET_ACCOUNT_REENABLE_REQUEST_REASON: (state, action: AccessActions.SetAcountReenableRequestReason) => ({
+      ...state,
+      reason: action.reason,
+    }),
+    REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED: () => _initialRequestReenableDisabledAccountReason,
+    REQUEST_REENABLED_USER_ACCOUNT_FAILED: () => _initialRequestReenableDisabledAccountReason,
 });
 
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
@@ -567,12 +590,18 @@ const modals = combineReducers({
   discardUserRoleChanges: createModalReducer(['OPEN_DISCARD_USER_ROLE_CHANGES_MODAL'], [
     'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL',
   ]),
+  requestReenableDisabledAccount: createModalReducer(['OPEN_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL'], [
+    'CLOSE_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL',
+    'REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED',
+    'REQUEST_REENABLED_USER_ACCOUNT_FAILED',
+  ]),
 });
 
 const pending = combineReducers({
   data: pendingData,
   roles: pendingRoleAssignments,
   hitrustReason: pendingHitrustReason,
+  reenableDisabledAccountReason: pendingRequestReenableDisabledAccountReason,
   deleteClient: pendingDeleteClient,
   createClientUser: pendingCreateClientUser,
   removeClientUser: pendingRemoveClientUser,

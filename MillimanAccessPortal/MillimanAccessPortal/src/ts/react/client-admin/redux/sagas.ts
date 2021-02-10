@@ -47,6 +47,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('DELETE_CLIENT', api.deleteClient);
   yield takeLatestRequest('SAVE_NEW_CLIENT_USER', api.saveNewClientUser);
   yield takeLatestRequest('REMOVE_CLIENT_USER', api.removeClientUser);
+  yield takeLatestRequest('REQUEST_REENABLE_USER_ACCOUNT', api.requestReenableUserAccount);
 
   // Scheduled actions
   yield takeLatestSchedule('SAVE_NEW_CLIENT_USER_SUCCEEDED', () => AccessActionCreators.fetchClients({}));
@@ -68,6 +69,7 @@ export default function* rootSaga() {
   yield takeEveryToast('UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED', 'Roles updated');
   yield takeEveryToast('SAVE_NEW_CLIENT_USER_SUCCEEDED', 'User successfully added');
   yield takeEveryToast('REMOVE_CLIENT_USER_SUCCEEDED', 'User successfully removed');
+  yield takeEveryToast('REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED', 'Request sent to support');
 
   yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
@@ -79,6 +81,7 @@ export default function* rootSaga() {
     'DELETE_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_USER_FAILED',
     'REMOVE_CLIENT_USER_FAILED',
+    'REQUEST_REENABLED_USER_ACCOUNT_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

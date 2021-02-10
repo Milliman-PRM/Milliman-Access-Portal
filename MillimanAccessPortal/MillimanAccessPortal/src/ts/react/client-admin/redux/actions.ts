@@ -2,7 +2,7 @@
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
 import { TSError } from "../../shared-components/redux/actions";
 import { ClientDetail } from "../../system-admin/interfaces";
-import { HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
+import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
 import { AccessStateFormData } from "./store";
 
 // ~ Page Actions ~
@@ -49,6 +49,14 @@ export interface ChangeUserRolePending {
 export interface SetRoleChangeReason {
   type: 'SET_ROLE_CHANGE_REASON';
   reason: HitrustReasonEnum;
+}
+
+/**
+ * Change the reason for a request to re-enable a disabled account
+ */
+export interface SetAcountReenableRequestReason {
+  type: 'SET_ACCOUNT_REENABLE_REQUEST_REASON';
+  reason: EnableDisabledAccountReasonEnum;
 }
 
 /**
@@ -287,6 +295,22 @@ export interface RemoveClientUserFailed {
   type: 'REMOVE_CLIENT_USER_FAILED';
   error: TSError;
 }
+export interface RequestReenableUserAccount {
+  type: 'REQUEST_REENABLE_USER_ACCOUNT';
+  request: {
+    clientId: Guid;
+    userId: Guid;
+    reason: number;
+  };
+}
+export interface RequestReenableUserAccountSucceeded {
+  type: 'REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED';
+  response: {};
+}
+export interface RequestReenableUserAccountFailed {
+  type: 'REQUEST_REENABLED_USER_ACCOUNT_FAILED';
+  error: TSError;
+}
 
 // Modals
 export interface OpenDeleteClientModal {
@@ -356,6 +380,14 @@ export interface OpenDiscardUserRoleChangesModal {
 export interface CloseDiscardUserRoleChangesModal {
   type: 'CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL';
 }
+export interface OpenRequestReenableDisabledAccountModal {
+  type: 'OPEN_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL';
+  userEmail: string;
+  userId: Guid;
+}
+export interface CloseRequestReenableDisabledAccountModal {
+  type: 'CLOSE_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL';
+}
 
 /**
  * An action that sets filter text for a card column.
@@ -389,6 +421,7 @@ export type RequestAccessAction =
   | DeleteClient
   | SaveNewClientUser
   | RemoveClientUser
+  | RequestReenableUserAccount
   ;
 
 export type ResponseAccessAction =
@@ -401,6 +434,7 @@ export type ResponseAccessAction =
   | DeleteClientSucceeded
   | SaveNewClientUserSucceeded
   | RemoveClientUserSucceeded
+  | RequestReenableUserAccountSucceeded
   ;
 
 /**
@@ -417,6 +451,7 @@ export type ErrorAccessAction =
   | SaveNewClientFailed
   | SaveNewClientUserFailed
   | RemoveClientUserFailed
+  | RequestReenableUserAccountFailed
   ;
 
 export type PageAccessAction =
@@ -426,6 +461,7 @@ export type PageAccessAction =
   | SetEditStatus
   | ChangeUserRolePending
   | SetRoleChangeReason
+  | SetAcountReenableRequestReason
   | SelectUser
   | SetCollapsedUser
   | SetExpandedUser
@@ -453,6 +489,8 @@ export type PageAccessAction =
   | CloseChangeUserRolesModal
   | OpenDiscardUserRoleChangesModal
   | CloseDiscardUserRoleChangesModal
+  | OpenRequestReenableDisabledAccountModal
+  | CloseRequestReenableDisabledAccountModal
   ;
 
 export type AccessAction =
@@ -471,4 +509,5 @@ export type OpenModalAction =
   | OpenDiscardEditAfterSelectModal
   | OpenChangeUserRolesModal
   | OpenDiscardUserRoleChangesModal
+  | OpenRequestReenableDisabledAccountModal
   ;
