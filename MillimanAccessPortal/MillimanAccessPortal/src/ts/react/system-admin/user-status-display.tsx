@@ -1,9 +1,11 @@
 ﻿import * as moment from 'moment';
 import * as React from 'react';
+import { Guid } from '../models';
 import { UserStatus } from './system-admin';
 
 interface UserStatusDisplayProps {
-  onPushEnableUserAccount: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onPushEnableUserAccount: (id: Guid) => void;
+  userId: Guid;
   status: UserStatus;
 }
 
@@ -21,7 +23,7 @@ export class UserStatusDisplay extends React.Component<UserStatusDisplayProps> {
             <button
               name="systemAdminButton"
               className={'systemAdminButton blue-button'}
-              onClick={this.props.onPushEnableUserAccount}
+              onClick={(_event) => this.props.onPushEnableUserAccount(this.props.userId)}
             >
               Re-enable user account
             </button>

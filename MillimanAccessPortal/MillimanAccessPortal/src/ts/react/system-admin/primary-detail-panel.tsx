@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import * as React from 'react';
 
 import { Toggle } from '../shared-components/form/toggle';
-import { QueryFilter } from '../shared-components/interfaces';
+import { Guid, QueryFilter } from '../shared-components/interfaces';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
 import { SystemAdminColumn, UserStatus } from './system-admin';
 import { UserStatusDisplay } from './user-status-display';
@@ -18,7 +18,7 @@ interface PrimaryDetailPanelProps {
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
-  onPushEnableUserAccount: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  onPushEnableUserAccount: (id: Guid) => void;
   status: UserStatus;
   doDomainLimitOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
@@ -98,6 +98,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                   </div>
                   <div className="detail-section">
                     <UserStatusDisplay
+                      userId={this.props.detail.id}
                       status={this.props.status}
                       onPushEnableUserAccount={this.props.onPushEnableUserAccount}
                     />

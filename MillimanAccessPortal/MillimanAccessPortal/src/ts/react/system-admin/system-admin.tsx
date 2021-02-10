@@ -1213,22 +1213,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
-  private reenableUserAccount = (_event: React.MouseEvent<HTMLButtonElement>) => {
-    const { primaryDetail } = this.state.data;
-    if (!isUserDetail(primaryDetail)) {
-      return;
-    }
-    postData('/SystemAdmin/ReenableDisabledUserAccount').then((_response) => {
-      this.setState((prevState) => ({
-        ...prevState,
-        data: {
-          ...prevState.data,
-          primaryDetail: {
-            ...prevState.data.primaryDetail,
-
-          },
-        },
-      }));
+  private reenableUserAccount = (userId: Guid) => {
+    postData('/SystemAdmin/ReenableDisabledUserAccount', { userId }).then((_response) => {
+      alert('User account re-enabled.');
+    }, (_error) => {
+      alert('Error: User account was not re-enabled.');
     });
   }
 
