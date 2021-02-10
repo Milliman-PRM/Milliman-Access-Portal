@@ -1,12 +1,14 @@
+import * as moment from 'moment';
 import * as React from 'react';
 
 import { Toggle } from '../shared-components/form/toggle';
-import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { Guid, QueryFilter } from '../shared-components/interfaces';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
-import { SystemAdminColumn } from './system-admin';
+import { SystemAdminColumn, UserStatus } from './system-admin';
+import { UserStatusDisplay } from './user-status-display';
 
 interface SecondaryDetailPanelProps {
   primarySelectedColumn: SystemAdminColumn;
@@ -24,6 +26,8 @@ interface SecondaryDetailPanelProps {
   checkedFileDropUser: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
+  onPushEnableUserAccount: (event: React.MouseEvent<HTMLButtonElement>) => void;
+  status: UserStatus;
 }
 
 export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelProps> {
@@ -121,7 +125,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
-                      {this.renderClientUserRoles()}
+                      <div className="detail-section">
+                        <UserStatusDisplay
+                          status={this.props.status}
+                          onPushEnableUserAccount={this.props.onPushEnableUserAccount}
+                        />
+                      </div>
+                      <div className="detail-section">
+                        {this.renderClientUserRoles()}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -216,6 +228,12 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
+                      <div className="detail-section">
+                        <UserStatusDisplay
+                          status={this.props.status}
+                          onPushEnableUserAccount={this.props.onPushEnableUserAccount}
+                        />
+                      </div>
                       <div className="detail-section">
                         <h3 className="detail-section-title">Assigned Clients</h3>
                         <div className="nested-list-container">

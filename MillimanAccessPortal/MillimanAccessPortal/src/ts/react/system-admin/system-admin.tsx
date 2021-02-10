@@ -7,6 +7,7 @@ import '../../../images/icons/reports.svg';
 import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import * as React from 'react';
 
@@ -33,7 +34,7 @@ import {
     ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
     isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
     isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
-    SecondaryDetailData, UserClientRoles, UserInfo,
+    SecondaryDetailData, UserClientRoles, UserDetail, UserInfo,
 } from './interfaces';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
@@ -80,6 +81,11 @@ export interface SystemAdminState {
     open: boolean;
     enabled: boolean;
   };
+}
+export interface UserStatus {
+  isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
+  accountDisableDate: string;
 }
 
 export enum SystemAdminColumn {
@@ -692,6 +698,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
             doDomainLimitOpen={this.handleDomainLimitOpen}
+            onPushEnableUserAccount={isUserDetail(primaryDetail) && this.reenableUserAccount}
+            status={isUserDetail(primaryDetail) && this.getClientUserStatus(pEntities as UserInfo[], primaryDetail.id)}
           />
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
@@ -709,7 +717,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushSuspend={this.pushSuspendContent}
+            onPushEnableUserAccount={isUserClientRoles(secondaryDetail) && this.reenableUserAccount}
+            status={secondaryDetail && this.getClientUserStatus(sEntities as UserInfo[], secondaryDetail.id)}
           />
+          <div>{isUserClientRoles(secondaryDetail)}</div>
         </div>
       </>
     );
@@ -755,7 +766,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           rootIndices.push(i);
         }
       });
-      const cardGroups = rootIndices.map((_, i) =>
+      const cardGroups = rootIndices.map((_v, i) =>
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       return cardGroups.reduce((cum, cur) => [...cum, ...cur], []);
     } else {
@@ -1202,6 +1213,25 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     });
   }
 
+  private reenableUserAccount = (_event: React.MouseEvent<HTMLButtonElement>) => {
+    const { primaryDetail } = this.state.data;
+    if (!isUserDetail(primaryDetail)) {
+      return;
+    }
+    postData('/SystemAdmin/ReenableDisabledUserAccount').then((_response) => {
+      this.setState((prevState) => ({
+        ...prevState,
+        data: {
+          ...prevState.data,
+          primaryDetail: {
+            ...prevState.data.primaryDetail,
+
+          },
+        },
+      }));
+    });
+  }
+
   private fetchSuspendUser = () => {
     getJsonData('/SystemAdmin/UserSuspendedStatus', {
       ...this.getSecondaryQueryFilter(),
@@ -1484,6 +1514,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     .then(() => {
       alert('Profit center deleted.');
     });
+  }
+
+  private getClientUserStatus = (entities: UserInfo[], selectedId: Guid): UserStatus => {
+    const selectedEntityData = _.find(entities, (e) => e.id === selectedId);
+    return {
+      isAccountDisabled: selectedEntityData ? selectedEntityData.isAccountDisabled : false,
+      isAccountNearDisabled: selectedEntityData ? selectedEntityData.isAccountNearDisabled : false,
+      accountDisableDate: selectedEntityData ? selectedEntityData.accontDisableDate : '',
+    };
   }
 
   private initializeCardAttributes(entities: EntityInfoCollection): { [id: string]: CardAttributes } {
