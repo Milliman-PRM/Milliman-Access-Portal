@@ -81,7 +81,7 @@ export default function* rootSaga() {
     'DELETE_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_USER_FAILED',
     'REMOVE_CLIENT_USER_FAILED',
-    'REQUEST_REENABLED_USER_ACCOUNT_FAILED',
+    'REQUEST_REENABLE_USER_ACCOUNT_FAILED',
   ], ({ message }) => message === 'sessionExpired'
     ? 'Your session has expired. Please refresh the page.'
     : isNaN(message)

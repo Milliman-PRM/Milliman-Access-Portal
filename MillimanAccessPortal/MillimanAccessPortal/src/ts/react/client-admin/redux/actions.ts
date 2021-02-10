@@ -308,7 +308,7 @@ export interface RequestReenableUserAccountSucceeded {
   response: {};
 }
 export interface RequestReenableUserAccountFailed {
-  type: 'REQUEST_REENABLED_USER_ACCOUNT_FAILED';
+  type: 'REQUEST_REENABLE_USER_ACCOUNT_FAILED';
   error: TSError;
 }
 

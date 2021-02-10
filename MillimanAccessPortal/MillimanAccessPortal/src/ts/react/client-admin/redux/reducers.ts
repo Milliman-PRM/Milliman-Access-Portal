@@ -243,7 +243,7 @@ const pendingRequestReenableDisabledAccountReason =
       reason: action.reason,
     }),
     REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED: () => _initialRequestReenableDisabledAccountReason,
-    REQUEST_REENABLED_USER_ACCOUNT_FAILED: () => _initialRequestReenableDisabledAccountReason,
+    REQUEST_REENABLE_USER_ACCOUNT_FAILED: () => _initialRequestReenableDisabledAccountReason,
 });
 
 const pendingDeleteClient = createReducer<PendingDeleteClientState>(_initialPendingDeleteClient, {
@@ -593,7 +593,7 @@ const modals = combineReducers({
   requestReenableDisabledAccount: createModalReducer(['OPEN_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL'], [
     'CLOSE_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL',
     'REQUEST_REENABLE_USER_ACCOUNT_SUCCEEDED',
-    'REQUEST_REENABLED_USER_ACCOUNT_FAILED',
+    'REQUEST_REENABLE_USER_ACCOUNT_FAILED',
   ]),
 });
 
