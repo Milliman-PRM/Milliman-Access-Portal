@@ -58,9 +58,14 @@ body {
     }
 
     &.read-only {
-        max-height: 90vh;
-        height: 90vh;
+        max-height: 86vh;
+        height: 86vh;
+        margin-top: 2vh;
     }
+}
+
+#page-header {
+    display: flex !important;
 }
 
 #disclaimer-container.read-only + #page-footer {

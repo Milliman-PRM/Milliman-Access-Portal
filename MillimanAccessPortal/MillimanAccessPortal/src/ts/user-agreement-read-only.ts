@@ -1,4 +1,5 @@
-﻿import { convertMarkdownToHTML } from './convert-markdown';
+﻿import '../images/map-logo.svg';
+import { convertMarkdownToHTML } from './convert-markdown';
 
 require('../scss/map.scss');
 
