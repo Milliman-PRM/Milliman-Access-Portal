@@ -1583,12 +1583,14 @@ namespace MillimanAccessPortal.Controllers
             string emailBody = $"A Client Admin has requested that an existing MAP user account be re-enabled. {Environment.NewLine}{Environment.NewLine}";
             emailBody += $"Requestor: {Requestor.FirstName} {Requestor.LastName} ({Requestor.UserName}) {Environment.NewLine}";
             emailBody += $"Account to re-enable: {RequestedAccount.FirstName} {RequestedAccount.LastName} ({RequestedAccount.UserName}) {Environment.NewLine}";
-            emailBody += $"Reason: {(Model.Reason == (int)ReenableDisabledAccountReason.ChangeInEmployeeResponsibilities ? ReenableDisabledAccountReason.ChangeInEmployeeResponsibilities.GetDisplayNameString() : ReenableDisabledAccountReason.ReturningEmployee.GetDisplayNameString())}";
+            emailBody += $"Reason: {ReenableDisabledAccountReason.ReenableReasons.Find(f => f.NumericValue == Model.Reason).Description}";
 
             string supportEmailAlias = ApplicationConfig.GetValue<string>("SecurityEmailAlias");
             MessageQueueService.QueueEmail(supportEmailAlias, emailSubject, emailBody);
 
-            // Audit logging.
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: Client Admin {Requestor.Id} requested user {RequestedAccount.Id} be re-enabled. Support email sent.");
+            AuditLogger.Log(AuditEventType.ClientAdminRequestedUserAccountReenable.ToEvent(ExistingClientRecord, Requestor, RequestedAccount, Model.Reason));
+
             return Json(new { });
         }
 

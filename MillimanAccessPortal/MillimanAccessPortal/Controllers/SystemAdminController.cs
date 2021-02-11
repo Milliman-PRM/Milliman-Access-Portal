@@ -2261,8 +2261,8 @@ namespace MillimanAccessPortal.Controllers
             accountToEnable.LastLoginUtc = DateTime.UtcNow.Date;
             await _dbContext.SaveChangesAsync();
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
-            
-            //TODO: Audit log reason
+
+            _auditLogger.Log(AuditEventType.DisabledAccountReenabled.ToEvent(accountToEnable, reason));
 
             return Json(new { });
         }
