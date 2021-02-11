@@ -41,6 +41,7 @@ import { CardModal } from './modals/card-modal';
 import { ChangeSystemAdminStatusModal } from './modals/change-system-admin-status-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { ReenableUserModal } from './modals/reenable-user-modal';
 import { RemoveUserFromProfitCenterModal } from './modals/remove-user-from-profit-center';
 import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
@@ -80,6 +81,11 @@ export interface SystemAdminState {
   systemAdminModal: {
     open: boolean;
     enabled: boolean;
+  };
+  reenableUserModal: {
+    open: boolean;
+    targetUserId: Guid;
+    targetUserEmail: string;
   };
 }
 export interface UserStatus {
@@ -145,6 +151,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       systemAdminModal: {
         open: false,
         enabled: false,
+      },
+      reenableUserModal: {
+        open: false,
+        targetUserId: null,
+        targetUserEmail: null,
       },
     };
   }
@@ -493,6 +504,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             profitCenterId={this.state.primaryPanel.selected.card}
             userId={this.state.secondaryPanel.selected.card}
           />
+          <ReenableUserModal
+            isOpen={this.state.reenableUserModal.open}
+            onRequestClose={this.handleReenableUserModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            targetUserId={this.state.reenableUserModal.targetUserId}
+            targetUserEmail={this.state.reenableUserModal.targetUserEmail}
+          />
           {
             this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
             && primaryDetail
@@ -698,7 +718,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
             doDomainLimitOpen={this.handleDomainLimitOpen}
-            onPushEnableUserAccount={isUserDetail(primaryDetail) && this.reenableUserAccount}
+            onPushEnableUserAccount={isUserDetail(primaryDetail) && this.handleReenableUserModalOpen}
             status={isUserDetail(primaryDetail) && this.getClientUserStatus(pEntities as UserInfo[], primaryDetail.id)}
           />
           <SecondaryDetailPanel
@@ -717,7 +737,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushSuspend={this.pushSuspendContent}
-            onPushEnableUserAccount={isUserClientRoles(secondaryDetail) && this.reenableUserAccount}
+            onPushEnableUserAccount={isUserClientRoles(secondaryDetail) && this.handleReenableUserModalOpen}
             status={secondaryDetail && this.getClientUserStatus(sEntities as UserInfo[], secondaryDetail.id)}
           />
           <div>{isUserClientRoles(secondaryDetail)}</div>
@@ -965,6 +985,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           open: false,
           enabled: false,
         },
+        reenableUserModal: {
+          open: false,
+          targetUserId: null,
+          targetUserEmail: null,
+        },
       };
     });
   }
@@ -1210,14 +1235,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         open: true,
         enabled: status,
       },
-    });
-  }
-
-  private reenableUserAccount = (userId: Guid) => {
-    postData('/SystemAdmin/ReenableDisabledUserAccount', { userId }).then((_response) => {
-      alert('User account re-enabled.');
-    }, (_error) => {
-      alert('Error: User account was not re-enabled.');
     });
   }
 
@@ -1487,6 +1504,28 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             profitCenterModalOpen: false,
           },
         },
+      },
+    }));
+  }
+
+  private handleReenableUserModalOpen = (id: Guid, email: string) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      reenableUserModal: {
+        open: true,
+        targetUserId: id,
+        targetUserEmail: email,
+      },
+    }));
+  }
+
+  private handleReenableUserModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      reenableUserModal: {
+        open: false,
+        targetUserId: null,
+        targetUserEmail: null,
       },
     }));
   }

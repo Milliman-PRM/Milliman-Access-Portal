@@ -4,8 +4,9 @@ import { Guid } from '../models';
 import { UserStatus } from './system-admin';
 
 interface UserStatusDisplayProps {
-  onPushEnableUserAccount: (id: Guid) => void;
+  onPushEnableUserAccount: (id: Guid, email: string) => void;
   userId: Guid;
+  userEmail: string;
   status: UserStatus;
 }
 
@@ -23,7 +24,7 @@ export class UserStatusDisplay extends React.Component<UserStatusDisplayProps> {
             <button
               name="systemAdminButton"
               className={'systemAdminButton blue-button'}
-              onClick={(_event) => this.props.onPushEnableUserAccount(this.props.userId)}
+              onClick={(_event) => this.props.onPushEnableUserAccount(this.props.userId, this.props.userEmail)}
             >
               Re-enable user account
             </button>

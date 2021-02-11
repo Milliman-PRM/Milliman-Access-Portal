@@ -2226,7 +2226,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> ReenableDisabledUserAccount(Guid userId)
+        public async Task<ActionResult> ReenableDisabledUserAccount(Guid userId, int reason)
         {
             #region Authorization
             // User must have a global Admin role
@@ -2261,9 +2261,10 @@ namespace MillimanAccessPortal.Controllers
             accountToEnable.LastLoginUtc = DateTime.UtcNow.Date;
             await _dbContext.SaveChangesAsync();
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
-            // TODO: Audit logging??
+            
+            //TODO: Audit log reason
 
-            return Ok();
+            return Json(new { });
         }
         #endregion
     }
