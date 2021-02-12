@@ -170,6 +170,8 @@ namespace MillimanAccessPortal.Services
                     
                     List<string> recipients = new List<string>{userClients.Key.Email};
 
+                    clientAdminsEmails = clientAdminsEmails.Except(recipients).ToList();
+
                     messageQueue.QueueMessage(recipients, clientAdminsEmails, null, emailSubject, emailBody, null, null);
                 }
             }
