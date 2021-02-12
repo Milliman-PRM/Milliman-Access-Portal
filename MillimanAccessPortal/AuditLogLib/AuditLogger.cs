@@ -233,10 +233,12 @@ namespace AuditLogLib
 
             // Find the first/last names for all event usernames in the event list
             IEnumerable<string> allUserNames = filteredAuditEvents.Select(e => e.User).Distinct();
-            IDictionary<string, ActivityEventModel.Names> eventNamesDict = await mapDb.ApplicationUser
+            IDictionary<string, ActivityEventModel.Names> eventNamesDict = mapDb != null && await mapDb.Database.CanConnectAsync()
+                                                                         ? await mapDb.ApplicationUser
                                                                                       .Where(u => allUserNames.Contains(u.UserName))
                                                                                       .Select(u => new ActivityEventModel.Names { UserName = u.UserName, LastName = u.LastName, FirstName = u.FirstName })
-                                                                                      .ToDictionaryAsync(u => u.UserName);
+                                                                                      .ToDictionaryAsync(u => u.UserName)
+                                                                         :new Dictionary<string, ActivityEventModel.Names>();
 
             return filteredAuditEvents.Select(e => ActivityEventModel.Generate(e, !string.IsNullOrEmpty(e.User) && eventNamesDict.ContainsKey(e.User)
                                                                                   ? eventNamesDict[e.User] 
