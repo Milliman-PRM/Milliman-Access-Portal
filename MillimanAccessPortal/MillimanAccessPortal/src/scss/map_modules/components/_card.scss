@@ -153,10 +153,7 @@
         align-content: stretch;
         background-color: $white;
         border-radius: .25em;
-
-        &.border-default {
-            border: 2px solid $charcoal;
-        }
+        border: 2px solid $charcoal;
 
         &.border-informational {
             border: 2px solid $orange;
