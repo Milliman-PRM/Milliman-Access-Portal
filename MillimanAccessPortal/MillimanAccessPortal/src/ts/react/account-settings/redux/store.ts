@@ -16,6 +16,7 @@ export type PendingInputState =
     | 'email'
     | 'userName'
     | 'isAccountDisabled'
+    | 'isAccountNearDisabled'
     | 'dateOfAccountDisable'
   >>;
 export interface PendingRequestState {
