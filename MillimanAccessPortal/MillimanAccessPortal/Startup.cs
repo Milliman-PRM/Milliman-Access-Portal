@@ -200,10 +200,11 @@ namespace MillimanAccessPortal
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (_applicationUser.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                else if (_applicationUser.LastLoginUtc.HasValue &&
+                                         _applicationUser.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
                                 {
                                     // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
-                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc.Value}");
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -568,8 +569,10 @@ namespace MillimanAccessPortal
                 {
                     ApplicationDbContext db = context.RequestServices.GetService<ApplicationDbContext>();
                     var user = await db.ApplicationUser.SingleAsync(u => u.UserName == context.User.Identity.Name);
+                    TimeSpan renewInterval = TimeSpan.FromDays(Configuration.GetValue<int>("UserAgreementRenewalIntervalDays"));
 
-                    if (user.IsUserAgreementAccepted != true) // if false or null
+                    if (!user.UserAgreementAcceptedUtc.HasValue ||
+                        DateTime.UtcNow - user.UserAgreementAcceptedUtc > renewInterval) // need to accept now
                     {
                         UriBuilder userAgreementUri = new UriBuilder
                         {
@@ -577,7 +580,7 @@ namespace MillimanAccessPortal
                             Host = context.Request.Host.Host,
                             Port = context.Request.Host.Port.GetValueOrDefault(-1),
                             Path = redirectPath,
-                            Query = $"isRenewal={user.IsUserAgreementAccepted.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                            Query = $"isRenewal={user.UserAgreementAcceptedUtc.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
                         };
 
                         context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);

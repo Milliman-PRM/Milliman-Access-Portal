@@ -1,0 +1,28 @@
+﻿@model MillimanAccessPortal.Models.AccountViewModels.UserAgreementReadOnlyViewModel
+
+@{
+    ViewData["Title"] = "";
+    Layout = "_Layout_w_H_F";
+}
+
+<div id="disclaimer-container" class="read-only">
+  <h2 id="content-name">User Agreement</h2>
+  <div id="raw-markdown" style="display: none">
+    @Html.Hidden("AgreementText", Model.AgreementText)
+    @Model.AgreementText
+  </div>
+  <div id="disclaimer-text">
+  </div>
+</div>
+
+@section CSS {
+  <% for (var css in htmlWebpackPlugin.files.css) { %>
+  <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+  <% } %>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
+    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% } %>
+}
