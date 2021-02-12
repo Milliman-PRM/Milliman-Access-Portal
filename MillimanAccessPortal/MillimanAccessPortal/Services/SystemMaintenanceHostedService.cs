@@ -21,8 +21,12 @@ namespace MillimanAccessPortal.Services
     public class SystemMaintenanceHostedService : BackgroundService
     {
         private readonly IServiceProvider _serviceProvider;
+
         private readonly Timer _clientAccessReviewNotificationTimer;
         private readonly TimeSpan _clientReviewNotificationTimeOfDayUtc;
+
+        private readonly Timer _quarterlyClientAccessReviewSummaryNotificationTimer;
+        private readonly TimeSpan _quarterlyClientAccessReviewSummaryNotificationTimeOfDayUtc;
 
         public SystemMaintenanceHostedService(
             IServiceProvider serviceProviderArg,
@@ -31,9 +35,12 @@ namespace MillimanAccessPortal.Services
             _serviceProvider = serviceProviderArg;
 
             _clientReviewNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9));
-
             _clientAccessReviewNotificationTimer = new Timer(ClientAccessReviewNotificationHandler);
-            _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+            _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextDailyEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+
+            _quarterlyClientAccessReviewSummaryNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("QuarterlyClientAccessReviewSummaryNotificationTimeOfDayHourUtc", 8));
+            _quarterlyClientAccessReviewSummaryNotificationTimer = new Timer(QuarterlyClientAccessReviewSummaryNotificationHandler);
+            _quarterlyClientAccessReviewSummaryNotificationTimer.Change(TimeSpanTillNextDailyEvent(_quarterlyClientAccessReviewSummaryNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         public override void Dispose()
@@ -112,10 +119,61 @@ namespace MillimanAccessPortal.Services
                 }
             }
 
-            thisTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+            thisTimer.Change(TimeSpanTillNextDailyEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
-        private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
+        private void QuarterlyClientAccessReviewSummaryNotificationHandler(object state)
+        {
+            Timer thisTimer = (Timer)state;
+
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                string emailSubject = "Quarterly Summary of MAP Client Access Reviews";
+
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                IConfiguration appConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
+                IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+
+                DateTime clientReviewExpiredIfBefore = DateTime.UtcNow - TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
+
+                List<ProfitCenter> profitCentersToNotify = dbContext.ProfitCenter
+                                                                    .Where(pc => pc.QuarterlyMaintenanceNotificationList.Any())
+                                                                    .ToList();
+
+                foreach (ProfitCenter profitCenter in profitCentersToNotify)
+                {
+                    // first get current clients, then expired
+                    List<Client> clients = dbContext.Client
+                                                    .Where(c => c.ProfitCenterId == profitCenter.Id)
+                                                    .Where(c => c.LastAccessReview.LastReviewDateTimeUtc > clientReviewExpiredIfBefore)
+                                                    .OrderBy(c => c.Name)
+                                                    .ToList()
+                                                    .Concat(dbContext.Client
+                                                                     .Where(c => c.ProfitCenterId == profitCenter.Id)
+                                                                     .Where(c => c.LastAccessReview.LastReviewDateTimeUtc < clientReviewExpiredIfBefore)
+                                                                     .OrderBy(c => c.Name))
+                                                    .ToList();
+
+                    string emailBody = $"Below is a summary of Client Access Review information for all clients associated with profit center \"{profitCenter.Name}\".{Environment.NewLine}{Environment.NewLine}";
+
+                    clients.ForEach(c => 
+                    {
+                        ClientAccessReview lastReview = c.LastAccessReview;
+                        string addedClientComment = lastReview == null || lastReview.LastReviewDateTimeUtc < clientReviewExpiredIfBefore
+                                                    ? string.Empty
+                                                    : ", *** PAST DUE ***";
+                        emailBody += $"Client name: {c.Name}, last client access review date (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.Date}, performed by: <{c.LastAccessReview?.UserName}>{addedClientComment}{Environment.NewLine}";
+                    });
+
+                    messageQueue.QueueEmail(profitCenter.QuarterlyMaintenanceNotificationList, emailSubject, emailBody);
+                }
+            }
+
+            thisTimer.Change(TimeSpanTillNextDailyEvent(_quarterlyClientAccessReviewSummaryNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+        }
+
+        private TimeSpan TimeSpanTillNextDailyEvent(TimeSpan eventTimeAfterMidnightUtc)
         {
             DateTime nextEventUtc = DateTime.UtcNow.Date + eventTimeAfterMidnightUtc;
             while (nextEventUtc < DateTime.UtcNow)
@@ -124,6 +182,11 @@ namespace MillimanAccessPortal.Services
             }
 
             return nextEventUtc - DateTime.UtcNow;
+        }
+
+        private (int year, int quarter_ZeroBased) GetYearQuarterOfDate(DateTime date)
+        {
+            return (date.Year, (date.Month-1)/3);
         }
     }
 }
