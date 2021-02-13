@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
@@ -386,6 +387,8 @@ namespace QlikviewLib
                     }
                 }, 2, 250);  // Is this really needed?
 
+            Thread.Sleep(10_000);
+
             DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
                 // async () => await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder), 2, 250);
                 async () => 
@@ -402,7 +405,8 @@ namespace QlikviewLib
                         string msg = $"From AuthorizeUserDocumentsInFolderAsync: call to QmsApi.GetUserDocumentNodesAsync took time (including retries) {stopwatch.Elapsed} for folder {ContentPathRelativeToNamedUserDocFolder}";
                         GlobalFunctions.IssueLog(IssueLogEnum.TrackQlikviewApiTiming, msg);
                     }
-                }, 2, 250);
+                }, 5, 5_000);  // If these calls are timing out, the total time of all intervals is 200 seconds plus one minute per timeout
+
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder.Where(n => !n.IsSubFolder))
             {
                 if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)
