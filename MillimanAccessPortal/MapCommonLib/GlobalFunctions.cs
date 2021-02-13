@@ -181,7 +181,7 @@ namespace MapCommonLib
 
         public static void IssueLog(IssueLogEnum issue, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
         {
-            Log.Write(level, $"{issue.GetDisplayNameString()}: {message}", parms);
+            Log.Write(level, $"{issue.ToString()}: {message}", parms);
         }
     }
 
@@ -191,8 +191,7 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        LongRunningSelectionGroupProcessing,
-        TrackQlikviewApiTiming
+        LongRunningSelectionGroupProcessing
     }
 
 }
