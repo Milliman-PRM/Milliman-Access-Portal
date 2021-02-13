@@ -30,6 +30,9 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 namespace MillimanAccessPortal
 {
@@ -200,6 +203,18 @@ namespace MillimanAccessPortal
                             builtConfig["AzureClientID"],
                             cert.OfType<X509Certificate2>().Single()
                             );
+                        break;
+
+                    case "AZURE-ISDEV":
+                    case "AZURE-DEV":
+                    case "AZURE-UAT":
+                    case "AZURE-PROD":
+                        // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
+                        config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        var azureBuiltConfig = config.Build();
+
+                        var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
+                        config.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
                         break;
                     case "DEVELOPMENT":
                         config.AddUserSecrets<Startup>();

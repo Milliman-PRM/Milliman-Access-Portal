@@ -13,12 +13,27 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="AzureKeyVault.azure-dev.json" />
     <None Remove="AzureKeyVault.azure-isdev.json" />
+    <None Remove="AzureKeyVault.azure-prod.json" />
+    <None Remove="AzureKeyVault.azure-uat.json" />
     <None Remove="AzureKeyVault.AzureCI.json" />
     <None Remove="AzureKeyVault.Internal.json" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="AzureKeyVault.azure-dev.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="AzureKeyVault.azure-prod.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+    <Content Include="AzureKeyVault.azure-uat.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="AzureKeyVault.azure-isdev.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
