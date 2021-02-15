@@ -123,6 +123,8 @@ namespace AuditLogLib
                     var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
                     configurationBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
 
+                    built = configurationBuilder.Build();
+
                     auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
                     break;
 
