@@ -72,6 +72,7 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
+                string mapUrl = GetMapRootUrl(hostEnvironment);
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 TimeSpan clientReviewEarlyWarningDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewEarlyWarningDays"));
 
@@ -96,14 +97,6 @@ namespace MillimanAccessPortal.Services
 
                     if (relevantClients.Any())
                     {
-                        string mapUrl = hostEnvironment switch
-                        {
-                            var env when env.IsProduction() => "https://map.milliman.com",
-                            var env when env.IsStaging() => "https://map.milliman.com:44300",
-                            var env when env.IsDevelopment() => "https://localhost:44336",
-                            var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
-                            _ => "https://unhandled.environment",
-                        };
                         string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
                         emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
                         emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
@@ -133,32 +126,28 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
+                string mapUrl = GetMapRootUrl(hostEnvironment);
                 int userAccountDisableNotificationWarningDays = appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 14);
                 int userAccountDisableAfterMonths = appConfiguration.GetValue("DisableInactiveUserMonths", 12);   
+                string mapSupportEmail = appConfiguration.GetValue<string>("SupportEmailAddress");
+                DateTime notifyIfLastLoginWas = DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).AddMonths(-userAccountDisableAfterMonths).Date;
 
                 List<IGrouping<ApplicationUser, Client>> usersToNotify = dbContext.UserRoleInClient
                                                                                   .Include(usr => usr.User)
                                                                                   .Include(usr => usr.Client)
-                                                                                  .Where(usr => DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).Date == usr.User.LastLoginUtc.Value.AddMonths(userAccountDisableAfterMonths).Date)
+                                                                                  .Where(usr => usr.User.LastLoginUtc.Value.Date == notifyIfLastLoginWas)
+                                                                                  .AsEnumerable()
                                                                                   .GroupBy(urc => urc.User, urc => urc.Client)
                                                                                   .ToList();
                
-                string emailSubject = "Your MAP account will be disabled soon";
-
-                string mapUrl = hostEnvironment switch
-                {
-                    var env when env.IsProduction() => "https://map.milliman.com",
-                    var env when env.IsStaging() => "https://map.milliman.com:44300",
-                    var env when env.IsDevelopment() => "https://localhost:44336",
-                    var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
-                    _ => "https://unhandled.environment",
-                };
+                string emailSubject = "Your MAP account status";
 
                 foreach (IGrouping<ApplicationUser, Client> userClients in usersToNotify)
                 {
-                    string emailBody = "We have noticed you haven't logged into your MAP account for a long time. ";
-                    emailBody += $"As a result, you MAP account will be disabled unless you login within {userAccountDisableNotificationWarningDays} days";
-                    emailBody += $"Please login to MAP at {mapUrl} if you would like your account to stay active.";
+                    string emailBody = $"In accordance with Milliman Access Portal (MAP) policies, your account will expire soon due to inactivity. ";
+                    emailBody += $"If you would like your MAP user account to remain enabled, please login to MAP at {mapUrl} within {userAccountDisableNotificationWarningDays} days.{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"If you have any questions regarding this email, please contact us at map.support@milliman.com.{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"Thanks.{Environment.NewLine}{Environment.NewLine}MAP team";
 
                     List<Guid> clientIDs = userClients.Select(c => c.Id).ToList();
                     List<string> clientAdminsEmails = dbContext.UserRoleInClient
@@ -187,6 +176,19 @@ namespace MillimanAccessPortal.Services
             }
 
             return nextEventUtc - DateTime.UtcNow;
+        }
+
+        private string GetMapRootUrl(IHostEnvironment hostEnvironment)
+        {
+            return hostEnvironment switch
+            {
+                var env when env.IsProduction() => "https://map.milliman.com",
+                var env when env.IsStaging() => "https://map.milliman.com:44300",
+                var env when env.IsDevelopment() => "https://localhost:44336",
+                var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
+                _ => "https://unhandled.environment",
+            };
+
         }
     }
 }
