@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210204002008_TrackUserAgreementAcceptDate")]
-    partial class TrackUserAgreementAcceptDate
+    [Migration("20210216221443_Hitrust2Schema")]
+    partial class Hitrust2Schema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -564,6 +564,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ProfitCenterCode")
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("QuarterlyMaintenanceNotificationList")
+                        .HasColumnType("text[]");
 
                     b.HasKey("Id");
 

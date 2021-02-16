@@ -1,9 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class TrackUserAgreementAcceptDate : Migration
+    public partial class Hitrust2Schema : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -19,10 +20,19 @@ namespace MillimanAccessPortal.Migrations
             migrationBuilder.DropColumn(
                 name: "IsUserAgreementAccepted",
                 table: "AspNetUsers");
+
+            migrationBuilder.AddColumn<List<string>>(
+                name: "QuarterlyMaintenanceNotificationList",
+                table: "ProfitCenter",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "QuarterlyMaintenanceNotificationList",
+                table: "ProfitCenter");
+
             migrationBuilder.AddColumn<bool>(
                 name: "IsUserAgreementAccepted",
                 table: "AspNetUsers",

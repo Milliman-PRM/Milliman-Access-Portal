@@ -563,6 +563,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ProfitCenterCode")
                         .HasColumnType("text");
 
+                    b.Property<List<string>>("QuarterlyMaintenanceNotificationList")
+                        .HasColumnType("text[]");
+
                     b.HasKey("Id");
 
                     b.ToTable("ProfitCenter");
