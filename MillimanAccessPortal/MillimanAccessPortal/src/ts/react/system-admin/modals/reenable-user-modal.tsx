@@ -3,7 +3,6 @@
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { postData } from '../../../shared';
 import { Guid } from '../../models';
 import { DropDown } from '../../shared-components/form/select';
 import { EnableDisabledAccountReasonEnum } from '../../shared-components/interfaces';
@@ -11,6 +10,7 @@ import { EnableDisabledAccountReasonEnum } from '../../shared-components/interfa
 export interface ReenableUserModalProps extends Modal.Props {
   targetUserId: Guid;
   targetUserEmail: string;
+  handleSubmit: (userId: Guid, reason: EnableDisabledAccountReasonEnum) => void;
 }
 
 interface ReenableUserModalState {
@@ -18,8 +18,6 @@ interface ReenableUserModalState {
 }
 
 export class ReenableUserModal extends React.Component<ReenableUserModalProps, ReenableUserModalState> {
-
-  private url: string = 'SystemAdmin/ReenableDisabledUserAccount';
   private readonly addReenableUserReasons: Array<{ selectionValue: number, selectionLabel: string }> = [
     {
       selectionValue: EnableDisabledAccountReasonEnum.ChangeInEmployeeResponsibilities,
@@ -39,7 +37,6 @@ export class ReenableUserModal extends React.Component<ReenableUserModalProps, R
     };
 
     this.handleReenableReasonChange = this.handleReenableReasonChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
     this.resetState = this.resetState.bind(this);
   }
 
@@ -58,7 +55,12 @@ export class ReenableUserModal extends React.Component<ReenableUserModalProps, R
         <h3 className="title blue">Re-enable User</h3>
         <span className="modal-text">Reenable user account <strong>{this.props.targetUserEmail}</strong></span>
         <span className="modal-text">Please enter the same reason that the requestor used in their request.</span>
-        <form onSubmit={this.handleSubmit}>
+        <form
+          onSubmit={(_event) => {
+            this.props.handleSubmit(this.props.targetUserId, this.state.reason);
+            this.props.onRequestClose(null);
+          }}
+        >
           <DropDown
             name="reason"
             label="Reason"
@@ -95,17 +97,6 @@ export class ReenableUserModal extends React.Component<ReenableUserModalProps, R
   private handleReenableReasonChange(event: React.FormEvent<HTMLSelectElement>) {
     this.setState({
       reason: parseInt(event.currentTarget.value, 10),
-    });
-  }
-
-  private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    postData(this.url, {
-      userId: this.props.targetUserId,
-      reason: this.state.reason,
-    }).then(() => {
-      alert('User re-enabled.');
-      this.props.onRequestClose(null);
     });
   }
 

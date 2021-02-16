@@ -28,7 +28,7 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
 import { EntityHelper } from '../shared-components/entity';
 import { Filter } from '../shared-components/filter';
-import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { EnableDisabledAccountReasonEnum, Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
     ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
@@ -512,6 +512,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             overlayClassName="modal-overlay"
             targetUserId={this.state.reenableUserModal.targetUserId}
             targetUserEmail={this.state.reenableUserModal.targetUserEmail}
+            handleSubmit={this.handleReenableUser}
           />
           {
             this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
@@ -1541,6 +1542,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
     .then(() => {
       alert('Profit center deleted.');
+    });
+  }
+
+  private handleReenableUser(userId: Guid, reason: EnableDisabledAccountReasonEnum) {
+    event.preventDefault();
+    postData('SystemAdmin/ReenableDisabledUserAccount', {userId, reason}).then(() => {
+      alert('User re-enabled.');
     });
   }
 
