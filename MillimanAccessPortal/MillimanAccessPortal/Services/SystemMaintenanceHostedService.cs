@@ -22,7 +22,9 @@ namespace MillimanAccessPortal.Services
     {
         private readonly IServiceProvider _serviceProvider;
         private readonly Timer _clientAccessReviewNotificationTimer;
+        private readonly Timer _userAccountDisableNotificationTimer;
         private readonly TimeSpan _clientReviewNotificationTimeOfDayUtc;
+        private readonly TimeSpan _userAccountDisableNotificationTimeOfDayUtc;
 
         public SystemMaintenanceHostedService(
             IServiceProvider serviceProviderArg,
@@ -31,15 +33,21 @@ namespace MillimanAccessPortal.Services
             _serviceProvider = serviceProviderArg;
 
             _clientReviewNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9));
+            _userAccountDisableNotificationTimeOfDayUtc = TimeSpan.FromHours(appConfigArg.GetValue("UserAccountDisableNotificationTimeofDayHourUtc", 8));
 
             _clientAccessReviewNotificationTimer = new Timer(ClientAccessReviewNotificationHandler);
             _clientAccessReviewNotificationTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+
+            _userAccountDisableNotificationTimer = new Timer(UserAccountDisableNotificationHandler);
+            _userAccountDisableNotificationTimer.Change(TimeSpanTillNextEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         public override void Dispose()
         {
             _clientAccessReviewNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _userAccountDisableNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _clientAccessReviewNotificationTimer.Dispose();
+            _userAccountDisableNotificationTimer.Dispose();
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -64,6 +72,7 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
+                string mapUrl = GetMapRootUrl(hostEnvironment);
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 TimeSpan clientReviewEarlyWarningDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewEarlyWarningDays"));
 
@@ -88,14 +97,6 @@ namespace MillimanAccessPortal.Services
 
                     if (relevantClients.Any())
                     {
-                        string mapUrl = hostEnvironment switch
-                        {
-                            var env when env.IsProduction() => "https://map.milliman.com",
-                            var env when env.IsStaging() => "https://map.milliman.com:44300",
-                            var env when env.IsDevelopment() => "https://localhost:44336",
-                            var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
-                            _ => "https://unhandled.environment",
-                        };
                         string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
                         emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
                         emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
@@ -111,8 +112,59 @@ namespace MillimanAccessPortal.Services
                     }
                 }
             }
-
+           
             thisTimer.Change(TimeSpanTillNextEvent(_clientReviewNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
+        }
+
+        private void UserAccountDisableNotificationHandler(object state)
+        {
+            Timer thisTimer = (Timer)state;
+            using (var scope = _serviceProvider.CreateScope())
+            {
+                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                IConfiguration appConfiguration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
+                IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
+                IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
+
+                string mapUrl = GetMapRootUrl(hostEnvironment);
+                int userAccountDisableNotificationWarningDays = appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 14);
+                int userAccountDisableAfterMonths = appConfiguration.GetValue("DisableInactiveUserMonths", 12);   
+                string mapSupportEmail = appConfiguration.GetValue<string>("SupportEmailAddress");
+                DateTime notifyIfLastLoginWas = DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).AddMonths(-userAccountDisableAfterMonths).Date;
+
+                List<IGrouping<ApplicationUser, Client>> usersToNotify = dbContext.UserRoleInClient
+                                                                                  .Include(usr => usr.User)
+                                                                                  .Include(usr => usr.Client)
+                                                                                  .Where(usr => usr.User.LastLoginUtc.Value.Date == notifyIfLastLoginWas)
+                                                                                  .AsEnumerable()
+                                                                                  .GroupBy(urc => urc.User, urc => urc.Client)
+                                                                                  .ToList();
+               
+                string emailSubject = "Your MAP account status";
+
+                foreach (IGrouping<ApplicationUser, Client> userClients in usersToNotify)
+                {
+                    string emailBody = $"In accordance with Milliman Access Portal (MAP) policies, your account will expire soon due to inactivity. ";
+                    emailBody += $"If you would like your MAP user account to remain enabled, please login to MAP at {mapUrl} within {userAccountDisableNotificationWarningDays} days.{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"If you have any questions regarding this email, please contact us at map.support@milliman.com.{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"Thanks.{Environment.NewLine}{Environment.NewLine}MAP team";
+
+                    List<Guid> clientIDs = userClients.Select(c => c.Id).ToList();
+                    List<string> clientAdminsEmails = dbContext.UserRoleInClient
+                                                               .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                               .Where(urc => clientIDs.Contains(urc.ClientId))
+                                                               .Select(urc => urc.User.Email)
+                                                               .Distinct()
+                                                               .ToList();
+                    
+                    List<string> recipients = new List<string>{userClients.Key.Email};
+
+                    clientAdminsEmails = clientAdminsEmails.Except(recipients).ToList();
+
+                    messageQueue.QueueMessage(recipients, clientAdminsEmails, null, emailSubject, emailBody, null, null);
+                }
+            }
+            thisTimer.Change(TimeSpanTillNextEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
         }
 
         private TimeSpan TimeSpanTillNextEvent(TimeSpan eventTimeAfterMidnightUtc)
@@ -124,6 +176,19 @@ namespace MillimanAccessPortal.Services
             }
 
             return nextEventUtc - DateTime.UtcNow;
+        }
+
+        private string GetMapRootUrl(IHostEnvironment hostEnvironment)
+        {
+            return hostEnvironment switch
+            {
+                var env when env.IsProduction() => "https://map.milliman.com",
+                var env when env.IsStaging() => "https://map.milliman.com:44300",
+                var env when env.IsDevelopment() => "https://localhost:44336",
+                var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
+                _ => "https://unhandled.environment",
+            };
+
         }
     }
 }
