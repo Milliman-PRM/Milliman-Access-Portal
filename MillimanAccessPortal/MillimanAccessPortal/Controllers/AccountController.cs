@@ -223,7 +223,8 @@ namespace MillimanAccessPortal.Controllers
 
                 // Disable login for users with last login date too long ago. Similar logic in Startup.cs for remote authentication
                 int idleUserAllowanceMonths = _configuration.GetValue("DisableInactiveUserMonths", 12);
-                if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
+                if (!user.LastLoginUtc.HasValue ||
+                    user.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-idleUserAllowanceMonths))
                 {
                     NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
@@ -337,7 +338,8 @@ namespace MillimanAccessPortal.Controllers
                 Log.Error($"Account.UserAgreement: GET Requested user {User.Identity.Name} not found");
                 return RedirectToAction(nameof(Login));
             }
-            if (user.IsUserAgreementAccepted == true)
+            if (user.UserAgreementAcceptedUtc.HasValue &&
+                DateTime.UtcNow - user.UserAgreementAcceptedUtc.Value < TimeSpan.FromDays(_configuration.GetValue<int>("UserAgreementRenewalIntervalDays")))
             {
                 Log.Error($"Account.UserAgreement: GET Request for user {user.UserName} to accept, but user has already accepted");
                 return RedirectToAction(nameof(Login));
@@ -354,6 +356,17 @@ namespace MillimanAccessPortal.Controllers
 
             _auditLogger.Log(AuditEventType.UserAgreementPresented.ToEvent(userAgreement), user.UserName);
 
+            return View(model);
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<IActionResult> UserAgreementReadOnly()
+        {
+            UserAgreementReadOnlyViewModel model = new UserAgreementReadOnlyViewModel
+            {
+                AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured"
+            };
             return View(model);
         }
 
@@ -375,7 +388,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> AcceptUserAgreement(UserAgreementViewModel model)
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
-            user.IsUserAgreementAccepted = true;
+            user.UserAgreementAcceptedUtc = DateTime.UtcNow;
             DbContext.SaveChanges();
 
             _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName);
