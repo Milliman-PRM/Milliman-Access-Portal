@@ -26,7 +26,7 @@ interface SecondaryDetailPanelProps {
   checkedFileDropUser: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
-  onPushEnableUserAccount: (id: Guid, email: string) => void;
+  onPushEnableUserAccount: (id: Guid, email: string, targetEntitySet: 'primary' | 'secondary') => void;
   status: UserStatus;
 }
 
@@ -130,6 +130,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           userId={userDetailForClient.id}
                           userEmail={userDetailForClient.email}
                           status={this.props.status}
+                          targetSet={'secondary'}
                           onPushEnableUserAccount={this.props.onPushEnableUserAccount}
                         />
                       </div>
@@ -235,6 +236,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           userId={userDetailForProfitCenter.id}
                           userEmail={userDetailForProfitCenter.email}
                           status={this.props.status}
+                          targetSet={'secondary'}
                           onPushEnableUserAccount={this.props.onPushEnableUserAccount}
                         />
                       </div>

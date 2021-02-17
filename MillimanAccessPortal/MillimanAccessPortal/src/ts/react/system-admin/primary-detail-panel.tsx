@@ -18,7 +18,7 @@ interface PrimaryDetailPanelProps {
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
-  onPushEnableUserAccount: (id: Guid, email: string) => void;
+  onPushEnableUserAccount: (id: Guid, email: string, targetEntitySet: 'primary' | 'secondary') => void;
   status: UserStatus;
   doDomainLimitOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
@@ -100,6 +100,7 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                     <UserStatusDisplay
                       userId={this.props.detail.id}
                       userEmail={(this.props.detail as UserDetail).email}
+                      targetSet={'primary'}
                       status={this.props.status}
                       onPushEnableUserAccount={this.props.onPushEnableUserAccount}
                     />

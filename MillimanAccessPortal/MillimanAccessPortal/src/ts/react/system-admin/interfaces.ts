@@ -167,6 +167,9 @@ export interface UserDetailForClient {
   email: string;
   phone: string;
 }
+export function isUserDetailForProfitCenter(detail: SecondaryDetail): detail is UserDetailForProfitCenter {
+  return detail && (detail as UserDetailForProfitCenter).assignedClients !== undefined;
+}
 export interface UserDetailForProfitCenter {
   id: Guid;
   firstName: string;

@@ -33,8 +33,8 @@ import { NavBar } from '../shared-components/navbar';
 import {
     ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
     isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
-    isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
-    SecondaryDetailData, UserClientRoles, UserDetail, UserInfo,
+    isUserClientRoles, isUserDetail, isUserDetailForProfitCenter, isUserInfo, PrimaryDetail, PrimaryDetailData,
+    SecondaryDetail, SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
@@ -86,6 +86,7 @@ export interface SystemAdminState {
     open: boolean;
     targetUserId: Guid;
     targetUserEmail: string;
+    targetEntitySet: 'primary' | 'secondary';
   };
 }
 export interface UserStatus {
@@ -156,8 +157,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         open: false,
         targetUserId: null,
         targetUserEmail: null,
+        targetEntitySet: null,
       },
     };
+
+    this.handleReenableUser = this.handleReenableUser.bind(this);
+    this.resetUserStatus = this.resetUserStatus.bind(this);
   }
 
   public componentDidUpdate() {
@@ -722,6 +727,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onPushEnableUserAccount={isUserDetail(primaryDetail) && this.handleReenableUserModalOpen}
             status={isUserDetail(primaryDetail) && this.getClientUserStatus(pEntities as UserInfo[], primaryDetail.id)}
           />
+
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
             primarySelectedColumn={primaryColumn}
@@ -738,7 +744,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushSuspend={this.pushSuspendContent}
-            onPushEnableUserAccount={isUserClientRoles(secondaryDetail) && this.handleReenableUserModalOpen}
+            onPushEnableUserAccount={
+              (isUserClientRoles(secondaryDetail) || isUserDetailForProfitCenter(secondaryDetail)) &&
+                this.handleReenableUserModalOpen
+            }
             status={secondaryDetail && this.getClientUserStatus(sEntities as UserInfo[], secondaryDetail.id)}
           />
           <div>{isUserClientRoles(secondaryDetail)}</div>
@@ -990,6 +999,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           open: false,
           targetUserId: null,
           targetUserEmail: null,
+          targetEntitySet: null,
         },
       };
     });
@@ -1509,13 +1519,14 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
-  private handleReenableUserModalOpen = (id: Guid, email: string) => {
+  private handleReenableUserModalOpen = (id: Guid, email: string, entitySet: 'primary' | 'secondary') => {
     this.setState((prevState) => ({
       ...prevState,
       reenableUserModal: {
         open: true,
         targetUserId: id,
         targetUserEmail: email,
+        targetEntitySet: entitySet,
       },
     }));
   }
@@ -1524,6 +1535,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     this.setState((prevState) => ({
       ...prevState,
       reenableUserModal: {
+        ...prevState.reenableUserModal,
         open: false,
         targetUserId: null,
         targetUserEmail: null,
@@ -1547,9 +1559,42 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   private handleReenableUser(userId: Guid, reason: EnableDisabledAccountReasonEnum) {
     event.preventDefault();
-    postData('SystemAdmin/ReenableDisabledUserAccount', {userId, reason}).then(() => {
+    postData('SystemAdmin/ReenableDisabledUserAccount', { userId, reason }).then(() => {
       alert('User re-enabled.');
+      this.resetUserStatus(userId);
     });
+  }
+
+  private resetUserStatus(userId: Guid) {
+    const selectedEntityData = _.find(
+      (this.state.reenableUserModal.targetEntitySet === 'primary' ?
+        this.state.data.primaryEntities : this.state.data.secondaryEntities) as UserInfo[],
+      (e) => e.id === userId);
+    selectedEntityData.isAccountDisabled = false;
+    selectedEntityData.isAccountNearDisabled = false;
+    const updatedEntities = (this.state.reenableUserModal.targetEntitySet === 'primary') ?
+      _.map(this.state.data.primaryEntities as UserInfo[], (e) => e.id === userId ? selectedEntityData : e) :
+      _.map(this.state.data.secondaryEntities as UserInfo[], (e) => e.id === userId ? selectedEntityData : e);
+    switch (this.state.reenableUserModal.targetEntitySet) {
+      case 'primary':
+        this.setState((prevState) => ({
+          ...prevState,
+          data: {
+            ...prevState.data,
+            primaryEntities: updatedEntities,
+          },
+        }));
+        break;
+      case 'secondary':
+        this.setState((prevState) => ({
+          ...prevState,
+          data: {
+            ...prevState.data,
+            secondaryEntities: updatedEntities,
+          },
+        }));
+        break;
+    }
   }
 
   private getClientUserStatus = (entities: UserInfo[], selectedId: Guid): UserStatus => {
