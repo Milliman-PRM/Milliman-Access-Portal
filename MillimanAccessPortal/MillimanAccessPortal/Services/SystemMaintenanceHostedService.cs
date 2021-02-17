@@ -53,8 +53,11 @@ namespace MillimanAccessPortal.Services
         {
             _clientAccessReviewNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
             _userAccountDisableNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+            _quarterlyClientAccessReviewSummaryNotificationTimer.Change(Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
+
             _clientAccessReviewNotificationTimer.Dispose();
             _userAccountDisableNotificationTimer.Dispose();
+            _quarterlyClientAccessReviewSummaryNotificationTimer.Dispose();
         }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
@@ -190,6 +193,8 @@ namespace MillimanAccessPortal.Services
                 DateTime clientReviewExpiredIfBefore = DateTime.UtcNow - TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
 
                 List<ProfitCenter> profitCentersToNotify = dbContext.ProfitCenter
+                                                                    .Where(pc => pc.QuarterlyMaintenanceNotificationList != null)
+                                                                    .AsEnumerable()
                                                                     .Where(pc => pc.QuarterlyMaintenanceNotificationList.Any())
                                                                     .ToList();
 
@@ -213,9 +218,9 @@ namespace MillimanAccessPortal.Services
                     {
                         ClientAccessReview lastReview = c.LastAccessReview;
                         string addedClientComment = lastReview == null || lastReview.LastReviewDateTimeUtc < clientReviewExpiredIfBefore
-                                                    ? string.Empty
-                                                    : ", *** PAST DUE ***";
-                        emailBody += $"Client name: {c.Name}, last client access review date (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.Date}, performed by: <{c.LastAccessReview?.UserName}>{addedClientComment}{Environment.NewLine}";
+                                                    ? ", *** PAST DUE ***"
+                                                    : string.Empty;
+                        emailBody += $"Client name: {c.Name}, last client access review date (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.ToString("u")}, performed by: <{c.LastAccessReview?.UserName}>{addedClientComment}{Environment.NewLine}";
                     });
 
                     messageQueue.QueueEmail(profitCenter.QuarterlyMaintenanceNotificationList, emailSubject, emailBody);
