@@ -48,7 +48,7 @@ export class RemoveProfitCenterModals
         >
           <h3 className="title red">Delete Profit Center</h3>
           <div className="modal-text">
-            Delete <strong>{this.props.profitCenterName}</strong>?This Profit Center may contain Clients,&nbsp;
+            Delete <strong>{this.props.profitCenterName}</strong>? This Profit Center may contain Clients,&nbsp;
             Content, File Drops, and Users.
           </div>
           <div className="modal-text">

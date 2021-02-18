@@ -1311,13 +1311,6 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            // The profit center should have no clients
-            if (await _dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).AnyAsync())
-            {
-                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} has clients and cannot be removed, aborting");
-                Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
             #endregion
 
             _dbContext.ProfitCenter.Remove(existingRecord);
