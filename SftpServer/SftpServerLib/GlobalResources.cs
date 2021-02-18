@@ -18,6 +18,9 @@ using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
 
 namespace SftpServerLib
 {
@@ -81,6 +84,16 @@ namespace SftpServerLib
                         throw new ApplicationException($"Found {cert.OfType<X509Certificate2>().Count()} certificate(s) to access Azure Key Vault for environment {EnvironmentName}, expected 1");
                     }
 
+                    break;
+                case "AZURE-ISDEV":
+                case "AZURE-DEV":
+                case "AZURE-UAT":
+                case "AZURE-PROD":
+                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
+                    var azureBuiltConfig = CfgBuilder.Build();
+
+                    var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
+                    CfgBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
                     break;
 
                 case null:  // for framework GUI project

@@ -13,6 +13,12 @@ properties: # Properties of container group
       - protocol: TCP
         port: 22
       environmentVariables:
+      - name: AZURE_TENANT_ID
+        value: __AZURE_TENANT_ID__
+      - name: AZURE_CLIENT_ID
+        value: __AZURE_CLIENT_ID__
+      - name: AZURE_CLIENT_SECRET
+        value: __AZURE_CLIENT_SECRET__
       - name: ASPNETCORE_ENVIRONMENT
         value: __ASPNETCORE_ENVIRONMENT__
       - name: azCertPass
