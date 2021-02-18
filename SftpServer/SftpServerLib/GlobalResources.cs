@@ -90,6 +90,8 @@ namespace SftpServerLib
                 case "AZURE-UAT":
                 case "AZURE-PROD":
                     // get (environment dependent) settings from Azure key vault if any exist
+                    ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, CfgBuilder.Build(), ConfigurationDumper.DumpTarget.Console);
+
                     string vaultUri = Environment.GetEnvironmentVariable("AzureVaultName")?.ToUpper();
                     var secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
                     CfgBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
