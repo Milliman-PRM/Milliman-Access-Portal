@@ -184,7 +184,7 @@ namespace MillimanAccessPortal.Services
 
             using (var scope = _serviceProvider.CreateScope())
             {
-                string emailSubject = "Quarterly Summary of MAP Client Access Reviews";
+                string emailSubject = "Quarterly Client Access Review Summary for Milliman Access Portal";
 
                 ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 IConfiguration appConfig = scope.ServiceProvider.GetRequiredService<IConfiguration>();
@@ -235,13 +235,38 @@ namespace MillimanAccessPortal.Services
 
                         string reviewStatus = lastReview?.LastReviewDateTimeUtc switch
                         {
-                            null => "*** OVERDUE ***",
-                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore => "*** OVERDUE ***",
-                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore + TimeSpan.FromDays(14) => "*** Due within 2 weeks ***",
-                            _ => "*** Active ***",
+                            null => "OVERDUE",
+                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore => "OVERDUE",
+                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore + TimeSpan.FromDays(14) => "Due within 2 weeks",
+                            _ => "Active",
                         };
-                        emailBody += $"- Client: \"{c.Name}\", last review (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.ToString("d")}, by: <{lastReviewerName}>, {reviewStatus}{Environment.NewLine}";
+                        List<ApplicationUser> allClientAdmins = dbContext.UserRoleInClient
+                                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                                         .Where(urc => urc.ClientId == c.Id)
+                                                                         //.Where(urc => urc.User.EmailConfirmed)
+                                                                         //.Where(urc => urc.User.EmailConfirmed)
+                                                                         .Select(urc => urc.User)
+                                                                         .AsEnumerable()
+                                                                         .Distinct(new IdPropertyComparer<ApplicationUser>())
+                                                                         .ToList();
+                        emailBody += $"- Client: {c.Name}{Environment.NewLine}";
+                        emailBody += $"  - Last review date (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.ToString("yyyy-MM-dd")}{Environment.NewLine}";
+                        emailBody += $"  - Last review by: {lastReviewerName}{Environment.NewLine}";
+                        emailBody += $"  - Status: {reviewStatus}{Environment.NewLine}";
+                        emailBody += $"  - Client admins:{Environment.NewLine}";
+                        allClientAdmins.ForEach(u => 
+                        {
+                            string personName = u.EmailConfirmed
+                                              ? $"{ u.FirstName} { u.LastName}"
+                                              : "<account not activated>";
+                            emailBody += $"    - {personName}, {u.Email}{Environment.NewLine}";
+                        });
+                        emailBody += Environment.NewLine;
                     });
+
+                    emailBody += $"{Environment.NewLine}Please contact {appConfig.GetValue<string>("SupportEmailAddress")} if you have any questions.{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"Thanks,{Environment.NewLine}{Environment.NewLine}";
+                    emailBody += $"MAP Support team{Environment.NewLine}";
 
                     if (messageQueue.QueueEmail(profitCenter.QuarterlyMaintenanceNotificationList, emailSubject, emailBody))
                     {
