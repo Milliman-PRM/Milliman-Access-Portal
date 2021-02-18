@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210216221443_Hitrust2Schema")]
+    [Migration("20210217213539_Hitrust2Schema")]
     partial class Hitrust2Schema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -554,6 +554,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ContactTitle")
                         .HasColumnType("text");
+
+                    b.Property<DateTime?>("LastQuarterlyMaintenanceNotificationUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(null);
 
                     b.Property<string>("MillimanOffice")
                         .HasColumnType("text");

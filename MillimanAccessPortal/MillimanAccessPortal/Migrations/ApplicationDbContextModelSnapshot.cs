@@ -553,6 +553,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContactTitle")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastQuarterlyMaintenanceNotificationUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(null);
+
                     b.Property<string>("MillimanOffice")
                         .HasColumnType("text");
 

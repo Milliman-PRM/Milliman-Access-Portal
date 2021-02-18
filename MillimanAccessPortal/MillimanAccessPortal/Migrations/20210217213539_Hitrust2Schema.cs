@@ -25,10 +25,19 @@ namespace MillimanAccessPortal.Migrations
                 name: "QuarterlyMaintenanceNotificationList",
                 table: "ProfitCenter",
                 nullable: true);
+
+            migrationBuilder.AddColumn<DateTime>(
+                name: "LastQuarterlyMaintenanceNotificationUtc",
+                table: "ProfitCenter",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropColumn(
+                name: "LastQuarterlyMaintenanceNotificationUtc",
+                table: "ProfitCenter");
+
             migrationBuilder.DropColumn(
                 name: "QuarterlyMaintenanceNotificationList",
                 table: "ProfitCenter");

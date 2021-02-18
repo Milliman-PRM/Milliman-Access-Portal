@@ -32,5 +32,7 @@ namespace MapDbContextLib.Context
         public string ContactPhone { get; set; }
 
         public List<string> QuarterlyMaintenanceNotificationList { get; set; }
+
+        public DateTime? LastQuarterlyMaintenanceNotificationUtc { get; set; }
     }
 }

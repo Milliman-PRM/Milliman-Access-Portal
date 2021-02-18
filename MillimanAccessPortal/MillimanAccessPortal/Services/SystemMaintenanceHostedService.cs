@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -171,7 +172,7 @@ namespace MillimanAccessPortal.Services
 
                     clientAdminsEmails = clientAdminsEmails.Except(recipients).ToList();
 
-                    messageQueue.QueueMessage(recipients, clientAdminsEmails, null, emailSubject, emailBody, null, null);
+                    messageQueue.QueueMessage(recipients, null, clientAdminsEmails, emailSubject, emailBody, null, null);
                 }
             }
             thisTimer.Change(TimeSpanTillNextDailyEvent(_userAccountDisableNotificationTimeOfDayUtc), Timeout.InfiniteTimeSpan);
@@ -200,6 +201,13 @@ namespace MillimanAccessPortal.Services
 
                 foreach (ProfitCenter profitCenter in profitCentersToNotify)
                 {
+                    // Only proceed if notification has not been done for this profit center this quarter
+                    if (profitCenter.LastQuarterlyMaintenanceNotificationUtc.HasValue &&
+                        QuartersSinceDateTimeMinValue(DateTime.UtcNow) <= QuartersSinceDateTimeMinValue(profitCenter.LastQuarterlyMaintenanceNotificationUtc.Value))
+                    {
+                        continue;
+                    }
+
                     // first get current clients, then expired
                     List<Client> clients = dbContext.Client
                                                     .Where(c => c.ProfitCenterId == profitCenter.Id)
@@ -216,14 +224,31 @@ namespace MillimanAccessPortal.Services
 
                     clients.ForEach(c => 
                     {
-                        ClientAccessReview lastReview = c.LastAccessReview;
-                        string addedClientComment = lastReview == null || lastReview.LastReviewDateTimeUtc < clientReviewExpiredIfBefore
-                                                    ? ", *** PAST DUE ***"
-                                                    : string.Empty;
-                        emailBody += $"Client name: {c.Name}, last client access review date (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.ToString("u")}, performed by: <{c.LastAccessReview?.UserName}>{addedClientComment}{Environment.NewLine}";
+                        var lastReview = c.LastAccessReview;
+
+                        string lastReviewerName = lastReview?.UserName ?? "N/A";
+                        if (!string.IsNullOrWhiteSpace(lastReview?.UserName))
+                        {
+                            ApplicationUser reviewerRecord = dbContext.ApplicationUser.SingleOrDefault(u => EF.Functions.ILike(u.UserName, lastReview.UserName ?? "N/A"));
+                            if (reviewerRecord != null) lastReviewerName = $"{reviewerRecord.FirstName} {reviewerRecord.LastName}"; 
+                        }
+
+                        string reviewStatus = lastReview?.LastReviewDateTimeUtc switch
+                        {
+                            null => "*** OVERDUE ***",
+                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore => "*** OVERDUE ***",
+                            DateTime lastreview when lastreview < clientReviewExpiredIfBefore + TimeSpan.FromDays(14) => "*** Due within 2 weeks ***",
+                            _ => "*** Active ***",
+                        };
+                        emailBody += $"- Client: \"{c.Name}\", last review (UTC): {c.LastAccessReview?.LastReviewDateTimeUtc.ToString("d")}, by: <{lastReviewerName}>, {reviewStatus}{Environment.NewLine}";
                     });
 
-                    messageQueue.QueueEmail(profitCenter.QuarterlyMaintenanceNotificationList, emailSubject, emailBody);
+                    if (messageQueue.QueueEmail(profitCenter.QuarterlyMaintenanceNotificationList, emailSubject, emailBody))
+                    {
+                        Log.Information($"Quarterly summary email sent for profit center <{profitCenter.Name}> to recipients <{string.Join(", ", profitCenter.QuarterlyMaintenanceNotificationList)}>");
+                        profitCenter.LastQuarterlyMaintenanceNotificationUtc = DateTime.UtcNow;
+                        dbContext.SaveChanges();
+                    }
                 }
             }
 
@@ -254,9 +279,16 @@ namespace MillimanAccessPortal.Services
 
         }
         
-        private (int year, int quarter_ZeroBased) GetYearQuarterOfDate(DateTime date)
+        private int QuartersSinceDateTimeMinValue(DateTime date)
         {
-            return (date.Year, (date.Month-1)/3);
+            return (date.Year - DateTime.MinValue.Year) * 4
+                   + (date.Month switch
+                      {
+                          < 4 => 1,
+                          < 7 => 2,
+                          < 10 => 3,
+                          _ => 4
+                      });
         }
 
     }

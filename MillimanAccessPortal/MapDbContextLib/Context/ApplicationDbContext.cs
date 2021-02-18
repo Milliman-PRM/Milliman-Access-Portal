@@ -143,6 +143,7 @@ namespace MapDbContextLib.Context
             builder.Entity<ProfitCenter>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.LastQuarterlyMaintenanceNotificationUtc).HasDefaultValue(null);
             });
             builder.Entity<ContentReductionTask>(b =>
             {
