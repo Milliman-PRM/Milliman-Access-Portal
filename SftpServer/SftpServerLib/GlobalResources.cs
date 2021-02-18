@@ -89,10 +89,9 @@ namespace SftpServerLib
                 case "AZURE-DEV":
                 case "AZURE-UAT":
                 case "AZURE-PROD":
-                    CfgBuilder.AddJsonFile($"AzureKeyVault.{EnvironmentName}.json", optional: true, reloadOnChange: true);
-                    var azureBuiltConfig = CfgBuilder.Build();
-
-                    var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
+                    // get (environment dependent) settings from Azure key vault if any exist
+                    string vaultUri = Environment.GetEnvironmentVariable("AzureVaultName")?.ToUpper();
+                    var secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
                     CfgBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
                     break;
 
