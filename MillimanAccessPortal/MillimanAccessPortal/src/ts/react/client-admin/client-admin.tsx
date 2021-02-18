@@ -1022,9 +1022,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   }
                   {entity.isAccountDisabled ?
                     <button
-                      className="link-button"
+                      className="link-button small-padding"
                       type="button"
-                      style={{ marginLeft: '0em', padding: '0.5em 0em !important' }}
                       onClick={() =>
                         this.props.openRequestReenableDisabledAccountModal({
                           userId: entity.id,
