@@ -3,7 +3,7 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { isEmailAddressValid, postData } from '../../../shared';
+import { isEmailAddressValid, postJsonData } from '../../../shared';
 import { Input, MultiAddInput } from '../../shared-components/form/input';
 
 // Toastr related imports
@@ -18,7 +18,7 @@ interface CreateProfitCenterModalState {
   contact: string;
   email: string;
   phone: string;
-  quarterlyMaintenanceEmailRecipients: string[];
+  quarterlyMaintenanceNotificationList: string[];
 }
 
 export class CreateProfitCenterModal extends React.Component<Modal.Props, CreateProfitCenterModalState> {
@@ -34,7 +34,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
       contact: '',
       email: '',
       phone: '',
-      quarterlyMaintenanceEmailRecipients: [],
+      quarterlyMaintenanceNotificationList: [],
     };
 
     this.handleChangeName = this.handleChangeName.bind(this);
@@ -111,7 +111,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
               name="quarterlyMaintenanceEmailRecipients"
               label="Quarterly Maintenance Email Recipients"
               type="text"
-              list={this.state.quarterlyMaintenanceEmailRecipients}
+              list={this.state.quarterlyMaintenanceNotificationList}
               value={''}
               addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                 if (itemAlreadyExists) {
@@ -120,14 +120,14 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
                   toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
                 } else {
                   this.setState({
-                    quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.concat(item),
+                    quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.concat(item),
                   });
                 }
               }}
               removeItemCallback={(index: number) => {
                 this.setState({
-                  quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.slice(0, index)
-                    .concat(this.state.quarterlyMaintenanceEmailRecipients.slice(index + 1)),
+                  quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.slice(0, index)
+                    .concat(this.state.quarterlyMaintenanceNotificationList.slice(index + 1)),
                 });
               }}
               readOnly={false}
@@ -193,14 +193,14 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
 
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    postData(this.url, {
+    postJsonData(this.url, {
       name: this.state.name,
       profitCenterCode: this.state.code,
       millimanOffice: this.state.office,
       contactName: this.state.contact,
       contactEmail: this.state.email,
       contactPhone: this.state.phone,
-      quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients,
+      quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList,
     })
     .then(() => {
       alert('Profit center created.');

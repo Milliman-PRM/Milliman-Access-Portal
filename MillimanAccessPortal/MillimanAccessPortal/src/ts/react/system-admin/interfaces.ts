@@ -138,7 +138,7 @@ export interface ProfitCenterDetail {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
-  quarterlyMaintenanceEmailRecipients: string[];
+  quarterlyMaintenanceNotificationList: string[];
 }
 export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
 export type PrimaryDetailData = (UserDetail & SystemRoles & Suspendable) | ClientDetail | ProfitCenterDetail;

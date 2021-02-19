@@ -3,7 +3,7 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { getJsonData, isEmailAddressValid, postData } from '../../../shared';
+import { getJsonData, isEmailAddressValid, postData, postJsonData } from '../../../shared';
 import { Input, MultiAddInput } from '../../shared-components/form/input';
 import { ProfitCenterDetail } from '../interfaces';
 
@@ -23,7 +23,7 @@ interface CardModalState {
   contact: string;
   email: string;
   phone: string;
-  quarterlyMaintenanceEmailRecipients: string[];
+  quarterlyMaintenanceNotificationList: string[];
 }
 
 export class CardModal extends React.Component<CardModalProps, CardModalState> {
@@ -40,7 +40,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
       contact: '',
       email: '',
       phone: '',
-      quarterlyMaintenanceEmailRecipients: [],
+      quarterlyMaintenanceNotificationList: [],
     };
   }
 
@@ -57,7 +57,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
           contact: response.contactName,
           email: response.contactEmail,
           phone: response.contactPhone,
-          quarterlyMaintenanceEmailRecipients: response.quarterlyMaintenanceEmailRecipients || [],
+          quarterlyMaintenanceNotificationList: response.quarterlyMaintenanceNotificationList || [],
         });
       });
     }
@@ -128,7 +128,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
               name="quarterlyMaintenanceEmailRecipients"
               label="Quarterly Maintenance Email Recipients"
               type="text"
-              list={this.state.quarterlyMaintenanceEmailRecipients}
+              list={this.state.quarterlyMaintenanceNotificationList}
               value={''}
               addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
                 if (itemAlreadyExists) {
@@ -137,14 +137,14 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
                   toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
                 } else {
                   this.setState({
-                    quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.concat(item),
+                    quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.concat(item),
                   });
                 }
               }}
               removeItemCallback={(index: number) => {
                 this.setState({
-                  quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients.slice(0, index)
-                    .concat(this.state.quarterlyMaintenanceEmailRecipients.slice(index + 1)),
+                  quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.slice(0, index)
+                    .concat(this.state.quarterlyMaintenanceNotificationList.slice(index + 1)),
                 });
               }}
               readOnly={false}
@@ -211,7 +211,7 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
 
   private handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    postData(this.url, {
+    postJsonData(this.url, {
       id: this.props.profitCenterId,
       name: this.state.name,
       profitCenterCode: this.state.code,
@@ -219,9 +219,8 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
       contactName: this.state.contact,
       contactEmail: this.state.email,
       contactPhone: this.state.phone,
-      quarterlyMaintenanceEmailRecipients: this.state.quarterlyMaintenanceEmailRecipients,
-    })
-    .then(() => {
+      quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList,
+    }).then(() => {
       alert('Profit center updated.');
       this.props.onRequestClose(null);
     });
