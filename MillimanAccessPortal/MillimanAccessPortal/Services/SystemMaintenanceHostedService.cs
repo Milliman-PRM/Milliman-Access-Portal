@@ -243,8 +243,6 @@ namespace MillimanAccessPortal.Services
                         List<ApplicationUser> allClientAdmins = dbContext.UserRoleInClient
                                                                          .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
                                                                          .Where(urc => urc.ClientId == c.Id)
-                                                                         //.Where(urc => urc.User.EmailConfirmed)
-                                                                         //.Where(urc => urc.User.EmailConfirmed)
                                                                          .Select(urc => urc.User)
                                                                          .AsEnumerable()
                                                                          .Distinct(new IdPropertyComparer<ApplicationUser>())
