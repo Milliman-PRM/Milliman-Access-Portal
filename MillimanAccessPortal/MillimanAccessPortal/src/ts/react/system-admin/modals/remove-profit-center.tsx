@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../../../shared';
+import { Client } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
 
 export interface RemoveProfitCenterModalsProps extends Modal.Props {
@@ -13,18 +14,23 @@ export interface RemoveProfitCenterModalsProps extends Modal.Props {
 
 interface RemoveProfitCenterModalsState {
   confirmDelete: boolean;
+  profitCenterHasProblematicSubClients: boolean;
+  invalidSubClients: Client[];
 }
 
 export class RemoveProfitCenterModals
   extends React.Component<RemoveProfitCenterModalsProps, RemoveProfitCenterModalsState> {
 
-  private url: string = 'SystemAdmin/DeleteProfitCenter';
+  private validateUrl: string = 'SystemAdmin/ValidateProfitCenterCanBeDeleted';
+  private deleteUrl: string = 'SystemAdmin/DeleteProfitCenter';
 
   public constructor(props: RemoveProfitCenterModalsProps) {
     super(props);
 
     this.state = {
       confirmDelete: false,
+      profitCenterHasProblematicSubClients: false,
+      invalidSubClients: [],
     };
 
     this.handleInitialModalSubmit = this.handleInitialModalSubmit.bind(this);
@@ -38,7 +44,7 @@ export class RemoveProfitCenterModals
         <Modal
           ariaHideApp={false}
           {...this.props}
-          isOpen={this.props.isOpen && !this.state.confirmDelete}
+          isOpen={this.props.isOpen && !this.state.profitCenterHasProblematicSubClients && !this.state.confirmDelete}
           className="modal"
           overlayClassName="modal-overlay"
           onRequestClose={() => {
@@ -74,6 +80,45 @@ export class RemoveProfitCenterModals
               </button>
             </div>
           </form>
+        </Modal>
+        <Modal
+          ariaHideApp={false}
+          isOpen={this.state.profitCenterHasProblematicSubClients}
+          className="modal"
+          overlayClassName="modal-overlay"
+          onRequestClose={() => {
+            this.props.onRequestClose(null);
+            this.resetState();
+          }}
+        >
+          <h3 className="title red">Delete Profit Center</h3>
+          <span className="modal-text">
+            Some Clients belonging to <strong>{this.props.profitCenterName}</strong> have Sub-Clients belonging to
+            &nbsp;different Profit Centers.
+          </span>
+          <span className="modal-text">
+            Deletion of this Profit Center will not be possible until this issue is addressed with the following&nbsp;
+            Sub-Clients:
+          </span>
+          <span className="modal-text">
+            <ul>
+              {this.state.invalidSubClients.map((invalidSubClient, index) =>
+                <li key={index}>{invalidSubClient.name}</li>,
+              )}
+            </ul>
+          </span>
+          <div className="button-container">
+            <button
+              className="link-button"
+              type="button"
+              onClick={() => {
+                this.props.onRequestClose(null);
+                this.resetState();
+              }}
+            >
+              Ok
+            </button>
+          </div>
         </Modal>
         <Modal
           ariaHideApp={false}
@@ -116,14 +161,25 @@ export class RemoveProfitCenterModals
 
   private handleInitialModalSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    this.setState({
-      confirmDelete: true,
-    });
+    postData(this.validateUrl, { profitCenterId: this.props.profitCenterId })
+      .then((response) => {
+        if (response.invalidSubClients.length > 0) {
+          this.setState({
+            profitCenterHasProblematicSubClients: true,
+            invalidSubClients: response.invalidSubClients,
+          });
+        } else {
+          this.setState({
+            confirmDelete: true,
+          });
+        }
+      },
+    );
   }
 
   private handleConfirmationModalSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    postData(this.url, { profitCenterId: this.props.profitCenterId }).then(() => {
+    postData(this.deleteUrl, { profitCenterId: this.props.profitCenterId }).then(() => {
       alert('Profit Center Deleted.');
       this.resetState();
       this.props.onRequestClose(null);
@@ -133,6 +189,8 @@ export class RemoveProfitCenterModals
   private resetState() {
     this.setState({
       confirmDelete: false,
+      profitCenterHasProblematicSubClients: false,
+      invalidSubClients: [],
     });
   }
 }

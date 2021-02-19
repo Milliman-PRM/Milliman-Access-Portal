@@ -1281,6 +1281,60 @@ namespace MillimanAccessPortal.Controllers
 
         #region Remove/delete actions
         /// <summary>
+        /// Validates whether or not a profit center can be deleted based on if any sub-client(s) with
+        /// mismatching profit center ID as their parent(s) exist.
+        /// </summary>
+        /// <param name="profitCenterId">Profit center to delete</param>
+        /// <returns>Json, list of any problematic sub-clients</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ValidateProfitCenterCanBeDeleted(Guid profitCenterId)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor} action with {profitCenterId}");
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
+            if (existingRecord == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var profitCenterClients = await _dbContext.Client
+                                                      .Where(c => c.ProfitCenterId == profitCenterId)
+                                                      .Where(c => c.ParentClientId == null)
+                                                      .ToListAsync();
+            List<Client> invalidSubClients = new List<Client>();
+            foreach (Client c in profitCenterClients)
+            {
+                invalidSubClients.AddRange(
+                    await _dbContext.Client
+                                    .Where(sC => sC.ParentClientId == c.Id)
+                                    .Where(sC => sC.ProfitCenterId != profitCenterId)
+                                    .ToListAsync()
+                );
+            }
+
+            Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
+
+            return Json(new { invalidSubClients });
+        }
+
+        /// <summary>
         /// Delete a profit center
         /// </summary>
         /// <param name="profitCenterId">Profit center to delete</param>
