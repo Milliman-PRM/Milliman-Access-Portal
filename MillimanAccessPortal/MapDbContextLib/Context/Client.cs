@@ -82,6 +82,8 @@ namespace MapDbContextLib.Context
         [Display(Name = "Profit Center *")]
         public Guid ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
+
+        public IEnumerable<Client> ChildClients { get; set; }
     }
 
     public class ClientAccessReview

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210217213539_Hitrust2Schema")]
+    [Migration("20210219171723_Hitrust2Schema")]
     partial class Hitrust2Schema
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -1054,8 +1054,9 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.Client", "ParentClient")
-                        .WithMany()
-                        .HasForeignKey("ParentClientId");
+                        .WithMany("ChildClients")
+                        .HasForeignKey("ParentClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()

@@ -1052,8 +1052,9 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.Client", "ParentClient")
-                        .WithMany()
-                        .HasForeignKey("ParentClientId");
+                        .WithMany("ChildClients")
+                        .HasForeignKey("ParentClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()

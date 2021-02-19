@@ -8,6 +8,18 @@ namespace MillimanAccessPortal.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Client_Client_ParentClientId",
+                table: "Client");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Client_Client_ParentClientId",
+                table: "Client",
+                column: "ParentClientId",
+                principalTable: "Client",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Cascade);
+
             migrationBuilder.AddColumn<DateTime>(
                 name: "UserAgreementAcceptedUtc",
                 table: "AspNetUsers",
@@ -34,6 +46,18 @@ namespace MillimanAccessPortal.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.DropForeignKey(
+                name: "FK_Client_Client_ParentClientId",
+                table: "Client");
+
+            migrationBuilder.AddForeignKey(
+                name: "FK_Client_Client_ParentClientId",
+                table: "Client",
+                column: "ParentClientId",
+                principalTable: "Client",
+                principalColumn: "Id",
+                onDelete: ReferentialAction.Restrict);
+
             migrationBuilder.DropColumn(
                 name: "LastQuarterlyMaintenanceNotificationUtc",
                 table: "ProfitCenter");
