@@ -1318,20 +1318,22 @@ namespace MillimanAccessPortal.Controllers
                                                       .Where(c => c.ProfitCenterId == profitCenterId)
                                                       .Where(c => c.ParentClientId == null)
                                                       .ToListAsync();
-            List<Client> invalidSubClients = new List<Client>();
+            Dictionary<string, List<Client>> mismatchingClientSubClientRelationships = new Dictionary<string, List<Client>>();
             foreach (Client c in profitCenterClients)
             {
-                invalidSubClients.AddRange(
-                    await _dbContext.Client
-                                    .Where(sC => sC.ParentClientId == c.Id)
-                                    .Where(sC => sC.ProfitCenterId != profitCenterId)
-                                    .ToListAsync()
-                );
+                List<Client> mismatchingSubClients = await _dbContext.Client
+                                .Where(sC => sC.ParentClientId == c.Id)
+                                .Where(sC => sC.ProfitCenterId != profitCenterId)
+                                .Include(sC => sC.ParentClient)
+                                .ToListAsync();
+                if (mismatchingSubClients.Any()) {
+                    mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
+                }
             }
 
             Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
 
-            return Json(new { invalidSubClients });
+            return Json(new { mismatchingClientSubClientRelationships });
         }
 
         /// <summary>

@@ -6,6 +6,7 @@ import * as Modal from 'react-modal';
 import { postData } from '../../../shared';
 import { Client } from '../../models';
 import { Guid } from '../../shared-components/interfaces';
+import { Dict } from '../../shared-components/redux/store';
 
 export interface RemoveProfitCenterModalsProps extends Modal.Props {
   profitCenterId: Guid;
@@ -15,7 +16,7 @@ export interface RemoveProfitCenterModalsProps extends Modal.Props {
 interface RemoveProfitCenterModalsState {
   confirmDelete: boolean;
   profitCenterHasProblematicSubClients: boolean;
-  invalidSubClients: Client[];
+  mismatchingClientSubClientRelationships: Dict<Client[]>;
 }
 
 export class RemoveProfitCenterModals
@@ -30,7 +31,7 @@ export class RemoveProfitCenterModals
     this.state = {
       confirmDelete: false,
       profitCenterHasProblematicSubClients: false,
-      invalidSubClients: [],
+      mismatchingClientSubClientRelationships: null,
     };
 
     this.handleInitialModalSubmit = this.handleInitialModalSubmit.bind(this);
@@ -91,23 +92,30 @@ export class RemoveProfitCenterModals
             this.resetState();
           }}
         >
-          <h3 className="title red">Delete Profit Center</h3>
+          <h3 className="title red">Unable to Delete Profit Center</h3>
           <span className="modal-text">
-            Some Clients belonging to <strong>{this.props.profitCenterName}</strong> have Sub-Clients belonging to
-            &nbsp;different Profit Centers.
+            There exist Sub-Clients with different Profit Centers listed from the parent Client.
           </span>
           <span className="modal-text">
-            Deletion of this Profit Center will not be possible until this issue is addressed with the following&nbsp;
-            Sub-Clients:
+            In order to delete the Profit Center, please change the Sub-Client's Profit Center listed&nbsp;
+            below or remove the Sub-Client completely.
           </span>
           <span className="modal-text">
             <ul>
-              {this.state.invalidSubClients.map((invalidSubClient, index) =>
-                <li key={index}>{invalidSubClient.name}</li>,
+              {this.state.mismatchingClientSubClientRelationships &&
+                Object.keys(this.state.mismatchingClientSubClientRelationships).map((parentClient, pIndex) =>
+                <div key={pIndex}>
+                  <strong>{parentClient}</strong>
+                  <ul>
+                    {this.state.mismatchingClientSubClientRelationships[parentClient].map((subClient, sIndex) =>
+                      <li key={sIndex}>{subClient.name}</li>,
+                    )}
+                  </ul>
+                </div>,
               )}
             </ul>
           </span>
-          <div className="button-container">
+          <div className="button-container no-padding-top">
             <button
               className="link-button"
               type="button"
@@ -163,10 +171,10 @@ export class RemoveProfitCenterModals
     event.preventDefault();
     postData(this.validateUrl, { profitCenterId: this.props.profitCenterId })
       .then((response) => {
-        if (response.invalidSubClients.length > 0) {
+        if (Object.keys(response.mismatchingClientSubClientRelationships).length > 0) {
           this.setState({
             profitCenterHasProblematicSubClients: true,
-            invalidSubClients: response.invalidSubClients,
+            mismatchingClientSubClientRelationships: response.mismatchingClientSubClientRelationships,
           });
         } else {
           this.setState({
@@ -190,7 +198,7 @@ export class RemoveProfitCenterModals
     this.setState({
       confirmDelete: false,
       profitCenterHasProblematicSubClients: false,
-      invalidSubClients: [],
+      mismatchingClientSubClientRelationships: null,
     });
   }
 }
