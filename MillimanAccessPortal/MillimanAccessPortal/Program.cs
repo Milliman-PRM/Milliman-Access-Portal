@@ -259,6 +259,18 @@ namespace MillimanAccessPortal
                 newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
                 var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
                 config.AddConfiguration(newConnectionStringCfg);
+
+                string configuredAuditConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+
+                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilderAuditDb = new Npgsql.NpgsqlConnectionStringBuilder(configuredAuditConnectionString);
+                connectionStringBuilderAuditDb.Host = dbServerOverride;
+
+                string newConnectionStringAuditDb = connectionStringBuilderAuditDb.ConnectionString;
+
+                MemoryConfigurationSource newSourceAuditDb = new MemoryConfigurationSource();
+                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
+                var newConnectionStringCfgAuditDb = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSourceAuditDb) });
+                config.AddConfiguration(newConnectionStringCfgAuditDb);
             }
         }
 
