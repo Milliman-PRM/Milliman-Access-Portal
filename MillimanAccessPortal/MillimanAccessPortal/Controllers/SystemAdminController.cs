@@ -625,8 +625,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CreateProfitCenter(
-            [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> CreateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.CreateProfitCenter action with {@profitCenter}", profitCenter);
 
@@ -940,8 +939,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateProfitCenter(
-            [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> UpdateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.UpdateProfitCenter action with {@ProfitCenter}", profitCenter);
 
@@ -979,6 +977,7 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactName = profitCenter.ContactName;
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
+            existingRecord.QuarterlyMaintenanceNotificationList = profitCenter.QuarterlyMaintenanceNotificationList;
 
             await _dbContext.SaveChangesAsync();
 
