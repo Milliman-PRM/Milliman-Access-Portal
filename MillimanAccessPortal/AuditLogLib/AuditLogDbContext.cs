@@ -146,6 +146,13 @@ namespace AuditLogLib
                 auditLogConnectionString = stringBuilder.ConnectionString;
             }
 
+            if (Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Host = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+                auditLogConnectionString = stringBuilder.ConnectionString;
+            }
+
             return auditLogConnectionString;
         }
 

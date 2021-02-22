@@ -243,6 +243,23 @@ namespace MillimanAccessPortal
                 var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
                 config.AddConfiguration(newConnectionStringCfg);
             }
+
+            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+            if (!string.IsNullOrWhiteSpace(dbServerOverride))
+            {
+                var localConfig = config.Build();
+                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+
+                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
+                connectionStringBuilder.Host = dbServerOverride;
+
+                string newConnectionString = connectionStringBuilder.ConnectionString;
+
+                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
+                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
+                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
+                config.AddConfiguration(newConnectionStringCfg);
+            }
         }
 
     }
