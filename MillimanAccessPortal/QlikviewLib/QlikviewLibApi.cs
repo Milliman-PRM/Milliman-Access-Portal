@@ -7,8 +7,10 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
@@ -369,10 +371,42 @@ namespace QlikviewLib
             (ServiceInfo QvsServiceInfo, DocumentFolder QvsUserDocFolder) = await SafeGetUserDocFolder();
 
             await StaticUtil.DoRetryAsyncOperation<AggregateException>(
-                async () => await _newQvsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList), 2, 250);  // Is this really needed?
+                // async () => await _newQvsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList), 2, 250);  // Is this really needed?
+                async () => 
+                {
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+                    try
+                    {
+                        await _newQvsClient.ClearQVSCacheAsync(QVSCacheObjects.UserDocumentList);
+                    }
+                    finally
+                    {
+                        stopwatch.Stop();
+                        string msg = $"From AuthorizeUserDocumentsInFolderAsync: call to QmsApi.ClearQVSCacheAsync took time (including retries) {stopwatch.Elapsed}";
+                        GlobalFunctions.IssueLog(IssueLogEnum.TrackQlikviewApiTiming, msg);
+                    }
+                }, 2, 250);  // Is this really needed?
+
+            Thread.Sleep(10_000);
 
             DocumentNode[] AllDocNodesInRequestedFolder = await StaticUtil.DoRetryAsyncOperationWithReturn<AggregateException, DocumentNode[]>(
-                async () => await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder), 2, 250);
+                // async () => await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder), 2, 250);
+                async () => 
+                {
+                    Stopwatch stopwatch = Stopwatch.StartNew();
+                    try
+                    {
+                        DocumentNode[] result = await _newQvsClient.GetUserDocumentNodesAsync(QvsServiceInfo.ID, QvsUserDocFolder.ID, ContentPathRelativeToNamedUserDocFolder);
+                        return result;
+                    }
+                    finally
+                    {
+                        stopwatch.Stop();
+                        string msg = $"From AuthorizeUserDocumentsInFolderAsync: call to QmsApi.GetUserDocumentNodesAsync took time (including retries) {stopwatch.Elapsed} for folder {ContentPathRelativeToNamedUserDocFolder}";
+                        GlobalFunctions.IssueLog(IssueLogEnum.TrackQlikviewApiTiming, msg);
+                    }
+                }, 5, 5_000);  // If these calls are timing out, the total time of all intervals is 200 seconds plus one minute per timeout
+
             foreach (DocumentNode DocNode in AllDocNodesInRequestedFolder.Where(n => !n.IsSubFolder))
             {
                 if (!string.IsNullOrEmpty(SpecificFileName) && DocNode.Name != SpecificFileName)

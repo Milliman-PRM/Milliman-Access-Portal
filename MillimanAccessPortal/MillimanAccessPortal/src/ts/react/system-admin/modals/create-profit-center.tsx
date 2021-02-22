@@ -3,7 +3,13 @@ import '../../../../scss/react/shared-components/modal.scss';
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
-import { postData } from '../../../shared';
+import { isEmailAddressValid, postJsonData } from '../../../shared';
+import { Input, MultiAddInput } from '../../shared-components/form/input';
+
+// Toastr related imports
+import toastr = require('toastr');
+import '../../../lib-options';
+require('toastr/toastr.scss');
 
 interface CreateProfitCenterModalState {
   name: string;
@@ -12,10 +18,10 @@ interface CreateProfitCenterModalState {
   contact: string;
   email: string;
   phone: string;
+  quarterlyMaintenanceNotificationList: string[];
 }
 
 export class CreateProfitCenterModal extends React.Component<Modal.Props, CreateProfitCenterModalState> {
-
   private url: string = 'SystemAdmin/CreateProfitCenter';
 
   public constructor(props: Modal.Props) {
@@ -28,6 +34,7 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
       contact: '',
       email: '',
       phone: '',
+      quarterlyMaintenanceNotificationList: [],
     };
 
     this.handleChangeName = this.handleChangeName.bind(this);
@@ -42,80 +49,109 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
 
   public render() {
     return (
-      <Modal
-        ariaHideApp={false}
-        {...this.props}
-        className="modal"
-        overlayClassName="modal-overlay"
-      >
-        <h3 className="title blue">Create New Profit Center</h3>
-        <span className="modal-text">Profit Center Information</span>
-        <form onSubmit={this.handleSubmit}>
-          <span>
-            <label htmlFor="pcName">Name:</label>
-            <input
+      <>
+        <Modal
+          ariaHideApp={false}
+          {...this.props}
+          className="modal"
+          overlayClassName="modal-overlay"
+        >
+          <h3 className="title blue">Create New Profit Center</h3>
+          <span className="modal-text">Profit Center Information</span>
+          <form onSubmit={this.handleSubmit}>
+            <Input
               name="pcName"
+              label="Name"
+              value={this.state.name}
+              error={null}
               type="text"
               onChange={this.handleChangeName}
             />
-          </span>
-          <span>
-            <label htmlFor="pcCode">Code:</label>
-            <input
+            <Input
+              label="Code"
+              value={this.state.code}
+              error={null}
               name="pcCode"
               type="text"
               onChange={this.handleChangeCode}
             />
-          </span>
-          <span>
-            <label htmlFor="pcOffice">Office:</label>
-            <input
+            <Input
+              label="Office"
+              value={this.state.office}
+              error={null}
               name="pcOffice"
               type="text"
               onChange={this.handleChangeOffice}
             />
-          </span>
-          <span>
-            <label htmlFor="pcContact">Contact:</label>
-            <input
+            <Input
+              label="Contact"
               name="pcContact"
+              value={this.state.contact}
+              error={null}
               type="text"
               onChange={this.handleChangeContact}
             />
-          </span>
-          <span>
-            <label htmlFor="pcEmail">Email:</label>
-            <input
+            <Input
+              label="Email"
+              value={this.state.email}
+              error={null}
               name="pcEmail"
               type="text"
               onChange={this.handleChangeEmail}
             />
-          </span>
-          <span>
-            <label htmlFor="pcPhone">Phone:</label>
-            <input
+            <Input
+              label="Phone"
+              value={this.state.phone}
+              error={null}
               name="pcPhone"
               type="text"
               onChange={this.handleChangePhone}
             />
-          </span>
-          <div className="button-container">
-            <button
-              className="link-button"
-              type="button"
-              onClick={this.cancel}
-            >
-              Cancel
-            </button>
-            <button
-              className="blue-button"
-              type="submit"
-            >
-              Create Profit Center
-            </button>
-          </div>
-        </form>
-      </Modal>
+            <MultiAddInput
+              name="quarterlyMaintenanceEmailRecipients"
+              label="Quarterly Maintenance Email Recipients"
+              type="text"
+              list={this.state.quarterlyMaintenanceNotificationList}
+              value={''}
+              addItem={(item: string, _overLimit: boolean, itemAlreadyExists: boolean) => {
+                if (itemAlreadyExists) {
+                  toastr.warning('', 'That email already exists.');
+                } else if (!isEmailAddressValid(item)) {
+                  toastr.warning('', 'Please enter a valid email address (e.g. username@domain.com)');
+                } else {
+                  this.setState({
+                    quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.concat(item),
+                  });
+                }
+              }}
+              removeItemCallback={(index: number) => {
+                this.setState({
+                  quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.slice(0, index)
+                    .concat(this.state.quarterlyMaintenanceNotificationList.slice(index + 1)),
+                });
+              }}
+              readOnly={false}
+              onBlur={() => { return; }}
+              error={null}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={this.cancel}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+              >
+                Create Profit Center
+              </button>
+            </div>
+          </form>
+        </Modal>
+      </>
     );
   }
 
@@ -157,13 +193,14 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
 
   private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    postData(this.url, {
+    postJsonData(this.url, {
       name: this.state.name,
       profitCenterCode: this.state.code,
       millimanOffice: this.state.office,
       contactName: this.state.contact,
       contactEmail: this.state.email,
       contactPhone: this.state.phone,
+      quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList,
     })
     .then(() => {
       alert('Profit center created.');

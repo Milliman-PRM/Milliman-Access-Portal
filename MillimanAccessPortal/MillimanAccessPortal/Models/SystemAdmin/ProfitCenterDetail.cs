@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using System;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
@@ -18,6 +19,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ContactName { get; set; }
         public string ContactEmail { get; set; }
         public string ContactPhone { get; set; }
+        public List<string> QuarterlyMaintenanceNotificationList { get; set; }
 
         public static explicit operator ProfitCenterDetail(ProfitCenter profitCenter)
         {
@@ -35,6 +37,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 ContactName = profitCenter.ContactName,
                 ContactEmail = profitCenter.ContactEmail,
                 ContactPhone = profitCenter.ContactPhone,
+                QuarterlyMaintenanceNotificationList = profitCenter.QuarterlyMaintenanceNotificationList,
             };
         }
 
