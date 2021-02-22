@@ -27,7 +27,7 @@ import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsA
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
-  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientSummaryModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -544,7 +544,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                           <tr key={user.userEmail} className="table-row-divider">
                             <td>
                               <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
-                              <span className="detail-value-email">{user.userEmail}</span></td>
+                              <span className="detail-value-email">{user.userEmail}</span><br />
+                              {this.renderUserAccountStatus(user)}
+                            </td>
                             <td>
                               {
                                 user.lastLoginDate
@@ -677,6 +679,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         }
                                       </td>
                                       <td>
+                                        {pg.authorizedMapUsers.length > 0 &&
+                                          this.renderFileDropAccountStatusIcon(pg.authorizedMapUsers[0])}
                                         {
                                           pg.authorizedMapUsers.length > 0 ?
                                             pg.authorizedMapUsers[0].userEmail :
@@ -747,7 +751,10 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                               }
                                             >
                                               <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;{user.name}</td>
-                                              <td>{user.userEmail}</td>
+                                              <td>
+                                                {this.renderFileDropAccountStatusIcon(user)}
+                                                {user.userEmail}
+                                              </td>
                                               {
                                                 index + 1 === authUsers &&
                                                 <>
@@ -853,6 +860,58 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <use xlinkHref={'#checkmark'} />
       </svg>
     );
+  }
+
+  private renderUserAccountStatus(user: ClientActorModel) {
+    if (user.isAccountDisabled) {
+      return (
+        <span className="detail-value-disabled">
+          Account disabled on {moment.utc(user.disableAccountDate)
+            .local().format('MMM DD, YYYY')}
+        </span>
+      );
+    }
+
+    if (user.isAccountNearDisabled) {
+      return (
+        <span className="detail-value-near-disabled">
+          Account will be disabled on {moment.utc(user.disableAccountDate)
+            .local().format('MMM DD, YYYY')}
+        </span>
+      );
+    }
+  }
+
+  private renderFileDropAccountStatusIcon(user: ClientActorModel) {
+    if (user.isAccountDisabled) {
+      return (
+        <div
+          className="file-drop-user-icon disabled-warning-icon"
+          title={'Account disabled on ' + moment.utc
+            (user.disableAccountDate).local().format('MMM DD, YYYY')
+          }
+        >
+          <svg>
+            <use href="#cancel" />
+          </svg>
+        </div>
+      );
+    }
+
+    if (user.isAccountNearDisabled) {
+      return (
+        <div
+          className="file-drop-user-icon near-disabled-warning-icon"
+          title={'Account will be disabled on ' + moment.utc
+            (user.disableAccountDate).local().format('MMM DD, YYYY')
+          }
+        >
+          <svg>
+            <use href="#error" />
+          </svg>
+        </div>
+      );
+    }
   }
 }
 

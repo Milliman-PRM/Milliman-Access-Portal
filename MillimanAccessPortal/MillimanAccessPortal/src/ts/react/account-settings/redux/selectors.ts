@@ -28,7 +28,7 @@ export function modifiedInputs(state: AccountState) {
   return _.mapValues(pending, (value, key: keyof PendingInputState) => ({
     modified: (!state.pending.requests.fetchUser && (value !== null) && (data[key]
       ? data[key] !== value
-      : value && value.length > 0)),
+      : (typeof value === 'string') ? value && value.length > 0 : false)),
   }));
 }
 
