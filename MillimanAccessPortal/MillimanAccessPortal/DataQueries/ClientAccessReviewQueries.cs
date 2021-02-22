@@ -111,11 +111,14 @@ namespace MillimanAccessPortal.DataQueries
             return returnModel;
         }
 
-        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId, int disableInactiveUserMonths, double disableInactiveUserWarningDays)
+        public async Task<ClientAccessReviewModel> GetClientAccessReviewModel(Guid clientId)
         {
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
                                             .SingleOrDefaultAsync(c => c.Id == clientId);
+            int disableInactiveUserMonths = _appConfig.GetValue<int>("DisableInactiveUserMonths");
+            int disableInactiveUserWarningDays = _appConfig.GetValue<int>("DisableInactiveUserWarningDays");
+
             IEnumerable<ClientActorReviewModel> memberUsers = (await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("ClientMembership", client.Id.ToString())))
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)

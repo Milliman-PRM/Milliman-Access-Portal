@@ -147,7 +147,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId, _applicationConfig.GetValue<int>("DisableInactiveUserMonths"), _applicationConfig.GetValue<double>("DisableInactiveUserWarningDays"));
+            ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
             _auditLogger.Log(AuditEventType.ClientAccessReviewPresented.ToEvent(ClientId, model));
 
             return Json(model);
