@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+### v1.12.0
+
+- User accounts with no login during the past 12 months will be disabled
+- Add the ability to send a quarterly email summarizing the status of Content Access Reviews for Clients of a Profit Center
+- All users must now accept the MAP user agreement annually
+- Expanded the use of retries during post-processing of Qlikview content publication to make large publications more reliable
+
 #### v1.11.2
 
 - Fixed a bug that caused updates to user roles to be incompletely applied
