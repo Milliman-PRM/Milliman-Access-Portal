@@ -1317,17 +1317,20 @@ namespace MillimanAccessPortal.Controllers
             var profitCenterClients = await _dbContext.Client
                                                       .Where(c => c.ProfitCenterId == profitCenterId)
                                                       .Where(c => c.ParentClientId == null)
+                                                      .Include(c => c.ChildClients)
                                                       .ToListAsync();
             Dictionary<string, List<Client>> mismatchingClientSubClientRelationships = new Dictionary<string, List<Client>>();
             foreach (Client c in profitCenterClients)
             {
-                List<Client> mismatchingSubClients = await _dbContext.Client
-                                .Where(sC => sC.ParentClientId == c.Id)
-                                .Where(sC => sC.ProfitCenterId != profitCenterId)
-                                .Include(sC => sC.ParentClient)
-                                .ToListAsync();
-                if (mismatchingSubClients.Any()) {
-                    mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
+                if (c.ChildClients != null)
+                {
+                    List <Client> mismatchingSubClients = c.ChildClients
+                                                          .Where(cc => cc.ProfitCenterId != c.ProfitCenterId)
+                                                          .ToList();
+                    if (mismatchingSubClients.Any())
+                    {
+                        mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
+                    }
                 }
             }
 
