@@ -22,7 +22,7 @@ interface RemoveProfitCenterModalsState {
 export class RemoveProfitCenterModals
   extends React.Component<RemoveProfitCenterModalsProps, RemoveProfitCenterModalsState> {
 
-  private validateUrl: string = 'SystemAdmin/ValidateProfitCenterCanBeDeleted';
+  private validateUrl: string = 'SystemAdmin/ValidateProfitCenterDeletion';
   private deleteUrl: string = 'SystemAdmin/DeleteProfitCenter';
 
   public constructor(props: RemoveProfitCenterModalsProps) {
@@ -171,10 +171,10 @@ export class RemoveProfitCenterModals
     event.preventDefault();
     postData(this.validateUrl, { profitCenterId: this.props.profitCenterId })
       .then((response) => {
-        if (Object.keys(response.mismatchingClientSubClientRelationships).length > 0) {
+        if (Object.keys(response.mismatchingRelationships).length > 0) {
           this.setState({
             profitCenterHasProblematicSubClients: true,
-            mismatchingClientSubClientRelationships: response.mismatchingClientSubClientRelationships,
+            mismatchingClientSubClientRelationships: response.mismatchingRelationships,
           });
         } else {
           this.setState({

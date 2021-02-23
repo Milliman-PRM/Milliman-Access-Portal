@@ -1288,7 +1288,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json, list of any problematic sub-clients</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ValidateProfitCenterCanBeDeleted(Guid profitCenterId)
+        public async Task<ActionResult> ValidateProfitCenterDeletion(Guid profitCenterId)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor} action with {profitCenterId}");
 
@@ -1314,29 +1314,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var profitCenterClients = await _dbContext.Client
-                                                      .Where(c => c.ProfitCenterId == profitCenterId)
-                                                      .Where(c => c.ParentClientId == null)
-                                                      .Include(c => c.ChildClients)
-                                                      .ToListAsync();
-            Dictionary<string, List<Client>> mismatchingClientSubClientRelationships = new Dictionary<string, List<Client>>();
-            foreach (Client c in profitCenterClients)
-            {
-                if (c.ChildClients != null)
-                {
-                    List <Client> mismatchingSubClients = c.ChildClients
-                                                          .Where(cc => cc.ProfitCenterId != c.ProfitCenterId)
-                                                          .ToList();
-                    if (mismatchingSubClients.Any())
-                    {
-                        mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
-                    }
-                }
-            }
-
+            var mismatchingRelationships = await _queries.ValidateProfitCenterCanBeDeletedAsync(profitCenterId);
             Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
 
-            return Json(new { mismatchingClientSubClientRelationships });
+            return Json(new { mismatchingRelationships });
         }
 
         /// <summary>
@@ -1368,6 +1349,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} not found, aborting");
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            var mismatchingRelationships = await _queries.ValidateProfitCenterCanBeDeletedAsync(profitCenterId);
+            if (mismatchingRelationships.Any())
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} has Clients with Sub-Clients who belong to different Profit Centers, aborting.");
+                Response.Headers.Add("Warning", "Sub-Clients with mismatching Profit Center ID's found. Operation failed.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion
