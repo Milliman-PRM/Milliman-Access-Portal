@@ -1251,31 +1251,6 @@ namespace MapTests
 
         #region Remove/delete action tests
         [Theory]
-        [InlineData(-1)]
-        [InlineData(1)]  // Cannot delete if there are referencing clients
-        public async Task DeleteProfitCenter_Invalid(int profitCenterId)
-        {
-            using (TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.SystemAdmin))
-            {
-                #region Arrange
-                var controller = await GetControllerForUser("sysAdmin1");
-                #endregion
-
-                #region Act
-                var preCount = TestResources.DbContext.ProfitCenter.Count();
-                var json = await controller.DeleteProfitCenter(TestUtil.MakeTestGuid(profitCenterId));
-                var postCount = TestResources.DbContext.ProfitCenter.Count();
-                #endregion
-
-                #region Assert
-                Assert.IsType<StatusCodeResult>(json);
-                Assert.Equal(422, ((StatusCodeResult)json).StatusCode);
-                Assert.Equal(preCount, postCount);
-                #endregion
-            }
-        }
-
-        [Theory]
         [InlineData(2)]
         public async Task DeleteProfitCenter_Success(int profitCenterId)
         {
