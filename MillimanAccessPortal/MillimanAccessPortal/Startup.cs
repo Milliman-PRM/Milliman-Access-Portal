@@ -190,7 +190,7 @@ namespace MillimanAccessPortal
                                 if (_applicationUser == null)
                                 {
                                     Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountNotFound));
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -206,11 +206,16 @@ namespace MillimanAccessPortal
                                     // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
                                     Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc.Value}");
 
+                                    AccountController accountController = serviceProvider.GetService<AccountController>();
+                                    accountController.NotifyUserAboutDisabledAccount(_applicationUser);
+
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
                                         Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
+                                    IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
+                                    _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled));                                    
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
@@ -283,7 +288,7 @@ namespace MillimanAccessPortal
                             {
                                 Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.LoginFailed));
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();

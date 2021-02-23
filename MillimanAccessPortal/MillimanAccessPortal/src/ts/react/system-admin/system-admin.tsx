@@ -7,6 +7,7 @@ import '../../../images/icons/reports.svg';
 import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
+import * as moment from 'moment';
 import * as React from 'react';
 
 import { getJsonData, postData } from '../../shared';
@@ -236,6 +237,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardText
                         text={normalizeName(entity)}
                         subtext={entity.userName}
+                        issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                          ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                        issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                          ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                          + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                          : null
+                        }
                       />
                       <CardSectionStats>
                         <CardStat
@@ -350,6 +358,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardText
                       text={normalizeName(entity)}
                       subtext={entity.userName}
+                      issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                        ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                      issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                        ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                        + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                        : null
+                      }
                     />
                     <CardSectionStats>
                       <CardStat
@@ -516,6 +531,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <CardText
                     text={normalizeName(entity)}
                     subtext={entity.userName}
+                    issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                    issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                      + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                      : null
+                    }
                   />
                   <CardSectionStats>
                     <CardStat
