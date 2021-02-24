@@ -109,35 +109,7 @@ namespace SftpServerLib
             #endregion
 
             // Enable override of database server name; required in environments where the public DNS name and private DNS name differ
-            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
-            if (!string.IsNullOrWhiteSpace(dbServerOverride))
-            {
-                var localConfig = CfgBuilder.Build();
-                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
-
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
-                connectionStringBuilder.Host = dbServerOverride;
-
-                string newConnectionString = connectionStringBuilder.ConnectionString;
-
-                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
-                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
-                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
-                CfgBuilder.AddConfiguration(newConnectionStringCfg);
-
-                string configuredAuditConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
-
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilderAuditDb = new Npgsql.NpgsqlConnectionStringBuilder(configuredAuditConnectionString);
-                connectionStringBuilderAuditDb.Host = dbServerOverride;
-
-                string newConnectionStringAuditDb = connectionStringBuilderAuditDb.ConnectionString;
-
-                MemoryConfigurationSource newSourceAuditDb = new MemoryConfigurationSource();
-                newSourceAuditDb.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
-                var newConnectionStringCfgAuditDb = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSourceAuditDb) });
-                CfgBuilder.AddConfiguration(newConnectionStringCfgAuditDb);
-            }
-
+            AddEnvironmentSuppliedConfigurationOverrides(CfgBuilder);
 
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
 
@@ -161,6 +133,45 @@ namespace SftpServerLib
             }
 
             // ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, ApplicationConfiguration, ConfigurationDumper.DumpTarget.Console);
+        }
+
+        private static void AddEnvironmentSuppliedConfigurationOverrides(IConfigurationBuilder appCfgBuilder)
+        {
+            MemoryConfigurationSource newSource = null;
+
+            var localConfig = appCfgBuilder.Build();
+
+            string mapDbConnectionString = localConfig.GetConnectionString("DefaultConnection");
+            NpgsqlConnectionStringBuilder mapDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(mapDbConnectionString);
+
+            string auditLogDbConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+            NpgsqlConnectionStringBuilder auditLogDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(auditLogDbConnectionString);
+
+            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+            if (!string.IsNullOrWhiteSpace(dbServerOverride))
+            {
+                newSource = newSource ?? new MemoryConfigurationSource();
+
+                mapDbConnectionStringBuilder.Host = dbServerOverride;
+                auditLogDbConnectionStringBuilder.Host = dbServerOverride;
+            }
+
+            if (newSource != null)
+            {
+                var newData = new List<KeyValuePair<string, string>>();
+                if (!mapDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(mapDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", mapDbConnectionStringBuilder.ConnectionString));
+                }
+                if (!auditLogDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(auditLogDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", auditLogDbConnectionStringBuilder.ConnectionString));
+                }
+                newSource.InitialData = newData;
+                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
+
+                appCfgBuilder.AddConfiguration(newConnectionStringCfg);
+            }
         }
 
         /// <summary>

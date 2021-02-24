@@ -168,9 +168,9 @@ namespace MillimanAccessPortal
             return host;
         }
 
-        internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)
+        internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder configBuilder)
         {
-            config
+            configBuilder
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
             .AddJsonFile("powerbi.json", optional: false, reloadOnChange: true)
@@ -190,15 +190,15 @@ namespace MillimanAccessPortal
                     case "PRODUCTION":
                     case "STAGING":
                     case "INTERNAL":
-                        config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
 
-                        var builtConfig = config.Build();
+                        var builtConfig = configBuilder.Build();
 
                         var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                         store.Open(OpenFlags.ReadOnly);
                         var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                        config.AddAzureKeyVault(
+                        configBuilder.AddAzureKeyVault(
                             builtConfig["AzureVaultName"],
                             builtConfig["AzureClientID"],
                             cert.OfType<X509Certificate2>().Single()
@@ -210,14 +210,14 @@ namespace MillimanAccessPortal
                     case "AZURE-UAT":
                     case "AZURE-PROD":
                         // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
-                        config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
-                        var azureBuiltConfig = config.Build();
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        var azureBuiltConfig = configBuilder.Build();
 
                         var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
-                        config.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+                        configBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
                         break;
                     case "DEVELOPMENT":
-                        config.AddUserSecrets<Startup>();
+                        configBuilder.AddUserSecrets<Startup>();
                         break;
 
                     default: // Unsupported environment name	
@@ -227,50 +227,53 @@ namespace MillimanAccessPortal
             }
             #endregion
 
+            AddEnvironmentSuppliedConfigurationOverrides(configBuilder);
+        }
+
+        private static void AddEnvironmentSuppliedConfigurationOverrides(IConfigurationBuilder appCfgBuilder)
+        {
+            MemoryConfigurationSource newSource = null;
+
+            var localConfig = appCfgBuilder.Build();
+
+            string mapDbConnectionString = localConfig.GetConnectionString("DefaultConnection");
+            NpgsqlConnectionStringBuilder mapDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(mapDbConnectionString);
+
+            string auditLogDbConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+            NpgsqlConnectionStringBuilder auditLogDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(auditLogDbConnectionString);
+
             string dbNameOverride = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
             if (!string.IsNullOrWhiteSpace(dbNameOverride))
             {
-                var localConfig = config.Build();
-                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+                newSource = newSource ?? new MemoryConfigurationSource();
 
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
-                connectionStringBuilder.Database = dbNameOverride;
-
-                string newConnectionString = connectionStringBuilder.ConnectionString;
-
-                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
-                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
-                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
-                config.AddConfiguration(newConnectionStringCfg);
+                mapDbConnectionStringBuilder.Database = dbNameOverride;
             }
 
             string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
             if (!string.IsNullOrWhiteSpace(dbServerOverride))
             {
-                var localConfig = config.Build();
-                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+                newSource = newSource ?? new MemoryConfigurationSource();
 
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
-                connectionStringBuilder.Host = dbServerOverride;
+                mapDbConnectionStringBuilder.Host = dbServerOverride;
+                auditLogDbConnectionStringBuilder.Host = dbServerOverride;
+            }
 
-                string newConnectionString = connectionStringBuilder.ConnectionString;
-
-                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
-                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
+            if (newSource != null)
+            {
+                var newData = new List<KeyValuePair<string, string>>();
+                if (!mapDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(mapDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", mapDbConnectionStringBuilder.ConnectionString));
+                }
+                if (!auditLogDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(auditLogDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", auditLogDbConnectionStringBuilder.ConnectionString));
+                }
+                newSource.InitialData = newData;
                 var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
-                config.AddConfiguration(newConnectionStringCfg);
 
-                string configuredAuditConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
-
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilderAuditDb = new Npgsql.NpgsqlConnectionStringBuilder(configuredAuditConnectionString);
-                connectionStringBuilderAuditDb.Host = dbServerOverride;
-
-                string newConnectionStringAuditDb = connectionStringBuilderAuditDb.ConnectionString;
-
-                MemoryConfigurationSource newSourceAuditDb = new MemoryConfigurationSource();
-                newSourceAuditDb.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
-                var newConnectionStringCfgAuditDb = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSourceAuditDb) });
-                config.AddConfiguration(newConnectionStringCfgAuditDb);
+                appCfgBuilder.AddConfiguration(newConnectionStringCfg);
             }
         }
 
