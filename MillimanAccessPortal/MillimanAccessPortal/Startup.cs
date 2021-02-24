@@ -390,6 +390,7 @@ namespace MillimanAccessPortal
             {
                 options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             })
             .AddControllersAsServices();
 

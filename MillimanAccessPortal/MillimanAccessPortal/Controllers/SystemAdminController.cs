@@ -1281,6 +1281,46 @@ namespace MillimanAccessPortal.Controllers
 
         #region Remove/delete actions
         /// <summary>
+        /// Validates whether or not a profit center can be deleted based on if any sub-client(s) with
+        /// mismatching profit center ID as their parent(s) exist.
+        /// </summary>
+        /// <param name="profitCenterId">Profit center to delete</param>
+        /// <returns>Json, list of any problematic sub-clients</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ValidateProfitCenterDeletion(Guid profitCenterId)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor} action with {profitCenterId}");
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
+            if (existingRecord == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
+            Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
+
+            return Json(new { mismatchingRelationships });
+        }
+
+        /// <summary>
         /// Delete a profit center
         /// </summary>
         /// <param name="profitCenterId">Profit center to delete</param>
@@ -1311,11 +1351,11 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            // The profit center should have no clients
-            if (await _dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).AnyAsync())
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
+            if (mismatchingRelationships.Any())
             {
-                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} has clients and cannot be removed, aborting");
-                Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} has Clients with Sub-Clients who belong to different Profit Centers, aborting.");
+                Response.Headers.Add("Warning", "Sub-Clients with mismatching Profit Center ID's found. Operation failed.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion

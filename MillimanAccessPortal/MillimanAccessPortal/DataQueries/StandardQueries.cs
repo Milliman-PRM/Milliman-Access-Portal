@@ -148,5 +148,34 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnVal;
         }
 
+        /// <summary>
+        /// Returns Dictionary of Client/Sub-Client relationships with mismatching Profit Center ID's.
+        /// </summary>
+        /// <param name="profitCenterId"></param>
+        /// <returns></returns>
+        public async Task<Dictionary<string, List<Client>>> GetSubClientsWithMixedProfitCenters(Guid profitCenterId)
+        {
+            var profitCenterClients = await DbContext.Client
+                                              .Where(c => c.ProfitCenterId == profitCenterId)
+                                              .Where(c => c.ParentClientId == null)
+                                              .Include(c => c.ChildClients)
+                                              .ToListAsync();
+            Dictionary<string, List<Client>> mismatchingClientSubClientRelationships = new Dictionary<string, List<Client>>();
+            foreach (Client c in profitCenterClients)
+            {
+                if (c.ChildClients != null)
+                {
+                    List<Client> mismatchingSubClients = c.ChildClients
+                                                          .Where(cc => cc.ProfitCenterId != c.ProfitCenterId)
+                                                          .ToList();
+                    if (mismatchingSubClients.Any())
+                    {
+                        mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
+                    }
+                }
+            }
+
+            return mismatchingClientSubClientRelationships;
+        }
     }
 }
