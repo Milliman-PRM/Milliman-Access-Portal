@@ -27,6 +27,8 @@ properties: # Properties of container group
         value: __thumbprint__
       - name: AzureVaultName
         value: __AzureVaultName__
+      - name: MAP_DATABASE_SERVER
+        value: __MAP_DATABASE_SERVER__
       resources: # Resource requirements of the instance
         requests:
           memoryInGB: 1.5

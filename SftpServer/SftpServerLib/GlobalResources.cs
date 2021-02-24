@@ -21,6 +21,8 @@ using System.IO;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
 using Azure.Identity;
+using Microsoft.Extensions.Configuration.Memory;
+using System.Collections.Generic;
 
 namespace SftpServerLib
 {
@@ -105,6 +107,37 @@ namespace SftpServerLib
 
             }
             #endregion
+
+            // Enable override of database server name; required in environments where the public DNS name and private DNS name differ
+            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+            if (!string.IsNullOrWhiteSpace(dbServerOverride))
+            {
+                var localConfig = CfgBuilder.Build();
+                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+
+                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
+                connectionStringBuilder.Host = dbServerOverride;
+
+                string newConnectionString = connectionStringBuilder.ConnectionString;
+
+                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
+                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
+                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
+                CfgBuilder.AddConfiguration(newConnectionStringCfg);
+
+                string configuredAuditConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+
+                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilderAuditDb = new Npgsql.NpgsqlConnectionStringBuilder(configuredAuditConnectionString);
+                connectionStringBuilderAuditDb.Host = dbServerOverride;
+
+                string newConnectionStringAuditDb = connectionStringBuilderAuditDb.ConnectionString;
+
+                MemoryConfigurationSource newSourceAuditDb = new MemoryConfigurationSource();
+                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
+                var newConnectionStringCfgAuditDb = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSourceAuditDb) });
+                CfgBuilder.AddConfiguration(newConnectionStringCfgAuditDb);
+            }
+
 
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
 
