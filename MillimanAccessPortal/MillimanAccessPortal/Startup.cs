@@ -192,7 +192,7 @@ namespace MillimanAccessPortal
                                 if (_applicationUser == null)
                                 {
                                     Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountNotFound));
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -202,16 +202,22 @@ namespace MillimanAccessPortal
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (_applicationUser.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                else if (_applicationUser.LastLoginUtc.HasValue &&
+                                         _applicationUser.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
                                 {
                                     // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
-                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc.Value}");
+
+                                    AccountController accountController = serviceProvider.GetService<AccountController>();
+                                    accountController.NotifyUserAboutDisabledAccount(_applicationUser);
 
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
                                         Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
                                     };
+                                    IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
+                                    _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled));                                    
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
@@ -284,7 +290,7 @@ namespace MillimanAccessPortal
                             {
                                 Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.LoginFailed));
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();
@@ -590,8 +596,10 @@ namespace MillimanAccessPortal
                 {
                     ApplicationDbContext db = context.RequestServices.GetService<ApplicationDbContext>();
                     var user = await db.ApplicationUser.SingleAsync(u => u.UserName == context.User.Identity.Name);
+                    TimeSpan renewInterval = TimeSpan.FromDays(Configuration.GetValue<int>("UserAgreementRenewalIntervalDays"));
 
-                    if (user.IsUserAgreementAccepted != true) // if false or null
+                    if (!user.UserAgreementAcceptedUtc.HasValue ||
+                        DateTime.UtcNow - user.UserAgreementAcceptedUtc > renewInterval) // need to accept now
                     {
                         UriBuilder userAgreementUri = new UriBuilder
                         {
@@ -599,7 +607,7 @@ namespace MillimanAccessPortal
                             Host = context.Request.Host.Host,
                             Port = context.Request.Host.Port.GetValueOrDefault(-1),
                             Path = redirectPath,
-                            Query = $"isRenewal={user.IsUserAgreementAccepted.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                            Query = $"isRenewal={user.UserAgreementAcceptedUtc.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
                         };
 
                         context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);

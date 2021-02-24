@@ -16,6 +16,8 @@ export interface CardTextProps {
   text: string;
   textSuffix: string;
   subtext: string;
+  issueIcon: 'none' | 'warning' | 'error';
+  issueIconText: string;
   editing: boolean;
   isNewChild: boolean;
   setText: (text: string) => void;
@@ -24,36 +26,54 @@ export class CardText extends React.Component<CardTextProps> {
   public static defaultProps = {
     textSuffix: '',
     subtitle: '',
+    issueIcon: 'none',
+    issueIconText: '',
     editing: false,
     isNewChild: false,
     setText: (): null => null,
   };
   public render() {
-    const { text, textSuffix, subtext, editing, isNewChild, setText } = this.props;
+    const { text, textSuffix, subtext, editing, isNewChild, setText, issueIcon, issueIconText } = this.props;
     return (
-      <div className="card-body-primary-container">
-        <h2 className="card-body-primary-text">
+      <>
+        <div className="card-body-primary-container">
+          <h2 className="card-body-primary-text">
+            {
+              issueIcon === 'warning' &&
+              <span className="corner-icon warning" title={issueIconText}>
+                <svg><use href="#error" /></svg>
+              </span>
+            }
+            {
+              issueIcon === 'error' &&
+              <span className="corner-icon error" title={issueIconText}>
+                <svg><use href="#cancel" /></svg>
+              </span>
+            }
+            {
+              editing
+                ? <input
+                  value={text}
+                  onChange={(event) => setText(event.target.value)}
+                  onClick={(event) => event.stopPropagation()}
+                />
+                : text + (textSuffix ? ` ${textSuffix}` : '')
+            }
+            {isNewChild ?
+              <svg className="new-child-icon">
+                <use href="#expand-card" />
+              </svg> : null
+            }
+          </h2>
           {
-            editing
-              ? <input
-                value={text}
-                onChange={(event) => setText(event.target.value)}
-                onClick={(event) => event.stopPropagation()}
-              />
-              : text + (textSuffix ? ` ${textSuffix}` : '')
+            subtext &&
+            subtext.trim() !== '' &&
+            <p className="card-body-secondary-text">
+              <span>{subtext}</span>
+            </p>
           }
-          {isNewChild ?
-            <svg className="new-child-icon">
-              <use href="#expand-card" />
-            </svg> : null
-          }
-        </h2>
-        {
-          subtext &&
-          subtext.trim() !== '' &&
-          <p className="card-body-secondary-text">{subtext}</p>
-        }
-      </div>
+        </div>
+      </>
     );
   }
 }

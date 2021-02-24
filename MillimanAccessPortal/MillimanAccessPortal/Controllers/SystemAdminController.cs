@@ -162,6 +162,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in await query.ToListAsync())
             {
                 var userInfo = (UserInfo)user;
+                userInfo.setAccountDisableStatus(_configuration.GetValue("DisableInactiveUserMonths", 12), _configuration.GetValue("DisableInactiveUserWarningDays", 14));
                 await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
@@ -624,8 +625,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CreateProfitCenter(
-            [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> CreateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.CreateProfitCenter action with {@profitCenter}", profitCenter);
 
@@ -939,8 +939,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateProfitCenter(
-            [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> UpdateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.UpdateProfitCenter action with {@ProfitCenter}", profitCenter);
 
@@ -978,6 +977,7 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactName = profitCenter.ContactName;
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
+            existingRecord.QuarterlyMaintenanceNotificationList = profitCenter.QuarterlyMaintenanceNotificationList;
 
             await _dbContext.SaveChangesAsync();
 
@@ -1049,17 +1049,10 @@ namespace MillimanAccessPortal.Controllers
                 try
                 {
                     List<ApplicationUser> usersToReset = await _dbContext.ApplicationUser
-                                                                         .Where(u => u.IsUserAgreementAccepted == true)
+                                                                         .Where(u => u.UserAgreementAcceptedUtc > DateTime.MinValue)
                                                                          .ToListAsync();
 
-#pragma warning disable EF1000 // Possible SQL injection vulnerability.
-                    string tableName = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).GetTableName();
-                    string statement = $"UPDATE \"{tableName}\" " +
-                                       $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
-                                       $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
-                    // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
-                    int howManyAffected = await _dbContext.Database.ExecuteSqlRawAsync(statement); 
-#pragma warning restore EF1000 // Possible SQL injection vulnerability.
+                    usersToReset.ForEach(u => u.UserAgreementAcceptedUtc = DateTime.MinValue);
                     existingRecord.Value = newAgreementText;
                     await _dbContext.SaveChangesAsync();
 
