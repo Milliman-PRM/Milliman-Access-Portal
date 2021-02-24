@@ -153,7 +153,7 @@ namespace MillimanAccessPortal.DataQueries
         /// </summary>
         /// <param name="profitCenterId"></param>
         /// <returns></returns>
-        public async Task<Dictionary<string, List<Client>>> ValidateProfitCenterCanBeDeletedAsync(Guid profitCenterId)
+        public async Task<Dictionary<string, List<Client>>> GetSubClientsWithMixedProfitCenters(Guid profitCenterId)
         {
             var profitCenterClients = await DbContext.Client
                                               .Where(c => c.ProfitCenterId == profitCenterId)

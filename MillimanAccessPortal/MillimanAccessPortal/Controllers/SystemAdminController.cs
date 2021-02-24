@@ -1314,7 +1314,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var mismatchingRelationships = await _queries.ValidateProfitCenterCanBeDeletedAsync(profitCenterId);
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
             Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
 
             return Json(new { mismatchingRelationships });
@@ -1351,7 +1351,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            var mismatchingRelationships = await _queries.ValidateProfitCenterCanBeDeletedAsync(profitCenterId);
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
             if (mismatchingRelationships.Any())
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} has Clients with Sub-Clients who belong to different Profit Centers, aborting.");
