@@ -44,7 +44,7 @@ namespace SftpServerLib
             Certificate certificate = new Certificate(keyBytes);
             EstablishServerInstance(certificate);
 
-            _sftpServer.Config("LogLevel=3");
+            //_sftpServer.Config("LogLevel=3");
             _sftpServer.Listening = true;
         }
 
@@ -118,7 +118,7 @@ namespace SftpServerLib
             //[Description("Fires when a client needs to get file information.")]
             _sftpServer.OnGetAttributes += IpWorksSftpServerEventHandlers.OnGetAttributes;
             //[Description("Fires once for each log message.")]
-            _sftpServer.OnLog += IpWorksSftpServerEventHandlers.OnLog;
+            //_sftpServer.OnLog += IpWorksSftpServerEventHandlers.OnLog;
             //[Description("Fires when a client attempts to canonicalize a path.")]
             _sftpServer.OnResolvePath += IpWorksSftpServerEventHandlers.OnResolvePath;
             //[Description("Fires when a client wants to rename a file.")]
