@@ -8,6 +8,7 @@
 - Add the ability to send a quarterly email summarizing the status of Content Access Reviews for Clients of a Profit Center
 - All users must now accept the MAP user agreement annually
 - Expanded the use of retries during post-processing of Qlikview content publication to make large publications more reliable
+- Add support for new execution environments
 
 #### v1.11.2
 
