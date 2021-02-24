@@ -133,7 +133,7 @@ namespace SftpServerLib
                 string newConnectionStringAuditDb = connectionStringBuilderAuditDb.ConnectionString;
 
                 MemoryConfigurationSource newSourceAuditDb = new MemoryConfigurationSource();
-                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
+                newSourceAuditDb.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", newConnectionStringAuditDb) };
                 var newConnectionStringCfgAuditDb = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSourceAuditDb) });
                 CfgBuilder.AddConfiguration(newConnectionStringCfgAuditDb);
             }
