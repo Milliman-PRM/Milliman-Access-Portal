@@ -50,6 +50,8 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
 
 namespace MillimanAccessPortal
 {
@@ -466,6 +468,26 @@ namespace MillimanAccessPortal
                         .ProtectKeysWithAzureKeyVault(Configuration["DataProtectionKeyId"],
                                                         Configuration["AzureClientID"],
                                                         cert);
+
+                    Log.Debug("Finished configuring data protection");
+
+                    break;
+                
+                case "AZURE-ISDEV":
+                case "AZURE-DEV":
+                case "AZURE-UAT":
+                case "AZURE-PROD":
+                    Log.Debug("Configuring Data Protection");
+
+                    DirectoryInfo azKeyDirectory = new DirectoryInfo(@"C:\temp-keys");
+
+                    var provider = new AzureServiceTokenProvider();
+                    var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(provider.KeyVaultTokenCallback));
+
+
+                    services.AddDataProtection()
+                        .PersistKeysToFileSystem(azKeyDirectory)
+                        .ProtectKeysWithAzureKeyVault(kv, Configuration["DataProtectionKeyId"]);
 
                     Log.Debug("Finished configuring data protection");
 
