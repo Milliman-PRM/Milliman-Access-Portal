@@ -265,20 +265,6 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-$env:MSBuildSDKsPath=$core2
-Set-Location "$rootPath\User Stats\MAPStatsLoader"
-
-log_statement "Building MAP User Stats loader"
-
-dotnet build --configuration=$buildType /p:Platform=x64
-
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "ERROR: Build failed for MAP User Stats Loader project"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 $env:MSBuildSDKsPath=$core3
 Set-Location "$rootPath\SftpServer"
 
