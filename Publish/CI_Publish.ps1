@@ -270,7 +270,7 @@ Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish --configuration=$buildType /p:Platform=x64
+dotnet build --configuration=$buildType /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -480,22 +480,6 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
-#region Package MAP User Stats Loader for nuget
-log_statement "Packaging MAP User Stats Loader"
-
-Set-Location "$rootPath\User Stats\MAPStatsLoader\"
-Set-Location (Get-ChildItem -Directory "publish" -Recurse | Select-Object -First 1)
-
-octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to package user stats loader for nuget"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-#endregion
-
 #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
@@ -580,7 +564,7 @@ log_statement "Deploying packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
