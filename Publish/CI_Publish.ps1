@@ -93,6 +93,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 $BranchName = $env:GITHUB_PR_SOURCE_BRANCH # Will be used in the version string of the octopus package & appended to database names
 
 $buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $BranchName.ToLower() -like 'pre-release*' -or $BranchName.ToLower() -like "*hotfix*") {"Release"} Else {"Debug"}
+$buildType = "Release" # TODO: REVERT THIS COMMIT
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
