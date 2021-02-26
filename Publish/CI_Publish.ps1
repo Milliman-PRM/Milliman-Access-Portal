@@ -382,7 +382,7 @@ if ($buildType -eq "Release") {
     
     Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
     
-    dotnet ef database update
+    dotnet ef database update --no-build
     
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
@@ -392,7 +392,7 @@ if ($buildType -eq "Release") {
     }
     
     
-    dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
+    dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext" --no-build
     
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
