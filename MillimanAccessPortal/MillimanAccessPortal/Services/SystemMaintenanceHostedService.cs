@@ -83,7 +83,7 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-                string mapUrl = GetMapRootUrl(hostEnvironment);
+                string mapUrl = GetMapRootUrl(hostEnvironment, appConfig);
                 TimeSpan clientReviewRenewalPeriodDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 TimeSpan clientReviewEarlyWarningDays = TimeSpan.FromDays(appConfig.GetValue<int>("ClientReviewEarlyWarningDays"));
 
@@ -137,7 +137,7 @@ namespace MillimanAccessPortal.Services
                 IMessageQueue messageQueue = scope.ServiceProvider.GetRequiredService<IMessageQueue>();
                 IHostEnvironment hostEnvironment = scope.ServiceProvider.GetRequiredService<IHostEnvironment>();
 
-                string mapUrl = GetMapRootUrl(hostEnvironment);
+                string mapUrl = GetMapRootUrl(hostEnvironment, appConfiguration);
                 int userAccountDisableNotificationWarningDays = appConfiguration.GetValue("UserAccountDisableNotificationWarningDays", 14);
                 int userAccountDisableAfterMonths = appConfiguration.GetValue("DisableInactiveUserMonths", 12);   
                 string mapSupportEmail = appConfiguration.GetValue<string>("SupportEmailAddress");
@@ -289,7 +289,7 @@ namespace MillimanAccessPortal.Services
             return nextEventUtc - DateTime.UtcNow;
         }
 
-        private string GetMapRootUrl(IHostEnvironment hostEnvironment)
+        private string GetMapRootUrl(IHostEnvironment hostEnvironment, IConfiguration appConfig)
         {
             return hostEnvironment switch
             {
@@ -297,7 +297,7 @@ namespace MillimanAccessPortal.Services
                 var env when env.IsStaging() => "https://map.milliman.com:44300",
                 var env when env.IsDevelopment() => "https://localhost:44336",
                 var env when env.IsEnvironment("internal") => "https://indy-map.milliman.com",
-                _ => "https://unhandled.environment",
+                _ => appConfig.GetValue("MapRootUrl", $"https://unconfigured.MapRootUrl.forEnvironment.[{hostEnvironment.EnvironmentName}]"),
             };
 
         }
