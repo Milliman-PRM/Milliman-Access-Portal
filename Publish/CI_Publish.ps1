@@ -114,6 +114,7 @@ $dbCreationRetries = 5 # The number of times the script will attempt to create a
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
+$efToolsVersion="5.0.3"
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.406\Sdks"
 $env:MSBuildSDKsPath=$core3
@@ -379,6 +380,29 @@ if ($buildType -eq "Release") {
     
     log_statement "Performing database migrations"
     
+    # Ensure correct version of EF tools is installed
+    $efInstalled=$false
+    $toolsInstalled = dotnet tool list -g
+    
+    foreach ($tool in $toolsInstalled) {
+        if ($tool -like "dotnet-ef*$efToolsVersion*dotnet-ef")
+        {
+            # Targeted version is already installed
+            $efInstalled = $true
+        }
+        elseif ($tool -like "dotnet-ef*")
+        {
+            # Different (likely older) version is installed
+            dotnet tool update dotnet-ef --global --version $efToolsVersion
+            $efInstalled = $true
+        }
+    }
+    
+    if (-not $efInstalled) {
+        # No version is currently installed
+        dotnet tool install --global dotnet-ef  --version $efToolsVersion
+    }
+
     $env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
     
     Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
