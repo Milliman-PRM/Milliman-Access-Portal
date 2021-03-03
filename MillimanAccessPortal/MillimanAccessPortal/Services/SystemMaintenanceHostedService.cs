@@ -307,9 +307,9 @@ namespace MillimanAccessPortal.Services
             return (date.Year - DateTime.MinValue.Year) * 4
                    + (date.Month switch
                       {
-                          < 4 => 1,
-                          < 7 => 2,
-                          < 10 => 3,
+                          int m when m < 4 => 1,
+                          int m when m < 7 => 2,
+                          int m when m < 10 => 3,
                           _ => 4
                       });
         }

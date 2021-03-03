@@ -56,6 +56,7 @@ namespace MillimanAccessPortal
                 GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
                 GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
                 GlobalFunctions.DefaultClientDomainListCountLimit = Configuration.GetValue("Global:DefaultClientDomainListCountLimit", GlobalFunctions.DefaultClientDomainListCountLimit);
+                GlobalFunctions.MillimanSupportEmailAlias = Configuration.GetValue("SupportEmailAlias", "map.support@milliman.com");
                 GlobalFunctions.NonLimitedDomains = 
                     (
                         Configuration.GetValue<string>("Global:NonLimitedDomains", null)
