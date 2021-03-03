@@ -52,6 +52,7 @@ using System.Threading.Tasks;
 using System.Web;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
+using MillimanAccessPortal.Models.SharedModels;
 
 namespace MillimanAccessPortal
 {
@@ -168,11 +169,10 @@ namespace MillimanAccessPortal
                         if (string.IsNullOrWhiteSpace(authenticatedUserName))
                         {
                             Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
-                            string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
                             UriBuilder msg = new UriBuilder
                             {
                                 Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and provide this error message and your user name.",
+                                Query = $"messageCode={UserMessageEnum.SsoUserNameNotReturned}",
                             };
                             context.Response.Redirect(msg.Uri.PathAndQuery);
                             return;
@@ -187,7 +187,6 @@ namespace MillimanAccessPortal
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
-                                string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
 
                                 if (_applicationUser == null)
                                 {
@@ -197,7 +196,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.SsoNoMapAccount}.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -214,7 +213,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.AccountDisabled}",
                                     };
                                     IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
                                     _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled));                                    
@@ -228,7 +227,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.AccountSuspended}",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -241,7 +240,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller","")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and follow instructions in that message to activate the account."
+                                        Query = $"messageCode={UserMessageEnum.AccountNotActivated}",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
