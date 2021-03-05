@@ -162,6 +162,7 @@ namespace MillimanAccessPortal.Controllers
             foreach (var user in await query.ToListAsync())
             {
                 var userInfo = (UserInfo)user;
+                userInfo.setAccountDisableStatus(_configuration.GetValue("DisableInactiveUserMonths", 12), _configuration.GetValue("DisableInactiveUserWarningDays", 14));
                 await userInfo.QueryRelatedEntityCountsAsync(_dbContext, filter.ClientId, filter.ProfitCenterId);
                 userInfoList.Add(userInfo);
             }
@@ -624,8 +625,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> CreateProfitCenter(
-            [Bind("Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> CreateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.CreateProfitCenter action with {@profitCenter}", profitCenter);
 
@@ -939,8 +939,7 @@ namespace MillimanAccessPortal.Controllers
         /// <returns>Json</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> UpdateProfitCenter(
-            [Bind("Id", "Name", "ProfitCenterCode", "MillimanOffice", "ContactName", "ContactEmail", "ContactPhone")] ProfitCenter profitCenter)
+        public async Task<ActionResult> UpdateProfitCenter([FromBody] ProfitCenter profitCenter)
         {
             Log.Verbose("Entered SystemAdminController.UpdateProfitCenter action with {@ProfitCenter}", profitCenter);
 
@@ -978,6 +977,7 @@ namespace MillimanAccessPortal.Controllers
             existingRecord.ContactName = profitCenter.ContactName;
             existingRecord.ContactEmail = profitCenter.ContactEmail;
             existingRecord.ContactPhone = profitCenter.ContactPhone;
+            existingRecord.QuarterlyMaintenanceNotificationList = profitCenter.QuarterlyMaintenanceNotificationList;
 
             await _dbContext.SaveChangesAsync();
 
@@ -1049,17 +1049,10 @@ namespace MillimanAccessPortal.Controllers
                 try
                 {
                     List<ApplicationUser> usersToReset = await _dbContext.ApplicationUser
-                                                                         .Where(u => u.IsUserAgreementAccepted == true)
+                                                                         .Where(u => u.UserAgreementAcceptedUtc > DateTime.MinValue)
                                                                          .ToListAsync();
 
-#pragma warning disable EF1000 // Possible SQL injection vulnerability.
-                    string tableName = _dbContext.Model.FindEntityType(typeof(ApplicationUser)).GetTableName();
-                    string statement = $"UPDATE \"{tableName}\" " +
-                                       $"SET \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = false " +
-                                       $"WHERE \"{nameof(ApplicationUser.IsUserAgreementAccepted)}\" = true;";
-                    // This runs much more efficiently than EF, but elements in usersToReset do not get updated, nor does EF cache
-                    int howManyAffected = await _dbContext.Database.ExecuteSqlRawAsync(statement); 
-#pragma warning restore EF1000 // Possible SQL injection vulnerability.
+                    usersToReset.ForEach(u => u.UserAgreementAcceptedUtc = DateTime.MinValue);
                     existingRecord.Value = newAgreementText;
                     await _dbContext.SaveChangesAsync();
 
@@ -1288,6 +1281,46 @@ namespace MillimanAccessPortal.Controllers
 
         #region Remove/delete actions
         /// <summary>
+        /// Validates whether or not a profit center can be deleted based on if any sub-client(s) with
+        /// mismatching profit center ID as their parent(s) exist.
+        /// </summary>
+        /// <param name="profitCenterId">Profit center to delete</param>
+        /// <returns>Json, list of any problematic sub-clients</returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ValidateProfitCenterDeletion(Guid profitCenterId)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor} action with {profitCenterId}");
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            var existingRecord = await _dbContext.ProfitCenter.FindAsync(profitCenterId);
+            if (existingRecord == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} not found, aborting");
+                Response.Headers.Add("Warning", "The specified profit center does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
+            Log.Verbose($"In {ControllerContext.ActionDescriptor} action: success");
+
+            return Json(new { mismatchingRelationships });
+        }
+
+        /// <summary>
         /// Delete a profit center
         /// </summary>
         /// <param name="profitCenterId">Profit center to delete</param>
@@ -1318,11 +1351,11 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", "The specified profit center does not exist.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
-            // The profit center should have no clients
-            if (await _dbContext.Client.Where(c => c.ProfitCenterId == profitCenterId).AnyAsync())
+            var mismatchingRelationships = await _queries.GetSubClientsWithMixedProfitCenters(profitCenterId);
+            if (mismatchingRelationships.Any())
             {
-                Log.Debug($"In SystemAdminController.DeleteProfitCenter action: requested profit center {profitCenterId} has clients and cannot be removed, aborting");
-                Response.Headers.Add("Warning", "The specified profit center has clients - remove those first.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action: requested profit center {profitCenterId} has Clients with Sub-Clients who belong to different Profit Centers, aborting.");
+                Response.Headers.Add("Warning", "Sub-Clients with mismatching Profit Center ID's found. Operation failed.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion

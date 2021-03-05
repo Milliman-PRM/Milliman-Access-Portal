@@ -270,7 +270,7 @@ Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish --configuration=$buildType /p:Platform=x64
+msbuild /restore /t:Publish /p:Configuration=$buildType /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
