@@ -116,6 +116,9 @@ namespace MillimanAccessPortal.DataQueries
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
                                             .SingleOrDefaultAsync(c => c.Id == clientId);
+            int disableInactiveUserMonths = _appConfig.GetValue<int>("DisableInactiveUserMonths");
+            int disableInactiveUserWarningDays = _appConfig.GetValue<int>("DisableInactiveUserWarningDays");
+
             IEnumerable<ClientActorReviewModel> memberUsers = (await _userManager.GetUsersForClaimAsync(new System.Security.Claims.Claim("ClientMembership", client.Id.ToString())))
                 .OrderBy(u => u.LastName)
                 .ThenBy(u => u.FirstName)
@@ -130,7 +133,10 @@ namespace MillimanAccessPortal.DataQueries
                     memberModel.ClientUserRoles = Enum.GetValues(typeof(RoleEnum))
                                                       .OfType<RoleEnum>()
                                                       .Select(r => new KeyValuePair<RoleEnum, bool>(r, authorizedRoles.Contains(r)))
-                                                      .ToDictionary(p => p.Key, p => p.Value);
+                                                      .ToDictionary(p => p.Key, p => p.Value);                    
+                    memberModel.DisableAccountDate = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths);
+                    memberModel.IsAccountDisabled = memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths);
+                    memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths).AddDays(disableInactiveUserWarningDays);
                     return memberModel;
                 });
 
@@ -214,16 +220,23 @@ namespace MillimanAccessPortal.DataQueries
                 ClientFileDropModel fileDropModel = new ClientFileDropModel { Id = d.Id, FileDropName = d.Name };
                 foreach (FileDropUserPermissionGroup group in d.PermissionGroups.OrderByDescending(pg => pg.IsPersonalGroup).ThenBy(pg => pg.Name))
                 {
+                    var fdUsers = group.SftpAccounts
+                        .Where(a => a.ApplicationUserId.HasValue)
+                        .OrderBy(a => a.ApplicationUser.LastName)
+                        .ThenBy(a => a.ApplicationUser.FirstName)
+                        .Select(a => (ClientActorModel)a.ApplicationUser).ToList();
+                    fdUsers.ForEach(u =>
+                    {
+                        u.DisableAccountDate = u.LastLoginDate?.AddMonths(disableInactiveUserMonths);
+                        u.IsAccountDisabled = u.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths);
+                        u.IsAccountNearDisabled = !u.IsAccountDisabled && u.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths).AddDays(disableInactiveUserWarningDays);
+                    });
                     fileDropModel.PermissionGroups.Add(new ClientFileDropPermissionGroupModel
                     {
                         PermissionGroupName = group.Name,
                         IsPersonalGroup = group.IsPersonalGroup,
                         Permissions = new Dictionary<string, bool> { { "Read", group.ReadAccess }, { "Write", group.WriteAccess }, { "Delete", group.DeleteAccess } },
-                        AuthorizedMapUsers = group.SftpAccounts
-                            .Where(a => a.ApplicationUserId.HasValue)
-                            .OrderBy(a => a.ApplicationUser.LastName)
-                            .ThenBy(a => a.ApplicationUser.FirstName)
-                            .Select(a => (ClientActorModel)a.ApplicationUser).ToList(),
+                        AuthorizedMapUsers = fdUsers,
                         AuthorizedServiceAccounts = group.SftpAccounts
                             .Where(a => !a.ApplicationUserId.HasValue)
                             .Select(a => (ClientActorModel)a)

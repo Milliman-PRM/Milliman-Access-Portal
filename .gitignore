@@ -21,6 +21,13 @@
 # Compiled Razor pages #
 ########################
 Views/
+#######################
+# VS Deployment stuff #
+#######################
+*.pubxml
+*.arm.json
+*/*/.config/*.json
+*/*/Properties/*Web Deploy.json
 ####################
 # VS Upgrade stuff #
 ####################

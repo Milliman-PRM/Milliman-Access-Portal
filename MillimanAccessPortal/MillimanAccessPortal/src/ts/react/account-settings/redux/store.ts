@@ -15,6 +15,9 @@ export type PendingInputState =
     | 'id'
     | 'email'
     | 'userName'
+    | 'isAccountDisabled'
+    | 'isAccountNearDisabled'
+    | 'dateOfAccountDisable'
   >>;
 export interface PendingRequestState {
   fetchUser: boolean;
