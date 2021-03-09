@@ -8,6 +8,7 @@ using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using Moq;
+using System;
 
 namespace TestResourcesLib
 {
@@ -17,8 +18,8 @@ namespace TestResourcesLib
         {
             //AuditLogger.Config = new AuditLoggerConfiguration { AuditLogConnectionString = "" };
             Mock<IAuditLogger> ReturnObject = new Mock<IAuditLogger>();
-            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>(), It.IsAny<string>())).Callback(() => { /*Do nothing*/});
-            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>())).Callback(() => { /*Do nothing*/});
+            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>(), It.IsAny<string>(), It.IsAny<Guid?>())).Callback(() => { /*Do nothing*/});
+            ReturnObject.Setup(al => al.Log(It.IsAny<AuditEvent>(), It.IsAny<Guid?>())).Callback(() => { /*Do nothing*/});
 
             return ReturnObject;
         }

@@ -9,6 +9,8 @@ using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
@@ -26,13 +28,19 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
     {
         private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
+        private readonly HttpContextAccessor _httpContextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
 
         public SelectionGroupQueries(
             IAuditLogger auditLogger,
-            ApplicationDbContext dbContext)
+            ApplicationDbContext dbContext,
+            HttpContextAccessor httpContextAccessorArg,
+            UserManager<ApplicationUser> userManagerArg)
         {
             _auditLogger = auditLogger;
             _dbContext = dbContext;
+            _httpContextAccessor = httpContextAccessorArg;
+            _userManager = userManagerArg;
         }
 
         #region private queries
@@ -214,8 +222,9 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
 
             await _dbContext.SaveChangesAsync();
-            
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client)); ;
+
+            ApplicationUser currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, group.RootContentItem, group.RootContentItem.Client), currentUser.UserName, currentUser.Id);
 
             return group;
         }
@@ -258,7 +267,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             _dbContext.SelectionGroup.Add(group);
             await _dbContext.SaveChangesAsync();
 
-            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+            _auditLogger.Log(AuditEventType.SelectionGroupCreated.ToEvent(group, contentItem, contentItem.Client), currentUser.UserName, currentUser.Id);
 
             return group;
         }
@@ -323,19 +333,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
 
             // audit logging
             _dbContext.AttachRange(recordsToAdd);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
             foreach (var userInGroup in recordsToAdd)
             {
                 await _dbContext.Entry(userInGroup)?.Reference(uig => uig.User)?.LoadAsync();  // Load `User` navigation property into EF cache for this context
-                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup.User));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserAssigned.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup.User), currentUser.UserName, currentUser.Id);
             }
             foreach (var userInGroup in usersToRemove.Distinct(new IdPropertyComparer<ApplicationUser>()))
             {
-                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup));
+                _auditLogger.Log(AuditEventType.SelectionGroupUserRemoved.ToEvent(requestedGroup, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, userInGroup), currentUser.UserName, currentUser.Id);
             }
             if (usersToRemove.Any())
             {
                 _auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                    .ToEvent(recordsToRemove, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, ContentDisclaimerResetReason.UserRemovedFromSelectionGroup));
+                    .ToEvent(recordsToRemove, requestedGroup.RootContentItem, requestedGroup.RootContentItem.Client, ContentDisclaimerResetReason.UserRemovedFromSelectionGroup), currentUser.UserName, currentUser.Id);
             }
 
             return requestedGroup;
@@ -356,7 +367,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             group.IsSuspended = isSuspended;
             await _dbContext.SaveChangesAsync();
 
-            _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+            _auditLogger.Log(AuditEventType.SelectionGroupSuspensionUpdate.ToEvent(group, group.RootContentItem, group.RootContentItem.Client, isSuspended), currentUser.UserName, currentUser.Id);
 
             return group;
         }
@@ -377,7 +389,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             {
                 _dbContext.SelectionGroup.Remove(group);
                 await _dbContext.SaveChangesAsync();
-                _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client));
+                ApplicationUser currentUser = await _userManager.GetUserAsync(_httpContextAccessor.HttpContext.User);
+                _auditLogger.Log(AuditEventType.SelectionGroupDeleted.ToEvent(group, group.RootContentItem, group.RootContentItem.Client), currentUser.UserName, currentUser.Id);
             }
 
             return group;

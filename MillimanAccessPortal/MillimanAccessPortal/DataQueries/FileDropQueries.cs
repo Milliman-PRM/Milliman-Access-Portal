@@ -10,6 +10,8 @@ using AuditLogLib.Services;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,6 +41,8 @@ namespace MillimanAccessPortal.DataQueries
         private readonly IAuditLogger _auditLog;
         private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
         private readonly IServiceProvider _serviceProvider;
+        private readonly HttpContextAccessor _httpContextAccessor;
+        private readonly UserManager<ApplicationUser> _userManager;
 
     public FileDropQueries(
             ApplicationDbContext dbContextArg,
@@ -48,7 +52,9 @@ namespace MillimanAccessPortal.DataQueries
             IConfiguration configuration,
             IAuditLogger auditLog,
             IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg,
-            IServiceProvider serviceProvider
+            IServiceProvider serviceProvider,
+            HttpContextAccessor httpContextAccessorArg,
+            UserManager<ApplicationUser> userManagerArg
             )
         {
             _dbContext = dbContextArg;
@@ -59,6 +65,8 @@ namespace MillimanAccessPortal.DataQueries
             _auditLog = auditLog;
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
             _serviceProvider = serviceProvider;
+            _httpContextAccessor = httpContextAccessorArg;
+            _userManager = userManagerArg;
         }
 
         /// <summary>
@@ -383,10 +391,10 @@ namespace MillimanAccessPortal.DataQueries
                 {
                     foreach (var account in groupToRemove.SftpAccounts)
                     {
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(account, groupToRemove, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(account, groupToRemove, fileDrop), currentUser.UserName, currentUser.Id));
                     }
                     _dbContext.FileDropUserPermissionGroup.RemoveRange(groupsToRemove);
-                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, groupToRemove)));
+                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(fileDrop, groupToRemove), currentUser.UserName, currentUser.Id));
                 }
 
                 foreach (var updatedGroupRecord in groupsToUpdate)
@@ -408,7 +416,7 @@ namespace MillimanAccessPortal.DataQueries
                             WriteAccess = updatedGroupRecord.WriteAccess,
                             DeleteAccess = updatedGroupRecord.DeleteAccess,
                         };
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(previousGroup, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.PermissionGroupUpdated.ToEvent(previousGroup, (FileDropPermissionGroupLogModel)modelForUpdatedGroup, fileDrop), currentUser.UserName, currentUser.Id));
                         updatedGroupRecord.Name = modelForUpdatedGroup.Name;
                         updatedGroupRecord.ReadAccess = modelForUpdatedGroup.Permissions.ReadAccess;
                         updatedGroupRecord.WriteAccess = modelForUpdatedGroup.Permissions.WriteAccess;
@@ -422,7 +430,7 @@ namespace MillimanAccessPortal.DataQueries
                     foreach (SftpAccount removedAccount in userAccountsToRemove)
                     {
                         updatedGroupRecord.SftpAccounts.Remove(removedAccount);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(removedAccount, updatedGroupRecord, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(removedAccount, updatedGroupRecord, fileDrop), currentUser.UserName, currentUser.Id));
                     }
 
                     // Remove non-user accounts
@@ -432,7 +440,7 @@ namespace MillimanAccessPortal.DataQueries
                     foreach (SftpAccount removedAccount in nonUserAccountsToRemove)
                     {
                         updatedGroupRecord.SftpAccounts.Remove(removedAccount);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(removedAccount, updatedGroupRecord, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(removedAccount, updatedGroupRecord, fileDrop), currentUser.UserName, currentUser.Id));
                     }
                 }
                 await _dbContext.SaveChangesAsync();
@@ -463,7 +471,7 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = false,
                                 UserName = usersRequiringNewAccount.Single(u => u.Id == userIdToAdd).UserName + $"-{fileDrop.ShortHash}",
                             };
-                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(accountToAdd, fileDrop)));                            
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(accountToAdd, fileDrop), currentUser.UserName, currentUser.Id));                            
                         }
                         else
                         {
@@ -471,7 +479,7 @@ namespace MillimanAccessPortal.DataQueries
                         }
 
                         updatedGroupRecord.SftpAccounts.Add(accountToAdd);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(accountToAdd, updatedGroupRecord, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(accountToAdd, updatedGroupRecord, fileDrop), currentUser.UserName, currentUser.Id));
                     }
 
                     // Handle non-user Sftp accounts added to this group
@@ -498,10 +506,10 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = accountToAdd.IsSuspended,
                                 UserName = accountToAdd.AccountName + $"-{fileDrop.ShortHash}",
                             };
-                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(sftpAccountToAdd, fileDrop)));
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(sftpAccountToAdd, fileDrop), currentUser.UserName, currentUser.Id));
                         }
                         updatedGroupRecord.SftpAccounts.Add(sftpAccountToAdd);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(sftpAccountToAdd, updatedGroupRecord, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(sftpAccountToAdd, updatedGroupRecord, fileDrop), currentUser.UserName, currentUser.Id));
                     }
                 }
                 await _dbContext.SaveChangesAsync();
@@ -542,7 +550,7 @@ namespace MillimanAccessPortal.DataQueries
                         FileDrop = fileDrop,
                         IsPersonalGroup = newGroup.IsPersonalGroup,
                     };
-                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupCreated.ToEvent(fileDrop, newFileDropUserPermissionGroup, fileDrop.Client.Id, fileDrop.Client.Name)));
+                    auditLogActions.Add(() => _auditLog.Log(AuditEventType.FileDropPermissionGroupCreated.ToEvent(fileDrop, newFileDropUserPermissionGroup, fileDrop.Client.Id, fileDrop.Client.Name), currentUser.UserName, currentUser.Id));
 
                     List<SftpAccount> existingSftpAccountsOfGroupUsers = await _dbContext.SftpAccount
                                                                                          .Include(a => a.ApplicationUser)
@@ -562,7 +570,7 @@ namespace MillimanAccessPortal.DataQueries
                                 IsSuspended = false,
                                 UserName = user.UserName + $"-{fileDrop.ShortHash}",
                             };
-                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop)));
+                            auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(userSftpAccount, fileDrop), currentUser.UserName, currentUser.Id));
                         }
                         else if (userSftpAccount.FileDropUserPermissionGroupId.HasValue)
                         {
@@ -572,7 +580,7 @@ namespace MillimanAccessPortal.DataQueries
                         }
 
                         newFileDropUserPermissionGroup.SftpAccounts.Add(userSftpAccount);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(userSftpAccount, newFileDropUserPermissionGroup, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(userSftpAccount, newFileDropUserPermissionGroup, fileDrop), currentUser.UserName, currentUser.Id));
                     }
 
                     foreach (NonUserSftpAccount newAccount in newGroup.AssignedSftpAccounts)
@@ -584,8 +592,8 @@ namespace MillimanAccessPortal.DataQueries
                             UserName = newAccount.AccountName + $"-{fileDrop.ShortHash}",
                         };
                         newFileDropUserPermissionGroup.SftpAccounts.Add(newSftpAccount);
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(newSftpAccount, fileDrop)));
-                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(newSftpAccount, newFileDropUserPermissionGroup, fileDrop)));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.SftpAccountCreated.ToEvent(newSftpAccount, fileDrop), currentUser.UserName, currentUser.Id));
+                        auditLogActions.Add(() => _auditLog.Log(AuditEventType.AccountAddedToPermissionGroup.ToEvent(newSftpAccount, newFileDropUserPermissionGroup, fileDrop), currentUser.UserName, currentUser.Id));
                     }
 
                     _dbContext.FileDropUserPermissionGroup.Add(newFileDropUserPermissionGroup);
@@ -729,7 +737,7 @@ namespace MillimanAccessPortal.DataQueries
                 }
                 catch (ArgumentNullException ex)
                 {
-                    throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                    throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})", ex);
                 }
                 catch (Exception ex)
                 {

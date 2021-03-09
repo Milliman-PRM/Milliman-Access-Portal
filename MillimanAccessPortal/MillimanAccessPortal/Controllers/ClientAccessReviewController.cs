@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
+using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.DataQueries;
 using AuditLogLib.Event;
@@ -148,7 +150,9 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
-            _auditLogger.Log(AuditEventType.ClientAccessReviewPresented.ToEvent(ClientId, model));
+
+            var user = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.ClientAccessReviewPresented.ToEvent(ClientId, model), user.UserName, user.Id);
 
             return Json(model);
         }
@@ -172,7 +176,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 var model = await _clientAccessReviewQueries.ApproveClientAccessReviewAsync(currentUser, ReviewModel.ClientId);
 
-                _auditLogger.Log(AuditEventType.ClientAccessReviewApproved.ToEvent(ReviewModel.ClientId, ReviewModel.ReviewId));
+                _auditLogger.Log(AuditEventType.ClientAccessReviewApproved.ToEvent(ReviewModel.ClientId, ReviewModel.ReviewId), currentUser.UserName, currentUser.Id);
 
                 return Json(model);
             }

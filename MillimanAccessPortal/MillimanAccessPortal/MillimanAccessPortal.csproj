@@ -57,6 +57,10 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20210308200406_AddUserId.cs" />
+    <Compile Remove="Migrations\20210308200406_AddUserId.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
