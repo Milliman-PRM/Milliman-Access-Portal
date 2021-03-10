@@ -401,8 +401,18 @@ namespace MillimanAccessPortal.Controllers
 
             #region Validation
             // reject this request if the SelectionGroup has a pending reduction
+            DateTime lastLiveReductionDateTime = await DbContext.ContentReductionTask
+                                                                .Where(t => t.SelectionGroupId == selectionGroup.Id)
+                                                                .Where(t => new[] { ReductionStatusEnum.Live, ReductionStatusEnum.Replaced }.Contains(t.ReductionStatus))
+                                                                .OrderByDescending(t => t.CreateDateTimeUtc)
+                                                                .Take(1)
+                                                                .Select(t => t.CreateDateTimeUtc)
+                                                                .SingleOrDefaultAsync()
+                                                                ?? DateTime.MinValue;
+
             bool blockedByPendingReduction = await DbContext.ContentReductionTask
                                                             .Where(r => r.SelectionGroupId == selectionGroup.Id)
+                                                            .Where(r => r.CreateDateTimeUtc > lastLiveReductionDateTime)
                                                             .AnyAsync(r => ReductionStatusExtensions.activeStatusList.Contains(r.ReductionStatus));
             if (blockedByPendingReduction)
             {
