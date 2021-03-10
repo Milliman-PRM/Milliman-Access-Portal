@@ -791,6 +791,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI' &&
                   <>
                     <Checkbox
+                      name="Editable"
+                      selected={formData.pendingFormData.typeSpecificDetailObject.editableEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'editableEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                    />
+                    <Checkbox
                       name="Navigation Pane"
                       selected={formData.pendingFormData.typeSpecificDetailObject.navigationPaneEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({

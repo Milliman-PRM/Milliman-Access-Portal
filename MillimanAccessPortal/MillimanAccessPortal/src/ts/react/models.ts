@@ -115,6 +115,7 @@ export interface ContentItemDetail {
   associatedFiles: Dict<AssociatedContentItemUpload>;
   thumbnailLink: string;
   typeSpecificDetailObject: {
+    editableEnabled?: boolean;
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;
     liveEmbedUrl?: string;
