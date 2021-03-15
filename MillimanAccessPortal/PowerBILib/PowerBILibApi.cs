@@ -14,6 +14,7 @@ using Microsoft.Rest;
 using Newtonsoft.Json;
 using Serilog;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -23,7 +24,7 @@ namespace PowerBiLib
 {
     public class PowerBiLibApi : ContentTypeSpecificApiBase
     {
-        private PowerBiConfig _config { get; set; }
+        public PowerBiConfig _config { get; set; }
         private TokenCredentials _tokenCredentials { get; set; } = null;
 
         public async override Task<UriBuilder> GetContentUri(string selectionGroupId, string UserName, HttpRequest thisHttpRequest)
@@ -61,6 +62,48 @@ namespace PowerBiLib
             await GetAccessTokenAsync();
 
             return this;
+        }
+
+        /// <summary>
+        /// Get all groups of the provided capacity
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IList<Group>> GetAllGroupsAsync()
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                return (await client.Groups.GetGroupsAsync()).Value;
+            }
+        }
+
+        /// <summary>
+        /// Creates a group
+        /// </summary>
+        /// <returns>the Id of the newly created group</returns>
+        public async Task<string> CreateGroupAsync(string name, string capacityId = null)
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
+                Capacity targetCapacity = string.IsNullOrWhiteSpace(capacityId)
+                    ? allCapacities.Value.SingleOrDefault()
+                    : targetCapacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId);
+
+                if (targetCapacity == null)
+                {
+                    throw new ApplicationException("Designated Power BI capacity was not found");
+                }
+
+                Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(name), true);
+                if (newGroup == null)
+                {
+                    throw new ApplicationException("Failed to create new Power BI group");
+                }
+
+                await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
+
+                return newGroup.Id;
+            }
         }
 
         /// <summary>
