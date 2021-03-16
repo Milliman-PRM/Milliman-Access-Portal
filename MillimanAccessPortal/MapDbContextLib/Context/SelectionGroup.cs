@@ -39,10 +39,13 @@ namespace MapDbContextLib.Context
         public bool IsMaster { get; set; }
 
         [Required]
-        public bool IsSuspended { get; set; }
+        public bool Editable { get; set; }
 
         [NotMapped]
         public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
+
+        [NotMapped]
+        public bool IsEditablePowerBiEligible { get => RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled; }
 
         public string ReducedContentChecksum { get; set; }
 

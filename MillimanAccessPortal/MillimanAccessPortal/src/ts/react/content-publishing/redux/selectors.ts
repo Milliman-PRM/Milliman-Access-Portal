@@ -373,6 +373,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
 
   if (isPowerBI) {
     contentItemInformation.TypeSpecificDetailObject = {
+      EditableEnabled: pendingFormData.typeSpecificDetailObject.editableEnabled,
       BookmarksPaneEnabled: pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled,
       FilterPaneEnabled: pendingFormData.typeSpecificDetailObject.filterPaneEnabled,
       NavigationPaneEnabled: pendingFormData.typeSpecificDetailObject.navigationPaneEnabled,

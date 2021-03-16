@@ -655,6 +655,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     }));
     return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
+        canBeEditable={item.contentTypeId}
         isSuspended={group.isSuspended}
         onIsSuspendedChange={(value) => this.props.suspendGroup({ groupId: group.id, isSuspended: value })}
         doesReduce={item.doesReduce}

@@ -377,6 +377,49 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
+        public async Task<IActionResult> SetPowerBiEditability([FromBody] SetPowerBiEditabilityRequestModel model)
+        {
+            SelectionGroup selectionGroup = await DbContext.SelectionGroup
+                                                           .Include(sg => sg.RootContentItem)
+                                                               .ThenInclude(rci => rci.ContentType)
+                                                           .SingleOrDefaultAsync(sg => sg.Id == model.GroupId);
+
+            #region Authorization
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup.RootContentItemId));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.PowerBi)
+            {
+                Response.Headers.Add("Warning", "Cannot toggle attribute 'Editable' for this content type.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName}: Failed to toggle 'Editable' attribute of Selection Group {model.GroupId} due to improper content type.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (!selectionGroup.IsEditablePowerBiEligible)
+            {
+                Response.Headers.Add("Warning", "Content item is not eligible for editability.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName}: Failed to toggle 'Editable' attribute of Selection Group {model.GroupId} due to Content Item ineligibility.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            selectionGroup.Editable = model.Editable;
+            await DbContext.SaveChangesAsync();
+
+            return Json(selectionGroup);
+        }
+
         /// <summary>
         /// POST a selection group to delete
         /// </summary>

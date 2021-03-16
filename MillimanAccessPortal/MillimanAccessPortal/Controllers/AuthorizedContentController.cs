@@ -432,8 +432,9 @@ namespace MillimanAccessPortal.Controllers
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId),
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId, embedProperties.EditableEnabled),
                     ReportId = embedProperties.PreviewReportId,
+                    EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                     BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
@@ -474,8 +475,9 @@ namespace MillimanAccessPortal.Controllers
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId),
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, embedProperties.EditableEnabled),
                 ReportId = embedProperties.LiveReportId,
+                EditableEnabled = embedProperties.EditableEnabled,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,

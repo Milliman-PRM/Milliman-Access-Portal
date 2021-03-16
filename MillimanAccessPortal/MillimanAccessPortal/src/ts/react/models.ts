@@ -139,6 +139,7 @@ export interface ContentItemPublicationDetail {
   DoesReduce?: boolean;
   TypeSpecificDetailObject?: {
     // PowerBi specific:
+    EditableEnabled?: boolean;
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
