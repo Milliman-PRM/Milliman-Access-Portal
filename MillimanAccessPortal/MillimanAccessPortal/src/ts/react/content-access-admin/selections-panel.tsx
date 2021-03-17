@@ -10,11 +10,11 @@ import { Toggle } from '../shared-components/form/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {
-  isEditable: boolean;
-  onIsEditableChange: (value: boolean) => void;
+  isEditable?: boolean; // Change to mandatory
+  onIsEditableChange?: (value: boolean) => void;
   isSuspended: boolean;
   onIsSuspendedChange: (value: boolean) => void;
-  canBeEditable: boolean;
+  canBeEditable?: boolean;
   doesReduce: boolean;
   isAllValuesSelected: boolean;
   isAllValuesDeselected: boolean;
@@ -50,7 +50,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
   }
 
   private renderFormSection() {
-    const { isMaster, title, subtitle, canBeEditable, isEditable, isSuspended, loading, } = this.props;
+    const { isMaster, title, subtitle, canBeEditable, isEditable, isSuspended, loading } = this.props;
     return loading
       ? <ColumnSpinner />
       : (
