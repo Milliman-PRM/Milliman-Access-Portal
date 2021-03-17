@@ -1,5 +1,5 @@
 {
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
-    "ConnectionStringVaultUrl": "https://map-prod-vault.vault.azure.net/secrets/ConnectionStrings--UserStatsConnection/",
+    "ConnectionStringVaultUrl": "https://map-azprod-keyvault.vault.azure.net/secrets/ConnectionStrings--UserStatsConnection/",
     "EtlScriptPath": "D:\\home\\site\\wwwroot\\etl.sql"
 }
