@@ -32,6 +32,10 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public string Name { get; set; }
         public string UserEmail { get; set; }
         public bool IsSuspended { get; set; }
+        public DateTime? LastLoginDate { get; set; }
+        public DateTime? DisableAccountDate { get; set; }
+        public bool IsAccountDisabled { get; set; } = false;
+        public bool IsAccountNearDisabled { get; set; } = false;
 
         public static explicit operator ClientActorModel(ApplicationUser user)
         {
@@ -46,6 +50,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
                     UserEmail = user.Email,
                     Name = $"{user.FirstName} {user.LastName}",
                     IsSuspended = user.IsSuspended,
+                    LastLoginDate = user.LastLoginUtc,
                 };
             }
         }
@@ -65,6 +70,5 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
                 };
             }
         }
-
     }
 }

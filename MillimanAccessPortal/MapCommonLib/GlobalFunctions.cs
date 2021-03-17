@@ -18,15 +18,20 @@ namespace MapCommonLib
 
         public static string EmailValRegex { get; set; } = @"^(([^<>()[\]\\.,;:\s@']+(\.[^<>()[\]\\.,;:\s@']+)*)|('.+'))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
         public static string DomainValRegex { get; set; } = @"^((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$";
+        public static string FileDropValRegex { get; set; } = @"(\.{2})|(\/)|(\\)";
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
         public static int DefaultClientDomainListCountLimit { get; set; } = 3;
+        public static string MillimanSupportEmailAlias { get; set; } = "";
         public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;
         public static readonly int fallbackAccountActivationTokenTimespanDays = 7;
         public static readonly int fallbackPasswordResetTokenTimespanHours = 4;
+
+        public static readonly string PasswordResetTokenProviderName = "MAPResetToken";
+        public static readonly string TwoFactorEmailTokenProviderName = "TwoFactorEmailTokenProvider";
 
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
@@ -37,6 +42,22 @@ namespace MapCommonLib
                 return EmailAddressValidationRegex.IsMatch(TestAddress);
             }
             catch 
+            {
+                return false;
+            }
+        }
+
+        static Regex FileDropValidationRegex = new Regex(FileDropValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+
+        public static bool isValidFileDropItemName(string TestValue)
+        {
+            try
+            {
+                return !string.IsNullOrWhiteSpace(TestValue) &&
+                       !FileDropValidationRegex.IsMatch(TestValue) &&
+                       !TestValue.Any(v => Path.GetInvalidFileNameChars().Contains(v));
+            }
+            catch
             {
                 return false;
             }
@@ -161,7 +182,7 @@ namespace MapCommonLib
 
         public static void IssueLog(IssueLogEnum issue, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
         {
-            Log.Write(level, $"{issue.ToString()}: {message}", parms);
+            Log.Write(level, $"{issue.GetDisplayNameString()}: {message}", parms);
         }
     }
 
@@ -171,7 +192,8 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        LongRunningSelectionGroupProcessing
+        LongRunningSelectionGroupProcessing,
+        TrackQlikviewApiTiming
     }
 
 }

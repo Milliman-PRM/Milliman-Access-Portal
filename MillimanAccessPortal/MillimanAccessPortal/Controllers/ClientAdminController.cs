@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             ClientDetailViewModel Model = new ClientDetailViewModel { ClientEntity = ThisClient };
-            await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
+            await Model.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false, ApplicationConfig.GetValue("DisableInactiveUserMonths", 12), ApplicationConfig.GetValue("DisableInactiveUserWarningDays", 14));
 
             return Json(Model);
         }
@@ -578,12 +578,62 @@ namespace MillimanAccessPortal.Controllers
             {
                 // remove existing roles no longer wanted
                 List<UserRoleInClient> rolesToRemove = existingAssignedRoles.Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum && !roleAssignment.IsAssigned).ToList();
-                rolesToRemove.ForEach(urc => 
+
+                // If the current role is Admin, also remove the user's UserCreator role if it exists.
+                if (rolesToRemove.Any(r => r.Role.RoleEnum == RoleEnum.Admin)) {
+                    rolesToRemove.AddRange(existingAssignedRoles.Where(urc => urc.Role.RoleEnum == RoleEnum.UserCreator));
+                }
+
+                foreach (var urc in rolesToRemove)
                 {
                     DbContext.UserRoleInClient.Remove(urc);
+                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
 
-                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {urc.Role.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                });
+                    switch (urc.Role.RoleEnum) 
+                    {
+                        case RoleEnum.FileDropUser:
+                            var accountsToReset = await DbContext.SftpAccount
+                                                                 .Include(a => a.FileDrop)
+                                                                 .Include(a => a.FileDropUserPermissionGroup)
+                                                                 .Where(a => a.FileDrop.ClientId == model.ClientId)
+                                                                 .Where(a => a.ApplicationUserId == model.UserId)
+                                                                 .ToListAsync();
+
+                            accountsToReset.ForEach(a =>
+                            {
+                                if (a.FileDropUserPermissionGroup != null)
+                                {
+                                    a.FileDropUserPermissionGroupId = null;
+                                    AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                                    Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: account {a.UserName} removed from permission group <{a.FileDropUserPermissionGroup.Name}> because FileDropUser role was removed from user {RequestedUser.UserName}");
+                                    if (a.FileDropUserPermissionGroup.IsPersonalGroup)
+                                    {
+                                        AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                        DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
+                                    }
+                                }
+                            });
+                            break;
+
+                        case RoleEnum.ContentPublisher:
+                        case RoleEnum.ContentAccessAdmin:
+                            var existingRolesInRootContentItem = await DbContext.UserRoleInRootContentItem
+                                .Where(r => r.UserId == RequestedUser.Id)
+                                .Where(r => r.RootContentItem.ClientId == model.ClientId)
+                                .Where(r => r.Role.RoleEnum == urc.Role.RoleEnum)
+                                .ToListAsync();
+                            DbContext.UserRoleInRootContentItem.RemoveRange(existingRolesInRootContentItem);
+                            break;
+
+                        case RoleEnum.ContentUser:
+                            var existingSelectionGroupAssignments = await DbContext.UserInSelectionGroup
+                                .Where(usg => usg.UserId == RequestedUser.Id)
+                                .Where(usg => usg.SelectionGroup.RootContentItem.ClientId == RequestedClient.Id)
+                                .ToListAsync();
+                            DbContext.UserInSelectionGroup.RemoveRange(existingSelectionGroupAssignments);
+                            break;
+                    }
+                }
                 AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
 
                 // add roles not already assigned
@@ -594,6 +644,41 @@ namespace MillimanAccessPortal.Controllers
 
                     Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
                     AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+
+                    switch (roleAssignment.RoleEnum) 
+                    {
+                        case RoleEnum.Admin:
+                            if (!existingAssignedRoles.Any(urc => urc.Role.RoleEnum == RoleEnum.UserCreator))
+                            {
+                                ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
+                                DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
+                                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
+                                AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+                            }
+                            break;
+
+                        case RoleEnum.ContentPublisher:
+                        case RoleEnum.ContentAccessAdmin:
+                            foreach (var rootContentItem in await DbContext.RootContentItem
+                                                                           .Where(i => i.ClientId == model.ClientId)
+                                                                           .ToListAsync())
+                            {
+                                var existingRolesInRootContentItem = DbContext.UserRoleInRootContentItem
+                                                                              .Where(r => r.UserId == RequestedUser.Id)
+                                                                              .Where(r => r.RootContentItemId == rootContentItem.Id)
+                                                                              .Where(r => r.Role.RoleEnum == roleAssignment.RoleEnum);
+                                if (existingRolesInRootContentItem.Count() == 0)
+                                {
+                                    DbContext.UserRoleInRootContentItem.Add(new UserRoleInRootContentItem
+                                    {
+                                        UserId = RequestedUser.Id,
+                                        RoleId = roleRecord.Id,
+                                        RootContentItemId = rootContentItem.Id,
+                                    });
+                                }
+                            }
+                            break;
+                    }
                 }
             }
             await DbContext.SaveChangesAsync();

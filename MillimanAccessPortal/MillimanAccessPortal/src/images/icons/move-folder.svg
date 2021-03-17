@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="Line_Icons">
+        <g transform="matrix(0.66962,0,0,0.66962,3.99114,5.22785)">
+            <path d="M16.293,9.707L18.586,12L5,12L5,7L3,7L3,12C3,13.104 3.896,14 5,14L18.586,14L16.293,16.293L17.707,17.707L22.414,13L17.707,8.293L16.293,9.707Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
+        </g>
+        <g transform="matrix(1.1,0,0,1.1,-1.2,-1.75)">
+            <path d="M20,7L11.75,7L10.1,4.8C9.725,4.299 9.126,4 8.5,4L4,4C2.897,4 2,4.898 2,6L2,19C2,20.103 2.897,21 4,21L20,21C21.103,21 22,20.103 22,19L22,9C22,7.898 21.103,7 20,7ZM4,19L4,6L8.5,6L10.15,8.2C10.525,8.701 11.124,9 11.75,9L20,9L20.001,19L4,19Z" style="fill:rgb(117,117,117);fill-rule:nonzero;"/>
+        </g>
+    </g>
+</svg>

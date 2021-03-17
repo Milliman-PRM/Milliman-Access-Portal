@@ -5,7 +5,12 @@ import { combineReducers } from 'redux';
 import * as Action from './actions';
 import * as State from './store';
 
-import { FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel } from '../../models';
+import { generateUniqueId } from '../../../generate-unique-identifier';
+import { ProgressSummary } from '../../../upload/progress-monitor';
+import * as UploadActions from '../../../upload/Redux/actions';
+import {
+  FileDropDirectoryContentModel, FileDropSettings, FileDropWithStats, PermissionGroupsReturnModel,
+} from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
 import { Dict, ModalState } from '../../shared-components/redux/store';
@@ -25,6 +30,50 @@ const defaultIfUndefined = (purpose: any, value: string, defaultValue = '') => {
   return (purpose !== undefined) && purpose.hasOwnProperty(value) ? purpose[value] : defaultValue;
 };
 
+/** Reusable logic for changing cardAttributes on a subsequent directory content fetch or change. */
+function setFileDropDirectoryContentModel(response: FileDropDirectoryContentModel) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(response.directories, (folder) => {
+    returnObject[folder.id] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: folder.description,
+      fileNameRaw: '',
+      descriptionRaw: folder.description,
+      saving: false,
+    };
+  });
+  _.forEach(response.files, (file) => {
+    returnObject[file.id] = {
+      editing: false,
+      expanded: false,
+      fileName: file.fileName,
+      description: file.description,
+      fileNameRaw: file.fileName,
+      descriptionRaw: file.description,
+      saving: false,
+    };
+  });
+  return returnObject;
+}
+
+function unsetSaveStatusForFileDropDirectoryContentModel(currentState: Dict<State.FileAndFolderAttributes>) {
+  const returnObject: Dict<State.FileAndFolderAttributes> = {};
+  _.forEach(currentState, (item, key) => {
+    returnObject[key] = {
+      editing: false,
+      expanded: false,
+      fileName: '',
+      description: item.description,
+      fileNameRaw: '',
+      descriptionRaw: item.description,
+      saving: false,
+    };
+  });
+  return returnObject;
+}
+
 // ~~~~~~~~~~~~~~~
 // Default Objects
 // ~~~~~~~~~~~~~~~
@@ -39,6 +88,10 @@ const _initialPendingData: State.FileDropPendingReturnState = {
   permissionsUpdate: false,
   activityLog: false,
   settings: false,
+  move: false,
+  createFolderMoveMode: false,
+  deleteItem: false,
+  createFileDropFolder: false,
 };
 
 const _initialPermissionGroupsTab: PermissionGroupsReturnModel = {
@@ -53,6 +106,7 @@ const _initialFilterValues: State.FileDropFilterState = {
   fileDrop: { text: '' },
   permissions: { text: '' },
   activityLog: { text: '' },
+  fileDropContents: { text: '' },
 };
 
 const _initialCreateFileDropData: State.FileDropFormStateData = {
@@ -73,6 +127,20 @@ const _initialFileDropWithStats: FileDropWithStats = {
   description: null,
   isSuspended: false,
   userCount: null,
+  currentUserPermissions: null,
+};
+
+const _initialMoveItem: State.MoveItemData = {
+  fileDropName: null,
+  itemType: null,
+  itemId: null,
+  itemName: null,
+  initialCanonicalPath: null,
+  currentCanonicalPath: null,
+  breadcrumbs: null,
+  newFolderId: null,
+  createNewFolderMode: false,
+  newFolderName: null,
 };
 
 const _initialAfterFormModal: State.AfterFormModal = {
@@ -95,9 +163,32 @@ const _initialFileDropSettings: FileDropSettings = {
 const _initialData: State.FileDropDataState = {
   clients: {},
   fileDrops: {},
-  permissionGroups: null,
+  fileDropContents: null,
+  fileDropContentsForMove: null,
+  permissionGroups: _initialPermissionGroupsTab,
   activityLogEvents: [],
   fileDropSettings: _initialFileDropSettings,
+};
+
+const _initialUpload: State.FileDropUploadState = {
+  uploadId: null,
+  clientId: null,
+  fileDropId: null,
+  folderId: null,
+  canonicalPath: null,
+  fileName: null,
+  cancelable: false,
+  canceled: false,
+  checksumProgress: ProgressSummary.empty(),
+  uploadProgress: ProgressSummary.empty(),
+  errorMsg: null,
+  uploading: false,
+};
+
+const _initialItemToDelete: State.DeleteItemData = {
+  itemType: null,
+  itemName: null,
+  itemId: null,
 };
 
 // ~~~~~~~~~~~~~~~~
@@ -202,6 +293,78 @@ const pendingData = createReducer<State.FileDropPendingReturnState>(_initialPend
     ...state,
     settings: false,
   }),
+  RENAME_FILE_DROP_FILE: (state) => ({
+    ...state,
+    move: true,
+  }),
+  RENAME_FILE_DROP_FILE_SUCCEEDED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  RENAME_FILE_DROP_FILE_FAILED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  RENAME_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    move: true,
+  }),
+  RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  RENAME_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    move: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE: (state) => ({
+    ...state,
+    createFolderMoveMode: true,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state) => ({
+    ...state,
+    createFolderMoveMode: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED: (state) => ({
+    ...state,
+    createFolderMoveMode: false,
+  }),
+  DELETE_FILE_DROP_FILE: (state) => ({
+    ...state,
+    deleteItem: true,
+  }),
+  DELETE_FILE_DROP_FILE_SUCCEEDED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FILE_FAILED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    deleteItem: true,
+  }),
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  DELETE_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    deleteItem: false,
+  }),
+  CREATE_FILE_DROP_FOLDER: (state) => ({
+    ...state,
+    createFileDropFolder: true,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FAILED: (state) => ({
+    ...state,
+    createFileDropFolder: false,
+  }),
 });
 
 /** Reducer for the statusTries value in the pending state object */
@@ -281,6 +444,47 @@ const pendingFileDropToDelete = createReducer<FileDropWithStats>(_initialFileDro
   }),
 });
 
+/** Reducer for the Move File Drop Item modal */
+const pendingMoveFileDropItem = createReducer<State.MoveItemData>(_initialMoveItem, {
+  OPEN_MOVE_FILE_DROP_ITEM_MODAL: (state, action: Action.OpenMoveFileDropItemModal) => ({
+    ...state,
+    itemType: action.itemType,
+    fileDropName: action.fileDropName,
+    itemId: action.itemId,
+    itemName: action.itemName,
+    initialCanonicalPath: action.initialCanonicalPath,
+    createNewFolderMode: false,
+    newFolderName: null,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE: (state, action: Action.FetchFolderContentsForMove) => ({
+    ...state,
+    currentCanonicalPath: decodeURIComponent(action.request.canonicalPath),
+    breadcrumbs: decodeURIComponent(action.request.canonicalPath).split('/').slice(1),
+    createNewFolderMode: false,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+    ...state,
+    newFolderId: action.response.thisDirectory.id,
+  }),
+  SET_NEW_FOLDER_MODE_STATUS: (state, action: Action.SetNewFolderModeStatus) => ({
+    ...state,
+    createNewFolderMode: action.value,
+    newFolderName: '',
+  }),
+  SET_NEW_FOLDER_NAME_FOR_MOVE: (state, action: Action.SetNewFolderNameForMove) => ({
+    ...state,
+    newFolderName: action.newFolderName,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state) => ({
+    ...state,
+    createNewFolderMode: false,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_FAILED: (state) => ({
+    ...state,
+    createNewFolderMode: false,
+  }),
+});
+
 /** Reducer for swiching the active File Drop tab */
 const selectedFileDropTab = createReducer<State.AvailableFileDropTabs>(null, {
   SELECT_FILE_DROP_TAB: (_state, action: Action.SelectFileDropTab) => action.tab,
@@ -310,7 +514,10 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
       ...state.permissionGroups,
       [action.pgId]: {
         ...state.permissionGroups[action.pgId],
-        [action.permission]: action.value,
+        permissions: {
+          ...state.permissionGroups[action.pgId].permissions,
+          [action.permission]: action.value,
+        },
       },
     },
   }),
@@ -323,7 +530,7 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
     };
   },
   DISCARD_PENDING_PERMISSION_GROUP_CHANGES: (_state, action: Action.DiscardPendingPermissionGroupChanges) =>
-    _.cloneDeep(action.originalValues),
+    action.originalValues ? _.cloneDeep(action.originalValues) : _initialPermissionGroupsTab,
   ADD_USER_TO_PERMISSION_GROUP: (state, action: Action.AddUserToPermissionGroup) => {
     const { assignedMapUserIds } = state.permissionGroups[action.pgId];
     if (assignedMapUserIds.indexOf(action.userId) === -1) {
@@ -378,9 +585,11 @@ const permissionGroupsTab = createReducer<PermissionGroupsReturnModel>(_initialP
         isPersonalGroup: action.isSingleGroup,
         assignedMapUserIds: [],
         assignedSftpAccountIds: [],
-        readAccess: false,
-        writeAccess: false,
-        deleteAccess: false,
+        permissions: {
+          readAccess: false,
+          writeAccess: false,
+          deleteAccess: false,
+        },
       },
     },
   }),
@@ -405,6 +614,150 @@ const afterFormModal = createReducer<State.AfterFormModal>(_initialAfterFormModa
   CLOSE_MODIFIED_FORM_MODAL: () => _initialAfterFormModal,
 });
 
+const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
+  INITIALIZE_FIRST_UPLOAD_OBJECT: (state) => {
+    if (Object.keys(state).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
+      };
+    } else {
+      return {};
+    }
+  },
+  BEGIN_FILE_DROP_FILE_UPLOAD: (state, action: Action.BeginFileDropFileUpload) => {
+    const uniqueId = generateUniqueId('FileDropUpload');
+    return {
+      ...state,
+      [action.uploadId]: {
+        ...state[action.uploadId],
+        clientId: action.clientId,
+        fileDropId: action.fileDropId,
+        folderId: action.folderId,
+        canonicalPath: action.canonicalPath,
+        fileName: action.fileName,
+        cancelable: true,
+        uploading: true,
+      },
+      [uniqueId]: {
+        ..._initialUpload,
+        uploadId: uniqueId,
+      },
+    };
+  },
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          checksumProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => {
+    if (action.uploadId in state) {
+      return {
+        ...state,
+        [action.uploadId]: {
+          ...state[action.uploadId],
+          uploadProgress: action.progress,
+        },
+      };
+    } else {
+      return state;
+    }
+  },
+  SET_UPLOAD_ERROR: (state, action: UploadActions.SetUploadError) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      errorMsg: action.errorMsg,
+    },
+  }),
+  SET_UPLOAD_CANCELABLE: (state, action: UploadActions.SetUploadCancelable) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      cancelable: action.cancelable,
+    },
+  }),
+  BEGIN_FILE_DROP_UPLOAD_CANCEL: (state, action: Action.BeginFileDropUploadCancel) => ({
+    ...state,
+    [action.uploadId]: {
+      ...state[action.uploadId],
+      canceled: true,
+    },
+  }),
+  CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
+    const uploads = { ...state };
+    delete uploads[action.uploadId];
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
+  },
+  FINALIZE_FILE_DROP_UPLOAD: (state, action: Action.FinalizeFileDropUpload) => {
+    const uploads = { ...state };
+    delete uploads[action.uploadId];
+    if (Object.keys(uploads).length === 0) {
+      const uniqueId = generateUniqueId('FileDropUpload');
+      return {
+        [uniqueId]: {
+          ..._initialUpload,
+          uploadId: uniqueId,
+        },
+      };
+    } else {
+      return {
+        ...uploads,
+      };
+    }
+  },
+});
+
+/** Reducer for the Create Folder mode */
+const createFolder = createReducer<State.CreateFolderData>(null, {
+  ENTER_CREATE_FOLDER_MODE: () => ({
+    name: '',
+    description: '',
+  }),
+  EXIT_CREATE_FOLDER_MODE: () => null,
+  UPDATE_CREATE_FOLDER_VALUES: (state, action: Action.UpdateCreateFolderValues) => ({
+    ...state,
+    [action.field]: action.value,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: () => null,
+});
+
+const deleteItem = createReducer<State.DeleteItemData>(_initialItemToDelete, {
+  OPEN_DELETE_FILE_DROP_ITEM_MODAL: (_state, action: Action.OpenDeleteFileDropItemModal) => ({
+    itemId: action.itemId,
+    itemName: action.itemName,
+    itemType: action.itemType,
+  }),
+  CLOSE_DELETE_FILE_DROP_ITEM_MODAL: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FILE_SUCCEEDED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FILE_FAILED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: () => _initialItemToDelete,
+  DELETE_FILE_DROP_FOLDER_FAILED: () => _initialItemToDelete,
+});
+
 /** Reducer that combines the pending reducers */
 const pending = combineReducers({
   async: pendingData,
@@ -416,6 +769,10 @@ const pending = combineReducers({
   permissionGroupsTab,
   permissionGroupsEditMode,
   afterFormModal,
+  uploads: pendingUploads,
+  createFolder,
+  moveItem: pendingMoveFileDropItem,
+  itemToDelete: deleteItem,
 });
 
 // ~~~~~~~~~~~~~~~~
@@ -427,31 +784,73 @@ const selected = createReducer<State.FileDropSelectedState>(
   {
     client: null,
     fileDrop: null,
+    fileDropFolder: {
+      folderId: null,
+      canonicalPath: null,
+    },
   },
   {
     SELECT_CLIENT: (state, action: Action.SelectClient) => ({
       client: action.id === state.client ? null : action.id,
       fileDrop: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     SELECT_FILE_DROP: (state, action: Action.SelectFileDrop) => ({
       ...state,
       fileDrop: action.id === state.fileDrop ? null : action.id,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
       ...state,
       fileDrop: (action.response.currentFileDropId) ? action.response.currentFileDropId : null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     CLOSE_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
     }),
     DELETE_FILE_DROP_SUCCEEDED: (state, action: Action.DeleteFileDropSucceeded) => ({
       ...state,
       fileDrop: (state.fileDrop === action.response.currentFileDropId) ? null : state.fileDrop,
+      fileDropFolder: (state.fileDrop === action.response.currentFileDropId) ? {
+        folderId: null,
+        canonicalPath: null,
+      } : state.fileDropFolder,
     }),
     OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
       ...state,
       fileDrop: null,
+      fileDropFolder: {
+        folderId: null,
+        canonicalPath: null,
+      },
+    }),
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+      ...state,
+      fileDropFolder: {
+        folderId: action.response.thisDirectory.id,
+        canonicalPath: action.response.thisDirectory.canonicalPath,
+      },
+    }),
+    FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+      ...state,
+      fileDropFolder: {
+        folderId: action.response.thisDirectory.id,
+        canonicalPath: action.response.thisDirectory.canonicalPath,
+      },
     }),
   },
 );
@@ -487,6 +886,116 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
     UPDATE_FILE_DROP_SUCCEEDED: (state) => ({
       ..._.mapValues(state, () => ({ editing: false })),
     }),
+    TOGGLE_FILE_DROP_CARD_EXPANSION: (state, action: Action.ToggleFileDropCardExpansion) => ({
+      ...state,
+      [action.fileDropId]: {
+        expanded: state[action.fileDropId].expanded ? false : true,
+      },
+    }),
+  },
+);
+
+/** Reducer for File Drop contents in the cardAttributes state object */
+const fileDropContentAttributes = createReducer<Dict<State.FileAndFolderAttributes>>({},
+  {
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (__, { response }: Action.FetchFolderContentsSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    CREATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.CreateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    SET_FILE_OR_FOLDER_EXPANSION: (state, action: Action.SetFileOrFolderExpansion) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        expanded: action.expanded,
+      },
+    }),
+    RENAME_FILE_DROP_FILE: (state, action: Action.RenameFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          saving: true,
+        },
+      };
+    },
+    RENAME_FILE_DROP_FILE_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
+    UPDATE_FILE_DROP_FILE: (state, action: Action.UpdateFileDropFile) => {
+      const { fileId } = action.request;
+      return {
+        ...state,
+        [fileId]: {
+          ...state[fileId],
+          expanded: state[fileId].description !== state[fileId].descriptionRaw ? true : false,
+          saving: true,
+        },
+      };
+    },
+    SET_FILE_OR_FOLDER_EDITING: (state, action: Action.SetFileOrFolderEditing) => ({
+      ...state,
+      [action.id]: {
+        expanded: true,
+        editing: action.editing,
+        fileName: action.editing ? action.fileName : '',
+        description: action.editing ? action.description : '',
+        fileNameRaw: action.editing ? action.fileName : '',
+        descriptionRaw: action.editing ? action.description : '',
+      },
+    }),
+    UPDATE_FILE_OR_FOLDER_DESCRIPTION: (state, action: Action.UpdateFileOrFolderDescription) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        description: action.description,
+      },
+    }),
+    UPDATE_FILE_OR_FOLDER_NAME: (state, action: Action.UpdateFileOrFolderName) => ({
+      ...state,
+      [action.id]: {
+        ...state[action.id],
+        fileName: action.name,
+      },
+    }),
+    RENAME_FILE_DROP_FOLDER: (state, action: Action.RenameFileDropFolder) => ({
+      ...state,
+      [action.request.directoryId]: {
+        ...state[action.request.directoryId],
+        saving: true,
+      },
+    }),
+    RENAME_FILE_DROP_FOLDER_FAILED: (state) => unsetSaveStatusForFileDropDirectoryContentModel(state),
+    UPDATE_FILE_DROP_FOLDER: (state, action: Action.UpdateFileDropFolder) => ({
+      ...state,
+      [action.request.folderId]: {
+        ...state[action.request.folderId],
+        saving: true,
+      },
+    }),
+    DELETE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.DeleteFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    DELETE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.DeleteFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.UpdateFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.UpdateFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    RENAME_FILE_DROP_FILE_SUCCEEDED: (__, { response }: Action.RenameFileDropFileSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    RENAME_FILE_DROP_FOLDER_SUCCEEDED: (__, { response }: Action.RenameFileDropFolderSucceeded) =>
+      setFileDropDirectoryContentModel(response),
+    SELECT_CLIENT: () => {
+      return {};
+    },
+    SELECT_FILE_DROP: () => {
+      return {};
+    },
+    OPEN_CREATE_FILE_DROP_MODAL: () => {
+      return {};
+    },
+    SELECT_FILE_DROP_TAB: () => {
+      return {};
+    },
   },
 );
 
@@ -494,6 +1003,7 @@ const fileDropCardAttributes = createReducer<Dict<CardAttributes>>({},
 const cardAttributes = combineReducers({
   clients: clientCardAttributes,
   fileDrops: fileDropCardAttributes,
+  fileDropContents: fileDropContentAttributes,
 });
 
 // ~~~~~~~~~~~~~~~
@@ -516,6 +1026,23 @@ const filters = createReducer<State.FileDropFilterState>(_initialFilterValues,
       ...state,
       permissions: _initialFilterValues.permissions,
       activityLog: _initialFilterValues.activityLog,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    FETCH_FOLDER_CONTENTS_SUCCEEDED: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    ENTER_CREATE_FOLDER_MODE: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
+    }),
+    BEGIN_FILE_DROP_FILE_UPLOAD: (state) => ({
+      ...state,
+      fileDropContents: _initialFilterValues.fileDropContents,
     }),
   },
 );
@@ -576,6 +1103,20 @@ const modals = combineReducers({
   passwordNotification: createModalReducer(['GENERATE_NEW_SFTP_PASSWORD_SUCCEEDED'], [
     'CLOSE_PASSWORD_NOTIFICATION_MODAL',
   ]),
+  moveFileDropItem: createModalReducer(['OPEN_MOVE_FILE_DROP_ITEM_MODAL'], [
+    'CLOSE_MOVE_FILE_DROP_ITEM_MODAL',
+    'RENAME_FILE_DROP_FILE_SUCCEEDED',
+    'RENAME_FILE_DROP_FILE_FAILED',
+    'RENAME_FILE_DROP_FOLDER_SUCCEEDED',
+    'RENAME_FILE_DROP_FOLDER_FAILED',
+  ]),
+  deleteFileDropItem: createModalReducer(['OPEN_DELETE_FILE_DROP_ITEM_MODAL'], [
+    'CLOSE_DELETE_FILE_DROP_ITEM_MODAL',
+    'DELETE_FILE_DROP_FILE_SUCCEEDED',
+    'DELETE_FILE_DROP_FILE_FAILED',
+    'DELETE_FILE_DROP_FOLDER_SUCCEEDED',
+    'DELETE_FILE_DROP_FOLDER_FAILED',
+  ]),
 });
 
 // ~~~~~~~~~~~~~
@@ -589,7 +1130,7 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     clients: {
       ...action.response.clients,
     },
-    permissionGroups: null,
+    permissionGroups: _initialPermissionGroupsTab,
     fileDropSettings: _initialFileDropSettings,
   }),
   FETCH_FILE_DROPS_SUCCEEDED: (state, action: Action.FetchFileDropsSucceeded) => ({
@@ -603,7 +1144,6 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     fileDrops: {
       ...action.response.fileDrops,
     },
-    permissionGroups: null,
     fileDropSettings: _initialFileDropSettings,
   }),
   CREATE_FILE_DROP_SUCCEEDED: (state, action: Action.CreateFileDropSucceeded) => ({
@@ -720,9 +1260,67 @@ const data = createReducer<State.FileDropDataState>(_initialData, {
     ...state,
     fileDropSettings: action.response,
   }),
+  SELECT_CLIENT: (state) => ({
+    ...state,
+    fileDrops: _initialData.fileDrops,
+    fileDropContents: _initialData.fileDropContents,
+    permissionGroups: _initialData.permissionGroups,
+    activityLogEvents: _initialData.activityLogEvents,
+    fileDropSettings: _initialData.fileDropSettings,
+    fileDropContentsForMove: _initialData.fileDropContentsForMove,
+  }),
   SELECT_FILE_DROP: (state) => ({
     ...state,
-    permissionGroups: null,
+    fileDropContents: _initialData.fileDropContents,
+    permissionGroups: _initialData.permissionGroups,
+    activityLogEvents: _initialData.activityLogEvents,
+    fileDropSettings: _initialData.fileDropSettings,
+    fileDropContentsForMove: _initialData.fileDropContentsForMove,
+  }),
+  FETCH_FOLDER_CONTENTS_SUCCEEDED: (state, action: Action.FetchFolderContentsSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  FETCH_FOLDER_CONTENTS_FOR_MOVE_SUCCEEDED: (state, action: Action.FetchFolderContentsForMoveSucceeded) => ({
+    ...state,
+    fileDropContentsForMove: action.response,
+  }),
+  CREATE_FILE_DROP_FOLDER_FOR_MOVE_SUCCEEDED: (state, action: Action.CreateFileDropFolderForMoveSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+    fileDropContentsForMove: action.response,
+  }),
+  DELETE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.DeleteFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  DELETE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.DeleteFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  UPDATE_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.UpdateFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  CREATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.CreateFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  UPDATE_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.UpdateFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FILE_SUCCEEDED: (state, action: Action.RenameFileDropFileSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  RENAME_FILE_DROP_FOLDER_SUCCEEDED: (state, action: Action.RenameFileDropFolderSucceeded) => ({
+    ...state,
+    fileDropContents: action.response,
+  }),
+  OPEN_CREATE_FILE_DROP_MODAL: (state) => ({
+    ...state,
+    permissionGroups: _initialPermissionGroupsTab,
   }),
 });
 

@@ -46,5 +46,7 @@ namespace MillimanAccessPortal.Models.FileDropModels
         public bool IsSuspended { get; set; }
 
         public Guid ClientId { get; set; }
+
+        public PermissionSet CurrentUserPermissions { get; set; }
     }
 }

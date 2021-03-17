@@ -38,14 +38,16 @@
             this.textPassword = new System.Windows.Forms.TextBox();
             this.textKeyfilePath = new System.Windows.Forms.TextBox();
             this.buttonReportServerState = new System.Windows.Forms.Button();
+            this.openDlgFindKeyFile = new System.Windows.Forms.OpenFileDialog();
+            this.btnFindKeyFile = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnStartStop
             // 
-            this.btnStartStop.Location = new System.Drawing.Point(12, 12);
+            this.btnStartStop.Location = new System.Drawing.Point(12, 60);
             this.btnStartStop.Name = "btnStartStop";
-            this.btnStartStop.Size = new System.Drawing.Size(75, 23);
+            this.btnStartStop.Size = new System.Drawing.Size(135, 23);
             this.btnStartStop.TabIndex = 0;
             this.btnStartStop.Text = "Start";
             this.btnStartStop.UseVisualStyleBackColor = true;
@@ -132,15 +134,15 @@
             // 
             this.textKeyfilePath.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.textKeyfilePath.Location = new System.Drawing.Point(12, 42);
+            this.textKeyfilePath.Location = new System.Drawing.Point(153, 12);
             this.textKeyfilePath.Name = "textKeyfilePath";
-            this.textKeyfilePath.Size = new System.Drawing.Size(946, 23);
+            this.textKeyfilePath.Size = new System.Drawing.Size(811, 23);
             this.textKeyfilePath.TabIndex = 2;
-            this.textKeyfilePath.Text = "C:\\Users\\tom.puckett\\Desktop\\sftpPrivateKey.OpenSSH.pem";
+            this.textKeyfilePath.TextChanged += new System.EventHandler(this.textKeyfilePath_TextChanged);
             // 
             // buttonReportServerState
             // 
-            this.buttonReportServerState.Location = new System.Drawing.Point(12, 79);
+            this.buttonReportServerState.Location = new System.Drawing.Point(12, 89);
             this.buttonReportServerState.Name = "buttonReportServerState";
             this.buttonReportServerState.Size = new System.Drawing.Size(135, 41);
             this.buttonReportServerState.TabIndex = 3;
@@ -148,11 +150,22 @@
             this.buttonReportServerState.UseVisualStyleBackColor = true;
             this.buttonReportServerState.Click += new System.EventHandler(this.ButtonReportReportServerState_Click);
             // 
+            // btnFindKeyFile
+            // 
+            this.btnFindKeyFile.Location = new System.Drawing.Point(12, 12);
+            this.btnFindKeyFile.Name = "btnFindKeyFile";
+            this.btnFindKeyFile.Size = new System.Drawing.Size(135, 23);
+            this.btnFindKeyFile.TabIndex = 4;
+            this.btnFindKeyFile.Text = "Find Key File";
+            this.btnFindKeyFile.UseVisualStyleBackColor = true;
+            this.btnFindKeyFile.Click += new System.EventHandler(this.BtnFindKeyFile_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(976, 450);
+            this.Controls.Add(this.btnFindKeyFile);
             this.Controls.Add(this.buttonReportServerState);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.textKeyfilePath);
@@ -180,6 +193,8 @@
         private System.Windows.Forms.TextBox textPassword;
         private System.Windows.Forms.TextBox textKeyfilePath;
         private System.Windows.Forms.Button buttonReportServerState;
+        private System.Windows.Forms.OpenFileDialog openDlgFindKeyFile;
+        private System.Windows.Forms.Button btnFindKeyFile;
     }
 }
 

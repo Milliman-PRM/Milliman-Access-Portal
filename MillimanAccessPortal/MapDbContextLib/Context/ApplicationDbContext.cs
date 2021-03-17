@@ -84,7 +84,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasIndex(x => x.NormalizedEmail).IsUnique();
-                b.Property(x => x.IsUserAgreementAccepted).HasDefaultValue(null);
+                b.Property(x => x.UserAgreementAcceptedUtc).HasDefaultValue(null);
             });
             builder.Entity<ApplicationRole>(b =>
             {
@@ -101,6 +101,7 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.Property(x => x.DomainListCountLimit).HasDefaultValue(GlobalFunctions.DefaultClientDomainListCountLimit);
                 b.Property(x => x.LastAccessReview).HasDefaultValueSql("jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
+                b.HasOne(x => x.ParentClient).WithMany(c => c.ChildClients).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
             });
             builder.Entity<UserRoleInClient>(b =>
             {
@@ -143,6 +144,7 @@ namespace MapDbContextLib.Context
             builder.Entity<ProfitCenter>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.LastQuarterlyMaintenanceNotificationUtc).HasDefaultValue(null);
             });
             builder.Entity<ContentReductionTask>(b =>
             {
@@ -195,8 +197,7 @@ namespace MapDbContextLib.Context
             builder.Entity<FileDropFile>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
-                b.HasOne(x => x.CreatedByAccount).WithMany(p => p.Files).OnDelete(DeleteBehavior.Restrict);  // not the default when a nullable FK
+                b.HasOne(x => x.Directory).WithMany(p => p.Files).OnDelete(DeleteBehavior.Cascade);
                 b.HasIndex(x => new { x.DirectoryId, x.FileName }).IsUnique();  // unique because sftp clients can make multiple requests to create the same item
             });
         }

@@ -14,9 +14,9 @@ namespace MillimanAccessPortal.Controllers
     public class SharedController : Controller
     {
         [AllowAnonymous]
-        public IActionResult UserMessage(string Msg)
+        public IActionResult UserMessage(UserMessageEnum messageCode)
         {
-            return View("UserMessage", new UserMessageModel(Msg));
+            return View("UserMessage", new UserMessageModel(messageCode));
         }
     }
 }

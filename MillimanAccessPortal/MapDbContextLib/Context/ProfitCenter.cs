@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -29,5 +30,9 @@ namespace MapDbContextLib.Context
         public string ContactEmail { get; set; }
 
         public string ContactPhone { get; set; }
+
+        public List<string> QuarterlyMaintenanceNotificationList { get; set; }
+
+        public DateTime? LastQuarterlyMaintenanceNotificationUtc { get; set; }
     }
 }

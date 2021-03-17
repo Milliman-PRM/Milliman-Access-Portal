@@ -40,7 +40,8 @@ namespace MapTests
                 TestResources.FileDropQueries,
                 TestResources.FileSystemTasks,
                 TestResources.UserManager,
-                TestResources.Configuration);
+                TestResources.Configuration,
+                TestResources.FileDropUploadTaskTracker);
 
             try
             {
@@ -111,7 +112,7 @@ namespace MapTests
         /// <returns></returns>
         [Theory]
         [InlineData("user1", 1, 0, 0)] // 1-admin, 2-no role
-        [InlineData("user2", 1, 0, 0)] // 1-user, 2-no role
+        [InlineData("user2", 0, 0, 0)] // 1-user, 2-no role
         [InlineData("user3", 1, 1, 0)] // 1-no role, 2-admin
         [InlineData("user4", 0, 1, 0)] // 1-no role, 2-user
         [InlineData("user5", 1, 1, 0)] // 1-admin, 2-admin
@@ -369,5 +370,48 @@ namespace MapTests
                 #endregion
             }
         }
+
+        [Theory]
+        [InlineData("user8", 99, "/", "The requested file drop was not found")] // file drop not found
+        [InlineData("user6", 2, "/BogusPath", "The requested folder was not found")] // user authorized, bad path
+        public async Task GetFolderContents_Invalid(string userName, int fileDropUidSeed, string canonicalPath, string partialWarningHeader)
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, userName);
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(fileDropUidSeed), canonicalPath);
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<StatusCodeResult>(response);
+                Assert.Equal(422, result.StatusCode);
+                Assert.Contains(controller.Response.Headers, h => h.Key == "Warning" && h.Value.Any(v => v.Contains(partialWarningHeader)));
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task GetFolderContents_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                FileDropController controller = await GetControllerForUser(TestResources, "user8");
+                #endregion
+
+                #region Act
+                var response = await controller.GetFolderContents(TestUtil.MakeTestGuid(1), "/");
+                #endregion
+
+                #region Assert
+                var result = Assert.IsType<UnauthorizedResult>(response);
+                #endregion
+            }
+        }
+
     }
 }

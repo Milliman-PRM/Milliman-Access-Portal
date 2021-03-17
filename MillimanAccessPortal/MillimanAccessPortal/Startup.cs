@@ -50,6 +50,9 @@ using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using System.Web;
+using Microsoft.Azure.KeyVault;
+using Microsoft.Azure.Services.AppAuthentication;
+using MillimanAccessPortal.Models.SharedModels;
 
 namespace MillimanAccessPortal
 {
@@ -76,8 +79,6 @@ namespace MillimanAccessPortal
             int accountActivationTokenTimespanDays = Configuration.GetValue<int?>("AccountActivationTokenTimespanDays") ?? GlobalFunctions.fallbackAccountActivationTokenTimespanDays;
             int passwordResetTokenTimespanHours = Configuration.GetValue<int?>("PasswordResetTokenTimespanHours") ?? GlobalFunctions.fallbackPasswordResetTokenTimespanHours;
 
-            string tokenProviderName = "MAPResetToken";
-
             // Do not add AuditLogDbContext.  This context should be protected from direct access.  Use the api class instead.  -TP
 
             services.AddIdentityCore<ApplicationUser>(config =>
@@ -92,7 +93,8 @@ namespace MillimanAccessPortal
                 .AddRecentPasswordInDaysValidator<ApplicationUser>(passwordHistoryDays)
                 .AddPasswordValidator<PasswordIsNotEmailValidator<ApplicationUser>>()
                 .AddCommonWordsValidator<ApplicationUser>(commonWords)
-                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(tokenProviderName)
+                .AddTokenProvider<PasswordResetSecurityTokenProvider<ApplicationUser>>(GlobalFunctions.PasswordResetTokenProviderName)
+                .AddTokenProvider<TwoFactorTokenProvider<ApplicationUser>>(GlobalFunctions.TwoFactorEmailTokenProviderName)
                 ;
 
             #region Configure authentication services
@@ -167,11 +169,10 @@ namespace MillimanAccessPortal
                         if (string.IsNullOrWhiteSpace(authenticatedUserName))
                         {
                             Log.Error($"External authentication token received, but no authenticated user name was included in claim <{ClaimTypes.Name}> or <{ClaimTypes.NameIdentifier}>");
-                            string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
                             UriBuilder msg = new UriBuilder
                             {
                                 Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                Query = $"msg=The authenticating domain did not return your user name. Please email us at <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and provide this error message and your user name.",
+                                Query = $"messageCode={UserMessageEnum.SsoUserNameNotReturned}",
                             };
                             context.Response.Redirect(msg.Uri.PathAndQuery);
                             return;
@@ -186,31 +187,36 @@ namespace MillimanAccessPortal
                             try
                             {
                                 ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
-                                string supportEmailAlias = Configuration.GetValue<string>("SupportEmailAlias");
 
                                 if (_applicationUser == null)
                                 {
                                     Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name));
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountNotFound));
 
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your login does not have a MAP account.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.SsoNoMapAccount}.",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (_applicationUser.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                else if (_applicationUser.LastLoginUtc.HasValue &&
+                                         _applicationUser.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
                                 {
                                     // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
-                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc}");
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc.Value}");
+
+                                    AccountController accountController = serviceProvider.GetService<AccountController>();
+                                    accountController.NotifyUserAboutDisabledAccount(_applicationUser);
 
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is disabled due to inactivity.  Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.AccountDisabled}",
                                     };
+                                    IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
+                                    _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled));                                    
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
@@ -221,7 +227,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller", "")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account is currently suspended.  If you believe that this is an error, please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.",
+                                        Query = $"messageCode={UserMessageEnum.AccountSuspended}",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -234,7 +240,7 @@ namespace MillimanAccessPortal
                                     UriBuilder msg = new UriBuilder
                                     {
                                         Path = $"/{nameof(SharedController).Replace("Controller","")}/{nameof(SharedController.UserMessage)}",
-                                        Query = $"msg=Your MAP account has not been activated. Please look for a welcome email from <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a> and follow instructions in that message to activate the account."
+                                        Query = $"messageCode={UserMessageEnum.AccountNotActivated}",
                                     };
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
@@ -283,7 +289,7 @@ namespace MillimanAccessPortal
                             {
                                 Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.LoginFailed));
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();
@@ -299,7 +305,7 @@ namespace MillimanAccessPortal
             {
                 builder.TwoFactorUserIdCookie.Configure(options =>
                 {
-                    options.Cookie.MaxAge = TimeSpan.FromMinutes(5);  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
+                    options.Cookie.MaxAge = TimeSpan.FromMinutes(Configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes"));  // MaxAge has precedence over ExpireTimeSpan, see https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie
                 });
                 builder.ApplicationCookie.Configure(options =>
                 {
@@ -307,6 +313,7 @@ namespace MillimanAccessPortal
                     options.LogoutPath = "/Account/LogOut";
                     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
                     options.SlidingExpiration = true;
+                    options.ReturnUrlParameter = "returnUrl";
                 });
             });
 
@@ -332,14 +339,19 @@ namespace MillimanAccessPortal
                 // User settings
                 options.User.RequireUniqueEmail = true;
 
-                // Enable custom token provider for password resets
-                options.Tokens.PasswordResetTokenProvider = tokenProviderName;
+                // Replace default token provider(s) with customized alternative(s)
+                options.Tokens.PasswordResetTokenProvider = GlobalFunctions.PasswordResetTokenProviderName;
             });
 
-            // Configure custom security token provider
+            // Configure custom token providers
             services.Configure<PasswordResetSecurityTokenProviderOptions>(options =>
             {
                 options.TokenLifespan = TimeSpan.FromHours(passwordResetTokenTimespanHours);
+            });
+            
+            services.Configure<TwoFactorTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMinutes(Configuration.GetValue<int>("TwoFactorEmailTokenLifetimeMinutes"));
             });
 
             // Configure the default token provider used for account activation
@@ -379,6 +391,7 @@ namespace MillimanAccessPortal
             {
                 options.SerializerSettings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
                 options.SerializerSettings.NullValueHandling = NullValueHandling.Include;
+                options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             })
             .AddControllersAsServices();
 
@@ -427,6 +440,8 @@ namespace MillimanAccessPortal
             services.AddHostedService<QueuedReductionPostProcessingHostedService>();
             services.AddHostedService <SystemMaintenanceHostedService>();
             services.AddSingleton<IPublicationPostProcessingTaskQueue, PublicationPostProcessingTaskQueue>();
+            services.AddHostedService<FileDropUploadProcessingHostedService>();
+            services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
             services.AddScoped<FileSystemTasks>();
 
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
@@ -452,6 +467,26 @@ namespace MillimanAccessPortal
                         .ProtectKeysWithAzureKeyVault(Configuration["DataProtectionKeyId"],
                                                         Configuration["AzureClientID"],
                                                         cert);
+
+                    Log.Debug("Finished configuring data protection");
+
+                    break;
+                
+                case "AZURE-ISDEV":
+                case "AZURE-DEV":
+                case "AZURE-UAT":
+                case "AZURE-PROD":
+                    Log.Debug("Configuring Data Protection");
+
+                    DirectoryInfo azKeyDirectory = new DirectoryInfo(@"C:\temp-keys");
+
+                    var provider = new AzureServiceTokenProvider();
+                    var kv = new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(provider.KeyVaultTokenCallback));
+
+
+                    services.AddDataProtection()
+                        .PersistKeysToFileSystem(azKeyDirectory)
+                        .ProtectKeysWithAzureKeyVault(kv, Configuration["DataProtectionKeyId"]);
 
                     Log.Debug("Finished configuring data protection");
 
@@ -561,8 +596,10 @@ namespace MillimanAccessPortal
                 {
                     ApplicationDbContext db = context.RequestServices.GetService<ApplicationDbContext>();
                     var user = await db.ApplicationUser.SingleAsync(u => u.UserName == context.User.Identity.Name);
+                    TimeSpan renewInterval = TimeSpan.FromDays(Configuration.GetValue<int>("UserAgreementRenewalIntervalDays"));
 
-                    if (user.IsUserAgreementAccepted != true) // if false or null
+                    if (!user.UserAgreementAcceptedUtc.HasValue ||
+                        DateTime.UtcNow - user.UserAgreementAcceptedUtc > renewInterval) // need to accept now
                     {
                         UriBuilder userAgreementUri = new UriBuilder
                         {
@@ -570,7 +607,7 @@ namespace MillimanAccessPortal
                             Host = context.Request.Host.Host,
                             Port = context.Request.Host.Port.GetValueOrDefault(-1),
                             Path = redirectPath,
-                            Query = $"isRenewal={user.IsUserAgreementAccepted.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
+                            Query = $"isRenewal={user.UserAgreementAcceptedUtc.HasValue}&returnUrl={UriHelper.GetEncodedUrl(context.Request)}",
                         };
 
                         context.Response.Redirect(userAgreementUri.Uri.AbsoluteUri);

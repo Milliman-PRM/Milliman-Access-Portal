@@ -7,6 +7,7 @@ import '../../../images/icons/reports.svg';
 import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
+import * as moment from 'moment';
 import * as React from 'react';
 
 import { getJsonData, postData } from '../../shared';
@@ -39,6 +40,7 @@ import { CardModal } from './modals/card-modal';
 import { ChangeSystemAdminStatusModal } from './modals/change-system-admin-status-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { RemoveProfitCenterModals } from './modals/remove-profit-center';
 import { RemoveUserFromProfitCenterModal } from './modals/remove-user-from-profit-center';
 import { SetDomainLimitClientModal } from './modals/set-domain-limit';
 import { PrimaryDetailPanel } from './primary-detail-panel';
@@ -78,6 +80,11 @@ export interface SystemAdminState {
   systemAdminModal: {
     open: boolean;
     enabled: boolean;
+  };
+  removeProfitCenterModal: {
+    open: boolean;
+    profitCenterId: Guid;
+    profitCenterName: string;
   };
 }
 
@@ -138,6 +145,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
       systemAdminModal: {
         open: false,
         enabled: false,
+      },
+      removeProfitCenterModal: {
+        open: false,
+        profitCenterId: null,
+        profitCenterName: null,
       },
     };
   }
@@ -225,6 +237,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       <CardText
                         text={normalizeName(entity)}
                         subtext={entity.userName}
+                        issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                          ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                        issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                          ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                          + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                          : null
+                        }
                       />
                       <CardSectionStats>
                         <CardStat
@@ -339,6 +358,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardText
                       text={normalizeName(entity)}
                       subtext={entity.userName}
+                      issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                        ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                      issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                        ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                        + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                        : null
+                      }
                     />
                     <CardSectionStats>
                       <CardStat
@@ -505,6 +531,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                   <CardText
                     text={normalizeName(entity)}
                     subtext={entity.userName}
+                    issueIcon={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
+                    issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
+                      ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
+                      + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                      : null
+                    }
                   />
                   <CardSectionStats>
                     <CardStat
@@ -566,7 +599,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardButton
                       color={'red'}
                       tooltip="Delete profit center"
-                      onClick={() => this.handleProfitCenterDelete(entity.id)}
+                      onClick={() => this.handleRemoveProfitCenterModalOpen(entity.id, entity.name)}
                       icon={'delete'}
                     />
                     <CardButton
@@ -653,6 +686,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
+          />
+          <RemoveProfitCenterModals
+            isOpen={this.state.removeProfitCenterModal.open}
+            onRequestClose={this.handleRemoveProfitCenterModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            profitCenterId={this.state.removeProfitCenterModal.profitCenterId}
+            profitCenterName={this.state.removeProfitCenterModal.profitCenterName}
           />
         </CardPanel>
         {secondaryColumnComponent}
@@ -931,6 +973,11 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         systemAdminModal: {
           open: false,
           enabled: false,
+        },
+        removeProfitCenterModal: {
+          open: false,
+          profitCenterId: null,
+          profitCenterName: null,
         },
       };
     });
@@ -1450,17 +1497,32 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
+  private handleRemoveProfitCenterModalOpen = (id: Guid, name: string) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      removeProfitCenterModal: {
+        open: true,
+        profitCenterId: id,
+        profitCenterName: name,
+      },
+    }));
+  }
+
+  private handleRemoveProfitCenterModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      removeProfitCenterModal: {
+        open: false,
+        profitCenterId: null,
+        profitCenterName: null,
+      },
+    }));
+  }
+
   private handleSendReset = (email: string) => {
     postData('Account/ForgotPassword', { Email: email }, true)
     .then(() => {
       alert('Password reset email sent.');
-    });
-  }
-
-  private handleProfitCenterDelete = (id: Guid) => {
-    postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
-    .then(() => {
-      alert('Profit center deleted.');
     });
   }
 

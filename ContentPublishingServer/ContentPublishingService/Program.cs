@@ -4,6 +4,8 @@
  * DEVELOPER NOTES: Can be run directly as a console application or installed/run as a Windows service
  */
 
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
 using ContentPublishingLib;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,7 @@ using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 namespace ContentPublishingService
 {
@@ -111,6 +114,19 @@ namespace ContentPublishingService
                     {
                         throw new ApplicationException($"Found {cert.OfType<X509Certificate2>().Count()} certificate(s) to access Azure Key Vault for environment {environmentName}, expected Single");
                     }
+
+                    break;
+
+                case string ai when ai.StartsWith("azure-", StringComparison.InvariantCultureIgnoreCase):
+                    IConfigurationRoot builtVaultConfig = new ConfigurationBuilder()
+                        .AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true)
+                        .Build();
+
+                    // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
+                    
+                    var secretClient = new SecretClient(new Uri(builtVaultConfig["AzureVaultName"]), new DefaultAzureCredential());
+                    builder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+
 
                     break;
             }
