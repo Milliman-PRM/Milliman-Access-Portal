@@ -1,5 +1,7 @@
 ﻿import * as _ from 'lodash';
 
+import * as moment from 'moment';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
@@ -802,6 +804,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   className="card-container action-card-container"
                   onClick={() => {
                     this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                      this.props.selectUser({ id: null });
                       this.props.openCreateClientUserModal({
                         clientId: selected.client,
                       });
@@ -826,6 +829,18 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 selected={false}
                 disabled={selected.readonly}
                 onSelect={null}
+                bannerMessage={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  {
+                    level: entity.isAccountDisabled ? 'error' : 'informational',
+                    message:
+                      <div>{(entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ') +
+                        moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')}
+                      </div>,
+                  } : null
+                }
+                borderLevel={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  (entity.isAccountDisabled ? 'error' : 'informational') : 'default'
+                }
               >
                 <CardSectionMain>
                   <svg
@@ -840,19 +855,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   {entity.userRoles &&
                     entity.userRoles[RoleEnum.Admin] &&
                     entity.userRoles[RoleEnum.Admin].isAssigned ?
-                    <svg
-                      className="card-user-role-indicator"
-                      style={{
-                      position: 'absolute',
-                      top: '20%',
-                      left: '13%',
-                      height: '1.25rem',
-                      width: '1.25rem',
-                      color: '#42cc42',
-                      stroke: 'context fill #42cc42',
-                      strokeWidth: '3px',
-                      }}
-                    >
+                    <svg className="card-user-role-indicator admin">
                       <use href="#add" />
                     </svg> : null
                   }
@@ -1039,7 +1042,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon="add"
                     action={() => {
                       this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                        this.props.selectUser({ id: 'new' });
+                        this.props.selectUser({ id: null });
                         this.props.openCreateClientUserModal({ clientId: selected.client });
                       });
                     }}

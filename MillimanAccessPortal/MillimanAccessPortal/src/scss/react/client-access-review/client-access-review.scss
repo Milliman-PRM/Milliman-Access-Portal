@@ -85,7 +85,9 @@
 
         .detail-label,
         .detail-value-name,
-        .detail-value-email {
+        .detail-value-email,
+        .detail-value-disabled,
+        .detail-value-near-disabled {
             display: block;
             letter-spacing: 0.32px;
         }
@@ -102,6 +104,18 @@
 
         .detail-value-email {
             font-size: .875rem;
+        }
+
+        .detail-value-disabled {
+            font-size: .875rem;
+            color: $red;
+            font-style: italic;
+        }
+
+        .detail-value-near-disabled {
+            font-size: .875rem;
+            color: $orange;
+            font-style: italic;
         }
 
         .detail-list {
@@ -171,6 +185,21 @@
             height: 1.5em;
             width: 1.5em;
             color: $green;
+        }
+
+        .file-drop-user-icon {
+            display: inline-flex;
+            width: 1.25em;
+            height: 1.25em;
+            margin-right: 0.5em;
+
+            &.disabled-warning-icon {
+                color: $red;
+            }
+
+            &.near-disabled-warning-icon {
+                color: $orange;
+            }
         }
     }
 

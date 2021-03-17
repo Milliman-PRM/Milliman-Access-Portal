@@ -4,43 +4,20 @@ import '../../../../images/icons/cancel.svg';
 import '../../../../images/icons/delete.svg';
 import '../../../../images/icons/upload.svg';
 
+import forge = require('node-forge');
 import * as React from 'react';
+
 import { resumableOptions } from '../../../lib-options';
 import { StatusMonitor } from '../../../status-monitor';
 import { FileScanner } from '../../../upload/file-scanner';
 import { FileSniffer } from '../../../upload/file-sniffer';
 import { ProgressMonitor, ProgressSummary } from '../../../upload/progress-monitor';
 import { UploadState } from '../../../upload/Redux/store';
+import { FileUpload, FileUploadStatus, Guid, ResumableInfo } from '../../models';
 import { ButtonSpinner } from '../button-spinner';
+import { UploadStatusBar } from '../upload-status-bar';
 
-import forge = require('node-forge');
-import { Guid } from '../../models';
 const resumable = require('resumablejs');
-
-export enum FileUploadStatus {
-  InProgress = 0,
-  Complete = 1,
-  Error = 2,
-}
-
-interface ResumableInfo {
-  ChunkNumber: number;
-  TotalChunks: number;
-  ChunkSize: number;
-  TotalSize: number;
-  FileName: string;
-  UID: string;
-  Checksum: string;
-  Type: string;
-}
-
-interface FileUpload {
-  id: string;
-  initiatedDateTimeUtc: string;
-  clientFileIdentifier: string;
-  status: FileUploadStatus;
-  statusMessage: string;
-}
 
 interface FileUploadInputProps {
   fileExtensions: string[];
@@ -316,10 +293,6 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
       && (this.props.imageURL || this.state.imageSrc)
       && value !== '[Pending Removal]');
     const uploadPendingPublication = this.props.fileUploadId && this.props.fileUploadId.length > 0;
-    const checksumEasing =
-      (checksumProgress.percentage === '0%' || checksumProgress.percentage === '100%') ? '' : ' progress-easing';
-    const uploadEasing =
-      (uploadProgress.percentage === '0%' || uploadProgress.percentage === '100%') ? '' : ' progress-easing';
     return (
       <div
         className={`form-element-container${
@@ -359,20 +332,12 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
         </div>
         {
           upload.cancelable && this.props.fileUploadId.length === 0 &&
-          <div className="progress-bars">
-            {!errorMsg &&
-              <div
-                className={`progress-bar-checksum${checksumEasing}`}
-                style={{ width: checksumProgress.percentage }}
-              />}
-            {!errorMsg &&
-              <div
-                className={`progress-bar-upload${uploadEasing}`}
-                style={{ width: uploadProgress.percentage }}
-              />}
-          </div>
+          <UploadStatusBar
+            checksumProgress={checksumProgress}
+            uploadProgress={uploadProgress}
+            errorMsg={errorMsg}
+          />
         }
-        {errorMsg && <div className="error-message">{errorMsg}</div>}
         {
           !readOnly &&
           <div className="upload-icon-container">

@@ -5,17 +5,177 @@
   </head>
   <body>
     <div class="accordion">
+      <p>Permissions within a File Drop</p>
+      <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+      <p>
+        File Drop permissions are managed by File Drop Admins. The three types
+        of permissions available are download, upload, and delete, and
+        permissions may vary between users and/or File Drops.
+      </p>
+      <ul>
+        <li>
+          <strong>Download:</strong> The ability to download files from the File
+          Drop
+        </li>
+        <li>
+          <strong>Upload:</strong> The ability to create folders and upload
+          files to the File Drop
+        </li>
+        <li>
+          <strong>Delete:</strong> The ability to delete folders and files from
+          the File Drop
+        </li>
+      </ul>
+    </div>
+    <div class="accordion">
+      <p>Managing Folders and Files within a File Drop</p>
+      <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+      <p>
+        Please note that the ability to perform the actions listed below is
+        based upon your assigned permissions for the File Drop. Please see above
+        for definitions of the available permission types.
+      </p>
+      <h3 class="subheading">Navigating the Folder structure</h3>
+      <p>
+        To move into a folder, click the folder name. To navigate back, click
+        the folder you would like to navigate back to at the top of the Files
+        box.
+      </p>
+      <h3 class="subheading">Downloading a File</h3>
+      <ol>
+        <li>Navigate to the file to download</li>
+        <li>
+          Click on the filename to download or click on the vertical ellipses to
+          the right of the file to download and choose "Download"
+        </li>
+      </ol>
+      <h3 class="subheading">Adding a Folder</h3>
+      <ol>
+        <li>Navigate to the location that you would like to add a folder</li>
+        <li>Click on "Add Folder"</li>
+        <li>Enter the name of the folder that you would like to create</li>
+        <li>Enter a description (optional)</li>
+        <li>Press the checkmark to save or the "x" to cancel</li>
+      </ol>
+      <h3 class="subheading">Adding a File</h3>
+      <p>
+        There are a few ways to add a file. You can drag and drop a file into
+        the section, or you can click "Add File". See below steps for adding a
+        file.
+      </p>
+      <ol>
+        <li>Navigate to the location that you would like to add a file</li>
+        <li>Click on "Add File"</li>
+        <li>Choose file to upload</li>
+      </ol>
+      <p>
+        You can cancel the upload of the file by pressing the "x" while it is
+        uploading.
+      </p>
+      <p>
+        Note that you can add multiple files at a time. You can see the files
+        that are currently being uploaded in a single place by expanding the
+        banner on the File Drop card.
+      </p>
+      <h3 class="subheading">Editing a Folder</h3>
+      <ol>
+        <li>
+          Click on the vertical ellipses to the right of the folder to edit
+        </li>
+        <li>Click on "Edit"</li>
+        <li>Edit the folder name and/or the description</li>
+        <li>To save, press the checkmark. To cancel, press the "x".</li>
+      </ol>
+      <h3 class="subheading">Moving a File or Folder</h3>
+      <ol>
+        <li>
+          Click on the vertical ellipses to the right of the file or folder to
+          move
+        </li>
+        <li>Click "Move"</li>
+        <li>
+          There are several options that can be taken at this point. See below
+          for various ways to move the file or folder:
+        </li>
+        <ul>
+          <li>
+            <strong>Navigating up the folder structure:</strong> Use the
+            breadcrumb links to navigate up the folder structure. Once you have
+            navigated to the folder where you want to move the folder or file,
+            press "Move"
+          </li>
+          <li>
+            <strong>Navigating down the folder structure:</strong> Click the
+            folder listed in the modal to enter that folder and then press
+            "Move"
+          </li>
+          <li>
+            <strong>Create a new folder:</strong> Press "Create new folder" to
+            create a folder within the folder you are currently in, enter the
+            folder name and save, and then you can move the folder or file into
+            the new folder by pressing "Move"
+          </li>
+        </ul>
+      </ol>
+      <h3 class="subheading">Deleting a File or Folder</h3>
+      <ol>
+        <li>
+          Click on the vertical ellipses to the right of the file or
+          folder to delete
+        </li>
+        <li>Click "Delete"</li>
+        <li>Press "Delete" on the popup notification</li>
+      </ol>
+      <h3 class="subheading">Interacting with a File Drop via SFTP</h3>
+      <p>
+        MAP File Drop features for uploading, downloading, and deleting folders
+        and files are supported using Secure File Transfer Protocol (SFTP). Use
+        of an SFTP client application such as FileZilla is the means to interact
+        with the folders and files of a MAP File Drop. You can find information
+        regarding the SFTP settings via the "My Settings" tab.
+      </p>
+    </div>
+
+    <div class="accordion">
       <p>My Settings</p>
       <span class="material-icons icon">expand_more</span>
     </div>
     <div class="content">
-      <p><strong>SFTP Connection:</strong><br>This section provides connection details of MAP's SFTP server. Use these details to configure an SFTP Client application such as FileZilla</p>
-      <p><strong>SFTP Credentials:</strong><br>This section displays your SFTP login information <u>for the currently displayed file drop</u>. Please note that the username is case sensitive</p>
-      <p>The password can be reset at any time by clicking the button. The new password will be displayed and you can copy that to the clipboard using the provided button.&nbsp;
-          This is the only time that the password can be seen so please store it securely, such as in a password manager application</p>
+      <p>
+        Please note that access to the sections listed below is based on
+        permissions currently assigned to you for this File Drop.
+      </p>
+      <p>
+        <strong>SFTP Connection:</strong><br />This section provides connection
+        details of MAP's SFTP server. Use these details to configure an SFTP
+        Client application such as FileZilla
+      </p>
+      <p>
+        <strong>SFTP Credentials:</strong><br />This section displays your SFTP
+        login information <u>for the currently displayed file drop</u>. Please
+        note that the username is case sensitive
+      </p>
+      <p>
+        The password can be reset at any time by clicking the button. The new
+        password will be displayed and you can copy that to the clipboard using
+        the provided button.&nbsp; This is the only time that the password can
+        be seen so please store it securely, such as in a password manager
+        application
+      </p>
       <p></p>
-      <p><strong>Notification Settings:</strong><br>You can choose to receive email notifications each time certain file related events occur in the file drop. Use the toggle control to subscribe</p>
-      <p>Subscription changes apply only to the file drop currently displayed, and are effective immediately</p>
+      <p>
+        <strong>Notification Settings:</strong><br />You can choose to receive
+        email notifications each time certain file related events occur in the
+        file drop. Use the toggle control to subscribe
+      </p>
+      <p>
+        Subscription changes apply only to the file drop currently displayed,
+        and are effective immediately
+      </p>
     </div>
   </body>
 </html>

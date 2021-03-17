@@ -370,8 +370,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("uuid")
                         .HasDefaultValueSql("uuid_generate_v4()");
 
-                    b.Property<Guid>("CreatedByAccountId")
-                        .HasColumnType("uuid");
+                    b.Property<string>("CreatedByAccountUserName")
+                        .HasColumnType("text");
 
                     b.Property<string>("Description")
                         .HasColumnType("text");
@@ -390,8 +390,6 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("timestamp without time zone");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("CreatedByAccountId");
 
                     b.HasIndex("DirectoryId", "FileName")
                         .IsUnique();
@@ -555,6 +553,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContactTitle")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastQuarterlyMaintenanceNotificationUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(null);
+
                     b.Property<string>("MillimanOffice")
                         .HasColumnType("text");
 
@@ -564,6 +567,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ProfitCenterCode")
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("QuarterlyMaintenanceNotificationList")
+                        .HasColumnType("text[]");
 
                     b.HasKey("Id");
 
@@ -877,11 +883,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<bool>("IsSuspended")
                         .HasColumnType("boolean");
 
-                    b.Property<bool?>("IsUserAgreementAccepted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(null);
-
                     b.Property<DateTime?>("LastLoginUtc")
                         .HasColumnType("timestamp without time zone");
 
@@ -922,6 +923,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("boolean");
+
+                    b.Property<DateTime?>("UserAgreementAcceptedUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(null);
 
                     b.Property<string>("UserName")
                         .HasColumnType("character varying(256)")
@@ -1046,8 +1052,9 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.Client", "ParentClient")
-                        .WithMany()
-                        .HasForeignKey("ParentClientId");
+                        .WithMany("ChildClients")
+                        .HasForeignKey("ParentClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()
@@ -1115,16 +1122,10 @@ namespace MillimanAccessPortal.Migrations
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
                 {
-                    b.HasOne("MapDbContextLib.Context.SftpAccount", "CreatedByAccount")
-                        .WithMany("Files")
-                        .HasForeignKey("CreatedByAccountId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("MapDbContextLib.Context.FileDropDirectory", "Directory")
                         .WithMany("Files")
                         .HasForeignKey("DirectoryId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
