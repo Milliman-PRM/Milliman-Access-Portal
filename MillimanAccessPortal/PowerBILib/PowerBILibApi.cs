@@ -59,7 +59,14 @@ namespace PowerBiLib
         /// <returns></returns>
         public async Task<PowerBiLibApi> InitializeAsync()
         {
-            await GetAccessTokenAsync();
+            try
+            {
+                await GetAccessTokenAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error obtaining PowerBI authentication token");
+            }
 
             return this;
         }
@@ -73,6 +80,30 @@ namespace PowerBiLib
             using (var client = new PowerBIClient(_tokenCredentials))
             {
                 return (await client.Groups.GetGroupsAsync()).Value;
+            }
+        }
+
+        public async Task DeleteThisMethod()
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                var x = client;
+            }
+        }
+
+        /// <summary>
+        /// Get all reports for group
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<ReportModel>> GetAllReportsOfGroupAsync(string groupName)
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
+                ODataResponseListReport reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
+
+                var returnVal = reportsOfTheGroup.Value.Select(r => new ReportModel(r)).ToList();
+                return returnVal;
             }
         }
 
@@ -307,13 +338,14 @@ namespace PowerBiLib
             catch (Exception ex)
             {
                 Log.Warning(ex, "Exception attempting to get PowerBI access token");
+                throw;
             }
             #endregion
 
             return false;
         }
 
-        public class MicrosoftAuthenticationResponse
+        class MicrosoftAuthenticationResponse
         {
             [JsonProperty(PropertyName = "token_type")]
             public string TokenType { set; internal get; }
@@ -330,6 +362,32 @@ namespace PowerBiLib
             [JsonProperty(PropertyName = "access_token")]
             public string AccessToken { set; internal get; }
         }
+    }
+
+    public class ReportModel
+    {
+        public ReportModel(Report report)
+        {
+            ReportId = report.Id;
+            ReportName = report.Name;
+        }
+
+        public string ReportId { get; set; }
+
+        public string ReportName { get; set; }
+    }
+
+    public class GroupModel
+    {
+        public GroupModel(Group group)
+        {
+            GroupId = group.Id;
+            GroupName = group.Name;
+        }
+
+        public string GroupId { get; set; }
+
+        public string GroupName { get; set; }
     }
 }
 
