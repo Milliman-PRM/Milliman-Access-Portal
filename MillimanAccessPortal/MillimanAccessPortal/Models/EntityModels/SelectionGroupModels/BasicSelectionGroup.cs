@@ -14,6 +14,8 @@ namespace MillimanAccessPortal.Models.EntityModels.SelectionGroupModels
         public bool IsSuspended { get; set; }
         public bool IsInactive { get; set; }
         public bool IsMaster { get; set; }
+        public bool IsEditableEligible { get; set; }
+        public bool IsEditable { get; set; }
         public string Name { get; set; }
 
         public static explicit operator BasicSelectionGroup(SelectionGroup selectionGroup)
