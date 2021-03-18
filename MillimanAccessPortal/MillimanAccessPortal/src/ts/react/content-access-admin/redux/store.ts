@@ -31,6 +31,7 @@ export interface PendingDataState {
   updateGroup: boolean;
   deleteGroup: boolean;
   suspendGroup: boolean;
+  setGroupPowerBIEditability: boolean;
   updateSelections: boolean;
   cancelReduction: boolean;
 }
