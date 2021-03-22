@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using MillimanAccessPortal.Models.ContentPublishing;
 using System;
 using System.Collections.Generic;
@@ -38,6 +39,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
         public string ReleaseNotesURL { get; set; }
+        public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; }
     }
 }

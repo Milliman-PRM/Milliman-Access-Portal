@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Context;
+using MapDbContextLib.Models;
 using MapDbContextLib.Identity;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
@@ -136,6 +137,7 @@ namespace MillimanAccessPortal.DataQueries
                             ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                                     ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"  // must be absolute because it is used in iframe element
                                     : null,
+                            TypeSpecificDetailObject = sg.RootContentItem.TypeSpecificDetailObject,
                             AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
                             {
                                 AssociatedFilePreviewSummary summary = new AssociatedFilePreviewSummary(af);

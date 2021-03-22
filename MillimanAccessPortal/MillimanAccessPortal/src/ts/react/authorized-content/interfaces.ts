@@ -14,6 +14,18 @@ export interface ContentItem {
   imageURL?: string;
   userguideURL?: string;
   releaseNotesURL?: string;
+  typeSpecificDetailObject: {
+    editableEnabled?: boolean;
+    bookmarksPaneEnabled?: boolean;
+    filterPaneEnabled?: boolean;
+    liveEmbedUrl?: string;
+    liveReportId?: Guid;
+    liveWorkspaceId?: Guid;
+    navigationPaneEnabled?: boolean;
+    previewEmbedUrl?: string;
+    previewReportId?: Guid;
+    previewWorkspaceId?: Guid;
+  };
 }
 
 export interface ContentItemGroup {
