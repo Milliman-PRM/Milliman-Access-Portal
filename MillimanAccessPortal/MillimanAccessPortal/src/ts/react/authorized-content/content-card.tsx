@@ -70,7 +70,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
       );
 
       let caption = "";
-      if (this.props.typeSpecificDetailObject.editableEnabled && this.props.contentTypeEnum == 5) {
+      if (this.props.contentTypeEnum === ContentTypeEnum.PowerBi && this.props.typeSpecificDetailObject != null && this.props.typeSpecificDetailObject.editableEnabled) {
           caption = "Editing capabilities have been enable for this Power BI document.Saving the document will update it for all the users";
       }
   

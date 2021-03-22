@@ -14,7 +14,7 @@ export interface ContentItem {
   imageURL?: string;
   userguideURL?: string;
   releaseNotesURL?: string;
-  typeSpecificDetailObject: {
+  typeSpecificDetailObject?: {
     editableEnabled?: boolean;
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;
