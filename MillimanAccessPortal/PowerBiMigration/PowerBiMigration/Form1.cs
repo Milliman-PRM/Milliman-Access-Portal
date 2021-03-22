@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text.Json;
@@ -43,11 +44,12 @@ namespace PowerBiMigration
 
             lstClients.DisplayMember = "Name";
             lstContentItems.DisplayMember = "ContentName";
-            lstPbiWorkspaces.DisplayMember = "Name";
+            lstPbiWorkspaces.DisplayMember = "GroupName";
             lstPowerBiReports.DisplayMember = "ReportName";
 
             IConfigurationBuilder configBuilder = new ConfigurationBuilder();
             configBuilder.AddJsonFile("appSettings.json", false);
+            configBuilder.AddUserSecrets<Form1>(true);
             IConfigurationRoot _appConfig = configBuilder.Build();
 
             _sourcePbiConfig = new PowerBiConfig
@@ -216,7 +218,7 @@ namespace PowerBiMigration
 
                 foreach (Client client in clients)
                 {
-                    Microsoft.PowerBI.Api.V2.Models.Group thisGroup = allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString());
+                    GroupModel thisGroupModel = new GroupModel(allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString()));
                     List<ReportModel> thisGroupReports = await sourcePbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
 
                     if (pbiContentItems.Count(c => c.ClientId == client.Id) > thisGroupReports.Count)
@@ -226,7 +228,7 @@ namespace PowerBiMigration
                     }
 
                     lstClients.Items.Add(new { client.Name, client });
-                    lstPbiWorkspaces.Items.Add(new { thisGroup.Name, Group = thisGroup });
+                    lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
                 }
             }
 
@@ -235,21 +237,24 @@ namespace PowerBiMigration
 
         private async void LstClients_SelectedIndexChanged(object sender, EventArgs e)
         {
+            StartOperation();
+
             object lstItem = lstClients.SelectedItem;
             if (lstItem != null)
             {
                 Type itemType = lstItem.GetType();
                 PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
-                var client = contentItemPropertyInfo.GetValue(lstItem) as Client;
+                Client client = contentItemPropertyInfo.GetValue(lstItem) as Client;
 
                 using (var db = new ApplicationDbContext(_dbOptions))
                 {
+                    lstContentItems.Items.Clear();
+
                     List<RootContentItem> contentItems = db.RootContentItem
                                                            .Where(c => c.ClientId == client.Id)
                                                            .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
                                                            .ToList();
 
-                    lstContentItems.Items.Clear();
                     lstContentItems.Items.AddRange(contentItems.Select(c => new { c.ContentName, c }).ToArray());
 
                     PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
@@ -258,6 +263,8 @@ namespace PowerBiMigration
                     lstPbiWorkspaces.SelectedIndex = workspaceIndex;
 
                     lstPbiWorkspaces.TopIndex = lstClients.TopIndex;
+
+                    EndOperation();
 
                     //List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
                     //lstPowerBiReports.Items.Clear();
@@ -283,7 +290,7 @@ namespace PowerBiMigration
 
                 PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
 
-                List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(groupModel.GroupId);
+                List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(groupModel.GroupName);
                 lstPowerBiReports.Items.Clear();
                 lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
 
@@ -291,6 +298,34 @@ namespace PowerBiMigration
                 lstContentItems.SelectedIndex = clientIndex;
 
                 lstClients.TopIndex = lstPbiWorkspaces.TopIndex;
+            }
+        }
+
+        private async void BtnExportAll_Click(object sender, EventArgs e)
+        {
+            if (!Directory.Exists(txtStorageFolder.Text))
+            {
+                MessageBox.Show($"Target folder <{txtStorageFolder.Text}> does not exist");
+                return;
+            }
+
+            foreach (var lstItem in lstClients.Items)
+            {
+                Type itemType = lstItem.GetType();
+                PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
+                var client = contentItemPropertyInfo.GetValue(lstItem) as Client;
+
+                string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
+                Directory.CreateDirectory(newSubFolder);
+
+                PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
+
+                foreach (var report in reports)
+                {
+                    //Export to the folder;
+                    var x = await pbiApi.ExportReportAsync(report.ReportId);
+                }
             }
         }
     }

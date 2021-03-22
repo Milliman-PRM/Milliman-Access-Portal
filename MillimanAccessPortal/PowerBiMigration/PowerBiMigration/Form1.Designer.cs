@@ -44,6 +44,7 @@ namespace PowerBiMigration
             this.txtStorageFolder = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.btnTest = new System.Windows.Forms.Button();
+            this.btnExportAll = new System.Windows.Forms.Button();
             this.grpDatabase.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -186,11 +187,22 @@ namespace PowerBiMigration
             this.btnTest.UseVisualStyleBackColor = true;
             this.btnTest.Click += new System.EventHandler(this.BtnTest_Click);
             // 
+            // btnExportAll
+            // 
+            this.btnExportAll.Location = new System.Drawing.Point(12, 265);
+            this.btnExportAll.Name = "btnExportAll";
+            this.btnExportAll.Size = new System.Drawing.Size(111, 23);
+            this.btnExportAll.TabIndex = 7;
+            this.btnExportAll.Text = "Export All";
+            this.btnExportAll.UseVisualStyleBackColor = true;
+            this.btnExportAll.Click += new System.EventHandler(this.BtnExportAll_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1064, 691);
+            this.Controls.Add(this.btnExportAll);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.txtStorageFolder);
             this.Controls.Add(this.groupBox1);
@@ -221,6 +233,7 @@ namespace PowerBiMigration
         private System.Windows.Forms.ListBox lstPowerBiReports;
         private System.Windows.Forms.Label lblPowerBiReports;
         private System.Windows.Forms.Button btnTest;
+        private System.Windows.Forms.Button btnExportAll;
     }
 }
 

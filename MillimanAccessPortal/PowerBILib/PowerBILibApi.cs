@@ -85,9 +85,15 @@ namespace PowerBiLib
 
         public async Task DeleteThisMethod()
         {
+            var groups = await GetAllGroupsAsync();
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var x = client;
+                int i = 0;
+                foreach (var group in groups)
+                {
+                    i++;
+                    var x = await client.Groups.GetGroupUsersAsync(group.Id);
+                }
             }
         }
 
@@ -99,6 +105,8 @@ namespace PowerBiLib
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
+                var y = (await client.Groups.GetGroupsAsync()).Value.ToList();
+                var x = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 ODataResponseListReport reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
 
@@ -183,6 +191,37 @@ namespace PowerBiLib
 
                 return embedProperties;
             }
+        }
+
+        /// <summary>
+        /// Exports a report from PowerBi
+        /// </summary>
+        /// <param name="reportId"></param>
+        /// <returns></returns>
+        public async Task<bool> ExportReportAsync(string reportId)
+        {
+            try
+            {
+                Guid.Parse(reportId);  // throw if null or malformed
+
+                using (var client = new PowerBIClient(_tokenCredentials))
+                {
+                    Report foundReport = await client.Reports.GetReportAsync(reportId);
+                    if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
+                    {
+                        Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
+                        return false;
+                    }
+                    var x = await client.Reports.ExportReportAsync(reportId);
+                    //object datasetDeleteResultObj = await client.Datasets.DeleteDatasetByIdAsync(foundReport.DatasetId);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
