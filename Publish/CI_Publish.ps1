@@ -300,7 +300,7 @@ if ($LASTEXITCODE -ne 0)
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
-if($runTests) {
+if($False) {
     log_statement "Performing MAP unit tests"
 
     Set-Location $rootPath\MillimanAccessPortal\MapTests
