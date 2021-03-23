@@ -534,45 +534,45 @@ if ($LASTEXITCODE -ne 0) {
 
 #region Create and publish FileDrop docker container
 
-Set-Location $rootpath\SftpServer
+#Set-Location $rootpath\SftpServer
 
 #Replace Windows line endings with Unix ones in entrypoint script
-$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
-((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
+#$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
+#((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
 
-$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
-$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
+#$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
+#$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
+#Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
 
 
 # Get Secrets from the FileDrop Key Vault
-$acr_url = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrurl").SecretValueText
+#$acr_url = (get-azkeyvaultsecret `
+#    -VaultName $azVaultNameFD `
+#    -SecretName "acrurl").SecretValueText
 
-$acr_username = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acruser").SecretValueText
+#$acr_username = (get-azkeyvaultsecret `
+#    -VaultName $azVaultNameFD `
+#    -SecretName "acruser").SecretValueText
 
-$acr_password = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrpass").SecretValueText
+#$acr_password = (get-azkeyvaultsecret `
+#    -VaultName $azVaultNameFD `
+#    -SecretName "acrpass").SecretValueText
 
-$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
+#$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
 
-Set-Location $rootpath
+#Set-Location $rootpath
 
-docker login $acr_url -u $acr_username -p $acr_password
+#docker login $acr_url -u $acr_username -p $acr_password
 
-docker build -t filedropsftp -f SftpServer/dockerfile .
+#docker build -t filedropsftp -f SftpServer/dockerfile .
 
-docker tag filedropsftp $FDImageName
+#docker tag filedropsftp $FDImageName
 
-docker push $FDImageName
+#docker push $FDImageName
 
-docker rmi $FDImageName
+#docker rmi $FDImageName
 
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 #endregion
 
 #region Deploy releases to Octopus
@@ -642,9 +642,9 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Filedrop Release"
+#log_statement "Creating Filedrop Release"
 
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Filedrop release created successfully"
