@@ -127,7 +127,8 @@ $queryAppBuildTarget = "$rootPath\MillimanAccessPortal\MapQueryAdminWeb\bin\$bui
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
-$runTests = $env:RunTests -ne "False"
+#$runTests = $env:RunTests -ne "False"
+$runTests = "False"
 
 
 $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
