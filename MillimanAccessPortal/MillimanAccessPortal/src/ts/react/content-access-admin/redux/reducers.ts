@@ -32,7 +32,7 @@ const _initialPendingData: PendingDataState = {
   updateGroup: false,
   deleteGroup: false,
   suspendGroup: false,
-  setGroupPowerBIEditability: false,
+  setGroupPowerBiEditability: false,
   updateSelections: false,
   cancelReduction: false,
 };
@@ -220,15 +220,15 @@ const pendingData = createReducer<PendingDataState>(_initialPendingData, {
   }),
   SET_GROUP_POWER_BI_EDITABILITY: (state) => ({
     ...state,
-    setGroupPowerBIEditability: true,
+    setGroupPowerBiEditability: true,
   }),
   SET_GROUP_POWER_BI_EDITABILITY_SUCCEEDED: (state) => ({
     ...state,
-    setGroupPowerBIEditability: false,
+    setGroupPowerBiEditability: false,
   }),
   SET_GROUP_POWER_BI_EDITABILITY_FAILED: (state) => ({
     ...state,
-    setGroupPowerBIEditability: false,
+    setGroupPowerBiEditability: false,
   }),
   UPDATE_SELECTIONS: (state) => ({
     ...state,
@@ -558,8 +558,8 @@ const data = createReducer<AccessStateData>(_initialData, {
         [group.id]: {
           ...state.groups[group.id],
           ...group,
-        }
-      }
+        },
+      },
     };
   },
   UPDATE_SELECTIONS_SUCCEEDED: (state, action: AccessActions.UpdateSelectionsSucceeded) => {

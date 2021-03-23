@@ -565,7 +565,7 @@ export interface SetGroupPowerBiEditability {
   type: 'SET_GROUP_POWER_BI_EDITABILITY';
   request: {
     groupId: Guid;
-    editability: boolean;
+    editable: boolean;
   }
 }
 export interface SetGroupPowerBiEditabilitySucceeded {

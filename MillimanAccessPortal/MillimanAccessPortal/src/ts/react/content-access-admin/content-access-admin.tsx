@@ -476,6 +476,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
                   this.props.fetchSelections({ groupId: entity.id });
                 }
                 this.props.selectGroup({ id: entity.id });
+                this.props.fetchStatusRefresh({ clientId: selected.client, contentItemId: entity.rootContentItemId });
               }}
               suspended={entity.isSuspended}
               inactive={entity.isInactive}
@@ -655,8 +656,11 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     }));
     return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
+        isEditable={group.editable}
+        onIsEditableChange={(value) => this.props.setGroupPowerBiEditability({ groupId: group.id, editable: value })}
         isSuspended={group.isSuspended}
         onIsSuspendedChange={(value) => this.props.suspendGroup({ groupId: group.id, isSuspended: value })}
+        isEditableEligible={group.isEditableEligible}
         doesReduce={item.doesReduce}
         isAllValuesSelected={allSelected}
         isAllValuesDeselected={allDeselected}

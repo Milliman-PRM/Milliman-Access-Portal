@@ -192,6 +192,8 @@ export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
   selectedValues?: Guid[];
+  editable?: boolean;
+  isEditableEligible?: boolean;
   isSuspended: boolean;
   isInactive: boolean;
   isMaster: boolean;
