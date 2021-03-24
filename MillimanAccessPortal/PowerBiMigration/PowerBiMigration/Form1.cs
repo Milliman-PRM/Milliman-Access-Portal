@@ -34,23 +34,18 @@ namespace PowerBiMigration
         {
             InitializeComponent();
 
-            // Initialize Serilog
-            Log.Logger = new LoggerConfiguration()
-                .WriteTo.Debug()
-                .MinimumLevel.Debug()
-                .CreateLogger();
-
             folderBrowserDialog1.ShowNewFolderButton = true;
-
-            lstClients.DisplayMember = "Name";
-            lstContentItems.DisplayMember = "ContentName";
-            lstPbiWorkspaces.DisplayMember = "GroupName";
-            lstPowerBiReports.DisplayMember = "ReportName";
 
             IConfigurationBuilder configBuilder = new ConfigurationBuilder();
             configBuilder.AddJsonFile("appSettings.json", false);
             configBuilder.AddUserSecrets<Form1>(true);
             IConfigurationRoot _appConfig = configBuilder.Build();
+
+            lstClients.DisplayMember = "Name";
+            lstContentItems.DisplayMember = "ContentName";
+            lstPbiWorkspaces.DisplayMember = "GroupName";
+            lstPowerBiReports.DisplayMember = "ReportName";
+            chkWriteFiles.Checked = _appConfig.GetValue("WriteFiles", false);
 
             _sourcePbiConfig = new PowerBiConfig
             {
@@ -74,26 +69,8 @@ namespace PowerBiMigration
                 PbiTenantId = _appConfig.GetValue<string>("TargetPbiTenantId"),
             };
 
-            Log.Logger = new LoggerConfiguration()
-                .CreateLogger();
-
             _mapConnectionString = _appConfig.GetConnectionString("MapDbConnection");
             _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(_mapConnectionString).Options;
-        }
-
-        private void StartOperation()
-        {
-            _pendingOperationsCount++;
-            Cursor = Cursors.WaitCursor;
-        }
-
-        private void EndOperation()
-        {
-            _pendingOperationsCount--;
-            if (_pendingOperationsCount == 0)
-            {
-                Cursor = Cursors.Default;
-            }
         }
 
         //private async void BtnGetAllSourceDocs_Click(object sender, EventArgs e)
@@ -197,78 +174,77 @@ namespace PowerBiMigration
 
         private async void BtnGetAllInventory_Click(object sender, EventArgs e)
         {
-            StartOperation();
-
-            using (var db = new ApplicationDbContext(_dbOptions))
+            using (new OperationScope(this, "Getting inventory"))
             {
-                List<RootContentItem> pbiContentItems = db.RootContentItem
-                                                          .Include(c => c.Client)
-                                                          .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
-                                                          .ToList();
-
-                List<Client> clients = pbiContentItems.Select(c => c.Client).Distinct(new IdPropertyComparer<Client>()).ToList();
-
-                PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-                var allPbiGroups = await sourcePbiApi.GetAllGroupsAsync();
-
-                lstClients.Items.Clear();
-                lstContentItems.Items.Clear();
-                lstPbiWorkspaces.Items.Clear();
-                lstPowerBiReports.Items.Clear();
-
-                foreach (Client client in clients)
+                using (var db = new ApplicationDbContext(_dbOptions))
                 {
-                    GroupModel thisGroupModel = new GroupModel(allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString()));
-                    List<ReportModel> thisGroupReports = await sourcePbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
+                    List<RootContentItem> pbiContentItems = await db.RootContentItem
+                                                                    .Include(c => c.Client)
+                                                                    .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                                                    .ToListAsync();
 
-                    if (pbiContentItems.Count(c => c.ClientId == client.Id) > thisGroupReports.Count)
+                    List<Client> clients = pbiContentItems.Select(c => c.Client).Distinct(new IdPropertyComparer<Client>()).ToList();
+
+                    PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                    var allPbiGroups = await sourcePbiApi.GetAllGroupsAsync();
+
+                    lstClients.Items.Clear();
+                    lstContentItems.Items.Clear();
+                    lstPbiWorkspaces.Items.Clear();
+                    lstPowerBiReports.Items.Clear();
+
+                    foreach (Client client in clients)
                     {
-                        int i = 8;
-                        // something is bad
-                    }
+                        GroupModel thisGroupModel = new GroupModel(allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString()));
+                        List<ReportModel> thisGroupReports = await sourcePbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
 
-                    lstClients.Items.Add(new { client.Name, client });
-                    lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
+                        if (pbiContentItems.Count(c => c.ClientId == client.Id) > thisGroupReports.Count)
+                        {
+                            int i = 8;
+                            // something is bad
+                        }
+
+                        lstClients.Items.Add(new { client.Name, client });
+                        lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
+                    }
                 }
             }
 
-            EndOperation();
         }
 
         private async void LstClients_SelectedIndexChanged(object sender, EventArgs e)
         {
-            StartOperation();
-
-            object lstItem = lstClients.SelectedItem;
-            if (lstItem != null)
+            using (new OperationScope(this))
             {
-                Type itemType = lstItem.GetType();
-                PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
-                Client client = contentItemPropertyInfo.GetValue(lstItem) as Client;
-
-                using (var db = new ApplicationDbContext(_dbOptions))
+                object lstItem = lstClients.SelectedItem;
+                if (lstItem != null)
                 {
-                    lstContentItems.Items.Clear();
+                    Type itemType = lstItem.GetType();
+                    PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
+                    Client client = contentItemPropertyInfo.GetValue(lstItem) as Client;
 
-                    List<RootContentItem> contentItems = db.RootContentItem
-                                                           .Where(c => c.ClientId == client.Id)
-                                                           .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
-                                                           .ToList();
+                    using (var db = new ApplicationDbContext(_dbOptions))
+                    {
+                        lstContentItems.Items.Clear();
 
-                    lstContentItems.Items.AddRange(contentItems.Select(c => new { c.ContentName, c }).ToArray());
+                        List<RootContentItem> contentItems = db.RootContentItem
+                                                               .Where(c => c.ClientId == client.Id)
+                                                               .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                                               .ToList();
 
-                    PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                        lstContentItems.Items.AddRange(contentItems.Select(c => new { c.ContentName, c }).ToArray());
 
-                    int workspaceIndex = lstPbiWorkspaces.FindStringExact(client.Id.ToString());
-                    lstPbiWorkspaces.SelectedIndex = workspaceIndex;
+                        PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
 
-                    lstPbiWorkspaces.TopIndex = lstClients.TopIndex;
+                        int workspaceIndex = lstPbiWorkspaces.FindStringExact(client.Id.ToString());
+                        lstPbiWorkspaces.SelectedIndex = workspaceIndex;
 
-                    EndOperation();
+                        lstPbiWorkspaces.TopIndex = lstClients.TopIndex;
 
-                    //List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
-                    //lstPowerBiReports.Items.Clear();
-                    //lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
+                        //List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
+                        //lstPowerBiReports.Items.Clear();
+                        //lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
+                    }
                 }
             }
         }
@@ -281,6 +257,8 @@ namespace PowerBiMigration
 
         private async void LstPbiWorkspaces_SelectedIndexChanged(object sender, EventArgs e)
         {
+            lstPowerBiReports.Items.Clear();
+
             object lstItem = lstPbiWorkspaces.SelectedItem;
             if (lstItem != null)
             {
@@ -291,7 +269,6 @@ namespace PowerBiMigration
                 PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
 
                 List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(groupModel.GroupName);
-                lstPowerBiReports.Items.Clear();
                 lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
 
                 int clientIndex = lstClients.FindStringExact(groupModel.GroupName);
@@ -303,29 +280,62 @@ namespace PowerBiMigration
 
         private async void BtnExportAll_Click(object sender, EventArgs e)
         {
-            if (!Directory.Exists(txtStorageFolder.Text))
+            using (new OperationScope(this))
             {
-                MessageBox.Show($"Target folder <{txtStorageFolder.Text}> does not exist");
-                return;
-            }
+                Stopwatch operationTimer = new Stopwatch();
+                operationTimer.Start();
 
-            foreach (var lstItem in lstClients.Items)
-            {
-                Type itemType = lstItem.GetType();
-                PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
-                var client = contentItemPropertyInfo.GetValue(lstItem) as Client;
-
-                string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
-                Directory.CreateDirectory(newSubFolder);
-
-                PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-                List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
-
-                foreach (var report in reports)
+                if (chkWriteFiles.Checked && !Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))  // Check that the parent folder exists
                 {
-                    //Export to the folder;
-                    var x = await pbiApi.ExportReportAsync(report.ReportId);
+                    MessageBox.Show($"Parent folder of target <{txtStorageFolder.Text}> does not exist");
+                    return;
                 }
+
+                Directory.Delete(txtStorageFolder.Text, true);
+                Thread.Sleep(2000);
+                Directory.CreateDirectory(txtStorageFolder.Text);
+
+                foreach (var lstItem in lstClients.Items)
+                {
+                    Type itemType = lstItem.GetType();
+                    PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
+                    var client = contentItemPropertyInfo.GetValue(lstItem) as Client;
+
+                    string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
+                    Directory.CreateDirectory(newSubFolder);
+
+                    PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+
+                    // Query from DB not Power BI
+                    List<RootContentItem> contentItems = null;
+                    using (var db = new ApplicationDbContext(_dbOptions))
+                    {
+                        contentItems = db.RootContentItem
+                                         .Include(c => c.ContentType)
+                                         .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                         .Where(c => c.ClientId == client.Id)
+                                         .ToList();
+                    }
+
+                    foreach (var contentItem in contentItems)
+                    {
+                        PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                        long itemStartMs = operationTimer.ElapsedMilliseconds;
+                        var writtenFilePath = await pbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, newSubFolder, chkWriteFiles.Checked);
+                        long itemStopMs = operationTimer.ElapsedMilliseconds;
+
+                        string msg = writtenFilePath switch
+                            {
+                                null => $"Error while processing content item {contentItem.ContentName}, time {(itemStopMs - itemStartMs) / 1000} seconds",
+                                "" => $"Content item <{contentItem.ContentName}> processed, not saved, in {(itemStopMs - itemStartMs) / 1000} seconds",
+                                _ => $"Content item <{contentItem.ContentName}> exported to file {writtenFilePath} in {(itemStopMs - itemStartMs) / 1000} seconds"
+                            };
+                        Log.Information(msg);
+                    }
+                }
+
+                MessageBox.Show($"Operation completed in {operationTimer.ElapsedMilliseconds / 1000} seconds");
             }
         }
     }

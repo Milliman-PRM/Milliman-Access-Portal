@@ -45,6 +45,7 @@ namespace PowerBiMigration
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.btnTest = new System.Windows.Forms.Button();
             this.btnExportAll = new System.Windows.Forms.Button();
+            this.chkWriteFiles = new System.Windows.Forms.CheckBox();
             this.grpDatabase.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -189,7 +190,7 @@ namespace PowerBiMigration
             // 
             // btnExportAll
             // 
-            this.btnExportAll.Location = new System.Drawing.Point(12, 265);
+            this.btnExportAll.Location = new System.Drawing.Point(12, 290);
             this.btnExportAll.Name = "btnExportAll";
             this.btnExportAll.Size = new System.Drawing.Size(111, 23);
             this.btnExportAll.TabIndex = 7;
@@ -197,11 +198,22 @@ namespace PowerBiMigration
             this.btnExportAll.UseVisualStyleBackColor = true;
             this.btnExportAll.Click += new System.EventHandler(this.BtnExportAll_Click);
             // 
+            // chkWriteFiles
+            // 
+            this.chkWriteFiles.AutoSize = true;
+            this.chkWriteFiles.Location = new System.Drawing.Point(18, 265);
+            this.chkWriteFiles.Name = "chkWriteFiles";
+            this.chkWriteFiles.Size = new System.Drawing.Size(80, 19);
+            this.chkWriteFiles.TabIndex = 8;
+            this.chkWriteFiles.Text = "Write Files";
+            this.chkWriteFiles.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1064, 691);
+            this.Controls.Add(this.chkWriteFiles);
             this.Controls.Add(this.btnExportAll);
             this.Controls.Add(this.btnTest);
             this.Controls.Add(this.txtStorageFolder);
@@ -234,6 +246,7 @@ namespace PowerBiMigration
         private System.Windows.Forms.Label lblPowerBiReports;
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnExportAll;
+        private System.Windows.Forms.CheckBox chkWriteFiles;
     }
 }
 

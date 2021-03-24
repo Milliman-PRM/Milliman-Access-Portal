@@ -149,7 +149,7 @@ namespace PowerBiLib
         /// Import a .pbix file to PowerBI in the cloud
         /// </summary>
         /// <param name="pbixFullPath"></param>
-        /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to</param>
+        /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
         /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
         /// <returns></returns>
         public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
@@ -198,7 +198,7 @@ namespace PowerBiLib
         /// </summary>
         /// <param name="reportId"></param>
         /// <returns></returns>
-        public async Task<bool> ExportReportAsync(string reportId)
+        public async Task<string> ExportReportAsync(string groupId, string reportId, string outputFolderFullPath, bool writeFiles)
         {
             try
             {
@@ -206,22 +206,48 @@ namespace PowerBiLib
 
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
-                    Report foundReport = await client.Reports.GetReportAsync(reportId);
+                    Report foundReport = await client.Reports.GetReportInGroupAsync(groupId, reportId);
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
-                        return false;
+                        return null;
                     }
-                    var x = await client.Reports.ExportReportAsync(reportId);
-                    //object datasetDeleteResultObj = await client.Datasets.DeleteDatasetByIdAsync(foundReport.DatasetId);
+
+                    string fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix");
+
+                    Stream exportStream = await client.Reports.ExportReportAsync(foundReport.Id);
+                    using (BinaryReader reader = new BinaryReader(exportStream))
+                    {
+                        using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
+                        {
+                            for (;;)
+                            {
+                                byte[] buffer = reader.ReadBytes(65_536);
+                                if (buffer.Length > 0)
+                                {
+                                    if (writeFiles)
+                                    {
+                                        writer.Write(buffer);
+                                    }
+                                }
+                                else
+                                {
+                                    break;
+                                }
+                            }
+                        }
+
+                        return writeFiles
+                            ? fullOutputFilePath
+                            : string.Empty;
+                    }
                 }
             }
             catch (Exception e)
             {
                 Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
-                return false;
+                return null;
             }
-            return true;
         }
 
         /// <summary>

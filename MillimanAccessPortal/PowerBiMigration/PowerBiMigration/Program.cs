@@ -15,6 +15,12 @@ namespace PowerBiMigration
         [STAThread]
         static void Main()
         {
+            // Initialize Serilog
+            Log.Logger = new LoggerConfiguration()
+                .WriteTo.Debug()
+                .MinimumLevel.Debug()
+                .CreateLogger();
+
             Application.SetHighDpiMode(HighDpiMode.SystemAware);
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
