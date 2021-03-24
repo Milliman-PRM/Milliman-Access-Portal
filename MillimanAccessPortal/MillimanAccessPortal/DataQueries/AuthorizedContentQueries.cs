@@ -137,7 +137,7 @@ namespace MillimanAccessPortal.DataQueries
                             ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                                     ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"  // must be absolute because it is used in iframe element
                                     : null,
-                            TypeSpecificDetailObject = sg.RootContentItem.TypeSpecificDetailObject,
+                            EditableEnabled = (sg.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi) && ((PowerBiContentItemProperties)sg.RootContentItem.TypeSpecificDetailObject).EditableEnabled,
                             AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
                             {
                                 AssociatedFilePreviewSummary summary = new AssociatedFilePreviewSummary(af);
@@ -150,7 +150,7 @@ namespace MillimanAccessPortal.DataQueries
                                     Query = $"selectionGroupId={sg.Id}&fileId={af.Id}",
                                 };
                                 summary.Link = uri.Uri.AbsoluteUri;  // must be absolute because it is used in iframe element
-                                    return summary;
+                                return summary;
                             }).OrderBy(f => f.SortOrder).ToList(),
                         }).OrderBy(contentItem => contentItem.Name).ToList();
                     }

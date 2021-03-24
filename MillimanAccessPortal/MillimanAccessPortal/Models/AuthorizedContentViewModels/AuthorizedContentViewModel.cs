@@ -39,7 +39,7 @@ namespace MillimanAccessPortal.Models.AuthorizedContentViewModels
         public string ContentURL { get; set; }
         public string UserguideURL { get; set; }
         public string ReleaseNotesURL { get; set; }
-        public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
+        public bool EditableEnabled { get; set; }
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; }
     }
 }
