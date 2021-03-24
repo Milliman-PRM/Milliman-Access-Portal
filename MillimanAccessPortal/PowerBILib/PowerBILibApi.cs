@@ -198,7 +198,7 @@ namespace PowerBiLib
         /// </summary>
         /// <param name="reportId"></param>
         /// <returns></returns>
-        public async Task<string> ExportReportAsync(string groupId, string reportId, string outputFolderFullPath, bool writeFiles)
+        public async Task<(ReportModel report, string reportFilePath)> ExportReportAsync(string groupId, string reportId, string outputFolderFullPath, bool writeFiles)
         {
             try
             {
@@ -210,7 +210,7 @@ namespace PowerBiLib
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
-                        return null;
+                        return (null, null);
                     }
 
                     string fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix");
@@ -237,16 +237,14 @@ namespace PowerBiLib
                             }
                         }
 
-                        return writeFiles
-                            ? fullOutputFilePath
-                            : string.Empty;
+                        return (new ReportModel(foundReport), writeFiles ? fullOutputFilePath : string.Empty);
                     }
                 }
             }
             catch (Exception e)
             {
                 Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
-                return null;
+                return (null, null);
             }
         }
 

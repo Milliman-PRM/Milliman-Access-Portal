@@ -46,6 +46,8 @@ namespace PowerBiMigration
             this.btnTest = new System.Windows.Forms.Button();
             this.btnExportAll = new System.Windows.Forms.Button();
             this.chkWriteFiles = new System.Windows.Forms.CheckBox();
+            this.chkImportToTarget = new System.Windows.Forms.CheckBox();
+            this.chkUpdateDatabase = new System.Windows.Forms.CheckBox();
             this.grpDatabase.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -201,18 +203,47 @@ namespace PowerBiMigration
             // chkWriteFiles
             // 
             this.chkWriteFiles.AutoSize = true;
+            this.chkWriteFiles.Checked = true;
+            this.chkWriteFiles.CheckState = System.Windows.Forms.CheckState.Indeterminate;
             this.chkWriteFiles.Location = new System.Drawing.Point(18, 265);
             this.chkWriteFiles.Name = "chkWriteFiles";
             this.chkWriteFiles.Size = new System.Drawing.Size(80, 19);
             this.chkWriteFiles.TabIndex = 8;
             this.chkWriteFiles.Text = "Write Files";
             this.chkWriteFiles.UseVisualStyleBackColor = true;
+            this.chkWriteFiles.CheckStateChanged += new System.EventHandler(this.ChkWriteFiles_CheckStateChanged);
+            // 
+            // chkImportToTarget
+            // 
+            this.chkImportToTarget.AutoSize = true;
+            this.chkImportToTarget.Checked = true;
+            this.chkImportToTarget.CheckState = System.Windows.Forms.CheckState.Indeterminate;
+            this.chkImportToTarget.Location = new System.Drawing.Point(129, 264);
+            this.chkImportToTarget.Name = "chkImportToTarget";
+            this.chkImportToTarget.Size = new System.Drawing.Size(112, 19);
+            this.chkImportToTarget.TabIndex = 9;
+            this.chkImportToTarget.Text = "Import To Target";
+            this.chkImportToTarget.UseVisualStyleBackColor = true;
+            this.chkImportToTarget.CheckStateChanged += new System.EventHandler(this.ChkImportToTarget_CheckStateChanged);
+            this.chkImportToTarget.EnabledChanged += new System.EventHandler(this.ChkImportToTarget_EnabledChanged);
+            // 
+            // chkUpdateDatabase
+            // 
+            this.chkUpdateDatabase.AutoSize = true;
+            this.chkUpdateDatabase.Location = new System.Drawing.Point(248, 264);
+            this.chkUpdateDatabase.Name = "chkUpdateDatabase";
+            this.chkUpdateDatabase.Size = new System.Drawing.Size(115, 19);
+            this.chkUpdateDatabase.TabIndex = 10;
+            this.chkUpdateDatabase.Text = "Update Database";
+            this.chkUpdateDatabase.UseVisualStyleBackColor = true;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1064, 691);
+            this.Controls.Add(this.chkUpdateDatabase);
+            this.Controls.Add(this.chkImportToTarget);
             this.Controls.Add(this.chkWriteFiles);
             this.Controls.Add(this.btnExportAll);
             this.Controls.Add(this.btnTest);
@@ -247,6 +278,8 @@ namespace PowerBiMigration
         private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnExportAll;
         private System.Windows.Forms.CheckBox chkWriteFiles;
+        private System.Windows.Forms.CheckBox chkImportToTarget;
+        private System.Windows.Forms.CheckBox chkUpdateDatabase;
     }
 }
 

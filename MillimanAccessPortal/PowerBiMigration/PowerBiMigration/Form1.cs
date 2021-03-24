@@ -23,53 +23,55 @@ namespace PowerBiMigration
 {
     public partial class Form1 : Form
     {
-        private int _pendingOperationsCount = 0;
         private string _mapConnectionString = null;
         private DbContextOptions<ApplicationDbContext> _dbOptions = null;
         private PowerBiConfig _sourcePbiConfig = null;
         private PowerBiConfig _targetPbiConfig = null;
         private Dictionary<string, string> _groupMap = new Dictionary<string,string>();
+        List<ProcessedItem> _processedItems = new List<ProcessedItem>();
 
         public Form1()
         {
             InitializeComponent();
 
-            folderBrowserDialog1.ShowNewFolderButton = true;
-
             IConfigurationBuilder configBuilder = new ConfigurationBuilder();
             configBuilder.AddJsonFile("appSettings.json", false);
             configBuilder.AddUserSecrets<Form1>(true);
-            IConfigurationRoot _appConfig = configBuilder.Build();
+            IConfigurationRoot appConfig = configBuilder.Build();
 
             lstClients.DisplayMember = "Name";
             lstContentItems.DisplayMember = "ContentName";
             lstPbiWorkspaces.DisplayMember = "GroupName";
             lstPowerBiReports.DisplayMember = "ReportName";
-            chkWriteFiles.Checked = _appConfig.GetValue("WriteFiles", false);
+
+            // Initial CheckState value is CheckState.Indeterminate because I want the following to fire a CheckStateChanged event
+            chkWriteFiles.CheckState = appConfig.GetValue("WriteFiles", false)
+                ? CheckState.Checked
+                : CheckState.Unchecked;
 
             _sourcePbiConfig = new PowerBiConfig
             {
-                PbiGrantType = _appConfig.GetValue<string>("SourcePbiGrantType"),
-                PbiAuthenticationScope = _appConfig.GetValue<string>("SourcePbiAuthenticationScope"),
-                PbiAzureADClientId = _appConfig.GetValue<string>("SourcePbiAzureADClientID"),
-                PbiAzureADClientSecret = _appConfig.GetValue<string>("SourcePbiAzureADClientSecret"),
-                PbiAzureADUsername = _appConfig.GetValue<string>("SourcePbiAzureADUsername"),
-                PbiAzureADPassword = _appConfig.GetValue<string>("SourcePbiAzureADPassword"),
-                PbiTenantId = _appConfig.GetValue<string>("SourcePbiTenantId"),
+                PbiGrantType = appConfig.GetValue<string>("SourcePbiGrantType"),
+                PbiAuthenticationScope = appConfig.GetValue<string>("SourcePbiAuthenticationScope"),
+                PbiAzureADClientId = appConfig.GetValue<string>("SourcePbiAzureADClientID"),
+                PbiAzureADClientSecret = appConfig.GetValue<string>("SourcePbiAzureADClientSecret"),
+                PbiAzureADUsername = appConfig.GetValue<string>("SourcePbiAzureADUsername"),
+                PbiAzureADPassword = appConfig.GetValue<string>("SourcePbiAzureADPassword"),
+                PbiTenantId = appConfig.GetValue<string>("SourcePbiTenantId"),
             };
 
             _targetPbiConfig = new PowerBiConfig
             {
-                PbiGrantType = _appConfig.GetValue<string>("TargetPbiGrantType"),
-                PbiAuthenticationScope = _appConfig.GetValue<string>("TargetPbiAuthenticationScope"),
-                PbiAzureADClientId = _appConfig.GetValue<string>("TargetPbiAzureADClientID"),
-                PbiAzureADClientSecret = _appConfig.GetValue<string>("TargetPbiAzureADClientSecret"),
-                PbiAzureADUsername = _appConfig.GetValue<string>("TargetPbiAzureADUsername"),
-                PbiAzureADPassword = _appConfig.GetValue<string>("TargetPbiAzureADPassword"),
-                PbiTenantId = _appConfig.GetValue<string>("TargetPbiTenantId"),
+                PbiGrantType = appConfig.GetValue<string>("TargetPbiGrantType"),
+                PbiAuthenticationScope = appConfig.GetValue<string>("TargetPbiAuthenticationScope"),
+                PbiAzureADClientId = appConfig.GetValue<string>("TargetPbiAzureADClientID"),
+                PbiAzureADClientSecret = appConfig.GetValue<string>("TargetPbiAzureADClientSecret"),
+                PbiAzureADUsername = appConfig.GetValue<string>("TargetPbiAzureADUsername"),
+                PbiAzureADPassword = appConfig.GetValue<string>("TargetPbiAzureADPassword"),
+                PbiTenantId = appConfig.GetValue<string>("TargetPbiTenantId"),
             };
 
-            _mapConnectionString = _appConfig.GetConnectionString("MapDbConnection");
+            _mapConnectionString = appConfig.GetConnectionString("MapDbConnection");
             _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(_mapConnectionString).Options;
         }
 
@@ -280,63 +282,173 @@ namespace PowerBiMigration
 
         private async void BtnExportAll_Click(object sender, EventArgs e)
         {
-            using (new OperationScope(this))
+            using (new OperationScope(this, "Exporting all Power BI content"))
             {
                 Stopwatch operationTimer = new Stopwatch();
                 operationTimer.Start();
 
-                if (chkWriteFiles.Checked && !Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))  // Check that the parent folder exists
+                if (chkWriteFiles.Enabled && chkWriteFiles.Checked)
                 {
-                    MessageBox.Show($"Parent folder of target <{txtStorageFolder.Text}> does not exist");
-                    return;
+                    if (string.IsNullOrWhiteSpace(txtStorageFolder.Text))
+                    {
+                        MessageBox.Show($"A folder must be selected");
+                        return;
+                    }
+                    else if (Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))
+                    {
+                        Directory.Delete(txtStorageFolder.Text, true);
+                        Thread.Sleep(2000);  // because Windows I/O is asynchronous and sometimes stupid about it
+                    }
+
+                    Directory.CreateDirectory(txtStorageFolder.Text);
+
+                    if (!Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))
+                    {
+                        MessageBox.Show($"Folder {txtStorageFolder.Text} was not created");
+                        return;
+                    }
                 }
 
-                Directory.Delete(txtStorageFolder.Text, true);
-                Thread.Sleep(2000);
-                Directory.CreateDirectory(txtStorageFolder.Text);
-
-                foreach (var lstItem in lstClients.Items)
+                List<Client> relevantClients = null;
+                using (var db = new ApplicationDbContext(_dbOptions))
                 {
-                    Type itemType = lstItem.GetType();
-                    PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
-                    var client = contentItemPropertyInfo.GetValue(lstItem) as Client;
+                    List<RootContentItem> pbiContentItems = await db.RootContentItem
+                                                                    .Include(c => c.Client)
+                                                                    .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                                                    .ToListAsync();
+                    relevantClients = pbiContentItems.Select(c => c.Client)
+                                                     .Distinct(new IdPropertyComparer<Client>())
+                                                     .ToList();
 
-                    string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
-                    Directory.CreateDirectory(newSubFolder);
+                    // Updating the database is all or nothing
+                    var txn = db.Database.BeginTransaction();
 
-                    PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-
-                    // Query from DB not Power BI
-                    List<RootContentItem> contentItems = null;
-                    using (var db = new ApplicationDbContext(_dbOptions))
+                    foreach (Client client in relevantClients)
                     {
+                        string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
+                        if (chkWriteFiles.Enabled && chkWriteFiles.Checked)
+                        {
+                            Directory.CreateDirectory(newSubFolder);
+                        }
+
+                        PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+
+                        // Query from DB not Power BI
+                        List<RootContentItem> contentItems = null;
                         contentItems = db.RootContentItem
                                          .Include(c => c.ContentType)
                                          .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
                                          .Where(c => c.ClientId == client.Id)
                                          .ToList();
+
+                        foreach (var contentItem in contentItems)
+                        {
+                            PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                            long itemExportStartMs = operationTimer.ElapsedMilliseconds;
+                            var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, newSubFolder, chkWriteFiles.Checked);
+                            long itemExportStopMs = operationTimer.ElapsedMilliseconds;
+
+                            if (chkImportToTarget.Enabled && chkImportToTarget.Checked && File.Exists(exportReturn.reportFilePath))
+                            {
+                                PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
+                                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString());
+
+                                string logMsg = string.Empty;
+                                ProcessedItem newProcessedItem = null;
+
+                                switch (exportReturn.reportFilePath)
+                                {
+                                    case null:
+                                        logMsg = $"Error while processing content item {contentItem.ContentName}, time {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
+                                        newProcessedItem = new ProcessedItem
+                                        {
+                                            ClientId = contentItem.ClientId,
+                                            ContentItemId = contentItem.Id,
+                                            Status = ProcessingStatus.Fail,
+                                        };
+                                        break;
+                                    case "":
+                                        logMsg = $"Content item <{contentItem.ContentName}> processed, not saved, in {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
+                                        newProcessedItem = new ProcessedItem
+                                        {
+                                            ClientId = contentItem.ClientId,
+                                            ContentItemId = contentItem.Id,
+                                            Status = ProcessingStatus.NotAttempted,
+                                            OldGroupId = client.Id.ToString(),
+                                            OldReportId = exportReturn.report.ReportId,
+                                            ReportName = exportReturn.report.ReportName,
+                                        };
+                                        break;
+                                    default:
+                                        logMsg = $"Content item <{contentItem.ContentName}> processed with file {exportReturn.reportFilePath} in {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
+                                        newProcessedItem = new ProcessedItem
+                                        {
+                                            ClientId = contentItem.ClientId,
+                                            ContentItemId = contentItem.Id,
+                                            Status = ProcessingStatus.Success,
+                                            OldGroupId = client.Id.ToString(),
+                                            OldReportId = exportReturn.report.ReportId,
+                                            NewGroupId = embedModel.WorkspaceId,
+                                            NewReportId = embedModel.ReportId,
+                                            ReportName = Path.GetFileNameWithoutExtension(exportReturn.reportFilePath),
+                                        };
+                                        break;
+                                }
+
+                                _processedItems.Add(newProcessedItem);
+
+                                if (chkUpdateDatabase.Enabled && chkUpdateDatabase.Checked)
+                                {
+                                    if (embedModel == null)
+                                    {
+                                        Log.Error($"Import of report named <{exportReturn.report.ReportName}> to Power BI target failed");
+                                    }
+                                    else
+                                    {
+                                        typeSpecificDetail.LiveEmbedUrl = embedModel.EmbedUrl;
+                                        typeSpecificDetail.LiveReportId = embedModel.ReportId;
+                                        typeSpecificDetail.LiveWorkspaceId = embedModel.WorkspaceId;
+
+                                        contentItem.TypeSpecificDetailObject = typeSpecificDetail;
+                                        db.SaveChanges();
+                                        Log.Information($"Database updated for content item {contentItem.ContentName}, {contentItem.Id}");
+                                    }
+                                }
+
+                                Log.Information(logMsg);
+                            }
+
+                        }
                     }
 
-                    foreach (var contentItem in contentItems)
+                    if (_processedItems.All(i => i.Status == ProcessingStatus.Success))
                     {
-                        PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-
-                        long itemStartMs = operationTimer.ElapsedMilliseconds;
-                        var writtenFilePath = await pbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, newSubFolder, chkWriteFiles.Checked);
-                        long itemStopMs = operationTimer.ElapsedMilliseconds;
-
-                        string msg = writtenFilePath switch
-                            {
-                                null => $"Error while processing content item {contentItem.ContentName}, time {(itemStopMs - itemStartMs) / 1000} seconds",
-                                "" => $"Content item <{contentItem.ContentName}> processed, not saved, in {(itemStopMs - itemStartMs) / 1000} seconds",
-                                _ => $"Content item <{contentItem.ContentName}> exported to file {writtenFilePath} in {(itemStopMs - itemStartMs) / 1000} seconds"
-                            };
-                        Log.Information(msg);
+                        txn.Commit();
                     }
                 }
 
                 MessageBox.Show($"Operation completed in {operationTimer.ElapsedMilliseconds / 1000} seconds");
             }
+        }
+
+        private void ChkWriteFiles_CheckStateChanged(object sender, EventArgs e)
+        {
+            chkImportToTarget.Enabled = chkWriteFiles.Checked;
+            if (chkImportToTarget.CheckState == CheckState.Indeterminate)
+            {
+                chkImportToTarget.CheckState = CheckState.Unchecked;
+            }
+        }
+
+        private void ChkImportToTarget_CheckStateChanged(object sender, EventArgs e)
+        {
+            chkUpdateDatabase.Enabled = chkImportToTarget.Checked;
+        }
+
+        private void ChkImportToTarget_EnabledChanged(object sender, EventArgs e)
+        {
+            chkUpdateDatabase.Enabled = chkImportToTarget.Enabled && chkImportToTarget.Checked;
         }
     }
 }
