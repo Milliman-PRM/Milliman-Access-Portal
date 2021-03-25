@@ -530,50 +530,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #endregion
-
-#region Create and publish FileDrop docker container
-
-Set-Location $rootpath\SftpServer
-
-#Replace Windows line endings with Unix ones in entrypoint script
-$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
-((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
-
-$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
-$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
-
-
-# Get Secrets from the FileDrop Key Vault
-$acr_url = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrurl").SecretValueText
-
-$acr_username = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acruser").SecretValueText
-
-$acr_password = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrpass").SecretValueText
-
-$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
-
-Set-Location $rootpath
-
-docker login $acr_url -u $acr_username -p $acr_password
-
-docker build -t filedropsftp -f SftpServer/dockerfile .
-
-docker tag filedropsftp $FDImageName
-
-docker push $FDImageName
-
-docker rmi $FDImageName
-
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-#endregion
-
 #region Deploy releases to Octopus
 
 log_statement "Deploying packages to Octopus"
@@ -637,20 +593,6 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-log_statement "Creating Filedrop Release"
-
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "Filedrop release created successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for FileDrop"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
