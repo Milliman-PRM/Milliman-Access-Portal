@@ -200,6 +200,7 @@ export interface PreLiveContentValidationSummary {
   contentTypeName: string;
   contentDescription: string;
   doesReduce: boolean;
+  editableEnabled: boolean;
   clientName: string;
   clientCode: string;
   attestationLanguage: string;
