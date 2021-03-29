@@ -382,3 +382,17 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
 
   return contentItemInformation;
 }
+
+/**
+ * Return whether or not item can be downloaded by the publisher.
+ * Currently only available for Editable PowerBI documents.
+ * @param state Redux store
+ */
+export function canDownloadCurrentContentItem(state: PublishingState): boolean {
+  const currentlySelectedItem = selectedItem(state);
+  return currentlySelectedItem
+    && state.data.contentTypes[currentlySelectedItem.contentTypeId].displayName === 'Power BI'
+    && state.formData.originalFormData.isEditable
+    && state.formData.formState === 'read'
+    && !formChangesPending(state);
+}

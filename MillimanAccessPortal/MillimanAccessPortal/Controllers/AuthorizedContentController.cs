@@ -478,7 +478,7 @@ namespace MillimanAccessPortal.Controllers
                 EmbedUrl = embedProperties.LiveEmbedUrl,
                 EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, editable),
                 ReportId = embedProperties.LiveReportId,
-                EditableEnabled = embedProperties.EditableEnabled,
+                EditableEnabled = editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,

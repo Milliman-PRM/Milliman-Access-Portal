@@ -63,6 +63,7 @@ export interface RootContentItem {
   clientId?: Guid;
   contentTypeId?: Guid;
   isSuspended: boolean;
+  isEditable?: boolean;
   doesReduce: boolean;
   name: string;
 }
@@ -110,6 +111,7 @@ export interface ContentItemDetail {
   doesReduce: boolean;
   id: Guid;
   isSuspended: boolean;
+  isEditable: boolean;
   contentNotes: string;
   relatedFiles: RelatedFiles;
   associatedFiles: Dict<AssociatedContentItemUpload>;
