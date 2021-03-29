@@ -270,6 +270,25 @@ namespace PowerBiLib
             return false;
         }
 
+        /*
+        public async Task<IActionResult> ExportPbixReportAsync(string groupId, string reportId)
+        {
+            try
+            {
+                using (var client = new PowerBIClient(_tokenCredentials))
+                {
+                    var stream = await client.Reports.ExportReportAsync(groupId, reportId);
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
+                return false;
+            }
+            return true;
+        }
+        */
+
         public class MicrosoftAuthenticationResponse
         {
             [JsonProperty(PropertyName = "token_type")]

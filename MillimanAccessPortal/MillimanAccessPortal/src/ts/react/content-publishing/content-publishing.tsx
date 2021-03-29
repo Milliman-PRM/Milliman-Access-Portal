@@ -52,8 +52,8 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeCanceled,
-  contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
+  availableContentTypes, canDownloadCurrentContentItem, clientEntities, contentItemForPublication,
+  contentItemToBeCanceled, contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
   itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
@@ -92,6 +92,7 @@ interface ContentPublishingProps {
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
+  canDownloadCurrentContentItem: boolean;
   contentItemForPublication: ContentItemPublicationDetail;
 }
 
@@ -643,11 +644,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     const { contentTypes, formData, items, pending } = this.props;
     const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
-      <ActionIcon
-        label="Update Content Item"
-        icon="upload"
-        action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
-      />
+      <>
+        {
+          this.props.canDownloadCurrentContentItem &&
+          <ActionIcon
+            label="Download editable Power BI content"
+            icon="download"
+            action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
+          />
+        }
+        <ActionIcon
+          label="Update Content Item"
+          icon="upload"
+          action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
+        />
+      </>
     );
     const selectedItemStatus = items.filter((x) => x.id === pendingFormData.id)[0];
     const closeFormButton = (
@@ -1332,6 +1343,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
     contentItemForPublication: contentItemForPublication(state),
+    canDownloadCurrentContentItem: canDownloadCurrentContentItem(state),
   };
 }
 

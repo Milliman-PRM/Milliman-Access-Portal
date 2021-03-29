@@ -41,7 +41,7 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
-        [NotMapped] // Don't forget about this
+        [Required]
         public bool Editable { get; set; }
 
         [NotMapped]

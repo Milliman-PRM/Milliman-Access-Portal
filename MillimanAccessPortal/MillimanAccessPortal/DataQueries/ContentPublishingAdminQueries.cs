@@ -168,6 +168,7 @@ namespace MillimanAccessPortal.DataQueries
                             : null,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
                 IsSuspended = rootContentItem.IsSuspended,
+                IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&  (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
                 TypeSpecificDetailObject = default,
             };
             switch (contentType.TypeEnum)

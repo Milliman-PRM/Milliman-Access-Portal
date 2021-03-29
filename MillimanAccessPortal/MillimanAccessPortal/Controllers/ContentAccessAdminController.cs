@@ -377,7 +377,7 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
-        public async Task<IActionResult> SetPowerBiEditability([FromBody] SetPowerBiEditabilityRequestModel model)
+        public async Task<IActionResult> SetGroupPowerBiEditability([FromBody] SetPowerBiEditabilityRequestModel model)
         {
             SelectionGroup selectionGroup = await DbContext.SelectionGroup
                                                            .Include(sg => sg.RootContentItem)
