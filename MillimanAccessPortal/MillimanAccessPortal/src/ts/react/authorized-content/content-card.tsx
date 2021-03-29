@@ -80,7 +80,7 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
             {this.props.description && <p className="content-card-description">{this.props.description}</p>}
             {this.props.editableEnabled &&
               <p className="content-card-caption">
-                Editing capabilities have been enable for this Power BI document.
+                Editing capabilities have been enabled for this Power BI document.
                 Saving the document will update it for all the users.
               </p>
             }
