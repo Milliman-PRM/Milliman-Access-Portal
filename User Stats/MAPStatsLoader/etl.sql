@@ -40,6 +40,16 @@ INSERT INTO public."ProfitCenter"
 	(SELECT "Id", "Name", "ProfitCenterCode" FROM map."ProfitCenter")
 	ON CONFLICT ON CONSTRAINT "PK_ProfitCenter" DO NOTHING;
 
+INSERT INTO public."FileDrop"
+	("Id", "ClientId", "Name", "Description")
+	(SELECT "Id", "ClientId", "Name", "Description" FROM map."FileDrop")
+	ON CONFLICT ON CONSTRAINT "PK_FileDrop" DO NOTHING;
+
+INSERT INTO public."FileDropUserPermissionGroup"
+	("Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId")
+	(SELECT "Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId" FROM map."FileDropUserPermissionGroup")
+	ON CONFLICT ON CONSTRAINT "PK_FileDropUserPermissionGroup" DO NOTHING;
+
 /*
 	SECTION 2: Client-ProfitCenter relationships
 */
@@ -86,7 +96,32 @@ INSERT INTO public."UserInSelectionGroup"
 ON CONFLICT ON CONSTRAINT "UNIQUE_User_SelectionGroup_Current" DO NOTHING;
 
 /*
-	SECTION 4: Audit Events
+	SECTION 4: SftpUser-FileDrop Relationships
+*/
+
+-- Update existing records that are no longer applicable
+UPDATE public."SftpAccount"
+SET "EndDate" = (current_timestamp AT TIME ZONE 'UTC')
+WHERE ctid IN
+    (
+        SELECT sa.ctid
+        FROM public."SftpAccount" sa
+            LEFT JOIN map."SftpAccount" msa ON sa."Id" = msa."Id" AND sa."FileDropUserPermissionGroupId" = msa."FileDropUserPermissionGroupId"
+        WHERE msa."Id" IS NULL
+    )
+AND "EndDate" = '12/31/9999';
+
+-- Insert currently applicable records
+INSERT INTO public."SftpAccount"
+("Id", "UserName", "IsSuspended", "ApplicationUserId", "FileDropUserPermissionGroupId", "FileDropId", "StartDate")
+(
+    SELECT "Id", "UserName", "IsSuspended", "ApplicationUserId", "FileDropUserPermissionGroupId", "FileDropId", (current_timestamp AT TIME ZONE 'UTC')
+    FROM map."SftpAccount"
+)
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_PermissionGroup_Current" DO NOTHING;
+
+/*
+	SECTION 5: Audit Events
 
 	Similar to Section 1, but sourced from a different database
 */
