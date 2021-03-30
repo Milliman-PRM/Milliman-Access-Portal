@@ -31,6 +31,8 @@ namespace PowerBiMigration
         {
             this.btnGetAllInventory = new System.Windows.Forms.Button();
             this.grpDatabase = new System.Windows.Forms.GroupBox();
+            this.radioTarget = new System.Windows.Forms.RadioButton();
+            this.radioSource = new System.Windows.Forms.RadioButton();
             this.lstPowerBiReports = new System.Windows.Forms.ListBox();
             this.lblPowerBiReports = new System.Windows.Forms.Label();
             this.lstPbiWorkspaces = new System.Windows.Forms.ListBox();
@@ -48,12 +50,13 @@ namespace PowerBiMigration
             this.chkWriteFiles = new System.Windows.Forms.CheckBox();
             this.chkImportToTarget = new System.Windows.Forms.CheckBox();
             this.chkUpdateDatabase = new System.Windows.Forms.CheckBox();
+            this.btnExportSelectedClient = new System.Windows.Forms.Button();
             this.grpDatabase.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnGetAllInventory
             // 
-            this.btnGetAllInventory.Location = new System.Drawing.Point(6, 22);
+            this.btnGetAllInventory.Location = new System.Drawing.Point(6, 103);
             this.btnGetAllInventory.Name = "btnGetAllInventory";
             this.btnGetAllInventory.Size = new System.Drawing.Size(105, 23);
             this.btnGetAllInventory.TabIndex = 0;
@@ -63,6 +66,8 @@ namespace PowerBiMigration
             // 
             // grpDatabase
             // 
+            this.grpDatabase.Controls.Add(this.radioTarget);
+            this.grpDatabase.Controls.Add(this.radioSource);
             this.grpDatabase.Controls.Add(this.lstPowerBiReports);
             this.grpDatabase.Controls.Add(this.lblPowerBiReports);
             this.grpDatabase.Controls.Add(this.lstPbiWorkspaces);
@@ -79,6 +84,30 @@ namespace PowerBiMigration
             this.grpDatabase.TabIndex = 4;
             this.grpDatabase.TabStop = false;
             this.grpDatabase.Text = "Database";
+            // 
+            // radioTarget
+            // 
+            this.radioTarget.AutoSize = true;
+            this.radioTarget.Location = new System.Drawing.Point(7, 49);
+            this.radioTarget.Name = "radioTarget";
+            this.radioTarget.Size = new System.Drawing.Size(57, 19);
+            this.radioTarget.TabIndex = 11;
+            this.radioTarget.Text = "Target";
+            this.radioTarget.UseVisualStyleBackColor = true;
+            this.radioTarget.CheckedChanged += new System.EventHandler(this.RadioTarget_CheckedChanged);
+            // 
+            // radioSource
+            // 
+            this.radioSource.AutoSize = true;
+            this.radioSource.Checked = true;
+            this.radioSource.Location = new System.Drawing.Point(7, 23);
+            this.radioSource.Name = "radioSource";
+            this.radioSource.Size = new System.Drawing.Size(61, 19);
+            this.radioSource.TabIndex = 10;
+            this.radioSource.TabStop = true;
+            this.radioSource.Text = "Source";
+            this.radioSource.UseVisualStyleBackColor = true;
+            this.radioSource.CheckedChanged += new System.EventHandler(this.RadioSource_CheckedChanged);
             // 
             // lstPowerBiReports
             // 
@@ -192,7 +221,7 @@ namespace PowerBiMigration
             // 
             // btnExportAll
             // 
-            this.btnExportAll.Location = new System.Drawing.Point(12, 290);
+            this.btnExportAll.Location = new System.Drawing.Point(12, 337);
             this.btnExportAll.Name = "btnExportAll";
             this.btnExportAll.Size = new System.Drawing.Size(111, 23);
             this.btnExportAll.TabIndex = 7;
@@ -237,11 +266,22 @@ namespace PowerBiMigration
             this.chkUpdateDatabase.Text = "Update Database";
             this.chkUpdateDatabase.UseVisualStyleBackColor = true;
             // 
+            // btnExportSelectedClient
+            // 
+            this.btnExportSelectedClient.Location = new System.Drawing.Point(12, 291);
+            this.btnExportSelectedClient.Name = "btnExportSelectedClient";
+            this.btnExportSelectedClient.Size = new System.Drawing.Size(159, 23);
+            this.btnExportSelectedClient.TabIndex = 11;
+            this.btnExportSelectedClient.Text = "Export Selected Client";
+            this.btnExportSelectedClient.UseVisualStyleBackColor = true;
+            this.btnExportSelectedClient.Click += new System.EventHandler(this.BtnExportSelectedClient_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1064, 691);
+            this.Controls.Add(this.btnExportSelectedClient);
             this.Controls.Add(this.chkUpdateDatabase);
             this.Controls.Add(this.chkImportToTarget);
             this.Controls.Add(this.chkWriteFiles);
@@ -280,6 +320,9 @@ namespace PowerBiMigration
         private System.Windows.Forms.CheckBox chkWriteFiles;
         private System.Windows.Forms.CheckBox chkImportToTarget;
         private System.Windows.Forms.CheckBox chkUpdateDatabase;
+        private System.Windows.Forms.RadioButton radioTarget;
+        private System.Windows.Forms.RadioButton radioSource;
+        private System.Windows.Forms.Button btnExportSelectedClient;
     }
 }
 

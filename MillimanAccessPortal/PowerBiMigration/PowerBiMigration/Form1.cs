@@ -178,37 +178,55 @@ namespace PowerBiMigration
         {
             using (new OperationScope(this, "Getting inventory"))
             {
-                using (var db = new ApplicationDbContext(_dbOptions))
+                ClearAllLists();
+
+                switch (grpDatabase.Controls.OfType<RadioButton>().Single(b => b.Checked))
                 {
-                    List<RootContentItem> pbiContentItems = await db.RootContentItem
-                                                                    .Include(c => c.Client)
-                                                                    .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
-                                                                    .ToListAsync();
-
-                    List<Client> clients = pbiContentItems.Select(c => c.Client).Distinct(new IdPropertyComparer<Client>()).ToList();
-
-                    PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-                    var allPbiGroups = await sourcePbiApi.GetAllGroupsAsync();
-
-                    lstClients.Items.Clear();
-                    lstContentItems.Items.Clear();
-                    lstPbiWorkspaces.Items.Clear();
-                    lstPowerBiReports.Items.Clear();
-
-                    foreach (Client client in clients)
-                    {
-                        GroupModel thisGroupModel = new GroupModel(allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString()));
-                        List<ReportModel> thisGroupReports = await sourcePbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
-
-                        if (pbiContentItems.Count(c => c.ClientId == client.Id) > thisGroupReports.Count)
+                    case RadioButton b when b.Name == "radioSource":
+                        using (var db = new ApplicationDbContext(_dbOptions))
                         {
-                            int i = 8;
-                            // something is bad
-                        }
+                            List<RootContentItem> pbiContentItems = await db.RootContentItem
+                                                                            .Include(c => c.Client)
+                                                                            .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                                                            .ToListAsync();
 
-                        lstClients.Items.Add(new { client.Name, client });
-                        lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
-                    }
+                            List<Client> clients = pbiContentItems.Select(c => c.Client).Distinct(new IdPropertyComparer<Client>()).ToList();
+
+                            PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                            var allPbiGroups = await sourcePbiApi.GetAllGroupsAsync();
+
+                            ClearAllLists();
+
+                            foreach (Client client in clients)
+                            {
+                                GroupModel thisGroupModel = new GroupModel(allPbiGroups.SingleOrDefault(g => g.Name == client.Id.ToString()));
+                                List<ReportModel> thisGroupReports = await sourcePbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
+
+                                if (pbiContentItems.Count(c => c.ClientId == client.Id) > thisGroupReports.Count)
+                                {
+                                    int i = 8;
+                                    // something is bad
+                                }
+
+                                lstClients.Items.Add(new { client.Name, client });
+                                lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
+                            }
+                        }
+                        break;
+
+                    case RadioButton b when b.Name == "radioTarget":
+                        PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
+                        IList<Microsoft.PowerBI.Api.V2.Models.Group> allGroups = await targetPbiApi.GetAllGroupsAsync();
+
+                        foreach (var group in allGroups)
+                        {
+                            GroupModel thisGroupModel = new GroupModel(group);
+                            lstPbiWorkspaces.Items.Add(new { thisGroupModel.GroupName, Group = thisGroupModel });
+                        }
+                        break;
+
+                    default:
+                        break;
                 }
             }
 
@@ -260,6 +278,7 @@ namespace PowerBiMigration
         private async void LstPbiWorkspaces_SelectedIndexChanged(object sender, EventArgs e)
         {
             lstPowerBiReports.Items.Clear();
+            lstContentItems.Items.Clear();
 
             object lstItem = lstPbiWorkspaces.SelectedItem;
             if (lstItem != null)
@@ -268,25 +287,30 @@ namespace PowerBiMigration
                 PropertyInfo contentItemPropertyInfo = itemType.GetProperty("Group");
                 GroupModel groupModel = contentItemPropertyInfo.GetValue(lstItem) as GroupModel;
 
-                PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                var radios = grpDatabase.Controls.OfType<RadioButton>();
+
+                PowerBiLibApi pbiApi = grpDatabase.Controls.OfType<RadioButton>().Single(b => b.Checked).Name switch
+                {
+                    "radioSource" => await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync(),
+                    "radioTarget" => await new PowerBiLibApi(_targetPbiConfig).InitializeAsync(),
+                    _ => null
+                };
 
                 List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(groupModel.GroupName);
                 lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
 
-                int clientIndex = lstClients.FindStringExact(groupModel.GroupName);
-                lstContentItems.SelectedIndex = clientIndex;
-
-                lstClients.TopIndex = lstPbiWorkspaces.TopIndex;
+                if (lstClients.Items.Count > 0)
+                {
+                    lstClients.SelectedIndex = lstPbiWorkspaces.SelectedIndex;
+                    lstClients.TopIndex = lstPbiWorkspaces.TopIndex;
+                }
             }
         }
 
         private async void BtnExportAll_Click(object sender, EventArgs e)
         {
-            using (new OperationScope(this, "Exporting all Power BI content"))
+            using (var operationScope = new OperationScope(this, "Exporting all Power BI content"))
             {
-                Stopwatch operationTimer = new Stopwatch();
-                operationTimer.Start();
-
                 if (chkWriteFiles.Enabled && chkWriteFiles.Checked)
                 {
                     if (string.IsNullOrWhiteSpace(txtStorageFolder.Text))
@@ -331,8 +355,6 @@ namespace PowerBiMigration
                             Directory.CreateDirectory(newSubFolder);
                         }
 
-                        PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-
                         // Query from DB not Power BI
                         List<RootContentItem> contentItems = null;
                         contentItems = db.RootContentItem
@@ -343,92 +365,18 @@ namespace PowerBiMigration
 
                         foreach (var contentItem in contentItems)
                         {
-                            PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-
-                            long itemExportStartMs = operationTimer.ElapsedMilliseconds;
-                            var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, newSubFolder, chkWriteFiles.Checked);
-                            long itemExportStopMs = operationTimer.ElapsedMilliseconds;
-
-                            if (chkImportToTarget.Enabled && chkImportToTarget.Checked && File.Exists(exportReturn.reportFilePath))
-                            {
-                                PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
-                                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString());
-
-                                string logMsg = string.Empty;
-                                ProcessedItem newProcessedItem = null;
-
-                                switch (exportReturn.reportFilePath)
-                                {
-                                    case null:
-                                        logMsg = $"Error while processing content item {contentItem.ContentName}, time {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
-                                        newProcessedItem = new ProcessedItem
-                                        {
-                                            ClientId = contentItem.ClientId,
-                                            ContentItemId = contentItem.Id,
-                                            Status = ProcessingStatus.Fail,
-                                        };
-                                        break;
-                                    case "":
-                                        logMsg = $"Content item <{contentItem.ContentName}> processed, not saved, in {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
-                                        newProcessedItem = new ProcessedItem
-                                        {
-                                            ClientId = contentItem.ClientId,
-                                            ContentItemId = contentItem.Id,
-                                            Status = ProcessingStatus.NotAttempted,
-                                            OldGroupId = client.Id.ToString(),
-                                            OldReportId = exportReturn.report.ReportId,
-                                            ReportName = exportReturn.report.ReportName,
-                                        };
-                                        break;
-                                    default:
-                                        logMsg = $"Content item <{contentItem.ContentName}> processed with file {exportReturn.reportFilePath} in {(itemExportStopMs - itemExportStartMs) / 1000} seconds";
-                                        newProcessedItem = new ProcessedItem
-                                        {
-                                            ClientId = contentItem.ClientId,
-                                            ContentItemId = contentItem.Id,
-                                            Status = ProcessingStatus.Success,
-                                            OldGroupId = client.Id.ToString(),
-                                            OldReportId = exportReturn.report.ReportId,
-                                            NewGroupId = embedModel.WorkspaceId,
-                                            NewReportId = embedModel.ReportId,
-                                            ReportName = Path.GetFileNameWithoutExtension(exportReturn.reportFilePath),
-                                        };
-                                        break;
-                                }
-
-                                _processedItems.Add(newProcessedItem);
-
-                                if (chkUpdateDatabase.Enabled && chkUpdateDatabase.Checked)
-                                {
-                                    if (embedModel == null)
-                                    {
-                                        Log.Error($"Import of report named <{exportReturn.report.ReportName}> to Power BI target failed");
-                                    }
-                                    else
-                                    {
-                                        typeSpecificDetail.LiveEmbedUrl = embedModel.EmbedUrl;
-                                        typeSpecificDetail.LiveReportId = embedModel.ReportId;
-                                        typeSpecificDetail.LiveWorkspaceId = embedModel.WorkspaceId;
-
-                                        contentItem.TypeSpecificDetailObject = typeSpecificDetail;
-                                        db.SaveChanges();
-                                        Log.Information($"Database updated for content item {contentItem.ContentName}, {contentItem.Id}");
-                                    }
-                                }
-
-                                Log.Information(logMsg);
-                            }
-
+                            var newProcessedItem = await ExportOneContentItem(client, contentItem, newSubFolder, db);
+                            _processedItems.Add(newProcessedItem);
                         }
                     }
 
-                    if (_processedItems.All(i => i.Status == ProcessingStatus.Success))
+                    if (_processedItems.All(i => i.Status == ProcessingStatus.DbUpdateSuccess))
                     {
                         txn.Commit();
                     }
                 }
 
-                MessageBox.Show($"Operation completed in {operationTimer.ElapsedMilliseconds / 1000} seconds");
+                MessageBox.Show($"Operation completed in {TimeSpan.FromMilliseconds(operationScope.operationTimer.ElapsedMilliseconds)}");
             }
         }
 
@@ -449,6 +397,164 @@ namespace PowerBiMigration
         private void ChkImportToTarget_EnabledChanged(object sender, EventArgs e)
         {
             chkUpdateDatabase.Enabled = chkImportToTarget.Enabled && chkImportToTarget.Checked;
+        }
+
+        private void RadioSource_CheckedChanged(object sender, EventArgs e)
+        {
+            ClearAllLists();
+        }
+
+        private void RadioTarget_CheckedChanged(object sender, EventArgs e)
+        {
+            ClearAllLists();
+        }
+
+        private void ClearAllLists()
+        {
+            lstClients.Items.Clear();
+            lstContentItems.Items.Clear();
+            lstPbiWorkspaces.Items.Clear();
+            lstPowerBiReports.Items.Clear();
+        }
+
+        private async void BtnExportSelectedClient_Click(object sender, EventArgs e)
+        {
+            using (var operationScope = new OperationScope(this, "Exporting selected Client Power BI content"))
+            {
+                Type itemType = lstClients.SelectedItem.GetType();
+                PropertyInfo contentItemPropertyInfo = itemType.GetProperty("client");
+                Client client = contentItemPropertyInfo.GetValue(lstClients.SelectedItem) as Client;
+
+                if (chkWriteFiles.Enabled && chkWriteFiles.Checked)
+                {
+                    if (string.IsNullOrWhiteSpace(txtStorageFolder.Text))
+                    {
+                        MessageBox.Show($"A folder must be selected");
+                        return;
+                    }
+                    else if (Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))
+                    {
+                        Directory.Delete(txtStorageFolder.Text, true);
+                        Thread.Sleep(2000);  // because Windows I/O is asynchronous and sometimes stupid about it
+                    }
+
+                    Directory.CreateDirectory(txtStorageFolder.Text);
+
+                    if (!Directory.Exists(Path.GetDirectoryName(txtStorageFolder.Text)))
+                    {
+                        MessageBox.Show($"Folder {txtStorageFolder.Text} was not created");
+                        return;
+                    }
+                }
+
+                string newSubFolder = Path.Combine(txtStorageFolder.Text, client.Id.ToString());
+                if (chkWriteFiles.Enabled && chkWriteFiles.Checked)
+                {
+                    Directory.CreateDirectory(newSubFolder);
+                }
+
+                PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+                PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
+
+                using (var db = new ApplicationDbContext(_dbOptions))
+                {
+                    List<RootContentItem> pbiContentItems = await db.RootContentItem
+                                                                    .Include(c => c.Client)
+                                                                    .Include(c => c.ContentType)
+                                                                    .Where(c => c.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                                                                    .Where(c => c.ClientId == client.Id)
+                                                                    .ToListAsync();
+
+                    foreach (RootContentItem contentItem in pbiContentItems)
+                    {
+                        await ExportOneContentItem(client, contentItem, newSubFolder, db);
+                    }
+                }
+            }
+        }
+
+        private async Task<ProcessedItem> ExportOneContentItem(Client client, RootContentItem contentItem, string clientFolder, ApplicationDbContext db)
+        {
+            Stopwatch timer = Stopwatch.StartNew();
+            string logMsg = string.Empty;
+
+            PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
+            PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+            // Do the export from the source
+            long itemExportStartMs = timer.ElapsedMilliseconds;
+            var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, clientFolder, chkWriteFiles.Checked);
+
+            ProcessedItem newProcessedItem = new ProcessedItem
+            {
+                ClientId = contentItem.ClientId,
+                ContentItemId = contentItem.Id,
+                OldGroupId = client.Id.ToString(),
+                ExportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - itemExportStartMs),
+            };
+
+            switch (exportReturn.reportFilePath)
+            {
+                case null:
+                    Log.Information($"Error while exporting content item {contentItem.ContentName}, time {newProcessedItem.ExportTime}");
+                    newProcessedItem.Status = ProcessingStatus.ExportFail;
+                    return newProcessedItem;
+                case "":
+                    Log.Information($"Content item <{contentItem.ContentName}> exported, not saved, time {newProcessedItem.ExportTime}");
+                    newProcessedItem.Status = ProcessingStatus.ExportSuccess;
+                    newProcessedItem.OldReportId = exportReturn.report.ReportId;
+                    newProcessedItem.ReportName = exportReturn.report.ReportName;
+                    break;
+                default:
+                    Log.Information($"Content item <{contentItem.ContentName}> exported, saved to file {exportReturn.reportFilePath}, time {newProcessedItem.ExportTime}");
+                    newProcessedItem.Status = ProcessingStatus.FileSaveSuccess;
+                    newProcessedItem.OldReportId = exportReturn.report.ReportId;
+                    newProcessedItem.ReportName = exportReturn.report.ReportName;
+                    break;
+            }
+
+            // if selected, do the import to the target
+            if (chkImportToTarget.Enabled && chkImportToTarget.Checked && File.Exists(exportReturn.reportFilePath))
+            {
+                PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
+
+                long importStart = timer.ElapsedMilliseconds;
+                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString());
+
+                if (embedModel == null)
+                {
+                    Log.Error($"Import of report named <{exportReturn.report.ReportName}> to Power BI target failed");
+                    newProcessedItem.Status = ProcessingStatus.ImportFail;
+                    return newProcessedItem;
+                }
+
+                newProcessedItem.ImportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - importStart);
+                newProcessedItem.NewGroupId = embedModel.WorkspaceId;
+                newProcessedItem.NewReportId = embedModel.ReportId;
+                newProcessedItem.Status = ProcessingStatus.ImportSuccess;
+
+                if (chkUpdateDatabase.Enabled && chkUpdateDatabase.Checked)
+                {
+                    typeSpecificDetail.LiveEmbedUrl = embedModel.EmbedUrl;
+                    typeSpecificDetail.LiveReportId = embedModel.ReportId;
+                    typeSpecificDetail.LiveWorkspaceId = embedModel.WorkspaceId;
+
+                    contentItem.TypeSpecificDetailObject = typeSpecificDetail;
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch
+                    {
+                        newProcessedItem.Status = ProcessingStatus.DbUpdateFail;
+                        return newProcessedItem;
+                    }
+                    newProcessedItem.Status = ProcessingStatus.DbUpdateSuccess;
+                    Log.Information($"Database updated for content item {contentItem.ContentName}, {contentItem.Id}");
+                }
+            }
+
+            return newProcessedItem;
         }
     }
 }

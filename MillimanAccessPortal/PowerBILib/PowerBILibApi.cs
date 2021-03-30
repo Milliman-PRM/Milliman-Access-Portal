@@ -105,9 +105,8 @@ namespace PowerBiLib
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var y = (await client.Groups.GetGroupsAsync()).Value.ToList();
-                var x = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
-                Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
+                ODataResponseListGroup response = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
+                Group group = response.Value.SingleOrDefault();
                 ODataResponseListReport reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
 
                 var returnVal = reportsOfTheGroup.Value.Select(r => new ReportModel(r)).ToList();

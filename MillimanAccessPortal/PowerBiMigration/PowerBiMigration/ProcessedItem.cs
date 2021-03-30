@@ -19,12 +19,21 @@ namespace PowerBiMigration
         public string ReportName { get; set; }
         
         public ProcessingStatus Status { get; set; }
+
+        public TimeSpan ExportTime { get; set; }
+
+        public TimeSpan ImportTime { get; set; }
     }
 
     public enum ProcessingStatus
     {
-        Success,
-        Fail,
-        NotAttempted
+        ExportSuccess,
+        FileSaveSuccess,
+        ImportSuccess,
+        DbUpdateSuccess,
+        ExportFail,
+        FileSaveFail,
+        ImportFail,
+        DbUpdateFail,
     }
 }

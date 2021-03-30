@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using System;
+using System.Diagnostics;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -10,6 +11,7 @@ namespace PowerBiMigration
         private static Mutex _Mutex = new Mutex();
         private string _operationName = string.Empty;
         private Form _parentForm = null;
+        public Stopwatch operationTimer { get; private set; }
 
         public OperationScope(Form parentForm, string operationName = null)
         {
@@ -24,6 +26,7 @@ namespace PowerBiMigration
             }
 
             _parentForm.UseWaitCursor = true;
+            operationTimer = Stopwatch.StartNew();
         }
 
         public void Dispose() 
