@@ -17,7 +17,7 @@ INSERT INTO public."Users"
 
 INSERT INTO public."ContentType"
 	("Id", "Name")
-	(select "Id", "Name" from map."ContentType")
+	(select "Id", "TypeEnum"::TEXT from map."ContentType")
 	ON CONFLICT ON CONSTRAINT "PK_ContentType" DO NOTHING;
 
 INSERT INTO public."Client"

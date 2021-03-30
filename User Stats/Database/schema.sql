@@ -149,7 +149,7 @@ CREATE TABLE public."UserInSelectionGroup"
    REFERENCES public."Users" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "FK_UserInSelectionGroup_SelectionGroup_SelectionGroupId" FOREIGN KEY ("SelectionGroupId")
-   REFERENCES map."SelectionGroup" ("Id") MATCH SIMPLE
+   REFERENCES public."SelectionGroup" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "UNIQUE_User_SelectionGroup_Current" UNIQUE ("UserId", "SelectionGroupId", "EndDate")
 );
@@ -383,6 +383,11 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
         END) AS "SessionCount90Days",
     sum(
         CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN 1
+            ELSE 0
+        END) AS "SessionCount180Days",
+    sum(
+        CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '30 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
         END) AS "TotalDuration30Days",
@@ -396,6 +401,11 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
         END) AS "TotalDuration90Days",
+    sum(
+        CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN qvs."SessionDuration"
+            ELSE NULL::interval
+        END) AS "TotalDuration180Days",
     avg(
         CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '30 days'::interval) THEN qvs."SessionDuration"
@@ -410,7 +420,12 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
         CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
-        END) AS "AverageDuration90Days"
+        END) AS "AverageDuration90Days",
+    avg(
+        CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN qvs."SessionDuration"
+            ELSE NULL::interval
+        END) AS "AverageDuration180Days"
    FROM "QlikViewSession" qvs
      JOIN "QlikViewSessionFile" sf ON qvs."Id" = sf."SessionId"
      JOIN "RootContentItem" rci ON rci."Id"::text = sf."RootContentItemId"
@@ -424,7 +439,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
            FROM map."UserInSelectionGroup" usg
              JOIN map."SelectionGroup" sg ON usg."SelectionGroupId" = sg."Id"
              JOIN "Users" usr_1 ON usg."UserId" = usr_1."Id") usrgrp ON lower(qvs."Username") = lower(usrgrp."UserName"::text) AND sf."RootContentItemId" = usrgrp."RootContentItemId"::text
-  WHERE cpc."EndDate" = '9999-12-31'::date AND qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval)
+  WHERE cpc."EndDate" = '9999-12-31'::date AND qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval)
   GROUP BY pc."Name", cl."Name", rci."ContentName", qvs."Username", rci."Id", usrgrp."GroupName", pc."Id", cl."Id";
 
 ALTER TABLE public."QlikViewSessionStats"
@@ -490,6 +505,12 @@ CREATE OR REPLACE VIEW public."UserRecentLogins" AS
             WHEN ae."TimeStampUtc" > (timezone('utc'::text, now()) - '90 days'::interval) THEN 1
             ELSE 0
         END) AS "Logins last 90 days",
+    sum(
+        CASE
+            WHEN ae."TimeStampUtc" IS NULL THEN 0
+            WHEN ae."TimeStampUtc" > (timezone('utc'::text, now()) - '180 days'::interval) THEN 1
+            ELSE 0
+        END) AS "Logins last 180 days",
     upc."ProfitCenterId"
    FROM "ProfitCenter" pc
      JOIN "UserInProfitCenter" upc ON pc."Id" = upc."ProfitCenterId"
