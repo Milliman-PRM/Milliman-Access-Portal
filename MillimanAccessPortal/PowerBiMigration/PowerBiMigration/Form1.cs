@@ -69,6 +69,7 @@ namespace PowerBiMigration
                 PbiAzureADUsername = appConfig.GetValue<string>("TargetPbiAzureADUsername"),
                 PbiAzureADPassword = appConfig.GetValue<string>("TargetPbiAzureADPassword"),
                 PbiTenantId = appConfig.GetValue<string>("TargetPbiTenantId"),
+                PbiCapacityId = appConfig.GetValue<string>("TargetPbiCapacityId"),
             };
 
             _mapConnectionString = appConfig.GetConnectionString("MapDbConnection");
@@ -180,7 +181,7 @@ namespace PowerBiMigration
             {
                 ClearAllLists();
 
-                switch (grpDatabase.Controls.OfType<RadioButton>().Single(b => b.Checked))
+                switch (Controls.OfType<RadioButton>().Single(b => b.Checked))
                 {
                     case RadioButton b when b.Name == "radioSource":
                         using (var db = new ApplicationDbContext(_dbOptions))
@@ -260,10 +261,6 @@ namespace PowerBiMigration
                         lstPbiWorkspaces.SelectedIndex = workspaceIndex;
 
                         lstPbiWorkspaces.TopIndex = lstClients.TopIndex;
-
-                        //List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(client.Id.ToString());
-                        //lstPowerBiReports.Items.Clear();
-                        //lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
                     }
                 }
             }
@@ -278,7 +275,7 @@ namespace PowerBiMigration
         private async void LstPbiWorkspaces_SelectedIndexChanged(object sender, EventArgs e)
         {
             lstPowerBiReports.Items.Clear();
-            lstContentItems.Items.Clear();
+            txtReportDetails.Clear();
 
             object lstItem = lstPbiWorkspaces.SelectedItem;
             if (lstItem != null)
@@ -287,9 +284,9 @@ namespace PowerBiMigration
                 PropertyInfo contentItemPropertyInfo = itemType.GetProperty("Group");
                 GroupModel groupModel = contentItemPropertyInfo.GetValue(lstItem) as GroupModel;
 
-                var radios = grpDatabase.Controls.OfType<RadioButton>();
+                var radios = Controls.OfType<RadioButton>();
 
-                PowerBiLibApi pbiApi = grpDatabase.Controls.OfType<RadioButton>().Single(b => b.Checked).Name switch
+                PowerBiLibApi pbiApi = Controls.OfType<RadioButton>().Single(b => b.Checked).Name switch
                 {
                     "radioSource" => await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync(),
                     "radioTarget" => await new PowerBiLibApi(_targetPbiConfig).InitializeAsync(),
@@ -297,7 +294,7 @@ namespace PowerBiMigration
                 };
 
                 List<ReportModel> reports = await pbiApi.GetAllReportsOfGroupAsync(groupModel.GroupName);
-                lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, r }).ToArray());
+                lstPowerBiReports.Items.AddRange(reports.Select(r => new { r.ReportName, Report = r }).ToArray());
 
                 if (lstClients.Items.Count > 0)
                 {
@@ -415,6 +412,7 @@ namespace PowerBiMigration
             lstContentItems.Items.Clear();
             lstPbiWorkspaces.Items.Clear();
             lstPowerBiReports.Items.Clear();
+            txtReportDetails.Clear();
         }
 
         private async void BtnExportSelectedClient_Click(object sender, EventArgs e)
@@ -467,7 +465,7 @@ namespace PowerBiMigration
 
                     foreach (RootContentItem contentItem in pbiContentItems)
                     {
-                        await ExportOneContentItem(client, contentItem, newSubFolder, db);
+                        ProcessedItem result = await ExportOneContentItem(client, contentItem, newSubFolder, db);
                     }
                 }
             }
@@ -555,6 +553,21 @@ namespace PowerBiMigration
             }
 
             return newProcessedItem;
+        }
+
+        private void LstPowerBiReports_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (lstPowerBiReports.SelectedIndex > -1)
+            {
+                Type itemType = lstPowerBiReports.SelectedItem.GetType();
+                PropertyInfo reportModelPropertyInfo = itemType.GetProperty("Report");
+                ReportModel reportModel = reportModelPropertyInfo.GetValue(lstPowerBiReports.SelectedItem) as ReportModel;
+                txtReportDetails.Text = JsonSerializer.Serialize(reportModel, new JsonSerializerOptions { WriteIndented = true }); ;
+            }
+            else
+            {
+                txtReportDetails.Clear();
+            }
         }
     }
 }

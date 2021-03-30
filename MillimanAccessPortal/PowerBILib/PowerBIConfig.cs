@@ -25,6 +25,8 @@ namespace PowerBiLib
 
         public string PbiTenantId { get; set; }
 
+        public string PbiCapacityId { get; set; }
+
         public string PbiTokenEndpoint
         {
             get => $"https://login.microsoftonline.com/{PbiTenantId}/oauth2/v2.0/token";

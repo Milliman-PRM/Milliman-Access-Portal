@@ -30,7 +30,6 @@ namespace PowerBiMigration
         private void InitializeComponent()
         {
             this.btnGetAllInventory = new System.Windows.Forms.Button();
-            this.grpDatabase = new System.Windows.Forms.GroupBox();
             this.radioTarget = new System.Windows.Forms.RadioButton();
             this.radioSource = new System.Windows.Forms.RadioButton();
             this.lstPowerBiReports = new System.Windows.Forms.ListBox();
@@ -42,7 +41,6 @@ namespace PowerBiMigration
             this.label2 = new System.Windows.Forms.Label();
             this.lblContentItems = new System.Windows.Forms.Label();
             this.lstContentItems = new System.Windows.Forms.ListBox();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.txtStorageFolder = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.btnTest = new System.Windows.Forms.Button();
@@ -51,12 +49,12 @@ namespace PowerBiMigration
             this.chkImportToTarget = new System.Windows.Forms.CheckBox();
             this.chkUpdateDatabase = new System.Windows.Forms.CheckBox();
             this.btnExportSelectedClient = new System.Windows.Forms.Button();
-            this.grpDatabase.SuspendLayout();
+            this.txtReportDetails = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // btnGetAllInventory
             // 
-            this.btnGetAllInventory.Location = new System.Drawing.Point(6, 103);
+            this.btnGetAllInventory.Location = new System.Drawing.Point(11, 122);
             this.btnGetAllInventory.Name = "btnGetAllInventory";
             this.btnGetAllInventory.Size = new System.Drawing.Size(105, 23);
             this.btnGetAllInventory.TabIndex = 0;
@@ -64,31 +62,10 @@ namespace PowerBiMigration
             this.btnGetAllInventory.UseVisualStyleBackColor = true;
             this.btnGetAllInventory.Click += new System.EventHandler(this.BtnGetAllInventory_Click);
             // 
-            // grpDatabase
-            // 
-            this.grpDatabase.Controls.Add(this.radioTarget);
-            this.grpDatabase.Controls.Add(this.radioSource);
-            this.grpDatabase.Controls.Add(this.lstPowerBiReports);
-            this.grpDatabase.Controls.Add(this.lblPowerBiReports);
-            this.grpDatabase.Controls.Add(this.lstPbiWorkspaces);
-            this.grpDatabase.Controls.Add(this.lblPbiWorkspaces);
-            this.grpDatabase.Controls.Add(this.lstClients);
-            this.grpDatabase.Controls.Add(this.lblClients);
-            this.grpDatabase.Controls.Add(this.label2);
-            this.grpDatabase.Controls.Add(this.lblContentItems);
-            this.grpDatabase.Controls.Add(this.lstContentItems);
-            this.grpDatabase.Controls.Add(this.btnGetAllInventory);
-            this.grpDatabase.Location = new System.Drawing.Point(12, 42);
-            this.grpDatabase.Name = "grpDatabase";
-            this.grpDatabase.Size = new System.Drawing.Size(1040, 217);
-            this.grpDatabase.TabIndex = 4;
-            this.grpDatabase.TabStop = false;
-            this.grpDatabase.Text = "Database";
-            // 
             // radioTarget
             // 
             this.radioTarget.AutoSize = true;
-            this.radioTarget.Location = new System.Drawing.Point(7, 49);
+            this.radioTarget.Location = new System.Drawing.Point(12, 68);
             this.radioTarget.Name = "radioTarget";
             this.radioTarget.Size = new System.Drawing.Size(57, 19);
             this.radioTarget.TabIndex = 11;
@@ -100,7 +77,7 @@ namespace PowerBiMigration
             // 
             this.radioSource.AutoSize = true;
             this.radioSource.Checked = true;
-            this.radioSource.Location = new System.Drawing.Point(7, 23);
+            this.radioSource.Location = new System.Drawing.Point(12, 42);
             this.radioSource.Name = "radioSource";
             this.radioSource.Size = new System.Drawing.Size(61, 19);
             this.radioSource.TabIndex = 10;
@@ -113,15 +90,16 @@ namespace PowerBiMigration
             // 
             this.lstPowerBiReports.FormattingEnabled = true;
             this.lstPowerBiReports.ItemHeight = 15;
-            this.lstPowerBiReports.Location = new System.Drawing.Point(806, 47);
+            this.lstPowerBiReports.Location = new System.Drawing.Point(583, 323);
             this.lstPowerBiReports.Name = "lstPowerBiReports";
-            this.lstPowerBiReports.Size = new System.Drawing.Size(217, 154);
+            this.lstPowerBiReports.Size = new System.Drawing.Size(469, 94);
             this.lstPowerBiReports.TabIndex = 9;
+            this.lstPowerBiReports.SelectedIndexChanged += new System.EventHandler(this.LstPowerBiReports_SelectedIndexChanged);
             // 
             // lblPowerBiReports
             // 
             this.lblPowerBiReports.AutoSize = true;
-            this.lblPowerBiReports.Location = new System.Drawing.Point(806, 22);
+            this.lblPowerBiReports.Location = new System.Drawing.Point(583, 305);
             this.lblPowerBiReports.Name = "lblPowerBiReports";
             this.lblPowerBiReports.Size = new System.Drawing.Size(96, 15);
             this.lblPowerBiReports.TabIndex = 8;
@@ -131,16 +109,16 @@ namespace PowerBiMigration
             // 
             this.lstPbiWorkspaces.FormattingEnabled = true;
             this.lstPbiWorkspaces.ItemHeight = 15;
-            this.lstPbiWorkspaces.Location = new System.Drawing.Point(578, 47);
+            this.lstPbiWorkspaces.Location = new System.Drawing.Point(583, 66);
             this.lstPbiWorkspaces.Name = "lstPbiWorkspaces";
-            this.lstPbiWorkspaces.Size = new System.Drawing.Size(217, 154);
+            this.lstPbiWorkspaces.Size = new System.Drawing.Size(469, 229);
             this.lstPbiWorkspaces.TabIndex = 7;
             this.lstPbiWorkspaces.SelectedIndexChanged += new System.EventHandler(this.LstPbiWorkspaces_SelectedIndexChanged);
             // 
             // lblPbiWorkspaces
             // 
             this.lblPbiWorkspaces.AutoSize = true;
-            this.lblPbiWorkspaces.Location = new System.Drawing.Point(578, 22);
+            this.lblPbiWorkspaces.Location = new System.Drawing.Point(583, 41);
             this.lblPbiWorkspaces.Name = "lblPbiWorkspaces";
             this.lblPbiWorkspaces.Size = new System.Drawing.Size(119, 15);
             this.lblPbiWorkspaces.TabIndex = 6;
@@ -150,17 +128,16 @@ namespace PowerBiMigration
             // 
             this.lstClients.FormattingEnabled = true;
             this.lstClients.ItemHeight = 15;
-            this.lstClients.Location = new System.Drawing.Point(117, 47);
+            this.lstClients.Location = new System.Drawing.Point(122, 66);
             this.lstClients.Name = "lstClients";
-            this.lstClients.ScrollAlwaysVisible = true;
-            this.lstClients.Size = new System.Drawing.Size(217, 154);
+            this.lstClients.Size = new System.Drawing.Size(455, 229);
             this.lstClients.TabIndex = 5;
             this.lstClients.SelectedIndexChanged += new System.EventHandler(this.LstClients_SelectedIndexChanged);
             // 
             // lblClients
             // 
             this.lblClients.AutoSize = true;
-            this.lblClients.Location = new System.Drawing.Point(117, 22);
+            this.lblClients.Location = new System.Drawing.Point(122, 41);
             this.lblClients.Name = "lblClients";
             this.lblClients.Size = new System.Drawing.Size(102, 15);
             this.lblClients.TabIndex = 4;
@@ -169,7 +146,7 @@ namespace PowerBiMigration
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(360, 22);
+            this.label2.Location = new System.Drawing.Point(365, 41);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(0, 15);
             this.label2.TabIndex = 3;
@@ -177,7 +154,7 @@ namespace PowerBiMigration
             // lblContentItems
             // 
             this.lblContentItems.AutoSize = true;
-            this.lblContentItems.Location = new System.Drawing.Point(345, 22);
+            this.lblContentItems.Location = new System.Drawing.Point(122, 305);
             this.lblContentItems.Name = "lblContentItems";
             this.lblContentItems.Size = new System.Drawing.Size(141, 15);
             this.lblContentItems.TabIndex = 2;
@@ -187,19 +164,10 @@ namespace PowerBiMigration
             // 
             this.lstContentItems.FormattingEnabled = true;
             this.lstContentItems.ItemHeight = 15;
-            this.lstContentItems.Location = new System.Drawing.Point(345, 47);
+            this.lstContentItems.Location = new System.Drawing.Point(122, 323);
             this.lstContentItems.Name = "lstContentItems";
-            this.lstContentItems.Size = new System.Drawing.Size(217, 154);
+            this.lstContentItems.Size = new System.Drawing.Size(455, 94);
             this.lstContentItems.TabIndex = 1;
-            // 
-            // groupBox1
-            // 
-            this.groupBox1.Location = new System.Drawing.Point(12, 556);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(1329, 123);
-            this.groupBox1.TabIndex = 0;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Target Capacity";
             // 
             // txtStorageFolder
             // 
@@ -211,7 +179,8 @@ namespace PowerBiMigration
             // 
             // btnTest
             // 
-            this.btnTest.Location = new System.Drawing.Point(318, 337);
+            this.btnTest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnTest.Location = new System.Drawing.Point(426, 478);
             this.btnTest.Name = "btnTest";
             this.btnTest.Size = new System.Drawing.Size(75, 23);
             this.btnTest.TabIndex = 6;
@@ -221,9 +190,10 @@ namespace PowerBiMigration
             // 
             // btnExportAll
             // 
-            this.btnExportAll.Location = new System.Drawing.Point(12, 337);
+            this.btnExportAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnExportAll.Location = new System.Drawing.Point(175, 499);
             this.btnExportAll.Name = "btnExportAll";
-            this.btnExportAll.Size = new System.Drawing.Size(111, 23);
+            this.btnExportAll.Size = new System.Drawing.Size(159, 23);
             this.btnExportAll.TabIndex = 7;
             this.btnExportAll.Text = "Export All";
             this.btnExportAll.UseVisualStyleBackColor = true;
@@ -231,10 +201,11 @@ namespace PowerBiMigration
             // 
             // chkWriteFiles
             // 
+            this.chkWriteFiles.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkWriteFiles.AutoSize = true;
             this.chkWriteFiles.Checked = true;
             this.chkWriteFiles.CheckState = System.Windows.Forms.CheckState.Indeterminate;
-            this.chkWriteFiles.Location = new System.Drawing.Point(18, 265);
+            this.chkWriteFiles.Location = new System.Drawing.Point(12, 453);
             this.chkWriteFiles.Name = "chkWriteFiles";
             this.chkWriteFiles.Size = new System.Drawing.Size(80, 19);
             this.chkWriteFiles.TabIndex = 8;
@@ -244,10 +215,11 @@ namespace PowerBiMigration
             // 
             // chkImportToTarget
             // 
+            this.chkImportToTarget.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkImportToTarget.AutoSize = true;
             this.chkImportToTarget.Checked = true;
             this.chkImportToTarget.CheckState = System.Windows.Forms.CheckState.Indeterminate;
-            this.chkImportToTarget.Location = new System.Drawing.Point(129, 264);
+            this.chkImportToTarget.Location = new System.Drawing.Point(12, 478);
             this.chkImportToTarget.Name = "chkImportToTarget";
             this.chkImportToTarget.Size = new System.Drawing.Size(112, 19);
             this.chkImportToTarget.TabIndex = 9;
@@ -258,8 +230,9 @@ namespace PowerBiMigration
             // 
             // chkUpdateDatabase
             // 
+            this.chkUpdateDatabase.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chkUpdateDatabase.AutoSize = true;
-            this.chkUpdateDatabase.Location = new System.Drawing.Point(248, 264);
+            this.chkUpdateDatabase.Location = new System.Drawing.Point(13, 503);
             this.chkUpdateDatabase.Name = "chkUpdateDatabase";
             this.chkUpdateDatabase.Size = new System.Drawing.Size(115, 19);
             this.chkUpdateDatabase.TabIndex = 10;
@@ -268,7 +241,8 @@ namespace PowerBiMigration
             // 
             // btnExportSelectedClient
             // 
-            this.btnExportSelectedClient.Location = new System.Drawing.Point(12, 291);
+            this.btnExportSelectedClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnExportSelectedClient.Location = new System.Drawing.Point(175, 470);
             this.btnExportSelectedClient.Name = "btnExportSelectedClient";
             this.btnExportSelectedClient.Size = new System.Drawing.Size(159, 23);
             this.btnExportSelectedClient.TabIndex = 11;
@@ -276,24 +250,44 @@ namespace PowerBiMigration
             this.btnExportSelectedClient.UseVisualStyleBackColor = true;
             this.btnExportSelectedClient.Click += new System.EventHandler(this.BtnExportSelectedClient_Click);
             // 
+            // txtReportDetails
+            // 
+            this.txtReportDetails.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.txtReportDetails.Location = new System.Drawing.Point(583, 424);
+            this.txtReportDetails.Multiline = true;
+            this.txtReportDetails.Name = "txtReportDetails";
+            this.txtReportDetails.Size = new System.Drawing.Size(471, 103);
+            this.txtReportDetails.TabIndex = 12;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1064, 691);
+            this.ClientSize = new System.Drawing.Size(1066, 539);
+            this.Controls.Add(this.txtReportDetails);
+            this.Controls.Add(this.radioTarget);
+            this.Controls.Add(this.radioSource);
             this.Controls.Add(this.btnExportSelectedClient);
+            this.Controls.Add(this.lstPowerBiReports);
             this.Controls.Add(this.chkUpdateDatabase);
+            this.Controls.Add(this.lblPowerBiReports);
             this.Controls.Add(this.chkImportToTarget);
+            this.Controls.Add(this.lstPbiWorkspaces);
             this.Controls.Add(this.chkWriteFiles);
+            this.Controls.Add(this.lblPbiWorkspaces);
             this.Controls.Add(this.btnExportAll);
+            this.Controls.Add(this.lstClients);
             this.Controls.Add(this.btnTest);
+            this.Controls.Add(this.lblClients);
             this.Controls.Add(this.txtStorageFolder);
-            this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.grpDatabase);
+            this.Controls.Add(this.label2);
+            this.Controls.Add(this.lblContentItems);
+            this.Controls.Add(this.btnGetAllInventory);
+            this.Controls.Add(this.lstContentItems);
             this.Name = "Form1";
             this.Text = "Form1";
-            this.grpDatabase.ResumeLayout(false);
-            this.grpDatabase.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -302,8 +296,6 @@ namespace PowerBiMigration
         #endregion
 
         private System.Windows.Forms.Button btnGetAllInventory;
-        private System.Windows.Forms.GroupBox grpDatabase;
-        private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.TextBox txtStorageFolder;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.ListBox lstClients;
@@ -323,6 +315,7 @@ namespace PowerBiMigration
         private System.Windows.Forms.RadioButton radioTarget;
         private System.Windows.Forms.RadioButton radioSource;
         private System.Windows.Forms.Button btnExportSelectedClient;
+        private System.Windows.Forms.TextBox txtReportDetails;
     }
 }
 

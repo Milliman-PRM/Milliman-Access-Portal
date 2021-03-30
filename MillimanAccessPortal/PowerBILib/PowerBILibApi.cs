@@ -151,15 +151,17 @@ namespace PowerBiLib
         /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
         /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
         /// <returns></returns>
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName)
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
+                var groups = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.ToList();
+
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 if (group == null)
                 {
                     ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
+                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == _config.PbiCapacityId) ?? allCapacities.Value.Single();
 
                     group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
                     if (group == null)
@@ -172,7 +174,9 @@ namespace PowerBiLib
 
                 string pbixFileName = Path.GetFileName(pbixFullPath);
                 DateTime now = DateTime.UtcNow;
-                string remoteFileName = Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
+                string remoteFileName = pbixFileName.Contains('_')
+                                      ? pbixFileName
+                                      : Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
                 // Initiate pbix upload and poll for completion
                 Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
@@ -242,7 +246,7 @@ namespace PowerBiLib
             }
             catch (Exception e)
             {
-                Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
+                Log.Error(e, $"Exception from PowerBiLibApi.ExportReportAsync with request for: groupId {groupId}, reportId {reportId}");
                 return (null, null);
             }
         }
