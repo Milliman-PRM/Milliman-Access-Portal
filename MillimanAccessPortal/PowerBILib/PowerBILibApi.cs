@@ -83,20 +83,6 @@ namespace PowerBiLib
             }
         }
 
-        public async Task DeleteThisMethod()
-        {
-            var groups = await GetAllGroupsAsync();
-            using (var client = new PowerBIClient(_tokenCredentials))
-            {
-                int i = 0;
-                foreach (var group in groups)
-                {
-                    i++;
-                    var x = await client.Groups.GetGroupUsersAsync(group.Id);
-                }
-            }
-        }
-
         /// <summary>
         /// Get all reports for group
         /// </summary>

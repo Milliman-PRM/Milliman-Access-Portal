@@ -50,11 +50,12 @@ namespace PowerBiMigration
             this.chkUpdateDatabase = new System.Windows.Forms.CheckBox();
             this.btnExportSelectedClient = new System.Windows.Forms.Button();
             this.txtReportDetails = new System.Windows.Forms.TextBox();
+            this.label1 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // btnGetAllInventory
             // 
-            this.btnGetAllInventory.Location = new System.Drawing.Point(11, 122);
+            this.btnGetAllInventory.Location = new System.Drawing.Point(12, 142);
             this.btnGetAllInventory.Name = "btnGetAllInventory";
             this.btnGetAllInventory.Size = new System.Drawing.Size(105, 23);
             this.btnGetAllInventory.TabIndex = 0;
@@ -65,7 +66,7 @@ namespace PowerBiMigration
             // radioTarget
             // 
             this.radioTarget.AutoSize = true;
-            this.radioTarget.Location = new System.Drawing.Point(12, 68);
+            this.radioTarget.Location = new System.Drawing.Point(12, 97);
             this.radioTarget.Name = "radioTarget";
             this.radioTarget.Size = new System.Drawing.Size(57, 19);
             this.radioTarget.TabIndex = 11;
@@ -77,7 +78,7 @@ namespace PowerBiMigration
             // 
             this.radioSource.AutoSize = true;
             this.radioSource.Checked = true;
-            this.radioSource.Location = new System.Drawing.Point(12, 42);
+            this.radioSource.Location = new System.Drawing.Point(12, 71);
             this.radioSource.Name = "radioSource";
             this.radioSource.Size = new System.Drawing.Size(61, 19);
             this.radioSource.TabIndex = 10;
@@ -171,9 +172,9 @@ namespace PowerBiMigration
             // 
             // txtStorageFolder
             // 
-            this.txtStorageFolder.Location = new System.Drawing.Point(12, 13);
+            this.txtStorageFolder.Location = new System.Drawing.Point(122, 13);
             this.txtStorageFolder.Name = "txtStorageFolder";
-            this.txtStorageFolder.Size = new System.Drawing.Size(1040, 23);
+            this.txtStorageFolder.Size = new System.Drawing.Size(930, 23);
             this.txtStorageFolder.TabIndex = 5;
             this.txtStorageFolder.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TxtStorageFolder_MouseClick);
             // 
@@ -261,11 +262,21 @@ namespace PowerBiMigration
             this.txtReportDetails.Size = new System.Drawing.Size(471, 103);
             this.txtReportDetails.TabIndex = 12;
             // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(12, 16);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(99, 15);
+            this.label1.TabIndex = 13;
+            this.label1.Text = "Temporary Folder";
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1066, 539);
+            this.Controls.Add(this.label1);
             this.Controls.Add(this.txtReportDetails);
             this.Controls.Add(this.radioTarget);
             this.Controls.Add(this.radioSource);
@@ -316,6 +327,7 @@ namespace PowerBiMigration
         private System.Windows.Forms.RadioButton radioSource;
         private System.Windows.Forms.Button btnExportSelectedClient;
         private System.Windows.Forms.TextBox txtReportDetails;
+        private System.Windows.Forms.Label label1;
     }
 }
 

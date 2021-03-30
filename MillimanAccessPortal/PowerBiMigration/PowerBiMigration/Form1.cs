@@ -369,7 +369,11 @@ namespace PowerBiMigration
 
                     if (_processedItems.All(i => i.Status == ProcessingStatus.DbUpdateSuccess))
                     {
-                        txn.Commit();
+                        DialogResult confirmation = MessageBox.Show("Please review the operation log and confirm that no errors are indicated. Click \"Yes\" to commit all updates to the MAP application database", "Processing Complete", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+                        if (confirmation == DialogResult.Yes)
+                        {
+                            txn.Commit();
+                        }
                     }
                 }
 
