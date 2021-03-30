@@ -220,6 +220,53 @@ CREATE TABLE public."QlikViewAudit"
 	ON UPDATE NO ACTION ON DELETE CASCADE*/ -- This key can't be implemented as-is. We need to determine whether Session will always be unique, which seems unlikely at the moment
 );
 
+CREATE TABLE public."FileDrop"
+(
+  "Id" uuid NOT NULL,
+  "ClientId" uuid NOT NULL,
+  "Name" text NOT NULL,
+  "Description" text,
+  CONSTRAINT "PK_FileDrop" PRIMARY KEY ("Id"),
+  CONSTRAINT "FK_FileDrop_Client_ClientId" FOREIGN KEY ("ClientId")
+      REFERENCES public."Client" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE public."FileDropUserPermissionGroup"
+(
+  "Id" uuid NOT NULL,
+  "Name" text,
+  "ReadAccess" boolean,
+  "WriteAccess" boolean,
+  "DeleteAccess" boolean,
+  "IsPersonalGroup" boolean,
+  "FileDropId" uuid NOT NULL,
+  CONSTRAINT "PK_FileDropUserPermissionGroup" PRIMARY KEY ("Id"),
+  CONSTRAINT "FK_FileDropUserPermissionGroup_FileDrop_FileDropId" FOREIGN KEY ("FileDropId")
+      REFERENCES public."FileDrop" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE public."SftpAccount"
+(
+  "Id" uuid NOT NULL,
+  "UserName" text NOT NULL,
+  "IsSuspended" boolean,
+  "ApplicationUserId" uuid,
+  "FileDropUserPermissionGroupId" uuid,
+  "FileDropId" uuid NOT NULL,
+  "StartDate" date NOT NULL,
+  "EndDate" date NOT NULL DEFAULT '12-31-9999', -- Default value makes BETWEEN clausess easy to use and makes the current record easy to find
+  CONSTRAINT "FK_SftpAccount_PermissionGroup_PermissionGroupId" FOREIGN KEY ("FileDropUserPermissionGroupId")
+      REFERENCES public."FileDropUserPermissionGroup" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE,
+  CONSTRAINT "FK_FileDropUserPermissionGroup_FileDrop_FileDropId" FOREIGN KEY ("FileDropId")
+      REFERENCES public."FileDrop" ("Id") MATCH SIMPLE
+  	  ON UPDATE NO ACTION ON DELETE CASCADE,
+   CONSTRAINT "UNIQUE_User_PermissionGroup_Current" UNIQUE ("Id", "FileDropUserPermissionGroupId", "EndDate")
+);
+
+
 /*
 
    Define views used by User Stats reports
@@ -605,3 +652,21 @@ CREATE OR REPLACE VIEW public."UserRoleListing" AS
 ALTER TABLE public."UserRoleListing"
     OWNER TO prmpgadmin;
 
+CREATE OR REPLACE VIEW public."UserInFileDrop" AS
+ SELECT pc."Name" AS "ProfitCenter",
+    cl."Name" AS "ClientName",
+    fd."Name" As "FileDropName",
+    pg."Name" As "PermissionGroupName",
+    usr."UserName",
+	psa."StartDate",
+	psa."EndDate"
+   FROM public."SftpAccount" psa
+   	 LEFT JOIN "Users" usr ON usr."Id" = psa."ApplicationUserId"
+     LEFT JOIN "FileDropUserPermissionGroup" pg ON psa."FileDropUserPermissionGroupId" = pg."Id"
+     JOIN "FileDrop" fd ON pg."FileDropId" = fd."Id"
+     JOIN public."Client" cl ON fd."ClientId" = cl."Id"
+	 JOIN public."ClientInProfitCenter" cpc ON cpc."ClientId" = cl."Id"
+     JOIN public."ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id";
+
+ALTER TABLE public."UserInFileDrop"
+    OWNER TO prmpgadmin;
