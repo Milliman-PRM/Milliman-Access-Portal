@@ -28,6 +28,7 @@ export interface CardProps {
     level: 'message' | 'informational' | 'error';
     message: JSX.Element;
   };
+  borderLevel?: 'default' | 'informational' | 'error';
 }
 
 export class Card extends React.Component<CardProps> {
@@ -41,6 +42,7 @@ export class Card extends React.Component<CardProps> {
     insertCard: false,
     indentation: 1,
     status: null as PublicationWithQueueDetails | ReductionWithQueueDetails,
+    borderLevel: 'default',
   };
 
   private indentClasses: { [indent: number]: string; } = {
@@ -51,7 +53,7 @@ export class Card extends React.Component<CardProps> {
 
   public render() {
     const { indentation, disabled, readonly, selected, suspended,
-      inactive, locked, insertCard, onSelect, status, children, bannerMessage } = this.props;
+      inactive, locked, insertCard, onSelect, status, children, bannerMessage, borderLevel } = this.props;
 
     const cardClass = 'card-container'
       + (indentation ? ` ${this.indentClasses[indentation] || this.indentClasses[1]}` : '')
@@ -60,7 +62,8 @@ export class Card extends React.Component<CardProps> {
       + (insertCard ? ' insert-card' : '');
     const cardBodyClass = 'card-body-container'
       + (selected ? ' selected' : '')
-      + (locked ? ' locked' : suspended ? ' suspended' : inactive ? ' inactive' : '');
+      + (locked ? ' locked' : suspended ? ' suspended' : inactive ? ' inactive' : '')
+      + (' border-' + borderLevel);
 
     return (
       <div className={cardClass} onClick={disabled ? () => null : onSelect}>
@@ -69,7 +72,7 @@ export class Card extends React.Component<CardProps> {
         </div>
         {status && <CardStatus status={status} />}
         {!status && bannerMessage &&
-          <div className={`card-status-container status-${bannerMessage.level}`}>
+          <div className={`card-status-container status-${bannerMessage.level} border-${borderLevel}`}>
             {bannerMessage.message}
           </div>
         }

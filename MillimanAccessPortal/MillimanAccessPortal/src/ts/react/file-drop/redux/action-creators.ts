@@ -1,3 +1,4 @@
+import * as UploadActionCreators from '../../../upload/Redux/action-creators';
 import * as Action from './actions';
 
 import { createActionCreator, createRequestActionCreator } from '../../shared-components/redux/action-creators';
@@ -45,6 +46,22 @@ export const openDeleteFileDropConfirmationModal =
 /** Close the Delete File Drop modal */
 export const closeDeleteFileDropConfirmationModal =
   createActionCreator<Action.CloseDeleteFileDropConfirmationModal>('CLOSE_DELETE_FILE_DROP_CONFIRMATION_MODAL');
+
+/** Open the Move File Drop Item modal */
+export const openMoveFileDropItemModal =
+  createActionCreator<Action.OpenMoveFileDropItemModal>('OPEN_MOVE_FILE_DROP_ITEM_MODAL');
+
+/** Close the Move File Drop Item modal */
+export const closeMoveFileDropItemModal =
+  createActionCreator<Action.CloseMoveFileDropItemModal>('CLOSE_MOVE_FILE_DROP_ITEM_MODAL');
+
+/** Enter/exit a mode to create a new folder within the Move File Drop Item modal */
+export const setNewFolderModeStatus =
+  createActionCreator<Action.SetNewFolderModeStatus>('SET_NEW_FOLDER_MODE_STATUS');
+
+/** Change the value of the new folder name when creating a new folder to move a file/folder into */
+export const setNewFolderNameForMove =
+  createActionCreator<Action.SetNewFolderNameForMove>('SET_NEW_FOLDER_NAME_FOR_MOVE');
 
 /** Put a File Drop in edit mode */
 export const editFileDrop =
@@ -102,6 +119,50 @@ export const closeModifiedFormModal =
 export const closePasswordNotificationModal =
   createActionCreator<Action.ClosePasswordNotificationModal>('CLOSE_PASSWORD_NOTIFICATION_MODAL');
 
+/** Enter File Drop edit mode */
+export const enterFileDropEditMode =
+  createActionCreator<Action.EnterFileDropEditMode>('ENTER_FILE_DROP_EDIT_MODE');
+
+/** Exit File Drop edit mode */
+export const exitFileDropEditMode =
+  createActionCreator<Action.ExitFileDropEditMode>('EXIT_FILE_DROP_EDIT_MODE');
+
+/** Set the File or Folder expansion status */
+export const setFileOrFolderExpansion =
+  createActionCreator<Action.SetFileOrFolderExpansion>('SET_FILE_OR_FOLDER_EXPANSION');
+
+/** Set the File or Folder editing status */
+export const setFileOrFolderEditing =
+  createActionCreator<Action.SetFileOrFolderEditing>('SET_FILE_OR_FOLDER_EDITING');
+
+/** Update the File or Folder name */
+export const updateFileOrFolderName =
+  createActionCreator<Action.UpdateFileOrFolderName>('UPDATE_FILE_OR_FOLDER_NAME');
+
+/** Update the File or Folder description */
+export const updateFileOrFolderDescription =
+  createActionCreator<Action.UpdateFileOrFolderDescription>('UPDATE_FILE_OR_FOLDER_DESCRIPTION');
+
+/** Enter Create Folder Mode */
+export const enterCreateFolderMode =
+  createActionCreator<Action.EnterCreateFolderMode>('ENTER_CREATE_FOLDER_MODE');
+
+/** Exit Create Folder Mode */
+export const exitCreateFolderMode =
+  createActionCreator<Action.ExitCreateFolderMode>('EXIT_CREATE_FOLDER_MODE');
+
+/** Update Create Folder Values */
+export const updateCreateFolderValues =
+  createActionCreator<Action.UpdateCreateFolderValues>('UPDATE_CREATE_FOLDER_VALUES');
+
+/** Open Delete File Drop Item Modal */
+export const openDeleteFileDropItemModal =
+  createActionCreator<Action.OpenDeleteFileDropItemModal>('OPEN_DELETE_FILE_DROP_ITEM_MODAL');
+
+/** Close Delete File Drop Item Modal */
+export const closeDeleteFileDropItemModal =
+  createActionCreator<Action.CloseDeleteFileDropItemModal>('CLOSE_DELETE_FILE_DROP_ITEM_MODAL');
+
 // ~~~~~~~~~~~~~~~~~~~~
 // Async/Server Actions
 // ~~~~~~~~~~~~~~~~~~~~
@@ -150,6 +211,46 @@ export const generateNewSftpPassword =
 export const setFileDropNotificationSetting =
   createRequestActionCreator<Action.SetFileDropNotificationSetting>('SET_FILE_DROP_NOTIFICATION_SETTING');
 
+/** Get folder contents for a given File Drop */
+export const fetchFolderContents =
+  createRequestActionCreator<Action.FetchFolderContents>('FETCH_FOLDER_CONTENTS');
+
+/** Get folder contents for the Move File Drop Item modal */
+export const fetchFolderContentsForMove =
+  createRequestActionCreator<Action.FetchFolderContentsForMove>('FETCH_FOLDER_CONTENTS_FOR_MOVE');
+
+/** Delete a file from a File Drop */
+export const deleteFileDropFile =
+  createRequestActionCreator<Action.DeleteFileDropFile>('DELETE_FILE_DROP_FILE');
+
+/** Delete a folder from a File Drop */
+export const deleteFileDropFolder =
+  createRequestActionCreator<Action.DeleteFileDropFolder>('DELETE_FILE_DROP_FOLDER');
+
+/** Update File Drop file information */
+export const updateFileDropFile =
+  createRequestActionCreator<Action.UpdateFileDropFile>('UPDATE_FILE_DROP_FILE');
+
+/** Create a folder with a name and description */
+export const createFileDropFolder =
+  createRequestActionCreator<Action.CreateFileDropFolder>('CREATE_FILE_DROP_FOLDER');
+
+/** Update a File Drop folder information */
+export const updateFileDropFolder =
+  createRequestActionCreator<Action.UpdateFileDropFolder>('UPDATE_FILE_DROP_FOLDER');
+
+/** Update a file's name */
+export const renameFileDropFile =
+  createRequestActionCreator<Action.RenameFileDropFile>('RENAME_FILE_DROP_FILE');
+
+/** Update a folder's name */
+export const renameFileDropFolder =
+  createRequestActionCreator<Action.RenameFileDropFolder>('RENAME_FILE_DROP_FOLDER');
+
+/** Create a new folder within the Move File Drop Item modal */
+export const createFileDropFolderForMove =
+  createRequestActionCreator<Action.CreateFileDropFolderForMove>('CREATE_FILE_DROP_FOLDER_FOR_MOVE');
+
 // ~~~~~~~~~~~~~~~~~~~~~~
 // Status Refresh Actions
 // ~~~~~~~~~~~~~~~~~~~~~~
@@ -181,3 +282,33 @@ export const scheduleSessionCheck =
 /** Fetch a session check from the server */
 export const fetchSessionCheck =
   createRequestActionCreator<Action.FetchSessionCheck>('FETCH_SESSION_CHECK');
+
+// ~~~~~~~~~~~~~~~~~~~
+// File Upload Actions
+// ~~~~~~~~~~~~~~~~~~~
+
+/** Initialize the first upload object when the page first loads */
+export const initializeFirstUploadObject =
+  createActionCreator<Action.IntitializeFirstUploadObject>('INITIALIZE_FIRST_UPLOAD_OBJECT');
+
+export const beginFileDropFileUpload =
+  createActionCreator<Action.BeginFileDropFileUpload>('BEGIN_FILE_DROP_FILE_UPLOAD');
+
+export const beginFileDropUploadCancel =
+  createActionCreator<Action.BeginFileDropUploadCancel>('BEGIN_FILE_DROP_UPLOAD_CANCEL');
+
+export const toggleFileDropCardExpansion =
+  createActionCreator<Action.ToggleFileDropCardExpansion>('TOGGLE_FILE_DROP_CARD_EXPANSION');
+
+export const finalizeFileDropUpload =
+  createActionCreator<Action.FinalizeFileDropUpload>('FINALIZE_FILE_DROP_UPLOAD');
+
+export const changeMoveDestination =
+  createActionCreator<Action.ChangeMoveDestination>('CHANGE_MOVE_DESTINATION');
+
+// Upload Action Creators
+export const updateChecksumProgress = UploadActionCreators.updateChecksumProgress;
+export const updateUploadProgress = UploadActionCreators.updateUploadProgress;
+export const setUploadCancelable = UploadActionCreators.setUploadCancelable;
+export const setUploadError = UploadActionCreators.setUploadError;
+export const cancelFileUpload = UploadActionCreators.cancelFileUpload;

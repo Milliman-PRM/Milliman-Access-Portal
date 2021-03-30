@@ -52,6 +52,22 @@ namespace MillimanAccessPortal.Services
             return _sender.QueueMessage(recipients, subject, message, senderAddress, senderName);
         }
 
+        /// <summary>
+        /// Queues an email message for sending
+        /// </summary>
+        /// <param name="recipients"></param>
+        /// <param name="cc"></param>
+        /// <param name="bcc"></param>
+        /// <param name="subject"></param>
+        /// <param name="message"></param>
+        /// <param name="senderAddress">Optional</param>
+        /// <param name="senderName">Optional</param>
+        /// <returns></returns>
+        public bool QueueMessage(IEnumerable<string> recipients, IEnumerable<string> cc, IEnumerable<string> bcc, string subject, string message, string senderAddress, string senderName, string disclaimer = null)
+        {
+            return _sender.QueueMessage(recipients, cc, bcc, subject, message, senderAddress, senderName, disclaimer);
+        }
+
         public bool QueueSms(string number, string message)
         {
             // Plug in your SMS service here to send a text message.

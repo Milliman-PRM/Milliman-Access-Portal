@@ -16,15 +16,17 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.9.3</Version>
+    <Version>1.12.0</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Azure.Extensions.AspNetCore.Configuration.Secrets" Version="1.0.2" />
+    <PackageReference Include="Azure.Identity" Version="1.3.0" />
     <PackageReference Include="CsvHelper" Version="15.0.5" />
-    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.13.1" />
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.15.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.WsFederation" Version="3.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.AzureAppServices.HostingStartup" Version="3.1.3" />
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.AzureKeyVault" Version="3.1.3" />
@@ -42,7 +44,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Web.BrowserLink" Version="2.2.0" />
     <PackageReference Include="NetEscapades.AspNetCore.SecurityHeaders" Version="0.11.0" />
     <PackageReference Include="nsoftware.IPWorksSSH" Version="20.0.7397" />
-    <PackageReference Include="Prm.EmailQueue" Version="2.0.0" />
+    <PackageReference Include="Prm.EmailQueue" Version="2.1.0" />
     <PackageReference Include="Prm.SerilogCustomization" Version="1.0.0" />
     <PackageReference Include="Serilog.AspNetCore" Version="3.2.0" />
     <PackageReference Include="Serilog.Settings.Configuration" Version="3.1.0" />
@@ -73,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\FileDropLib\FileDropLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
     <ProjectReference Include="..\PowerBILib\PowerBiLib.csproj" />
@@ -118,6 +121,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="powerbi.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="qlikview.azure-isdev.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="qlikview.Internal.json">

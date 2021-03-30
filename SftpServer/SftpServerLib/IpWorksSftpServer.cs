@@ -20,12 +20,7 @@ namespace SftpServerLib
     {
         internal static System.Timers.Timer _maintenanceTimer;
         internal static Sftpserver _sftpServer;
-        internal static Dictionary<string, SftpConnectionProperties> _connections;
 
-        static IpWorksSftpServer()
-        {
-            _connections = new Dictionary<string, SftpConnectionProperties>();
-        }
         internal IpWorksSftpServer() 
         {
             // At launch all connection records should be dropped because the sftp library reuses connection IDs. 
@@ -49,6 +44,7 @@ namespace SftpServerLib
             Certificate certificate = new Certificate(keyBytes);
             EstablishServerInstance(certificate);
 
+            //_sftpServer.Config("LogLevel=3");
             _sftpServer.Listening = true;
         }
 

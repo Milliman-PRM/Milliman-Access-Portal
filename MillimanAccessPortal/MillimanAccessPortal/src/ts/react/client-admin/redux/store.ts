@@ -168,6 +168,7 @@ export interface AccessState {
   pending: AccessStatePending;
   valid: AccessStateValid;
   modals: AccessStateModals;
+  currentUser: string;
 }
 
 // Create the store and apply saga middleware

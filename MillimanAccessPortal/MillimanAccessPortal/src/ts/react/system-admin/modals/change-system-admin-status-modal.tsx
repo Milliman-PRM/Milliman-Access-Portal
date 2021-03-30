@@ -40,7 +40,7 @@ export class ChangeSystemAdminStatusModal
     super(props);
 
     this.state = {
-      reason: null,
+      reason: 0,
     };
 
     this.handleHitrustReasonChange = this.handleHitrustReasonChange.bind(this);
@@ -72,7 +72,7 @@ export class ChangeSystemAdminStatusModal
             label="Reason"
             placeholderText="Choose an option..."
             values={this.props.value ? this.enableSystemAdminHitrustReasons : this.disableSystemAdminHitrustReasons}
-            value={this.state.reason}
+            value={this.state.reason.toString()}
             onChange={this.handleHitrustReasonChange}
             error={null}
             autoFocus={true}
@@ -83,7 +83,7 @@ export class ChangeSystemAdminStatusModal
               type="button"
               onClick={() => {
                 this.props.onRequestClose(null);
-                this.setState({ reason: null });
+                this.setState({ reason: 0 });
               }}
             >
               Cancel

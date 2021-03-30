@@ -25,6 +25,9 @@ export interface UserInfo {
   rootContentItems?: RootContentItemInfo[];
   profitCenterId?: Guid;
   clientId?: Guid;
+  isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
+  accontDisableDate: string;
 }
 export interface ClientInfo extends Nestable {
   name: string;
@@ -138,6 +141,7 @@ export interface ProfitCenterDetail {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  quarterlyMaintenanceNotificationList: string[];
 }
 export type PrimaryDetail = UserDetail | ClientDetail | ProfitCenterDetail;
 export type PrimaryDetailData = (UserDetail & SystemRoles & Suspendable) | ClientDetail | ProfitCenterDetail;

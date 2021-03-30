@@ -1,5 +1,7 @@
 ﻿import * as _ from 'lodash';
 
+import * as moment from 'moment';
+
 import * as React from 'react';
 import * as Modal from 'react-modal';
 
@@ -10,7 +12,7 @@ import { toastr } from 'react-redux-toastr';
 import * as AccessActionCreators from './redux/action-creators';
 import {
   allUsersCollapsed, allUsersExpanded, areRolesModified, clientEntities,
-  isFormModified, isFormValid, userCanCreateClients, userEntities,
+  isFormModified, isFormValid, userCanCreateClients, userEntities, userIsRemovingOwnClientAdminRole,
 } from './redux/selectors';
 import {
   AccessState, AccessStateCardAttributes, AccessStateEdit, AccessStateFilters, AccessStateFormData,
@@ -64,6 +66,8 @@ interface ClientAdminProps {
   allUsersCollapsed: boolean;
   rolesModified: boolean;
   canCreateClients: boolean;
+  currentUser: string;
+  currentlyRemovingOwnAdminRole: boolean;
 }
 
 class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessActionCreators> {
@@ -98,6 +102,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   ];
 
   public componentDidMount() {
+    this.props.setCurrentUser({ username: document.getElementById('current-user-email').innerText });
     this.props.fetchProfitCenters({});
     this.props.fetchClients({});
     setUnloadAlert(() => (this.props.edit.userEnabled && this.props.rolesModified)
@@ -469,7 +474,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             name="approvedEmailDomainList"
                             label="Approved Email Domain List"
                             type="text"
-                            limit={3}
+                            limit={formData.domainListCountLimit}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
                             value={''}
@@ -799,6 +804,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   className="card-container action-card-container"
                   onClick={() => {
                     this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
+                      this.props.selectUser({ id: null });
                       this.props.openCreateClientUserModal({
                         clientId: selected.client,
                       });
@@ -822,11 +828,19 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 key={key}
                 selected={false}
                 disabled={selected.readonly}
-                onSelect={() => {
-                  (card && card.expanded) ?
-                    this.props.setCollapsedUser({ id: entity.id }) :
-                    this.props.setExpandedUser({ id: entity.id });
-                }}
+                onSelect={null}
+                bannerMessage={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  {
+                    level: entity.isAccountDisabled ? 'error' : 'informational',
+                    message:
+                      <div>{(entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ') +
+                        moment.utc(entity.dateOfAccountDisable).local().format('MMM DD, YYYY')}
+                      </div>,
+                  } : null
+                }
+                borderLevel={(entity.isAccountDisabled || entity.isAccountNearDisabled) ?
+                  (entity.isAccountDisabled ? 'error' : 'informational') : 'default'
+                }
               >
                 <CardSectionMain>
                   <svg
@@ -841,19 +855,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                   {entity.userRoles &&
                     entity.userRoles[RoleEnum.Admin] &&
                     entity.userRoles[RoleEnum.Admin].isAssigned ?
-                    <svg
-                      className="card-user-role-indicator"
-                      style={{
-                      position: 'absolute',
-                      top: '20%',
-                      left: '13%',
-                      height: '1.25rem',
-                      width: '1.25rem',
-                      color: '#42cc42',
-                      stroke: 'context fill #42cc42',
-                      strokeWidth: '3px',
-                      }}
-                    >
+                    <svg className="card-user-role-indicator admin">
                       <use href="#add" />
                     </svg> : null
                   }
@@ -915,8 +917,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                     this.props.openRemoveUserFromClientModal({
                                       clientId: selected.client,
                                       userId: entity.id,
-                                      name: entity.firstName && entity.lastName ?
-                                        `${entity.firstName} ${entity.lastName}` : entity.email,
+                                      name: entity.email,
                                     });
                                   });
                                 }}
@@ -1041,7 +1042,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     icon="add"
                     action={() => {
                       this.handleCallbackForPendingRoleChanges(edit.userEnabled && rolesModified, () => {
-                        this.props.selectUser({ id: 'new' });
+                        this.props.selectUser({ id: null });
                         this.props.openCreateClientUserModal({ clientId: selected.client });
                       });
                     }}
@@ -1056,7 +1057,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   }
 
   private renderModals() {
-    const { modals, pending, details, selected } = this.props;
+    const { modals, pending, details, selected, currentlyRemovingOwnAdminRole, currentUser } = this.props;
     return (
       <>
         <Modal
@@ -1274,6 +1275,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 userId: pending.removeClientUser.userId,
                 reason: pending.hitrustReason.reason,
               });
+
+              if (pending.removeClientUser.name === currentUser) {
+                this.props.selectClient({ id: null });
+              }
             }}
           >
             <DropDown
@@ -1412,13 +1417,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           <form
             onSubmit={(event) => {
               event.nativeEvent.preventDefault();
-              this.props.selectUser({ id: null });
               this.props.updateAllUserRolesInClient({
                 clientId: selected.client,
                 userId: selected.user,
                 reason: pending.hitrustReason.reason,
                 roleAssignments: pending.roles.roleAssignments,
               });
+
+              this.props.selectUser({ id: null });
+              if (currentlyRemovingOwnAdminRole) {
+                this.props.selectClient({ id: null });
+              }
               this.props.closeChangeUserRolesModal({});
             }}
           >
@@ -1608,7 +1617,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
   private isRoleSelected(roleEnum: RoleEnum, entity: User, selectedUserId: Guid,
                          pendingRoleAssignments: Array<{ roleEnum: RoleEnum, isAssigned: boolean }>) {
     if (entity && entity.id === selectedUserId || (entity === null && selectedUserId === 'new')) {
-      const role = pendingRoleAssignments.find((ra) => ra.roleEnum === roleEnum);
+      const role = pendingRoleAssignments.filter((ra) => ra.roleEnum === roleEnum)[0];
       if (role) {
         return role.isAssigned;
       }
@@ -1616,7 +1625,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     }
 
     if (entity.userRoles) {
-      return entity.userRoles[roleEnum].isAssigned;
+      return entity.userRoles[roleEnum] && entity.userRoles[roleEnum].isAssigned;
     }
     return false;
   }
@@ -1630,7 +1639,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 }
 
 function mapStateToProps(state: AccessState): ClientAdminProps {
-  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals } = state;
+  const { data, selected, edit, cardAttributes, formData, filters, pending, valid, modals, currentUser } = state;
 
   return {
     clients: clientEntities(state),
@@ -1651,6 +1660,8 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
     allUsersCollapsed: allUsersCollapsed(state),
     rolesModified: areRolesModified(state),
     canCreateClients: userCanCreateClients(state),
+    currentUser,
+    currentlyRemovingOwnAdminRole: userIsRemovingOwnClientAdminRole(state),
   };
 }
 

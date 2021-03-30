@@ -24,7 +24,8 @@ module.exports = {
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
     'update-user-agreement': './src/ts/update-user-agreement.ts',
-    'user-agreement': './src/ts/user-agreement.ts'
+    'user-agreement': './src/ts/user-agreement.ts',
+    'user-agreement-read-only': './src/ts/user-agreement-read-only.ts',
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
@@ -228,6 +229,12 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'UserAgreement.cshtml.template'),
       inject: false,
       chunks: ['commons', 'user-agreement'],
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'Account', 'UserAgreementReadOnly.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'UserAgreementReadOnly.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'user-agreement-read-only'],
     }),
   ],
   resolve: {

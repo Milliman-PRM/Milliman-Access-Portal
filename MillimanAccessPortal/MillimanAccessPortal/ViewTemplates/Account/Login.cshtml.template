@@ -1,6 +1,6 @@
 @using System.Collections.Generic
 @using MapDbContextLib.Identity
-@model LoginViewModel
+@model LoginRequestModel
 @inject SignInManager<ApplicationUser> SignInManager
 
 @{

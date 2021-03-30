@@ -44,6 +44,21 @@ namespace AuditLogLib.Event
         PasswordResetTokenInvalid,
     }
 
+    public enum LoginFailureReason
+    {
+        [Display(Name = "User Account Not Found")]
+        UserAccountNotFound,
+
+        [Display(Name = "PasswordSignInAsync Failed")]
+        PasswordSignInAsyncFailed,
+
+        [Display(Name = "Login Failed")]
+        LoginFailed,
+
+        [Display(Name = "Account Disabled")]
+        UserAccountDisabled,
+    }
+
     public enum ContentDisclaimerResetReason
     {
         [Display(Name = "Content disclaimer text was changed")]
@@ -142,11 +157,12 @@ namespace AuditLogLib.Event
             {
                 Scheme = scheme,
             });
-        public static readonly AuditEventType<string, string> LoginFailure = new AuditEventType<string, string>(
-            1002, "Login failure", (attemptedUsername, scheme) => new
+        public static readonly AuditEventType<string, string, LoginFailureReason> LoginFailure = new AuditEventType<string, string, LoginFailureReason>(
+            1002, "Login failure", (attemptedUsername, scheme, reason) => new
             {
                 AttemptedUsername = attemptedUsername,
                 AuthenticationScheme = scheme,
+                LoginFailureReason = reason.GetDisplayNameString(),
             });
         public static readonly AuditEventType<RoleEnum> Unauthorized = new AuditEventType<RoleEnum>(
             1003, "Unauthorized request", (role) => new
@@ -284,11 +300,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleAssigned = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
             2006, "Client role assigned", (client, user, roles, reasonVal) =>
             {
-                List<int> acceptableReasons = HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
 
                 if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of user from client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging assignment of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
                 }
                 HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
 
@@ -315,11 +331,11 @@ namespace AuditLogLib.Event
         public static readonly AuditEventType<Client, ApplicationUser, List<RoleEnum>, int> ClientRoleRemoved = new AuditEventType<Client, ApplicationUser, List<RoleEnum>, int>(
             2007, "Client role removed", (client, user, roles, reasonVal) =>
             {
-                List<int> acceptableReasons = HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
+                List<int> acceptableReasons = HitrustReason.ClientRoleChangeReasons.Select(r => r.NumericValue).Union(HitrustReason.ClientRemoveUserReasons.Select(r => r.NumericValue)).ToList();
 
                 if (!acceptableReasons.Any(r => r == reasonVal))
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of user from client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging removal of a user role to a client, expected one of <{string.Join(",", acceptableReasons.Select(r => r.ToString()))}>");
                 }
                 HitrustReason.TryGetReason(reasonVal, out HitrustReason reasonObj);
 
@@ -435,6 +451,12 @@ namespace AuditLogLib.Event
             3012, "Login account is suspended", (attemptedUserName) => new
             {
                 attemptedUserName,
+            });
+
+        public static readonly AuditEventType<string> UserNotifiedAboutDisabledAccount = new AuditEventType<string>(
+            3013, "User notified that their account is disabled following login.", (email) => new
+            {
+                RequestedEmail = email,
             });
 
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =

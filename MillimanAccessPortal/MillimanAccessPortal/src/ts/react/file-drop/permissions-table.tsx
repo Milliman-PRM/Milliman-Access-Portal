@@ -209,7 +209,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'readAccess', value: status })}
                 key={1}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.readAccess}
+                selected={thisPG.permissions.readAccess}
               />
             </td>
             <td className="content-center">
@@ -219,7 +219,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'writeAccess', value: status })}
                 key={2}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.writeAccess}
+                selected={thisPG.permissions.writeAccess}
               />
             </td>
             <td className="content-center">
@@ -229,7 +229,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   setPermissionValue({ pgId: thisPG.id, permission: 'deleteAccess', value: status })}
                 key={3}
                 readOnly={readOnly || !isReadyToSubmit}
-                selected={thisPG.deleteAccess}
+                selected={thisPG.permissions.deleteAccess}
               />
             </td>
             {
@@ -250,7 +250,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
             !thisPG.isPersonalGroup &&
             thisPG.assignedMapUserIds.map((userId, index) => {
               const thisUser = eligibleUsers[userId];
-              return (
+              return thisUser ? (
                 <tr
                   key={thisUser.id}
                   className={
@@ -279,7 +279,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   </td>
                   <td colSpan={5}>{thisUser.userName}</td>
                 </tr>
-              );
+              ) : null;
             })
           }
           {

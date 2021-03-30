@@ -30,7 +30,6 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
 
     public class ClientActorReviewModel : ClientActorModel
     {
-        public DateTime? LastLoginDate { get; set; }
         public Dictionary<RoleEnum, bool> ClientUserRoles { get; set; }
 
         /// <summary>

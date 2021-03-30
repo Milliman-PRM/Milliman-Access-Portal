@@ -62,6 +62,49 @@ export const setFileDropNotificationSetting =
     FileDropAction.SetFileDropNotificationSetting, FileDropAction.SetFileDropNotificationSettingSucceeded
   >('POST', '/FileDrop/UpdateAccountSettings');
 
+export const fetchFolderContents =
+  createJsonRequestor<FileDropAction.FetchFolderContents, FileDropAction.FetchFolderContentsSucceeded>
+    ('GET', '/FileDrop/GetFolderContents');
+
+export const fetchFolderContentsForMove =
+  createJsonRequestor<FileDropAction.FetchFolderContentsForMove, FileDropAction.FetchFolderContentsForMoveSucceeded>
+    ('GET', '/FileDrop/GetFolderContents');
+
+export const deleteFileDropFile =
+  createJsonRequestor<FileDropAction.DeleteFileDropFile, FileDropAction.DeleteFileDropFileSucceeded>
+    ('DELETE', '/FileDrop/DeleteFileDropFile');
+
+export const deleteFileDropFolder =
+  createJsonRequestor<FileDropAction.DeleteFileDropFolder, FileDropAction.DeleteFileDropFolderSucceeded>
+    ('DELETE', '/FileDrop/DeleteFileDropFolder');
+
+export const updateFileDropFile =
+  createJsonRequestor<
+    FileDropAction.UpdateFileDropFile, FileDropAction.UpdateFileDropFileSucceeded
+  >('POST', '/FileDrop/UpdateFileDropFile');
+
+export const createFileDropFolder =
+  createJsonRequestor<
+    FileDropAction.CreateFileDropFolder, FileDropAction.CreateFileDropFolderSucceeded
+  >('POST', '/FileDrop/CreateFileDropFolder');
+
+export const updateFileDropFolder =
+  createJsonRequestor<
+    FileDropAction.UpdateFileDropFolder, FileDropAction.UpdateFileDropFolderSucceeded
+  >('POST', '/FileDrop/UpdateFileDropFolder');
+
+export const renameFileDropFile =
+  createJsonRequestor<FileDropAction.RenameFileDropFile, FileDropAction.RenameFileDropFileSucceeded>
+    ('POST', '/FileDrop/RenameFileDropFile');
+
+export const renameFileDropFolder =
+  createJsonRequestor<FileDropAction.RenameFileDropFolder, FileDropAction.RenameFileDropFolderSucceeded>
+    ('POST', '/FileDrop/RenameFileDropFolder');
+
+export const createFileDropFolderForMove =
+  createJsonRequestor<FileDropAction.CreateFileDropFolderForMove, FileDropAction.CreateFileDropFolderForMoveSucceeded>
+    ('POST', '/FileDrop/CreateFileDropFolder');
+
 // ~~~~~~~~~~~~~~~~~~~
 // Status Refresh Call
 // ~~~~~~~~~~~~~~~~~~~

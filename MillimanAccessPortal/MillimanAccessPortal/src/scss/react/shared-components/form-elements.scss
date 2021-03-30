@@ -421,38 +421,11 @@
     cursor: pointer;
 }
 
-.progress-bars {
-    position: relative;
-    display: block;
-    height: .35em;
-    margin: -.5em 0;
-
-    [class*="progress-bar-"] {
-        position: absolute;
-        width: 0;
-        height: 100%;
-    }
-
-    .progress-easing {
-        transition: 1.0s linear;
-    }
-
-    .progress-bar-checksum {
-        background-color: $blue;
-    }
-
-    .progress-bar-upload {
-        background-color: $green;
-    }
-}
-
 .hidden-input {
     display: none;
 }
 
 /* Form Sections */
-
-
 
 .error-message {
     display: block;
@@ -538,4 +511,19 @@
       margin-left: .2em;
     }
   }
+}
+
+.terms-reminder {
+    font-size: 12px;
+    opacity: 1;
+    transition: all 0.3s ease;
+    -webkit-transition: all 0.3s ease;
+    position: relative;
+    top: -5em;
+    text-align: left;
+
+    &.vertical-push {
+        position: relative;
+        top: 0em;
+    }
 }

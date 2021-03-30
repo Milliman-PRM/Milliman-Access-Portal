@@ -130,6 +130,7 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
 
+
 $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
     "AzureCI" {"ci"}
     "Development" {"ci"}
@@ -270,7 +271,7 @@ Set-Location "$rootPath\User Stats\MAPStatsLoader"
 
 log_statement "Building MAP User Stats loader"
 
-dotnet publish --configuration=$buildType /p:Platform=x64
+msbuild /restore /t:Publish /p:Configuration=$buildType /p:Platform=x64
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -297,7 +298,7 @@ if ($LASTEXITCODE -ne 0)
 }
 
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
-$sFTPVersion = "$sFTPVersion-$branchName"
+$sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
@@ -331,84 +332,89 @@ if($runTests) {
 
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
-   dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
+    if ($buildType -eq "Release") {
+        dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
-    if ($LASTEXITCODE -ne 0) {
-        log_statement "ERROR: One or more content publishing xUnit tests failed"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $LASTEXITCODE
+        if ($LASTEXITCODE -ne 0) {
+            log_statement "ERROR: One or more content publishing xUnit tests failed"
+            log_statement "errorlevel was $LASTEXITCODE"
+            exit $LASTEXITCODE
+        }
     }
 }
 #endregion
 
 #region Create and update databases
 
-log_statement "Preparing branch databases"
+if ($buildType -eq "Release") {
 
-$env:PGPASSWORD = $dbPassword
+    log_statement "Preparing branch databases"
 
-# Check if databases already exist
-$appDbFound = $false
-$logDbFound = $false
+    $env:PGPASSWORD = $dbPassword
 
-$command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
-$output = invoke-expression "&$command"
+    # Check if databases already exist
+    $appDbFound = $false
+    $logDbFound = $false
 
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to query for existing databases"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
+    $command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
+    $output = invoke-expression "&$command"
 
-foreach ($db in $output) {
-    if ($db.trim() -eq $appDbName) {
-        log_statement "MAP application database found for this branch."
-        $appDbFound = 1
+    if ($LASTEXITCODE -ne 0) {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to query for existing databases"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
     }
-    elseif ($db.trim() -eq $logDbName) {
-        log_statement "Logging database found for this branch."
-        $logDbFound = 1
+
+    foreach ($db in $output) {
+        if ($db.trim() -eq $appDbName) {
+            log_statement "MAP application database found for this branch."
+            $appDbFound = 1
+        }
+        elseif ($db.trim() -eq $logDbName) {
+            log_statement "Logging database found for this branch."
+            $logDbFound = 1
+        }
     }
-}
 
-# Create app db if necessary
-if ($appDbFound -eq $false)
-{
-    create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $appDbName -templateDbName $appDbTemplateName -dbOwner $appDbOwner
-}
+    # Create app db if necessary
+    if ($appDbFound -eq $false)
+    {
+        create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $appDbName -templateDbName $appDbTemplateName -dbOwner $appDbOwner
+    }
 
-# Create log db if necessary
-if ($logDbFound -eq $false)
-{
-    create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $logDbName -templateDbName $logDbTemplateName -dbOwner $logDbOwner
-}
+    # Create log db if necessary
+    if ($logDbFound -eq $false)
+    {
+        create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $logDbName -templateDbName $logDbTemplateName -dbOwner $logDbOwner
+    }
 
-remove-item env:PGPASSWORD
+    remove-item env:PGPASSWORD
 
-log_statement "Performing database migrations"
+    log_statement "Performing database migrations"
 
-$env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
+    $env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
 
-Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
+    Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-dotnet ef database update
+    dotnet ef database update
 
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to apply application database migrations"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
+    if ($LASTEXITCODE -ne 0) {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to apply application database migrations"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
+    }
 
 
-dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
+    dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
 
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to apply audit log database migrations"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
+    if ($LASTEXITCODE -ne 0) {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to apply audit log database migrations"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
+    }
 }
 
 #endregion
@@ -442,7 +448,7 @@ Set-Location $webBuildTarget
 
 
 $webVersion = get-childitem "MillimanAccessPortal.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
-$webVersion = "$webVersion-$branchName"
+$webVersion = "$webVersion-$TrimmedBranch"
 
 octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
 
@@ -462,7 +468,7 @@ log_statement "Packaging publication server"
 Set-Location $serviceBuildTarget
 
 $serviceVersion = get-childitem "ContentPublishingService.exe" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
-$serviceVersion = "$serviceVersion-$branchName"
+$serviceVersion = "$serviceVersion-$TrimmedBranch"
 
 octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
 
@@ -513,7 +519,7 @@ log_statement "Packaging MAP Query Admin"
 Set-Location $queryAppBuildTarget
 
 $queryVersion = get-childitem "MapQueryAdminWeb.dll" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
-$queryVersion = "$queryVersion-$branchName"
+$queryVersion = "$queryVersion-$TrimmedBranch"
 
 octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
 
@@ -524,49 +530,6 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-#endregion
-
-#region Create and publish FileDrop docker container
-
-Set-Location $rootpath\SftpServer
-
-#Replace Windows line endings with Unix ones in entrypoint script
-$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
-((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
-
-$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
-$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
-
-
-# Get Secrets from the FileDrop Key Vault
-$acr_url = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrurl").SecretValueText
-
-$acr_username = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acruser").SecretValueText
-
-$acr_password = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrpass").SecretValueText
-
-$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
-
-Set-Location $rootpath
-
-docker login $acr_url -u $acr_username -p $acr_password
-
-docker build -t filedropsftp -f SftpServer/dockerfile .
-
-docker tag filedropsftp $FDImageName
-
-docker push $FDImageName
-
-docker rmi $FDImageName
-
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 #endregion
 
 #region Deploy releases to Octopus
@@ -608,43 +571,6 @@ else {
     exit $error_code
 }
 
-log_statement "Determining target environment for web app deployment"
-$projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
-$MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
-$releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
-$BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-$channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
-$channelName = $channel.Name
-if ([string]::IsNullOrEmpty($channelName))
-{
-    log_statement "ERROR: Failed to determine current channel name"
-    exit -42
-}
-$lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
-$targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
-$targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
-if ($targetEnv){
-    log_statement "Deploying to $targetEnv in the $channelName channel"
-}
-else {
-    log_statement "ERROR: Failed to determine deployment environment"
-    exit -42
-}
-
-log_statement "Deploying web app release"
-
-octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "Web application release deployed successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to deploy the web application"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
 log_statement "Creating Content Publishing Server release"
 
 octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
@@ -673,9 +599,9 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Filedrop Release"
+#log_statement "Creating Filedrop Release"
 
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Filedrop release created successfully"
@@ -687,19 +613,58 @@ else {
     exit $error_code
 }
 
+if ($buildType -eq "Release") {
 
-log_statement "Deploying FileDrop release"
+    log_statement "Determining target environment for web app deployment"
+    $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
+    $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
+    $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
+    $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
+    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
+    $channelName = $channel.Name
+    if ([string]::IsNullOrEmpty($channelName))
+    {
+        log_statement "ERROR: Failed to determine current channel name"
+        exit -42
+    }
+    $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
+    $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
+    $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
+    if ($targetEnv){
+        log_statement "Deploying to $targetEnv in the $channelName channel"
+    }
+    else {
+        log_statement "ERROR: Failed to determine deployment environment"
+        exit -42
+    }
 
-octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+    log_statement "Deploying web app release"
 
-if ($LASTEXITCODE -eq 0) {
-    log_statement "Filedrop release deployed successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to deploy Filedrop"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
+    octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+    if ($LASTEXITCODE -eq 0) {
+        log_statement "Web application release deployed successfully"
+    }
+    else {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to deploy the web application"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
+    }
+
+    log_statement "Deploying FileDrop release"
+
+    octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
+
+    if ($LASTEXITCODE -eq 0) {
+        log_statement "Filedrop release deployed successfully"
+    }
+    else {
+        $error_code = $LASTEXITCODE
+        log_statement "ERROR: Failed to deploy Filedrop"
+        log_statement "errorlevel was $LASTEXITCODE"
+        exit $error_code
+    }
 }
 
 

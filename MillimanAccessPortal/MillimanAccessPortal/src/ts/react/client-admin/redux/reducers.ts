@@ -62,7 +62,7 @@ const _initialDetails: ClientDetail = {
   clientContactTitle: '',
   clientContactEmail: null,
   clientContactPhone: null,
-  domainListCountLimit: 0,
+  domainListCountLimit: 3,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenter: {
@@ -92,7 +92,7 @@ const _initialFormData: AccessStateBaseFormData = {
   contactTitle: '',
   contactEmail: null,
   contactPhone: null,
-  domainListCountLimit: 0,
+  domainListCountLimit: 3,
   acceptedEmailDomainList: [],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
@@ -199,8 +199,8 @@ const pendingRoleAssignments = createReducer<PendingUserRoleAssignments>(_initia
   OPEN_CREATE_CLIENT_USER_MODAL: () => _initialPendingUserRoleAssignements,
   CHANGE_USER_ROLE_PENDING: (state, action: AccessActions.ChangeUserRolePending) => {
     const currentRoleAssignments = state.roleAssignments;
-    if (currentRoleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum) !== -1) {
-      currentRoleAssignments.splice(state.roleAssignments.findIndex((ra) => ra.roleEnum === action.roleEnum), 1);
+    if (_.findIndex(currentRoleAssignments, (ra) => ra.roleEnum === action.roleEnum) !== -1) {
+      currentRoleAssignments.splice(_.findIndex(state.roleAssignments, (ra) => ra.roleEnum === action.roleEnum), 1);
     }
 
     return {
@@ -304,7 +304,7 @@ const data = createReducer<AccessStateData>(_initialData, {
   }),
   UPDATE_ALL_USER_ROLES_IN_CLIENT_SUCCEEDED: (state, action: AccessActions.UpdateAllUserRolesInClientSucceeded) => ({
     ...state,
-    ...state.assignedUsers.find((u) => u.id === action.response.userId).userRoles = action.response.roles,
+    ...state.assignedUsers.filter((u) => u.id === action.response.userId)[0].userRoles = action.response.roles,
   }),
   SAVE_NEW_CLIENT_SUCCEEDED: (state, action: AccessActions.SaveNewClientSucceeded) => ({
     ...state,
@@ -610,5 +610,8 @@ export const clientAdmin = combineReducers({
   modals,
   filters,
   pending,
+  currentUser: createReducer<string>('', {
+    SET_CURRENT_USER: (_state, action: AccessActions.SetCurrentUser) => action.username,
+  }),
   toastr: toastrReducer,
 });

@@ -15,6 +15,8 @@ interface BaseInputProps {
   onChange?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
   onBlur?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement>) => void;
   onClick?: (currentTarget: React.FormEvent<HTMLInputElement> | React.FormEvent<HTMLTextAreaElement> | null) => void;
+  onSubmitCallback?: () => void;
+  usesOnSubmitCallback?: boolean;
   error: string;
   placeholderText?: string;
   autoFocus?: boolean;
@@ -28,7 +30,8 @@ interface InputProps extends BaseInputProps {
 }
 
 export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
-  const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden, ...rest } = props;
+  const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden,
+    onSubmitCallback, usesOnSubmitCallback, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element-input' + (error ? ' error' : '')}>
@@ -46,6 +49,12 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
             ref={ref}
             className="form-input"
             placeholder={placeholderText || label}
+            onKeyDown={(event: React.KeyboardEvent<HTMLInputElement>) => {
+              if (event.key === 'Enter' && usesOnSubmitCallback) {
+                event.preventDefault();
+                onSubmitCallback();
+              }
+            }}
             readOnly={readOnly}
             {...rest}
           />
@@ -204,7 +213,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                           list: string[] = [], exceptions: string[] = [], limit: number) {
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
     const overLimit = limit > 0 ? (effectiveListLength >= limit ? true : false) : false;
-    const itemAlreadyExists = list.includes(this.state.currentText.trim());
+    const itemAlreadyExists = _.includes(list, this.state.currentText.trim());
 
     addItemCallback(this.state.currentText, overLimit, itemAlreadyExists);
     this.setState({ currentText: '' });
@@ -213,9 +222,9 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   private getEffectiveListLength(list: string[], exceptions: string[]) {
     const tempList = list.slice();
     tempList.push(this.state.currentText);
-    const numberOfExceptions = tempList.filter((value) => exceptions.includes(value)).length;
+    const numberOfExceptions = tempList.filter((value) => _.includes(exceptions, value)).length;
 
-    if (exceptions.includes(this.state.currentText)) {
+    if (_.includes(exceptions, this.state.currentText)) {
       return tempList.length - numberOfExceptions;
     }
     return tempList.length - numberOfExceptions - 1;

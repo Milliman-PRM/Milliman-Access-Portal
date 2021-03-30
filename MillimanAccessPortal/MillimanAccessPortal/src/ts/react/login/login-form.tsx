@@ -7,8 +7,7 @@ import '../../../images/icons/user.svg';
 import * as React from 'react';
 import * as Yup from 'yup';
 
-import { getUrlParameter } from '../../get-url-parameters';
-import { postData } from '../../shared';
+import { getParameterByName, postData, postJsonDataNoSession } from '../../shared';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
@@ -43,7 +42,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       awaitingConfirmation: false,
       awaitingLogin: false,
       loginWarning: null,
-      data: { username: '', password: '' },
+      data: { username: '', password: '', returnUrl: getParameterByName('returnUrl') },
       errors: {},
       formIsValid: false,
     };
@@ -103,6 +102,10 @@ export class LoginForm extends Form<{}, LoginFormState> {
           inputIcon="password"
           hidden={!userConfirmed}
         />
+        <p className={'terms-reminder' + (userConfirmed ? ' vertical-push' : '')}>
+          By continuing, you are agreeing to Milliman Access Portal's
+          <a href="/Account/UserAgreementReadOnly" target="_blank"> User Agreement</a>.
+        </p>
         {loginWarning && <div className="error-message">{loginWarning}</div>}
         <div className={'button-container' + (userConfirmed ? ' visible' : ' hidden')}>
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
@@ -132,7 +135,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
       return;
     }
 
-    postData(window.location.href, this.state.data, true)
+    await postJsonDataNoSession(window.location.href, this.state.data)
       .then((response) => {
         const loginWarning = response.headers.get('Warning');
         const redirectUrl = response.headers.get('NavigateTo');
@@ -183,7 +186,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
               this.focusPasswordInput();
             });
           } else {
-            const returnTo = escape(getUrlParameter('ReturnUrl') || '/');
+            const returnTo = escape(getParameterByName('returnUrl') || '/');
             window.location.replace(`/Account/RemoteAuthenticate?username=${username}&returnURL=${returnTo}`);
           }
         })
