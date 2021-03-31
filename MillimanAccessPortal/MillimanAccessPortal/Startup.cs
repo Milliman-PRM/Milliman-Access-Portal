@@ -370,6 +370,7 @@ namespace MillimanAccessPortal
             services.AddSession(options => 
             {
                 options.Cookie.IsEssential = true;  // TODO This bypasses cookie consent.  Think about GDPR
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
             });
 
             services.AddResponseCaching();
