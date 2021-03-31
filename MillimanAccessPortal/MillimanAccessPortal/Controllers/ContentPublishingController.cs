@@ -389,6 +389,7 @@ namespace MillimanAccessPortal.Controllers
                     PowerBiContentItemProperties newProps = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                     PowerBiContentItemProperties currentProps = currentRootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
+                    currentProps.EditableEnabled = newProps.EditableEnabled;
                     currentProps.FilterPaneEnabled = newProps.FilterPaneEnabled;
                     currentProps.NavigationPaneEnabled = newProps.NavigationPaneEnabled;
                     currentProps.BookmarksPaneEnabled = newProps.BookmarksPaneEnabled;
