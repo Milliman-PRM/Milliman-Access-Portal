@@ -83,20 +83,6 @@ namespace PowerBiLib
             }
         }
 
-        public async Task DeleteThisMethod()
-        {
-            var groups = await GetAllGroupsAsync();
-            using (var client = new PowerBIClient(_tokenCredentials))
-            {
-                int i = 0;
-                foreach (var group in groups)
-                {
-                    i++;
-                    var x = await client.Groups.GetGroupUsersAsync(group.Id);
-                }
-            }
-        }
-
         /// <summary>
         /// Get all reports for group
         /// </summary>
@@ -105,9 +91,8 @@ namespace PowerBiLib
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var y = (await client.Groups.GetGroupsAsync()).Value.ToList();
-                var x = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
-                Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
+                ODataResponseListGroup response = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
+                Group group = response.Value.SingleOrDefault();
                 ODataResponseListReport reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
 
                 var returnVal = reportsOfTheGroup.Value.Select(r => new ReportModel(r)).ToList();
@@ -152,15 +137,17 @@ namespace PowerBiLib
         /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
         /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
         /// <returns></returns>
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, string capacityId = null)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName)
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
+                var groups = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.ToList();
+
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 if (group == null)
                 {
                     ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
+                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == _config.PbiCapacityId) ?? allCapacities.Value.Single();
 
                     group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
                     if (group == null)
@@ -173,7 +160,9 @@ namespace PowerBiLib
 
                 string pbixFileName = Path.GetFileName(pbixFullPath);
                 DateTime now = DateTime.UtcNow;
-                string remoteFileName = Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
+                string remoteFileName = pbixFileName.Contains('_')
+                                      ? pbixFileName
+                                      : Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
                 // Initiate pbix upload and poll for completion
                 Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
@@ -246,7 +235,7 @@ namespace PowerBiLib
             }
             catch (Exception e)
             {
-                Log.Error(e, $"From PowerBiLibApi.DeleteReport, exception:");
+                Log.Error(e, $"Exception from PowerBiLibApi.ExportReportAsync with request for: groupId {groupId}, reportId {reportId}");
                 return (null, null);
             }
         }
@@ -282,7 +271,7 @@ namespace PowerBiLib
             return true;
         }
 
-        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId, bool editableView = false)
+        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId, bool editableView)
         {
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
@@ -456,4 +445,3 @@ namespace PowerBiLib
         public string GroupName { get; set; }
     }
 }
-
