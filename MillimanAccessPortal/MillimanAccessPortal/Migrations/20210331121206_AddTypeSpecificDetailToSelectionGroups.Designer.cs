@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210318185529_AddEditabeFieldToSelectionGroup")]
-    partial class AddEditabeFieldToSelectionGroup
+    [Migration("20210331121206_AddTypeSpecificDetailToSelectionGroups")]
+    partial class AddTypeSpecificDetailToSelectionGroups
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -638,11 +638,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContentInstanceUrl")
                         .HasColumnType("text");
 
-                    b.Property<bool>("Editable")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasColumnType("text");
@@ -661,6 +656,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<List<Guid>>("SelectedHierarchyFieldValueList")
                         .HasColumnType("uuid[]");
+
+                    b.Property<string>("TypeSpecificDetail")
+                        .HasColumnType("jsonb");
 
                     b.HasKey("Id");
 

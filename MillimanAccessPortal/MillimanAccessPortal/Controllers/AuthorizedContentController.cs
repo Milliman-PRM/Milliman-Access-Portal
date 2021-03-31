@@ -470,15 +470,19 @@ namespace MillimanAccessPortal.Controllers
                                                      .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-            bool editable = DataContext.SelectionGroup.Find(group).Editable && embedProperties.EditableEnabled;
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(sg => sg.RootContentItem)
+                                                           .ThenInclude(rci => rci.ContentType)
+                                                        .Where(sg => sg.Id == group)
+                                                        .FirstOrDefault();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, editable),
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, selectionGroup.Editable),
                 ReportId = embedProperties.LiveReportId,
-                EditableEnabled = editable,
+                EditableEnabled = selectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
@@ -989,7 +993,7 @@ namespace MillimanAccessPortal.Controllers
 
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentFile.FullPath}");
 
-                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
+                return PhysicalFile(contentFile.FullPath, "pbix");
             }
             catch (Exception e)
             {

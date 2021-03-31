@@ -2,21 +2,21 @@
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class AddEditabeFieldToSelectionGroup : Migration
+    public partial class AddTypeSpecificDetailToSelectionGroups : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<bool>(
-                name: "Editable",
+            migrationBuilder.AddColumn<string>(
+                name: "TypeSpecificDetail",
                 table: "SelectionGroup",
-                nullable: false,
-                defaultValue: false);
+                type: "jsonb",
+                nullable: true);
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropColumn(
-                name: "Editable",
+                name: "TypeSpecificDetail",
                 table: "SelectionGroup");
         }
     }

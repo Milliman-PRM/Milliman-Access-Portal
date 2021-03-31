@@ -647,11 +647,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <>
         {
           this.props.canDownloadCurrentContentItem &&
-          <ActionIcon
-            label="Download editable Power BI content"
-            icon="download"
-            action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
-          />
+          <a
+            href={`./ContentPublishing/DownloadPowerBiContentItem?contentItemId=${pendingFormData.id}`}
+            download={true}
+          >
+            <svg className="action-icon">
+              <use xlinkHref="#download" />
+            </svg>
+          </a>
         }
         <ActionIcon
           label="Update Content Item"
@@ -809,6 +812,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to edit the document in MAP, and upon' +
+                                   ' save, will update the content for all users in MAP'}
                     />
                     <Checkbox
                       name="Navigation Pane"
@@ -818,6 +823,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to navigate between the pages of the Power BI document'}
                     />
                     <Checkbox
                       name="Filter Pane"
@@ -827,6 +833,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to configure which filters to include and' +
+                                   ' update existing filters'}
                     />
                     <Checkbox
                       name="Bookmark Pane"
@@ -836,6 +844,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to capture the current view of a report page' +
+                                   ' including filters and the state of visuals'}
                     />
                   </>
                 }

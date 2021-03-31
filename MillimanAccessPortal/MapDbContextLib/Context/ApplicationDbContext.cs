@@ -122,7 +122,6 @@ namespace MapDbContextLib.Context
             builder.Entity<SelectionGroup>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.Property(x => x.Editable).HasDefaultValue(false);
             });
             builder.Entity<RootContentItem>(b =>
             {

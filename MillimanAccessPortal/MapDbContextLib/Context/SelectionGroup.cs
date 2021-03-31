@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Models;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -41,14 +42,91 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
-        [Required]
-        public bool Editable { get; set; }
+        [Column(TypeName = "jsonb")]
+        // [Required] This causes a problem with migration database update
+        public string TypeSpecificDetail { get; set; }
+
+        /// <summary>
+        /// If this instance does not have RootContentItem with ContentType navigation property populated then this property is treated as null
+        /// </summary>
+        [NotMapped]
+        public TypeSpecificSelectionGroupProperties TypeSpecificDetailObject
+        {
+            get
+            {
+                if (string.IsNullOrWhiteSpace(TypeSpecificDetail))
+                {
+                    return null;
+                }
+                switch (RootContentItem?.ContentType?.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return JsonConvert.DeserializeObject<PowerBiSelectionGroupProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
+
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return null;
+                }
+            }
+            set
+            {
+                switch (RootContentItem?.ContentType?.TypeEnum)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiSelectionGroupProperties);
+                        break;
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns the Type of the TypeSpecificDetailObject property, which depends on the RootContentItem.ContentType navigation property
+        /// </summary>
+        [NotMapped]
+        public Type TypeSpecificDetailObjectType
+        {
+            get
+            {
+                switch (RootContentItem?.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return typeof(PowerBiSelectionGroupProperties);
+
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return null;
+                }
+            }
+        }
 
         [NotMapped]
         public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
 
         [NotMapped]
         public bool IsEditablePowerBiEligible { get => RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled; }
+
+        [NotMapped]
+        public bool Editable
+        {
+            get =>
+                RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&
+                TypeSpecificDetail != null &&
+                IsEditablePowerBiEligible &&
+                (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
+        }
+
 
         public string ReducedContentChecksum { get; set; }
 
