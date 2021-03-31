@@ -137,10 +137,7 @@ namespace MillimanAccessPortal.DataQueries
                             ReleaseNotesURL = (sg.RootContentItem.ContentFilesList.Any(cf => cf.FilePurpose.ToLower() == "releasenotes"))
                                     ? $"{releaseNotesUrlBuilder.Uri.AbsoluteUri}{sg.Id}"  // must be absolute because it is used in iframe element
                                     : null,
-                            EditableEnabled = ((sg.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi) 
-                                    && ((PowerBiContentItemProperties)sg.RootContentItem.TypeSpecificDetailObject).EditableEnabled
-                                    && sg.Editable
-                                    ),
+                            EditableEnabled = sg.Editable,
                             AssociatedFiles = sg.RootContentItem.AssociatedFilesList.Select(af =>
                             {
                                 AssociatedFilePreviewSummary summary = new AssociatedFilePreviewSummary(af);
