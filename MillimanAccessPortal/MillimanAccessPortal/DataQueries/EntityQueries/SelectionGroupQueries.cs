@@ -136,8 +136,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     IsInactive = string.IsNullOrWhiteSpace(g.ContentInstanceUrl),
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
-                    IsEditableEligible = (g.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (g.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
-                    Editable = g.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi ? (g.TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable : false,
+                    IsEditableEligible = g.IsEditablePowerBiEligible,
+                    Editable = g.Editable,
                 })
                 .ToListAsync();
 

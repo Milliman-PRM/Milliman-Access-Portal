@@ -57,6 +57,10 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20210331120704_AddTypeSpecificSelectionGroupPropertiesColumn.cs" />
+    <Compile Remove="Migrations\20210331120704_AddTypeSpecificSelectionGroupPropertiesColumn.Designer.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>

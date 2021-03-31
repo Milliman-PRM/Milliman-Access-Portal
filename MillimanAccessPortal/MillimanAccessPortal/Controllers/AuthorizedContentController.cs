@@ -475,17 +475,14 @@ namespace MillimanAccessPortal.Controllers
                                                            .ThenInclude(rci => rci.ContentType)
                                                         .Where(sg => sg.Id == group)
                                                         .FirstOrDefault();
-            bool editable = selectionGroup.IsEditablePowerBiEligible
-                                && (selectionGroup.TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable
-                                && embedProperties.EditableEnabled;
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, editable),
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, selectionGroup.Editable),
                 ReportId = embedProperties.LiveReportId,
-                EditableEnabled = editable,
+                EditableEnabled = selectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
