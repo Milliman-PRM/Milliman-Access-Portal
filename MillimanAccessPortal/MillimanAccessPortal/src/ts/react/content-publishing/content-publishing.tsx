@@ -647,11 +647,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <>
         {
           this.props.canDownloadCurrentContentItem &&
-          <ActionIcon
-            label="Download editable Power BI content"
-            icon="download"
-            action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
-          />
+          <a
+            href={`./ContentPublishing/DownloadPowerBiContentItem?contentItemId=${pendingFormData.id}`}
+            download={true}
+          >
+            <svg className="action-icon">
+              <use xlinkHref="#download" />
+            </svg>
+          </a>
         }
         <ActionIcon
           label="Update Content Item"

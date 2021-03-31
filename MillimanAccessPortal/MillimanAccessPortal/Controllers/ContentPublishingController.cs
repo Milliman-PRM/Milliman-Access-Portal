@@ -1151,6 +1151,57 @@ namespace MillimanAccessPortal.Controllers
             return Json(new { publicationRequestId = goLiveViewModel.PublicationRequestId });
         }
 
+        [HttpGet]
+        public async Task<IActionResult> DownloadPowerBiContentItem(Guid contentItemId)
+        {
+            #region Authorization
+            AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
+            if (!authorization.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.ToString()}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                Response.Headers.Add("Warning", "You are not authorized to download this content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            RootContentItem rootContentItem = await _dbContext.RootContentItem
+                                                              .Include(rci => rci.ContentType)
+                                                              .Where(rci => rci.Id == contentItemId)
+                                                              .FirstOrDefaultAsync();
+
+            #region Validation
+            if (rootContentItem == null)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be found, aborting.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            if (rootContentItem.ContentType.TypeEnum != ContentTypeEnum.PowerBi)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} has an invalid ContentType.");
+                Response.Headers.Add("Warning", "Content item cannot be downloaded.");
+                return BadRequest();
+            }
+
+            PowerBiContentItemProperties embedProperties = (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties);
+            if (!embedProperties.EditableEnabled)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, content item {rootContentItem} cannot be downloaded because it is not editable.");
+                Response.Headers.Add("Warning", "Content item must be editable to be downloaded by a Content Publisher.");
+                return BadRequest();
+            }
+            #endregion
+
+
+            string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
+            var reportModel = await powerBiApi.ExportReportAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, configuredTemporaryExportsDirectory, true);
+            return new TemporaryPhysicalFileResult(reportModel.reportFilePath, "application/octet-stream") {
+                FileDownloadName = $"{rootContentItem.ContentName}.pbix" };
+        }
+
         private async Task<RootContentItem> JsonToRootContentItemAsync(JObject jObject)
         {
             RootContentItem model = default;

@@ -470,7 +470,14 @@ namespace MillimanAccessPortal.Controllers
                                                      .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-            bool editable = DataContext.SelectionGroup.Find(group).Editable && embedProperties.EditableEnabled;
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(sg => sg.RootContentItem)
+                                                           .ThenInclude(rci => rci.ContentType)
+                                                        .Where(sg => sg.Id == group)
+                                                        .FirstOrDefault();
+            bool editable = selectionGroup.IsEditablePowerBiEligible
+                                && (selectionGroup.TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable
+                                && embedProperties.EditableEnabled;
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
@@ -989,7 +996,7 @@ namespace MillimanAccessPortal.Controllers
 
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentFile.FullPath}");
 
-                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
+                return PhysicalFile(contentFile.FullPath, "pbix");
             }
             catch (Exception e)
             {

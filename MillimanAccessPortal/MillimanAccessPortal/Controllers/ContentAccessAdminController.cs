@@ -414,7 +414,10 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            selectionGroup.Editable = model.Editable;
+            selectionGroup.TypeSpecificDetailObject = new PowerBiSelectionGroupProperties()
+            {
+                Editable = model.Editable
+            };
             await DbContext.SaveChangesAsync();
 
             return Json(selectionGroup);
@@ -660,7 +663,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (LiveMasterFile == null 
+            if (LiveMasterFile == null
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
@@ -877,7 +880,7 @@ namespace MillimanAccessPortal.Controllers
             }
             await DbContext.SaveChangesAsync();
 
-            Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
+            Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t => t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));

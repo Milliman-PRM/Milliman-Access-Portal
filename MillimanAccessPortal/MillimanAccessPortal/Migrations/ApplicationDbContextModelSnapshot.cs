@@ -636,11 +636,6 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContentInstanceUrl")
                         .HasColumnType("text");
 
-                    b.Property<bool>("Editable")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("boolean")
-                        .HasDefaultValue(false);
-
                     b.Property<string>("GroupName")
                         .IsRequired()
                         .HasColumnType("text");
