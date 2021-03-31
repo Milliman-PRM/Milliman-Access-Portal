@@ -43,7 +43,6 @@ namespace PowerBiMigration
             this.lstContentItems = new System.Windows.Forms.ListBox();
             this.txtStorageFolder = new System.Windows.Forms.TextBox();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
-            this.btnTest = new System.Windows.Forms.Button();
             this.btnExportAll = new System.Windows.Forms.Button();
             this.chkWriteFiles = new System.Windows.Forms.CheckBox();
             this.chkImportToTarget = new System.Windows.Forms.CheckBox();
@@ -178,17 +177,6 @@ namespace PowerBiMigration
             this.txtStorageFolder.TabIndex = 5;
             this.txtStorageFolder.MouseClick += new System.Windows.Forms.MouseEventHandler(this.TxtStorageFolder_MouseClick);
             // 
-            // btnTest
-            // 
-            this.btnTest.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnTest.Location = new System.Drawing.Point(426, 478);
-            this.btnTest.Name = "btnTest";
-            this.btnTest.Size = new System.Drawing.Size(75, 23);
-            this.btnTest.TabIndex = 6;
-            this.btnTest.Text = "Test";
-            this.btnTest.UseVisualStyleBackColor = true;
-            this.btnTest.Click += new System.EventHandler(this.BtnTest_Click);
-            // 
             // btnExportAll
             // 
             this.btnExportAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -290,7 +278,6 @@ namespace PowerBiMigration
             this.Controls.Add(this.lblPbiWorkspaces);
             this.Controls.Add(this.btnExportAll);
             this.Controls.Add(this.lstClients);
-            this.Controls.Add(this.btnTest);
             this.Controls.Add(this.lblClients);
             this.Controls.Add(this.txtStorageFolder);
             this.Controls.Add(this.label2);
@@ -318,7 +305,6 @@ namespace PowerBiMigration
         private System.Windows.Forms.Label lblPbiWorkspaces;
         private System.Windows.Forms.ListBox lstPowerBiReports;
         private System.Windows.Forms.Label lblPowerBiReports;
-        private System.Windows.Forms.Button btnTest;
         private System.Windows.Forms.Button btnExportAll;
         private System.Windows.Forms.CheckBox chkWriteFiles;
         private System.Windows.Forms.CheckBox chkImportToTarget;
