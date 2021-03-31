@@ -76,90 +76,6 @@ namespace PowerBiMigration
             _dbOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(_mapConnectionString).Options;
         }
 
-        //private async void BtnGetAllSourceDocs_Click(object sender, EventArgs e)
-        //{
-        //    using (var db = new ApplicationDbContext(_dbOptions))
-        //    {
-        //        ContentType powerBiContentType = db.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.PowerBi);
-
-        //        List<RootContentItem> pbiContentItems = db.RootContentItem
-        //                                                  //.Include(c => c.TypeSpecificDetailObject)
-        //                                                  .Where(c => c.ContentTypeId == powerBiContentType.Id)
-        //                                                  .ToList();
-
-        //        PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
-
-        //        foreach (var pbiContentItem in pbiContentItems)
-        //        {
-        //            PowerBiContentItemProperties pbiSpecificDetail = pbiContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-        //            if (!_groupMap.ContainsKey(pbiSpecificDetail.LiveWorkspaceId))
-        //            {
-        //                _groupMap[pbiSpecificDetail.LiveWorkspaceId] = await targetPbiApi.CreateGroupAsync(pbiContentItem.ClientId.ToString());
-        //            }
-        //        }
-
-        //        lstContentItems.Items.AddRange(pbiContentItems.Select(c => new { c.ContentName, c }).ToArray());
-        //    }
-
-        //}
-
-        //private void LstContentItems_SelectedIndexChanged(object sender, EventArgs e)
-        //{
-        //    var lstItem = lstContentItems.SelectedItem;
-        //    btnAccessSelectedContent.Enabled = false;
-        //    if (lstItem != null)
-        //    {
-        //        Type itemType = lstItem.GetType();
-        //        PropertyInfo contentItemPropertyInfo = itemType.GetProperty("c");
-        //        var contentItem = contentItemPropertyInfo.GetValue(lstItem) as RootContentItem;
-
-        //        txtContentItemDetail.Text = JsonSerializer.Serialize(contentItem, contentItem.GetType(), new JsonSerializerOptions { WriteIndented = true, IgnoreReadOnlyProperties = true, Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping });
-
-        //        btnAccessSelectedContent.Enabled = true;
-        //    }
-        //}
-
-        //private void BtnAccessSelectedContent_Click(object sender, EventArgs e)
-        //{
-        //    var lstItem = lstContentItems.SelectedItem;
-        //    Type itemType = lstItem.GetType();
-        //    PropertyInfo contentItemPropertyInfo = itemType.GetProperty("c");
-        //    RootContentItem contentItem = contentItemPropertyInfo.GetValue(lstItem) as RootContentItem;
-        //    TypeSpecificContentItemProperties metaData = contentItem.TypeSpecificDetailObject;
-
-        //    Task<PowerBiLibApi> pbiApiTask = Task.Run(() => new PowerBiLibApi(_sourcePbiConfig).InitializeAsync());
-        //    while (!pbiApiTask.IsCompleted) Thread.Sleep(100);
-        //    PowerBiLibApi pbiApi = pbiApiTask.Result;
-
-        //    MessageBox.Show($"api has AzureADClientId {pbiApi._config.PbiAzureADClientId}");
-        //}
-
-        //private async void BtnListTargetWorkspaces_Click(object sender, EventArgs e)
-        //{
-        //    var lstItem = lstContentItems.SelectedItem;
-        //    Type itemType = lstItem.GetType();
-        //    PropertyInfo contentItemPropertyInfo = itemType.GetProperty("c");
-        //    RootContentItem contentItem = contentItemPropertyInfo.GetValue(lstItem) as RootContentItem;
-        //    TypeSpecificContentItemProperties metaData = contentItem.TypeSpecificDetailObject;
-
-        //    PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
-        //    //Task<PowerBiLibApi> sourcePbiApiTask = Task.Run(() => new PowerBiLibApi(_targetPbiConfig).InitializeAsync());
-        //    //while (!sourcePbiApiTask.IsCompleted) Thread.Sleep(100);
-        //    //PowerBiLibApi sourcePbiApi = sourcePbiApiTask.Result;
-
-        //    PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
-        //    //Task<PowerBiLibApi> targetBiApiTask = Task.Run(() => new PowerBiLibApi(_targetPbiConfig).InitializeAsync());
-        //    //while (!targetBiApiTask.IsCompleted) Thread.Sleep(100);
-        //    //PowerBiLibApi targetPbiApi = targetBiApiTask.Result;
-
-        //    var allGroups = await sourcePbiApi.GetAllGroupsAsync();
-        //    //var allGroupsTask = sourcePbiApi.GetAllGroupsAsync();
-        //    //while (!allGroupsTask.IsCompleted) Thread.Sleep(100);
-        //    //IList<Microsoft.PowerBI.Api.V2.Models.Group> allGroups = allGroupsTask.Result;
-
-        //    MessageBox.Show($"api has AzureADClientId {targetPbiApi._config.PbiAzureADClientId}");
-        //}
-
         private void LstSourceWorkspaces_SelectedIndexChanged(object sender, EventArgs e)
         {
 
@@ -264,12 +180,6 @@ namespace PowerBiMigration
                     }
                 }
             }
-        }
-
-        private async void BtnTest_Click(object sender, EventArgs e)
-        {
-            PowerBiLibApi pbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
-            await pbiApi.DeleteThisMethod();
         }
 
         private async void LstPbiWorkspaces_SelectedIndexChanged(object sender, EventArgs e)
