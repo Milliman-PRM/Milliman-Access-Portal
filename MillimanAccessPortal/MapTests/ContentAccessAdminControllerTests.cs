@@ -987,5 +987,29 @@ namespace MapTests
             }
         }
 
+        public async Task SetGroupPowerBiEditability_Unauthorized()
+        {
+
+        }
+
+        public async Task SetGroupPowerBiEditability_InvalidSelectionGroup()
+        {
+
+        }
+
+        public async Task SetGroupPowerBiEditability_InvalidContentType()
+        {
+
+        }
+
+        public async Task SetGroupPowerBiEditability_IneligiblePowerBiContent()
+        {
+
+        }
+
+        public async Task SetGroupPowerBiEditability_Success()
+        {
+
+        }
     }
 }

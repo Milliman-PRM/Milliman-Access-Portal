@@ -715,16 +715,21 @@ namespace MapTests
         [Fact]
         public async Task DownloadPowerBiContentItem_Unauthorized()
         {
-            #region Arrange
-            #endregion
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
+                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(1));
+                #endregion
 
-            #region Act
-            #endregion
+                #region Act
+                var result = await controller.DownloadPowerBiContentItem(dbItem.Id);
+                #endregion
 
-            #region Assert
-
-            #endregion
-            Assert.Equal(true, true);
+                #region Assert
+                Assert.IsType<BadRequestResult>(result);
+                #endregion
+            }
         }
 
         [Fact]
