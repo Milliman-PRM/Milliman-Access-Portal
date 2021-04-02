@@ -58,6 +58,7 @@ namespace MillimanAccessPortal.Services
 
                 if (publicationRequestId != Guid.Empty)
                 {
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} has been dequeued");
                     _runningTasks.TryAdd(publicationRequestId, PostProcessAsync(publicationRequestId));
                 }
 
@@ -98,6 +99,7 @@ namespace MillimanAccessPortal.Services
                 // Stop tracking completed items
                 foreach (var completedKvp in _runningTasks.Where(t => t.Value.IsCompleted))
                 {
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing thread completed for request ID {completedKvp.Key}");
                     _runningTasks.Remove(completedKvp.Key, out _);
                 }
             }
@@ -121,18 +123,25 @@ namespace MillimanAccessPortal.Services
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
 
+                int loopCounter = 0;
                 // While the request is processing, wait and requery
                 while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
                 {
-                    Thread.Sleep(2000);
+                    if (loopCounter++ % 100 == 0)
+                    {
+                        GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId} is polling for status in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
+                    }
+
+                    Thread.Sleep(2_000);
                     dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
                     thisPubRequest = await dbContext.ContentPublicationRequest.FindAsync(thisPubRequest.Id);
                 }
+                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId}, status no longer in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
 
                 // Ensure that the request is ready for post-processing
                 if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
                 {
-                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {thisPubRequest.Id}";
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), expected request status PostProcessReady but found {thisPubRequest.RequestStatus.ToString()} for publication request ID {thisPubRequest.Id}";
                     Log.Warning(Msg);
                     return;
                 }
@@ -216,6 +225,7 @@ namespace MillimanAccessPortal.Services
                 thisPubRequest.OutcomeMetadataObj = newOutcome;
 
                 await dbContext.SaveChangesAsync();
+                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} updated to status PostProcessing");
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                    thisPubRequest.RootContentItemId.ToString(),

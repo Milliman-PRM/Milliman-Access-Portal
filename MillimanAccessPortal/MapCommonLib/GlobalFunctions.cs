@@ -193,7 +193,8 @@ namespace MapCommonLib
     public enum IssueLogEnum
     {
         LongRunningSelectionGroupProcessing,
-        TrackQlikviewApiTiming
+        TrackQlikviewApiTiming,
+        PublishingStuck
     }
 
 }
