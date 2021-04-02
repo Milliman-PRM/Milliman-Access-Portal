@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.12.1
+
+- Added detailed diagnostic logging to investigate a publication postprocessing issue
+
 ### v1.12.0
 
 - User accounts with no login during the past 12 months will be disabled
