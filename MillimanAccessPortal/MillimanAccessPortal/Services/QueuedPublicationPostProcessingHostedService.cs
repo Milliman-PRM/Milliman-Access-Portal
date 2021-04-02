@@ -404,6 +404,7 @@ namespace MillimanAccessPortal.Services
                 foreach (var request in latestOrphanedRequests)
                 {
                     _taskQueue.QueuePublicationPostProcess(request.Id);
+                    Log.Information($"Publication request {request.Id} requeued for postprocessing in QueuedPublicationPostProcessingHostedService.AdoptOrphanPublicationsAsync()");
                 }
 
                 // 2) handle publication requests with Validating status
@@ -418,6 +419,7 @@ namespace MillimanAccessPortal.Services
                 foreach (ContentPublicationRequest request in validatingRequests)
                 {
                     await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                    Log.Information($"Publication request {request.Id} in 'Validating' status, added to queue to monitor for queue eligibility");
                 }
 
             }
