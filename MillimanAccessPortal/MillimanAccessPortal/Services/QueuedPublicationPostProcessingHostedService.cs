@@ -49,7 +49,14 @@ namespace MillimanAccessPortal.Services
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await AdoptOrphanPublicationsAsync();
+            try
+            {
+                await AdoptOrphanPublicationsAsync();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during AdoptOrphanPublicationsAsync()");
+            }
 
             while (!cancellationToken.IsCancellationRequested)
             {
