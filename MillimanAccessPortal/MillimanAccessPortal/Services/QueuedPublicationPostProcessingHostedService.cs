@@ -49,6 +49,8 @@ namespace MillimanAccessPortal.Services
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
+            GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, hosted service is started");
+
             try
             {
                 await AdoptOrphanPublicationsAsync();
