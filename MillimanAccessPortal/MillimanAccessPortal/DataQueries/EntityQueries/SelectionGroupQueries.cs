@@ -355,9 +355,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var group = await _dbContext.SelectionGroup
                                         .Include(sg => sg.RootContentItem)
-                                            .ThenInclude(ci => ci.Client)
-                                        .Include(sg => sg.RootContentItem)
-                                            .ThenInclude(ci => ci.ContentType)
+                                        .Include(sg => sg.RootContentItem).ThenInclude(ci => ci.Client)
+                                        .Include(sg => sg.RootContentItem).ThenInclude(ci => ci.ContentType)
                                         .SingleAsync(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
             await _dbContext.SaveChangesAsync();
