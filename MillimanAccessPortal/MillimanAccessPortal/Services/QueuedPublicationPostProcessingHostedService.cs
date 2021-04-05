@@ -418,7 +418,8 @@ namespace MillimanAccessPortal.Services
                         .ToListAsync();
                     foreach (ContentPublicationRequest request in validatingRequests)
                     {
-                        await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                        // Any exceptions in the following task won't be available here because the async method is not awaited
+                        Task task = ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
                         Log.Information($"Publication request {request.Id} in 'Validating' status, added to queue to monitor for queue eligibility");
                     }
                 }
