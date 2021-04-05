@@ -382,46 +382,46 @@ namespace MillimanAccessPortal.Services
 
             using (var scope = _services.CreateScope())
             {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
-                List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
+                using (ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
                 {
-                    PublicationStatus.Queued,
-                    PublicationStatus.Processing,
-                    PublicationStatus.PostProcessReady,
-                };
+                    // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
+                    List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
+                    {
+                        PublicationStatus.Queued,
+                        PublicationStatus.Processing,
+                        PublicationStatus.PostProcessReady,
+                    };
 
-                List<ContentPublicationRequest> recentOrphanedRequests = await dbContext.ContentPublicationRequest
-                    .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
-                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToListAsync();
+                    List<ContentPublicationRequest> recentOrphanedRequests = await dbContext.ContentPublicationRequest
+                        .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
+                        .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                        .ToListAsync();
 
-                var latestOrphanedRequests = recentOrphanedRequests
-                    .GroupBy(keySelector: r => r.RootContentItemId,
-                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
-                    .ToList();
-                foreach (var request in latestOrphanedRequests)
-                {
-                    _taskQueue.QueuePublicationPostProcess(request.Id);
-                    Log.Information($"Publication request {request.Id} requeued for postprocessing in QueuedPublicationPostProcessingHostedService.AdoptOrphanPublicationsAsync()");
+                    var latestOrphanedRequests = recentOrphanedRequests
+                        .GroupBy(keySelector: r => r.RootContentItemId,
+                                 resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
+                        .ToList();
+                    foreach (var request in latestOrphanedRequests)
+                    {
+                        _taskQueue.QueuePublicationPostProcess(request.Id);
+                        Log.Information($"Publication request {request.Id} requeued for postprocessing in QueuedPublicationPostProcessingHostedService.AdoptOrphanPublicationsAsync()");
+                    }
+
+                    // 2) handle publication requests with Validating status
+                    string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                    string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
+                    string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+
+                    List<ContentPublicationRequest> validatingRequests = await dbContext.ContentPublicationRequest
+                        .Where(r => r.RequestStatus == PublicationStatus.Validating)
+                        .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                        .ToListAsync();
+                    foreach (ContentPublicationRequest request in validatingRequests)
+                    {
+                        await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                        Log.Information($"Publication request {request.Id} in 'Validating' status, added to queue to monitor for queue eligibility");
+                    }
                 }
-
-                // 2) handle publication requests with Validating status
-                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
-                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
-
-                List<ContentPublicationRequest> validatingRequests = await dbContext.ContentPublicationRequest
-                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
-                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToListAsync();
-                foreach (ContentPublicationRequest request in validatingRequests)
-                {
-                    await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
-                    Log.Information($"Publication request {request.Id} in 'Validating' status, added to queue to monitor for queue eligibility");
-                }
-
             }
         }
     }
