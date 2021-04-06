@@ -34,39 +34,24 @@ namespace MillimanAccessPortal.DataQueries
     public class FileDropQueries
     {
         private readonly ApplicationDbContext _dbContext;
-        private readonly ClientQueries _clientQueries;
-        private readonly HierarchyQueries _hierarchyQueries;
-        private readonly UserQueries _userQueries;
         private readonly IConfiguration _appConfig;
         private readonly IAuditLogger _auditLog;
         private readonly IFileDropUploadTaskTracker _fileDropUploadTaskTracker;
         private readonly IServiceProvider _serviceProvider;
-        private readonly HttpContextAccessor _httpContextAccessor;
-        private readonly UserManager<ApplicationUser> _userManager;
 
     public FileDropQueries(
             ApplicationDbContext dbContextArg,
-            ClientQueries clientQueries,
-            HierarchyQueries hierarchyQueries,
-            UserQueries userQueries,
             IConfiguration configuration,
             IAuditLogger auditLog,
             IFileDropUploadTaskTracker fileDropUploadTaskTrackerArg,
-            IServiceProvider serviceProvider,
-            HttpContextAccessor httpContextAccessorArg,
-            UserManager<ApplicationUser> userManagerArg
+            IServiceProvider serviceProvider
             )
         {
             _dbContext = dbContextArg;
-            _clientQueries = clientQueries;
-            _hierarchyQueries = hierarchyQueries;
-            _userQueries = userQueries;
             _appConfig = configuration;
             _auditLog = auditLog;
             _fileDropUploadTaskTracker = fileDropUploadTaskTrackerArg;
             _serviceProvider = serviceProvider;
-            _httpContextAccessor = httpContextAccessorArg;
-            _userManager = userManagerArg;
         }
 
         /// <summary>

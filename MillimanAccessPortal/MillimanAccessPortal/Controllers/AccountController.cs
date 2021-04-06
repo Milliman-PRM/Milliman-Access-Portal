@@ -488,7 +488,7 @@ namespace MillimanAccessPortal.Controllers
             await _signInManager.SignOutAsync();
 
             Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {appUser?.UserName ?? "<unknown>"} logged out.");
-            _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName, appUser.Id);
+            _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName, appUser?.Id);
 
             Response.Cookies.Delete(SessionDefaults.CookieName);
             HttpContext.Session.Clear();
