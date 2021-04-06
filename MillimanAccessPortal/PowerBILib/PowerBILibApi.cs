@@ -72,7 +72,7 @@ namespace PowerBiLib
         }
 
         /// <summary>
-        /// Get all groups of the provided capacity
+        /// Get all available groups visible using the token
         /// </summary>
         /// <returns></returns>
         public async Task<IList<Group>> GetAllGroupsAsync()
