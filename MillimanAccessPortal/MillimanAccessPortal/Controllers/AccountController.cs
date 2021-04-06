@@ -228,14 +228,14 @@ namespace MillimanAccessPortal.Controllers
                 {
                     NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled), user.Id);
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled), null);
                     Response.Headers.Add("Warning", UserMessageEnum.AccountDisabled.GetDisplayDescriptionString());
                     return Ok();
                 }
 
                 if (user.IsSuspended)
                 {
-                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName), user.Id);
+                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName), null);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
                     Response.Headers.Add("Warning", UserMessageEnum.AccountSuspended.GetDisplayDescriptionString());
@@ -297,7 +297,7 @@ namespace MillimanAccessPortal.Controllers
 
                     default:
                         Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.PasswordSignInAsyncFailed), user.Id);
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.PasswordSignInAsyncFailed), null);
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
                 }
