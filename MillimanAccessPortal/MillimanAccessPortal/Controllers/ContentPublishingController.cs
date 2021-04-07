@@ -1159,7 +1159,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!authorization.Succeeded)
             {
-                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.ToString()}, aborting");
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.GetDisplayNameString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to download this content item.");
                 return Unauthorized();

@@ -126,7 +126,7 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return IsEditablePowerBiEligible &&
-                               (TypeSpecificDetailObject as PowerBiSelectionGroupProperties)?.Editable ?? false;
+                               (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
