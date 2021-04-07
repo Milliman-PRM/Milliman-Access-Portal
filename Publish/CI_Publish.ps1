@@ -130,6 +130,7 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
 
+
 $envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
     "AzureCI" {"ci"}
     "Development" {"ci"}
@@ -346,25 +347,25 @@ if($runTests) {
 #region Create and update databases
 
 if ($buildType -eq "Release") {
-    
+
     log_statement "Preparing branch databases"
-    
+
     $env:PGPASSWORD = $dbPassword
-    
+
     # Check if databases already exist
     $appDbFound = $false
     $logDbFound = $false
-    
+
     $command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
     $output = invoke-expression "&$command"
-    
+
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to query for existing databases"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $error_code
     }
-    
+
     foreach ($db in $output) {
         if ($db.trim() -eq $appDbName) {
             log_statement "MAP application database found for this branch."
@@ -375,39 +376,39 @@ if ($buildType -eq "Release") {
             $logDbFound = 1
         }
     }
-    
+
     # Create app db if necessary
     if ($appDbFound -eq $false)
     {
         create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $appDbName -templateDbName $appDbTemplateName -dbOwner $appDbOwner
     }
-    
+
     # Create log db if necessary
     if ($logDbFound -eq $false)
     {
         create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $logDbName -templateDbName $logDbTemplateName -dbOwner $logDbOwner
     }
-    
+
     remove-item env:PGPASSWORD
-    
+
     log_statement "Performing database migrations"
-    
+
     $env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
-    
+
     Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
-    
+
     dotnet ef database update
-    
+
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to apply application database migrations"
         log_statement "errorlevel was $LASTEXITCODE"
         exit $error_code
     }
-    
-    
+
+
     dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
-    
+
     if ($LASTEXITCODE -ne 0) {
         $error_code = $LASTEXITCODE
         log_statement "ERROR: Failed to apply audit log database migrations"
@@ -531,49 +532,6 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
-#region Create and publish FileDrop docker container
-
-Set-Location $rootpath\SftpServer
-
-#Replace Windows line endings with Unix ones in entrypoint script
-$entrypoint = Get-ChildItem "$rootpath/UtilityScripts/startsftpserver.sh"
-((Get-Content $entrypoint) -join "`n") + "`n" | Set-Content -NoNewline $entrypoint
-
-$passwd = ConvertTo-SecureString $azClientSecret -AsPlainText -Force
-$SPCredential = New-Object System.Management.Automation.PSCredential($azClientId, $passwd)
-Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
-
-
-# Get Secrets from the FileDrop Key Vault
-$acr_url = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrurl").SecretValueText
-
-$acr_username = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acruser").SecretValueText
-
-$acr_password = (get-azkeyvaultsecret `
-    -VaultName $azVaultNameFD `
-    -SecretName "acrpass").SecretValueText
-
-$FDImageName = "$acr_url/filedropsftp:$sFTPVersion"
-
-Set-Location $rootpath
-
-docker login $acr_url -u $acr_username -p $acr_password
-
-docker build -t filedropsftp -f SftpServer/dockerfile .
-
-docker tag filedropsftp $FDImageName
-
-docker push $FDImageName
-
-docker rmi $FDImageName
-
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-#endregion
-
 #region Deploy releases to Octopus
 
 log_statement "Deploying packages to Octopus"
@@ -612,9 +570,9 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-    
+
 log_statement "Creating Content Publishing Server release"
-    
+
 octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
@@ -641,9 +599,9 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Filedrop Release"
+#log_statement "Creating Filedrop Release"
 
-octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Filedrop release created successfully"
@@ -656,7 +614,7 @@ else {
 }
 
 if ($buildType -eq "Release") {
-    
+
     log_statement "Determining target environment for web app deployment"
     $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
     $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
@@ -679,11 +637,11 @@ if ($buildType -eq "Release") {
         log_statement "ERROR: Failed to determine deployment environment"
         exit -42
     }
-    
+
     log_statement "Deploying web app release"
-    
+
     octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-    
+
     if ($LASTEXITCODE -eq 0) {
         log_statement "Web application release deployed successfully"
     }
@@ -693,11 +651,11 @@ if ($buildType -eq "Release") {
         log_statement "errorlevel was $LASTEXITCODE"
         exit $error_code
     }
-    
+
     log_statement "Deploying FileDrop release"
-    
+
     octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-    
+
     if ($LASTEXITCODE -eq 0) {
         log_statement "Filedrop release deployed successfully"
     }
