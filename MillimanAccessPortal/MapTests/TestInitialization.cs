@@ -98,7 +98,7 @@ namespace MapTests
         public IUrlHelper UrlHelper { get; set; } = default;
         public IFileDropUploadTaskTracker FileDropUploadTaskTracker { get; set; } = default;
         public ClientAdminQueries ClientAdminQueries { get; set; } = default;
-        public HttpContextAccessor HttpContextAccessor { get; set; } = default;
+        public IHttpContextAccessor HttpContextAccessor { get; set; } = default;
         #endregion
 
         #region Transient registered services
@@ -244,7 +244,7 @@ namespace MapTests
             services.AddScoped<AuthorizedContentQueries>();
             services.AddScoped<UserQueries>();
             services.AddScoped<ClientAdminQueries>();
-            services.AddScoped<HttpContextAccessor>();
+            services.AddScoped<IHttpContextAccessor, HttpContextAccessor>();
 
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
@@ -286,7 +286,7 @@ namespace MapTests
             UploadHelper = ScopedServiceProvider.GetService<IUploadHelper>();
             ClientQueries = ScopedServiceProvider.GetService<ClientQueries>();
             ClientAdminQueries = ScopedServiceProvider.GetService<ClientAdminQueries>();
-            HttpContextAccessor = ScopedServiceProvider.GetService<HttpContextAccessor>();
+            HttpContextAccessor = ScopedServiceProvider.GetService<IHttpContextAccessor>();
             ContentItemQueries = ScopedServiceProvider.GetService<ContentItemQueries>();
             HierarchyQueries = ScopedServiceProvider.GetService<HierarchyQueries>();
             SelectionGroupQueries = ScopedServiceProvider.GetService<SelectionGroupQueries>();

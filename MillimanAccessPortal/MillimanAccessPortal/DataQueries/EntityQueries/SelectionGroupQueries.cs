@@ -28,13 +28,13 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
     {
         private readonly IAuditLogger _auditLogger;
         private readonly ApplicationDbContext _dbContext;
-        private readonly HttpContextAccessor _httpContextAccessor;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly UserManager<ApplicationUser> _userManager;
 
         public SelectionGroupQueries(
             IAuditLogger auditLogger,
             ApplicationDbContext dbContext,
-            HttpContextAccessor httpContextAccessorArg,
+            IHttpContextAccessor httpContextAccessorArg,
             UserManager<ApplicationUser> userManagerArg)
         {
             _auditLogger = auditLogger;
