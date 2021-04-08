@@ -367,7 +367,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionFile" AS
  WITH "SessionFiles" AS (
          SELECT "QlikViewSession"."Id" AS "SessionId",
             "QlikViewSession"."SessionStartTime",
-            regexp_replace("QlikViewSession"."Document", '\\\\[A-Za-z0-9\-\\]+CONTENT\\'::text, ''::text, 'ig'::text) AS "Filename",
+            SUBSTRING("QlikViewSession"."Document", POSITION('CONTENT\' in "QlikViewSession"."Document") + 8) AS "Filename",
             "QlikViewSession"."Session",
             "QlikViewSession"."LogFileName",
             "QlikViewSession"."LogFileLineNumber"
