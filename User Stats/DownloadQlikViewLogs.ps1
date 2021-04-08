@@ -42,8 +42,8 @@ $fileNames = @()
 for ($i = 0; $i -lt $logDays; $i++)
 {
     $date = ([DateTime]::UtcNow - (New-TimeSpan -Days $i)).ToString("yyyy-MM-dd")
-    $fileNames += "Audit_MAP-QVS-01_$date.log"
-    $fileNames += "Sessions_MAP-QVS-01_$date.log"
+    $fileNames += "Audit_MAP-AZPROD-QVS_$date.log"
+    $fileNames += "Sessions_MAP-AZPROD-QVS_$date.log"
 }
 
 # Get a list of actual files in the share
