@@ -407,8 +407,7 @@ namespace MillimanAccessPortal.Controllers
                                                                 .OrderByDescending(t => t.CreateDateTimeUtc)
                                                                 .Take(1)
                                                                 .Select(t => t.CreateDateTimeUtc)
-                                                                .SingleOrDefaultAsync()
-                                                                ?? DateTime.MinValue;
+                                                                .SingleOrDefaultAsync();
 
             bool blockedByPendingReduction = await DbContext.ContentReductionTask
                                                             .Where(r => r.SelectionGroupId == selectionGroup.Id)

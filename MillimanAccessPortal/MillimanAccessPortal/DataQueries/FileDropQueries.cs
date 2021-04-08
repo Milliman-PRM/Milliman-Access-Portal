@@ -729,7 +729,7 @@ namespace MillimanAccessPortal.DataQueries
                 }
                 catch (ArgumentNullException ex)
                 {
-                    throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})");
+                    throw new ApplicationException($"Requested directory with canonical path {canonicalPath} not found in FileDrop {account.FileDropUserPermissionGroup.FileDrop.Name} (Id {account.FileDropUserPermissionGroup.FileDrop.Id})", ex);
                 }
                 catch (Exception ex)
                 {
