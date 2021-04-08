@@ -544,6 +544,7 @@ namespace MapTests
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 ContentReductionTask newReductionTask = new ContentReductionTask
                 {
+                    CreateDateTimeUtc = DateTime.UtcNow,
                     Id = TestUtil.MakeTestGuid(100),
                     SelectionGroupId = TestUtil.MakeTestGuid(1),
                     ReductionStatus = ReductionStatusEnum.Queued,
