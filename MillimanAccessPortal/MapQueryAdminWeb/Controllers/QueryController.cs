@@ -66,7 +66,7 @@ namespace MapQueryAdminWeb.Controllers
                     model.approverName,
                     model.queryText,
                     rows
-                    ));
+                    ), null, null);
 
                 // Only commit the transaction after the action is logged
                 transaction.Commit();

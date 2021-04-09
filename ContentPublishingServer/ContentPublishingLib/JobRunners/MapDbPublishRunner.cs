@@ -8,20 +8,15 @@ using Serilog;
 using System;
 using System.Linq;
 using System.IO;
-using System.Reflection;
 using System.Threading;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using AuditLogLib;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
-using Moq;
 using AuditLogLib.Event;
 
 namespace ContentPublishingLib.JobRunners
@@ -158,7 +153,7 @@ namespace ContentPublishingLib.JobRunners
                         PublicationRequestId = JobDetail.JobId,
                         JobDetail.Request.DoesReduce,
                     };
-                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj));
+                    AuditLog.Log(AuditEventType.ContentPublicationRequestCanceled.ToEvent(DetailObj), null, null);
                     #endregion
                 }
                 else
@@ -187,7 +182,7 @@ namespace ContentPublishingLib.JobRunners
                         RequestingUser = JobDetail.Request.ApplicationUserId,
                         ReductionTasks = AllRelatedReductionTasks.Select(t => t.Id.ToString("D")).ToList(),
                     };
-                    AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj));
+                    AuditLog.Log(AuditEventType.PublicationRequestProcessingSuccess.ToEvent(DetailObj), null, null);
                     #endregion
                 }
             }

@@ -317,6 +317,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act
@@ -341,6 +342,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 CreateGroupRequestModel requestModel = new CreateGroupRequestModel
                 {
                     ContentItemId = TestUtil.MakeTestGuid(1),
@@ -441,6 +443,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -470,6 +473,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -544,6 +548,7 @@ namespace MapTests
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
                 ContentReductionTask newReductionTask = new ContentReductionTask
                 {
+                    CreateDateTimeUtc = DateTime.UtcNow,
                     Id = TestUtil.MakeTestGuid(100),
                     SelectionGroupId = TestUtil.MakeTestGuid(1),
                     ReductionStatus = ReductionStatusEnum.Queued,
@@ -616,6 +621,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act
@@ -639,6 +645,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act
