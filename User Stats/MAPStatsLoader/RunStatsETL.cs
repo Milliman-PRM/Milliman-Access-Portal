@@ -46,6 +46,7 @@ namespace MAP.UserStats
             }
 
             log.LogInformation($"RunStatsETL executed at: {DateTime.Now} UTC");
+            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToLower();
             
             var config = new ConfigurationBuilder()
                 #if DEBUG // Variable set automatically by build configuration (Debug vs. Release)
@@ -54,7 +55,7 @@ namespace MAP.UserStats
                     .AddJsonFile("local.secrets.json", optional: false) // This file is not in the git repo. See readme.md for details.
                 #else 
                     .SetBasePath(context.FunctionAppDirectory)
-                    .AddJsonFile("prod.settings.json", optional: false)
+                    .AddJsonFile($"{environmentName}.settings.json", optional: false)
                 #endif
                 .AddEnvironmentVariables()
                 .Build();
@@ -69,6 +70,13 @@ namespace MAP.UserStats
                     new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
                 var connectionString = keyVaultClient.GetSecretAsync(config["ConnectionStringVaultUrl"])
                     .Result.Value;
+                
+                string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+                if (!string.IsNullOrEmpty(dbServerOverride)) {
+                    NpgsqlConnectionStringBuilder statsDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(connectionString);
+                    statsDbConnectionStringBuilder.Host = dbServerOverride;
+                    connectionString = statsDbConnectionStringBuilder.ConnectionString;
+                }
             #endif
 
             log.LogInformation($"Retrieved connection string. Connecting to database.");

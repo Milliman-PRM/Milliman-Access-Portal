@@ -107,13 +107,13 @@ namespace MillimanAccessPortal.Controllers
         /// </summary>
         public async Task<IActionResult> ContentWrapper(Guid selectionGroupId)
         {
-            var user = await UserManager.GetUserAsync(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = await DataContext.UserInSelectionGroup
                 .Include(usg => usg.SelectionGroup)
                     .ThenInclude(sg => sg.RootContentItem)
                         .ThenInclude(c => c.Client)
                 .Include(usg => usg.User)
-                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.UserId == currentUser.Id)
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
             var selectionGroup = DataContext.SelectionGroup
@@ -140,7 +140,7 @@ namespace MillimanAccessPortal.Controllers
             if (!Result1.Succeeded)
             {
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
                 return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
@@ -158,7 +158,8 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText));
+                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText), 
+                    currentUser.UserName, currentUser.Id);
 
                 return View("ContentDisclaimer", disclaimer);
             }
@@ -200,7 +201,8 @@ namespace MillimanAccessPortal.Controllers
                 userInSelectionGroup.DisclaimerAccepted = true;
 
                 await DataContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId));
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+                AuditLogger.Log(AuditEventType.ContentDisclaimerAccepted.ToEvent(userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, validationId), currentUser.UserName, currentUser.Id);
             }
 
             return Ok();
@@ -215,9 +217,9 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, selectionGroupId {selectionGroupId}");
 
-            var user = await UserManager.GetUserAsync(User);
+            var currentUser = await UserManager.GetUserAsync(User);
             var userInSelectionGroup = DataContext.UserInSelectionGroup
-                .Where(usg => usg.UserId == user.Id)
+                .Where(usg => usg.UserId == currentUser.Id)
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefault();
             var selectionGroup = DataContext.SelectionGroup
@@ -246,7 +248,7 @@ namespace MillimanAccessPortal.Controllers
             if (!Result1.Succeeded)
             {
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
                 return View("UserMessage", new UserMessageModel("You are not authorized to access the requested content."));
             }
@@ -339,7 +341,9 @@ namespace MillimanAccessPortal.Controllers
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
                     Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: checksum failure for ContentFile {{@ContentFile}}, aborting", requestedContentFile);
-                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, ControllerContext.ActionDescriptor.DisplayName));
+                    AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(
+                                        selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, requestedContentFile, ControllerContext.ActionDescriptor.DisplayName), 
+                                    currentUser.UserName, currentUser.Id);
                     return View("UserMessage", new UserMessageModel(ErrMsg));
                 }
             }
@@ -349,7 +353,7 @@ namespace MillimanAccessPortal.Controllers
             AuditLogger.Log(AuditEventType.UserContentAccess.ToEvent(
                 selectionGroup, 
                 selectionGroup.RootContentItem, 
-                selectionGroup.RootContentItem.Client));
+                selectionGroup.RootContentItem.Client), currentUser.UserName, currentUser.Id);
 
             try
             {
@@ -402,6 +406,8 @@ namespace MillimanAccessPortal.Controllers
         /// <returns></returns>
         public async Task<IActionResult> PowerBiPreview(Guid request)
         {
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
             #region Authorization
             var PubRequest = DataContext.ContentPublicationRequest
                                         .FirstOrDefault(r => r.Id == request);
@@ -411,8 +417,8 @@ namespace MillimanAccessPortal.Controllers
             if (!Result1.Succeeded)
             {
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
-                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -454,8 +460,10 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -537,9 +545,10 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PublicationRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
                     + $"content item {PublicationRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -600,9 +609,10 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
                     + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -773,6 +783,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action: user {User.Identity.Name}, purpose {purpose}, selectionGroupId {selectionGroupId}");
 
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
             var selectionGroup = DataContext.SelectionGroup
                                             .Include(sg => sg.RootContentItem)
                                                 .ThenInclude(rc => rc.Client)
@@ -792,7 +803,7 @@ namespace MillimanAccessPortal.Controllers
             if (!Result1.Succeeded)
             {
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -815,7 +826,8 @@ namespace MillimanAccessPortal.Controllers
 
                 notifier.sendSupportMail(MailMsg, $"Checksum verification ({purpose})");
                 Log.Error("In AuthorizedContentController.RelatedPdf action: file checksum failure, ContentRelatedFile {@ContentRelatedFile}, aborting", contentRelatedPdf);
-                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"));
+                AuditLogger.Log(AuditEventType.ChecksumInvalid.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentRelatedPdf, "AuthorizedContentController.RelatedPdf"), 
+                                currentUser.UserName, currentUser.Id);
                 return View("UserMessage", new UserMessageModel { PrimaryMessages = ErrMsg });
             }
             #endregion
@@ -825,7 +837,7 @@ namespace MillimanAccessPortal.Controllers
                     selectionGroup, 
                     selectionGroup.RootContentItem, 
                     selectionGroup.RootContentItem.Client,
-                    purpose));
+                    purpose), currentUser.UserName, currentUser.Id);
 
             try
             {
@@ -866,8 +878,9 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -920,8 +933,9 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -977,9 +991,10 @@ namespace MillimanAccessPortal.Controllers
                     RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
                           + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -1028,9 +1043,10 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, content item {PubRequest.RootContentItemId}, "
                           + $"role {RoleEnum.ContentPublisher.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();
@@ -1101,8 +1117,9 @@ namespace MillimanAccessPortal.Controllers
                 User, null, new UserInSelectionGroupRequirement(selectionGroupId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {selectionGroupId}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
                 Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
                 return Unauthorized();

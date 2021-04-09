@@ -178,7 +178,7 @@ namespace MillimanAccessPortal.Services
                         FileDrop = new FileDropLogModel { Id = destinationDirectoryRecord.FileDrop.Id, Name = destinationDirectoryRecord.FileDrop.Name, RootPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), destinationDirectoryRecord.FileDrop.RootPath) },
                         Account = taskKvp.Value.Account,
                         User = taskKvp.Value.Account.ApplicationUser,
-                    }), taskKvp.Value.Account.ApplicationUser.UserName);
+                    }), taskKvp.Value.Account.ApplicationUser.UserName, taskKvp.Value.Account.ApplicationUser.Id);
                 }
                 catch (Exception ex)
                 {

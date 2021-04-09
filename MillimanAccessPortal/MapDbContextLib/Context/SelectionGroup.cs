@@ -120,11 +120,21 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public bool Editable
         {
-            get =>
-                RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&
-                TypeSpecificDetail != null &&
-                IsEditablePowerBiEligible &&
-                (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
+            get
+            {
+                switch (RootContentItem?.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        return IsEditablePowerBiEligible &&
+                               (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
+                    case ContentTypeEnum.Qlikview:
+                    case ContentTypeEnum.Pdf:
+                    case ContentTypeEnum.Html:
+                    case ContentTypeEnum.FileDownload:
+                    default:
+                        return false;
+                }
+            }
         }
 
 

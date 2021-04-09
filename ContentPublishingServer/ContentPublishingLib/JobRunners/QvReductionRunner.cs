@@ -137,7 +137,7 @@ namespace ContentPublishingLib.JobRunners
                             Hierarchy = JobDetail.Result.MasterContentHierarchy,
                             ContentFile = "Master",
                         };
-                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj), null, null);
                     }
                     #endregion
 
@@ -152,7 +152,7 @@ namespace ContentPublishingLib.JobRunners
                             ReductionJobId = JobDetail.TaskId.ToString(),
                             RequestedSelections = JobDetail.Request.SelectionCriteria,
                         };
-                        AuditLog.Log(AuditEventType.ContentFileReductionSucceeded.ToEvent(DetailObj));
+                        AuditLog.Log(AuditEventType.ContentFileReductionSucceeded.ToEvent(DetailObj), null, null);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -166,7 +166,7 @@ namespace ContentPublishingLib.JobRunners
                             Hierarchy = JobDetail.Result.ReducedContentHierarchy,
                             ContentFile = "Reduced",
                         };
-                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj));
+                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj), null, null);
                         #endregion
 
                         _CancellationToken.ThrowIfCancellationRequested();
@@ -184,7 +184,7 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.Canceled;
                 Log.Warning(e, $"Operation Cancelled in QvReductionRunner");
                 JobDetail.Result.StatusMessage = GlobalFunctions.LoggableExceptionString(e, $"Exception in QvReductionRunner", true, true);
-                AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }));
+                AuditLog.Log(AuditEventType.ContentReductionTaskCanceled.ToEvent(new { ReductionTaskId = JobDetail.TaskId }), null, null);
             }
             catch (ApplicationException e)
             {
@@ -220,7 +220,7 @@ namespace ContentPublishingLib.JobRunners
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     ExceptionMessage = GlobalFunctions.LoggableExceptionString(e),
                 };
-                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj), null, null);
                 if (JobDetail.Result.OutcomeReason == ReductionJobDetail.JobOutcomeReason.Unspecified)
                 {
                     JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.UnspecifiedError;
@@ -300,7 +300,7 @@ namespace ContentPublishingLib.JobRunners
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     Error = Msg,
                 };
-                AuditLog.Log(AuditEventType.ReductionValidationFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.ReductionValidationFailed.ToEvent(DetailObj), null, null);
 
                 Msg = $"Error in {Method.ReflectedType.Name}.{Method.Name}: {Msg}";
 
@@ -433,7 +433,7 @@ namespace ContentPublishingLib.JobRunners
                     ReductionJobId = JobDetail.TaskId.ToString(),
                     ProblemDetail = errMsg,
                 };
-                AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.HierarchyExtractionFailed.ToEvent(DetailObj), null, null);
 
                 throw new ApplicationException(errMsg);
             }
@@ -482,7 +482,7 @@ namespace ContentPublishingLib.JobRunners
                     };
 
                     JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.SelectionForInvalidFieldName;
-                    AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
+                    AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj), null, null);
                     throw new ApplicationException(Msg);
                 }
             }
@@ -498,7 +498,7 @@ namespace ContentPublishingLib.JobRunners
                     Error = Msg,
                 };
 
-                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj));
+                AuditLog.Log(AuditEventType.ContentFileReductionFailed.ToEvent(DetailObj), null, null);
 
                 JobDetail.Result.OutcomeReason = ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent;
 

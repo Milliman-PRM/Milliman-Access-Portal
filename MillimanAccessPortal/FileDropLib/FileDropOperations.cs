@@ -150,7 +150,7 @@ namespace FileDropLib
                                                                                          (FileDropDirectoryLogModel)fileRecord.Directory,
                                                                                          new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                                                                                          account,
-                                                                                         user), user?.UserName);
+                                                                                         user), user?.UserName, user?.Id);
                         }
                         break;
 
@@ -182,7 +182,7 @@ namespace FileDropLib
                                                                                          (FileDropDirectoryLogModel)fileRecord.Directory,
                                                                                               new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                                                                                               account,
-                                                                                              user), user?.UserName);
+                                                                                              user), user?.UserName, user?.Id);
                             Log.Information($"OnFileRemove: Requested file {path} at absolute path {requestedAbsolutePath} removed, FileDrop ID {fileDropId}, named {fileDropName}");
                         }
                         else
@@ -249,7 +249,7 @@ namespace FileDropLib
                                                                                               deleteInventory,
                                                                                               new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                                                                                               account,
-                                                                                              user), user?.UserName);
+                                                                                              user), user?.UserName, user?.Id);
                             Log.Information($"OnDirRemove: Requested directory {canonicalPath} at absolute path {requestedAbsolutePath} removed. Deleted inventory is {{@Inventory}}", deleteInventory);
                         }
                         catch (Exception e)
@@ -372,7 +372,7 @@ namespace FileDropLib
                                                                                           new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                                                                                           account,
                                                                                           new Client { Id = clientId.HasValue ? clientId.Value : Guid.Empty, Name = clientName },
-                                                                                          user), user?.UserName);
+                                                                                          user), user?.UserName, user?.Id);
                         Log.Information($"CreateDirectory invoked, directory {requestedCanonicalPath} created relative to absolute file drop root {fileDropRootPath}");
                         break;
                 }
@@ -489,7 +489,7 @@ namespace FileDropLib
                             FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                             Account = account,
                             User = user,
-                        }), user?.UserName);
+                        }), user?.UserName, user?.Id);
                     }
                 break;
             }
@@ -607,7 +607,7 @@ namespace FileDropLib
                             FileDrop = new FileDropLogModel { Id = fileDropId.Value, Name = fileDropName },
                             Account = account,
                             User = user,
-                        }), user?.UserName);
+                        }), user?.UserName, user?.Id);
                     }
                     break;
             }

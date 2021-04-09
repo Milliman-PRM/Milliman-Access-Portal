@@ -181,7 +181,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 $"for selection group {relatedSelectionGroup.Id}, " +
                                 $"reduced content file {ThisTask.ResultFilePath} of length {length} failed checksum validation, aborting");
                             auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName);
+                                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName, goLiveViewModel.UserId);
                             await FailGoLiveAsync(dbContext, publicationRequest,
                                 $"Reduced content file failed integrity check, cannot complete the go-live request.");
                             return;
@@ -204,7 +204,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         $"live ready file {Crf.FullPath} failed checksum validation, " +
                         "aborting");
                     auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                        publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName);
+                        publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName, goLiveViewModel.UserId);
                     await FailGoLiveAsync(dbContext, publicationRequest, "File integrity validation failed");
                     return;
                 }
@@ -600,7 +600,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (MasterContentUploaded)
                     {
                         auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, ContentDisclaimerResetReason.ContentItemRepublished), goLiveViewModel.UserName);
+                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, ContentDisclaimerResetReason.ContentItemRepublished), goLiveViewModel.UserName, goLiveViewModel.UserId);
                     }
                 }
             }
@@ -627,7 +627,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 "In ContentPublishingController.GoLive action: " +
                 $"publication request {publicationRequest.Id} success");
             auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
-                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName);
+                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName, goLiveViewModel.UserId);
 
             // 4 Clean up
             // 4.1 Delete all temporarily backed up production files

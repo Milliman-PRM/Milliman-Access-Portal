@@ -226,6 +226,8 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateRootContentItem([FromBody] JObject rootContentItemJobject)
         {
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+
             RootContentItem rootContentItem = await JsonToRootContentItemAsync(rootContentItemJobject);
             if (rootContentItem == null)
             {
@@ -250,8 +252,8 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult roleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(requiredRole, rootContentItem.ClientId));
             if (!roleInClientResult.Succeeded)
             {
-                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failure, user {User.Identity.Name}, client {rootContentItem.ClientId}, role {requiredRole}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to create content items for the specified client.");
                 return Unauthorized();
             }
@@ -310,7 +312,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client));
+            AuditLogger.Log(AuditEventType.RootContentItemCreated.ToEvent(rootContentItem, client), currentUser.UserName, currentUser.Id);
 
             RootContentItemSummary summary = await RootContentItemSummary.BuildAsync(_dbContext, rootContentItem);
             RootContentItemDetail detail = await _publishingQueries.BuildContentItemDetailModelAsync(rootContentItem, Request);
@@ -322,6 +324,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRootContentItem([FromBody] JObject rootContentItemJobject)
         {
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             RootContentItem rootContentItem = await JsonToRootContentItemAsync(rootContentItemJobject);
             if (rootContentItem == null)
             {
@@ -349,7 +352,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.UpdateRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItem.Id}, role {requiredRole.ToString()}");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to update this content item.");
                 return Unauthorized();
             }
@@ -416,11 +419,11 @@ namespace MillimanAccessPortal.Controllers
             var logClient = await _dbContext.Client.FindAsync(rootContentItem.ClientId);
 
             Log.Verbose($"In ContentPublishingController.UpdateRootContentItem action: success");
-            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(currentRootContentItem, logClient));
+            AuditLogger.Log(AuditEventType.RootContentItemUpdated.ToEvent(currentRootContentItem, logClient), currentUser.UserName, currentUser.Id);
             if (usersInGroup != null)
             {
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                    .ToEvent(usersInGroup, currentRootContentItem, logClient, ContentDisclaimerResetReason.DisclaimerTextModified));
+                    .ToEvent(usersInGroup, currentRootContentItem, logClient, ContentDisclaimerResetReason.DisclaimerTextModified), currentUser.UserName, currentUser.Id);
             }
 
             RootContentItemSummary summary = await RootContentItemSummary.BuildAsync(_dbContext, currentRootContentItem);
@@ -435,6 +438,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.DeleteRootContentItem action with root content item id {rootContentItemId} and password");
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             var rootContentItem = await  _dbContext.RootContentItem
                                                    .Include(x => x.Client)
                                                    .Include(x => x.ContentType)
@@ -468,7 +472,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.DeleteRootContentItem action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to administer the specified content item.");
                 return Unauthorized();
             }
@@ -543,7 +547,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.DeleteRootContentItem action: success, aborting");
-            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem, rootContentItem.Client, groupsAndMemberNames));
+            AuditLogger.Log(AuditEventType.RootContentItemDeleted.ToEvent(rootContentItem, rootContentItem.Client, groupsAndMemberNames), currentUser.UserName, currentUser.Id);
 
             return Json(model);
         }
@@ -554,10 +558,10 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.Publish action with {{@PublishRequest}}", request);
 
-            ApplicationUser currentApplicationUser = await _userManager.GetUserAsync(User);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
 
             #region Preliminary Validation
-            if (currentApplicationUser == null)
+            if (currentUser == null)
             {
                 Log.Error($"In ContentPublishingController.Publish action: Current user {User.Identity.Name} not found, aborting");
                 Response.Headers.Add("Warning", "Your user identity is unknown.");
@@ -569,8 +573,8 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult RoleInRootContentItemResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, request.RootContentItemId));
             if (!RoleInRootContentItemResult.Succeeded)
             {
-                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentApplicationUser.UserName}, content item {request.RootContentItemId}, role {requiredRole}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                Log.Debug($"In ContentPublishingController.Publish action: authorization failure, user {currentUser.UserName}, content item {request.RootContentItemId}, role {requiredRole}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", $"You are not authorized to publish this content");
                 return Unauthorized();
             }
@@ -656,7 +660,7 @@ namespace MillimanAccessPortal.Controllers
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
                 {
-                    ApplicationUserId = currentApplicationUser.Id,
+                    ApplicationUserId = currentUser.Id,
                     RequestStatus = PublicationStatus.Validating,
                     CreateDateTimeUtc = DateTime.UtcNow,
                     RootContentItemId = ContentItem.Id,
@@ -685,7 +689,7 @@ namespace MillimanAccessPortal.Controllers
                     ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(NewContentPublicationRequest.Id, CxnString, rootPath, exchangePath, _PostProcessingTaskQueue));
 
                 Log.Verbose($"In ContentPublishingController.Publish action: publication request successfully submitted for validation");
-                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest));
+                AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest), currentUser.UserName, currentUser.Id);
             }
 
             var rootContentItemDetail = await _publishingQueries.BuildContentItemDetailModelAsync(ContentItem, Request);
@@ -698,6 +702,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.CancelContentPublicationRequest action with content item {rootContentItemId}");
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             var rootContentItem = await _dbContext.RootContentItem
                                                   .Include(c => c.Client)
                                                   .SingleOrDefaultAsync(c => c.Id == rootContentItemId);
@@ -716,7 +721,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItem.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.CancelContentPublicationRequest action: authorization failure, user {User.Identity.Name}, content item {rootContentItemId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to cancel content publication requests for this content item.");
                 return Unauthorized();
             }
@@ -818,7 +823,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
-            AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest));
+            AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest), currentUser.UserName, currentUser.Id);
 
             var rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
@@ -866,8 +871,9 @@ namespace MillimanAccessPortal.Controllers
 
             PreLiveContentValidationSummary ReturnObj = await PreLiveContentValidationSummary.BuildAsync(_dbContext, RootContentItemId, ApplicationConfig, HttpContext);
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Debug($"{ControllerContext.ActionDescriptor.DisplayName} action: success, returning summary {ReturnObj.ValidationSummaryId}");
-            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj));
+            AuditLogger.Log(AuditEventType.PreGoLiveSummary.ToEvent((PreLiveContentValidationSummaryLogModel)ReturnObj), currentUser.UserName, currentUser.Id);
 
             return new JsonResult(ReturnObj);
         }
@@ -880,6 +886,8 @@ namespace MillimanAccessPortal.Controllers
                 "Entered ContentPublishingController.GoLive action with model {@GoLiveViewModel}",
                 goLiveViewModel);
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null,
                 new RoleInRootContentItemRequirement(requiredRole, goLiveViewModel.RootContentItemId));
@@ -889,15 +897,16 @@ namespace MillimanAccessPortal.Controllers
                     "In ContentPublishingController.GoLive action: authorization failure, " +
                     $"user {User.Identity.Name}, " + 
                     $"content item {goLiveViewModel.RootContentItemId}, " + 
-                    $"role {requiredRole.ToString()}, " + 
+                    $"role {requiredRole}, " + 
                     "aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }
             #endregion
 
-            goLiveViewModel.UserName = User.Identity.Name;
+            goLiveViewModel.UserName = currentUser.UserName;
+            goLiveViewModel.UserId = currentUser.Id;
 
             #region Validation
             var publicationRequest = await _dbContext.ContentPublicationRequest
@@ -1037,12 +1046,14 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose($"Entered ContentPublishingController.Reject action with content item {goLiveViewModel.RootContentItemId}, publication request {goLiveViewModel.PublicationRequestId}");
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+
             #region Authorization
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, goLiveViewModel.RootContentItemId));
             if (!authorization.Succeeded)
             {
                 Log.Debug($"In ContentPublishingController.Reject action, authorization failure, user {User.Identity.Name}, content item {goLiveViewModel.RootContentItemId}, role {requiredRole.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to publish content for this content item.");
                 return Unauthorized();
             }
@@ -1147,7 +1158,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ContentPublishingController.Reject action, success");
-            AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, rootContentItem.Client, pubRequest));
+            AuditLogger.Log(AuditEventType.ContentPublicationRejected.ToEvent(rootContentItem, rootContentItem.Client, pubRequest), currentUser.UserName, currentUser.Id);
 
             return Json(new { publicationRequestId = goLiveViewModel.PublicationRequestId });
         }
@@ -1159,7 +1170,7 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult authorization = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!authorization.Succeeded)
             {
-                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.ToString()}, aborting");
+                Log.Debug($"In {ControllerContext.ActionDescriptor} action, authorization failure, user {User.Identity.Name}, content item {contentItemId}, role {requiredRole.GetDisplayNameString()}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(requiredRole));
                 Response.Headers.Add("Warning", "You are not authorized to download this content item.");
                 return Unauthorized();
