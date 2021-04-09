@@ -511,6 +511,8 @@ namespace MillimanAccessPortal.Controllers
                                                     .ThenInclude(c => c.Client)
                                                 .SingleOrDefaultAsync(sg => sg.Id == selectionGroupId);
 
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
             #region Preliminary validation
             if (selectionGroup == null)
             {
@@ -525,7 +527,7 @@ namespace MillimanAccessPortal.Controllers
             if (!roleInRootContentItemResult.Succeeded)
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: authorization failure, user {User.Identity.Name}, content item {selectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -635,7 +637,6 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
             Guid NewTaskGuid = Guid.NewGuid();
 
             if (isMaster)
@@ -689,9 +690,9 @@ namespace MillimanAccessPortal.Controllers
 
                 await DbContext.SaveChangesAsync();
 
-                AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client));
+                AuditLogger.Log(AuditEventType.SelectionChangeMasterAccessGranted.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client), currentUser.UserName, currentUser.Id);
                 AuditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                    .ToEvent(usersInGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified));
+                    .ToEvent(usersInGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, ContentDisclaimerResetReason.ContentSelectionsModified), currentUser.UserName, currentUser.Id);
             }
             else
             {
@@ -782,7 +783,7 @@ namespace MillimanAccessPortal.Controllers
                     string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
                     ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj, cancellationTokenSource.Token), cancellationTokenSource.Token));
 
-                    AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentReductionTask));
+                    AuditLogger.Log(AuditEventType.SelectionChangeReductionQueued.ToEvent(selectionGroup, selectionGroup.RootContentItem, selectionGroup.RootContentItem.Client, contentReductionTask), currentUser.UserName, currentUser.Id);
                 }
             }
 
@@ -801,6 +802,8 @@ namespace MillimanAccessPortal.Controllers
                                                                .ThenInclude(c => c.Client)
                                                            .SingleOrDefaultAsync(sg => sg.Id == SelectionGroupId);
 
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
             #region Preliminary validation
             if (SelectionGroup == null)
             {
@@ -815,7 +818,7 @@ namespace MillimanAccessPortal.Controllers
             if (!RoleInRootContentItemResult.Succeeded)
             {
                 Log.Information($"In ContentAccessAdminController.CancelReduction: authorization failure, user {User.Identity.Name}, content item {SelectionGroup.RootContentItemId}, role {RoleEnum.ContentAccessAdmin.ToString()}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin));
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentAccessAdmin), currentUser.UserName, currentUser.Id);
                 Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
                 return Unauthorized();
             }
@@ -846,7 +849,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
-                AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task));
+                AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task), currentUser.UserName, currentUser.Id);
             }
 
             var model = await _accessAdminQueries.GetCanceledSingleReductionModelAsync(SelectionGroupId);

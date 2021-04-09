@@ -317,6 +317,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act
@@ -341,6 +342,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 CreateGroupRequestModel requestModel = new CreateGroupRequestModel
                 {
                     ContentItemId = TestUtil.MakeTestGuid(1),
@@ -441,6 +443,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -470,6 +473,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 var MembershipSet = new List<Guid>
             {
                 TestUtil.MakeTestGuid(2),
@@ -617,6 +621,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act
@@ -640,6 +645,7 @@ namespace MapTests
             {
                 #region Arrange
                 ContentAccessAdminController controller = await GetControllerForUser(TestResources, "user1");
+                TestResources.HttpContextAccessor.HttpContext = controller.HttpContext;
                 #endregion
 
                 #region Act

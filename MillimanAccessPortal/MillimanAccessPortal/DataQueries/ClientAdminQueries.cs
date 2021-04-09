@@ -85,7 +85,7 @@ namespace MillimanAccessPortal.DataQueries
 
             var assignedUser = (UserInfoModel) user;
 
-            StandardQueries Queries = new StandardQueries(_dbContext, _userManager, null);
+            StandardQueries Queries = new StandardQueries(_dbContext, _userManager, null, null);
             List<RoleEnum> RolesToManage = new List<RoleEnum>
                   {
                       RoleEnum.Admin,
