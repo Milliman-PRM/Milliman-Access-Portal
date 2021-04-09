@@ -377,6 +377,8 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SetGroupPowerBiEditability([FromBody] SetPowerBiEditabilityRequestModel model)
         {
             SelectionGroup selectionGroup = await DbContext.SelectionGroup

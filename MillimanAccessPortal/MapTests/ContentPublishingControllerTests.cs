@@ -225,7 +225,6 @@ namespace MapTests
             {
                 #region Arrange
                 ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
-                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(4));
                 PowerBiContentItemProperties props = new PowerBiContentItemProperties
                 {
                     EditableEnabled = true,
@@ -236,8 +235,9 @@ namespace MapTests
                 var validRootContentItem = new RootContentItem
                 {
                     ClientId = TestUtil.MakeTestGuid(1),
-                    ContentTypeId = TestResources.DbContext.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.PowerBi).Id,
-                    ContentName = "CreateRootContentItem_TypeSpecificProperties_Success",
+                    ContentTypeId = TestResources.DbContext.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.Qlikview).Id,
+                    ContentName = "CreateRootContentItem_Success",
+                    DoesReduce = false,
                     TypeSpecificDetailObject = props,
                 };
                 var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
@@ -727,7 +727,7 @@ namespace MapTests
                 #endregion
 
                 #region Assert
-                Assert.IsType<BadRequestResult>(result);
+                Assert.IsType<UnauthorizedResult>(result);
                 #endregion
             }
         }
@@ -793,45 +793,6 @@ namespace MapTests
 
                 #region Assert
                 Assert.IsType<BadRequestResult>(result);
-                #endregion
-            }
-        }
-
-
-        [Fact]
-        public async Task DownloadPowerBiContentItem_Success()
-        {
-            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
-            {
-                #region Arrange
-                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
-                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(4));
-                RootContentItem updateModel = new RootContentItem
-                {
-                    Id = dbItem.Id,
-                    ContentTypeId = dbItem.ContentTypeId,
-                    ContentType = dbItem.ContentType,
-                    ClientId = dbItem.ClientId,
-                    Client = dbItem.Client,
-                    ContentName = dbItem.ContentName,
-                };
-                updateModel.TypeSpecificDetailObject = new PowerBiContentItemProperties
-                {
-                    EditableEnabled = true,
-                    FilterPaneEnabled = true,
-                    NavigationPaneEnabled = true,
-                    BookmarksPaneEnabled = true,
-                };
-                var jObject = JObject.FromObject(updateModel, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
-                #endregion
-
-                #region Act
-                var view = await controller.UpdateRootContentItem(jObject); // Update to ensure that properties are correct.
-                var result = await controller.DownloadPowerBiContentItem(dbItem.Id);
-                #endregion
-
-                #region Assert
-                Assert.IsType<TemporaryPhysicalFileResult>(result);
                 #endregion
             }
         }

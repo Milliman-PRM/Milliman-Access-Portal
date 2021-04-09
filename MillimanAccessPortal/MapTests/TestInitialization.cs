@@ -551,6 +551,8 @@ namespace MapTests
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content2" },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder3/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3" },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="Folder3/File2", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group2 For Content3" },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(6), ContentInstanceUrl="Folder4/File1", RootContentItemId=TestUtil.MakeTestGuid(5),
+                      GroupName="Group1 for Content5" },
                 });
             #endregion
 
@@ -660,6 +662,8 @@ namespace MapTests
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = true }) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 6", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = false }) },
             });
             #endregion
 
@@ -690,6 +694,8 @@ namespace MapTests
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new List<Guid>() },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="Folder3/File1", RootContentItemId=TestUtil.MakeTestGuid(5), GroupName="Group1 For Content5", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(6), ContentInstanceUrl="Folder4/File1", RootContentItemId=TestUtil.MakeTestGuid(6), GroupName="Group1 For Content6", SelectedHierarchyFieldValueList=new List<Guid>() },
                 });
             #endregion
 
@@ -719,6 +725,10 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
+                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(9), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
+                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(6) },
             });
             #endregion
 
@@ -915,6 +925,8 @@ namespace MapTests
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new List<Guid>() },
                     new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="", RootContentItemId=TestUtil.MakeTestGuid(5),
+                      GroupName="Group1 For Content5", SelectedHierarchyFieldValueList=new List<Guid>() },
                 });
             #endregion
 
