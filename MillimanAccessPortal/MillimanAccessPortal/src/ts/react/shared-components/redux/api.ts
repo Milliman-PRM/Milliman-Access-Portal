@@ -1,4 +1,4 @@
-import { getJsonData, postJsonData } from '../../../shared';s
+import { getJsonData, postJsonData } from '../../../shared';
 import { RequestAction, ResponseAction } from './actions';
 
 /**
