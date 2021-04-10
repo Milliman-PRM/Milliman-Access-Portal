@@ -599,33 +599,6 @@ export function getData(url = '', data: any = {}) {
   });
 }
 
-export function getFileData<TResponse = any>(url = '', data: any = {}, extension = '') {
-  const queryParams: string[] = [];
-  Object.keys(data).forEach((key) => {
-    if (Object.prototype.hasOwnProperty.call(data, key)) {
-      queryParams.push(`${key}=${data[key]}`);
-    }
-  });
-  url = `${url}?${queryParams.join('&')}`;
-  return fetch(url, {
-    method: 'GET',
-    cache: 'no-cache',
-    credentials: 'same-origin',
-  })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error(response.headers.get('Warning') || `${response.status}`);
-      } else if (response.redirected && response.url.match(/\/Account\/LogIn/) !== null) {
-        throw new Error('sessionExpired');
-      }
-      return response.blob();
-    }).then((blob) => {
-      const fileDownloadUrl = window.URL.createObjectURL(blob);
-      window.location.assign(fileDownloadUrl);
-      return null as Promise<TResponse>;
-    });
-}
-
 export function getJsonData<TResponse = any>(url = '', data: any = {}) {
   const queryParams: string[] = [];
   Object.keys(data).forEach((key) => {
