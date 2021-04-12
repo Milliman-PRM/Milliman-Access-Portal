@@ -184,7 +184,6 @@
     margin-bottom: 1em;
     cursor: pointer;
     user-select: none;
-
     padding-top: 0.125em;
     padding-bottom: 0.125em;
 
@@ -228,6 +227,7 @@
     &:hover .selection-option-value ~ .selection-option-checkmark {
         background-color: darken($grey, 20%);
     }
+
     &:hover .selection-option-value:checked ~ .selection-option-checkmark {
         background-color: darken($blue, 20%);
     }
@@ -247,9 +247,14 @@
         &:hover .selection-option-value ~ .selection-option-checkmark {
             background-color: $grey;
         }
+
         &:hover .selection-option-value:checked ~ .selection-option-checkmark {
             background-color: lighten($grey, 10%);
         }
+    }
+
+    .description-text {
+        font-weight: normal;
     }
 }
 

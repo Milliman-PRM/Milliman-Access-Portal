@@ -559,6 +559,25 @@ export interface SuspendGroupFailed {
 }
 
 /**
+ * POST change the 'editability' status of a Selection Group for a PowerBI content item
+ */
+export interface SetGroupPowerBiEditability {
+  type: 'SET_GROUP_POWER_BI_EDITABILITY';
+  request: {
+    groupId: Guid;
+    editable: boolean;
+  }
+}
+export interface SetGroupPowerBiEditabilitySucceeded {
+  type: 'SET_GROUP_POWER_BI_EDITABILITY_SUCCEEDED';
+  response: SelectionGroup;
+}
+export interface SetGroupPowerBiEditabilityFailed {
+  type: 'SET_GROUP_POWER_BI_EDITABILITY_FAILED';
+  error: TSError;
+}
+
+/**
  * POST new selections for an existing selection group.
  */
 export interface UpdateSelections {
@@ -671,6 +690,7 @@ export type RequestAccessAction =
   | UpdateGroup
   | DeleteGroup
   | SuspendGroup
+  | SetGroupPowerBiEditability
   | UpdateSelections
   | CancelReduction
   ;
@@ -690,6 +710,7 @@ export type ResponseAccessAction =
   | UpdateGroupSucceeded
   | DeleteGroupSucceeded
   | SuspendGroupSucceeded
+  | SetGroupPowerBiEditabilitySucceeded
   | UpdateSelectionsSucceeded
   | CancelReductionSucceeded
   ;
@@ -709,6 +730,7 @@ export type ErrorAccessAction =
   | UpdateGroupFailed
   | DeleteGroupFailed
   | SuspendGroupFailed
+  | SetGroupPowerBiEditabilityFailed
   | UpdateSelectionsFailed
   | CancelReductionFailed
   ;

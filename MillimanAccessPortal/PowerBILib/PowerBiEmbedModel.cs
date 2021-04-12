@@ -20,6 +20,8 @@ namespace PowerBiLib
 
         public string EmbedUrl { get; set; }
 
+        public bool EditableEnabled { get; set; }
+
         public bool NavigationPaneEnabled { get; set; }
 
         public bool FilterPaneEnabled { get; set; }

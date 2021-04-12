@@ -57,6 +57,8 @@
     <None Include="wwwroot\**" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Remove="Migrations\20210331120704_AddTypeSpecificSelectionGroupPropertiesColumn.cs" />
+    <Compile Remove="Migrations\20210331120704_AddTypeSpecificSelectionGroupPropertiesColumn.Designer.cs" />
     <Compile Remove="Migrations\20210308200406_AddUserId.cs" />
     <Compile Remove="Migrations\20210308200406_AddUserId.Designer.cs" />
   </ItemGroup>

@@ -377,6 +377,54 @@ namespace MillimanAccessPortal.Controllers
             return Json(group);
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetGroupPowerBiEditability([FromBody] SetPowerBiEditabilityRequestModel model)
+        {
+            SelectionGroup selectionGroup = await DbContext.SelectionGroup
+                                                           .Include(sg => sg.RootContentItem)
+                                                               .ThenInclude(rci => rci.ContentType)
+                                                           .SingleOrDefaultAsync(sg => sg.Id == model.GroupId);
+
+            #region Authorization
+            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, selectionGroup.RootContentItemId));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to administer content access to the specified content item.");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (selectionGroup == null)
+            {
+                Response.Headers.Add("Warning", "The requested selection group was not found.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.PowerBi)
+            {
+                Response.Headers.Add("Warning", "Cannot toggle attribute 'Editable' for this content type.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName}: Failed to toggle 'Editable' attribute of Selection Group {model.GroupId} due to improper content type.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (!selectionGroup.IsEditablePowerBiEligible)
+            {
+                Response.Headers.Add("Warning", "Content item is not eligible for editability.");
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName}: Failed to toggle 'Editable' attribute of Selection Group {model.GroupId} due to Content Item ineligibility.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            selectionGroup.TypeSpecificDetailObject = new PowerBiSelectionGroupProperties()
+            {
+                Editable = model.Editable
+            };
+            await DbContext.SaveChangesAsync();
+
+            return Json(selectionGroup);
+        }
+
         /// <summary>
         /// POST a selection group to delete
         /// </summary>
@@ -628,7 +676,7 @@ namespace MillimanAccessPortal.Controllers
 
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (LiveMasterFile == null 
+            if (LiveMasterFile == null
              || !System.IO.File.Exists(LiveMasterFile.FullPath))
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
@@ -846,7 +894,7 @@ namespace MillimanAccessPortal.Controllers
             }
             await DbContext.SaveChangesAsync();
 
-            Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t=>t.Id.ToString()))}");
+            Log.Information($"In ContentAccessAdminController.CancelReduction: reduction task(s) cancelled: {string.Join(", ", UpdatedTasks.Select(t => t.Id.ToString()))}");
             foreach (var Task in UpdatedTasks)
             {
                 AuditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(SelectionGroup, SelectionGroup.RootContentItem, SelectionGroup.RootContentItem.Client, Task), currentUser.UserName, currentUser.Id);

@@ -49,6 +49,7 @@ export default function* rootSaga() {
   yield takeLatestRequest('CREATE_GROUP', api.createGroup);
   yield takeLatestRequest('UPDATE_GROUP', api.updateGroup);
   yield takeLatestRequest('DELETE_GROUP', api.deleteGroup);
+  yield takeLatestRequest('SET_GROUP_POWER_BI_EDITABILITY', api.setGroupPowerBiEditability);
   yield takeLatestRequest('SUSPEND_GROUP', api.suspendGroup);
   yield takeLatestRequest('UPDATE_SELECTIONS', api.updateSelections);
   yield takeLatestRequest('CANCEL_REDUCTION', api.cancelReduction);
@@ -86,6 +87,7 @@ export default function* rootSaga() {
   yield takeEveryToast<AccessActions.SuspendGroupSucceeded>
     ('SUSPEND_GROUP_SUCCEEDED', ({ isSuspended }) =>
       `Selection group ${isSuspended ? '' : 'un'}suspended.`);
+  yield takeEveryToast('SET_GROUP_POWER_BI_EDITABILITY_SUCCEEDED', 'Selection group updated.');
   yield takeEveryToast<AccessActions.UpdateSelectionsSucceeded>
     ('UPDATE_SELECTIONS_SUCCEEDED', ({ reduction, group }) =>
       reduction && reduction.taskStatus === 9
@@ -110,6 +112,7 @@ export default function* rootSaga() {
     'CREATE_GROUP_FAILED',
     'UPDATE_GROUP_FAILED',
     'DELETE_GROUP_FAILED',
+    'SET_GROUP_POWER_BI_EDITABILITY_FAILED',
     'SUSPEND_GROUP_FAILED',
     'UPDATE_SELECTIONS_FAILED',
     'CANCEL_REDUCTION_FAILED',

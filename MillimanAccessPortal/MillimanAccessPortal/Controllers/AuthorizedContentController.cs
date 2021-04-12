@@ -438,8 +438,9 @@ namespace MillimanAccessPortal.Controllers
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId),
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId, embedProperties.EditableEnabled),
                     ReportId = embedProperties.PreviewReportId,
+                    EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                     BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
@@ -477,13 +478,19 @@ namespace MillimanAccessPortal.Controllers
                                                      .SingleOrDefault();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(sg => sg.RootContentItem)
+                                                           .ThenInclude(rci => rci.ContentType)
+                                                        .Where(sg => sg.Id == group)
+                                                        .FirstOrDefault();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId),
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, selectionGroup.Editable),
                 ReportId = embedProperties.LiveReportId,
+                EditableEnabled = selectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
@@ -1001,7 +1008,7 @@ namespace MillimanAccessPortal.Controllers
 
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentFile.FullPath}");
 
-                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
+                return PhysicalFile(contentFile.FullPath, "pbix");
             }
             catch (Exception e)
             {

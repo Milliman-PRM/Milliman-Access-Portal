@@ -133,6 +133,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var selectionGroups = await _dbContext.SelectionGroup
                 .Where(g => g.RootContentItemId == contentItemId)
+                .Include(g => g.RootContentItem)
+                    .ThenInclude(rci => rci.ContentType)
                 .OrderBy(g => g.GroupName)
                 .Select(g => new BasicSelectionGroup
                 {
@@ -142,6 +144,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     IsInactive = string.IsNullOrWhiteSpace(g.ContentInstanceUrl),
                     IsMaster = g.IsMaster,
                     Name = g.GroupName,
+                    IsEditableEligible = g.IsEditablePowerBiEligible,
+                    Editable = g.Editable,
                 })
                 .ToListAsync();
 
@@ -362,7 +366,8 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         {
             var group = await _dbContext.SelectionGroup
                                         .Include(sg => sg.RootContentItem)
-                                            .ThenInclude(ci => ci.Client)
+                                        .Include(sg => sg.RootContentItem).ThenInclude(ci => ci.Client)
+                                        .Include(sg => sg.RootContentItem).ThenInclude(ci => ci.ContentType)
                                         .SingleAsync(sg => sg.Id == selectionGroupId);
             group.IsSuspended = isSuspended;
             await _dbContext.SaveChangesAsync();
