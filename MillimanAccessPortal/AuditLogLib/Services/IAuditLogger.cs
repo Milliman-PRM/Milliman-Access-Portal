@@ -16,9 +16,9 @@ namespace AuditLogLib.Services
 {
     public interface IAuditLogger
     {
-        void Log(AuditEvent Event);
-        void Log(AuditEvent Event, string UserNameArg);
-        void Log(AuditEvent Event, string UserNameArg, string SessionIdArg);
+        void Log(AuditEvent Event, Guid? UserId);
+        void Log(AuditEvent Event, string UserNameArg, Guid? UserId);
+        void Log(AuditEvent Event, string UserNameArg, string SessionIdArg, Guid? UserId);
         Task<List<ActivityEventModel>> GetAuditEventsAsync(List<Expression<Func<AuditEvent, bool>>> serverFilters, ApplicationDbContext db, bool orderDescending, List<Expression<Func<AuditEvent, bool>>> clientFilters = null, int limit = -1);
     }
 }

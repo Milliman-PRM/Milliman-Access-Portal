@@ -43,6 +43,7 @@ const emptyContentItemDetail: ContentItemDetail = {
   doesReduce: false,
   id: '',
   isSuspended: false,
+  isEditable: false,
   contentNotes: '',
   relatedFiles: {
     MasterContent: {
@@ -444,6 +445,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
           contentTypeId: detail.contentTypeId,
           doesReduce: detail.doesReduce,
           isSuspended: detail.isSuspended,
+          isEditable: detail.isEditable,
           assignedUserCount: summary.assignedUserCount,
           selectionGroupCount: summary.groupCount,
         },
@@ -463,6 +465,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
           contentTypeId: detail.contentTypeId,
           doesReduce: detail.doesReduce,
           isSuspended: detail.isSuspended,
+          isEditable: detail.isEditable,
           assignedUserCount: summary.assignedUserCount,
           selectionGroupCount: summary.groupCount,
         },
@@ -937,6 +940,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        isEditable: detail.isEditable,
       },
       pendingFormData: {
         ...state.pendingFormData,
@@ -949,6 +953,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        isEditable: detail.isEditable,
       },
       formState: 'read',
     };
@@ -966,6 +971,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       contentDisclaimer: detail.contentDisclaimer,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      isEditable: detail.isEditable,
     };
 
     return {

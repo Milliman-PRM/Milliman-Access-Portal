@@ -1,4 +1,4 @@
-﻿/*
+/*
  * CODE OWNERS: Tom Puckett
  * OBJECTIVE: <What and WHY.>
  * DEVELOPER NOTES: <What future developers need to know.>
@@ -173,9 +173,12 @@ namespace PowerBiLib
                 }
 
                 PowerBiEmbedModel embedProperties = (import.ImportState == "Succeeded" && import.Reports.Count == 1)
-                    ? new PowerBiEmbedModel { WorkspaceId = group.Id,
-                                              ReportId = import.Reports.ElementAt(0).Id,
-                                              EmbedUrl = import.Reports.ElementAt(0).EmbedUrl }
+                    ? new PowerBiEmbedModel
+                    {
+                        WorkspaceId = group.Id,
+                        ReportId = import.Reports.ElementAt(0).Id,
+                        EmbedUrl = import.Reports.ElementAt(0).EmbedUrl
+                    }
                     : null;
 
                 return embedProperties;
@@ -209,7 +212,7 @@ namespace PowerBiLib
                     {
                         using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
                         {
-                            for (;;)
+                            for (; ; )
                             {
                                 byte[] buffer = reader.ReadBytes(65_536);
                                 if (buffer.Length > 0)
@@ -268,12 +271,12 @@ namespace PowerBiLib
             return true;
         }
 
-        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId)
+        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId, bool editableView)
         {
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: "view");
+                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? "edit" : "view");
                 EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
                 return tokenResponse.Token;
             }
@@ -289,7 +292,7 @@ namespace PowerBiLib
                 var capacities = await client.Capacities.GetCapacitiesAsync();  // returns collection of one, with name "mapbidev"
 
                 ODataResponseListGroup allGroupsAtStart = client.Groups.GetGroups();  // This works too
-                Console.WriteLine($"Before add {allGroupsAtStart.Value.Count} group names are: {string.Join(",", allGroupsAtStart.Value.Select(g=>g.Name))}");
+                Console.WriteLine($"Before add {allGroupsAtStart.Value.Count} group names are: {string.Join(",", allGroupsAtStart.Value.Select(g => g.Name))}");
 
                 Capacity capacity = capacities.Value.Single();
                 Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest("My new group name"), true);
@@ -320,20 +323,20 @@ namespace PowerBiLib
                         oneGroup = group;
                     }
                     Console.WriteLine($"For group <{group.Name}>:{Environment.NewLine}" +
-                        $"\tfound {reportsOfOneGroup.Value.Count}  reports with names {string.Join(",", reportsOfOneGroup.Value.Select(r=>r.Name))},{Environment.NewLine}" +
+                        $"\tfound {reportsOfOneGroup.Value.Count}  reports with names {string.Join(",", reportsOfOneGroup.Value.Select(r => r.Name))},{Environment.NewLine}" +
                         $"\tfound {datasetsOfOneGroup.Value.Count} datasets with names {string.Join(",", datasetsOfOneGroup.Value.Select(r => r.Name))}");
                 }
 
                 var reportByReportId = client.Reports.GetReport(oneReport.Id);
-                var reportByGroupAndReportId =  client.Reports.GetReport(oneGroup.Id, oneReport.Id);
+                var reportByGroupAndReportId = client.Reports.GetReport(oneGroup.Id, oneReport.Id);
 
                 // publishing (importing)
                 string fileName = Path.GetFileName(pbixPath);
                 DateTime now = DateTime.UtcNow;
                 string remoteFileName = Path.GetFileNameWithoutExtension(fileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(fileName)}";
                 Import import = await client.Imports.PostImportWithFileAsyncInGroup(
-                    oneGroup.Id, 
-                    new FileStream(pbixPath, FileMode.Open), 
+                    oneGroup.Id,
+                    new FileStream(pbixPath, FileMode.Open),
                     remoteFileName);
                 while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
                 {
@@ -442,5 +445,3 @@ namespace PowerBiLib
         public string GroupName { get; set; }
     }
 }
-
-
