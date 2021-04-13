@@ -940,6 +940,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        isEditable: detail.isEditable,
       },
       pendingFormData: {
         ...state.pendingFormData,
@@ -952,6 +953,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        isEditable: detail.isEditable,
       },
       formState: 'read',
     };
@@ -969,6 +971,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       contentDisclaimer: detail.contentDisclaimer,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      isEditable: detail.isEditable,
     };
 
     return {
