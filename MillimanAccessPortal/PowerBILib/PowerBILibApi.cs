@@ -1,4 +1,4 @@
-﻿/*
+/*
  * CODE OWNERS: Tom Puckett
  * OBJECTIVE: <What and WHY.>
  * DEVELOPER NOTES: <What future developers need to know.>
@@ -72,7 +72,7 @@ namespace PowerBiLib
         }
 
         /// <summary>
-        /// Get all groups of the provided capacity
+        /// Get all available groups visible using the token
         /// </summary>
         /// <returns></returns>
         public async Task<IList<Group>> GetAllGroupsAsync()
