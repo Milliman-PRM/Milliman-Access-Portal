@@ -11,6 +11,8 @@ namespace MapDbContextLib.Models
 
     public class PowerBiContentItemProperties : TypeSpecificContentItemProperties
     {
+        public bool EditableEnabled { get; set; }
+
         public bool FilterPaneEnabled { get; set; }
 
         public bool NavigationPaneEnabled { get; set; }

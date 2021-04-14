@@ -655,6 +655,9 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<List<Guid>>("SelectedHierarchyFieldValueList")
                         .HasColumnType("uuid[]");
 
+                    b.Property<string>("TypeSpecificDetail")
+                        .HasColumnType("jsonb");
+
                     b.HasKey("Id");
 
                     b.HasIndex("RootContentItemId");

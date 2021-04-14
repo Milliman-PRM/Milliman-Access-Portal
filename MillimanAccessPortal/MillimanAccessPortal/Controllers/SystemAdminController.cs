@@ -610,8 +610,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose($"In SystemAdminController.CreateUser action: success");
-            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user));
+            _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(user), currentUser.UserName, currentUser.Id);
 
             var userSummary = (UserInfoViewModel)user;
 
@@ -651,10 +652,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             _dbContext.ProfitCenter.Add(profitCenter);
-           await  _dbContext.SaveChangesAsync();
+            await  _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.CreateProfitCenter action: success");
-            _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter));
+            _auditLogger.Log(AuditEventType.ProfitCenterCreated.ToEvent(profitCenter), currentUser.UserName, currentUser.Id);
 
             return Json(profitCenter);
         }
@@ -700,6 +702,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             ApplicationUser user = null;
             using (var transaction = _dbContext.Database.BeginTransaction())
             {
@@ -739,7 +742,7 @@ namespace MillimanAccessPortal.Controllers
                 transaction.Commit();
 
                 Log.Verbose($"In SystemAdminController.AddUserToClient action: success");
-                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user, reason));
+                _auditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(client, user, reason), currentUser.UserName, currentUser.Id);
             }
 
             return Json(user);
@@ -786,6 +789,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             ApplicationUser user = null;
             using (var transaction = await _dbContext.Database.BeginTransactionAsync())
             {
@@ -832,7 +836,7 @@ namespace MillimanAccessPortal.Controllers
                 await transaction.CommitAsync();
             }
 
-            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user, reason));
+            _auditLogger.Log(AuditEventType.UserAssignedToProfitCenter.ToEvent(profitCenter, user, reason), currentUser.UserName, currentUser.Id);
 
             return Json(user);
         }
@@ -924,8 +928,9 @@ namespace MillimanAccessPortal.Controllers
                 default:
                     throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
             }
-            
-            _auditLogger.Log(AuditEventType.NewAuthenticationSchemeAdded.ToEvent(newSchemeRecord));
+
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.NewAuthenticationSchemeAdded.ToEvent(newSchemeRecord), currentUser.UserName, currentUser.Id);
 
             return Ok();
         }
@@ -981,8 +986,9 @@ namespace MillimanAccessPortal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose($"In SystemAdminController.UpdateProfitCenter action: success");
-            _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter));
+            _auditLogger.Log(AuditEventType.ProfitCenterUpdated.ToEvent(profitCenter), currentUser.UserName, currentUser.Id);
 
             return Json(existingRecord);
         }
@@ -1044,6 +1050,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             using (var txn = await _dbContext.Database.BeginTransactionAsync())
             {
                 try
@@ -1057,10 +1064,10 @@ namespace MillimanAccessPortal.Controllers
                     await _dbContext.SaveChangesAsync();
 
                     #region Audit logging
-                    _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText));
+                    _auditLogger.Log(AuditEventType.UserAgreementUpdated.ToEvent(newAgreementText), currentUser.UserName, currentUser.Id);
                     foreach (var user in usersToReset)
                     {
-                        _auditLogger.Log(AuditEventType.UserAgreementReset.ToEvent(user));
+                        _auditLogger.Log(AuditEventType.UserAgreementReset.ToEvent(user), currentUser.UserName, currentUser.Id);
                     }
                     #endregion
 
@@ -1146,7 +1153,8 @@ namespace MillimanAccessPortal.Controllers
             #region Audit logging (may depend on what is updated)
             if (updatedClient.DomainLimitChange.NewDomainLimit != previousDomainLimit)
             {
-                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit, existingRecord.Name)));
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                _auditLogger.Log(AuditEventType.ClientDomainLimitUpdated.ToEvent(updatedClient.BuildAuditLogEventData(previousDomainLimit, existingRecord.Name)), currentUser.UserName, currentUser.Id);
             }
 
             // Log other auditable things here
@@ -1273,7 +1281,8 @@ namespace MillimanAccessPortal.Controllers
                     throw new ApplicationException($"Request to {nameof(SystemAdminController)}.{nameof(AddNewAuthenticationScheme)} with unsupported AuthenticationType {model.Type}");
             }
 
-            _auditLogger.Log(AuditEventType.AuthenticationSchemeUpdated.ToEvent(beforeUpdate, schemeRecord));
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.AuthenticationSchemeUpdated.ToEvent(beforeUpdate, schemeRecord), currentUser.UserName, currentUser.Id);
 
             return Ok();
         }
@@ -1363,8 +1372,9 @@ namespace MillimanAccessPortal.Controllers
             _dbContext.ProfitCenter.Remove(existingRecord);
             await _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.DeleteProfitCenter action: success");
-            _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord));
+            _auditLogger.Log(AuditEventType.ProfitCenterDeleted.ToEvent(existingRecord), currentUser.UserName, currentUser.Id);
 
             return Json(existingRecord);
         }
@@ -1422,8 +1432,9 @@ namespace MillimanAccessPortal.Controllers
             }
             await _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.RemoveUserFromProfitCenter action: success");
-            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user, reason));
+            _auditLogger.Log(AuditEventType.UserRemovedFromProfitCenter.ToEvent(profitCenter, user, reason), currentUser.UserName, currentUser.Id);
 
             return Json(user);
         }
@@ -1495,8 +1506,9 @@ namespace MillimanAccessPortal.Controllers
 
             await _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.RemoveUserFromClient action: success");
-            _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user, reason));
+            _auditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(client, user, reason), currentUser.UserName, currentUser.Id);
 
             return Json(user);
         }
@@ -1569,10 +1581,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.CancelPublication action: success");
             foreach (var updatedPublication in activePublications)
             {
-                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingContentItemRecord, existingContentItemRecord.Client, updatedPublication));
+                _auditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(existingContentItemRecord, existingContentItemRecord.Client, updatedPublication), currentUser.UserName, currentUser.Id);
             }
 
             return Json(existingContentItemRecord);
@@ -1642,10 +1655,11 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose($"In SystemAdminController.CancelReduction action: success");
             foreach (var updatedReduction in activeReductions)
             {
-                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, existingRecord.RootContentItem, existingRecord.RootContentItem.Client, updatedReduction));
+                _auditLogger.Log(AuditEventType.SelectionChangeReductionCanceled.ToEvent(existingRecord, existingRecord.RootContentItem, existingRecord.RootContentItem.Client, updatedReduction), currentUser.UserName, currentUser.Id);
             }
 
             return Json(existingRecord);
@@ -1828,7 +1842,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.UserRoles.Add(userRoleToAdd);
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role, reason));
+                _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(user, role, reason), currentUser.UserName, currentUser.Id);
             }
             else
             {
@@ -1836,7 +1850,7 @@ namespace MillimanAccessPortal.Controllers
                 _dbContext.UserRoles.Remove(userRoleToRemove);
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role, reason));
+                _auditLogger.Log(AuditEventType.SystemRoleRemoved.ToEvent(user, role, reason), currentUser.UserName, currentUser.Id);
             }
 
             Log.Verbose("In SystemAdminController.SystemRole action: success");
@@ -1927,7 +1941,7 @@ namespace MillimanAccessPortal.Controllers
             await _dbContext.SaveChangesAsync();
 
             Log.Verbose($"In SystemAdminController.UserSuspendedStatus action: success");
-            _auditLogger.Log(AuditEventType.UserSuspensionUpdate.ToEvent(user, value, ""));
+            _auditLogger.Log(AuditEventType.UserSuspensionUpdate.ToEvent(user, value, ""), currentUser.UserName, currentUser.Id);
 
             return Json(user.IsSuspended);
         }
@@ -2032,6 +2046,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
             var client = await _dbContext.Client.SingleOrDefaultAsync(c => c.Id == clientId);
             #region Validation
@@ -2122,7 +2137,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role], reason));
+                _auditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(client, user, userClientAssignments[role], reason), currentUser.UserName, currentUser.Id);
             }
             else
             {
@@ -2165,7 +2180,7 @@ namespace MillimanAccessPortal.Controllers
                 }
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role], reason));
+                _auditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(client, user, userClientAssignments[role], reason), currentUser.UserName, currentUser.Id);
             }
 
             Log.Verbose("In SystemAdminController.UserClientRoleAssignment action: success");
@@ -2250,8 +2265,9 @@ namespace MillimanAccessPortal.Controllers
             rootContentItem.IsSuspended = value;
             await _dbContext.SaveChangesAsync();
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Log.Verbose("In SystemAdminController.ContentSuspendedStatus action: success");
-            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, rootContentItem.Client, value, ""));
+            _auditLogger.Log(AuditEventType.RootContentItemSuspensionUpdate.ToEvent(rootContentItem, rootContentItem.Client, value, ""), currentUser.UserName, currentUser.Id);
 
             return Json(rootContentItem.IsSuspended);
         }
