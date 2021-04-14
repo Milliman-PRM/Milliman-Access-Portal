@@ -1124,6 +1124,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         imageURL={goLiveSummary.thumbnailLink}
         userguideURL={goLiveSummary.userGuideLink}
         releaseNotesURL={goLiveSummary.releaseNotesLink}
+        editableEnabled={goLiveSummary.editableEnabled}
         selectContent={() => false}
       />
     );

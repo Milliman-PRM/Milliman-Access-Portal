@@ -14,6 +14,7 @@ export interface ContentItem {
   imageURL?: string;
   userguideURL?: string;
   releaseNotesURL?: string;
+  editableEnabled: boolean;
 }
 
 export interface ContentItemGroup {
