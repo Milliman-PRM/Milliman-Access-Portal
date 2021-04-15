@@ -1,24 +1,26 @@
 ﻿/*
  * CODE OWNERS: Tom Puckett
- * OBJECTIVE: Dumps configuration provider and key/value pair details
+ * OBJECTIVE: Generates a represent of key/value pairs in all sources of appsettings currently configured for the current process
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
-using Serilog;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 
-namespace TestResourcesLib
+namespace MapCommonLib
 {
     public class ConfigurationDumper
     {
-        public static void DumpConfigurationDetails(string environmentName, IConfigurationBuilder appConfigurationBuilder, IConfiguration config)
+        public static string DumpConfigurationDetails(string environmentName, IConfigurationBuilder appConfigurationBuilder, IConfiguration config = null)
         {
-            Log.Information($"ASPNETCORE_ENVIRONMENT is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
+            StringBuilder resultString = new StringBuilder($"Application environment is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
+            resultString.AppendLine();
+
             int keyCounter = 0;
             var allSources = appConfigurationBuilder.Sources.ToList();
             foreach (var oneSource in allSources)
@@ -29,11 +31,11 @@ namespace TestResourcesLib
                         {
                             ChainedConfigurationSource source = s as ChainedConfigurationSource;
                             var provider = source.Build(appConfigurationBuilder);
-                            Log.Information($"ChainedConfigurationSource source with ...");
+                            resultString.AppendLine($"ChainedConfigurationSource source with ...");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }
                         break;
@@ -43,37 +45,44 @@ namespace TestResourcesLib
                             JsonConfigurationSource source = s as JsonConfigurationSource;
                             IConfigurationProvider provider = source.Build(appConfigurationBuilder);
                             provider.Load();
-                            Log.Information($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
+                            resultString.AppendLine($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }
                         break;
 
-                    // case var s when s is AzureKeyVaultConfigurationSource 
+                    // case var s when s is AzureKeyVaultConfigurationSource:
                     // AzureKeyVaultConfigurationSource is inaccessible due to class declaration as `internal`, so source details can't be dumped here
+                        // break;
 
                     default:
                         {
                             IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
                             provider.Load();
-                            Log.Information($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
+                            resultString.AppendLine($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
-                                Log.Information($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
+                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }
                         break;
                 }
+                resultString.AppendLine();
             }
 
-            foreach (var kvp in config.AsEnumerable())
+            if (config != null)
             {
-                Log.Information($"    From combined providers/sources, config Key <{kvp.Key}>: Value <{kvp.Value}>");
+                foreach (var kvp in config.AsEnumerable())
+                {
+                    resultString.AppendLine($"    Current configuration in effect from combined providers/sources, config Key <{kvp.Key}>: Value <{kvp.Value}>");
+                }
             }
+
+            return resultString.ToString();
         }
     }
 }

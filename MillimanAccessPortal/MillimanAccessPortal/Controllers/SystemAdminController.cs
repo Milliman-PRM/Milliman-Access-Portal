@@ -25,6 +25,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -61,6 +62,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IAuthenticationSchemeProvider _schemeProvider;
         private readonly IServiceProvider _serviceProvider;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
         public SystemAdminController(
             AccountController accountController,
@@ -72,7 +74,8 @@ namespace MillimanAccessPortal.Controllers
             RoleManager<ApplicationRole> roleManager,
             UserManager<ApplicationUser> userManager,
             IServiceProvider serviceProviderArg,
-            IAuthenticationSchemeProvider schemeProvider
+            IAuthenticationSchemeProvider schemeProvider,
+            IWebHostEnvironment hostEnvironmentArg
             )
         {
             _accountController = accountController;
@@ -85,6 +88,7 @@ namespace MillimanAccessPortal.Controllers
             _userManager = userManager;
             _serviceProvider = serviceProviderArg;
             _schemeProvider = schemeProvider;
+            _webHostEnvironment = hostEnvironmentArg;
         }
 
         /// <summary>
@@ -548,6 +552,32 @@ namespace MillimanAccessPortal.Controllers
                 Log.Debug("In SystemAdminController.RootContentItemDetail action: bad request, filter client ID and user ID both missing");
                 return BadRequest();
             }
+        }
+
+        [HttpGet]
+        [AllowAnonymous]
+        public async Task<ActionResult> AppSettings()
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action.");
+
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.GetDisplayNameString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            ConfigurationBuilder cfgBuilder = new ConfigurationBuilder();
+            Program.SetApplicationConfiguration(_webHostEnvironment.EnvironmentName, cfgBuilder);
+
+            string configDump = ConfigurationDumper.DumpConfigurationDetails(_webHostEnvironment.EnvironmentName, cfgBuilder);
+
+            return Json(new { Configurations = configDump });
         }
         #endregion
 
