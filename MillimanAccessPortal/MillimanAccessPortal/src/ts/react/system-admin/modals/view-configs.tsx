@@ -40,7 +40,7 @@ export class ViewConfigsModal
             <button
               className="blue-button"
               type="button"
-              onClick={() => navigator.clipboard.writeText(this.props.configurations)}
+              onClick={null}
             >
               Copy to Clipboard
             </button>

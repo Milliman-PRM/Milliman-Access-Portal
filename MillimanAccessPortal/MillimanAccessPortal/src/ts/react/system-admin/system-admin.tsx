@@ -1563,7 +1563,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
   }
 
   private handleFetchConfig = () => {
-    getJsonData('SystemAdminColumn/Configurations', {}).then(
+    getJsonData('SystemAdmin/AppSettings', {}).then(
       (response) => {
         this.setState((prevState) => {
           return {
