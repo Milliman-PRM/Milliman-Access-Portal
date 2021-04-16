@@ -18,7 +18,8 @@ namespace MapCommonLib
     {
         public static string DumpConfigurationDetails(string environmentName, IConfigurationBuilder appConfigurationBuilder, IConfiguration config = null)
         {
-            StringBuilder resultString = new StringBuilder($"Application environment is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
+            StringBuilder resultString = new StringBuilder();
+            resultString.AppendLine($"Application environment is <{environmentName}>, there are {appConfigurationBuilder.Sources.Count} configuration sources");
             resultString.AppendLine();
 
             int keyCounter = 0;
@@ -65,7 +66,8 @@ namespace MapCommonLib
                             resultString.AppendLine($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
-                                provider.TryGet(key, out string val);
+                                string val = string.Empty;  // TODO remove this
+                                // provider.TryGet(key, out string val);  TODO restore this
                                 resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }

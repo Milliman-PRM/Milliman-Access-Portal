@@ -1393,7 +1393,8 @@ namespace MapTests
             if (returnVal.GetValue("DumpVerboseConfiguration", false))
             {
                 //This dumps the entire configuration to Serilog.  
-                // ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder, returnVal);
+                string dumpString = ConfigurationDumper.DumpConfigurationDetails(environmentName, appConfigurationBuilder);
+                Log.Information(dumpString);
             }
 
             return returnVal;
