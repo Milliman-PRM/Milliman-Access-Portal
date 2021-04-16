@@ -64,7 +64,7 @@ namespace MapCommonLib
                             resultString.AppendLine($"Configuration source of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
-                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value not provided for a key vault sources");
+                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value not provided for key vault sources");
                             }
                         }
                         break;
@@ -76,15 +76,7 @@ namespace MapCommonLib
                             resultString.AppendLine($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
-                                string val = string.Empty;
-                                if (!oneSource.GetType().Name.Contains("AzureKeyVaultConfigurationSource", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    provider.TryGet(key, out val);
-                                }
-                                else
-                                {
-                                    val = "not reported";
-                                }
+                                provider.TryGet(key, out string val);
                                 resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }
