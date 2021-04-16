@@ -24,6 +24,7 @@ namespace MapCommonLib
             resultString.AppendLine();
 
             int keyCounter = 0;
+            int sourceCounter = 0;
             var allSources = appConfigurationBuilder.Sources.ToList();
             foreach (var oneSource in allSources)
             {
@@ -33,7 +34,7 @@ namespace MapCommonLib
                         {
                             ChainedConfigurationSource source = s as ChainedConfigurationSource;
                             var provider = source.Build(appConfigurationBuilder);
-                            resultString.AppendLine($"ChainedConfigurationSource source with ...");
+                            resultString.AppendLine($"Source {++sourceCounter} of type ChainedConfigurationSource ...");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
@@ -47,7 +48,7 @@ namespace MapCommonLib
                             JsonConfigurationSource source = s as JsonConfigurationSource;
                             IConfigurationProvider provider = source.Build(appConfigurationBuilder);
                             provider.Load();
-                            resultString.AppendLine($"JsonConfigurationSource source with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
+                            resultString.AppendLine($"Source {++sourceCounter} of type JsonConfigurationSource with path {Path.Combine(source.FileProvider is PhysicalFileProvider ? (source.FileProvider as PhysicalFileProvider).Root : "", source.Path)}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
@@ -61,7 +62,7 @@ namespace MapCommonLib
                         {
                             IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
                             provider.Load();
-                            resultString.AppendLine($"Configuration source of type {oneSource.GetType().Name}");
+                            resultString.AppendLine($"Source {++sourceCounter} of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value not provided for key vault sources");
@@ -73,7 +74,7 @@ namespace MapCommonLib
                         {
                             IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
                             provider.Load();
-                            resultString.AppendLine($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
+                            resultString.AppendLine($"Generic (for logging purposes) source {++sourceCounter} of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
                                 provider.TryGet(key, out string val);
