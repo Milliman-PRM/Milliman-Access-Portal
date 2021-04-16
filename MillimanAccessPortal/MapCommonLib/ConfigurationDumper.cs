@@ -7,6 +7,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.Json;
 using Microsoft.Extensions.FileProviders;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -55,9 +56,18 @@ namespace MapCommonLib
                         }
                         break;
 
-                    // case var s when s is AzureKeyVaultConfigurationSource:
-                    // AzureKeyVaultConfigurationSource is inaccessible due to class declaration as `internal`, so source details can't be dumped here
-                        // break;
+                    // Class AzureKeyVaultConfigurationSource has `internal` accessibility, so the type is not directly usable here
+                    case var s when s.GetType().Name.Contains("AzureKeyVault", StringComparison.OrdinalIgnoreCase):
+                        {
+                            IConfigurationProvider provider = oneSource.Build(appConfigurationBuilder);
+                            provider.Load();
+                            resultString.AppendLine($"Configuration source of type {oneSource.GetType().Name}");
+                            foreach (var key in provider.GetAllChildKeyNames())
+                            {
+                                resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value not provided for a key vault sources");
+                            }
+                        }
+                        break;
 
                     default:
                         {
@@ -66,8 +76,15 @@ namespace MapCommonLib
                             resultString.AppendLine($"Generic (for logging purposes) configuration source of type {oneSource.GetType().Name}");
                             foreach (var key in provider.GetAllChildKeyNames())
                             {
-                                string val = string.Empty;  // TODO remove this
-                                // provider.TryGet(key, out string val);  TODO restore this
+                                string val = string.Empty;
+                                if (!oneSource.GetType().Name.Contains("AzureKeyVaultConfigurationSource", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    provider.TryGet(key, out val);
+                                }
+                                else
+                                {
+                                    val = "not reported";
+                                }
                                 resultString.AppendLine($"    Config Key {++keyCounter} named <{key}>: Value <{val}>");
                             }
                         }
