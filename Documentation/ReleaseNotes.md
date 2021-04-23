@@ -5,7 +5,6 @@
 ### v1.13.0
 
 - Added the ability to publish Power BI content in editable mode and authorize Selection Groups to utilize editable mode
-- Converted MAP to use Power BI cloud resources managed by Milliman GCS
 - Added the user ID field to all audit log entries
 - Fixed a bug that prevented deleting of certain Selection Groups depending on the publication history of the Content Item
 - Fixed a bug that temporarily blocked all publishing due to a publication that was abandoned during content file upload
