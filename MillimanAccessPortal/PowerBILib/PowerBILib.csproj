@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
-    <Version>1.12.0</Version>
+    <Version>1.13.0</Version>
     <LangVersion>latest</LangVersion>
     <UserSecretsId>043ef0f8-a7bf-4841-b915-ba46f3d24d2e</UserSecretsId>
   </PropertyGroup>
