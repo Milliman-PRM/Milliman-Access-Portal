@@ -1,5 +1,5 @@
 ﻿{
   "AzureVaultName": "https://map-ci-keyvault.vault.azure.net/",
-  "AzureClientID": "8c4d35be-59cb-4a15-8919-55530e197ee3",
+  "AzureClientID": "dcbb4c3c-d6ee-4689-8a6c-d12069510372",
   "AzureCertificateThumbprint": "22DB70BA618DD28989187067E32777E153146DF9"
 }
