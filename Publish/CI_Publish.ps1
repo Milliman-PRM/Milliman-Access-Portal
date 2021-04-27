@@ -429,7 +429,7 @@ log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space 2 --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -449,7 +449,7 @@ else
     $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
 }
 
-octo create-release --project "Web App" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -463,7 +463,7 @@ else {
 
 log_statement "Creating Content Publishing Server release"
 
-octo create-release --project "Content Publication Service" --space 2 --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Content Publication Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
@@ -477,7 +477,7 @@ else {
 
 log_statement "Creating MAP Query Admin release"
 
-octo create-release --project "Query Admin" --space 2 --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"
@@ -491,7 +491,7 @@ else {
 
 log_statement "Creating Database Migrations project release"
 
-octo create-release --project "Database Migrations" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Database Migrations release created successfully"
@@ -505,7 +505,7 @@ else {
 
 log_statement "Creating SFTP Server project release"
 
-octo create-release --project "SFTP Server" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "SFTP Server release created successfully"
@@ -519,7 +519,7 @@ else {
 
 log_statement "Creating Full Stack project release"
 
-octo create-release --project "Full Stack" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Full Stack" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Full Stack release created successfully"
