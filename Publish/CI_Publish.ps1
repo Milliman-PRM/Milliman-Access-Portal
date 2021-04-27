@@ -457,13 +457,13 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
-#region Deploy releases to Octopus
+#region Configure releases in Octopus
 
-log_statement "Deploying packages to Octopus"
+log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space 2 --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -473,7 +473,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 log_statement "Creating web app release"
-
 # Determine appropriate release channel (applies only at the time the release is created)
 if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
 {
@@ -481,10 +480,10 @@ if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like 
 }
 else
 {
-    $channelName = "Development"
+    $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
 }
 
-octo create-release --project "Milliman Access Portal" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Web App" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -498,7 +497,7 @@ else {
 
 log_statement "Creating Content Publishing Server release"
 
-octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Content Publication Service" --space 2 --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
@@ -512,7 +511,7 @@ else {
 
 log_statement "Creating MAP Query Admin release"
 
-octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Query Admin" --space 2 --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"
@@ -524,73 +523,46 @@ else {
     exit $error_code
 }
 
-#log_statement "Creating Filedrop Release"
+log_statement "Creating Database Migrations project release"
 
-#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Database Migrations" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
-    log_statement "Filedrop release created successfully"
+    log_statement "Database Migrations release created successfully"
 }
 else {
     $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "ERROR: Failed to create Octopus release for the Database Migrations project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
 
-if ($buildType -eq "Release") {
+log_statement "Creating SFTP Server project release"
 
-    log_statement "Determining target environment for web app deployment"
-    $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
-    $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
-    $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
-    $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
-    $channelName = $channel.Name
-    if ([string]::IsNullOrEmpty($channelName))
-    {
-        log_statement "ERROR: Failed to determine current channel name"
-        exit -42
-    }
-    $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
-    $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
-    $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
-    if ($targetEnv){
-        log_statement "Deploying to $targetEnv in the $channelName channel"
-    }
-    else {
-        log_statement "ERROR: Failed to determine deployment environment"
-        exit -42
-    }
+octo create-release --project "SFTP Server" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
-    log_statement "Deploying web app release"
-
-    octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Web application release deployed successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to deploy the web application"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-
-    log_statement "Deploying FileDrop release"
-
-    octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Filedrop release deployed successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to deploy Filedrop"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
+if ($LASTEXITCODE -eq 0) {
+    log_statement "SFTP Server release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
+log_statement "Creating Full Stack project release"
+
+octo create-release --project "Full Stack" --space 2 --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Full Stack release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the Full Stack project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 #endregion
