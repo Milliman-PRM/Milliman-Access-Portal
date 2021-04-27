@@ -40,7 +40,12 @@ export class ViewConfigsModal
             <button
               className="blue-button"
               type="button"
-              onClick={null}
+              onClick={() => {
+                const configurationsTextArea = document.getElementById('configurations') as HTMLInputElement;
+                configurationsTextArea.select();
+                configurationsTextArea.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+              }}
             >
               Copy to Clipboard
             </button>
