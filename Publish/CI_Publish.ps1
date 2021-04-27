@@ -96,20 +96,8 @@ $buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $Bran
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
-$psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
-
-$dbServer = "map-ci-db.postgres.database.azure.com"
-$dbUser = $env:db_deploy_user
-$dbPassword = $env:db_deploy_password
 $TrimmedBranch = $BranchName.Replace("_","").Replace("-","").Replace(".","").ToLower()
 log_statement "$BranchName trimmed to $TrimmedBranch"
-$appDbName = "appdb_$TrimmedBranch"
-$appDbTemplateName = "appdb_ci_template"
-$appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$TrimmedBranch"
-$logDbTemplateName = "auditlogdb_ci_template"
-$logDbOwner = "logdb_admin"
-$dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
@@ -129,32 +117,10 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
-
-
-$envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
-    "AzureCI" {"ci"}
-    "Development" {"ci"}
-    "CI" {"ci"}
-    "Staging" {"staging"}
-    "Production" {"prod"}
-    default {"internal"}
-}
-
-# Required inputs to get-azkeyvaultsecret function
-$azTenantId = $env:azTenantId
-$azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
-$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
-$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
-
-$azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
-$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
-$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
-
-
 mkdir -p ${rootPath}\_test_results
 #endregion
 
-rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
+remove-item ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
