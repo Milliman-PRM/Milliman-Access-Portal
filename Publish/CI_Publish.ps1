@@ -461,9 +461,9 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Content Publishing Server release"
+log_statement "Creating Content Publishing Service release"
 
-octo create-release --project "Content Publication Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Content Publishing Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
