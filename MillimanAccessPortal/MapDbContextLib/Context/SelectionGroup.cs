@@ -42,8 +42,8 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
+        [Required]
         [Column(TypeName = "jsonb")]
-        // [Required] This causes a problem with migration database update
         public string TypeSpecificDetail { get; set; }
 
         /// <summary>
@@ -126,6 +126,7 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return IsEditablePowerBiEligible &&
+                               TypeSpecificDetailObject != null &&
                                (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:

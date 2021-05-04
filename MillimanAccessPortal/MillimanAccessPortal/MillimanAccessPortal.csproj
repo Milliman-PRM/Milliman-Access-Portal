@@ -61,6 +61,8 @@
     <Compile Remove="Migrations\20210331120704_AddTypeSpecificSelectionGroupPropertiesColumn.Designer.cs" />
     <Compile Remove="Migrations\20210308200406_AddUserId.cs" />
     <Compile Remove="Migrations\20210308200406_AddUserId.Designer.cs" />
+    <Compile Remove="Migrations\20210331121206_AddTypeSpecificDetailToSelectionGroups.cs" />
+    <Compile Remove="Migrations\20210331121206_AddTypeSpecificDetailToSelectionGroups.Designer.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Remove="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />

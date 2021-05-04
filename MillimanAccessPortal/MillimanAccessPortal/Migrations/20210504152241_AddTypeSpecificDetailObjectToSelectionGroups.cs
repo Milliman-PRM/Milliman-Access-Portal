@@ -2,7 +2,7 @@
 
 namespace MillimanAccessPortal.Migrations
 {
-    public partial class AddTypeSpecificDetailToSelectionGroups : Migration
+    public partial class AddTypeSpecificDetailObjectToSelectionGroups : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -10,7 +10,8 @@ namespace MillimanAccessPortal.Migrations
                 name: "TypeSpecificDetail",
                 table: "SelectionGroup",
                 type: "jsonb",
-                nullable: true);
+                nullable: false,
+                defaultValue: "{\"Editable\":false}");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
