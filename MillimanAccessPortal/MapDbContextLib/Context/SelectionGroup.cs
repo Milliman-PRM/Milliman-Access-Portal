@@ -164,7 +164,7 @@ namespace MapDbContextLib.Context
 
                 case ContentTypeEnum.PowerBi:
                     PowerBiContentItemProperties props = RootContentItem?.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    ContentInstanceUrl = props?.LiveReportId ?? Guid.Empty.ToString();
+                    ContentInstanceUrl = (props?.LiveReportId ?? Guid.Empty).ToString();
                     return;
 
                 default:

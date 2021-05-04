@@ -438,8 +438,8 @@ namespace MillimanAccessPortal.Controllers
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId, embedProperties.PreviewReportId, embedProperties.EditableEnabled),
-                    ReportId = embedProperties.PreviewReportId,
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled),
+                    ReportId = embedProperties.PreviewReportId.Value,
                     EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
@@ -488,8 +488,8 @@ namespace MillimanAccessPortal.Controllers
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, selectionGroup.Editable),
-                ReportId = embedProperties.LiveReportId,
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable),
+                ReportId = embedProperties.LiveReportId.Value,
                 EditableEnabled = selectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,

@@ -517,7 +517,7 @@ namespace MillimanAccessPortal.Controllers
                     PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                     PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-                    await powerBiApi.DeleteReportAsync(props.LiveReportId);
+                    await powerBiApi.DeleteReportAsync(props.LiveReportId.Value);
                     break;
 
                 case ContentTypeEnum.Html:
@@ -1123,7 +1123,7 @@ namespace MillimanAccessPortal.Controllers
                                 PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                                 PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-                                await powerBiApi.DeleteReportAsync(props.PreviewReportId);
+                                await powerBiApi.DeleteReportAsync(props.PreviewReportId.Value);
 
                                 props.PreviewEmbedUrl = null;
                                 props.PreviewReportId = null;
@@ -1210,7 +1210,7 @@ namespace MillimanAccessPortal.Controllers
 
 
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
-            var reportModel = await powerBiApi.ExportReportAsync(embedProperties.LiveWorkspaceId, embedProperties.LiveReportId, configuredTemporaryExportsDirectory, true);
+            var reportModel = await powerBiApi.ExportReportAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, configuredTemporaryExportsDirectory, true);
             return new TemporaryPhysicalFileResult(reportModel.reportFilePath, "application/octet-stream") {
                 FileDownloadName = $"{rootContentItem.ContentName}.pbix" };
         }
