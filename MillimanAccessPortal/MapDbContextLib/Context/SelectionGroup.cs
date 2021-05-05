@@ -44,7 +44,7 @@ namespace MapDbContextLib.Context
 
         [Required]
         [Column(TypeName = "jsonb")]
-        public string TypeSpecificDetail { get; set; }
+        public string TypeSpecificDetail { get; set; } = JsonConvert.SerializeObject(new object());
 
         /// <summary>
         /// If this instance does not have RootContentItem with ContentType navigation property populated then this property is treated as null
@@ -126,7 +126,7 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return IsEditablePowerBiEligible &&
-                               TypeSpecificDetailObject != null &&
+                               TypeSpecificDetailObject is PowerBiSelectionGroupProperties &&
                                (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:

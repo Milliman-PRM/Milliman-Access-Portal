@@ -18,6 +18,7 @@ using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using AuditLogLib.Event;
+using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -326,6 +327,11 @@ namespace ContentPublishingLib.JobRunners
                         GroupName = "Master Content Access",
                         IsMaster = true,
                         Id = Guid.NewGuid(),
+                        TypeSpecificDetail = JobDetail.Request.ContentType switch
+                        {
+                            ContentTypeEnum.PowerBi => JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
+                            _ => JsonConvert.SerializeObject(new object()),
+                        },
                     };
                     Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     await Db.SaveChangesAsync();

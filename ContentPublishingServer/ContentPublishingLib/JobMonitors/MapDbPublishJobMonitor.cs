@@ -206,6 +206,7 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     IQueryable<ContentPublicationRequest> QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                                                .Include(r => r.RootContentItem)
+                                                                                                                .ThenInclude(rci => rci.ContentType)
                                                                                                                .OrderBy(r => r.CreateDateTimeUtc);
 
                     // Customize the query based on this job monitor type
