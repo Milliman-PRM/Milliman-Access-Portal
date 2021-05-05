@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210504152241_AddTypeSpecificDetailObjectToSelectionGroups")]
+    [Migration("20210505193505_AddTypeSpecificDetailObjectToSelectionGroups")]
     partial class AddTypeSpecificDetailObjectToSelectionGroups
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -661,7 +661,7 @@ namespace MillimanAccessPortal.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
-                        .HasDefaultValue("{\"Editable\":false}");
+                        .HasDefaultValue("{}");
 
                     b.HasKey("Id");
 

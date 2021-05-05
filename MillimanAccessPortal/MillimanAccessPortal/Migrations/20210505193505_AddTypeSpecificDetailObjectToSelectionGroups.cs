@@ -11,7 +11,7 @@ namespace MillimanAccessPortal.Migrations
                 table: "SelectionGroup",
                 type: "jsonb",
                 nullable: false,
-                defaultValue: "{\"Editable\":false}");
+                defaultValue: "{}");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

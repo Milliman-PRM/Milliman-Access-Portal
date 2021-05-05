@@ -659,7 +659,7 @@ namespace MillimanAccessPortal.Migrations
                         .IsRequired()
                         .ValueGeneratedOnAdd()
                         .HasColumnType("jsonb")
-                        .HasDefaultValue("{\"Editable\":false}");
+                        .HasDefaultValue("{}");
 
                     b.HasKey("Id");
 
