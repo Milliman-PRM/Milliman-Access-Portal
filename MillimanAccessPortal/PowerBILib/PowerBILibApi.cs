@@ -5,6 +5,7 @@
  */
 
 using Flurl.Http;
+using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
@@ -164,7 +165,22 @@ namespace PowerBiLib
                                       ? pbixFileName
                                       : Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
-                // Initiate pbix upload and poll for completion
+                // Initiate pbix upload and poll for completion, retry if error
+                await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Import>(async () => 
+                    {
+                        using (var stream = new FileStream(pbixFullPath, FileMode.Open))
+                        {
+                            Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, stream, remoteFileName);
+                            while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
+                            {
+                                Thread.Sleep(1000);
+                                import = await client.Imports.GetImportByIdAsync(import.Id);
+                            }
+                            return import;  // return from this async delegate, not the whole method
+                        }
+                    }, 
+                    3, 200, true);
+
                 Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
                 while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
                 {
