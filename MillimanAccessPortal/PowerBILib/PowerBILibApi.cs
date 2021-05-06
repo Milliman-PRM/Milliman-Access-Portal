@@ -270,7 +270,7 @@ namespace PowerBiLib
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
                     Report foundReport = await client.Reports.GetReportAsync(reportId);
-                    if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
+                    if (foundReport == null || string.IsNullOrWhiteSpace(foundReport.DatasetId) || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
                         return false;
