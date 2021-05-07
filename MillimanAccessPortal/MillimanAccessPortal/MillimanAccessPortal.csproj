@@ -82,6 +82,7 @@
     <None Remove="src\ts\react\client-admin\redux\store.ts" />
     <None Remove="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
     <None Remove="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
+    <None Remove="src\ts\react\system-admin\modals\view-configs.tsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -183,6 +184,7 @@
     <TypeScriptCompile Include="src\ts\react\client-admin\redux\store.ts" />
     <TypeScriptCompile Include="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
     <TypeScriptCompile Include="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
+    <TypeScriptCompile Include="src\ts\react\system-admin\modals\view-configs.tsx" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="BuildTimeProperties.cs">

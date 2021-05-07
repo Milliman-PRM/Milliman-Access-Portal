@@ -50,7 +50,14 @@ namespace MillimanAccessPortal.Services
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
-            await AdoptOrphanPublicationsAsync();
+            try
+            {
+                await AdoptOrphanPublicationsAsync();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "QueuedPublicationPostProcessingHostedService.ExecuteAsync, Exception thrown during AdoptOrphanPublicationsAsync()");
+            }
 
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -59,6 +66,7 @@ namespace MillimanAccessPortal.Services
 
                 if (publicationRequestId != Guid.Empty)
                 {
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} has been dequeued");
                     _runningTasks.TryAdd(publicationRequestId, PostProcessAsync(publicationRequestId));
                 }
 
@@ -99,6 +107,7 @@ namespace MillimanAccessPortal.Services
                 // Stop tracking completed items
                 foreach (var completedKvp in _runningTasks.Where(t => t.Value.IsCompleted))
                 {
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing thread completed for request ID {completedKvp.Key}");
                     _runningTasks.Remove(completedKvp.Key, out _);
                 }
             }
@@ -122,18 +131,25 @@ namespace MillimanAccessPortal.Services
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
 
+                int loopCounter = 0;
                 // While the request is processing, wait and requery
                 while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
                 {
-                    Thread.Sleep(2000);
+                    if (loopCounter++ % 100 == 0)
+                    {
+                        GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId} is polling for status in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
+                    }
+
+                    Thread.Sleep(2_000);
                     dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
                     thisPubRequest = await dbContext.ContentPublicationRequest.FindAsync(thisPubRequest.Id);
                 }
+                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId}, status no longer in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
 
                 // Ensure that the request is ready for post-processing
                 if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
                 {
-                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), unexpected request status {thisPubRequest.RequestStatus.ToString()} for publication request ID {thisPubRequest.Id}";
+                    string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), expected request status PostProcessReady but found {thisPubRequest.RequestStatus.ToString()} for publication request ID {thisPubRequest.Id}";
                     Log.Warning(Msg);
                     return;
                 }
@@ -217,6 +233,7 @@ namespace MillimanAccessPortal.Services
                 thisPubRequest.OutcomeMetadataObj = newOutcome;
 
                 await dbContext.SaveChangesAsync();
+                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} updated to status PostProcessing");
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                    thisPubRequest.RootContentItemId.ToString(),
@@ -383,44 +400,47 @@ namespace MillimanAccessPortal.Services
 
             using (var scope = _services.CreateScope())
             {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
-                List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
+                using (ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>())
                 {
-                    PublicationStatus.Queued,
-                    PublicationStatus.Processing,
-                    PublicationStatus.PostProcessReady,
-                };
+                    // 1) prepare to postprocess publication requests that publishing server could be working with or finished with
+                    List<PublicationStatus> queuedOrLaterOrphanStatusList = new List<PublicationStatus>
+                    {
+                        PublicationStatus.Queued,
+                        PublicationStatus.Processing,
+                        PublicationStatus.PostProcessReady,
+                    };
 
-                List<ContentPublicationRequest> recentOrphanedRequests = await dbContext.ContentPublicationRequest
-                    .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
-                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToListAsync();
+                    List<ContentPublicationRequest> recentOrphanedRequests = await dbContext.ContentPublicationRequest
+                        .Where(r => queuedOrLaterOrphanStatusList.Contains(r.RequestStatus))
+                        .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                        .ToListAsync();
 
-                var latestOrphanedRequests = recentOrphanedRequests
-                    .GroupBy(keySelector: r => r.RootContentItemId,
-                             resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
-                    .ToList();
-                foreach (var request in latestOrphanedRequests)
-                {
-                    _taskQueue.QueuePublicationPostProcess(request.Id);
+                    var latestOrphanedRequests = recentOrphanedRequests
+                        .GroupBy(keySelector: r => r.RootContentItemId,
+                                 resultSelector: (rcid, group) => group.Aggregate(seed: group.First(), func: (prev, next) => prev.CreateDateTimeUtc > next.CreateDateTimeUtc ? prev : next))
+                        .ToList();
+                    foreach (var request in latestOrphanedRequests)
+                    {
+                        _taskQueue.QueuePublicationPostProcess(request.Id);
+                        Log.Information($"Publication request {request.Id} requeued for postprocessing in QueuedPublicationPostProcessingHostedService.AdoptOrphanPublicationsAsync()");
+                    }
+
+                    // 2) handle publication requests with Validating status
+                    string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
+                    string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
+                    string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
+
+                    List<ContentPublicationRequest> validatingRequests = await dbContext.ContentPublicationRequest
+                        .Where(r => r.RequestStatus == PublicationStatus.Validating)
+                        .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
+                        .ToListAsync();
+                    foreach (ContentPublicationRequest request in validatingRequests)
+                    {
+                        // Any exceptions in the following task won't be available here because the async method is not awaited
+                        Task task = ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
+                        Log.Information($"Publication request {request.Id} in 'Validating' status, added to queue to monitor for queue eligibility");
+                    }
                 }
-
-                // 2) handle publication requests with Validating status
-                string CxnString = _appConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
-                string rootPath = _appConfig.GetSection("Storage")["ContentItemRootPath"];
-                string exchangePath = _appConfig.GetSection("Storage")["MapPublishingServerExchangePath"];
-
-                List<ContentPublicationRequest> validatingRequests = await dbContext.ContentPublicationRequest
-                    .Where(r => r.RequestStatus == PublicationStatus.Validating)
-                    .Where(r => r.CreateDateTimeUtc > minCreateDateTimeUtc)
-                    .ToListAsync();
-                foreach (ContentPublicationRequest request in validatingRequests)
-                {
-                    await ContentPublishSupport.MonitorPublicationRequestForQueueingAsync(request.Id, CxnString, rootPath, exchangePath, _taskQueue);
-                }
-
             }
         }
     }
