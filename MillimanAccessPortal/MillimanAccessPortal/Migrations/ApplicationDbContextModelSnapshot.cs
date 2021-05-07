@@ -656,7 +656,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("uuid[]");
 
                     b.Property<string>("TypeSpecificDetail")
-                        .HasColumnType("jsonb");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
 
                     b.HasKey("Id");
 

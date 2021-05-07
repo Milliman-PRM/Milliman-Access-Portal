@@ -24,6 +24,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -328,7 +329,24 @@ namespace MillimanAccessPortal.Services
                         if (newMasterFile != null)
                         {
                             PowerBiLibApi api = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                            PowerBiEmbedModel embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString()); // The related client ID is used as group name
+                            PowerBiEmbedModel embedProperties = default;
+                            try
+                            {
+                                embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString()); // The related client ID is used as group name
+                            }
+                            catch (Microsoft.Rest.HttpOperationException ex)
+                            {
+                                Log.Error(ex, $"Exception in api.ImportPbixAsync{Environment.NewLine}" +
+                                        $"Request:{Environment.NewLine}{JsonSerializer.Serialize(ex.Request, new JsonSerializerOptions { WriteIndented = true })}{Environment.NewLine}" +
+                                        $"Response:{Environment.NewLine}{JsonSerializer.Serialize(ex.Response, new JsonSerializerOptions { WriteIndented = true })}"
+                                    );
+                                throw;
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"Exception in api.ImportPbixAsync");
+                                throw;
+                            }
 
                             PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                             contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;

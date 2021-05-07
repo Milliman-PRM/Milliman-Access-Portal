@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20210331121206_AddTypeSpecificDetailToSelectionGroups")]
-    partial class AddTypeSpecificDetailToSelectionGroups
+    [Migration("20210505193505_AddTypeSpecificDetailObjectToSelectionGroups")]
+    partial class AddTypeSpecificDetailObjectToSelectionGroups
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -658,7 +658,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("uuid[]");
 
                     b.Property<string>("TypeSpecificDetail")
-                        .HasColumnType("jsonb");
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
 
                     b.HasKey("Id");
 

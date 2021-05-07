@@ -42,9 +42,9 @@ namespace MapDbContextLib.Context
         [Required]
         public bool IsSuspended { get; set; }
 
+        [Required]
         [Column(TypeName = "jsonb")]
-        // [Required] This causes a problem with migration database update
-        public string TypeSpecificDetail { get; set; }
+        public string TypeSpecificDetail { get; set; } = JsonConvert.SerializeObject(new object());
 
         /// <summary>
         /// If this instance does not have RootContentItem with ContentType navigation property populated then this property is treated as null
@@ -126,6 +126,7 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return IsEditablePowerBiEligible &&
+                               TypeSpecificDetailObject is PowerBiSelectionGroupProperties &&
                                (TypeSpecificDetailObject as PowerBiSelectionGroupProperties).Editable;
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
@@ -164,7 +165,7 @@ namespace MapDbContextLib.Context
 
                 case ContentTypeEnum.PowerBi:
                     PowerBiContentItemProperties props = RootContentItem?.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    ContentInstanceUrl = props?.LiveReportId ?? Guid.Empty.ToString();
+                    ContentInstanceUrl = (props?.LiveReportId ?? Guid.Empty).ToString();
                     return;
 
                 default:

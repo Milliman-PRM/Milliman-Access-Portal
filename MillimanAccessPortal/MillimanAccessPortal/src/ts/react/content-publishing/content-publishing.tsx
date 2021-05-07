@@ -812,8 +812,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
-                      description={' - this will allow users to edit the document in MAP, and upon' +
-                                   ' save, will update the content for all users in MAP'}
+                      description={' - this will give Content Access Admins the option to allow users to edit ' +
+                                   ' the document in MAP, and upon save will update the content for all users'}
                     />
                     <Checkbox
                       name="Navigation Pane"

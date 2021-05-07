@@ -3,6 +3,7 @@
  * OBJECTIVE: A family of model classes representing root content item properties that are particular to the associated content type
  * DEVELOPER NOTES: <What future developers need to know.>
  */
+using System;
 
 namespace MapDbContextLib.Models
 {
@@ -19,15 +20,15 @@ namespace MapDbContextLib.Models
 
         public bool BookmarksPaneEnabled { get; set; }
 
-        public string PreviewWorkspaceId { get; set; }
+        public Guid? PreviewWorkspaceId { get; set; }
 
-        public string PreviewReportId { get; set; }
+        public Guid? PreviewReportId { get; set; }
 
         public string PreviewEmbedUrl { get; set; }
 
-        public string LiveWorkspaceId { get; set; }
+        public Guid? LiveWorkspaceId { get; set; }
 
-        public string LiveReportId { get; set; }
+        public Guid? LiveReportId { get; set; }
 
         public string LiveEmbedUrl { get; set; }
     }
