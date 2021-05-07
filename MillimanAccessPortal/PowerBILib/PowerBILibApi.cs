@@ -166,7 +166,7 @@ namespace PowerBiLib
                                       : Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
                 // Initiate pbix upload and poll for completion, retry if error
-                await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Import>(async () => 
+                Import import = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Import>(async () => 
                     {
                         using (var stream = new FileStream(pbixFullPath, FileMode.Open))
                         {
