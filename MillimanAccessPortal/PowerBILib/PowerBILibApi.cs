@@ -5,6 +5,7 @@
  */
 
 using Flurl.Http;
+using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
@@ -164,13 +165,21 @@ namespace PowerBiLib
                                       ? pbixFileName
                                       : Path.GetFileNameWithoutExtension(pbixFileName) + $"_{now.ToString("yyyyMMdd\\ZHHmmss")}{Path.GetExtension(pbixFileName)}";
 
-                // Initiate pbix upload and poll for completion
-                Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
-                while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
-                {
-                    Thread.Sleep(500);
-                    import = await client.Imports.GetImportAsync(import.Id);
-                }
+                // Initiate pbix upload and poll for completion, retry if error
+                Import import = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Import>(async () => 
+                    {
+                        using (var stream = new FileStream(pbixFullPath, FileMode.Open))
+                        {
+                            Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, stream, remoteFileName);
+                            while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
+                            {
+                                Thread.Sleep(1000);
+                                import = await client.Imports.GetImportAsync(import.Id);
+                            }
+                            return import;  // return from this async delegate, not the whole method
+                        }
+                    }, 
+                    3, 200, true);
 
                 PowerBiEmbedModel embedProperties = (import.ImportState == "Succeeded" && import.Reports.Count == 1)
                     ? new PowerBiEmbedModel
@@ -250,7 +259,7 @@ namespace PowerBiLib
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
                     Report foundReport = await client.Reports.GetReportAsync(reportId);
-                    if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
+                    if (foundReport == null || string.IsNullOrWhiteSpace(foundReport.DatasetId) || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
                         return false;

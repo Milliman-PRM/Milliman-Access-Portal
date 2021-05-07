@@ -1,4 +1,11 @@
-﻿using System;
+﻿/*
+ * CODE OWNERS: Tom Puckett>
+ * OBJECTIVE: Utility methods supporting retry semantics for caller provided delegate functions
+ * DEVELOPER NOTES: <What future developers need to know.>
+ */
+
+using Serilog;
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,7 +27,7 @@ namespace MapCommonLib
         /// <param name="maxAttempts"></param>
         /// <param name="baseIntervalMs"></param>
         /// <returns></returns>
-        public static async Task<TResult> DoRetryAsyncOperationWithReturn<TException, TResult>(RetryAsyncOperationWithReturn<TException, TResult> operation, int maxAttempts, int baseIntervalMs)
+        public static async Task<TResult> DoRetryAsyncOperationWithReturn<TException, TResult>(RetryAsyncOperationWithReturn<TException, TResult> operation, int maxAttempts, int baseIntervalMs, bool logException = false)
             where TException : Exception
         {
             int retryInterval = 0;
@@ -33,11 +40,15 @@ namespace MapCommonLib
                     TResult result = await operation();
                     return result;
                 }
-                catch (TException)
+                catch (TException ex)
                 {
                     attemptNo++;
                     if (attemptNo == maxAttempts)
                     {
+                        if (logException)
+                        {
+                            Log.Error(ex, $"Exception of type {ex.GetType().Name} caught in StaticUtil.DoRetryAsyncOperationWithReturn:{Environment.NewLine}");
+                        }
                         throw;
                     }
 
@@ -55,7 +66,7 @@ namespace MapCommonLib
         /// <param name="maxAttempts"></param>
         /// <param name="baseIntervalMs"></param>
         /// <returns></returns>
-        public static async Task DoRetryAsyncOperation<TException>(RetryAsyncOperation<TException> operation, int maxAttempts, int baseIntervalMs)
+        public static async Task DoRetryAsyncOperation<TException>(RetryAsyncOperation<TException> operation, int maxAttempts, int baseIntervalMs, bool logException = false)
             where TException : Exception
         {
             int retryInterval = 0;
@@ -68,11 +79,15 @@ namespace MapCommonLib
                     await operation();
                     return;
                 }
-                catch (TException)
+                catch (TException ex)
                 {
                     attemptNo++;
                     if (attemptNo == maxAttempts)
                     {
+                        if (logException)
+                        {
+                            Log.Error(ex, $"Exception of type {ex.GetType().Name} caught in StaticUtil.DoRetryAsyncOperation:{Environment.NewLine}");
+                        }
                         throw;
                     }
 
@@ -91,7 +106,7 @@ namespace MapCommonLib
         /// <param name="maxAttempts"></param>
         /// <param name="baseIntervalMs"></param>
         /// <returns></returns>
-        public static TResult DoRetryOperationWithReturn<TException, TResult>(RetryOperationWithReturn<TException, TResult> operation, int maxAttempts, int baseIntervalMs)
+        public static TResult DoRetryOperationWithReturn<TException, TResult>(RetryOperationWithReturn<TException, TResult> operation, int maxAttempts, int baseIntervalMs, bool logException = false)
             where TException : Exception
         {
             int retryInterval = 0;
@@ -104,11 +119,15 @@ namespace MapCommonLib
                     TResult result = operation();
                     return result;
                 }
-                catch (TException)
+                catch (TException ex)
                 {
                     attemptNo++;
                     if (attemptNo == maxAttempts)
                     {
+                        if (logException)
+                        {
+                            Log.Error(ex, $"Exception of type {ex.GetType().Name} caught in StaticUtil.DoRetryOperationWithReturn:{Environment.NewLine}");
+                        }
                         throw;
                     }
 
@@ -132,7 +151,7 @@ namespace MapCommonLib
         /// <param name="baseIntervalMs">Time to wait after initial attempt</param>
         /// <summary>
         internal static void ApplyRetryOperation<TException>(
-            RetryOperation<TException> operation, int maxAttempts, int baseIntervalMs)
+            RetryOperation<TException> operation, int maxAttempts, int baseIntervalMs, bool logException = false)
             where TException : Exception
         {
             int retryInterval = 0;
@@ -145,11 +164,15 @@ namespace MapCommonLib
                     operation();
                     break;
                 }
-                catch (TException)
+                catch (TException ex)
                 {
                     attemptNo++;
                     if (attemptNo == maxAttempts)
                     {
+                        if (logException)
+                        {
+                            Log.Error(ex, $"Exception of type {ex.GetType().Name} caught in StaticUtil.ApplyRetryOperation:{Environment.NewLine}");
+                        }
                         throw;
                     }
 
