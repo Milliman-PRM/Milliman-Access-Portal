@@ -9,8 +9,8 @@ using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Http;
-using Microsoft.PowerBI.Api.V2;
-using Microsoft.PowerBI.Api.V2.Models;
+using Microsoft.PowerBI.Api;
+using Microsoft.PowerBI.Api.Models;
 using Microsoft.Rest;
 using Newtonsoft.Json;
 using Serilog;
@@ -92,9 +92,9 @@ namespace PowerBiLib
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                ODataResponseListGroup response = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
+                Groups response = await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')");
                 Group group = response.Value.SingleOrDefault();
-                ODataResponseListReport reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
+                Reports reportsOfTheGroup = await client.Reports.GetReportsInGroupAsync(group.Id);
 
                 var returnVal = reportsOfTheGroup.Value.Select(r => new ReportModel(r)).ToList();
                 return returnVal;
@@ -105,14 +105,14 @@ namespace PowerBiLib
         /// Creates a group
         /// </summary>
         /// <returns>the Id of the newly created group</returns>
-        public async Task<string> CreateGroupAsync(string name, string capacityId = null)
+        public async Task<Guid> CreateGroupAsync(string name, Guid? capacityId = null)
         {
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
-                Capacity targetCapacity = string.IsNullOrWhiteSpace(capacityId)
-                    ? allCapacities.Value.SingleOrDefault()
-                    : targetCapacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId);
+                Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
+                Capacity targetCapacity = capacityId.HasValue
+                    ? allCapacities.Value.SingleOrDefault(c => c.Id == capacityId.Value)
+                    : allCapacities.Value.SingleOrDefault();
 
                 if (targetCapacity == null)
                 {
@@ -147,8 +147,8 @@ namespace PowerBiLib
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 if (group == null)
                 {
-                    ODataResponseListCapacity allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == _config.PbiCapacityId) ?? allCapacities.Value.Single();
+                    Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
+                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == Guid.Parse(_config.PbiCapacityId)) ?? allCapacities.Value.Single();
 
                     group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
                     if (group == null)
@@ -174,7 +174,7 @@ namespace PowerBiLib
                             while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
                             {
                                 Thread.Sleep(1000);
-                                import = await client.Imports.GetImportByIdAsync(import.Id);
+                                import = await client.Imports.GetImportAsync(import.Id);
                             }
                             return import;  // return from this async delegate, not the whole method
                         }
@@ -199,12 +199,10 @@ namespace PowerBiLib
         /// </summary>
         /// <param name="reportId"></param>
         /// <returns></returns>
-        public async Task<(ReportModel report, string reportFilePath)> ExportReportAsync(string groupId, string reportId, string outputFolderFullPath, bool writeFiles)
+        public async Task<(ReportModel report, string reportFilePath)> ExportReportAsync(Guid groupId, Guid reportId, string outputFolderFullPath, bool writeFiles)
         {
             try
             {
-                Guid.Parse(reportId);  // throw if null or malformed
-
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
                     Report foundReport = await client.Reports.GetReportInGroupAsync(groupId, reportId);
@@ -254,12 +252,10 @@ namespace PowerBiLib
         /// </summary>
         /// <param name="reportId"></param>
         /// <returns></returns>
-        public async Task<bool> DeleteReportAsync(string reportId)
+        public async Task<bool> DeleteReportAsync(Guid reportId)
         {
             try
             {
-                Guid.Parse(reportId);  // throw if null or malformed
-
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
                     Report foundReport = await client.Reports.GetReportAsync(reportId);
@@ -269,7 +265,7 @@ namespace PowerBiLib
                         return false;
                     }
                     // Deleting the associated dataset deletes **all** reports linked to the dataset
-                    object datasetDeleteResultObj = await client.Datasets.DeleteDatasetByIdAsync(foundReport.DatasetId);
+                    await client.Datasets.DeleteDatasetAsync(foundReport.DatasetId);
                 }
             }
             catch (Exception e)
@@ -280,7 +276,7 @@ namespace PowerBiLib
             return true;
         }
 
-        public async Task<string> GetEmbedTokenAsync(string groupId, string reportId, bool editableView)
+        public async Task<string> GetEmbedTokenAsync(Guid groupId, Guid reportId, bool editableView)
         {
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
@@ -300,23 +296,23 @@ namespace PowerBiLib
                 var baseUri = client.BaseUri;  // returns "https://api.powerbi.com/"
                 var capacities = await client.Capacities.GetCapacitiesAsync();  // returns collection of one, with name "mapbidev"
 
-                ODataResponseListGroup allGroupsAtStart = client.Groups.GetGroups();  // This works too
+                Groups allGroupsAtStart = client.Groups.GetGroups();  // This works too
                 Console.WriteLine($"Before add {allGroupsAtStart.Value.Count} group names are: {string.Join(",", allGroupsAtStart.Value.Select(g => g.Name))}");
 
                 Capacity capacity = capacities.Value.Single();
                 Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest("My new group name"), true);
-                var assignReturnObj = await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacity.Id));
+                await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacity.Id));
 
-                ODataResponseListGroup allGroupsAfterCreateNew = await client.Groups.GetGroupsAsync();
+                Groups allGroupsAfterCreateNew = await client.Groups.GetGroupsAsync();
                 Console.WriteLine($"After add, {allGroupsAfterCreateNew.Value.Count} group names are: {string.Join(",", allGroupsAfterCreateNew.Value.Select(g => g.Name))}");
 
-                var deleteReturnObj = await client.Groups.DeleteGroupAsync(newGroup.Id);
+                await client.Groups.DeleteGroupAsync(newGroup.Id);
 
-                ODataResponseListGroup allGroupsAfterDelete = await client.Groups.GetGroupsAsync();
+                Groups allGroupsAfterDelete = await client.Groups.GetGroupsAsync();
                 Console.WriteLine($"After del, {allGroupsAfterDelete.Value.Count} group names are: {string.Join(",", allGroupsAfterDelete.Value.Select(g => g.Name))}");
 
                 // group/workspace stuff
-                ODataResponseListGroup filteredGroups = client.Groups.GetGroups("contains(name,'MAP Dev')");
+                Groups filteredGroups = client.Groups.GetGroups("contains(name,'MAP Dev')");
                 Group lyncCanBeUsed = allGroupsAfterDelete.Value.SingleOrDefault(g => g.Name == "MAP Dev");
 
                 // report/dataset stuff
@@ -351,7 +347,7 @@ namespace PowerBiLib
                 {
                     Console.WriteLine("Waiting for import completion, last import object is {0}", JsonConvert.SerializeObject(import));
                     Thread.Sleep(500);
-                    import = await client.Imports.GetImportByIdAsync(import.Id);
+                    import = await client.Imports.GetImportAsync(import.Id);
                 }
 
                 // embedded viewing
@@ -362,7 +358,7 @@ namespace PowerBiLib
 
                 // Delete report/dataset
                 await client.Reports.DeleteReportInGroupAsync(oneGroup.Id, import.Reports[0].Id);
-                await client.Datasets.DeleteDatasetByIdInGroupAsync(oneGroup.Id, import.Datasets[0].Id);
+                await client.Datasets.DeleteDatasetInGroupAsync(oneGroup.Id, import.Datasets[0].Id);
                 // Note that deleting the dataset while the report exists causes both to be deleted. 
             }
         }
@@ -436,7 +432,7 @@ namespace PowerBiLib
             ReportName = report.Name;
         }
 
-        public string ReportId { get; set; }
+        public Guid ReportId { get; set; }
 
         public string ReportName { get; set; }
     }
@@ -449,7 +445,7 @@ namespace PowerBiLib
             GroupName = group.Name;
         }
 
-        public string GroupId { get; set; }
+        public Guid GroupId { get; set; }
 
         public string GroupName { get; set; }
     }

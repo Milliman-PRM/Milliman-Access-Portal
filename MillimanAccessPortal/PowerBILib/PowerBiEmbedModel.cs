@@ -12,9 +12,9 @@ namespace PowerBiLib
 {
     public class PowerBiEmbedModel
     {
-        public string WorkspaceId { get; set; }
+        public Guid WorkspaceId { get; set; }
 
-        public string ReportId { get; set; }
+        public Guid ReportId { get; set; }
 
         public string EmbedToken { get; set; }
 
