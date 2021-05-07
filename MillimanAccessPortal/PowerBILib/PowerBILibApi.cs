@@ -181,13 +181,6 @@ namespace PowerBiLib
                     }, 
                     3, 200, true);
 
-                Import import = await client.Imports.PostImportWithFileAsyncInGroup(group.Id, new FileStream(pbixFullPath, FileMode.Open), remoteFileName);
-                while (import.ImportState != "Succeeded" && import.ImportState != "Failed")
-                {
-                    Thread.Sleep(500);
-                    import = await client.Imports.GetImportByIdAsync(import.Id);
-                }
-
                 PowerBiEmbedModel embedProperties = (import.ImportState == "Succeeded" && import.Reports.Count == 1)
                     ? new PowerBiEmbedModel
                     {
