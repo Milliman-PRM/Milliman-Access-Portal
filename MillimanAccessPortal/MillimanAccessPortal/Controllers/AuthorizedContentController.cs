@@ -470,33 +470,74 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            RootContentItem contentItem = DataContext.SelectionGroup
-                                                     .Include(g => g.RootContentItem)
-                                                         .ThenInclude(i => i.ContentType)
-                                                     .Where(g => g.Id == group)
-                                                     .Select(g => g.RootContentItem)
-                                                     .SingleOrDefault();
-
-            PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-            SelectionGroup selectionGroup = DataContext.SelectionGroup
-                                                       .Include(sg => sg.RootContentItem)
-                                                           .ThenInclude(rci => rci.ContentType)
-                                                        .Where(sg => sg.Id == group)
-                                                        .FirstOrDefault();
-
-            PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-            PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+            PowerBiContentItemProperties embedProperties = default;
+            try
             {
-                EmbedUrl = embedProperties.LiveEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable),
-                ReportId = embedProperties.LiveReportId.Value,
-                EditableEnabled = selectionGroup.Editable,
-                FilterPaneEnabled = embedProperties.FilterPaneEnabled,
-                NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
-                BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
-            };
+                RootContentItem contentItem = DataContext.SelectionGroup
+                                                         .Include(g => g.RootContentItem)
+                                                             .ThenInclude(i => i.ContentType)
+                                                         .Where(g => g.Id == group)
+                                                         .Select(g => g.RootContentItem)
+                                                         .SingleOrDefault();
+                embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-            return View("PowerBi", embedModel);
+                Log.Information("contentItem query completed, object = {@contentItem}", contentItem);
+                Log.Information("embedProperties completed, object = {@embedProperties}", embedProperties);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "Exception while querying for contentItem or extracting contentItem.embedProperties");
+                throw;
+            }
+
+            SelectionGroup selectionGroup = default;
+            try
+            {
+                selectionGroup = DataContext.SelectionGroup
+                                                           .Include(sg => sg.RootContentItem)
+                                                               .ThenInclude(rci => rci.ContentType)
+                                                            .Where(sg => sg.Id == group)
+                                                            .FirstOrDefault();
+
+                Log.Information("selectionGroup query completed, object = {@selectionGroup}", selectionGroup);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "Exception while querying for selectionGroup");
+                throw;
+            }
+
+            try
+            {
+                Log.Information("selectionGroup editable property value = {@editable}", selectionGroup.Editable);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "Exception while extracting selectionGroup.Editable");
+                throw;
+            }
+
+            try
+            {
+                PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+                PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+                {
+                    EmbedUrl = embedProperties.LiveEmbedUrl,
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable),
+                    ReportId = embedProperties.LiveReportId.Value,
+                    EditableEnabled = selectionGroup.Editable,
+                    FilterPaneEnabled = embedProperties.FilterPaneEnabled,
+                    NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                    BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
+                };
+
+                return View("PowerBi", embedModel);
+            }
+            catch (Exception ex)
+            {
+                Log.Information(ex, "Exception while building return model");
+                throw;
+            }
         }
 
         /// <summary>
