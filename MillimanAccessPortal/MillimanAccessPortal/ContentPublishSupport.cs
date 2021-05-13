@@ -79,9 +79,7 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 publicationRequest = await Db.ContentPublicationRequest
-                                                .Include(p => p.RootContentItem)
-                                                    .ThenInclude(c => c.ContentType)
-                                                .SingleAsync(r => r.Id == publicationRequestId);
+                                            .SingleAsync(r => r.Id == publicationRequestId);
             }
 
             // TODO some day when we actually support associated files, is the associated file list f.Id usage below correct?  (e.g. is the Id field equivalent to a FileUpload id?)
@@ -157,6 +155,7 @@ namespace MillimanAccessPortal
                             }
                             catch (Exception ex)
                             {
+                                publicationRequest = await Db.ContentPublicationRequest.FindAsync(publicationRequest.Id);
                                 Log.Error(ex, $"Exception from HandleRelatedFile.ContentPublishSupport");
                                 publicationRequest.RequestStatus = PublicationStatus.Error;
                                 publicationRequest.StatusMessage = ex.Message;
