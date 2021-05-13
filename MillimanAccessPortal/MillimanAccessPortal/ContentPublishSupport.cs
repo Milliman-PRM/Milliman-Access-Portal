@@ -120,6 +120,11 @@ namespace MillimanAccessPortal
 
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
+                publicationRequest = await Db.ContentPublicationRequest
+                                                .Include(p => p.RootContentItem)
+                                                    .ThenInclude(c => c.ContentType)
+                                                .SingleAsync(r => r.Id == publicationRequestId);
+
                 Guid ThisRequestGuid = Guid.NewGuid();
 
                 var publicationStatus = publicationRequest?.RequestStatus ?? PublicationStatus.Canceled;
@@ -198,9 +203,9 @@ namespace MillimanAccessPortal
                     await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, ex, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }

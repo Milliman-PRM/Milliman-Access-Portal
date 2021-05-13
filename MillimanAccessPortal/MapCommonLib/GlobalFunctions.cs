@@ -184,6 +184,11 @@ namespace MapCommonLib
         {
             Log.Write(level, $"{issue.GetDisplayNameString()}: {message}", parms);
         }
+
+        public static void IssueLog(IssueLogEnum issue, Exception ex, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
+        {
+            Log.Write(level, ex, $"{issue.GetDisplayNameString()}: {message}", parms);
+        }
     }
 
     /// <summary>
