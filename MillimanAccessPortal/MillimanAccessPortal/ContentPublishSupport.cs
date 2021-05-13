@@ -79,9 +79,7 @@ namespace MillimanAccessPortal
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
                 publicationRequest = await Db.ContentPublicationRequest
-                                                .Include(p => p.RootContentItem)
-                                                    .ThenInclude(c => c.ContentType)
-                                                .SingleAsync(r => r.Id == publicationRequestId);
+                                            .SingleAsync(r => r.Id == publicationRequestId);
             }
 
             // TODO some day when we actually support associated files, is the associated file list f.Id usage below correct?  (e.g. is the Id field equivalent to a FileUpload id?)
@@ -120,6 +118,11 @@ namespace MillimanAccessPortal
 
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
+                publicationRequest = await Db.ContentPublicationRequest
+                                                .Include(p => p.RootContentItem)
+                                                    .ThenInclude(c => c.ContentType)
+                                                .SingleAsync(r => r.Id == publicationRequestId);
+
                 Guid ThisRequestGuid = Guid.NewGuid();
 
                 var publicationStatus = publicationRequest?.RequestStatus ?? PublicationStatus.Canceled;
@@ -152,6 +155,7 @@ namespace MillimanAccessPortal
                             }
                             catch (Exception ex)
                             {
+                                publicationRequest = await Db.ContentPublicationRequest.FindAsync(publicationRequest.Id);
                                 Log.Error(ex, $"Exception from HandleRelatedFile.ContentPublishSupport");
                                 publicationRequest.RequestStatus = PublicationStatus.Error;
                                 publicationRequest.StatusMessage = ex.Message;
@@ -198,9 +202,9 @@ namespace MillimanAccessPortal
                     await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
-                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, ex, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }
