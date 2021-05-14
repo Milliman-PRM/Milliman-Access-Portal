@@ -335,6 +335,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 dbContext.SaveChanges();
                             });
 
+                            // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
                             Guid? previousReportId = typeSpecificProperties.LiveReportId;
                             successActionList.Add(async () => {
                                 PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
