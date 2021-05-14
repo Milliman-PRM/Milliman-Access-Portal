@@ -334,21 +334,31 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
                                 dbContext.SaveChanges();
                             });
-                            successActionList.Add(async () => {
-                                PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
-                                PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                                bool deleteSucceeded = await powerBiApi.DeleteReportAsync(typeSpecificProperties.LiveReportId.Value);
-                            });
 
-                            typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
-                            typeSpecificProperties.LiveReportId = typeSpecificProperties.PreviewReportId;
-                            typeSpecificProperties.LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId;
-                            typeSpecificProperties.PreviewEmbedUrl = null;
-                            typeSpecificProperties.PreviewReportId = null; ;
-                            typeSpecificProperties.PreviewWorkspaceId = null;
+                            // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
+                            Guid? previousReportId = typeSpecificProperties.LiveReportId;
+                            if (previousReportId != null)
+                            {
+                                successActionList.Add(async () => {
+                                    PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+                                    PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
+                                    await powerBiApi.DeleteReportAsync(previousReportId.Value);
+                                });
+                            }
 
-                            publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
-
+                            publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
+                            {
+                                LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl,
+                                LiveReportId = typeSpecificProperties.PreviewReportId,
+                                LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId,
+                                PreviewEmbedUrl = null,
+                                PreviewReportId = null,
+                                PreviewWorkspaceId = null,
+                                EditableEnabled = typeSpecificProperties.EditableEnabled,
+                                NavigationPaneEnabled = typeSpecificProperties.NavigationPaneEnabled,
+                                FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
+                                BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
+                            };
                         }
                         else
                         {
