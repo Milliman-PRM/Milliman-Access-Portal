@@ -470,52 +470,18 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PowerBiContentItemProperties embedProperties = default;
-            try
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(sg => sg.RootContentItem)
+                                                           .ThenInclude(rci => rci.ContentType)
+                                                       .Where(sg => sg.Id == group)
+                                                       .SingleOrDefault();
+            if (selectionGroup == null)
             {
-                RootContentItem contentItem = DataContext.SelectionGroup
-                                                         .Include(g => g.RootContentItem)
-                                                             .ThenInclude(i => i.ContentType)
-                                                         .Where(g => g.Id == group)
-                                                         .Select(g => g.RootContentItem)
-                                                         .SingleOrDefault();
-                embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-
-                Log.Information("contentItem query completed, object = {@contentItem}", contentItem);
-                Log.Information("embedProperties completed, object = {@embedProperties}", embedProperties);
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex, "Exception while querying for contentItem or extracting contentItem.embedProperties");
-                throw;
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            SelectionGroup selectionGroup = default;
-            try
-            {
-                selectionGroup = DataContext.SelectionGroup
-                                                           .Include(sg => sg.RootContentItem)
-                                                               .ThenInclude(rci => rci.ContentType)
-                                                            .Where(sg => sg.Id == group)
-                                                            .FirstOrDefault();
-
-                Log.Information("selectionGroup query completed, object = {@selectionGroup}", selectionGroup);
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex, "Exception while querying for selectionGroup");
-                throw;
-            }
-
-            try
-            {
-                Log.Information("selectionGroup editable property value = {@editable}", selectionGroup.Editable);
-            }
-            catch (Exception ex)
-            {
-                Log.Information(ex, "Exception while extracting selectionGroup.Editable");
-                throw;
-            }
+            PowerBiContentItemProperties embedProperties = selectionGroup.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
             try
             {
@@ -535,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                Log.Information(ex, "Exception while building return model");
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while building return model");
                 throw;
             }
         }
