@@ -334,10 +334,15 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
                                 dbContext.SaveChanges();
                             });
+
+                            Guid? previousReportId = typeSpecificProperties.LiveReportId;
                             successActionList.Add(async () => {
                                 PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
                                 PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                                bool deleteSucceeded = await powerBiApi.DeleteReportAsync(typeSpecificProperties.LiveReportId.Value);
+                                if (previousReportId != null)
+                                {
+                                    await powerBiApi.DeleteReportAsync(previousReportId.Value);
+                                }
                             });
 
                             typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
