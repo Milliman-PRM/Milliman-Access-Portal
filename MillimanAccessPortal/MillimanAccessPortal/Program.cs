@@ -24,6 +24,7 @@ using Prm.EmailQueue;
 using Prm.SerilogCustomization;
 using Serilog;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -64,6 +65,7 @@ namespace MillimanAccessPortal
                         ?.Select(d => d.Trim())
                         ?? GlobalFunctions.NonLimitedDomains
                     ).ToList();
+                Directory.CreateDirectory(Configuration.GetValue<string>("Storage:TemporaryExports"));
 
                 // Initialize Serilog
                 Log.Logger = new LoggerConfiguration()
