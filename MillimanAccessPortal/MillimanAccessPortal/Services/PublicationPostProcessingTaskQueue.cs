@@ -27,6 +27,9 @@ namespace MillimanAccessPortal.Services
         public void QueuePublicationPostProcess(Guid publicationRequestId)
         {
             _publicationRequestIdQueue.Enqueue(publicationRequestId);
+
+            GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Publication request Id {publicationRequestId} enqueued for detection by postprocessing hosted service");
+
             int initialCount = _signal.CurrentCount;
             _signal.Release();
         }

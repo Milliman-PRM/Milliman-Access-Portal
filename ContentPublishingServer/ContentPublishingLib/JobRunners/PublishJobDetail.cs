@@ -47,6 +47,7 @@ namespace ContentPublishingLib.JobRunners
                     DoesReduce = DbTask.RootContentItem.DoesReduce,
                     MasterContentFile = DbTask.ReductionRelatedFilesObj.Select(rrf => rrf.MasterContentFile).SingleOrDefault(),
                     RootContentId = DbTask.RootContentItemId,
+                    ContentType = DbTask.RootContentItem.ContentType.TypeEnum,
                     ApplicationUserId = DbTask.ApplicationUserId,
                     CreateDateTimeUtc = DbTask.CreateDateTimeUtc,
                     SkipReductionTaskQueueing = SkipReductionTaskQueueing,
@@ -71,6 +72,7 @@ namespace ContentPublishingLib.JobRunners
             public bool DoesReduce { get; set; }
             public ContentRelatedFile MasterContentFile { get; set; }
             public Guid RootContentId { get; set; }
+            public ContentTypeEnum ContentType { get; set; }
             public Guid ApplicationUserId { get; set; }
             public DateTime CreateDateTimeUtc { get; set; }
             public bool SkipReductionTaskQueueing { get; set; }

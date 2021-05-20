@@ -355,6 +355,7 @@ export interface SetPublishingFormBooleanInputValue {
   inputName:
   | 'doesReduce'
   | 'isSuspended'
+  | 'editableEnabled'
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
   | 'bookmarksPaneEnabled';

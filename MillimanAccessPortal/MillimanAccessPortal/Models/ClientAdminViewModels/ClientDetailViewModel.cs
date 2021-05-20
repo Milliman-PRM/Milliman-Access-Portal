@@ -116,7 +116,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
 
             ClientEntity.ParentClient = null;
 
-            StandardQueries Queries = new StandardQueries(DbContext, UserManager, null);
+            StandardQueries Queries = new StandardQueries(DbContext, UserManager, null, null);
             List<RoleEnum> RolesToManage = new List<RoleEnum>
             {
                 RoleEnum.Admin,

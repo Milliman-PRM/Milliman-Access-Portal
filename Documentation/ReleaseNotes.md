@@ -2,6 +2,14 @@
 
 ## Release Notes
 
+### v1.13.0
+
+- Added the ability to publish Power BI content in editable mode and authorize Selection Groups to utilize editable mode
+- Added the user ID field to all audit log entries
+- Fixed a bug that prevented deleting of certain Selection Groups depending on the publication history of the Content Item
+- Fixed a bug that temporarily blocked all publishing due to a publication that was abandoned during content file upload
+- Improved publishing server resiliency by catching an exception caused by a transient failure to connect to the database
+
 ### v1.12.0
 
 - User accounts with no login during the past 12 months will be disabled

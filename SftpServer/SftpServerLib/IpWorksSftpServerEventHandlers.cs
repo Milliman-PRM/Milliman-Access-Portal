@@ -209,18 +209,6 @@ namespace SftpServerLib
                                 evtData.StatusCode = 4;  // SSH_FX_FAILURE 4
                                 return;
                             }
-
-                            new AuditLogger().Log(AuditEventType.SftpFileReadAuthorized.ToEvent(
-                                new SftpFileOperationLogModel
-                                {
-                                    FileName = fileName,
-                                    FileDropDirectory = (FileDropDirectoryLogModel)containingDirectory,
-                                    FileDrop = new FileDropLogModel { Id = connection.FileDropId.Value, Name = connection.FileDropName, RootPath = connection.FileDropRootPathAbsolute },
-                                    Account = connection.Account,
-                                    User = connection.MapUser,
-                                }
-                            ), connection.MapUser?.UserName);
-                            Log.Information($"File {evtData.Path} authorized for reading, user {evtData.User}");
                         }
                         break;
 
@@ -258,7 +246,7 @@ namespace SftpServerLib
                                     Account = connection.Account,
                                     User = connection.MapUser,
                                 }
-                            ), connection.MapUser?.UserName);
+                            ), connection.MapUser?.UserName, connection.MapUser?.Id);
                             Log.Information($"File {evtData.Path} authorized for writing, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
@@ -286,7 +274,7 @@ namespace SftpServerLib
                                     Account = connection.Account,
                                     User = connection.MapUser,
                                 }
-                            ), connection.MapUser?.UserName);
+                            ), connection.MapUser?.UserName, connection.MapUser?.Id);
                             Log.Information($"File {evtData.Path} authorized for reading, connection {evtData.ConnectionId}, user {evtData.User}");
                         }
                         break;
@@ -501,7 +489,7 @@ namespace SftpServerLib
                 return;
             }
 
-            FileAttributes attributes = FileAttributes.Offline;
+            FileAttributes attributes;
             try
             {
                 if (evtData.BeforeExec == true)
@@ -513,44 +501,39 @@ namespace SftpServerLib
                     attributes = File.GetAttributes(Path.Combine(connection.FileDropRootPathAbsolute, evtData.NewPath.TrimStart('/', '\\')));
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 evtData.StatusCode = 2;  // SSH_FX_NO_SUCH_FILE 2
                 return;
             }
 
-            switch (attributes)
+            evtData.StatusCode = attributes switch
             {
                 // rename directory
-                case FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory:
-                    evtData.StatusCode = (int)FileDropOperations.RenameDirectory(evtData.Path,
-                                                                                 evtData.NewPath,
-                                                                                 connection.FileDropRootPathAbsolute,
-                                                                                 connection.FileDropName,
-                                                                                 connection.FileDropId,
-                                                                                 connection.ClientId,
-                                                                                 connection.ClientName,
-                                                                                 connection.Account,
-                                                                                 connection.MapUser,
-                                                                                 evtData.BeforeExec,
-                                                                                 evtData.StatusCode);
-                    break;
-
+                FileAttributes a when (a & FileAttributes.Directory) == FileAttributes.Directory => (int)FileDropOperations.RenameDirectory(evtData.Path,
+                                                                                                                                            evtData.NewPath,
+                                                                                                                                            connection.FileDropRootPathAbsolute,
+                                                                                                                                            connection.FileDropName,
+                                                                                                                                            connection.FileDropId,
+                                                                                                                                            connection.ClientId,
+                                                                                                                                            connection.ClientName,
+                                                                                                                                            connection.Account,
+                                                                                                                                            connection.MapUser,
+                                                                                                                                            evtData.BeforeExec,
+                                                                                                                                            evtData.StatusCode),
                 // rename file
-                default:
-                    evtData.StatusCode = (int)FileDropOperations.RenameFile(evtData.Path,
-                                                                            evtData.NewPath,
-                                                                            connection.FileDropRootPathAbsolute,
-                                                                            connection.FileDropName,
-                                                                            connection.FileDropId,
-                                                                            connection.ClientId,
-                                                                            connection.ClientName,
-                                                                            connection.Account,
-                                                                            connection.MapUser,
-                                                                            evtData.BeforeExec,
-                                                                            evtData.StatusCode);
-                    break;
-            }
+                _ => (int)FileDropOperations.RenameFile(evtData.Path,
+                                                        evtData.NewPath,
+                                                        connection.FileDropRootPathAbsolute,
+                                                        connection.FileDropName,
+                                                        connection.FileDropId,
+                                                        connection.ClientId,
+                                                        connection.ClientName,
+                                                        connection.Account,
+                                                        connection.MapUser,
+                                                        evtData.BeforeExec,
+                                                        evtData.StatusCode),
+            };
         }
 
         /// <summary>
@@ -650,7 +633,7 @@ namespace SftpServerLib
                         if (!string.IsNullOrWhiteSpace(evtData.User))
                         {
                             userAccount = new SftpAccount(Guid.Empty) { UserName = evtData.User };
-                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound, null, clientAddress));
+                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound, null, clientAddress), evtData.User, null);
                         }
                         return;
                     }
@@ -659,7 +642,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                         return;
                     }
 
@@ -667,7 +650,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The access review deadline for the client related to the requested file drop is exceeded");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.ClientAccessReviewDeadlineMissed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.ClientAccessReviewDeadlineMissed, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                         return;
                     }
 
@@ -676,7 +659,7 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> has an expired password");
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.PasswordExpired, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                         return;
                     }
 
@@ -691,7 +674,7 @@ namespace SftpServerLib
                         {
                             evtData.Accept = false;
                             Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The related MAP user with name <{evtData.User}> has an expired password or is suspended");
-                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.MapUserBlocked, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                             return;
                         }
                     }
@@ -734,7 +717,7 @@ namespace SftpServerLib
                     }
                     else
                     {
-                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop, clientAddress));
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AuthenticationFailed, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount?.ApplicationUser?.UserName, userAccount?.ApplicationUser?.Id);
                         Log.Information($"Acount <{userAccount.UserName}> authentication failed on connection {evtData.ConnectionId} from remote host <{clientAddress}> for FileDrop <{userAccount.FileDrop.Name}>");
                     }
                 }

@@ -218,6 +218,43 @@ namespace MapTests
             }
         }
 
+        [Fact]
+        public async Task CreateRootContentItem_TypeSpecificProperties_Success()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                PowerBiContentItemProperties props = new PowerBiContentItemProperties
+                {
+                    EditableEnabled = true,
+                    FilterPaneEnabled = true,
+                    NavigationPaneEnabled = true,
+                    BookmarksPaneEnabled = true,
+                };
+                var validRootContentItem = new RootContentItem
+                {
+                    ClientId = TestUtil.MakeTestGuid(1),
+                    ContentTypeId = TestResources.DbContext.ContentType.Single(t => t.TypeEnum == ContentTypeEnum.Qlikview).Id,
+                    ContentName = "CreateRootContentItem_Success",
+                    DoesReduce = false,
+                    TypeSpecificDetailObject = props,
+                };
+                var jObject = JObject.FromObject(validRootContentItem, new JsonSerializer { NullValueHandling = NullValueHandling.Ignore });
+                #endregion
+
+                #region Act
+                int preCount = TestResources.DbContext.RootContentItem.Count();
+                var view = await controller.CreateRootContentItem(jObject);
+                int postCount = TestResources.DbContext.RootContentItem.Count();
+                #endregion
+
+                #region Assert
+                Assert.Equal(preCount + 1, postCount);
+                #endregion
+            }
+        }
+
         [Theory]
         [InlineData(999)]
         public async Task DeleteRootContentItem_ErrorInvalid(int rootContentItemIdArg)
@@ -644,6 +681,7 @@ namespace MapTests
                 RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(4));
                 PowerBiContentItemProperties props = new PowerBiContentItemProperties
                 {
+                    EditableEnabled = true,
                     FilterPaneEnabled = true,
                     NavigationPaneEnabled = true,
                     BookmarksPaneEnabled = true,
@@ -674,5 +712,89 @@ namespace MapTests
             }
         }
 
+        [Fact]
+        public async Task DownloadPowerBiContentItem_Unauthorized()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user3");
+                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(1));
+                #endregion
+
+                #region Act
+                var result = await controller.DownloadPowerBiContentItem(dbItem.Id);
+                #endregion
+
+                #region Assert
+                Assert.IsType<UnauthorizedResult>(result);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task DownloadPowerBiContentItem_Invalid_Content_Type()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(3)); // non-PowerBI content type
+                RootContentItem updateModel = new RootContentItem
+                {
+                    Id = dbItem.Id,
+                    ContentTypeId = dbItem.ContentTypeId,
+                    ContentType = dbItem.ContentType,
+                    ClientId = dbItem.ClientId,
+                    Client = dbItem.Client,
+                    ContentName = dbItem.ContentName,
+                };
+                #endregion
+
+                #region Act
+                var result = await controller.DownloadPowerBiContentItem(dbItem.Id);
+                #endregion
+
+                #region Assert
+                Assert.IsType<BadRequestResult>(result);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task DownloadPowerBiContentItem_Invalid_Content_Properties()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                RootContentItem dbItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(4));
+                RootContentItem updateModel = new RootContentItem
+                {
+                    Id = dbItem.Id,
+                    ContentTypeId = dbItem.ContentTypeId,
+                    ContentType = dbItem.ContentType,
+                    ClientId = dbItem.ClientId,
+                    Client = dbItem.Client,
+                    ContentName = dbItem.ContentName,
+                };
+                updateModel.TypeSpecificDetailObject = new PowerBiContentItemProperties
+                {
+                    EditableEnabled = false, // Not allowed
+                    FilterPaneEnabled = true,
+                    NavigationPaneEnabled = true,
+                    BookmarksPaneEnabled = true,
+                };
+                #endregion
+
+                #region Act
+                var result = await controller.DownloadPowerBiContentItem(dbItem.Id);
+                #endregion
+
+                #region Assert
+                Assert.IsType<BadRequestResult>(result);
+                #endregion
+            }
+        }
     }
 }

@@ -62,7 +62,8 @@ namespace MapTests
                 TestResources.RoleManager,
                 TestResources.UserManager,
                 TestResources.ScopedServiceProvider,
-                TestResources.AuthenticationSchemeProvider);
+                TestResources.AuthenticationSchemeProvider,
+                null);
 
             try
             {

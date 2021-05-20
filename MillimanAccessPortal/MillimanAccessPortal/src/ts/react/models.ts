@@ -63,6 +63,7 @@ export interface RootContentItem {
   clientId?: Guid;
   contentTypeId?: Guid;
   isSuspended: boolean;
+  isEditable?: boolean;
   doesReduce: boolean;
   name: string;
 }
@@ -110,11 +111,13 @@ export interface ContentItemDetail {
   doesReduce: boolean;
   id: Guid;
   isSuspended: boolean;
+  isEditable: boolean;
   contentNotes: string;
   relatedFiles: RelatedFiles;
   associatedFiles: Dict<AssociatedContentItemUpload>;
   thumbnailLink: string;
   typeSpecificDetailObject: {
+    editableEnabled?: boolean;
     bookmarksPaneEnabled?: boolean;
     filterPaneEnabled?: boolean;
     liveEmbedUrl?: string;
@@ -138,6 +141,7 @@ export interface ContentItemPublicationDetail {
   DoesReduce?: boolean;
   TypeSpecificDetailObject?: {
     // PowerBi specific:
+    EditableEnabled?: boolean;
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
@@ -190,6 +194,8 @@ export interface SelectionGroup {
   id: Guid;
   rootContentItemId?: Guid;
   selectedValues?: Guid[];
+  editable?: boolean;
+  isEditableEligible?: boolean;
   isSuspended: boolean;
   isInactive: boolean;
   isMaster: boolean;

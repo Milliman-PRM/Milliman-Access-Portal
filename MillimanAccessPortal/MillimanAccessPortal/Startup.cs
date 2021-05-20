@@ -186,12 +186,12 @@ namespace MillimanAccessPortal
                             IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
                             try
                             {
-                                ApplicationUser _applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
+                                ApplicationUser applicationUser = await _signInManager.UserManager.FindByNameAsync(authenticatedUserName);
 
-                                if (_applicationUser == null)
+                                if (applicationUser == null)
                                 {
                                     Log.Warning($"External login succeeded but username {identity.Name} is not in the local MAP database");
-                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountNotFound));
+                                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountNotFound), null, null);
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -201,14 +201,14 @@ namespace MillimanAccessPortal
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (_applicationUser.LastLoginUtc.HasValue &&
-                                         _applicationUser.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
+                                else if (applicationUser.LastLoginUtc.HasValue &&
+                                         applicationUser.LastLoginUtc.Value < DateTime.UtcNow.Date.AddMonths(-appConfig.GetValue("DisableInactiveUserMonths", 12)))
                                 {
                                     // Disable login for users with last login date too long ago. Similar logic in AccountController.cs for local authentication
-                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {_applicationUser.LastLoginUtc.Value}");
+                                    Log.Warning($"External login for username {identity.Name} is disabled due to inactivity.  Last login was {applicationUser.LastLoginUtc.Value}");
 
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
-                                    accountController.NotifyUserAboutDisabledAccount(_applicationUser);
+                                    accountController.NotifyUserAboutDisabledAccount(applicationUser);
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -216,13 +216,13 @@ namespace MillimanAccessPortal
                                         Query = $"messageCode={UserMessageEnum.AccountDisabled}",
                                     };
                                     IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                    _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled));                                    
+                                    _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.UserAccountDisabled), applicationUser.UserName, applicationUser.Id);
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (_applicationUser.IsSuspended)
+                                else if (applicationUser.IsSuspended)
                                 {
-                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(_applicationUser.UserName));
+                                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(applicationUser.UserName), applicationUser.UserName, applicationUser.Id);
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -232,10 +232,10 @@ namespace MillimanAccessPortal
                                     context.Response.Redirect(msg.Uri.PathAndQuery);
                                     return;
                                 }
-                                else if (!_applicationUser.EmailConfirmed)
+                                else if (!applicationUser.EmailConfirmed)
                                 {
                                     AccountController accountController = serviceProvider.GetService<AccountController>();
-                                    await accountController.SendNewAccountWelcomeEmail(_applicationUser, context.Request.Scheme, context.Request.Host, appConfig["Global:DefaultNewUserWelcomeText"]);
+                                    await accountController.SendNewAccountWelcomeEmail(applicationUser, context.Request.Scheme, context.Request.Host, appConfig["Global:DefaultNewUserWelcomeText"]);
 
                                     UriBuilder msg = new UriBuilder
                                     {
@@ -247,11 +247,11 @@ namespace MillimanAccessPortal
                                 }
                                 else
                                 {
-                                    if (_applicationUser.TwoFactorEnabled)
+                                    if (applicationUser.TwoFactorEnabled)
                                     {
                                         // This technique duplicates code in inaccessible method SignInManager<TUser>.SignInOrTwoFactorAsync().  We shouldn't 
                                         // need to do that. There may be a better way to integrate WsFederation using standard external login logic of Identity.
-                                        var userId = await _signInManager.UserManager.GetUserIdAsync(_applicationUser);
+                                        var userId = await _signInManager.UserManager.GetUserIdAsync(applicationUser);
                                         ClaimsIdentity signInIdentity = new ClaimsIdentity( 
                                             new [] { new Claim(ClaimTypes.AuthenticationMethod, TokenOptions.DefaultEmailProvider), 
                                                      new Claim(ClaimTypes.Name, userId)}, 
@@ -273,7 +273,7 @@ namespace MillimanAccessPortal
                                             Scheme = context.Request.Scheme,
                                             Port = context.Request.Host.Port ?? -1,
                                             Path = $"/Account/{nameof(AccountController.LoginStepTwo)}",
-                                            Query = $"Username={_applicationUser.UserName}&RememberMe=false&{contextReturnUrl}",
+                                            Query = $"Username={applicationUser.UserName}&RememberMe=false&{contextReturnUrl}",
                                         };
 
                                         context.Response.Redirect(twoFactorUriBuilder.Uri.AbsoluteUri);
@@ -281,7 +281,7 @@ namespace MillimanAccessPortal
                                     }
                                     else
                                     {
-                                        await _signInManager.SignInAsync(_applicationUser, false);
+                                        await _signInManager.SignInAsync(applicationUser, false);
                                     }
                                 }
                             }
@@ -289,7 +289,7 @@ namespace MillimanAccessPortal
                             {
                                 Log.Warning(ex, ex.Message);
                                 IAuditLogger _auditLog = serviceProvider.GetService<IAuditLogger>();
-                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.LoginFailed));
+                                _auditLog.Log(AuditEventType.LoginFailure.ToEvent(context.Principal.Identity.Name, context.Scheme.Name, LoginFailureReason.LoginFailed), null, null);
 
                                 // Make sure nobody remains signed in
                                 await _signInManager.SignOutAsync();
@@ -370,6 +370,7 @@ namespace MillimanAccessPortal
             services.AddSession(options => 
             {
                 options.Cookie.IsEssential = true;  // TODO This bypasses cookie consent.  Think about GDPR
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
             });
 
             services.AddResponseCaching();

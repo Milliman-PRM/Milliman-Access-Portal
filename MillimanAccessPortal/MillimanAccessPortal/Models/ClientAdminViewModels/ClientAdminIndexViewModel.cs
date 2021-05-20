@@ -35,7 +35,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
             }
             #endregion
 
-            StandardQueries Queries = new StandardQueries(DbContext, UserManager, null);
+            StandardQueries Queries = new StandardQueries(DbContext, UserManager, null, null);
 
             // Instantiate working variables
             ClientAdminIndexViewModel ModelToReturn = new ClientAdminIndexViewModel();
