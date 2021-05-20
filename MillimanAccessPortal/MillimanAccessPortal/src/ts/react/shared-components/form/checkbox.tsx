@@ -9,6 +9,7 @@ export interface CheckboxData {
   modified?: boolean;
   onChange: (selected: boolean) => void;
   hoverText?: string;
+  description?: string;
 }
 export interface CheckboxProps extends CheckboxData {
   readOnly: boolean;
@@ -16,7 +17,7 @@ export interface CheckboxProps extends CheckboxData {
 
 export class Checkbox extends React.Component<CheckboxProps> {
   public render() {
-    const { name, selected, modified, readOnly, hoverText } = this.props;
+    const { name, selected, modified, readOnly, hoverText, description } = this.props;
     const modifiedClass = modified
       ? selected
         ? ' added'
@@ -31,6 +32,7 @@ export class Checkbox extends React.Component<CheckboxProps> {
         }
         <label className={`selection-option-label${readOnly ? ' readonly' : ''}`}>
           {name ? name : null}
+          {description ? <span className="description-text">{description}</span> : null}
           <input
             type="checkbox"
             className="selection-option-value"

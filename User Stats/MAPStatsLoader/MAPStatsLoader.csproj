@@ -4,8 +4,8 @@
     <AzureFunctionsVersion>v2</AzureFunctionsVersion>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.24"/>
-    <PackageReference Include="Npgsql" Version="4.0.5"/>
+    <PackageReference Include="Microsoft.NET.Sdk.Functions" Version="1.0.37"/>
+    <PackageReference Include="Npgsql" Version="4.1.5"/>
     <PackageReference Include="Microsoft.Azure.KeyVault" Version="3.0.3"/>
     <PackageReference Include="Microsoft.Azure.Services.AppAuthentication" Version="1.0.3"/>
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0"/>
@@ -26,7 +26,19 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>
-    <None Update="prod.settings.json">
+    <None Update="azure-azprod.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="azure-uat.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="azure-dev.settings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+    <None Update="azure-isdev.settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

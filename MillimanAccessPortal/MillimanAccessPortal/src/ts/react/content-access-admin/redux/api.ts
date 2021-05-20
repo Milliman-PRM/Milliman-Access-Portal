@@ -51,7 +51,11 @@ export const deleteGroup =
 
 export const suspendGroup =
   createJsonRequestor<AccessActions.SuspendGroup, AccessActions.SuspendGroupSucceeded>
-  ('POST', '/ContentAccessAdmin/SuspendGroup');
+    ('POST', '/ContentAccessAdmin/SuspendGroup');
+
+export const setGroupPowerBiEditability =
+  createJsonRequestor<AccessActions.SetGroupPowerBiEditability, AccessActions.SetGroupPowerBiEditabilitySucceeded>
+    ('POST', '/ContentAccessAdmin/SetGroupPowerBiEditability');
 
 export const updateSelections =
   createJsonRequestor<AccessActions.UpdateSelections, AccessActions.UpdateSelectionsSucceeded>

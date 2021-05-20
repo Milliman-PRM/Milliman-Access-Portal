@@ -36,6 +36,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public bool IsSuspended { get; set; }
 
+        public bool IsEditable { get; set; }
+
         public string ContentNotes { get; set; }
 
         public string ThumbnailLink { get; set; }

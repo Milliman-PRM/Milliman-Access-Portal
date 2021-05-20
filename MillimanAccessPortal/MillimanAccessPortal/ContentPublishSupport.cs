@@ -69,38 +69,62 @@ namespace MillimanAccessPortal
                                                                   string exchangePath, 
                                                                   IPublicationPostProcessingTaskQueue postProcessingTaskQueue)
         {
-            bool validationWindowComplete = false;
-
             DbContextOptionsBuilder<ApplicationDbContext> ContextBuilder = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(connectionString);
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
-            List<Guid> fileIds;
+            #region Wait till all uploads are "valid"
+            bool validationWindowComplete = false;
+
+            ContentPublicationRequest publicationRequest;
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                var publicationRequest = await Db.ContentPublicationRequest.SingleAsync(r => r.Id == publicationRequestId);
-                fileIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).Union(
-                          publicationRequest.RequestedAssociatedFileList.Select(f => f.Id))
-                          .ToList();
+                publicationRequest = await Db.ContentPublicationRequest
+                                            .SingleAsync(r => r.Id == publicationRequestId);
             }
-            while (!validationWindowComplete)
+
+            // TODO some day when we actually support associated files, is the associated file list f.Id usage below correct?  (e.g. is the Id field equivalent to a FileUpload id?)
+            List<Guid> fileUploadIds = publicationRequest.UploadedRelatedFilesObj.Select(f => f.FileUploadId).Union(
+                                       publicationRequest.RequestedAssociatedFileList.Select(f => f.Id))
+                                       .ToList();
+
+            do
             {
+                Thread.Sleep(2000);
                 DateTime queueWhenOlderThanDateTimeUtc = DateTime.UtcNow - TimeSpan.FromSeconds(GlobalFunctions.VirusScanWindowSeconds);
+
                 using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
                 {
-                    validationWindowComplete = await Db.FileUpload
-                                                       .Where(u => fileIds.Contains(u.Id))
-                                                       .AllAsync(u => u.CreatedDateTimeUtc < queueWhenOlderThanDateTimeUtc);
+                    List<FileUpload> fileUploadRecords = await Db.FileUpload
+                                                                        .Where(u => fileUploadIds.Contains(u.Id))
+                                                                        .ToListAsync();
+
+                    if (fileUploadRecords.Count < fileUploadIds.Count)
+                    {
+                        List<Guid> idsOfMissingRecords = fileUploadIds.Except(fileUploadRecords.Select(u => u.Id)).ToList();
+
+                        string msg = $"While waiting for file uploads to satisfy validation criteria, expected FileUpload record(s) <{string.Join(",", idsOfMissingRecords)}> were not found.  Found {fileUploadRecords.Count} related records";
+                        publicationRequest.RequestStatus = PublicationStatus.Error;
+                        publicationRequest.StatusMessage = msg;
+                        await Db.SaveChangesAsync();
+                        Log.Error(msg);
+                        return;
+                    }
+
+                    validationWindowComplete = fileUploadRecords.All(u => u.CreatedDateTimeUtc < queueWhenOlderThanDateTimeUtc);
                 }
-
-                Thread.Sleep(1000);
             }
-            // Validation of all uploads is complete
-
-            Guid ThisRequestGuid = Guid.NewGuid();
+            while (!validationWindowComplete);
+            #endregion
 
             using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
             {
-                var publicationRequest = await Db.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == publicationRequestId);
+                publicationRequest = await Db.ContentPublicationRequest
+                                                .Include(p => p.RootContentItem)
+                                                    .ThenInclude(c => c.ContentType)
+                                                .SingleAsync(r => r.Id == publicationRequestId);
+
+                Guid ThisRequestGuid = Guid.NewGuid();
+
                 var publicationStatus = publicationRequest?.RequestStatus ?? PublicationStatus.Canceled;
                 if (publicationStatus == PublicationStatus.Canceled)
                 {
@@ -108,11 +132,7 @@ namespace MillimanAccessPortal
                 }
 
                 var relatedFiles = publicationRequest.UploadedRelatedFilesObj;
-                var rootContentItem = await Db.RootContentItem
-                    .Where(i => i.Id == publicationRequest.RootContentItemId)
-                    .Include(i => i.ContentType)
-                    .SingleAsync();
-                switch (rootContentItem.ContentType.TypeEnum)
+                switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
@@ -128,7 +148,20 @@ namespace MillimanAccessPortal
                         foreach (UploadedRelatedFile UploadedFileRef in relatedFiles)
                         {
                             // move uploaded file(s) to content folder with temporary name(s)
-                            ContentRelatedFile Crf = await HandleRelatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                            ContentRelatedFile Crf = default;
+                            try
+                            {
+                                Crf = await HandleRelatedFile(Db, UploadedFileRef, publicationRequest.RootContentItem, publicationRequestId, contentItemRootPath);
+                            }
+                            catch (Exception ex)
+                            {
+                                publicationRequest = await Db.ContentPublicationRequest.FindAsync(publicationRequest.Id);
+                                Log.Error(ex, $"Exception from HandleRelatedFile.ContentPublishSupport");
+                                publicationRequest.RequestStatus = PublicationStatus.Error;
+                                publicationRequest.StatusMessage = ex.Message;
+                                await Db.SaveChangesAsync();
+                                return;
+                            }
 
                             if (Crf != null)
                             {
@@ -137,7 +170,7 @@ namespace MillimanAccessPortal
 
                                 if (Crf.FilePurpose.ToLower() == "mastercontent")
                                 {
-                                    ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, rootContentItem.DoesReduce, exchangePath);
+                                    ContentRelatedFile MasterCrf = ProcessMasterContentFile(Crf, ThisRequestGuid, publicationRequest.RootContentItem.DoesReduce, exchangePath);
                                     publicationRequest.ReductionRelatedFilesObj = publicationRequest.ReductionRelatedFilesObj.Append(new ReductionRelatedFiles { MasterContentFile = MasterCrf }).ToList();
                                 }
                             }
@@ -145,14 +178,14 @@ namespace MillimanAccessPortal
                         break;
 
                     default:
-                        throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {rootContentItem.ContentType.TypeEnum.ToString()}");
+                        throw new NotSupportedException($"Publication request cannot be created for unsupported ContentType {publicationRequest.RootContentItem.ContentType.TypeEnum.ToString()}");
                 }
 
                 List<AssociatedFileModel> associatedFiles = publicationRequest.RequestedAssociatedFileList;
                 foreach (AssociatedFileModel UploadedFileRef in associatedFiles)
                 {
                     // move uploaded file(s) to content folder with temporary name(s)
-                    ContentAssociatedFile Caf = await HandleAssociatedFile(Db, UploadedFileRef, rootContentItem, publicationRequestId, contentItemRootPath);
+                    ContentAssociatedFile Caf = await HandleAssociatedFile(Db, UploadedFileRef, publicationRequest.RootContentItem, publicationRequestId, contentItemRootPath);
 
                     if (Caf != null)
                     {
@@ -169,8 +202,9 @@ namespace MillimanAccessPortal
                     await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException ex)
                 {
+                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, ex, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }
@@ -213,7 +247,7 @@ namespace MillimanAccessPortal
                 (string checksum, long length) = GlobalFunctions.GetFileChecksum(FileUploadRecord.StoragePath);
                 if (!FileUploadRecord.Checksum.Equals(checksum, StringComparison.InvariantCultureIgnoreCase))
                 {
-                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum {checksum} invalid for file [{FileUploadRecord.StoragePath}], length was {length}.");
+                    throw new ApplicationException($"While publishing for content {ContentItem.Id}, checksum {checksum} invalid for uploaded file [{FileUploadRecord.StoragePath}], length was {length}.");
                 }
                 #endregion
 

@@ -67,7 +67,8 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
         className="content-card-link"
         onClick={this.selectContent}
       />
-    );
+      );
+
     return (
       <div className="content-card-container">
         <div className="content-card">
@@ -77,6 +78,12 @@ export class ContentCard extends React.Component<ContentCardProps, {}> {
           <div className={`content-card-body${this.props.description ? '' : ' image-only'}`}>
             {image}
             {this.props.description && <p className="content-card-description">{this.props.description}</p>}
+            {this.props.editableEnabled &&
+              <p className="content-card-caption">
+                Editing capabilities have been enabled for this Power BI document.
+                Saving the document will update it for all the users.
+              </p>
+            }
           </div>
           <div className="secondary-actions">
             {releaseNotes}
