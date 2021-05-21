@@ -8,13 +8,13 @@ namespace PowerBiMigration
         
         public Guid ContentItemId { get; set; }
 
-        public string OldGroupId { get; set; }
+        public Guid OldGroupId { get; set; }
         
-        public string NewGroupId { get; set; }
+        public Guid NewGroupId { get; set; }
         
-        public string OldReportId { get; set; }
+        public Guid OldReportId { get; set; }
 
-        public string NewReportId { get; set; }
+        public Guid NewReportId { get; set; }
 
         public string ReportName { get; set; }
         
