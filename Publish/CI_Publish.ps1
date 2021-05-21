@@ -96,25 +96,13 @@ $buildType = if($BranchName -eq 'develop' -or $BranchName -eq 'master' -or $Bran
 log_statement "Building configuration: $buildType"
 
 $gitExePath = "git"
-$psqlExePath = "L:\Hotware\Postgresql\v9.6.2\psql.exe"
-
-$dbServer = "map-ci-db.postgres.database.azure.com"
-$dbUser = $env:db_deploy_user
-$dbPassword = $env:db_deploy_password
 $TrimmedBranch = $BranchName.Replace("_","").Replace("-","").Replace(".","").ToLower()
 log_statement "$BranchName trimmed to $TrimmedBranch"
-$appDbName = "appdb_$TrimmedBranch"
-$appDbTemplateName = "appdb_ci_template"
-$appDbOwner = "appdb_admin"
-$logDbName = "auditlogdb_$TrimmedBranch"
-$logDbTemplateName = "auditlogdb_ci_template"
-$logDbOwner = "logdb_admin"
-$dbCreationRetries = 5 # The number of times the script will attempt to create a new database before throwing an error
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
-$core3="C:\Program Files\dotnet\sdk\3.1.201\Sdks"
+$core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
 $env:MSBuildSDKsPath=$core3
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
@@ -129,32 +117,10 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 
-
-
-$envCommonName = switch ($env:ASPNETCORE_ENVIRONMENT) {
-    "AzureCI" {"ci"}
-    "Development" {"ci"}
-    "CI" {"ci"}
-    "Staging" {"staging"}
-    "Production" {"prod"}
-    default {"internal"}
-}
-
-# Required inputs to get-azkeyvaultsecret function
-$azTenantId = $env:azTenantId
-$azSubscriptionId =  if ($env:ASPNETCORE_ENVIRONMENT -match "CI") { $env:azSubscriptionId } else { $env:azSubscriptionIdProd }
-$azClientId = [Environment]::GetEnvironmentVariable("azClientId$envCommonName", "Process") # $env:azClientId
-$azClientSecret = [Environment]::GetEnvironmentVariable("AzClientSecret$envCommonName", "Process") # $env:AzClientSecret
-
-$azVaultNameFD = $env:azVaultNameFDPrefix + $envCommonName + "kv"
-$thumbprint = [Environment]::GetEnvironmentVariable("thumbprint$envCommonName", "Process") #  $env:thumbprint
-$azCertPass = [Environment]::GetEnvironmentVariable("azCertPass$envCommonName", "Process") #  $env:azCertPass
-
-
 mkdir -p ${rootPath}\_test_results
 #endregion
 
-rm ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
+remove-item ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
@@ -344,81 +310,6 @@ if($runTests) {
 }
 #endregion
 
-#region Create and update databases
-
-if ($buildType -eq "Release") {
-
-    log_statement "Preparing branch databases"
-
-    $env:PGPASSWORD = $dbPassword
-
-    # Check if databases already exist
-    $appDbFound = $false
-    $logDbFound = $false
-
-    $command = "$psqlExePath --dbname=postgres  -h $dbServer -U $dbUser --tuples-only --set=sslmode=require --command=`"select datname from Pg_database`" --echo-errors"
-    $output = invoke-expression "&$command"
-
-    if ($LASTEXITCODE -ne 0) {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to query for existing databases"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-
-    foreach ($db in $output) {
-        if ($db.trim() -eq $appDbName) {
-            log_statement "MAP application database found for this branch."
-            $appDbFound = 1
-        }
-        elseif ($db.trim() -eq $logDbName) {
-            log_statement "Logging database found for this branch."
-            $logDbFound = 1
-        }
-    }
-
-    # Create app db if necessary
-    if ($appDbFound -eq $false)
-    {
-        create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $appDbName -templateDbName $appDbTemplateName -dbOwner $appDbOwner
-    }
-
-    # Create log db if necessary
-    if ($logDbFound -eq $false)
-    {
-        create_db -server $dbServer -user $dbUser -exePath $psqlExePath -maxRetries $dbCreationRetries -newDbName $logDbName -templateDbName $logDbTemplateName -dbOwner $logDbOwner
-    }
-
-    remove-item env:PGPASSWORD
-
-    log_statement "Performing database migrations"
-
-    $env:ASPNETCORE_ENVIRONMENT = $deployEnvironment
-
-    Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
-
-    dotnet ef database update
-
-    if ($LASTEXITCODE -ne 0) {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to apply application database migrations"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-
-
-    dotnet ef database update --project "..\AuditLogLib\AuditLogLib.csproj" --startup-project ".\MillimanAccessPortal.csproj"  --context "AuditLogDbContext"
-
-    if ($LASTEXITCODE -ne 0) {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to apply audit log database migrations"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-}
-
-#endregion
-
 log_statement "Publishing and packaging web application"
 
 #region Publish web application to a folder
@@ -532,13 +423,13 @@ if ($LASTEXITCODE -ne 0) {
 
 #endregion
 
-#region Deploy releases to Octopus
+#region Configure releases in Octopus
 
-log_statement "Deploying packages to Octopus"
+log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -548,7 +439,6 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 log_statement "Creating web app release"
-
 # Determine appropriate release channel (applies only at the time the release is created)
 if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
 {
@@ -556,10 +446,10 @@ if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like 
 }
 else
 {
-    $channelName = "Development"
+    $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
 }
 
-octo create-release --project "Milliman Access Portal" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
@@ -571,9 +461,9 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Content Publishing Server release"
+log_statement "Creating Content Publishing Service release"
 
-octo create-release --project "Content Publication Server" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Content Publishing Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
@@ -587,7 +477,7 @@ else {
 
 log_statement "Creating MAP Query Admin release"
 
-octo create-release --project "MAP Query Admin" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"
@@ -599,73 +489,46 @@ else {
     exit $error_code
 }
 
-#log_statement "Creating Filedrop Release"
+log_statement "Creating Database Migrations project release"
 
-#octo create-release --project "FileDrop Deployment" --channel $channelName --version $sFTPVersion --packageVersion $sFTPVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
 if ($LASTEXITCODE -eq 0) {
-    log_statement "Filedrop release created successfully"
+    log_statement "Database Migrations release created successfully"
 }
 else {
     $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for FileDrop"
+    log_statement "ERROR: Failed to create Octopus release for the Database Migrations project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
 
-if ($buildType -eq "Release") {
+log_statement "Creating SFTP Server project release"
 
-    log_statement "Determining target environment for web app deployment"
-    $projects = (invoke-restmethod $octopusURL/api/projects?apikey=$octopusAPIKey).items
-    $MAPProject = $projects | where {$_.Name -eq "Milliman Access Portal"}
-    $releases = (invoke-restmethod "$octopusURL/api/projects/$($mapProject.Id)/releases?apikey=$octopusAPIKey").items
-    $BranchRelease = $releases | where {$_.Version -eq "$webVersion"}
-    $channel = (Invoke-RestMethod $octopusURL/api/channels/$($branchRelease.ChannelId)?apikey=$octopusAPIKey) # Retrieve the actual current channel of the release
-    $channelName = $channel.Name
-    if ([string]::IsNullOrEmpty($channelName))
-    {
-        log_statement "ERROR: Failed to determine current channel name"
-        exit -42
-    }
-    $lifecycle = (Invoke-RestMethod $octopusURL/api/lifecycles/$($channel.lifecycleid)?apikey=$octopusAPIKey).phases
-    $targetEnvId = if ($lifecycle.AutomaticDeploymentTargets) {$lifecycle.AutomaticDeploymentTargets | select-object -first 1} else {$lifecycle.OptionalDeploymentTargets | select-object -first 1}
-    $targetEnv = if ($lifecycle.AutomaticDeploymentTargets -or $lifecycle.optionalDeploymentTargets) { (Invoke-RestMethod $octopusURL/api/environments/$($TargetEnvId)?apikey=$octopusAPIKey).name} else {"Development"}
-    if ($targetEnv){
-        log_statement "Deploying to $targetEnv in the $channelName channel"
-    }
-    else {
-        log_statement "ERROR: Failed to determine deployment environment"
-        exit -42
-    }
+octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
-    log_statement "Deploying web app release"
-
-    octo deploy-release --project "Milliman Access Portal" --version $webVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Web application release deployed successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to deploy the web application"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
-
-    log_statement "Deploying FileDrop release"
-
-    octo deploy-release --project "FileDrop Deployment" --version $sFTPVersion --apiKey "$octopusAPIKey" --channel=$channelName --deployto=$targetEnv --server $octopusURL --waitfordeployment --cancelontimeout --progress
-
-    if ($LASTEXITCODE -eq 0) {
-        log_statement "Filedrop release deployed successfully"
-    }
-    else {
-        $error_code = $LASTEXITCODE
-        log_statement "ERROR: Failed to deploy Filedrop"
-        log_statement "errorlevel was $LASTEXITCODE"
-        exit $error_code
-    }
+if ($LASTEXITCODE -eq 0) {
+    log_statement "SFTP Server release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
 }
 
+log_statement "Creating Full Stack project release"
+
+octo create-release --project "Full Stack" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Full Stack release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the Full Stack project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 #endregion

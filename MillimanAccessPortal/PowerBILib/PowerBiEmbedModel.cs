@@ -12,13 +12,15 @@ namespace PowerBiLib
 {
     public class PowerBiEmbedModel
     {
-        public string WorkspaceId { get; set; }
+        public Guid WorkspaceId { get; set; }
 
-        public string ReportId { get; set; }
+        public Guid ReportId { get; set; }
 
         public string EmbedToken { get; set; }
 
         public string EmbedUrl { get; set; }
+
+        public bool EditableEnabled { get; set; }
 
         public bool NavigationPaneEnabled { get; set; }
 

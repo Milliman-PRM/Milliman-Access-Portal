@@ -244,9 +244,9 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name));
-
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.FileDropCreated.ToEvent(fileDropModel, fileDropModel.ClientId, fileDropModel.Client.Name), currentUser.UserName, currentUser.Id);
+
             FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropModel.Id;
             model.PermissionGroups = await _fileDropQueries.GetPermissionGroupsModelForFileDropAsync(fileDropModel.Id, fileDropModel.ClientId, currentUser);
@@ -320,9 +320,9 @@ namespace MillimanAccessPortal.Controllers
             fileDropRecord.Description = fileDropModel.Description;
             await _dbContext.SaveChangesAsync();
 
-            _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name));
-
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.FileDropUpdated.ToEvent(oldFileDrop, fileDropRecord, fileDropRecord.ClientId, fileDropRecord.Client.Name), currentUser.UserName, currentUser.Id);
+
             FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDropModel.ClientId, currentUser.Id);
             model.CurrentFileDropId = fileDropRecord.Id;
 
@@ -396,6 +396,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             try
             {
                 List<FileDropPermissionGroupMembershipLogModel> membershipModel = new List<FileDropPermissionGroupMembershipLogModel>();
@@ -418,7 +419,7 @@ namespace MillimanAccessPortal.Controllers
                 
                 await _dbContext.SaveChangesAsync();
 
-                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, membershipModel));
+                _auditLogger.Log(AuditEventType.FileDropDeleted.ToEvent(fileDrop, fileDrop.Client, membershipModel), currentUser.UserName, currentUser.Id);
             }
             catch (Exception ex)
             {
@@ -438,7 +439,6 @@ namespace MillimanAccessPortal.Controllers
                 Log.Warning(ex, $"Failed to delete root folder {fullRootPath} associated with File Drop with Id {fileDrop.Id}, named {fileDrop.Name}");
             }
 
-            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             FileDropsModel model = await _fileDropQueries.GetFileDropsModelForClientAsync(fileDrop.ClientId, currentUser.Id);
             model.CurrentFileDropId = id;
 
@@ -706,7 +706,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == fileDropId);
-            ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
                                                   .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
@@ -762,7 +762,7 @@ namespace MillimanAccessPortal.Controllers
             account.Password = newPassword;
             await _dbContext.SaveChangesAsync();
 
-            _auditLogger.Log(AuditEventType.SftpAccountCredentialsGenerated.ToEvent(account, fileDrop));
+            _auditLogger.Log(AuditEventType.SftpAccountCredentialsGenerated.ToEvent(account, fileDrop), currentUser.UserName, currentUser.Id);
 
             return Json(returnModel);
         }
@@ -1029,7 +1029,7 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            ApplicationUser user = await _userManager.GetUserAsync(User);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             FileDrop fileDrop = await _dbContext.FileDrop.Include(d => d.Client).SingleOrDefaultAsync(d => d.Id == FileDropId);
             #region Validation
             if (fileDrop == null)
@@ -1108,8 +1108,8 @@ namespace MillimanAccessPortal.Controllers
                     FileDropDirectory = (FileDropDirectoryLogModel)fileRecord.Directory,
                     FileDrop = new FileDropLogModel { Id = fileDrop.Id, Name = fileDrop.Name, RootPath = Path.Combine(_applicationConfig.GetValue<string>("Storage:FileDropRoot"), fileDrop.RootPath) },
                     Account = account,
-                    User = user,
-                }));
+                    User = currentUser,
+                }), currentUser.UserName, currentUser.Id);
                 return PhysicalFile(fullFilePathFromDb, "application/octet-stream", Path.GetFileName(CanonicalFilePath));
             }
             catch (Exception ex)

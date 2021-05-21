@@ -181,7 +181,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 $"for selection group {relatedSelectionGroup.Id}, " +
                                 $"reduced content file {ThisTask.ResultFilePath} of length {length} failed checksum validation, aborting");
                             auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName);
+                                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName, goLiveViewModel.UserId);
                             await FailGoLiveAsync(dbContext, publicationRequest,
                                 $"Reduced content file failed integrity check, cannot complete the go-live request.");
                             return;
@@ -204,7 +204,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         $"live ready file {Crf.FullPath} failed checksum validation, " +
                         "aborting");
                     auditLogger.Log(AuditEventType.GoLiveValidationFailed.ToEvent(
-                        publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName);
+                        publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest), goLiveViewModel.UserName, goLiveViewModel.UserId);
                     await FailGoLiveAsync(dbContext, publicationRequest, "File integrity validation failed");
                     return;
                 }
@@ -334,22 +334,31 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
                                 dbContext.SaveChanges();
                             });
-                            string reportIdToBeDeleted = typeSpecificProperties.LiveReportId;
-                            successActionList.Add(async () => {
-                                PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
-                                PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                                bool deleteSucceeded = await powerBiApi.DeleteReportAsync(reportIdToBeDeleted);
-                            });
 
-                            typeSpecificProperties.LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl;
-                            typeSpecificProperties.LiveReportId = typeSpecificProperties.PreviewReportId;
-                            typeSpecificProperties.LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId;
-                            typeSpecificProperties.PreviewEmbedUrl = null;
-                            typeSpecificProperties.PreviewReportId = null; ;
-                            typeSpecificProperties.PreviewWorkspaceId = null;
+                            // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
+                            Guid? previousReportId = typeSpecificProperties.LiveReportId;
+                            if (previousReportId != null)
+                            {
+                                successActionList.Add(async () => {
+                                    PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+                                    PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
+                                    await powerBiApi.DeleteReportAsync(previousReportId.Value);
+                                });
+                            }
 
-                            publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
-
+                            publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
+                            {
+                                LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl,
+                                LiveReportId = typeSpecificProperties.PreviewReportId,
+                                LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId,
+                                PreviewEmbedUrl = null,
+                                PreviewReportId = null,
+                                PreviewWorkspaceId = null,
+                                EditableEnabled = typeSpecificProperties.EditableEnabled,
+                                NavigationPaneEnabled = typeSpecificProperties.NavigationPaneEnabled,
+                                FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
+                                BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
+                            };
                         }
                         else
                         {
@@ -598,7 +607,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     if (MasterContentUploaded)
                     {
                         auditLogger.Log(AuditEventType.ContentDisclaimerAcceptanceReset
-                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, ContentDisclaimerResetReason.ContentItemRepublished), goLiveViewModel.UserName);
+                            .ToEvent(usersInGroup, publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, ContentDisclaimerResetReason.ContentItemRepublished), goLiveViewModel.UserName, goLiveViewModel.UserId);
                     }
                 }
             }
@@ -625,7 +634,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 "In ContentPublishingController.GoLive action: " +
                 $"publication request {publicationRequest.Id} success");
             auditLogger.Log(AuditEventType.ContentPublicationGoLive.ToEvent(
-                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName);
+                publicationRequest.RootContentItem, publicationRequest.RootContentItem.Client, publicationRequest, goLiveViewModel.ValidationSummaryId), goLiveViewModel.UserName, goLiveViewModel.UserId);
 
             // 4 Clean up
             // 4.1 Delete all temporarily backed up production files
