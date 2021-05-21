@@ -133,7 +133,7 @@ namespace PowerBiMigration
 
                     case RadioButton b when b.Name == "radioTarget":
                         PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
-                        IList<Microsoft.PowerBI.Api.V2.Models.Group> allGroups = await targetPbiApi.GetAllGroupsAsync();
+                        IList<Microsoft.PowerBI.Api.Models.Group> allGroups = await targetPbiApi.GetAllGroupsAsync();
 
                         foreach (var group in allGroups)
                         {
@@ -395,13 +395,13 @@ namespace PowerBiMigration
 
             // Do the export from the source
             long itemExportStartMs = timer.ElapsedMilliseconds;
-            var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId, typeSpecificDetail.LiveReportId, clientFolder, chkWriteFiles.Checked);
+            var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId.Value, typeSpecificDetail.LiveReportId.Value, clientFolder, chkWriteFiles.Checked);
 
             ProcessedItem newProcessedItem = new ProcessedItem
             {
                 ClientId = contentItem.ClientId,
                 ContentItemId = contentItem.Id,
-                OldGroupId = client.Id.ToString(),
+                OldGroupId = client.Id,
                 ExportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - itemExportStartMs),
             };
 

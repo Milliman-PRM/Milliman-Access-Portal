@@ -1,8 +1,7 @@
 using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Reflection;
+using System.IO;
 using System.Windows.Forms;
 
 namespace PowerBiMigration
@@ -15,9 +14,14 @@ namespace PowerBiMigration
         [STAThread]
         static void Main()
         {
+            string logFilePath = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+            logFilePath = Path.Combine(logFilePath, "log.txt");
+
             // Initialize Serilog
             Log.Logger = new LoggerConfiguration()
                 .WriteTo.Debug()
+                .WriteTo.Console()
+                .WriteTo.File(logFilePath)
                 .MinimumLevel.Debug()
                 .CreateLogger();
 
