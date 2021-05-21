@@ -231,6 +231,7 @@ namespace PowerBiMigration
             // btnExportSelectedClient
             // 
             this.btnExportSelectedClient.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnExportSelectedClient.Enabled = false;
             this.btnExportSelectedClient.Location = new System.Drawing.Point(175, 470);
             this.btnExportSelectedClient.Name = "btnExportSelectedClient";
             this.btnExportSelectedClient.Size = new System.Drawing.Size(159, 23);
