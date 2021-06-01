@@ -4,6 +4,24 @@
     padding-left: 6.5vmin;
 }
 
+.expired-browser-banner {
+    position: absolute;
+    top: 0;
+    padding: 0.5vmin;
+    background-color: gold;
+    width: calc(100% - 4.5rem);
+
+    .close-banner-icon {
+        float: right;
+        cursor: pointer;
+
+        .icon {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+    }
+}
+
 nav {
     position: fixed;
     display: flex !important;

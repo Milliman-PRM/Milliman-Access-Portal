@@ -1,3 +1,4 @@
+import '../../../images/icons/cancel.svg';
 import '../../../images/icons/client-access-review.svg';
 import '../../../images/icons/client.svg';
 import '../../../images/icons/content-access.svg';
@@ -31,6 +32,7 @@ export interface NavBarState {
   navBarOpen: boolean;
   contactFormOpen: boolean;
   userGuideOpen: boolean;
+  browserSupportStatementAcknowledged: boolean;
 }
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
@@ -42,6 +44,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       navBarOpen: false,
       contactFormOpen: false,
       userGuideOpen: false,
+      browserSupportStatementAcknowledged: sessionStorage.getItem('browserSupportStatementAcknowledged') === 'true',
     };
 
     this.toggleNavBarOpen = this.toggleNavBarOpen.bind(this);
@@ -94,6 +97,24 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
 
     return (
       <>
+        {
+          !this.state.browserSupportStatementAcknowledged && <div className="expired-browser-banner">
+            <b>Browser Support Expiration</b> MAP will no longer support this browser beginning on August 17, 2021.
+            <div
+              className="close-banner-icon"
+              title="Close Banner"
+              onClick={(event: React.MouseEvent) => {
+                event.stopPropagation();
+                sessionStorage.setItem('browserSupportStatementAcknowledged', 'true');
+                this.setState({ browserSupportStatementAcknowledged: true });
+              }}
+            >
+              <svg className="icon">
+                <use xlinkHref="#cancel" />
+              </svg>
+            </div>
+          </div>
+        }
         <nav
           className={`${this.state.navBarElements && 'loaded'} ${(this.state.navBarOpen) ? 'open' : 'close'}`}
           onClick={this.toggleNavBarOpen}
