@@ -12,6 +12,7 @@ import '../../../images/icons/user-settings.svg';
 import '../../../images/icons/userguide.svg';
 import '../../../scss/react/shared-components/navbar.scss';
 
+import * as moment from 'moment';
 import * as React from 'react';
 
 import { getJsonData, postData } from '../../shared';
@@ -33,6 +34,7 @@ export interface NavBarState {
   contactFormOpen: boolean;
   userGuideOpen: boolean;
   browserSupportStatementAcknowledged: boolean;
+  isPastBrowserSupportExpiration: boolean;
 }
 
 export class NavBar extends React.Component<NavBarProps, NavBarState> {
@@ -45,6 +47,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
       contactFormOpen: false,
       userGuideOpen: false,
       browserSupportStatementAcknowledged: sessionStorage.getItem('browserSupportStatementAcknowledged') === 'true',
+      isPastBrowserSupportExpiration: moment().isSameOrAfter(moment('08-17-2021', 'MM-DD-YYYY')),
     };
 
     this.toggleNavBarOpen = this.toggleNavBarOpen.bind(this);
@@ -98,8 +101,14 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
     return (
       <>
         {
-          !this.state.browserSupportStatementAcknowledged && <div className="expired-browser-banner">
-            <b>Browser Support Expiration</b> MAP will no longer support this browser beginning on August 17, 2021.
+          (/*@cc_on!@*/false || !!window.document['documentMode']) &&
+          !this.state.browserSupportStatementAcknowledged &&
+          <div className={`expired-browser-banner ${this.state.isPastBrowserSupportExpiration ? 'post' : 'pre'}`}>
+            <b>Browser Support Expiration</b>
+            {this.state.isPastBrowserSupportExpiration ?
+              <span> This browser is no longer supported. Switch to a supported browser for best performance.</span> :
+              <span> MAP will no longer support this browser beginning on August 17, 2021.</span>
+            }
             <div
               className="close-banner-icon"
               title="Close Banner"
