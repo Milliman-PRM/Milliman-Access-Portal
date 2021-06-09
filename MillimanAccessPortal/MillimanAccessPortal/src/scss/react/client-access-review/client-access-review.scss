@@ -36,6 +36,20 @@
 
             .title-container {
                 flex: 1 0 auto;
+
+                .client-info {
+                    width: 90%;
+                    display: inline-block;
+                }
+
+                .client-download-button {
+                    float: right;
+                    width: 2em;
+                    
+                    .action-icon-container-inline {
+                        cursor: pointer;
+                    }
+                }
             }
 
             .progress-indicator-container {

@@ -36,7 +36,7 @@ const _initialPendingData: PendingDataState = {
 };
 
 const _initialClientAccessReviewProgress: ClientAccessReviewProgress = {
-  step: 0,
+  step: -1,
   contentItemConfirmations: null,
   fileDropConfirmations: null,
 };
