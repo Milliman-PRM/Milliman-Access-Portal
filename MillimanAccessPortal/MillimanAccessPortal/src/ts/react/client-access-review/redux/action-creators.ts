@@ -37,6 +37,9 @@ export const fetchClientSummary =
   createRequestActionCreator<AccessReviewActions.FetchClientSummary>('FETCH_CLIENT_SUMMARY');
 export const fetchClientReview =
   createRequestActionCreator<AccessReviewActions.FetchClientReview>('FETCH_CLIENT_REVIEW');
+export const downloadClientAccessReviewSummary =
+  createRequestActionCreator<AccessReviewActions.DownloadClientAccessReviewSummary>
+    ('DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY');
 export const fetchSessionCheck =
   createRequestActionCreator<AccessReviewActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 

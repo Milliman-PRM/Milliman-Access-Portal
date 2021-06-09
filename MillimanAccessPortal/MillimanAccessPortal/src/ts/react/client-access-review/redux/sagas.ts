@@ -43,6 +43,7 @@ export default function* rootSaga() {
   yield takeLatestSchedule('APPROVE_CLIENT_ACCESS_REVIEW_SUCCEEDED',
     () => AccessReviewActionCreators.updateNavBar({}),
   );
+  yield takeLatestRequest('DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY', api.downloadClientAccessReviewSummary);
 
   // Scheduled actions
   yield takeLatestSchedule('SCHEDULE_SESSION_CHECK', () => AccessReviewActionCreators.fetchSessionCheck({}));
@@ -59,6 +60,7 @@ export default function* rootSaga() {
     'FETCH_CLIENT_SUMMARY_FAILED',
     'FETCH_CLIENT_REVIEW_FAILED',
     'APPROVE_CLIENT_ACCESS_REVIEW_FAILED',
+    'DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY_FAILED',
   ], ({ message }) => message === 'sessionExpired'
       ? 'Your session has expired. Please refresh the page.'
       : isNaN(message)

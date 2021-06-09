@@ -225,7 +225,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   <CardButton
                     icon={'download'}
                     color={'green'}
-                    onClick={null}
+                    onClick={() => this.props.downloadClientAccessReviewSummary({ clientId: selected.client })}
                     tooltip={'Download Client Access Review summary'}
                   />
                 </CardSectionButtons>
@@ -250,7 +250,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   }
 
   private renderClientSummaryHeader() {
-    const { clientSummary, clientAccessReviewProgress } = this.props;
+    const { clientSummary, clientAccessReviewProgress, selected } = this.props;
     const reviewDescription = () => {
       switch (clientAccessReviewProgress.step) {
         case ClientAccessReviewProgressEnum.clientReview:
@@ -277,6 +277,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           <ActionIcon
             label="Download Client Access Review summary"
             icon="download"
+            action={() => this.props.downloadClientAccessReviewSummary({ clientId: selected.client })}
           />
         </div>
         <span className="client-code">{reviewDescription()}</span>
