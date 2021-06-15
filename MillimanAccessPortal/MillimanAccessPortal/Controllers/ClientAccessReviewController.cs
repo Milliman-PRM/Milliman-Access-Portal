@@ -214,14 +214,88 @@ namespace MillimanAccessPortal.Controllers
 
             string clientAccessReviewSummaryExportDirectory = Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), $"{Guid.NewGuid()}");
             System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
-            string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User Roles.csv");
             var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
 
+            // Client Summary
+            string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Summary.txt");
+            using (var stream = new StreamWriter(clientSummaryTxtPath))
+            {
+                stream.WriteLine("Client Summary\n");
+                stream.WriteLine($"Client name: {model.ClientName}");
+                stream.WriteLine($"Client code: {model.ClientCode}");
+                //stream.WriteLine($"Review due date: {model.review}"); // TODO reviewdate
+                //stream.WriteLine($"Last review by: {model.profitcenter}"); // Last reviewer
+                stream.WriteLine($"Client Admins:");
+                model.ClientAdmins.ForEach((clientAdmin) =>
+                {
+                    stream.WriteLine($"- {clientAdmin.UserEmail}");
+                });
+                stream.WriteLine($"Profit Center: {model.AssignedProfitCenterName}");
+                model.ProfitCenterAdmins.ForEach((profitCenterAdmin) =>
+                {
+                    stream.WriteLine($"- {profitCenterAdmin.UserEmail}");
+                });
+                stream.WriteLine($"Approved Email Domain List");
+                model.ApprovedEmailDomainList.ForEach((email) =>
+                {
+                    stream.WriteLine($"- {email}");
+                });
+                stream.WriteLine($"Email address exception list:");
+                model.ApprovedEmailExceptionList.ForEach((emailException) =>
+                {
+                    stream.WriteLine($"- {emailException}");
+                });
+                stream.Close();
+            }
+
+            // User Roles
+            string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User Roles.csv");
             using (var stream = new StreamWriter(userRolesCsvPath))
             using (var csv = new CsvWriter(stream, writerConfig))
             {
                 csv.Configuration.RegisterClassMap<UserRolesCsvMap>();
                 csv.WriteRecords(model.MemberUsers);
+            }
+
+            /*
+            // Content Access
+            string contentAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Content Access.csv");
+            using (var stream = new StreamWriter(contentAccessCsvPath))
+            using (var csv = new CsvWriter(stream, writerConfig))
+            {
+                csv.Configuration.RegisterClassMap<ContentAccessCsvMap>();
+                csv.WriteRecords(model.ContentAccess); // TODO
+            }
+
+            // File Drop Access
+            string fileDropAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "File Drop Access.csv");
+            using (var stream = new StreamWriter(fileDropAccessCsvPath)) ;
+            using (var csv = new CsvWriter(stream, writerConfig))
+            {
+                csv.Configuration.RegisterClassMap<FileDropAccessCsvMap>();
+                csv.WriteRecords(model.FileDrops); // TODO
+            }*/
+
+            // Attestations
+            string attestationsTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Attestations.txt");
+            using (var stream = new StreamWriter(attestationsTxtPath))
+            {
+                stream.Write(model.AttestationLanguage);
+                stream.Close();
+            }
+
+            // Metadata
+            string metadataTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Access Review Summary Metadata.txt");
+            using (var stream = new StreamWriter(metadataTxtPath))
+            {
+                stream.WriteLine($"Client Access Review Metadata{Environment.NewLine}");
+                stream.WriteLine($"The information contained in this zip file represents a snapshot of the Client information at the time of export.");
+                stream.WriteLine($"Viewing this information does not qualify as a Client Access Review.{Environment.NewLine}");
+                stream.WriteLine($"Client: {model.ClientName}");
+                stream.WriteLine($"Date of export: {DateTime.UtcNow.ToShortDateString()}");
+                stream.WriteLine($"User who exported: "); // TODO
+                stream.Close();
+
             }
 
             // Zip files to temporary compressed file for download
