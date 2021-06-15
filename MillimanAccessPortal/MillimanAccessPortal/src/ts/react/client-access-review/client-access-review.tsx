@@ -222,12 +222,17 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionButtons>
-                  <CardButton
-                    icon={'download'}
-                    color={'green'}
-                    onClick={() => this.props.downloadClientAccessReviewSummary({ clientId: selected.client })}
-                    tooltip={'Download Client Access Review summary'}
-                  />
+                  <a
+                    href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${entity.id}`}
+                    download={true}
+                  >
+                    <CardButton
+                      icon={'download'}
+                      color={'green'}
+                      tooltip={'Download Client Access Review summary'}
+                      onClick={null}
+                    />
+                  </a>
                 </CardSectionButtons>
               </CardSectionMain>
             </Card>
@@ -274,11 +279,16 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           <span className="client-code">{clientSummary.clientCode}</span>
         </div>
         <div className="client-download-button">
-          <ActionIcon
-            label="Download Client Access Review summary"
-            icon="download"
-            action={() => this.props.downloadClientAccessReviewSummary({ clientId: selected.client })}
-          />
+          <a
+            href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${selected.client}`}
+            download={true}
+          >
+            <ActionIcon
+              label="Download Client Access Review summary"
+              icon="download"
+              action={() => null}
+            />
+          </a>
         </div>
         <span className="client-code">{reviewDescription()}</span>
       </div>

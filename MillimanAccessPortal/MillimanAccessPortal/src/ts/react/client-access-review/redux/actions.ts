@@ -194,25 +194,6 @@ export interface ApproveClientAccessReviewFailed {
   error: TSError;
 }
 
-/**
- * GET:
- *   Download a .zip of the Client Access Review summary
- */
-export interface DownloadClientAccessReviewSummary {
-  type: 'DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY';
-  request: {
-    clientId: Guid;
-  };
-}
-export interface DownloadClientAccessReviewSummarySucceeded {
-  type: 'DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY_SUCCEEDED';
-  response: {};
-}
-export interface DownloadClientAccessReviewSummaryFailed {
-  type: 'DOWNLOAD_CLIENT_ACCESS_REVIEW_SUMMARY_FAILED';
-  error: TSError;
-}
-
 // ~~ Session Checks ~~ //
 
 /**
@@ -274,7 +255,6 @@ export type RequestAccessReviewAction =
   | FetchClientSummary
   | FetchClientReview
   | ApproveClientAccessReview
-  | DownloadClientAccessReviewSummary
   | FetchSessionCheck
   ;
 
@@ -287,7 +267,6 @@ export type ResponseAccessReviewAction =
   | FetchClientSummarySucceeded
   | FetchClientReviewSucceeded
   | ApproveClientAccessReviewSucceeded
-  | DownloadClientAccessReviewSummarySucceeded
   | FetchSessionCheckSucceeded
   ;
 
@@ -300,7 +279,6 @@ export type ErrorAccessReviewAction =
   | FetchClientSummaryFailed
   | FetchClientReviewFailed
   | ApproveClientAccessReviewFailed
-  | DownloadClientAccessReviewSummaryFailed
   | FetchSessionCheckFailed
   ;
 

@@ -20,6 +20,12 @@ using AuditLogLib.Services;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.Models.ClientAccessReview;
 using Microsoft.AspNetCore.Http;
+using CsvHelper;
+using CsvHelper.Configuration;
+using System.IO;
+using System.IO.Compression;
+using System.Globalization;
+using MillimanAccessPortal.Models.FileDropModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -188,5 +194,43 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        /// <summary>
+        /// GET a .zip of all the information contained in the Client Access Review for the given Client
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> DownloadClientAccessReviewSummary(Guid ClientId)
+        {
+            #region Authorization
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            if (!roleResult.Succeeded)
+            {
+                Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
+                Response.Headers.Add("Warning", "You are not authorized to the Client Access Review page.");
+                return Unauthorized();
+            }
+            #endregion
+
+            ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
+
+            string clientAccessReviewSummaryExportDirectory = Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), $"{Guid.NewGuid()}");
+            System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
+            string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User Roles.csv");
+            var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
+
+            using (var stream = new StreamWriter(userRolesCsvPath))
+            using (var csv = new CsvWriter(stream, writerConfig))
+            {
+                csv.Configuration.RegisterClassMap<UserRolesCsvMap>();
+                csv.WriteRecords(model.MemberUsers);
+            }
+
+            // Zip files to temporary compressed file for download
+            string zipFileName = $"{model.ClientName} - Client Access Review Summary";
+            ZipFile.CreateFromDirectory(clientAccessReviewSummaryExportDirectory, Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName));
+
+            System.IO.Directory.Delete(clientAccessReviewSummaryExportDirectory, true);
+            return new TemporaryPhysicalFileResult(Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName), "application/zip") { FileDownloadName = $"{zipFileName}.zip" };
+
+        }
     }
 }

@@ -6,6 +6,7 @@
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
     <LangVersion>latest</LangVersion>
+    <UserSecretsId>06f62b18-ec44-4d17-aeeb-2c5c9e91de21</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
