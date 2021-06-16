@@ -216,37 +216,68 @@ namespace MillimanAccessPortal.Controllers
             System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
             var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
 
-            // TODO: N/A on all
             #region Client Summary
             ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
             string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Summary.txt");
             using (var stream = new StreamWriter(clientSummaryTxtPath))
             {
-                stream.WriteLine("Client Summary\n");
+                stream.WriteLine($"Client Summary{Environment.NewLine}");
                 stream.WriteLine($"Client name: {clientSummaryModel.ClientName}");
-                stream.WriteLine($"Client code: {clientSummaryModel.ClientCode}");
-                stream.WriteLine($"Review due date: {clientSummaryModel.LastReviewDate}");
-                stream.WriteLine($"Last review by: {clientSummaryModel.LastReviewedBy.UserEmail}");
-                stream.WriteLine($"Client Admins:");
-                clientAccessReviewModel.ClientAdmins.ForEach((clientAdmin) =>
+                stream.WriteLine($"Client code: {(clientSummaryModel.ClientCode != null && !clientSummaryModel.ClientCode.Equals("")? clientSummaryModel.ClientCode : "N/A")}");
+                stream.WriteLine($"Review due date: {(clientSummaryModel.LastReviewDate != null ? clientSummaryModel.LastReviewDate : "N/A")}");
+                stream.WriteLine($"Last review by: {(clientSummaryModel.LastReviewedBy != null && !clientSummaryModel.LastReviewedBy.Name.Equals("") ? clientSummaryModel.LastReviewedBy.UserEmail : "N/A")}");
+                stream.WriteLine($"Primary Contact: {(clientSummaryModel.PrimaryContactEmail != null ? clientSummaryModel.PrimaryContactEmail : "N/A")}");
+                stream.WriteLine("Client Admins:");
+                if (clientAccessReviewModel.ClientAdmins.Count == 0)
                 {
-                    stream.WriteLine($"- {clientAdmin.UserEmail}");
-                });
+                    stream.WriteLine("- N/A");
+                }
+                else
+                {
+                    clientAccessReviewModel.ClientAdmins.ForEach((clientAdmin) =>
+                    {
+                        stream.WriteLine($"- {clientAdmin.UserEmail}");
+                    });
+                }
                 stream.WriteLine($"Profit Center: {clientAccessReviewModel.AssignedProfitCenterName}");
-                clientAccessReviewModel.ProfitCenterAdmins.ForEach((profitCenterAdmin) =>
+                stream.WriteLine("Profit Center Admins:");
+                if (clientAccessReviewModel.ProfitCenterAdmins.Count == 0)
                 {
-                    stream.WriteLine($"- {profitCenterAdmin.UserEmail}");
-                });
-                stream.WriteLine($"Approved Email Domain List");
-                clientAccessReviewModel.ApprovedEmailDomainList.ForEach((email) =>
+                    stream.WriteLine("- N/A");
+                }
+                else
                 {
-                    stream.WriteLine($"- {email}");
-                });
-                stream.WriteLine($"Email address exception list:");
-                clientAccessReviewModel.ApprovedEmailExceptionList.ForEach((emailException) =>
+                    clientAccessReviewModel.ProfitCenterAdmins.ForEach((profitCenterAdmin) =>
+                    {
+                        stream.WriteLine($"- {profitCenterAdmin.UserEmail}");
+                    });
+                }
+
+                stream.WriteLine("Approved Email Domain List");
+                if (clientAccessReviewModel.ApprovedEmailDomainList.Count == 0)
                 {
-                    stream.WriteLine($"- {emailException}");
-                });
+                    stream.WriteLine("- N/A");
+                }
+                else
+                {
+                    clientAccessReviewModel.ApprovedEmailDomainList.ForEach((email) =>
+                    {
+                        stream.WriteLine($"- {email}");
+                    });
+                }
+
+                stream.WriteLine("Email address exception list:");
+                if (clientAccessReviewModel.ApprovedEmailExceptionList.Count == 0)
+                {
+                    stream.WriteLine("- N/A");
+                }
+                else
+                {
+                    clientAccessReviewModel.ApprovedEmailExceptionList.ForEach((emailException) =>
+                    {
+                        stream.WriteLine($"- {emailException}");
+                    });
+                }
                 stream.Close();
             }
             #endregion
@@ -256,17 +287,23 @@ namespace MillimanAccessPortal.Controllers
             List<UserRolesRowItem> userRolesRowItems = new List<UserRolesRowItem>();
             clientAccessReviewModel.MemberUsers.ForEach((mu) =>
             {
+                bool clientAdminValue;
+                bool contentPublisherValue;
+                bool contentAccessAdminValue;
+                bool contentUserValue;
+                bool fileDropAdminValue;
+                bool fileDropUserValue;
                 userRolesRowItems.Add(new UserRolesRowItem()
                 {
                     UserName = mu.Name,
                     UserEmail = mu.UserEmail,
                     LastLoginDate = mu.LastLoginDate.ToString(),
-                    IsClientAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.Admin, out _),
-                    IsContentPublisher = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentPublisher, out _),
-                    IsContentAccessAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentAccessAdmin, out _),
-                    IsContentUser = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentUser, out _),
-                    IsFileDropAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out _),
-                    IsFileDropUser = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out _),
+                    IsClientAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.Admin, out clientAdminValue) ? clientAdminValue : false,
+                    IsContentPublisher = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentPublisher, out contentPublisherValue) ? contentPublisherValue : false,
+                    IsContentAccessAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentAccessAdmin, out contentAccessAdminValue) ? contentAccessAdminValue : false,
+                    IsContentUser = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentUser, out contentUserValue) ? contentUserValue : false,
+                    IsFileDropAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out fileDropAdminValue) ? fileDropAdminValue : false,
+                    IsFileDropUser = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out fileDropUserValue) ? fileDropUserValue : false,
                 });
             });
             using (var stream = new StreamWriter(userRolesCsvPath))
