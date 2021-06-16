@@ -10,36 +10,33 @@ using MapDbContextLib.Identity;
 using MillimanAccessPortal.Models.ClientAccessReview;
 using Newtonsoft.Json;
 
-namespace MillimanAccessPortal.Models.FileDropModels
+namespace MillimanAccessPortal.Models.ClientAccessReview
 {
-    public class UserRolesCsvMap : ClassMap<ClientActorReviewModel>
+    public class UserRolesRowItem
     {
-        private bool isClientAdmin;
-        private bool isContentPublisher;
-        private bool isContentAccessAdmin;
-        private bool isContentUser;
-        private bool isFileDropAdmin;
-        private bool isFileDropUser;
-
+        public string UserName { get; set; }
+        public string UserEmail { get; set; }
+        public string LastLoginDate { get; set; }
+        public bool IsClientAdmin { get; set; }
+        public bool IsContentPublisher { get; set; }
+        public bool IsContentAccessAdmin { get; set; }
+        public bool IsContentUser { get; set; }
+        public bool IsFileDropAdmin { get; set; }
+        public bool IsFileDropUser { get; set; }
+    }
+    public class UserRolesCsvMap : ClassMap<UserRolesRowItem>
+    {
         public UserRolesCsvMap()
         {
-            Map(m => m.Name).Index(0).Name("User Name");
+            Map(m => m.UserName).Index(0).Name("User Name");
             Map(m => m.UserEmail).Index(1).Name("User Email");
             Map(m => m.LastLoginDate).Index(2).Name("Last Login Date");
-            Map(m => m.ClientUserRoles).Index(3).Name("Client Admin")
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.Admin, out isClientAdmin) ? "Yes" : "No");
-            Map(m => m.ClientUserRoles).Index(4)
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.ContentPublisher, out isContentPublisher) ? "Yes" : "No");
-            Map(m => m.ClientUserRoles).Index(5).Name("Content Access Admin")
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.ContentAccessAdmin, out isContentAccessAdmin) ? "Yes" : "No");
-            Map(m => m.ClientUserRoles).Index(6).Name("Content User")
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.ContentUser, out isContentUser) ? "Yes" : "No");
-            Map(m => m.ClientUserRoles).Index(7).Name("File Drop Admin")
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out isFileDropAdmin) ? "Yes" : "No");
-            Map(m => m.ClientUserRoles).Index(8).Name("File Drop User")
-                .ConvertUsing(m => m.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out isFileDropUser) ? "Yes" : "No");
-            Map(m => m.IsSuspended).Index(9).Name("Suspended").ConvertUsing(m => m.IsSuspended ? "Yes" : "No");
-            Map(m => m.IsAccountDisabled).Index(10).Name("Disabled").ConvertUsing(m => m.IsAccountDisabled ? "Yes" : "No");
+            Map(m => m.IsClientAdmin).Index(3).Name("Client Admin").ConvertUsing(m => m.IsClientAdmin ? "Yes" : "No");
+            Map(m => m.IsContentPublisher).Index(4).Name("Content Publisher").ConvertUsing(m => m.IsContentPublisher ? "Yes" : "No");
+            Map(m => m.IsContentAccessAdmin).Index(5).Name("Client Access Admin").ConvertUsing(m => m.IsContentAccessAdmin ? "Yes" : "No");
+            Map(m => m.IsContentUser).Index(6).Name("Contennt User").ConvertUsing(m => m.IsContentUser ? "Yes" : "No");
+            Map(m => m.IsFileDropAdmin).Index(7).Name("File Drop Admin").ConvertUsing(m => m.IsFileDropAdmin ? "Yes" : "No");
+            Map(m => m.IsFileDropUser).Index(3).Name("File Drop User").ConvertUsing(m => m.IsFileDropUser ? "Yes" : "No");
         }
     }
 }

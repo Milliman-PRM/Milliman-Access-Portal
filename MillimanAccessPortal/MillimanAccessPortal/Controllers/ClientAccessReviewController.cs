@@ -26,6 +26,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Globalization;
 using MillimanAccessPortal.Models.FileDropModels;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -210,101 +211,194 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            ClientAccessReviewModel model = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
-
+            ClientAccessReviewModel clientAccessReviewModel = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
             string clientAccessReviewSummaryExportDirectory = Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), $"{Guid.NewGuid()}");
             System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
             var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
 
-            // Client Summary
+            // TODO: N/A on all
+            #region Client Summary
+            ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
             string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Summary.txt");
             using (var stream = new StreamWriter(clientSummaryTxtPath))
             {
                 stream.WriteLine("Client Summary\n");
-                stream.WriteLine($"Client name: {model.ClientName}");
-                stream.WriteLine($"Client code: {model.ClientCode}");
-                //stream.WriteLine($"Review due date: {model.review}"); // TODO reviewdate
-                //stream.WriteLine($"Last review by: {model.profitcenter}"); // Last reviewer
+                stream.WriteLine($"Client name: {clientSummaryModel.ClientName}");
+                stream.WriteLine($"Client code: {clientSummaryModel.ClientCode}");
+                stream.WriteLine($"Review due date: {clientSummaryModel.LastReviewDate}");
+                stream.WriteLine($"Last review by: {clientSummaryModel.LastReviewedBy.UserEmail}");
                 stream.WriteLine($"Client Admins:");
-                model.ClientAdmins.ForEach((clientAdmin) =>
+                clientAccessReviewModel.ClientAdmins.ForEach((clientAdmin) =>
                 {
                     stream.WriteLine($"- {clientAdmin.UserEmail}");
                 });
-                stream.WriteLine($"Profit Center: {model.AssignedProfitCenterName}");
-                model.ProfitCenterAdmins.ForEach((profitCenterAdmin) =>
+                stream.WriteLine($"Profit Center: {clientAccessReviewModel.AssignedProfitCenterName}");
+                clientAccessReviewModel.ProfitCenterAdmins.ForEach((profitCenterAdmin) =>
                 {
                     stream.WriteLine($"- {profitCenterAdmin.UserEmail}");
                 });
                 stream.WriteLine($"Approved Email Domain List");
-                model.ApprovedEmailDomainList.ForEach((email) =>
+                clientAccessReviewModel.ApprovedEmailDomainList.ForEach((email) =>
                 {
                     stream.WriteLine($"- {email}");
                 });
                 stream.WriteLine($"Email address exception list:");
-                model.ApprovedEmailExceptionList.ForEach((emailException) =>
+                clientAccessReviewModel.ApprovedEmailExceptionList.ForEach((emailException) =>
                 {
                     stream.WriteLine($"- {emailException}");
                 });
                 stream.Close();
             }
+            #endregion
 
-            // User Roles
+            #region User Roles
             string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User Roles.csv");
+            List<UserRolesRowItem> userRolesRowItems = new List<UserRolesRowItem>();
+            clientAccessReviewModel.MemberUsers.ForEach((mu) =>
+            {
+                userRolesRowItems.Add(new UserRolesRowItem()
+                {
+                    UserName = mu.Name,
+                    UserEmail = mu.UserEmail,
+                    LastLoginDate = mu.LastLoginDate.ToString(),
+                    IsClientAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.Admin, out _),
+                    IsContentPublisher = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentPublisher, out _),
+                    IsContentAccessAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentAccessAdmin, out _),
+                    IsContentUser = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentUser, out _),
+                    IsFileDropAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out _),
+                    IsFileDropUser = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out _),
+                });
+            });
             using (var stream = new StreamWriter(userRolesCsvPath))
             using (var csv = new CsvWriter(stream, writerConfig))
             {
                 csv.Configuration.RegisterClassMap<UserRolesCsvMap>();
-                csv.WriteRecords(model.MemberUsers);
+                csv.WriteRecords(userRolesRowItems);
+                stream.Close();
             }
+            #endregion
 
-            /*
-            // Content Access
+            #region Content Access
             string contentAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Content Access.csv");
+            List<ContentAccessRowItem> contentAccessRowItems = new List<ContentAccessRowItem>();
+            clientAccessReviewModel.ContentItems.ForEach((ci) =>
+            {
+                ci.SelectionGroups.ForEach((sg) =>
+                {
+                    if (sg.AuthorizedUsers.Count == 0)
+                    {
+                        contentAccessRowItems.Add(new ContentAccessRowItem()
+                        {
+                            ContentName = ci.ContentItemName,
+                            SelectionGroupName = sg.SelectionGroupName,
+                            UserName = "",
+                            UserEmail = "",
+                            Suspended = sg.IsSuspended,
+                        });
+                    }
+                    else
+                    {
+                        sg.AuthorizedUsers.ForEach((au) =>
+                        {
+                            contentAccessRowItems.Add(new ContentAccessRowItem()
+                            {
+                                ContentName = ci.ContentItemName,
+                                SelectionGroupName = sg.SelectionGroupName,
+                                UserName = au.Name,
+                                UserEmail = au.UserEmail,
+                                Suspended = sg.IsSuspended,
+                            });
+                        });
+                    }
+                });
+            });
             using (var stream = new StreamWriter(contentAccessCsvPath))
             using (var csv = new CsvWriter(stream, writerConfig))
             {
                 csv.Configuration.RegisterClassMap<ContentAccessCsvMap>();
-                csv.WriteRecords(model.ContentAccess); // TODO
+                csv.WriteRecords(contentAccessRowItems);
+                stream.Close();
             }
+            #endregion
 
-            // File Drop Access
+            #region File Drop Access
             string fileDropAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "File Drop Access.csv");
-            using (var stream = new StreamWriter(fileDropAccessCsvPath)) ;
+            List<FileDropAccessRowItem> fileDropAccessRowItems = new List<FileDropAccessRowItem>();
+            clientAccessReviewModel.FileDrops.ForEach(fd =>
+            {
+                fd.PermissionGroups.ForEach(pg =>
+                {
+                    if (pg.AuthorizedMapUsers.Count == 0)
+                    {
+                        fileDropAccessRowItems.Add(new FileDropAccessRowItem()
+                        {
+                            FileDropName = fd.FileDropName,
+                            UserGroupName = pg.PermissionGroupName,
+                            UserName = "",
+                            UserEmail = "",
+                            CanDownload = pg.Permissions.TryGetValue("Read", out _),
+                            CanUpload = pg.Permissions.TryGetValue("Write", out _),
+                            CanDelete = pg.Permissions.TryGetValue("Delete", out _),
+                        });
+                    }
+                    else
+                    {
+                        pg.AuthorizedMapUsers.ForEach(amu =>
+                        {
+                            fileDropAccessRowItems.Add(new FileDropAccessRowItem()
+                            {
+                                FileDropName = fd.FileDropName,
+                                UserGroupName = pg.PermissionGroupName,
+                                UserName = amu.Name,
+                                UserEmail = amu.UserEmail,
+                                CanDownload = pg.Permissions.TryGetValue("Read", out _),
+                                CanUpload = pg.Permissions.TryGetValue("Write", out _),
+                                CanDelete = pg.Permissions.TryGetValue("Delete", out _),
+                            });
+                        });
+                    }
+                });
+            });
+            using (var stream = new StreamWriter(fileDropAccessCsvPath))
             using (var csv = new CsvWriter(stream, writerConfig))
             {
                 csv.Configuration.RegisterClassMap<FileDropAccessCsvMap>();
-                csv.WriteRecords(model.FileDrops); // TODO
-            }*/
-
-            // Attestations
-            string attestationsTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Attestations.txt");
-            using (var stream = new StreamWriter(attestationsTxtPath))
-            {
-                stream.Write(model.AttestationLanguage);
+                csv.WriteRecords(fileDropAccessRowItems);
                 stream.Close();
             }
+            #endregion
 
-            // Metadata
+            #region Metadata
             string metadataTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Access Review Summary Metadata.txt");
             using (var stream = new StreamWriter(metadataTxtPath))
             {
                 stream.WriteLine($"Client Access Review Metadata{Environment.NewLine}");
                 stream.WriteLine($"The information contained in this zip file represents a snapshot of the Client information at the time of export.");
                 stream.WriteLine($"Viewing this information does not qualify as a Client Access Review.{Environment.NewLine}");
-                stream.WriteLine($"Client: {model.ClientName}");
+                stream.WriteLine($"Client: {clientAccessReviewModel.ClientName}");
                 stream.WriteLine($"Date of export: {DateTime.UtcNow.ToShortDateString()}");
-                stream.WriteLine($"User who exported: "); // TODO
+                stream.WriteLine($"User who exported: {User.Identity.Name}");
                 stream.Close();
+            }
+            #endregion
 
+            string zipFileName = $"{clientAccessReviewModel.ClientName} - Client Access Review Summary";
+
+            try
+            {
+                // Zip files to temporary compressed file for download
+                ZipFile.CreateFromDirectory(clientAccessReviewSummaryExportDirectory, Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName));
+
+                System.IO.Directory.Delete(clientAccessReviewSummaryExportDirectory, true);
+            }
+            catch (IOException ex)
+            {
+                Log.Information(ex, $"Action {ControllerContext.ActionDescriptor.DisplayName}, failed on packaging of Summary information.");
+                Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // Zip files to temporary compressed file for download
-            string zipFileName = $"{model.ClientName} - Client Access Review Summary";
-            ZipFile.CreateFromDirectory(clientAccessReviewSummaryExportDirectory, Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName));
-
-            System.IO.Directory.Delete(clientAccessReviewSummaryExportDirectory, true);
             return new TemporaryPhysicalFileResult(Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName), "application/zip") { FileDownloadName = $"{zipFileName}.zip" };
-
         }
     }
 }
