@@ -213,8 +213,18 @@ namespace MillimanAccessPortal.Controllers
 
             ClientAccessReviewModel clientAccessReviewModel = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
             string clientAccessReviewSummaryExportDirectory = Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), $"{Guid.NewGuid()}");
-            System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
             var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
+
+            try
+            {
+                System.IO.Directory.CreateDirectory(clientAccessReviewSummaryExportDirectory);
+            }
+            catch (IOException ex)
+            {
+                Log.Information(ex, $"Action {ControllerContext.ActionDescriptor.DisplayName}, failed on creation of temporary directory for exports.");
+                Response.Headers.Add("Warning", ex.Message);
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
 
             #region Client Summary
             ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
@@ -419,18 +429,17 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string zipFileName = $"{clientAccessReviewModel.ClientName} - Client Access Review Summary";
+            string zipFileName = $"{clientAccessReviewModel.ClientName} - Client Access Review Summary - {DateTime.Now.ToString("MM-dd-yyyy")}";
 
+            // Zip files to temporary compressed file for download
             try
             {
-                // Zip files to temporary compressed file for download
                 ZipFile.CreateFromDirectory(clientAccessReviewSummaryExportDirectory, Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), zipFileName));
-
-                System.IO.Directory.Delete(clientAccessReviewSummaryExportDirectory, true);
+                Directory.Delete(clientAccessReviewSummaryExportDirectory, true);
             }
             catch (IOException ex)
             {
-                Log.Information(ex, $"Action {ControllerContext.ActionDescriptor.DisplayName}, failed on packaging of Summary information.");
+                Log.Information(ex, $"Action {ControllerContext.ActionDescriptor.DisplayName}, failed on export.");
                 Response.Headers.Add("Warning", ex.Message);
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
