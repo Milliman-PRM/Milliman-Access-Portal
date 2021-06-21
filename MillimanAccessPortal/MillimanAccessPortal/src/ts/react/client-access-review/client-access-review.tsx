@@ -280,9 +280,13 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           </div>
           <div className="details-container">
             <div className="detail-column">
-              <div className="detail-section">
-                <span className="detail-label">Review due date</span>
-                <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
+              <div className="detail-section" >
+                 <span className="detail-label">Review due date</span>
+                            <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
+                            <ActionIcon
+                                icon="information"
+                                label="At least one Client Admin must perform the Client Access Review every 90 days."
+                            />
               </div>
               <div className="detail-section">
                 <span className="detail-label">Last review date</span>
