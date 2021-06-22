@@ -286,7 +286,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   <ActionIcon
                     icon="information"
                     label="Review due date: the date and time that the next Client Access Review must be completed
-                    by. Client Access Review's must be completed by a Client Admin every 90 days."
+                    by. Client Access Reviews must be completed by a Client Admin every 90 days."
                   />
                 </span>
                 <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
