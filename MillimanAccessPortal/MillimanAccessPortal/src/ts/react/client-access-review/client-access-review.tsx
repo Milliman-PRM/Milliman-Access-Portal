@@ -285,8 +285,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Review due date
                   <ActionIcon
                     icon="information"
-                    label="Review due date: the date and time that the next Client Access Review must be completed
-                    by. Client Access Reviews must be completed by a Client Admin every 90 days."
+                    label={'Review due date: the date and time that the next Client Access Review must be completed ' +
+                    'by. Client Access Reviews must be completed by a Client Admin every 90 days.'}
                   />
                 </span>
                 <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
@@ -297,8 +297,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Last review date
                   <ActionIcon
                     icon="information"
-                    label="Last review date: the last time that the Client Access Review was performed for this Client
-                    ."
+                    label={'Last review date: the last time that the Client Access Review ' +
+                    'was performed for this Client.'}
                   />
                 </span>
                 <span className="detail-value-name">
@@ -310,8 +310,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     Last review by
                     <ActionIcon
                       icon="information"
-                      label="Last review by: the Client Admin who last performed the Client Access Review for
-                      this Client."
+                      label={'Last review by: the Client Admin who last performed the ' +
+                      'Client Access Review for this Client.'}
                     />
                 </span>
                 <span className="detail-value-name">{clientSummary.lastReviewedBy.name}</span>
@@ -324,8 +324,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     Primary contact
                     <ActionIcon
                       icon="information"
-                      label="Primary contact: the primary Client contact for this Client. This is set within the Client
-                      Admin page."
+                      label={'Primary contact: the primary Client contact for this Client. ' +
+                      'This is set within the Client Admin page.'}
                     />
                 </span>
                 <span className="detail-value-name">{clientSummary.primaryContactName}</span>
@@ -338,8 +338,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Client Admins
                   <ActionIcon
                     icon="information"
-                    label="Client Admins: a list of all of the Client Admins for this Client. This is determined within
-                    the Client Admin page."
+                    label={'Client Admins: a list of all of the Client Admins for this Client. ' +
+                    'This is determined within the Client Admin page.'}
                   />
                 </span>
                 <ul className="detail-list">
@@ -364,8 +364,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Profit center
                   <ActionIcon
                     icon="information"
-                    label="Profit center: the Profit Center associated with this Client for billing purposes.
-                    This is set within the Client Admin page."
+                    label={'Profit center: the Profit Center associated ' +
+                    'with this Client for billing purposes. This is set within the Client Admin page.'}
                   />
 
                 </span>
@@ -376,8 +376,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Profit Center Admins
                   <ActionIcon
                     icon="information"
-                    label="Profit Center Admins: a list of all of the Proft Center Admins associated with the Profit
-                    Center. To add or remove Profit Center Admins, contact map.support@milliman.com."
+                    label={'Profit Center Admins: a list of all of the Proft Center Admins ' +
+                    'associated with the Profit Center. To add or remove Profit Center Admins' +
+                    ', contact map.support@milliman.com.'}
                   />
                 </span>
                 <ul className="detail-list">
