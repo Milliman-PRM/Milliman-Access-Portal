@@ -2340,7 +2340,8 @@ namespace MillimanAccessPortal.Controllers
             await _dbContext.SaveChangesAsync();
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
 
-            _auditLogger.Log(AuditEventType.DisabledAccountReenabled.ToEvent(accountToEnable, reason));
+            var currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.DisabledAccountReenabled.ToEvent(accountToEnable, reason), currentUser.UserName, currentUser.Id);
 
             return Json(new { });
         }

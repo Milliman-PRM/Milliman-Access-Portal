@@ -1594,7 +1594,8 @@ namespace MillimanAccessPortal.Controllers
             MessageQueueService.QueueEmail(supportEmailAlias, emailSubject, emailBody);
 
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: Client Admin {Requestor.Id} requested user {RequestedAccount.Id} be re-enabled. Support email sent.");
-            AuditLogger.Log(AuditEventType.ClientAdminRequestedUserAccountReenable.ToEvent(ExistingClientRecord, Requestor, RequestedAccount, Model.Reason));
+
+            AuditLogger.Log(AuditEventType.ClientAdminRequestedUserAccountReenable.ToEvent(ExistingClientRecord, Requestor, RequestedAccount, Model.Reason), Requestor.UserName, Requestor.Id);
 
             return Json(new { });
         }
