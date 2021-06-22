@@ -216,7 +216,7 @@ namespace MillimanAccessPortal.Controllers
                 if (user == null)
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} not found, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountNotFound));
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountNotFound), null);
                     Response.Headers.Add("Warning", "Invalid login attempt.");
                     return Ok();
                 }
@@ -228,17 +228,17 @@ namespace MillimanAccessPortal.Controllers
                 {
                     NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
-                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled));
-                    Response.Headers.Add("Warning", $"This account is currently disabled.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}");
+                    _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled), null);
+                    Response.Headers.Add("Warning", UserMessageEnum.AccountDisabled.GetDisplayDescriptionString());
                     return Ok();
                 }
 
                 if (user.IsSuspended)
                 {
-                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName));
+                    _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName), null);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
-                    Response.Headers.Add("Warning", $"This account is currently suspended.  Please contact your Milliman consultant, or email {_configuration.GetValue<string>("SupportEmailAlias")}>");
+                    Response.Headers.Add("Warning", UserMessageEnum.AccountSuspended.GetDisplayDescriptionString());
                     return Ok();
                 }
 
@@ -285,19 +285,19 @@ namespace MillimanAccessPortal.Controllers
 
                     case var r when r.IsLockedOut:
                         Log.Information($"User {model.Username} account locked out");
-                        _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), model.Username);
+                        _auditLogger.Log(AuditEventType.LoginIsLockedOut.ToEvent(), user.UserName, user.Id);
                         Response.Headers.Add("Warning", "This account has been locked out, please try again later.");
                         return Ok();
 
                     case var r when r.IsNotAllowed:
                         Log.Information($"User {model.Username} login not allowed");
-                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), model.Username);
+                        _auditLogger.Log(AuditEventType.LoginNotAllowed.ToEvent(), user.UserName, user.Id);
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
 
                     default:
                         Log.Information($"User {model.Username} PasswordSignInAsync did not succeed");
-                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.PasswordSignInAsyncFailed));
+                        _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.PasswordSignInAsyncFailed), null);
                         Response.Headers.Add("Warning", "Invalid login attempt.");
                         return Ok();
                 }
@@ -320,7 +320,7 @@ namespace MillimanAccessPortal.Controllers
                 await DbContext.SaveChangesAsync();
                 HttpContext.Session.SetString("SessionId", HttpContext.Session.Id);
                 Log.Information($"User {user.UserName} logged in with scheme {scheme}");
-                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), user.UserName, HttpContext.Session.Id);
+                _auditLogger.Log(AuditEventType.LoginSuccess.ToEvent(scheme), user.UserName, HttpContext.Session.Id, user.Id);
             }
             catch (Exception ex)
             {
@@ -354,7 +354,7 @@ namespace MillimanAccessPortal.Controllers
                 AgreementText = model.AgreementText,
             };
 
-            _auditLogger.Log(AuditEventType.UserAgreementPresented.ToEvent(userAgreement), user.UserName);
+            _auditLogger.Log(AuditEventType.UserAgreementPresented.ToEvent(userAgreement), user.UserName, user.Id);
 
             return View(model);
         }
@@ -365,7 +365,7 @@ namespace MillimanAccessPortal.Controllers
         {
             UserAgreementReadOnlyViewModel model = new UserAgreementReadOnlyViewModel
             {
-                AgreementText = DbContext.NameValueConfiguration.Find(nameof(ConfiguredValueKeys.UserAgreementText))?.Value ?? "User agreement text is not configured"
+                AgreementText = (await DbContext.NameValueConfiguration.FindAsync(nameof(ConfiguredValueKeys.UserAgreementText)))?.Value ?? "User agreement text is not configured"
             };
             return View(model);
         }
@@ -376,7 +376,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ApplicationUser user = await _userManager.FindByNameAsync(User.Identity.Name);
 
-            _auditLogger.Log(AuditEventType.UserAgreementDeclined.ToEvent(validationId), user.UserName);
+            _auditLogger.Log(AuditEventType.UserAgreementDeclined.ToEvent(validationId), user.UserName, user.Id);
 
             await _signInManager.SignOutAsync();
             Response.Headers.Add("NavigateTo", "/");
@@ -391,7 +391,7 @@ namespace MillimanAccessPortal.Controllers
             user.UserAgreementAcceptedUtc = DateTime.UtcNow;
             DbContext.SaveChanges();
 
-            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName);
+            _auditLogger.Log(AuditEventType.UserAgreementAcceptance.ToEvent(model.ValidationId), user.UserName, user.Id);
 
             Response.Headers.Add("NavigateTo", string.IsNullOrEmpty(model.ReturnUrl) ? "/" : model.ReturnUrl);
             return Ok();
@@ -450,8 +450,8 @@ namespace MillimanAccessPortal.Controllers
                         await txn.CommitAsync();
 
                         Log.Information($"Initial user {model.Email} account created new with password.");
-                        _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser));
-                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin, HitrustReason.InitialSystemUser.NumericValue));
+                        _auditLogger.Log(AuditEventType.UserAccountCreated.ToEvent(newUser), newUser.Id);
+                        _auditLogger.Log(AuditEventType.SystemRoleAssigned.ToEvent(newUser, RoleEnum.Admin, HitrustReason.InitialSystemUser.NumericValue), newUser.Id);
 
                         // Send the confirmation message
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
@@ -488,7 +488,7 @@ namespace MillimanAccessPortal.Controllers
             await _signInManager.SignOutAsync();
 
             Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: user {appUser?.UserName ?? "<unknown>"} logged out.");
-            _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName);
+            _auditLogger.Log(AuditEventType.Logout.ToEvent(), appUser?.UserName, appUser?.Id);
 
             Response.Cookies.Delete(SessionDefaults.CookieName);
             HttpContext.Session.Clear();
@@ -605,14 +605,13 @@ namespace MillimanAccessPortal.Controllers
 
             int accountActivationDays = _configuration.GetValue("AccountActivationTokenTimespanDays", GlobalFunctions.fallbackAccountActivationTokenTimespanDays);
 
-            string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
             // Non-configurable portion of email body
             emailBody += $"Your username is: {RequestedUser.UserName}{Environment.NewLine}{Environment.NewLine}" +
                 $"Activate your account by clicking the link below or copying and pasting the link into your web browser.{Environment.NewLine}{Environment.NewLine}" +
                 $"{emailLink.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
                 $"This link will expire {accountActivationDays} days after the time it was sent.{Environment.NewLine}{Environment.NewLine}" +
                 $"Once you have activated your account, MAP can be accessed at {rootSiteUrl.Uri.AbsoluteUri}{Environment.NewLine}{Environment.NewLine}" +
-                $"If you have any questions regarding this email, please contact {supportEmailAlias}";
+                $"If you have any questions regarding this email, please contact {GlobalFunctions.MillimanSupportEmailAlias}";
             string emailSubject = "Welcome to Milliman Access Portal!";
 
             _messageSender.QueueEmail(RequestedUser.Email, emailSubject, emailBody /*, optional senderAddress, optional senderName*/);
@@ -673,7 +672,7 @@ namespace MillimanAccessPortal.Controllers
 
             _messageSender.QueueEmail(RequestedUser.Email, "MAP password reset", emailBody);
             Log.Information(appLogMsg);
-            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser, reason));
+            _auditLogger.Log(AuditEventType.PasswordResetRequested.ToEvent(RequestedUser, reason), null);
         }
 
         /// <summary>
@@ -687,10 +686,9 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {RequestedUser.UserName}");
 
             string emailBody;
-            string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
 
             emailBody = $"Your MAP account is currently disabled due to inactivity.  Please contact your ";
-            emailBody += $"Milliman consultant, or email us at {supportEmailAlias} for assistance.";
+            emailBody += $"Milliman consultant, or email us at {GlobalFunctions.MillimanSupportEmailAlias} for assistance.";
 
             _messageSender.QueueEmail(RequestedUser.Email, "MAP account is disabled", emailBody);
             Log.Information($"Disabled account email queued to address {RequestedUser.Email}");
@@ -741,11 +739,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: confirmation token is invalid for user name {user.UserName}, may be expired.");
 
-                string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
                 var messageModel = new UserMessageModel
                 {
                     PrimaryMessages = { $"Your account activation link has either expired or is invalid. Please click <b>RESEND</b> to receive a new welcome email and try again." },
-                    SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>." },
+                    SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{GlobalFunctions.MillimanSupportEmailAlias}\">{GlobalFunctions.MillimanSupportEmailAlias}</a>." },
                     Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
@@ -891,7 +888,7 @@ namespace MillimanAccessPortal.Controllers
                 await Txn.CommitAsync();
 
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
-                _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user));
+                _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user), user.Id);
 
                 return RedirectToAction(nameof(Login));
             }
@@ -928,8 +925,7 @@ namespace MillimanAccessPortal.Controllers
                     if (user.LastLoginUtc < DateTime.UtcNow.AddMonths(-_configuration.GetValue("DisableInactiveUserMonths", 12)))
                     {
                         Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: request user with email {model.Email} has a disabled account, current user will be informed of the issue, aborting.");
-                        string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
-                        return View("UserMessage", new UserMessageModel($"This account is currently disabled. Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>."));
+                        return View("UserMessage", new UserMessageModel(UserMessageEnum.AccountDisabled.GetDisplayDescriptionString()));
                     }
                     else if (await _userManager.IsEmailConfirmedAsync(user))
                     {
@@ -946,7 +942,7 @@ namespace MillimanAccessPortal.Controllers
                 else
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user email address <{model.Email}> not found");
-                    _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(model.Email));
+                    _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(model.Email), null);
                 }
             }
 
@@ -979,7 +975,7 @@ namespace MillimanAccessPortal.Controllers
             else
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user <{user.Email}> not found");
-                _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(user.Email));
+                _auditLogger.Log(AuditEventType.PasswordResetRequestedForInvalidEmail.ToEvent(user.Email), null);
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -1058,8 +1054,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-_configuration.GetValue("DisableInactiveUserMonths", 12)))
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: request user with email {userEmail} has a disabled account, current user will be informed of the issue, aborting.");
-                string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
-                return View("UserMessage", new UserMessageModel($"This account is currently disabled. Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>."));
+                return View("UserMessage", new UserMessageModel(UserMessageEnum.AccountDisabled.GetDisplayDescriptionString()));
             }
 
             PasswordResetSecurityTokenProvider<ApplicationUser> passwordResetTokenProvider = (PasswordResetSecurityTokenProvider<ApplicationUser>)_serviceProvider.GetService(typeof(PasswordResetSecurityTokenProvider<ApplicationUser>));
@@ -1076,11 +1071,10 @@ namespace MillimanAccessPortal.Controllers
                 {
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} GET action: requested for user {user.UserName} having expired or invalid reset token");
 
-                    string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
                     var messageModel = new UserMessageModel
                     {
                         PrimaryMessages = { "Your password reset link has either expired or is invalid. Please click <b>RESEND</b> to receive a new password reset email and try again." },
-                        SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>." },
+                        SecondaryMessages = { $"If you continue to be directed to this page, please contact <a href=\"mailto:{GlobalFunctions.MillimanSupportEmailAlias}\">{GlobalFunctions.MillimanSupportEmailAlias}</a>." },
                         Buttons = new List<ConfiguredButton>
                         {
                             new ConfiguredButton
@@ -1143,8 +1137,7 @@ namespace MillimanAccessPortal.Controllers
                 model.Message = string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)));
                 return View(model);
             }
-            string supportEmailAlias = _configuration.GetValue<string>("SupportEmailAlias");
-            var passwordResetErrorMessage = $"An error occurred. Please try again. If the issue persists, please contact <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>.";
+            var passwordResetErrorMessage = $"An error occurred. Please try again. If the issue persists, please contact <a href=\"mailto:{GlobalFunctions.MillimanSupportEmailAlias}\">{GlobalFunctions.MillimanSupportEmailAlias}</a>.";
             var user = await _userManager.FindByEmailAsync(model.Email);
             if (user == null)
             {
@@ -1155,7 +1148,7 @@ namespace MillimanAccessPortal.Controllers
             if (user.LastLoginUtc < DateTime.UtcNow.Date.AddMonths(-_configuration.GetValue("DisableInactiveUserMonths", 12)))
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: request user with email {model.Email} has a disabled account, current user will be informed of the issue, aborting.");
-                return View("UserMessage", new UserMessageModel($"This account is currently disabled. Please contact your Milliman consultant, or email <a href=\"mailto:{supportEmailAlias}\">{supportEmailAlias}</a>."));
+                return View("UserMessage", new UserMessageModel(UserMessageEnum.AccountDisabled.GetDisplayDescriptionString()));
             }
             using (var Txn = await DbContext.Database.BeginTransactionAsync())
             {
@@ -1190,7 +1183,7 @@ namespace MillimanAccessPortal.Controllers
                     {
                         await Txn.CommitAsync();
                         Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: succeeded for user {user.UserName }");
-                        _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user));
+                        _auditLogger.Log(AuditEventType.PasswordResetCompleted.ToEvent(user), user.Id);
                         return View("UserMessage", new UserMessageModel("Your password has been reset. <a href=\"/Account/Login\">Click here to log in</a>."));
                     }
                     else
@@ -1468,11 +1461,11 @@ namespace MillimanAccessPortal.Controllers
                     return Ok();
                 case var r when r.IsLockedOut:
                     Log.Information($"User {user.UserName} account locked out while checking two factor code.");
-                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "This account has been locked out, please try again later." }));
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { messageCode = UserMessageEnum.AccountLocked }));
                     return Ok();
                 case var r when r.IsNotAllowed:
                     Log.Information("User {user.UserName} account not allowed.");
-                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { Msg = "Login failed, please try again later." }));
+                    Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { messageCode = UserMessageEnum.AccountNotAllowed }));
                     return Ok();
                 default:
                     Log.Information($"User {user.UserName} provided incorrect two-factor code.  Prompting again.");

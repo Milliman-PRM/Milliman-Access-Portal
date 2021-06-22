@@ -553,6 +553,11 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<string>("ContactTitle")
                         .HasColumnType("text");
 
+                    b.Property<DateTime?>("LastQuarterlyMaintenanceNotificationUtc")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp without time zone")
+                        .HasDefaultValue(null);
+
                     b.Property<string>("MillimanOffice")
                         .HasColumnType("text");
 
@@ -562,6 +567,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ProfitCenterCode")
                         .HasColumnType("text");
+
+                    b.Property<List<string>>("QuarterlyMaintenanceNotificationList")
+                        .HasColumnType("text[]");
 
                     b.HasKey("Id");
 
@@ -646,6 +654,12 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<List<Guid>>("SelectedHierarchyFieldValueList")
                         .HasColumnType("uuid[]");
+
+                    b.Property<string>("TypeSpecificDetail")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("jsonb")
+                        .HasDefaultValue("{}");
 
                     b.HasKey("Id");
 
@@ -1044,8 +1058,9 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.Client", "ParentClient")
-                        .WithMany()
-                        .HasForeignKey("ParentClientId");
+                        .WithMany("ChildClients")
+                        .HasForeignKey("ParentClientId")
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("MapDbContextLib.Context.ProfitCenter", "ProfitCenter")
                         .WithMany()

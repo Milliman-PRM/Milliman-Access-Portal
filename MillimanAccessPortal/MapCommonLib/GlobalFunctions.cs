@@ -22,6 +22,7 @@ namespace MapCommonLib
         public static ulong MaxFileUploadSize { get; set; } = 5368709120;
         public static ulong VirusScanWindowSeconds { get; set; } = 30;
         public static int DefaultClientDomainListCountLimit { get; set; } = 3;
+        public static string MillimanSupportEmailAlias { get; set; } = "";
         public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
 
         public static readonly int fallbackPasswordHistoryDays = 30;
@@ -181,7 +182,12 @@ namespace MapCommonLib
 
         public static void IssueLog(IssueLogEnum issue, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
         {
-            Log.Write(level, $"{issue.ToString()}: {message}", parms);
+            Log.Write(level, $"{issue.GetDisplayNameString()}: {message}", parms);
+        }
+
+        public static void IssueLog(IssueLogEnum issue, Exception ex, string message, LogEventLevel level = LogEventLevel.Information, params object[] parms)
+        {
+            Log.Write(level, ex, $"{issue.GetDisplayNameString()}: {message}", parms);
         }
     }
 
@@ -191,7 +197,9 @@ namespace MapCommonLib
     /// </summary>
     public enum IssueLogEnum
     {
-        LongRunningSelectionGroupProcessing
+        LongRunningSelectionGroupProcessing,
+        TrackQlikviewApiTiming,
+        PublishingStuck
     }
 
 }

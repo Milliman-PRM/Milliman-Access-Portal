@@ -15,6 +15,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib.Event;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
 
 namespace AuditLogLib
 {
@@ -63,14 +66,13 @@ namespace AuditLogLib
             if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)))
             {
                 // This block supports the use of a connection string provided through dependency injection
-                Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension Extension =
-                    Builder.Options.Extensions.First(x => x.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)) as Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension;
-                Builder.UseNpgsql(Extension.ConnectionString);
+                string cxnstr = Builder.Options.GetExtension<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension>().ConnectionString;
+                Builder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
             }
             else
             {
                 // This block supports ef migration add, where no connection string is provided through dependency injection
-                Builder.UseNpgsql(GetConfiguredConnectionString());
+                Builder.UseNpgsql(GetConfiguredConnectionString(), o => o.SetPostgresVersion(9, 6));
             }
         }
 
@@ -109,6 +111,21 @@ namespace AuditLogLib
                     auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
 
                     break;
+                case "AZURE-ISDEV":
+                case "AZURE-DEV":
+                case "AZURE-UAT":
+                case "AZURE-PROD":
+                    // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
+                    configurationBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                    var azureBuiltConfig = configurationBuilder.Build();
+
+                    var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
+                    configurationBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+
+                    built = configurationBuilder.Build();
+
+                    auditLogConnectionString = built.GetConnectionString(ConnectionStringName);
+                    break;
 
                 case "DEVELOPMENT":
                     configurationBuilder.AddUserSecrets<AuditLogDbContext>();
@@ -125,6 +142,13 @@ namespace AuditLogLib
             {
                 Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
                 stringBuilder.Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME");
+                auditLogConnectionString = stringBuilder.ConnectionString;
+            }
+
+            if (Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER") != null)
+            {
+                Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString);
+                stringBuilder.Host = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
                 auditLogConnectionString = stringBuilder.ConnectionString;
             }
 

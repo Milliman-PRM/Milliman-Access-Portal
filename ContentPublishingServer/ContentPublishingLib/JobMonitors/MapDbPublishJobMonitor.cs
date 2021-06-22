@@ -199,13 +199,14 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentPublicationRequest>();
             }
 
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-            using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
+            try
             {
-                try
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
                 {
                     IQueryable<ContentPublicationRequest> QueuedPublicationQuery = Db.ContentPublicationRequest.Where(r => r.RequestStatus == PublicationStatus.Queued)
                                                                                                                .Include(r => r.RootContentItem)
+                                                                                                                .ThenInclude(rci => rci.ContentType)
                                                                                                                .OrderBy(r => r.CreateDateTimeUtc);
 
                     // Customize the query based on this job monitor type
@@ -252,11 +253,11 @@ namespace ContentPublishingLib.JobMonitors
 
                     return TopItems;
                 }
-                catch (Exception e)
-                {
-                    Log.Information(e, $"Failed to query MAP database for available tasks:");
-                    return new List<ContentPublicationRequest>();
-                }
+            }
+            catch (Exception e)
+            {
+                Log.Warning(e, $"Failed to query MAP database for available tasks:");
+                return new List<ContentPublicationRequest>();
             }
         }
 

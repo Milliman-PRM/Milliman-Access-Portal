@@ -149,7 +149,7 @@ CREATE TABLE public."UserInSelectionGroup"
    REFERENCES public."Users" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "FK_UserInSelectionGroup_SelectionGroup_SelectionGroupId" FOREIGN KEY ("SelectionGroupId")
-   REFERENCES map."SelectionGroup" ("Id") MATCH SIMPLE
+   REFERENCES public."SelectionGroup" ("Id") MATCH SIMPLE
    ON UPDATE NO ACTION ON DELETE CASCADE,
    CONSTRAINT "UNIQUE_User_SelectionGroup_Current" UNIQUE ("UserId", "SelectionGroupId", "EndDate")
 );
@@ -219,6 +219,53 @@ CREATE TABLE public."QlikViewAudit"
 	REFERENCES public."QlikViewSession" ("Session") MATCH SIMPLE
 	ON UPDATE NO ACTION ON DELETE CASCADE*/ -- This key can't be implemented as-is. We need to determine whether Session will always be unique, which seems unlikely at the moment
 );
+
+CREATE TABLE public."FileDrop"
+(
+  "Id" uuid NOT NULL,
+  "ClientId" uuid NOT NULL,
+  "Name" text NOT NULL,
+  "Description" text,
+  CONSTRAINT "PK_FileDrop" PRIMARY KEY ("Id"),
+  CONSTRAINT "FK_FileDrop_Client_ClientId" FOREIGN KEY ("ClientId")
+      REFERENCES public."Client" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE public."FileDropUserPermissionGroup"
+(
+  "Id" uuid NOT NULL,
+  "Name" text,
+  "ReadAccess" boolean,
+  "WriteAccess" boolean,
+  "DeleteAccess" boolean,
+  "IsPersonalGroup" boolean,
+  "FileDropId" uuid NOT NULL,
+  CONSTRAINT "PK_FileDropUserPermissionGroup" PRIMARY KEY ("Id"),
+  CONSTRAINT "FK_FileDropUserPermissionGroup_FileDrop_FileDropId" FOREIGN KEY ("FileDropId")
+      REFERENCES public."FileDrop" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE
+);
+
+CREATE TABLE public."SftpAccount"
+(
+  "Id" uuid NOT NULL,
+  "UserName" text NOT NULL,
+  "IsSuspended" boolean,
+  "ApplicationUserId" uuid,
+  "FileDropUserPermissionGroupId" uuid,
+  "FileDropId" uuid NOT NULL,
+  "StartDate" date NOT NULL,
+  "EndDate" date NOT NULL DEFAULT '12-31-9999', -- Default value makes BETWEEN clausess easy to use and makes the current record easy to find
+  CONSTRAINT "FK_SftpAccount_PermissionGroup_PermissionGroupId" FOREIGN KEY ("FileDropUserPermissionGroupId")
+      REFERENCES public."FileDropUserPermissionGroup" ("Id") MATCH SIMPLE
+      ON UPDATE NO ACTION ON DELETE CASCADE,
+  CONSTRAINT "FK_FileDropUserPermissionGroup_FileDrop_FileDropId" FOREIGN KEY ("FileDropId")
+      REFERENCES public."FileDrop" ("Id") MATCH SIMPLE
+  	  ON UPDATE NO ACTION ON DELETE CASCADE,
+   CONSTRAINT "UNIQUE_User_PermissionGroup_Current" UNIQUE ("Id", "FileDropUserPermissionGroupId", "EndDate")
+);
+
 
 /*
 
@@ -320,7 +367,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionFile" AS
  WITH "SessionFiles" AS (
          SELECT "QlikViewSession"."Id" AS "SessionId",
             "QlikViewSession"."SessionStartTime",
-            regexp_replace("QlikViewSession"."Document", '\\\\[A-Za-z0-9\-\\]+CONTENT\\'::text, ''::text, 'ig'::text) AS "Filename",
+            SUBSTRING("QlikViewSession"."Document", POSITION('CONTENT\' in "QlikViewSession"."Document") + 8) AS "Filename",
             "QlikViewSession"."Session",
             "QlikViewSession"."LogFileName",
             "QlikViewSession"."LogFileLineNumber"
@@ -383,6 +430,11 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
         END) AS "SessionCount90Days",
     sum(
         CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN 1
+            ELSE 0
+        END) AS "SessionCount180Days",
+    sum(
+        CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '30 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
         END) AS "TotalDuration30Days",
@@ -396,6 +448,11 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
         END) AS "TotalDuration90Days",
+    sum(
+        CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN qvs."SessionDuration"
+            ELSE NULL::interval
+        END) AS "TotalDuration180Days",
     avg(
         CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '30 days'::interval) THEN qvs."SessionDuration"
@@ -410,7 +467,12 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
         CASE
             WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval) THEN qvs."SessionDuration"
             ELSE NULL::interval
-        END) AS "AverageDuration90Days"
+        END) AS "AverageDuration90Days",
+    avg(
+        CASE
+            WHEN qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval) THEN qvs."SessionDuration"
+            ELSE NULL::interval
+        END) AS "AverageDuration180Days"
    FROM "QlikViewSession" qvs
      JOIN "QlikViewSessionFile" sf ON qvs."Id" = sf."SessionId"
      JOIN "RootContentItem" rci ON rci."Id"::text = sf."RootContentItemId"
@@ -424,7 +486,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionStats" AS
            FROM map."UserInSelectionGroup" usg
              JOIN map."SelectionGroup" sg ON usg."SelectionGroupId" = sg."Id"
              JOIN "Users" usr_1 ON usg."UserId" = usr_1."Id") usrgrp ON lower(qvs."Username") = lower(usrgrp."UserName"::text) AND sf."RootContentItemId" = usrgrp."RootContentItemId"::text
-  WHERE cpc."EndDate" = '9999-12-31'::date AND qvs."SessionStartTime" > (timezone('utc'::text, now()) - '90 days'::interval)
+  WHERE cpc."EndDate" = '9999-12-31'::date AND qvs."SessionStartTime" > (timezone('utc'::text, now()) - '180 days'::interval)
   GROUP BY pc."Name", cl."Name", rci."ContentName", qvs."Username", rci."Id", usrgrp."GroupName", pc."Id", cl."Id";
 
 ALTER TABLE public."QlikViewSessionStats"
@@ -490,6 +552,12 @@ CREATE OR REPLACE VIEW public."UserRecentLogins" AS
             WHEN ae."TimeStampUtc" > (timezone('utc'::text, now()) - '90 days'::interval) THEN 1
             ELSE 0
         END) AS "Logins last 90 days",
+    sum(
+        CASE
+            WHEN ae."TimeStampUtc" IS NULL THEN 0
+            WHEN ae."TimeStampUtc" > (timezone('utc'::text, now()) - '180 days'::interval) THEN 1
+            ELSE 0
+        END) AS "Logins last 180 days",
     upc."ProfitCenterId"
    FROM "ProfitCenter" pc
      JOIN "UserInProfitCenter" upc ON pc."Id" = upc."ProfitCenterId"
@@ -584,3 +652,21 @@ CREATE OR REPLACE VIEW public."UserRoleListing" AS
 ALTER TABLE public."UserRoleListing"
     OWNER TO prmpgadmin;
 
+CREATE OR REPLACE VIEW public."UserInFileDrop" AS
+ SELECT pc."Name" AS "ProfitCenter",
+    cl."Name" AS "ClientName",
+    fd."Name" As "FileDropName",
+    pg."Name" As "PermissionGroupName",
+    usr."UserName",
+	psa."StartDate",
+	psa."EndDate"
+   FROM public."SftpAccount" psa
+   	 LEFT JOIN "Users" usr ON usr."Id" = psa."ApplicationUserId"
+     LEFT JOIN "FileDropUserPermissionGroup" pg ON psa."FileDropUserPermissionGroupId" = pg."Id"
+     JOIN "FileDrop" fd ON pg."FileDropId" = fd."Id"
+     JOIN public."Client" cl ON fd."ClientId" = cl."Id"
+	 JOIN public."ClientInProfitCenter" cpc ON cpc."ClientId" = cl."Id"
+     JOIN public."ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id";
+
+ALTER TABLE public."UserInFileDrop"
+    OWNER TO prmpgadmin;

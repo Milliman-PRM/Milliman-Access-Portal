@@ -2,6 +2,22 @@
 
 ## Release Notes
 
+### v1.13.0
+
+- Added the ability to publish Power BI content in editable mode and authorize Selection Groups to utilize editable mode
+- Added the user ID field to all audit log entries
+- Fixed a bug that prevented deleting of certain Selection Groups depending on the publication history of the Content Item
+- Fixed a bug that temporarily blocked all publishing due to a publication that was abandoned during content file upload
+- Improved publishing server resiliency by catching an exception caused by a transient failure to connect to the database
+
+### v1.12.0
+
+- User accounts with no login during the past 12 months will be disabled
+- Added the ability to send a quarterly email summarizing the status of Content Access Reviews for Clients of a Profit Center
+- All users must now accept the MAP user agreement annually
+- Expanded the use of retries during post-processing of Qlikview content publication to make large publications more reliable
+- Added support for new execution environments
+
 #### v1.11.2
 
 - Fixed a bug that caused updates to user roles to be incompletely applied

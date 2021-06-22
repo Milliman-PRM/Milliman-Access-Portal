@@ -227,6 +227,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ClientAdminController.SaveNewUser action request to add user {(!string.IsNullOrWhiteSpace(Model.Email) ? Model.Email : Model.UserName) ?? "<Unspecified>"} to clientId {Model.MemberOfClientId}");
 
             ApplicationUser RequestedUser = null;
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
 
             #region If user already exists get the record
             if (!string.IsNullOrWhiteSpace(Model.Email))
@@ -261,7 +262,7 @@ namespace MillimanAccessPortal.Controllers
                         // also logged:
                         //   - requested user
                         //   - (there is no requested client)
-                        AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
+                        AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator), currentUser.UserName, currentUser.Id);
 
                         Response.Headers.Add("Warning", "You are not authorized to create a user");
                         return Unauthorized();
@@ -276,7 +277,7 @@ namespace MillimanAccessPortal.Controllers
                         // also logged:
                         //   - requested user
                         //   - requested client ID
-                        AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
+                        AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator), currentUser.UserName, currentUser.Id);
 
                         Response.Headers.Add("Warning", "You are not authorized to create a user for the requested client");
                         return Unauthorized();
@@ -295,7 +296,7 @@ namespace MillimanAccessPortal.Controllers
                     //   - requested user
                     //   - requested clients
                     //   - client ID
-                    AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator));
+                    AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.UserCreator), currentUser.UserName, currentUser.Id);
 
                     Response.Headers.Add("Warning", $"You are not authorized to assign a user to the requested client");
                     return Unauthorized();
@@ -390,7 +391,7 @@ namespace MillimanAccessPortal.Controllers
                   return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
                 await DbContext.SaveChangesAsync();
-                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason), currentUser.UserName, currentUser.Id);
 
                 await UpdateAllUserRolesInClient(new UpdateAllUserRolesInClientRequestModel { ClientId = Model.MemberOfClientId, 
                                                                                               UserId = RequestedUser.Id, 
@@ -425,6 +426,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("In ClientAdminController.AssignUserToClient action for model {@ClientUserAssociationViewModel}", Model);
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Client RequestedClient = await DbContext.Client.FindAsync(Model.ClientId);
 
             #region Preliminary validation - Requested client must exist
@@ -499,7 +501,7 @@ namespace MillimanAccessPortal.Controllers
                     return StatusCode(StatusCodes.Status500InternalServerError, ErrMsg);
                 }
 
-                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
+                AuditLogger.Log(AuditEventType.UserAssignedToClient.ToEvent(RequestedClient, RequestedUser, Model.Reason), currentUser.UserName, currentUser.Id);
             }
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
@@ -524,6 +526,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             ApplicationUser RequestedUser = await _userManager.FindByIdAsync(model.UserId.ToString());
             Client RequestedClient = await DbContext.Client.FindAsync(model.ClientId);
 
@@ -604,11 +607,11 @@ namespace MillimanAccessPortal.Controllers
                                 if (a.FileDropUserPermissionGroup != null)
                                 {
                                     a.FileDropUserPermissionGroupId = null;
-                                    AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                                    AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop), currentUser.UserName, currentUser.Id);
                                     Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: account {a.UserName} removed from permission group <{a.FileDropUserPermissionGroup.Name}> because FileDropUser role was removed from user {RequestedUser.UserName}");
                                     if (a.FileDropUserPermissionGroup.IsPersonalGroup)
                                     {
-                                        AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                        AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup), currentUser.UserName, currentUser.Id);
                                         DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
                                     }
                                 }
@@ -634,7 +637,7 @@ namespace MillimanAccessPortal.Controllers
                             break;
                     }
                 }
-                AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason));
+                AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(RequestedClient, RequestedUser, rolesToRemove.Select(r => r.Role.RoleEnum).ToList(), model.Reason), currentUser.UserName, currentUser.Id);
 
                 // add roles not already assigned
                 if (roleAssignment.IsAssigned && !existingAssignedRoles.Any(r => r.Role.RoleEnum == roleAssignment.RoleEnum))
@@ -643,7 +646,7 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, ClientId = RequestedClient.Id, RoleId = roleRecord.Id });
 
                     Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason), currentUser.UserName, currentUser.Id);
 
                     switch (roleAssignment.RoleEnum) 
                     {
@@ -653,7 +656,7 @@ namespace MillimanAccessPortal.Controllers
                                 ApplicationRole UserCreatorRole = await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString());
                                 DbContext.UserRoleInClient.Add(new UserRoleInClient { UserId = RequestedUser.Id, RoleId = UserCreatorRole.Id, ClientId = RequestedClient.Id });
                                 Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Role {roleRecord.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                                AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason));
+                                AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { roleRecord.RoleEnum }, model.Reason), currentUser.UserName, currentUser.Id);
                             }
                             break;
 
@@ -715,6 +718,8 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> SetUserRoleInClient([FromBody] SetUserRoleInClientRequestModel model)
         {
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action for model {{@SetUserRoleInClientRequestModel}}", model);
+
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
 
             #region Authorization
             if (!(await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, model.ClientId))).Succeeded)
@@ -823,7 +828,7 @@ namespace MillimanAccessPortal.Controllers
                     await DbContext.SaveChangesAsync();
 
                     Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} added for username {RequestedUser.UserName} to client {RequestedClient.Id}");
-                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }, model.Reason));
+                    AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(RequestedClient, RequestedUser, new List<RoleEnum> { RequestedRole.RoleEnum }, model.Reason), currentUser.UserName, currentUser.Id);
                 }
             }
             else
@@ -868,10 +873,10 @@ namespace MillimanAccessPortal.Controllers
                     {
                         if (a.FileDropUserPermissionGroup != null)
                         {
-                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop));
+                            AuditLogger.Log(AuditEventType.AccountRemovedFromPermissionGroup.ToEvent(a, a.FileDropUserPermissionGroup, a.FileDrop), currentUser.UserName, currentUser.Id);
                             if (a.FileDropUserPermissionGroup.IsPersonalGroup)
                             {
-                                AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup));
+                                AuditLogger.Log(AuditEventType.FileDropPermissionGroupDeleted.ToEvent(a.FileDrop, a.FileDropUserPermissionGroup), currentUser.UserName, currentUser.Id);
                                 DbContext.FileDropUserPermissionGroup.Remove(a.FileDropUserPermissionGroup);
                             }
                         }
@@ -886,7 +891,7 @@ namespace MillimanAccessPortal.Controllers
                 Log.Verbose($"In ClientAdminController.SetUserRoleInClient action: Role {RequestedRole.Name} removed for username {RequestedUser.UserName} to client {RequestedClient.Id}");
                 foreach (var existingRecord in ExistingRecordsForRequestedRole)
                 {
-                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }, model.Reason));
+                    AuditLogger.Log(AuditEventType.ClientRoleRemoved.ToEvent(existingRecord.Client, existingRecord.User, new List<RoleEnum> { existingRecord.Role.RoleEnum }, model.Reason), currentUser.UserName, currentUser.Id);
                 }
             }
             #endregion
@@ -928,6 +933,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered ClientAdminController.RemoveUserFromClient action with parameters {@ClientUserAssociationViewModel}, {@AllowZeroAdmins}", Model, AllowZeroAdmins);
 
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             Client RequestedClient = await DbContext.Client.FindAsync(Model.ClientId);
 
             #region Preliminary validation
@@ -1033,7 +1039,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             Log.Verbose($"In ClientAdminController.RemoveUserFromClient action: user {Model.UserId} removed from client {Model.ClientId}");
-            AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser, Model.Reason));
+            AuditLogger.Log(AuditEventType.UserRemovedFromClient.ToEvent(RequestedClient, RequestedUser, Model.Reason), currentUser.UserName, currentUser.Id);
 
             ClientDetailViewModel ReturnModel = new ClientDetailViewModel { ClientEntity = RequestedClient };
             await ReturnModel.GenerateSupportingProperties(DbContext, _userManager, await _userManager.GetUserAsync(User), RoleEnum.Admin, false);
@@ -1055,7 +1061,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered ClientAdminController.SaveNewClient action with parameter {@Client}", Model);
 
-            ApplicationUser CurrentApplicationUser = await _userManager.GetUserAsync(User);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
 
             #region Preliminary Validation
             if (!ModelState.IsValid)
@@ -1153,10 +1159,10 @@ namespace MillimanAccessPortal.Controllers
             #endregion Validation
 
             // Make sure current user is allowed by email or domain whitelist
-            if (!GlobalFunctions.DoesEmailSatisfyClientWhitelists(CurrentApplicationUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
+            if (!GlobalFunctions.DoesEmailSatisfyClientWhitelists(currentUser.Email, Model.AcceptedEmailDomainList, Model.AcceptedEmailAddressExceptionList))
             {
-                Model.AcceptedEmailAddressExceptionList.Add(CurrentApplicationUser.Email);
-                Log.Verbose($"In ClientAdminController.SaveNewClient action: automatically added current user {CurrentApplicationUser.UserName} to email exception list of new client");
+                Model.AcceptedEmailAddressExceptionList.Add(currentUser.Email);
+                Log.Verbose($"In ClientAdminController.SaveNewClient action: automatically added current user {currentUser.UserName} to email exception list of new client");
             }
 
             using (IDbContextTransaction DbTransaction = await DbContext.Database.BeginTransactionAsync())
@@ -1167,7 +1173,7 @@ namespace MillimanAccessPortal.Controllers
                     DbContext.Client.Add(Model);
                     await DbContext.SaveChangesAsync();
 
-                    DbContext.UserClaims.Add(new IdentityUserClaim<Guid> { UserId = CurrentApplicationUser.Id, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.Id.ToString() });
+                    DbContext.UserClaims.Add(new IdentityUserClaim<Guid> { UserId = currentUser.Id, ClaimType = ClaimNames.ClientMembership.ToString(), ClaimValue = Model.Id.ToString() });
                     await DbContext.SaveChangesAsync();
 
                     // Add current user's role as ClientAdministrator of new Client to local context
@@ -1175,13 +1181,13 @@ namespace MillimanAccessPortal.Controllers
                     {
                         ClientId = Model.Id,
                         RoleId = (await RoleManager.FindByNameAsync(RoleEnum.Admin.ToString())).Id,
-                        UserId = CurrentApplicationUser.Id
+                        UserId = currentUser.Id
                     });
                     DbContext.UserRoleInClient.Add(new UserRoleInClient
                     {
                         ClientId = Model.Id,
                         RoleId = (await RoleManager.FindByNameAsync(RoleEnum.UserCreator.ToString())).Id,
-                        UserId = CurrentApplicationUser.Id
+                        UserId = currentUser.Id
                     });
                     await DbContext.SaveChangesAsync();
 
@@ -1197,11 +1203,10 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Log new client store and ClientAdministrator role authorization events
-            Log.Verbose($"In ClientAdminController.SaveNewClient action: client {Model.Id} created and user {CurrentApplicationUser.UserName} assigned Administrator and UserCreator roles");
-            AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model));
-            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, CurrentApplicationUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }, HitrustReason.NewMapClient.NumericValue));
+            Log.Verbose($"In ClientAdminController.SaveNewClient action: client {Model.Id} created and user {currentUser.UserName} assigned Administrator and UserCreator roles");
+            AuditLogger.Log(AuditEventType.ClientCreated.ToEvent(Model), currentUser.UserName, currentUser.Id);
+            AuditLogger.Log(AuditEventType.ClientRoleAssigned.ToEvent(Model, currentUser, new List<RoleEnum> { RoleEnum.Admin, RoleEnum.UserCreator }, HitrustReason.NewMapClient.NumericValue), currentUser.UserName, currentUser.Id);
 
-            var currentUser = await _userManager.GetUserAsync(User);
             var returnModel = await _clientAdminQueries.GetNewClientResponseModelAsync(currentUser, Model.Id);
             return Json(returnModel);
         }
@@ -1218,6 +1223,7 @@ namespace MillimanAccessPortal.Controllers
         {
             Log.Verbose("Entered ClientAdminController.EditClient action with model {@Client}", Model);
 
+            var currentUser = await _userManager.GetUserAsync(User);
             Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.Id);
 
             #region Preliminary Validation
@@ -1401,7 +1407,7 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 Log.Verbose($"In ClientAdminController.EditClient action: client {ExistingClientRecord.Id} updated");
-                AuditLogger.Log(AuditEventType.ClientEdited.ToEvent(Model));
+                AuditLogger.Log(AuditEventType.ClientEdited.ToEvent(Model), currentUser.UserName, currentUser.Id);
             }
             catch (Exception ex)
             {
@@ -1410,7 +1416,6 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
 
-            var currentUser = await _userManager.GetUserAsync(User);
             var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
             return Json(clients);
@@ -1516,10 +1521,10 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: deleted client {ExistingClient.Id}");
-            AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient));
-
             var currentUser = await _userManager.GetUserAsync(User);
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: deleted client {ExistingClient.Id}");
+            AuditLogger.Log(AuditEventType.ClientDeleted.ToEvent(ExistingClient), currentUser.UserName, currentUser.Id);
+
             var clients = await _clientAdminQueries.GetAuthorizedClientsModelAsync(currentUser);
 
             return Json(clients);

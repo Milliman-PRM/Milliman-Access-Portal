@@ -52,8 +52,8 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, clientEntities, contentItemForPublication, contentItemToBeCanceled,
-  contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
+  availableContentTypes, canDownloadCurrentContentItem, clientEntities, contentItemForPublication,
+  contentItemToBeCanceled, contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
   itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
@@ -92,6 +92,7 @@ interface ContentPublishingProps {
   formChangesPending: boolean;
   goLiveApproveButtonIsActive: boolean;
   uploadChangesPending: boolean;
+  canDownloadCurrentContentItem: boolean;
   contentItemForPublication: ContentItemPublicationDetail;
 }
 
@@ -643,11 +644,24 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
     const { contentTypes, formData, items, pending } = this.props;
     const { formErrors, pendingFormData, formState, uploads } = formData;
     const editFormButton = (
-      <ActionIcon
-        label="Update Content Item"
-        icon="upload"
-        action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
-      />
+      <>
+        {
+          this.props.canDownloadCurrentContentItem &&
+          <a
+            href={`./ContentPublishing/DownloadPowerBiContentItem?contentItemId=${pendingFormData.id}`}
+            download={true}
+          >
+            <svg className="action-icon">
+              <use xlinkHref="#download" />
+            </svg>
+          </a>
+        }
+        <ActionIcon
+          label="Update Content Item"
+          icon="upload"
+          action={() => { this.props.setContentItemFormState({ formState: 'write' }); }}
+        />
+      </>
     );
     const selectedItemStatus = items.filter((x) => x.id === pendingFormData.id)[0];
     const closeFormButton = (
@@ -791,6 +805,17 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI' &&
                   <>
                     <Checkbox
+                      name="Editable"
+                      selected={formData.pendingFormData.typeSpecificDetailObject.editableEnabled}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'editableEnabled',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read'}
+                      description={' - this will give Content Access Admins the option to allow users to edit ' +
+                                   ' the document in MAP, and upon save will update the content for all users'}
+                    />
+                    <Checkbox
                       name="Navigation Pane"
                       selected={formData.pendingFormData.typeSpecificDetailObject.navigationPaneEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({
@@ -798,6 +823,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to navigate between the pages of the Power BI document'}
                     />
                     <Checkbox
                       name="Filter Pane"
@@ -807,6 +833,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to configure which filters to include and' +
+                                   ' update existing filters'}
                     />
                     <Checkbox
                       name="Bookmark Pane"
@@ -816,6 +844,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         value: status,
                       })}
                       readOnly={formState === 'read'}
+                      description={' - this will allow users to capture the current view of a report page' +
+                                   ' including filters and the state of visuals'}
                     />
                   </>
                 }
@@ -1094,6 +1124,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         imageURL={goLiveSummary.thumbnailLink}
         userguideURL={goLiveSummary.userGuideLink}
         releaseNotesURL={goLiveSummary.releaseNotesLink}
+        editableEnabled={goLiveSummary.editableEnabled}
         selectContent={() => false}
       />
     );
@@ -1322,6 +1353,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     goLiveApproveButtonIsActive: goLiveApproveButtonIsActive(state),
     uploadChangesPending: uploadChangesPending(state),
     contentItemForPublication: contentItemForPublication(state),
+    canDownloadCurrentContentItem: canDownloadCurrentContentItem(state),
   };
 }
 

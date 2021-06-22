@@ -24,12 +24,16 @@ using Prm.EmailQueue;
 using Prm.SerilogCustomization;
 using Serilog;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 using MapDbContextLib.Identity;
+using Azure.Identity;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
 
 namespace MillimanAccessPortal
 {
@@ -47,62 +51,63 @@ namespace MillimanAccessPortal
                 #region Initialize global resources
                 IConfiguration Configuration = serviceProvider.GetService<IConfiguration>();
 
-                GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
-                GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
-                GlobalFunctions.FileDropValRegex = Configuration.GetValue("Global:FileDropValidationRegex", GlobalFunctions.FileDropValRegex);
-                GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
-                GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
-                GlobalFunctions.DefaultClientDomainListCountLimit = Configuration.GetValue("Global:DefaultClientDomainListCountLimit", GlobalFunctions.DefaultClientDomainListCountLimit);
-                GlobalFunctions.NonLimitedDomains = 
-                    (
-                        Configuration.GetValue<string>("Global:NonLimitedDomains", null)
-                        ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                        ?.Select(d => d.Trim())
-                        ?? GlobalFunctions.NonLimitedDomains
-                    ).ToList();
-
-                // Initialize Serilog
-                Log.Logger = new LoggerConfiguration()
-                    .ReadFrom.Configuration(Configuration)
-                    .Enrich.With<UtcTimestampEnricher>()
-                    .CreateLogger();
-
-                #region Configure Audit Logger connection string
-                string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
-
-                // If the database name is defined in the environment, update the connection string
-                if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
-                {
-                    Npgsql.NpgsqlConnectionStringBuilder stringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(auditLogConnectionString)
-                    {
-                        Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
-                    };
-                    auditLogConnectionString = stringBuilder.ConnectionString;
-                }
-
-                AuditLogger.Config = new AuditLoggerConfiguration
-                {
-                    AuditLogConnectionString = auditLogConnectionString,
-                    ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
-                };
-                #endregion
-                #endregion
-
-                Assembly processAssembly = Assembly.GetEntryAssembly();
-                FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
-                NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
-
-                FileDropOperations.MapDbConnectionString = cxnStrBuilder.ConnectionString;
-
-                Log.Information($"Process launched:{Environment.NewLine}" +
-                                $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
-                                $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
-                                $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
-                                $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
-                                $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
-
                 try
                 {
+                    // Initialize Serilog
+                    Log.Logger = new LoggerConfiguration()
+                        .ReadFrom.Configuration(Configuration)
+                        .Enrich.With<UtcTimestampEnricher>()
+                        .CreateLogger();
+
+                    Assembly processAssembly = Assembly.GetEntryAssembly();
+                    FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
+                    NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
+                    FileDropOperations.MapDbConnectionString = cxnStrBuilder.ConnectionString;
+
+                    Log.Information($"Process launched:{Environment.NewLine}" +
+                                    $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
+                                    $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
+                                    $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
+                                    $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
+                                    $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
+
+                    GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
+                    GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
+                    GlobalFunctions.FileDropValRegex = Configuration.GetValue("Global:FileDropValidationRegex", GlobalFunctions.FileDropValRegex);
+                    GlobalFunctions.MaxFileUploadSize = Configuration.GetValue("Global:MaxFileUploadSize", GlobalFunctions.MaxFileUploadSize);
+                    GlobalFunctions.VirusScanWindowSeconds = Configuration.GetValue("Global:VirusScanWindowSeconds", GlobalFunctions.VirusScanWindowSeconds);
+                    GlobalFunctions.DefaultClientDomainListCountLimit = Configuration.GetValue("Global:DefaultClientDomainListCountLimit", GlobalFunctions.DefaultClientDomainListCountLimit);
+                    GlobalFunctions.MillimanSupportEmailAlias = Configuration.GetValue("SupportEmailAlias", "map.support@milliman.com");
+                    GlobalFunctions.NonLimitedDomains = 
+                        (
+                            Configuration.GetValue<string>("Global:NonLimitedDomains", null)
+                            ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
+                            ?.Select(d => d.Trim())
+                            ?? GlobalFunctions.NonLimitedDomains
+                        ).ToList();
+                    Directory.CreateDirectory(Configuration.GetValue<string>("Storage:TemporaryExports"));
+
+                    #region Configure Audit Logger connection string
+                    string auditLogConnectionString = Configuration.GetConnectionString("AuditLogConnectionString");
+
+                    // If the database name is defined in the environment, update the connection string
+                    if (Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME") != null)
+                    {
+                        NpgsqlConnectionStringBuilder stringBuilder = new NpgsqlConnectionStringBuilder(auditLogConnectionString)
+                        {
+                            Database = Environment.GetEnvironmentVariable("AUDIT_LOG_DATABASE_NAME")
+                        };
+                        auditLogConnectionString = stringBuilder.ConnectionString;
+                    }
+
+                    AuditLogger.Config = new AuditLoggerConfiguration
+                    {
+                        AuditLogConnectionString = auditLogConnectionString,
+                        ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
+                    };
+                    #endregion
+                    #endregion
+
                     await ApplicationDbContext.InitializeAllAsync(serviceProvider);
 
                     MailSender.ConfigureMailSender(new SmtpConfig
@@ -118,15 +123,14 @@ namespace MillimanAccessPortal
                         DisclaimerExemptDomainString = Configuration.GetValue<string>("DisclaimerExemptDomainString"),
                     });
 
+                    AuditEventTypeBase.SetPathToRemove();
                 }
                 catch (Exception e)
                 {
-                    Log.Error($"ApplicationDbContext.InitializeAll() failed: {e.Message}");
+                    Log.Error(e, $"Failed to launch the MAP application");
                     throw;
                 }
             }
-
-            AuditEventTypeBase.SetPathToRemove();
 
             host.Run();
         }
@@ -165,9 +169,9 @@ namespace MillimanAccessPortal
             return host;
         }
 
-        internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder config)
+        internal static void SetApplicationConfiguration(string environmentName, IConfigurationBuilder configBuilder)
         {
-            config
+            configBuilder
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{environmentName}.json", optional: true, reloadOnChange: true)
             .AddJsonFile("powerbi.json", optional: false, reloadOnChange: true)
@@ -187,22 +191,34 @@ namespace MillimanAccessPortal
                     case "PRODUCTION":
                     case "STAGING":
                     case "INTERNAL":
-                        config.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
 
-                        var builtConfig = config.Build();
+                        var builtConfig = configBuilder.Build();
 
                         var store = new X509Store(StoreName.My, StoreLocation.LocalMachine);
                         store.Open(OpenFlags.ReadOnly);
                         var cert = store.Certificates.Find(X509FindType.FindByThumbprint, builtConfig["AzureCertificateThumbprint"], false);
 
-                        config.AddAzureKeyVault(
+                        configBuilder.AddAzureKeyVault(
                             builtConfig["AzureVaultName"],
                             builtConfig["AzureClientID"],
                             cert.OfType<X509Certificate2>().Single()
                             );
                         break;
+
+                    case "AZURE-ISDEV":
+                    case "AZURE-DEV":
+                    case "AZURE-UAT":
+                    case "AZURE-PROD":
+                        // These environments are in Azure Web Apps and don't require certificates to access the Key Vault
+                        configBuilder.AddJsonFile($"AzureKeyVault.{environmentName}.json", optional: true, reloadOnChange: true);
+                        var azureBuiltConfig = configBuilder.Build();
+
+                        var secretClient = new SecretClient(new Uri(azureBuiltConfig["AzureVaultName"]), new DefaultAzureCredential());
+                        configBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+                        break;
                     case "DEVELOPMENT":
-                        config.AddUserSecrets<Startup>();
+                        configBuilder.AddUserSecrets<Startup>();
                         break;
 
                     default: // Unsupported environment name	
@@ -212,21 +228,53 @@ namespace MillimanAccessPortal
             }
             #endregion
 
+            AddEnvironmentSuppliedConfigurationOverrides(configBuilder);
+        }
+
+        private static void AddEnvironmentSuppliedConfigurationOverrides(IConfigurationBuilder appCfgBuilder)
+        {
+            MemoryConfigurationSource newSource = null;
+
+            var localConfig = appCfgBuilder.Build();
+
+            string mapDbConnectionString = localConfig.GetConnectionString("DefaultConnection");
+            NpgsqlConnectionStringBuilder mapDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(mapDbConnectionString);
+
+            string auditLogDbConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+            NpgsqlConnectionStringBuilder auditLogDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(auditLogDbConnectionString);
+
             string dbNameOverride = Environment.GetEnvironmentVariable("APP_DATABASE_NAME");
             if (!string.IsNullOrWhiteSpace(dbNameOverride))
             {
-                var localConfig = config.Build();
-                string configuredConnectionString = localConfig.GetConnectionString("DefaultConnection");
+                newSource = newSource ?? new MemoryConfigurationSource();
 
-                Npgsql.NpgsqlConnectionStringBuilder connectionStringBuilder = new Npgsql.NpgsqlConnectionStringBuilder(configuredConnectionString);
-                connectionStringBuilder.Database = dbNameOverride;
+                mapDbConnectionStringBuilder.Database = dbNameOverride;
+            }
 
-                string newConnectionString = connectionStringBuilder.ConnectionString;
+            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+            if (!string.IsNullOrWhiteSpace(dbServerOverride))
+            {
+                newSource = newSource ?? new MemoryConfigurationSource();
 
-                MemoryConfigurationSource newSource = new MemoryConfigurationSource();
-                newSource.InitialData = new List<KeyValuePair<string, string>> { new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", newConnectionString) };
+                mapDbConnectionStringBuilder.Host = dbServerOverride;
+                auditLogDbConnectionStringBuilder.Host = dbServerOverride;
+            }
+
+            if (newSource != null)
+            {
+                var newData = new List<KeyValuePair<string, string>>();
+                if (!mapDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(mapDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", mapDbConnectionStringBuilder.ConnectionString));
+                }
+                if (!auditLogDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(auditLogDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", auditLogDbConnectionStringBuilder.ConnectionString));
+                }
+                newSource.InitialData = newData;
                 var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
-                config.AddConfiguration(newConnectionStringCfg);
+
+                appCfgBuilder.AddConfiguration(newConnectionStringCfg);
             }
         }
 

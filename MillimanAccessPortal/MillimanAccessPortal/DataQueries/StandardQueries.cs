@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System.Collections.Generic;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using MapDbContextLib.Models;
 using MapDbContextLib.Context;
@@ -25,6 +26,7 @@ namespace MillimanAccessPortal.DataQueries
         private ApplicationDbContext DbContext = null;
         private UserManager<ApplicationUser> _userManager = null;
         private IAuditLogger _auditLog = null;
+        private IHttpContextAccessor _contextAccessor = null;
 
         /// <summary>
         /// Constructor, stores local copy of the caller's IServiceScope
@@ -33,12 +35,14 @@ namespace MillimanAccessPortal.DataQueries
         public StandardQueries(
             ApplicationDbContext ContextArg,
             UserManager<ApplicationUser> UserManagerArg,
-            IAuditLogger AuditLogArg
+            IAuditLogger AuditLogArg,
+            IHttpContextAccessor ContextAccessorArg
             )
         {
             DbContext = ContextArg;
             _userManager = UserManagerArg;
             _auditLog = AuditLogArg;
+            _contextAccessor = ContextAccessorArg;
         }
 
         /// <summary>
@@ -60,7 +64,9 @@ namespace MillimanAccessPortal.DataQueries
 
             if (result.Succeeded)
             {
-                _auditLog.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser));
+                var User = _contextAccessor.HttpContext.User;
+                ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+                _auditLog.Log(AuditEventType.UserAccountCreated.ToEvent(RequestedUser), currentUser.UserName, currentUser.Id);
             }
             else
             {
@@ -148,5 +154,34 @@ namespace MillimanAccessPortal.DataQueries
             return ReturnVal;
         }
 
+        /// <summary>
+        /// Returns Dictionary of Client/Sub-Client relationships with mismatching Profit Center ID's.
+        /// </summary>
+        /// <param name="profitCenterId"></param>
+        /// <returns></returns>
+        public async Task<Dictionary<string, List<Client>>> GetSubClientsWithMixedProfitCenters(Guid profitCenterId)
+        {
+            var profitCenterClients = await DbContext.Client
+                                              .Where(c => c.ProfitCenterId == profitCenterId)
+                                              .Where(c => c.ParentClientId == null)
+                                              .Include(c => c.ChildClients)
+                                              .ToListAsync();
+            Dictionary<string, List<Client>> mismatchingClientSubClientRelationships = new Dictionary<string, List<Client>>();
+            foreach (Client c in profitCenterClients)
+            {
+                if (c.ChildClients != null)
+                {
+                    List<Client> mismatchingSubClients = c.ChildClients
+                                                          .Where(cc => cc.ProfitCenterId != c.ProfitCenterId)
+                                                          .ToList();
+                    if (mismatchingSubClients.Any())
+                    {
+                        mismatchingClientSubClientRelationships.Add(c.Name, mismatchingSubClients);
+                    }
+                }
+            }
+
+            return mismatchingClientSubClientRelationships;
+        }
     }
 }

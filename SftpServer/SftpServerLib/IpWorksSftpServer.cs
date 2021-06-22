@@ -44,6 +44,7 @@ namespace SftpServerLib
             Certificate certificate = new Certificate(keyBytes);
             EstablishServerInstance(certificate);
 
+            //_sftpServer.Config("LogLevel=3");
             _sftpServer.Listening = true;
         }
 

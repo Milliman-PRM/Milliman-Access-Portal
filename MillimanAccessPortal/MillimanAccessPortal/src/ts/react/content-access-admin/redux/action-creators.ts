@@ -100,6 +100,8 @@ export const deleteGroup =
   createRequestActionCreator<AccessActions.DeleteGroup>('DELETE_GROUP');
 export const suspendGroup =
   createRequestActionCreator<AccessActions.SuspendGroup>('SUSPEND_GROUP');
+export const setGroupPowerBiEditability =
+  createRequestActionCreator<AccessActions.SetGroupPowerBiEditability>('SET_GROUP_POWER_BI_EDITABILITY');
 export const updateSelections =
   createRequestActionCreator<AccessActions.UpdateSelections>('UPDATE_SELECTIONS');
 export const cancelReduction =

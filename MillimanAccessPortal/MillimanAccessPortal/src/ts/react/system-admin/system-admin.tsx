@@ -42,8 +42,10 @@ import { ChangeSystemAdminStatusModal } from './modals/change-system-admin-statu
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
 import { ReenableUserModal } from './modals/reenable-user-modal';
+import { RemoveProfitCenterModals } from './modals/remove-profit-center';
 import { RemoveUserFromProfitCenterModal } from './modals/remove-user-from-profit-center';
 import { SetDomainLimitClientModal } from './modals/set-domain-limit';
+import { ViewConfigsModal } from './modals/view-configs';
 import { PrimaryDetailPanel } from './primary-detail-panel';
 import { SecondaryDetailPanel } from './secondary-detail-panel';
 
@@ -88,6 +90,15 @@ export interface SystemAdminState {
     targetUserEmail: string;
     targetEntitySet: 'primary' | 'secondary';
   };
+  removeProfitCenterModal: {
+    open: boolean;
+    profitCenterId: Guid;
+    profitCenterName: string;
+  };
+  viewConfigModal: {
+    open: boolean;
+    configurations: string;
+  };
 }
 export interface UserStatus {
   isAccountDisabled: boolean;
@@ -100,6 +111,7 @@ export enum SystemAdminColumn {
   CLIENT = 'client',
   PROFIT_CENTER = 'profitCenter',
   ROOT_CONTENT_ITEM = 'rootContentItem',
+  CONFIG = 'config',
 }
 
 export class SystemAdmin extends React.Component<{}, SystemAdminState> {
@@ -159,6 +171,15 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         targetUserEmail: null,
         targetEntitySet: null,
       },
+      removeProfitCenterModal: {
+        open: false,
+        profitCenterId: null,
+        profitCenterName: null,
+      },
+      viewConfigModal: {
+        open: false,
+        configurations: null,
+      },
     };
 
     this.handleReenableUser = this.handleReenableUser.bind(this);
@@ -167,9 +188,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   public componentDidUpdate() {
     const { primaryEntities, secondaryEntities, primaryDetail, secondaryDetail } = this.state.data;
-    const { card: primaryCard } = this.state.primaryPanel.selected;
+    const { column: primaryColumn, card: primaryCard } = this.state.primaryPanel.selected;
     const { column: secondaryColumn, card: secondaryCard } = this.state.secondaryPanel.selected;
-    if (primaryEntities === null) {
+    if (primaryEntities === null && primaryColumn != null) {
       this.fetchPrimaryEntities();
     }
     if (primaryCard) {
@@ -620,7 +641,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                     <CardButton
                       color={'red'}
                       tooltip="Delete profit center"
-                      onClick={() => this.handleProfitCenterDelete(entity.id)}
+                      onClick={() => this.handleRemoveProfitCenterModalOpen(entity.id, entity.name)}
                       icon={'delete'}
                     />
                     <CardButton
@@ -707,6 +728,23 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             ariaHideApp={false}
             className="modal"
             overlayClassName="modal-overlay"
+          />
+          <RemoveProfitCenterModals
+            isOpen={this.state.removeProfitCenterModal.open}
+            onRequestClose={this.handleRemoveProfitCenterModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            profitCenterId={this.state.removeProfitCenterModal.profitCenterId}
+            profitCenterName={this.state.removeProfitCenterModal.profitCenterName}
+          />
+          <ViewConfigsModal
+            isOpen={this.state.viewConfigModal.open}
+            onRequestClose={this.handleConfigModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            configurations={this.state.viewConfigModal.configurations}
           />
         </CardPanel>
         {secondaryColumnComponent}
@@ -820,6 +858,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             id: SystemAdminColumn.PROFIT_CENTER,
             name: 'Profit Centers',
           },
+          {
+            id: SystemAdminColumn.CONFIG,
+            name: 'Configs',
+          },
         ];
       case SystemAdminColumn.USER:
         return [
@@ -869,6 +911,8 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         return 'ProfitCenters';
       case SystemAdminColumn.ROOT_CONTENT_ITEM:
         return 'RootContentItems';
+      case SystemAdminColumn.CONFIG:
+        return 'SystemConfigurations';
       default:
         throw new Error(`'${column}' is not a valid column.`);
     }
@@ -945,64 +989,78 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
 
   // callbacks for child components
   private handlePrimaryColumnSelected = (column: SystemAdminColumn) => {
-    this.setState((prevState) => {
-      if (column === prevState.primaryPanel.selected.column) {
-        return prevState;
-      }
-      return {
-        data: {
-          primaryEntities: null,
-          secondaryEntities: null,
-          primaryDetail: null,
-          secondaryDetail: null,
-        },
-        primaryPanel: {
-          selected: {
-            column,
-            card: null,
+    if (column === SystemAdminColumn.CONFIG) {
+      this.handleFetchConfig();
+    } else {
+      this.setState((prevState) => {
+        if (column === prevState.primaryPanel.selected.column) {
+          return prevState;
+        }
+
+        return {
+          data: {
+            primaryEntities: null,
+            secondaryEntities: null,
+            primaryDetail: null,
+            secondaryDetail: null,
           },
-          cards: null,
-          filter: {
-            text: '',
+          primaryPanel: {
+            selected: {
+              column,
+              card: null,
+            },
+            cards: null,
+            filter: {
+              text: '',
+            },
+            createModal: {
+              open: false,
+            },
+            modalName: '',
           },
-          createModal: {
+          secondaryPanel: {
+            selected: {
+              column: null,
+              card: null,
+            },
+            cards: null,
+            filter: {
+              text: '',
+            },
+            createModal: {
+              open: false,
+            },
+            modalName: '',
+          },
+          domainLimitModal: {
             open: false,
           },
-          modalName: '',
-        },
-        secondaryPanel: {
-          selected: {
-            column: null,
-            card: null,
-          },
-          cards: null,
-          filter: {
-            text: '',
-          },
-          createModal: {
+          profitCenterModal: {
             open: false,
+            action: '',
           },
-          modalName: '',
-        },
-        domainLimitModal: {
-          open: false,
-        },
-        profitCenterModal: {
-          open: false,
-          action: '',
-        },
-        systemAdminModal: {
-          open: false,
-          enabled: false,
-        },
-        reenableUserModal: {
-          open: false,
-          targetUserId: null,
-          targetUserEmail: null,
-          targetEntitySet: null,
-        },
-      };
-    });
+          systemAdminModal: {
+            open: false,
+            enabled: false,
+          },
+          reenableUserModal: {
+            open: false,
+            targetUserId: null,
+            targetUserEmail: null,
+            targetEntitySet: null,
+          },
+          removeProfitCenterModal: {
+            open: false,
+            profitCenterId: null,
+            profitCenterName: null,
+          },
+          viewConfigModal: {
+            open: false,
+            configurations: null,
+          },
+        };
+      });
+    }
   }
 
   private handleSecondaryColumnSelected = (column: SystemAdminColumn) => {
@@ -1519,6 +1577,17 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
+  private handleRemoveProfitCenterModalOpen = (id: Guid, name: string) => {
+    this.setState((prevState) => ({
+      ...prevState,
+      removeProfitCenterModal: {
+        open: true,
+        profitCenterId: id,
+        profitCenterName: name,
+      },
+    }));
+  }
+
   private handleReenableUserModalOpen = (id: Guid, email: string, entitySet: 'primary' | 'secondary') => {
     this.setState((prevState) => ({
       ...prevState,
@@ -1541,6 +1610,54 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         targetUserEmail: null,
       },
     }));
+  }
+
+  private handleRemoveProfitCenterModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      removeProfitCenterModal: {
+        open: false,
+        profitCenterId: null,
+        profitCenterName: null,
+      },
+    }));
+  }
+
+  private handleConfigModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      viewConfigModal: {
+        open: false,
+        configurations: null,
+      },
+    }));
+  }
+
+  private handleFetchConfig = () => {
+    getJsonData('SystemAdmin/AppSettings', {}).then(
+      (response) => {
+        this.setState((prevState) => {
+          return {
+            ...prevState,
+            viewConfigModal: {
+              open: true,
+              configurations: response.configurations,
+            },
+          };
+        });
+      },
+      (_error) => {
+        this.setState((prevState) => {
+          return {
+            ...prevState,
+            viewConfigModal: {
+              open: true,
+              configurations: 'Configurations could not be found.',
+            },
+          };
+        });
+      },
+    );
   }
 
   private handleSendReset = (email: string) => {

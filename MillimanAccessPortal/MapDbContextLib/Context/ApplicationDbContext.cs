@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Npgsql;
 using System;
 using System.Collections.Generic;
@@ -101,6 +102,7 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.Property(x => x.DomainListCountLimit).HasDefaultValue(GlobalFunctions.DefaultClientDomainListCountLimit);
                 b.Property(x => x.LastAccessReview).HasDefaultValueSql("jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
+                b.HasOne(x => x.ParentClient).WithMany(c => c.ChildClients).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
             });
             builder.Entity<UserRoleInClient>(b =>
             {
@@ -121,6 +123,7 @@ namespace MapDbContextLib.Context
             builder.Entity<SelectionGroup>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.TypeSpecificDetail).HasDefaultValue(JsonConvert.SerializeObject(new object())).ValueGeneratedOnAdd();
             });
             builder.Entity<RootContentItem>(b =>
             {
@@ -143,6 +146,7 @@ namespace MapDbContextLib.Context
             builder.Entity<ProfitCenter>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.LastQuarterlyMaintenanceNotificationUtc).HasDefaultValue(null);
             });
             builder.Entity<ContentReductionTask>(b =>
             {

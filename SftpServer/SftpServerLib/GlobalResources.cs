@@ -18,6 +18,11 @@ using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
 using System.Security.Cryptography.X509Certificates;
 using System.IO;
+using Azure.Security.KeyVault.Secrets;
+using Azure.Extensions.AspNetCore.Configuration.Secrets;
+using Azure.Identity;
+using Microsoft.Extensions.Configuration.Memory;
+using System.Collections.Generic;
 
 namespace SftpServerLib
 {
@@ -82,6 +87,15 @@ namespace SftpServerLib
                     }
 
                     break;
+                case "AZURE-ISDEV":
+                case "AZURE-DEV":
+                case "AZURE-UAT":
+                case "AZURE-PROD":
+                    // get (environment dependent) settings from Azure key vault if any exist
+                    string vaultUri = Environment.GetEnvironmentVariable("AzureVaultName")?.ToUpper();
+                    var secretClient = new SecretClient(new Uri(vaultUri), new DefaultAzureCredential());
+                    CfgBuilder.AddAzureKeyVault(secretClient, new KeyVaultSecretManager());
+                    break;
 
                 case null:  // for framework GUI project
                 case "DEVELOPMENT":
@@ -93,6 +107,9 @@ namespace SftpServerLib
 
             }
             #endregion
+
+            // Enable override of database server name; required in environments where the public DNS name and private DNS name differ
+            AddEnvironmentSuppliedConfigurationOverrides(CfgBuilder);
 
             ApplicationConfiguration = CfgBuilder.Build() as ConfigurationRoot;
 
@@ -116,6 +133,45 @@ namespace SftpServerLib
             }
 
             // ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, ApplicationConfiguration, ConfigurationDumper.DumpTarget.Console);
+        }
+
+        private static void AddEnvironmentSuppliedConfigurationOverrides(IConfigurationBuilder appCfgBuilder)
+        {
+            MemoryConfigurationSource newSource = null;
+
+            var localConfig = appCfgBuilder.Build();
+
+            string mapDbConnectionString = localConfig.GetConnectionString("DefaultConnection");
+            NpgsqlConnectionStringBuilder mapDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(mapDbConnectionString);
+
+            string auditLogDbConnectionString = localConfig.GetConnectionString("AuditLogConnectionString");
+            NpgsqlConnectionStringBuilder auditLogDbConnectionStringBuilder = new NpgsqlConnectionStringBuilder(auditLogDbConnectionString);
+
+            string dbServerOverride = Environment.GetEnvironmentVariable("MAP_DATABASE_SERVER");
+            if (!string.IsNullOrWhiteSpace(dbServerOverride))
+            {
+                newSource = newSource ?? new MemoryConfigurationSource();
+
+                mapDbConnectionStringBuilder.Host = dbServerOverride;
+                auditLogDbConnectionStringBuilder.Host = dbServerOverride;
+            }
+
+            if (newSource != null)
+            {
+                var newData = new List<KeyValuePair<string, string>>();
+                if (!mapDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(mapDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:DefaultConnection", mapDbConnectionStringBuilder.ConnectionString));
+                }
+                if (!auditLogDbConnectionStringBuilder.EquivalentTo(new NpgsqlConnectionStringBuilder(auditLogDbConnectionString)))
+                {
+                    newData.Add(new KeyValuePair<string, string>("ConnectionStrings:AuditLogConnectionString", auditLogDbConnectionStringBuilder.ConnectionString));
+                }
+                newSource.InitialData = newData;
+                var newConnectionStringCfg = new ConfigurationRoot(new List<IConfigurationProvider> { new MemoryConfigurationProvider(newSource) });
+
+                appCfgBuilder.AddConfiguration(newConnectionStringCfg);
+            }
         }
 
         /// <summary>

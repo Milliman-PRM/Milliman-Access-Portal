@@ -225,6 +225,22 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                       <span className="detail-label">Phone</span>
                       <span className="detail-value">{profitCenterDetail.contactPhone}</span>
                     </div>
+                    <div className="detail-container">
+                      <span className="detail-label">Quarterly Maintenance Email Recipients</span>
+                      <span className="detail-value">
+                        <ul>
+                          {profitCenterDetail.quarterlyMaintenanceNotificationList &&
+                            profitCenterDetail.quarterlyMaintenanceNotificationList.map((emailAddress, index) =>
+                              <li key={index}>
+                                {emailAddress}
+                                {index !== profitCenterDetail.quarterlyMaintenanceNotificationList.length - 1 &&
+                                  <span>,</span>
+                                }
+                              </li>,
+                          )}
+                        </ul>
+                      </span>
+                    </div>
                   </div>
                 </div>
               </div>
