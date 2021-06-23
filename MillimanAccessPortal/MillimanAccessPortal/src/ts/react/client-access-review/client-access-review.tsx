@@ -45,7 +45,8 @@ interface ClientAccessReviewProps {
   filters: AccessReviewStateFilters;
   modals: AccessReviewStateModals;
   activeSelectedClient: Client;
-  continueButtonActive: boolean;
+    continueButtonActive: boolean;
+
 }
 
 class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeof ClientAccessReviewActionCreators> {
@@ -611,9 +612,20 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         >
                                           {
                                             index === 0 ? (
-                                              <td rowSpan={sg.authorizedUsers.length} className="table-row-divider">
-                                                {sg.selectionGroupName}
-                                              </td>
+                                                      <td
+                                                        rowSpan={sg.authorizedUsers.length}
+                                                        className={`table-row-divider${sg.isSuspended ? '-suspended' :
+                                                        ''}`}
+                                                      >
+                                                      {sg.isSuspended ? (
+                                                        <ActionIcon
+                                                          icon="information"
+                                                          label={sg.selectionGroupName + ' is suspended'}
+                                                        />
+                                                        ) : null
+                                                      }
+                                                      {' ' + sg.selectionGroupName}
+                                                      </td>
                                             ) : null
                                           }
                                           <td>{user.name}</td>

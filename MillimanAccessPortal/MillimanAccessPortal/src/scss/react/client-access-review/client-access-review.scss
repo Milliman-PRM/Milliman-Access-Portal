@@ -164,6 +164,15 @@
             border-bottom: 1px solid $grey;
         }
 
+        .table-row-divider-suspended {
+            border-bottom: 1px solid $grey;
+            color: $red;
+
+            .action-icon {
+                color: $red;
+            }
+        }
+
         .center-text {
             text-align: center;
         }
