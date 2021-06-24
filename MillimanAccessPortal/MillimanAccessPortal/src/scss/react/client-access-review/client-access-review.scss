@@ -95,6 +95,11 @@
         .detail-label {
             font-size: .75rem;
             color: $dark-grey;
+            
+            .action-icon-container,
+            .action-icon-container-inline{
+                cursor:default;
+            }            
         }
 
         .detail-value-name {
