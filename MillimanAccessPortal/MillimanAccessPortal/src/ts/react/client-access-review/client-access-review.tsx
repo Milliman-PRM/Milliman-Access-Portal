@@ -281,31 +281,67 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           <div className="details-container">
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Review due date</span>
+                <span className="detail-label">
+                  Review due date
+                  <ActionIcon
+                    icon="information"
+                    label={'Review due date: the date and time that the next Client Access Review must be completed ' +
+                    'by. Client Access Reviews must be completed by a Client Admin every 90 days.'}
+                  />
+                </span>
                 <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
+                <p>At least one Client Admin must perform the <br />Client Access Review every 90 days</p>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Last review date</span>
+                <span className="detail-label">
+                  Last review date
+                  <ActionIcon
+                    icon="information"
+                    label={'Last review date: the last time that the Client Access Review ' +
+                    'was performed for this Client.'}
+                  />
+                </span>
                 <span className="detail-value-name">
                   {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
                 </span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Last review by</span>
+                <span className="detail-label">
+                    Last review by
+                    <ActionIcon
+                      icon="information"
+                      label={'Last review by: the Client Admin who last performed the ' +
+                      'Client Access Review for this Client.'}
+                    />
+                </span>
                 <span className="detail-value-name">{clientSummary.lastReviewedBy.name}</span>
                 <span className="detail-value-email">{clientSummary.lastReviewedBy.userEmail}</span>
               </div>
             </div>
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Primary contact</span>
+                <span className="detail-label">
+                    Primary contact
+                    <ActionIcon
+                      icon="information"
+                      label={'Primary contact: the primary Client contact for this Client. ' +
+                      'This is set within the Client Admin page.'}
+                    />
+                </span>
                 <span className="detail-value-name">{clientSummary.primaryContactName}</span>
                 <span className="detail-value-email">
                   {clientSummary.primaryContactEmail ? clientSummary.primaryContactEmail : '(None assigned)'}
                 </span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Client Admins</span>
+                <span className="detail-label">
+                  Client Admins
+                  <ActionIcon
+                    icon="information"
+                    label={'Client Admins: a list of all of the Client Admins for this Client. ' +
+                    'This is determined within the Client Admin page.'}
+                  />
+                </span>
                 <ul className="detail-list">
                   {
                     clientSummary.clientAdmins.map((admin) => {
@@ -324,7 +360,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             </div>
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Profit center</span>
+                <span className="detail-label">
+                  Profit center
+                  <ActionIcon
+                    icon="information"
+                    label={'Profit center: the Profit Center associated ' +
+                    'with this Client for billing purposes. This is set within the Client Admin page.'}
+                  />
+
+                </span>
                 <span className="detail-value-name">{clientSummary.assignedProfitCenter}</span>
               </div>
               <div className="detail-section">
@@ -332,7 +376,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Profit Center Admins
                   <ActionIcon
                     icon="information"
-                    label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                    label={'Profit Center Admins: a list of all of the Proft Center Admins ' +
+                    'associated with the Profit Center. To add or remove Profit Center Admins' +
+                    ', contact map.support@milliman.com.'}
                   />
                 </span>
                 <ul className="detail-list">
