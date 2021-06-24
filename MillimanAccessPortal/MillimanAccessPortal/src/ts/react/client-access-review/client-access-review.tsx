@@ -544,7 +544,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                         return (
                           <tr key={user.userEmail} className="table-row-divider">
                             <td>
-                              <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
+                              <span className={`detail-value-name${user.isSuspended ? '-disabled' : '' }`}>
+                              {user.name ? user.name : 'n/a'}</span><br />
                               <span className="detail-value-email">{user.userEmail}</span><br />
                               {this.renderUserAccountStatus(user)}
                             </td>
