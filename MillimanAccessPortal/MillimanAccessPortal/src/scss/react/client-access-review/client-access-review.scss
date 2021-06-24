@@ -162,6 +162,10 @@
 
         .table-row-divider {
             border-bottom: 1px solid $grey;
+
+            .detail-value-name-disabled{
+                color: $red;
+            }
         }
 
         .table-row-divider-suspended {
