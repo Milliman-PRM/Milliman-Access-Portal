@@ -1249,13 +1249,13 @@ namespace MillimanAccessPortal.Controllers
             if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
             {
                 TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
-                // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
+                // Check whether any sftp account of the user is currently authorized to any File Drop for an authorized and available client
                 List<Guid> authorizedClientIds = (await DbContext.UserRoleInClient
                                                                  .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
                                                                  .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                                  .Select(urc => urc.Client)
                                                                  .ToListAsync())
-                                                  .FindAll(c => DateTime.UtcNow.Date - c.LastAccessReview.LastReviewDateTimeUtc.Date <= expirationTime)
+                                                  .FindAll(c => DateTime.UtcNow - c.LastAccessReview.LastReviewDateTimeUtc <= expirationTime)
                                                   .ConvertAll(c => c.Id);
                 if (!await DbContext.SftpAccount.AnyAsync(a => authorizedClientIds.Contains(a.FileDrop.Client.Id)
                                                       && (a.FileDropUserPermissionGroup.ReadAccess || 
@@ -1312,13 +1312,14 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Client Access Review element
             if (ClientAdminResult1.Succeeded)
             {
-                List<Guid> myClientIds = (await DbContext.UserRoleInClient
-                                                         .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
-                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
-                                                         .Select(urc => urc.ClientId)
-                                                         .Distinct()
-                                                         .ToListAsync());
-                DateTime countableLastReviewTime = DateTime.UtcNow
+                List<Guid> myClientIds = await DbContext.UserRoleInClient
+                                                        .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                        .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                        .Select(urc => urc.ClientId)
+                                                        .Distinct()
+                                                        .ToListAsync();
+                DateTime countableLastReviewTime = DateTime.Today
+                                                    + TimeSpan.FromHours(_configuration.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9))
                                                     - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"))
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
