@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -120,12 +121,7 @@ namespace MillimanAccessPortal.Services
                         foreach (Client client in relevantClients.OrderBy(c => c.LastAccessReview.LastReviewDateTimeUtc))
                         {
                             DateTime deadline = client.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays;  // UTC
-                            deadline = TimeZoneInfo.ConvertTimeFromUtc(deadline, userTimeZone);  // user's time zone
-                            string timeZoneString = userTimeZone.IsDaylightSavingTime(deadline)
-                                ? userTimeZone.DaylightName
-                                : userTimeZone.StandardName;
-
-                            emailBody += Environment.NewLine + $"  - Client Name: {client.Name}, deadline for review: {deadline.ToString($"ddd, dd MMM yyyy HH':'mm '{timeZoneString}'")}";
+                            emailBody += Environment.NewLine + $"  - Client Name: {client.Name}, deadline for review: {GlobalFunctions.UtcToLocalString(deadline, user.TimeZoneId)}";
                         }
 
                         messageQueue.QueueEmail(user.Email, emailSubject, emailBody);
