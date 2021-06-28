@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -70,7 +71,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId)
+        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId, string userTimeZone)
         {
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
@@ -97,13 +98,13 @@ namespace MillimanAccessPortal.DataQueries
                 ClientName = client.Name,
                 ClientCode = client.ClientCode,
                 AssignedProfitCenter = client.ProfitCenter.Name,
-                LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
+                LastReviewDate = GlobalFunctions.UtcToLocalString(client.LastAccessReview.LastReviewDateTimeUtc, userTimeZone),
                 LastReviewedBy = lastApprover == null  // Usually null indicates the username is the default "N/A", indicating no previous review
                     ? new ClientActorModel { Name = client.LastAccessReview.UserName }  // This avoids potential null reference exception in the ClientActorModel cast operator
                     : (ClientActorModel)lastApprover,
                 PrimaryContactName = client.ContactName,
                 PrimaryContactEmail = client.ContactEmail,
-                ReviewDueDate = client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
+                ReviewDueDate = GlobalFunctions.UtcToLocalString(client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")), userTimeZone),
             };
             clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add((ClientActorModel)ca));
             profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));
