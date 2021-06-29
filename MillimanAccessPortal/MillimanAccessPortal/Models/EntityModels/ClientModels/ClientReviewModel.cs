@@ -4,21 +4,43 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.EntityModels.ClientModels
 {
+    public enum ClientReviewDeadlineStatus
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+
+        [Display(Name = "Current")]
+        Current,
+
+        [Display(Name = "Early Warning")]
+        EarlyWarning,
+
+        [Display(Name = "Expired")]
+        Expired
+    }
+
     public class ClientReviewModel : BasicClient
     {
-        public DateTime ReviewDueDateTimeUtc { get; set; }
+        public string ReviewDueDateTime { get; set; }
 
-        public ClientReviewModel(Client c, int reviewPeriodDays) : base(c)
+        public ClientReviewDeadlineStatus DeadlineStatus { get; set; } = ClientReviewDeadlineStatus.Unspecified;
+
+        public ClientReviewModel(Client c, int reviewPeriodDays, int earlyWarningPeriodDays, string userTimeZone) : base(c)
         {
-            ReviewDueDateTimeUtc = c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays);
+            ReviewDueDateTime = GlobalFunctions.UtcToLocalString(c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays), userTimeZone);
+            DeadlineStatus = c.LastAccessReview.LastReviewDateTimeUtc switch
+            {
+                DateTime dt when dt < DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) => ClientReviewDeadlineStatus.Expired,
+                DateTime dt when dt < DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) + TimeSpan.FromDays(earlyWarningPeriodDays) => ClientReviewDeadlineStatus.EarlyWarning,
+                _ => ClientReviewDeadlineStatus.Current,
+            };
         }
     }
 }

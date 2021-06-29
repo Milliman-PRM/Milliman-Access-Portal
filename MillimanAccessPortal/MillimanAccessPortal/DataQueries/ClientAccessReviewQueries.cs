@@ -52,7 +52,7 @@ namespace MillimanAccessPortal.DataQueries
                                            .OrderBy(r => r.Client.Name)
                                            .Select(c => c.Client)
                                            .ToListAsync())
-                                           .ConvertAll(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")));
+                                           .ConvertAll(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), user.TimeZoneId));
             var clientIds = clients.Select(c => c.Id).ToList();
             var parentIds = clients.Where(c => c.ParentId.HasValue)
                                    .Select(c => c.ParentId.Value)
@@ -61,7 +61,7 @@ namespace MillimanAccessPortal.DataQueries
             var parents = await _dbContext.Client
                                           .Where(c => parentIds.Contains(c.Id))
                                           .OrderBy(c => c.Name)
-                                          .Select(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
+                                          .Select(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), user.TimeZoneId))
                                           .ToListAsync();
 
             return new ClientReviewClientsModel
