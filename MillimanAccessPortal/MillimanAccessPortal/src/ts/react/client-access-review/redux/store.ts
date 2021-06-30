@@ -152,6 +152,13 @@ export interface ClientSort {
   sortOrder: 'asc' | 'desc';
 }
 
+export enum ClientReviewDeadlineStatusEnum {
+  Unspecified = 0,
+  Current = 1,
+  EarlyWarning = 2,
+  Expired = 3,
+}
+
 /**
  * All state that represents a change pending submission.
  */

@@ -1,4 +1,5 @@
 import { PublicationStatus, ReductionStatus } from '../view-models/content-publishing';
+import { ClientReviewDeadlineStatusEnum } from './client-access-review/redux/store';
 import { Dict } from './shared-components/redux/store';
 
 export type Guid = string;
@@ -45,9 +46,8 @@ export interface Client {
 }
 export interface ClientWithReviewDate extends Client {
   canManage?: boolean;
-  reviewDueDateTimeUtc: string;
-  maxReviewDueDate?: string;
-  minReviewDueDate?: string;
+  reviewDueDateTime: string;
+  deadlineStatus: ClientReviewDeadlineStatusEnum;
 }
 export interface ClientWithStats extends Client {
   canManage?: boolean;
