@@ -1507,11 +1507,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> AccountSettings2()
+        public async Task<ActionResult> AccountSettingsData()
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
 
-            return Json(new UserFullModel
+            UserFullModel returnModel = new UserFullModel
             {
                 Id = user.Id,
                 IsActivated = user.EmailConfirmed,
@@ -1523,7 +1523,11 @@ namespace MillimanAccessPortal.Controllers
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
                 IsLocal = await IsUserAccountLocal(user.UserName),
-            });
+                TimeZoneSelected = new TimeZoneSelection { Id = user.TimeZoneId, DisplayName = TimeZoneInfo.FindSystemTimeZoneById(user.TimeZoneId).DisplayName },
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(zi => new TimeZoneSelection { Id = zi.Id, DisplayName = zi.DisplayName }).ToList()
+            };
+
+            return Json(returnModel);
         }
 
         [HttpPost]
@@ -1620,7 +1624,8 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(model.User.FirstName) ||
                 string.IsNullOrWhiteSpace(model.User.LastName) ||
                 string.IsNullOrWhiteSpace(model.User.Employer) ||
-                string.IsNullOrWhiteSpace(model.User.Phone)
+                string.IsNullOrWhiteSpace(model.User.Phone) ||
+                string.IsNullOrWhiteSpace(model.User.TimeZoneId)
             )
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");
@@ -1637,6 +1642,7 @@ namespace MillimanAccessPortal.Controllers
                     user.LastName = model.User.LastName;
                     user.PhoneNumber = model.User.Phone;
                     user.Employer = model.User.Employer;
+                    user.TimeZoneId = model.User.TimeZoneId;
                 }
 
                 await DbContext.SaveChangesAsync();
@@ -1655,6 +1661,8 @@ namespace MillimanAccessPortal.Controllers
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
                 IsLocal = await IsUserAccountLocal(user.UserName),
+                TimeZoneSelected = new TimeZoneSelection { Id = user.TimeZoneId, DisplayName = TimeZoneInfo.FindSystemTimeZoneById(user.TimeZoneId).DisplayName },
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(zi => new TimeZoneSelection { Id = zi.Id, DisplayName = zi.DisplayName }).ToList()
             });
         }
 

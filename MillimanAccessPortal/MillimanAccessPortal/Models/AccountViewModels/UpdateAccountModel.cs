@@ -11,6 +11,8 @@
             public string Phone { get; set; }
 
             public string Employer { get; set; }
+
+            public string TimeZoneId { get; set; }
         }
 
         public UserModel User { get; set; }

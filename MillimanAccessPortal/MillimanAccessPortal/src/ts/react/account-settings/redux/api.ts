@@ -28,7 +28,7 @@ const userSchema = yup.object<UserInputState>({
 
 export const fetchUser =
   createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
-  ('GET', '/Account/AccountSettings2');
+  ('GET', '/Account/AccountSettingsData');
 
 export const fetchSessionCheck =
   createJsonRequestor<AccountActions.FetchSessionCheck, AccountActions.FetchSessionCheckSucceeded>
