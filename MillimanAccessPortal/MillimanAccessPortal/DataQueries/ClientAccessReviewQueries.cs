@@ -137,6 +137,7 @@ namespace MillimanAccessPortal.DataQueries
                     memberModel.DisableAccountDate = memberModel.LastLoginDate?.AddMonths(disableInactiveUserMonths);
                     memberModel.IsAccountDisabled = memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths);
                     memberModel.IsAccountNearDisabled = !memberModel.IsAccountDisabled && memberModel.LastLoginDate < DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths).AddDays(disableInactiveUserWarningDays);
+                    memberModel.IsSuspended = u.IsSuspended;
                     return memberModel;
                 });
 
