@@ -74,6 +74,8 @@ export function inputProps(state: AccountState) {
     lastName: values.lastName,
     phone: values.phone,
     employer: values.employer,
+    timezone: values.timezone,
+    potentialTimezones: values.potentialTimezones,
   };
 }
 

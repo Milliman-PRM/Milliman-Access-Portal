@@ -13,6 +13,7 @@ import {
     anyUserInputModified, inputProps, updateProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
+import { DropDown } from '../shared-components/form/select';
 
 interface AccountSettingsProps {
   inputs: {
@@ -21,6 +22,8 @@ interface AccountSettingsProps {
     lastName: string;
     phone: string;
     employer: string;
+    timezone: string;
+    potentialTimezones: Array<{ selectionValue: string, selectionLabel: string }>
   };
   valid: {
     firstName: ValidationState;
@@ -67,7 +70,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
-    const { userName, firstName, lastName, phone, employer } = this.props.inputs;
+    const { userName, firstName, lastName, phone, employer, timezone, potentialTimezones } = this.props.inputs;
     return (
       <>
         <div className="form-section" data-section="username">
@@ -168,6 +171,18 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
             }}
             onBlur={() => { return; }}
             error={this.props.valid.employer.valid ? null : this.props.valid.employer.message}
+          />
+          <DropDown
+            name="timezone"
+            label="Timezone"
+            value={timezone}
+            values={potentialTimezones}
+            error={null}
+            autoFocus={false}
+            onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+              const timezoneValue = target.value ? target.value : null;
+              this.props.setPendingTextInputValue({ inputName: 'timezone', value: timezoneValue });
+            }}
           />
         </div>
       </>

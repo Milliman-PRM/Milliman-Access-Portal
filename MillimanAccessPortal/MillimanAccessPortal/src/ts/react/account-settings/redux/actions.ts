@@ -10,6 +10,7 @@ type UserInputName =
   | 'lastName'
   | 'phone'
   | 'employer'
+  | 'timezone'
   ;
 type InputName =
   | UserInputName
