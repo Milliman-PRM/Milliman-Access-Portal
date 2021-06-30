@@ -84,8 +84,8 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
               <use xlinkHref={`#${element.icon}`} />
             </svg>
              {
-              element.badgeNumber >= 1 ?
-              (<div className="badge">{element.badgeNumber}</div>) : (null)
+              element.badgeNumber >= 1 &&
+              <div className="badge">{element.badgeNumber}</div>
 
             }
           </div>
