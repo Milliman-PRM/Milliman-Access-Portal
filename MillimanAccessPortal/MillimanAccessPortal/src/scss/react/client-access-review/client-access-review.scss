@@ -163,8 +163,18 @@
         .table-row-divider {
             border-bottom: 1px solid $grey;
 
-            .detail-value-name-disabled{
+            .detail-value-name-suspended {
                 color: $red;
+                position: relative;
+                right: 10px;
+            
+              .action-icon-container-inline{
+                padding-right: 3px;
+              }
+
+              .action-icon {
+                  color: $red;
+              }
             }
         }
 
