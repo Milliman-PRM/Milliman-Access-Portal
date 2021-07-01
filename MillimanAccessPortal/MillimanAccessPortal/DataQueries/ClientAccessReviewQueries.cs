@@ -46,23 +46,32 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<ClientReviewClientsModel> GetClientModelAsync(ApplicationUser user)
         {
-            var clients = (await _dbContext.UserRoleInClient
-                                           .Where(r => r.User.Id == user.Id)
-                                           .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                                           .OrderBy(r => r.Client.Name)
-                                           .Select(c => c.Client)
-                                           .ToListAsync())
-                                           .ConvertAll(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), user.TimeZoneId));
-            var clientIds = clients.Select(c => c.Id).ToList();
-            var parentIds = clients.Where(c => c.ParentId.HasValue)
-                                   .Select(c => c.ParentId.Value)
-                                   .Where(id => !clientIds.Contains(id))
-                                   .ToList();
-            var parents = await _dbContext.Client
-                                          .Where(c => parentIds.Contains(c.Id))
-                                          .OrderBy(c => c.Name)
-                                          .Select(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), user.TimeZoneId))
-                                          .ToListAsync();
+            List<ClientReviewModel> clients = (await _dbContext.UserRoleInClient
+                                                               .Where(r => r.User.Id == user.Id)
+                                                               .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                               .OrderBy(r => r.Client.Name)
+                                                               .Select(c => c.Client)
+                                                               .ToListAsync())
+                                                               .ConvertAll(c => new ClientReviewModel(c, 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewNotificationTimeOfDayHourUtc"), 
+                                                                                                      user.TimeZoneId));
+            List<Guid> clientIds = clients.Select(c => c.Id).ToList();
+            List<Guid> parentIds = clients.Where(c => c.ParentId.HasValue)
+                                          .Select(c => c.ParentId.Value)
+                                          .Where(id => !clientIds.Contains(id))
+                                          .ToList();
+            List<ClientReviewModel> parents = _dbContext.Client
+                                                        .Where(c => parentIds.Contains(c.Id))
+                                                        .OrderBy(c => c.Name)
+                                                        .AsEnumerable()
+                                                        .Select(c => new ClientReviewModel(c, 
+                                                                                           _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), 
+                                                                                           _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), 
+                                                                                           _appConfig.GetValue<int>("ClientReviewNotificationTimeOfDayHourUtc"), 
+                                                                                           user.TimeZoneId))
+                                                        .ToList();
 
             return new ClientReviewClientsModel
             {
