@@ -33,7 +33,7 @@ Completed by: ___________
 - [ ] Identify reviewer(s) and communicate changes to them
 - [ ] Hand off to Peer Reviewer(s)
 - [ ] Create logins for reviewer(s)
-- [ ] Leave a comment for the Account Manager(s) with a summary of what is to be released
+- [ ] Leave a comment for the Account Manager(s) with a feature / change list for the new release 
 
 ##### Assertions
 
