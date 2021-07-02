@@ -1625,7 +1625,7 @@ namespace MillimanAccessPortal.Controllers
                 string.IsNullOrWhiteSpace(model.User.LastName) ||
                 string.IsNullOrWhiteSpace(model.User.Employer) ||
                 string.IsNullOrWhiteSpace(model.User.Phone) ||
-                string.IsNullOrWhiteSpace(model.User.TimeZoneId)
+                string.IsNullOrWhiteSpace(model.User.TimeZoneSelected)
             )
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");
@@ -1642,7 +1642,7 @@ namespace MillimanAccessPortal.Controllers
                     user.LastName = model.User.LastName;
                     user.PhoneNumber = model.User.Phone;
                     user.Employer = model.User.Employer;
-                    user.TimeZoneId = model.User.TimeZoneId;
+                    user.TimeZoneId = model.User.TimeZoneSelected;
                 }
 
                 await DbContext.SaveChangesAsync();

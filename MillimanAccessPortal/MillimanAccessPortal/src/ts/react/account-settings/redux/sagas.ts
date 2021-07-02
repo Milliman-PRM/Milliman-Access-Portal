@@ -37,7 +37,7 @@ const takeLatestValidation = createTakeLatestValidation<ValidationAccountAction,
 
 export default function* rootSaga() {
   // API requests
-  yield takeLatestRequest('FETCH_USER', api.fetchUser);
+  yield takeLatestRequest('FETCH_ACCOUNT_SETTINGS_DATA', api.fetchAccountSettingsData);
   yield takeLatestRequest('FETCH_SESSION_CHECK', api.fetchSessionCheck);
   yield takeLatestRequest('UPDATE_ACCOUNT', api.updateAccount);
   yield takeLatestRequest('REQUEST_PASSWORD_RESET', api.requestPasswordReset);
@@ -53,7 +53,7 @@ export default function* rootSaga() {
   yield takeEveryToast<RequestPasswordResetSucceeded>('REQUEST_PASSWORD_RESET_SUCCEEDED',
     ({ successMessage }) => successMessage);
   yield takeEveryToast<ErrorAccountAction>([
-    'FETCH_USER_FAILED',
+    'FETCH_ACCOUNT_SETTINGS_DATA_FAILED',
     'FETCH_SESSION_CHECK_FAILED',
     'UPDATE_ACCOUNT_FAILED',
     'REQUEST_PASSWORD_RESET_FAILED',

@@ -21,8 +21,8 @@ export interface UserFull extends User {
   isLocal: boolean;
   phone: string;
   employer: string;
-  timezone: string;
-  potentialTimezones: Array<{ selectionValue: string, selectionLabel: string }>;
+  timeZoneSelected: string | { id: string, displayName: string };
+  timeZoneSelections: Array<{ id: string, displayName: string }>;
 }
 export interface UserRole {
   roleEnum: number;

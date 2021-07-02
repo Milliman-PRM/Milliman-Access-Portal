@@ -11,7 +11,7 @@ import * as AccountActionCreators from './redux/action-creators';
 import { UpdateAccount } from './redux/actions';
 import {
     allPasswordInputsValid, allUserInputsValid,
-    anyUserInputModified, inputProps, updateProps, validProps,
+    anyUserInputModified, getTimeZones, inputProps, updateProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
 
@@ -22,8 +22,8 @@ interface AccountSettingsProps {
     lastName: string;
     phone: string;
     employer: string;
-    timezone: string;
-    potentialTimezones: Array<{ selectionValue: string, selectionLabel: string }>
+    timeZoneSelected: string;
+    timeZoneSelections: Array<{ id: string, displayName: string }>;
   };
   valid: {
     firstName: ValidationState;
@@ -35,10 +35,11 @@ interface AccountSettingsProps {
   isLocal: boolean;
   discardButtonEnabled: boolean;
   submitButtonEnabled: boolean;
+  timeZones: Array<{selectionValue: string, selectionLabel: string }>;
 }
 class AccountSettings extends React.Component<AccountSettingsProps & typeof AccountActionCreators> {
   public componentDidMount() {
-    this.props.fetchUser({});
+    this.props.fetchAccountSettingsData({});
     this.props.scheduleSessionCheck({ delay: 0 });
   }
 
@@ -70,7 +71,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
   }
 
   private renderInformationSection() {
-    const { userName, firstName, lastName, phone, employer, timezone, potentialTimezones } = this.props.inputs;
+    const { userName, firstName, lastName, phone, employer, timeZoneSelected } = this.props.inputs;
     return (
       <>
         <div className="form-section" data-section="username">
@@ -175,13 +176,13 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           <DropDown
             name="timezone"
             label="Timezone"
-            value={timezone}
-            values={potentialTimezones}
+            value={timeZoneSelected}
+            values={this.props.timeZones}
             error={null}
             autoFocus={false}
             onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
               const timezoneValue = target.value ? target.value : null;
-              this.props.setPendingTextInputValue({ inputName: 'timezone', value: timezoneValue });
+              this.props.setPendingTextInputValue({ inputName: 'timeZoneSelected', value: timezoneValue });
             }}
           />
         </div>
@@ -254,6 +255,7 @@ function mapStateToProps(state: AccountState): AccountSettingsProps {
     submitButtonEnabled: (anyUserInputModified(state) &&
       (anyUserInputModified(state) ? allUserInputsValid(state) : true)),
     isLocal: state.data.user.isLocal,
+    timeZones: getTimeZones(state),
   };
 }
 

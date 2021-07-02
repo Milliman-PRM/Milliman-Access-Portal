@@ -12,7 +12,7 @@
 
             public string Employer { get; set; }
 
-            public string TimeZoneId { get; set; }
+            public string TimeZoneSelected { get; set; }
         }
 
         public UserModel User { get; set; }
