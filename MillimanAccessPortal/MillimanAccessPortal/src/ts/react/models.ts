@@ -22,7 +22,7 @@ export interface UserFull extends User {
   phone: string;
   employer: string;
   timezone: string;
-  potentialTimezones: Array<{ selectionValue: string, selectionLabel: string }>
+  potentialTimezones: Array<{ selectionValue: string, selectionLabel: string }>;
 }
 export interface UserRole {
   roleEnum: number;

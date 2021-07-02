@@ -5,6 +5,7 @@ import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
 import { Input } from '../shared-components/form/input';
+import { DropDown } from '../shared-components/form/select';
 import { NavBar } from '../shared-components/navbar';
 import * as AccountActionCreators from './redux/action-creators';
 import { UpdateAccount } from './redux/actions';
@@ -13,7 +14,6 @@ import {
     anyUserInputModified, inputProps, updateProps, validProps,
 } from './redux/selectors';
 import { AccountState, ValidationState } from './redux/store';
-import { DropDown } from '../shared-components/form/select';
 
 interface AccountSettingsProps {
   inputs: {

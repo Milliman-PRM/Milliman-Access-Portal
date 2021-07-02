@@ -203,8 +203,8 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   message: (
                     <div className="review-due-container">
                       {
-                        entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
-                        entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired &&
+                        (entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
+                        entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired) &&
                         <>
                           <span className="needs-review">
                             {entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired ?
@@ -307,7 +307,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   />
                 </span>
                 <span className="detail-value-name">
-                  {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
+                  {clientSummary.lastReviewDate}
                 </span>
               </div>
               <div className="detail-section">
