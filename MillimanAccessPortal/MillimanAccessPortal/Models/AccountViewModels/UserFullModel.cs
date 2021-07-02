@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
 {
@@ -23,5 +24,16 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Employer { get; set; }
 
         public bool IsLocal { get; set; }
+
+        public TimeZoneSelection TimeZoneSelected { get; set; }
+
+        public List<TimeZoneSelection> TimeZoneSelections { get; set; }
+    }
+
+    public class TimeZoneSelection
+    {
+        public string Id { get; set; }
+
+        public string DisplayName { get; set; }            
     }
 }

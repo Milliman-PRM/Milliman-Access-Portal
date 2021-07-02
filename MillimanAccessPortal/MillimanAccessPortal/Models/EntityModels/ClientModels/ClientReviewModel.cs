@@ -32,13 +32,13 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
 
         public ClientReviewDeadlineStatus DeadlineStatus { get; set; } = ClientReviewDeadlineStatus.Unspecified;
 
-        public ClientReviewModel(Client c, int reviewPeriodDays, int earlyWarningPeriodDays, string userTimeZone) : base(c)
+        public ClientReviewModel(Client c, int reviewPeriodDays, int earlyWarningPeriodDays, int ClientReviewNotificationHourOfDayUtc, string userTimeZone) : base(c)
         {
             ReviewDueDateTime = GlobalFunctions.UtcToLocalString(c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays), userTimeZone);
             DeadlineStatus = c.LastAccessReview.LastReviewDateTimeUtc switch
             {
                 DateTime dt when dt < DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) => ClientReviewDeadlineStatus.Expired,
-                DateTime dt when dt < DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) + TimeSpan.FromDays(earlyWarningPeriodDays) => ClientReviewDeadlineStatus.EarlyWarning,
+                DateTime dt when dt < (DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) + TimeSpan.FromDays(earlyWarningPeriodDays)).Date + TimeSpan.FromHours(ClientReviewNotificationHourOfDayUtc) => ClientReviewDeadlineStatus.EarlyWarning,
                 _ => ClientReviewDeadlineStatus.Current,
             };
         }
