@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace MillimanAccessPortal.Models.AccountViewModels
@@ -38,6 +39,10 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         public string Employer { get; set; }
 
         [Required]
+        [Display(Name = "Time Zone *")]
+        public string TimeZone { get; set; }
+
+        [Required]
         [DataType(DataType.Password)]
         [Display(Name = "New Password *")]
         public string NewPassword { get; set; }
@@ -52,5 +57,6 @@ namespace MillimanAccessPortal.Models.AccountViewModels
         // relies on front end code to set this properly
         [Required(ErrorMessage = "The password does not satisfy complexity requirements.")]
         public string PasswordsAreValid { get; set; }
+        public List<string> TimeZoneSelections { get; set; }
     }
 }

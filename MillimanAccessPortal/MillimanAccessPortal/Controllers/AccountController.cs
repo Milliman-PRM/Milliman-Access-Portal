@@ -777,6 +777,7 @@ namespace MillimanAccessPortal.Controllers
                 Code = code,
                 Username = user.UserName,
                 IsLocalAccount = await IsUserAccountLocal(user.UserName),
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(tzi => tzi.DisplayName).ToList(),
             };
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: complete");
             return View(model);
@@ -874,6 +875,7 @@ namespace MillimanAccessPortal.Controllers
                 user.LastName = model.LastName;
                 user.Employer = model.Employer;
                 user.PhoneNumber = model.Phone;
+                user.TimeZoneId = TimeZoneInfo.GetSystemTimeZones().Where(tz => tz.DisplayName.Equals(model.TimeZone)).Single().Id;
                 var updateAccountSettingsResult = await _userManager.UpdateAsync(user);
                 if (!updateAccountSettingsResult.Succeeded)
                 {
