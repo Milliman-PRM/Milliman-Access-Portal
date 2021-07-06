@@ -4,6 +4,11 @@
     Layout = "_Layout_w_H_F";
 }
 
+@Html.AntiForgeryToken()
+
+<div id="content-wrapper">
+</div>
+
 @section CSS {
   <% for (var css in htmlWebpackPlugin.files.css) { %>
   <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
@@ -15,6 +20,3 @@
     <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
     <% } %>
 }
-
-<div id="content-wrapper">
-</div>

@@ -12,7 +12,7 @@ interface InitialUserFormState extends BaseFormState {
     userConfirmed: boolean;
     awaitingConfirmation: boolean;
     awaitingRedirect: boolean;
-    //TODO: check if necessary
+    // TODO: check if necessary
     loginWarning: string;
 }
 
@@ -22,7 +22,7 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
         username: Yup.string()
             .email()
             .required()
-            .label('Username')
+            .label('Email'),
     });
 
     private usernameInput: string | React.RefObject<{}> | any;
@@ -41,14 +41,17 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
         };
 
         this.usernameInput = React.createRef<HTMLInputElement>();
-
+        this.focusUsernameInput = this.focusUsernameInput.bind(this);
 
     }
     public render() {
+        const {data, errors, formIsValid, userConfirmed, awaitingConfirmation, awaitingRedirect} = this.state;
         return (
             <form
+               // action="/Account/CreateInitialUser"
+               // method="post"
+                onSubmit={!userConfirmed ? this.checkUser : this.handleSubmit}
                 autoComplete="off"
-                method="post"
                 className="form-horizontal"
             >
                 <div className="form-section-container">
@@ -59,7 +62,19 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
                             <div className="form-input form-input-text flex-item-12-12">
                                 <label className="form-input-text-title" />
                                 <div className="col-md-10">
-                                    <input className="form-control" />
+                                    <Input
+                                        // className="form-control"
+                                        name="username"
+                                        label="Email"
+                                        ref={this.usernameInput}
+                                        type="text"
+                                        value={data.username}
+                                        onChange={this.handleChange && this.handleWhiteSpace}
+                                        onClick={userConfirmed ? this.handleUsernameClick : undefined}
+                                        error={errors.username}
+                                        autoFocus={!userConfirmed}
+                                        readOnly={userConfirmed}
+                                    />
                                     <span className="text-danger" />
                                 </div>
                             </div>
@@ -67,12 +82,91 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
                     </div>
                     <div className="form-submission-section">
                         <div className="button-container button-container-update">
-                            <button type="submit" className="button-submit blue-button">Create User</button>
+                            <button
+                                disabled={awaitingRedirect || userConfirmed && !formIsValid}
+                                type="submit"
+                                className="button-submit blue-button"
+                                onClick={userConfirmed ? this.handleSubmit : undefined}
+                            >
+                             Create User
+                            </button>
                         </div>
                     </div>
                 </div>
             </form>
         );
+    }
+
+    protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        this.setState({ awaitingRedirect: true });
+
+        const errors = await this.validate();
+        this.setState({ errors: errors || {} });
+        if (errors) {
+            this.setState({ awaitingRedirect: false });
+            return;
+        }
+
+        await postJsonDataNoSession(window.location.href, this.state.data)
+            .then((response) => {
+                const loginWarning = response.headers.get('Warning');
+                if (loginWarning) {
+                    const unknownError = 'An unknown error occurred.  Please try again.';
+                    this.setState({ loginWarning: unknownError, awaitingRedirect: false });
+                }
+            });
+    }
+
+    protected handleUsernameClick = () => {
+        this.setState({ userConfirmed: false, loginWarning: null }, () => {
+            this.focusUsernameInput();
+        });
+    }
+
+    private checkUser = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
+        e.preventDefault();
+
+        const errors = { ...this.state.errors };
+        const errorMessage = await this.validateProperty({ name: 'username', value: this.state.data.username });
+        if (errorMessage) {
+            errors.username = errorMessage.username;
+            this.setState({ errors });
+            return;
+        } else {
+            delete errors.username;
+        }
+
+        // hold for
+        this.setState({ awaitingConfirmation: true }, () => {
+            const { username } = this.state.data;
+            postData('/Account/CreateInitialUser', { email: username })
+                .then((response) => {
+                    if (response.localAccount) {
+                        this.setState({
+                            userConfirmed: true,
+                            awaitingConfirmation: false,
+                        });
+                    } else {
+                        window.location.replace('/Account/Login');
+                    }
+                })
+                .catch(() => {
+                    errors.username = 'An error occurred.';
+                    this.setState({
+                        errors,
+                        userConfirmed: false,
+                        awaitingConfirmation: false,
+                    }, () => {
+                        this.focusUsernameInput();
+                    });
+                });
+        });
+    }
+
+    private focusUsernameInput() {
+        this.usernameInput.current.focus();
     }
 
 }

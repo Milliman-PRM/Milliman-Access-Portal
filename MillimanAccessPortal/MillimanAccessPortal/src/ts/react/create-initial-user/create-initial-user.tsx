@@ -1,15 +1,10 @@
-﻿
 ﻿import * as React from 'react';
-import '../../../images/map-logo.svg';
-import '../../../scss/map.scss';
 import { InitialUserForm } from './create-initial-user-form';
 
+import '../../../images/map-logo.svg';
+import '../../../scss/map.scss';
+
 export class CreateInitialUser extends React.Component {
-
-    public constructor(props: {}) {
-        super(props);
-
-    }
     public render() {
         return (
             <div id="create-initial-user-container">

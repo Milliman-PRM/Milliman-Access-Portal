@@ -406,11 +406,11 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
-            if (_userManager.Users.Any())
+         /*   if (_userManager.Users.Any())
             {
                 return NotFound();
             }
-
+         */
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -420,7 +420,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {{@CreateInitialUserViewModel}}", model);
 
@@ -434,7 +434,7 @@ namespace MillimanAccessPortal.Controllers
                 return NotFound();
             }
 
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["ReturnUrl"] = "/Account/Login";
             if (ModelState.IsValid)
             {
                 ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email, LastLoginUtc = DateTime.UtcNow };
@@ -457,7 +457,7 @@ namespace MillimanAccessPortal.Controllers
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                         await SendNewAccountWelcomeEmail(newUser, Request.Scheme, Request.Host, welcomeText);
 
-                        return RedirectToLocal(returnUrl);
+                        return RedirectToLocal("/Account/Login");
                     }
                 }
             }
