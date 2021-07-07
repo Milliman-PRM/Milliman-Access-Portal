@@ -33,6 +33,7 @@ Completed by: ___________
 - [ ] Identify reviewer(s) and communicate changes to them
 - [ ] Hand off to Peer Reviewer(s)
 - [ ] Create logins for reviewer(s)
+- [ ] Leave a comment for the Account Manager(s) with a feature / change list for the new release 
 
 ##### Assertions
 
@@ -75,6 +76,7 @@ Completed by: ___________
 - [ ] Merge into Master and promote released code base
 - [ ] Tag release
 - [ ] Merge into Develop to make sure warm changes are propagated
+- [ ] Leave a comment tagging the Account Manager in this PR stating when the deployment is scheduled to take place
 - [ ] Schedule a Hosting retrospective meeting
 - [ ] Schedule next milestone meeting
 
