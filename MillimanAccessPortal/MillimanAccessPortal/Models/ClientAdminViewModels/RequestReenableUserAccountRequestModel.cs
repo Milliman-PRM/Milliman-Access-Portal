@@ -4,6 +4,7 @@
  * DEVELOPER NOTES:
  */
 
+using AuditLogLib.Event;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Identity;
 using System;
@@ -30,6 +31,6 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         /// Reason that Client Admin is requesting a disabled account be re-enabled.
         /// </summary>
         [EmitBeforeAfterLog]
-        public int Reason { get; set; }
+        public ReenableDisabledAccountReason Reason { get; set; }
     }
 }

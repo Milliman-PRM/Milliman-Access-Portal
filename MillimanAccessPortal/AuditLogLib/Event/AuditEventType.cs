@@ -74,46 +74,16 @@ namespace AuditLogLib.Event
         UserRemovedFromSelectionGroup,
     }
 
-    public class ReenableDisabledAccountReason
+    public enum ReenableDisabledAccountReason
     {
-        public static Dictionary<int, ReenableDisabledAccountReason> AllReasons;
-        public static ReenableDisabledAccountReason Unknown;
-        public static ReenableDisabledAccountReason ChangeInEmployeeResponsibilities;
-        public static ReenableDisabledAccountReason ReturningEmployee;
+        [Display(Name = "Unknown")]
+        Unknown = 0,
 
-        public static List<ReenableDisabledAccountReason> ReenableReasons;
-        public int NumericValue { get; protected set; }
-        public string Description { get; protected set; }
+        [Display(Name = "Change in employee responsibilities")]
+        ChangeInEmployeeResponsibilities,
 
-        static ReenableDisabledAccountReason()
-        {
-            AllReasons = new Dictionary<int, ReenableDisabledAccountReason>();
-            Unknown = new ReenableDisabledAccountReason(0, "Unknown");
-            ChangeInEmployeeResponsibilities = new ReenableDisabledAccountReason(1, "Change in employee responsibilities");
-            ReturningEmployee = new ReenableDisabledAccountReason(2, "Returning employee");
-            ReenableReasons = new List<ReenableDisabledAccountReason>() { ChangeInEmployeeResponsibilities, ReturningEmployee };
-        }
-
-        private ReenableDisabledAccountReason(int numericValue, string description)
-        {
-            NumericValue = numericValue;
-            Description = description;
-
-            AllReasons.Add(numericValue, this);
-        }
-
-        public static bool TryGetReason(int numericValue, out ReenableDisabledAccountReason reason)
-        {
-            if (AllReasons.TryGetValue(numericValue, out reason))
-            {
-                return true;
-            }
-            else
-            {
-                reason = Unknown;
-                return false;
-            }
-        }
+        [Display(Name = "Returning employee")]
+        ReturningEmployee,
     }
 
     public class HitrustReason
@@ -500,14 +470,24 @@ namespace AuditLogLib.Event
             {
                 RequestedEmail = email,
             });
-        public static readonly AuditEventType<Client, ApplicationUser, ApplicationUser, int> ClientAdminRequestedUserAccountReenable = new AuditEventType<Client, ApplicationUser, ApplicationUser, int>(
+        public static readonly AuditEventType<Client, ApplicationUser, ApplicationUser, ReenableDisabledAccountReason> ClientAdminRequestedUserAccountReenable = new AuditEventType<Client, ApplicationUser, ApplicationUser, ReenableDisabledAccountReason>(
             3014, "Client admin requested that a disabled user account be reenabled.", (client, requestor, user, reasonVal) =>
             {
-                if (!ReenableDisabledAccountReason.ReenableReasons.Any(r => r.NumericValue == reasonVal))
+                List<ReenableDisabledAccountReason> allReasons = new List<ReenableDisabledAccountReason>
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging re-enable request of user, expected one of <{string.Join(",", ReenableDisabledAccountReason.ReenableReasons.Select(r => r.NumericValue.ToString()))}>");
+                    ReenableDisabledAccountReason.Unknown,
+                    ReenableDisabledAccountReason.ChangeInEmployeeResponsibilities,
+                    ReenableDisabledAccountReason.ReturningEmployee,
+                };
+
+                ReenableDisabledAccountReason reasonEnum = ReenableDisabledAccountReason.Unknown;
+
+                if (!allReasons.Any(r => r == reasonVal))
+                {
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging re-enable request of user, expected one of <{string.Join(",", allReasons.Select(r => r.GetDisplayNameString()).ToList())}>");
+                } else {
+                    reasonEnum = allReasons.FirstOrDefault(r => r == reasonVal);
                 }
-                ReenableDisabledAccountReason.TryGetReason(reasonVal, out ReenableDisabledAccountReason reasonObj);
 
                 return new
                 {
@@ -526,21 +506,25 @@ namespace AuditLogLib.Event
                         user.Id,
                         user.UserName,
                     },
-                    Reason = new
-                    {
-                        reasonObj.NumericValue,
-                        reasonObj.Description,
-                    }
+                    Reason = reasonEnum,
                 };
             });
-        public static readonly AuditEventType<ApplicationUser, int> DisabledAccountReenabled = new AuditEventType<ApplicationUser, int>(
+        public static readonly AuditEventType<ApplicationUser, ReenableDisabledAccountReason> DisabledAccountReenabled = new AuditEventType<ApplicationUser, ReenableDisabledAccountReason>(
             3014, "Disabled account re-enabled by a system admin.", (user, reasonVal) =>
             {
-                if (!ReenableDisabledAccountReason.ReenableReasons.Any(r => r.NumericValue == reasonVal))
+                List<ReenableDisabledAccountReason> allReasons = new List<ReenableDisabledAccountReason>
                 {
-                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging re-enable of user, expected one of <{string.Join(",", ReenableDisabledAccountReason.ReenableReasons.Select(r => r.NumericValue.ToString()))}>");
+                    ReenableDisabledAccountReason.Unknown,
+                    ReenableDisabledAccountReason.ChangeInEmployeeResponsibilities,
+                    ReenableDisabledAccountReason.ReturningEmployee,
+                };
+                ReenableDisabledAccountReason reasonEnum = ReenableDisabledAccountReason.Unknown;
+                if (!allReasons.Any(r => r == reasonVal))
+                {
+                    Log.Error($"Inappropriate reason {reasonVal} provided while audit logging re-enable of user, expected one of <{string.Join(",", allReasons.Select(r => r.GetDisplayNameString()).ToList())}>");
+                } else {
+                    reasonEnum = allReasons.FirstOrDefault(r => r == reasonVal);
                 }
-                ReenableDisabledAccountReason.TryGetReason(reasonVal, out ReenableDisabledAccountReason reasonObj);
 
                 return new
                 {
@@ -549,11 +533,7 @@ namespace AuditLogLib.Event
                         user.Id,
                         user.UserName,
                     },
-                    Reason = new
-                    {
-                        reasonObj.NumericValue,
-                        reasonObj.Description,
-                    }
+                    Reason = reasonEnum,
                 };
             });
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =

@@ -1588,7 +1588,7 @@ namespace MillimanAccessPortal.Controllers
             string emailBody = $"A Client Admin has requested that an existing MAP user account be re-enabled. {Environment.NewLine}{Environment.NewLine}";
             emailBody += $"Requestor: {Requestor.FirstName} {Requestor.LastName} ({Requestor.UserName}) {Environment.NewLine}";
             emailBody += $"Account to re-enable: {RequestedAccount.FirstName} {RequestedAccount.LastName} ({RequestedAccount.UserName}) {Environment.NewLine}";
-            emailBody += $"Reason: {ReenableDisabledAccountReason.ReenableReasons.Find(f => f.NumericValue == Model.Reason).Description}";
+            emailBody += $"Reason: {Model.Reason.GetDisplayNameString()}";
 
             string supportEmailAlias = ApplicationConfig.GetValue<string>("SecurityEmailAlias");
             MessageQueueService.QueueEmail(supportEmailAlias, emailSubject, emailBody);

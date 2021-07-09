@@ -2304,7 +2304,7 @@ namespace MillimanAccessPortal.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<ActionResult> ReenableDisabledUserAccount(Guid userId, int reason)
+        public async Task<ActionResult> ReenableDisabledUserAccount(Guid userId, ReenableDisabledAccountReason reason)
         {
             #region Authorization
             // User must have a global Admin role
