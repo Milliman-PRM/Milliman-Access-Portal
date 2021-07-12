@@ -457,7 +457,7 @@ namespace MillimanAccessPortal.Controllers
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                         await SendNewAccountWelcomeEmail(newUser, Request.Scheme, Request.Host, welcomeText);
 
-                        return RedirectToLocal("/Account/LogIn");
+                        return Ok();
                     }
                 }
             }
@@ -465,7 +465,7 @@ namespace MillimanAccessPortal.Controllers
             // If we got this far, something failed, redisplay form
             AddErrors(createUserResult);
             AddErrors(roleGrantResult);
-            return View(model);
+            return BadRequest(model);
         }
 
         //
