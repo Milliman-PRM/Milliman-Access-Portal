@@ -428,13 +428,13 @@ namespace MillimanAccessPortal.Controllers
             IdentityResult roleGrantResult = null;
 
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
-            if (_userManager.Users.Any())
+           /* if (_userManager.Users.Any())
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, unsuccessful, some user(s) already exist");
                 return NotFound();
-            }
+            } */
 
-            ViewData["ReturnUrl"] = "/Account/Login";
+            ViewData["ReturnUrl"] = "/Account/LogIn";
             if (ModelState.IsValid)
             {
                 ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email, LastLoginUtc = DateTime.UtcNow };
@@ -457,7 +457,7 @@ namespace MillimanAccessPortal.Controllers
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                         await SendNewAccountWelcomeEmail(newUser, Request.Scheme, Request.Host, welcomeText);
 
-                        return RedirectToLocal("/Account/Login");
+                        return RedirectToLocal("/Account/LogIn");
                     }
                 }
             }
