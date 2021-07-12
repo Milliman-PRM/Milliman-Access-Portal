@@ -12,13 +12,14 @@ interface InitialUserFormState extends BaseFormState {
     userConfirmed: boolean;
     awaitingConfirmation: boolean;
     awaitingRedirect: boolean;
+    // TODO: check if necessary
     loginWarning: string;
 }
 
 export class InitialUserForm extends Form<{}, InitialUserFormState> {
 
     protected schema = Yup.object({
-        email: Yup.string()
+        username: Yup.string()
             .email()
             .required()
             .label('Email'),
@@ -34,7 +35,7 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
             awaitingConfirmation: false,
             awaitingRedirect: false,
             loginWarning: null,
-            data: { email: '', returnUrl: getParameterByName('returnUrl') },
+            data: { username: '', returnUrl: getParameterByName('returnUrl') },
             errors: {},
             formIsValid: false,
         };
@@ -47,10 +48,11 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
         const {data, errors, formIsValid, userConfirmed, awaitingConfirmation, awaitingRedirect} = this.state;
         return (
             <form
-               // onSubmit={!userConfirmed ? this.checkUser : this.handleSubmit}
+               // action="/Account/CreateInitialUser"
+               // method="post"
+                onSubmit={!userConfirmed ? this.checkUser : this.handleSubmit}
                 autoComplete="off"
-                action="/Account/CreateInitialUser"
-                method="post"
+                className="form-horizontal"
             >
                 <div className="form-section-container">
                     <div className="form-section">
@@ -61,14 +63,15 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
                                 <label className="form-input-text-title" />
                                 <div className="col-md-10">
                                     <Input
-                                        name="Email"
+                                        // className="form-control"
+                                        name="username"
                                         label="Email"
                                         ref={this.usernameInput}
                                         type="text"
-                                        value={data.email}
+                                        value={data.username}
                                         onChange={this.handleChange && this.handleWhiteSpace}
                                         onClick={userConfirmed ? this.handleUsernameClick : undefined}
-                                        error={errors.email}
+                                        error={errors.username}
                                         autoFocus={!userConfirmed}
                                         readOnly={userConfirmed}
                                     />
@@ -83,7 +86,7 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
                                 disabled={awaitingRedirect || userConfirmed && !formIsValid}
                                 type="submit"
                                 className="button-submit blue-button"
-                                // onClick={userConfirmed ? this.handleSubmit : undefined}
+                                onClick={userConfirmed ? this.handleSubmit : undefined}
                             >
                              Create User
                             </button>
@@ -126,40 +129,39 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
         e.preventDefault();
 
         const errors = { ...this.state.errors };
-        const errorMessage = await this.validateProperty({ name: 'email', value: this.state.data.email });
+        const errorMessage = await this.validateProperty({ name: 'username', value: this.state.data.username });
         if (errorMessage) {
-          errors.email = errorMessage.email;
-          this.setState({ errors });
-          return;
+            errors.username = errorMessage.username;
+            this.setState({ errors });
+            return;
         } else {
-          delete errors.username;
+            delete errors.username;
         }
 
         // hold for
         this.setState({ awaitingConfirmation: true }, () => {
-          const { email } = this.state.data;
-          postData('/Account/CreateInitialUser', { email })
-              .then((response) => {
-                if (response.ok) {
-                  this.setState({
-                    userConfirmed: true,
-                    awaitingConfirmation: false,
-                  }, () => {
-                    this.focusUsernameInput();
-                  });
-                  window.location.replace('/Account/LogIn');
-                }
-              });
-             /* .catch(() => {
-                errors.username = 'An error occurred.';
-                this.setState({
-                  errors,
-                  userConfirmed: false,
-                  awaitingConfirmation: false,
-                }, () => {
-                  this.focusUsernameInput();
+            const { username } = this.state.data;
+            postData('/Account/CreateInitialUser', { email: username })
+                .then((response) => {
+                    if (response.localAccount) {
+                        this.setState({
+                            userConfirmed: true,
+                            awaitingConfirmation: false,
+                        });
+                    } else {
+                        window.location.replace('/Account/Login');
+                    }
+                })
+                .catch(() => {
+                    errors.username = 'An error occurred.';
+                    this.setState({
+                        errors,
+                        userConfirmed: false,
+                        awaitingConfirmation: false,
+                    }, () => {
+                        this.focusUsernameInput();
+                    });
                 });
-              }); */
         });
     }
 
