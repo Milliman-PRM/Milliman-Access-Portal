@@ -1358,7 +1358,7 @@ namespace MillimanAccessPortal.Controllers
                 NavBarElements.Add(new NavBarElementModel
                 {
                     Order = order++,
-                    Label = "Client Access Administration",
+                    Label = "Content Access Administration",
                     URL = nameof(ContentAccessAdminController).Replace("Controller", ""),
                     View = "ContentAccessAdmin",
                     Icon = "content-access",
