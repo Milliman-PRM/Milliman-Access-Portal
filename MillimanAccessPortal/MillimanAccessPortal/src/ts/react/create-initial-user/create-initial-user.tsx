@@ -10,8 +10,8 @@ export class CreateInitialUser extends React.Component {
             <div id="create-initial-user-container">
                 <div
                     id="create-initial-user"
-                    className={'admin-panel-container flex-item-for-phone-only-12-12 ' +
-                        'flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-4-12'}
+                    className={`admin-panel-container flex-item-for-phone-only-12-12
+flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-4-12`}
                 >
                     <div className="form-content-container">
                         <InitialUserForm />
