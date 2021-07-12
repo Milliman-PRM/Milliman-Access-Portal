@@ -86,7 +86,6 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
                                 disabled={awaitingRedirect || userConfirmed && !formIsValid}
                                 type="submit"
                                 className="button-submit blue-button"
-                                onClick={userConfirmed ? this.handleSubmit : undefined}
                             >
                              Create User
                             </button>
@@ -141,15 +140,10 @@ export class InitialUserForm extends Form<{}, InitialUserFormState> {
         // hold for
         this.setState({ awaitingConfirmation: true }, () => {
             const { username } = this.state.data;
-            postData('/Account/CreateInitialUser', { email: username })
+            postData('/Account/CreateInitialUser', { email: username }, true)
                 .then((response) => {
-                    if (response.localAccount) {
-                        this.setState({
-                            userConfirmed: true,
-                            awaitingConfirmation: false,
-                        });
-                    } else {
-                        window.location.replace('/Account/Login');
+                    if (response.ok) {
+                        window.location.replace('/');
                     }
                 })
                 .catch(() => {
