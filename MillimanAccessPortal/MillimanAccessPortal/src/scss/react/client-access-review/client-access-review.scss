@@ -109,6 +109,11 @@
         .detail-label {
             font-size: .75rem;
             color: $dark-grey;
+            
+            .action-icon-container,
+            .action-icon-container-inline{
+                cursor:default;
+            }            
         }
 
         .detail-value-name {
@@ -176,6 +181,29 @@
 
         .table-row-divider {
             border-bottom: 1px solid $grey;
+
+            .detail-value-name-suspended {
+                color: $red;
+                position: relative;
+                right: 10px;
+            
+              .action-icon-container-inline{
+                padding-right: 3px;
+              }
+
+              .action-icon {
+                  color: $red;
+              }
+            }
+        }
+
+        .table-row-divider-suspended {
+            border-bottom: 1px solid $grey;
+            color: $red;
+
+            .action-icon {
+                color: $red;
+            }
         }
 
         .center-text {
