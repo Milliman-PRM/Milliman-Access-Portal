@@ -589,7 +589,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                         return (
                           <tr key={user.userEmail} className="table-row-divider">
                             <td>
-                              <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
+                              <span className={`detail-value-name${user.isSuspended ? '-suspended' : '' }`}>
+                              {user.isSuspended! &&
+                                <ActionIcon
+                                  icon="information"
+                                  label={user.name + ' is suspended'}
+                                />
+                              }
+                                {user.name ? user.name : 'n/a'}
+                              </span><br />
                               <span className="detail-value-email">{user.userEmail}</span><br />
                               {this.renderUserAccountStatus(user)}
                             </td>
@@ -657,8 +665,18 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         >
                                           {
                                             index === 0 ? (
-                                              <td rowSpan={sg.authorizedUsers.length} className="table-row-divider">
-                                                {sg.selectionGroupName}
+                                              <td
+                                                rowSpan={sg.authorizedUsers.length}
+                                                className={`table-row-divider${sg.isSuspended ? '-suspended' :
+                                                ''}`}
+                                              >
+                                                {sg.isSuspended ? (
+                                                  <ActionIcon
+                                                    icon="information"
+                                                    label={sg.selectionGroupName + ' is suspended'}
+                                                  />
+                                                ) : null}
+                                                {' ' + sg.selectionGroupName}
                                               </td>
                                             ) : null
                                           }
