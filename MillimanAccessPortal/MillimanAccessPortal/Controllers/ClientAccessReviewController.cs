@@ -228,7 +228,7 @@ namespace MillimanAccessPortal.Controllers
 
             #region Client Summary
             ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
-            string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Summary.txt");
+            string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client_Summary.txt");
             using (var stream = new StreamWriter(clientSummaryTxtPath))
             {
                 stream.WriteLine($"Client Summary{Environment.NewLine}");
@@ -293,7 +293,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region User Roles
-            string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User Roles.csv");
+            string userRolesCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "User_Roles.csv");
             List<UserRolesRowItem> userRolesRowItems = new List<UserRolesRowItem>();
             clientAccessReviewModel.MemberUsers.ForEach((mu) =>
             {
@@ -326,7 +326,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Content Access
-            string contentAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Content Access.csv");
+            string contentAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Content_Access.csv");
             List<ContentAccessRowItem> contentAccessRowItems = new List<ContentAccessRowItem>();
             clientAccessReviewModel.ContentItems.ForEach((ci) =>
             {
@@ -369,7 +369,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region File Drop Access
-            string fileDropAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "File Drop Access.csv");
+            string fileDropAccessCsvPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "File_Drop_Access.csv");
             List<FileDropAccessRowItem> fileDropAccessRowItems = new List<FileDropAccessRowItem>();
             clientAccessReviewModel.FileDrops.ForEach(fd =>
             {
@@ -416,7 +416,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Metadata
-            string metadataTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client Access Review Summary Metadata.txt");
+            string metadataTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client_Access_Review_Summary_Metadata.txt");
             using (var stream = new StreamWriter(metadataTxtPath))
             {
                 stream.WriteLine($"Client Access Review Metadata{Environment.NewLine}");
