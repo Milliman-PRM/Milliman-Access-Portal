@@ -11,7 +11,7 @@ let CreateInitialUser: typeof Root = require('./create-initial-user').CreateInit
 
 document.addEventListener('DOMContentLoaded', () => {
     ReactDOM.render(<CreateInitialUser />,
-    document.getElementById('content-wrapper'),
+    document.getElementById('content-container'),
     );
 });
 
