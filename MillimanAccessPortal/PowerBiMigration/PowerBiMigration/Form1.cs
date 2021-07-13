@@ -398,7 +398,7 @@ namespace PowerBiMigration
             long itemExportStartMs = timer.ElapsedMilliseconds;
             var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId.Value, typeSpecificDetail.LiveReportId.Value, clientFolder, chkWriteFiles.Checked);
 
-            Log.Information($"Preparing exported content item {contentItem.ContentName}, using report {JsonSerializer.Serialize(exportReturn.report)} to file {exportReturn.reportFilePath}");
+            Log.Information($"Finished streaming content of report {JsonSerializer.Serialize(exportReturn.report)}{(string.IsNullOrEmpty(exportReturn.reportFilePath) ? ", no file written" : $" to file {exportReturn.reportFilePath}")}");
 
             ProcessedItem newProcessedItem = new ProcessedItem
             {
