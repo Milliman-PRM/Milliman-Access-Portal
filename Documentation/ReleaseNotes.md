@@ -4,16 +4,16 @@
 
 ### v1.14.0
 
-- Added time zone as an account setting for every user
 - Modified Client Access Reviews to begin the visible indication of an approaching deadline consistent with the timing of email notifications
 - Added time zone as an account setting for every user
-- Added the ability for a Client admin to export a summary of the information in a Client Access Review
+- Added the ability for a Client Admin to export a summary of the information in a Client Access Review
 - Enhanced the information contained in the Client Access Review
   - Indicate Selection Groups that are suspended
   - Indicate Users who are suspended
 - Added an informative banner advising of the coming end of MAP support for obsolete web browsers
 - Added the ability to re-enable user accounts that have been disabled due to lack of use
 - Improved the stability of content file validation, mainly at the time a content file is loaded for display
+- Unified navbar and page descriptions
 
 ### v1.13.0
 
