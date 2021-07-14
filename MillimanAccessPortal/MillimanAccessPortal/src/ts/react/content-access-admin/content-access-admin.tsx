@@ -16,6 +16,7 @@ import {
     RootContentItemWithPublication, SelectionGroup, SelectionGroupWithStatus, User,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
@@ -109,6 +110,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
           transitionOut="fadeOut"
         />
         <NavBar currentView={this.currentView} />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {this.renderItemPanel()}
         {this.renderGroupPanel()}

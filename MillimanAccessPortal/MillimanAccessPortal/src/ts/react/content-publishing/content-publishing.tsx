@@ -20,6 +20,7 @@ import {
   ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { ButtonSpinner } from '../shared-components/button-spinner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
@@ -120,6 +121,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           transitionOut="fadeOut"
         />
         <NavBar currentView={this.currentView} />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {selected.client && this.renderItemPanel()}
         {(goLiveSummary.rootContentItemId)

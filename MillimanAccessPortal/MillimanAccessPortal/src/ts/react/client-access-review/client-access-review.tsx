@@ -11,6 +11,7 @@ import ReduxToastr from 'react-redux-toastr';
 import { setUnloadAlert } from '../../unload-alerts';
 import { Client, ClientWithReviewDate } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
@@ -76,6 +77,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           currentView={this.currentView}
           updateNavBarElements={this.props.pending.navBarRenderInt}
         />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {
           selected.client
