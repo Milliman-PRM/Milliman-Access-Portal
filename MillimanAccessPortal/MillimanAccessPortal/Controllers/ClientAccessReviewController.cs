@@ -430,7 +430,7 @@ namespace MillimanAccessPortal.Controllers
                     stream.WriteLine($"The information contained in this zip file represents a snapshot of the Client information at the time of export.");
                     stream.WriteLine($"Viewing this information does not qualify as a Client Access Review.{Environment.NewLine}");
                     stream.WriteLine($"Client: {clientAccessReviewModel.ClientName}");
-                    stream.WriteLine($"Date of export: {DateTime.UtcNow.ToShortDateString()}");
+                    stream.WriteLine($"Date of export: {DateTime.UtcNow.ToShortDateString()} {TimeZoneInfo.Utc.DisplayName}");
                     stream.WriteLine($"User who exported: {User.Identity.Name}");
                     stream.Close();
                 }
