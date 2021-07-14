@@ -45,8 +45,16 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
       (browserWillNoLongerBeSupported && !hasAcceptedBrowserSupportNotice) &&
       (
         <div className="browser-support-banner">
-          <p>This browser will no longer be supported as of 8/17/2021</p>
-          <button onClick={this.acceptNotice}>Accept</button>
+          <p>
+            <strong>As of 8/17/2021 this browser will no longer be supported.</strong><br />
+            Please use one of our supported browsers (Microsoft Edge, Chrome, or Firefox) instead.
+          </p>
+          <button
+            className="blue-button"
+            onClick={this.acceptNotice}
+          >
+            Acknowledge
+          </button>
         </div>
       )
     );
