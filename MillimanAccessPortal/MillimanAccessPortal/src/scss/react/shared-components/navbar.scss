@@ -1,7 +1,7 @@
 ﻿@import "../../map_modules/variables";
 
 .navbar-offset {
-    padding-left: 6.5vmin;
+    padding-left: 3rem;
 }
 
 nav {
@@ -10,8 +10,8 @@ nav {
     flex-flow: column nowrap;
     justify-content: center;
     top: 0;
-    left: -28vmin;
-    width: 28vmin;
+    left: -17rem;
+    width: 17rem;
     bottom: 0;
     transition: all 0.3s;
     background-color: $charcoal;
@@ -20,42 +20,42 @@ nav {
     z-index: 101;
 
     &.loaded {
-        left: -21.5vmin;
+        left: -14.5rem;
     }
 
     &.open {
         left: 0;
 
         #navbar-button-inner:before {
-            transform: translate3d(-1.25vmin, 0.6vmin, 0) rotate(-45deg) scaleX(.7);
+            transform: translate3d(-.5rem, 0.3rem, 0) rotate(-45deg) scaleX(.7);
         }
 
         #navbar-button-inner:after {
-            transform: translate3d(-1.25vmin, -0.6vmin, 0) rotate(45deg) scaleX(.7);
+            transform: translate3d(-.5rem, -0.3rem, 0) rotate(45deg) scaleX(.7);
         }
     }
 
     &.close #navbar-button:hover {
 
         #navbar-button-inner:before {
-            transform: translate3d(1.25vmin, 0.6vmin, 0) rotate(45deg) scaleX(.7);
+            transform: translate3d(.5rem, 0.3rem, 0) rotate(45deg) scaleX(.7);
         }
 
         #navbar-button-inner:after {
-            transform: translate3d(1.25vmin, -0.6vmin, 0) rotate(-45deg) scaleX(.7);
+            transform: translate3d(.5rem, -0.3rem, 0) rotate(-45deg) scaleX(.7);
         }
     }
 
     #navbar-button {
         position: absolute;
-        top: 2vmin;
-        right: 0;
+        top: 2rem;
+        right: 4px;
         display: inline-block;
         overflow: visible;
         margin: 0;
-        width: 6.5vmin;
-        height: 6.5vmin;
-        padding: 1.25vmin;
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: .625rem;
         cursor: pointer;
         transition-timing-function: ease-in-out;
         transition-duration: .15s;
@@ -80,7 +80,7 @@ nav {
 
             #navbar-button-inner {
                 display: block;
-                margin-top: -2.25vmin;
+                margin-top: -1rem;
             }
 
             #navbar-button-inner,
@@ -88,7 +88,7 @@ nav {
             #navbar-button-inner:after {
                 background-color: $white;
                 position: absolute;
-                width: 4vmin;
+                width: 1.75rem;
                 height: 3px;
                 transition-timing-function: ease-in-out;
                 transition-duration: .15s;
@@ -103,11 +103,11 @@ nav {
             }
 
             #navbar-button-inner:before {
-                top: -1.5vmin;
+                top: -.7rem;
             }
 
             #navbar-button-inner:after {
-                bottom: -1.5vmin;
+                bottom: -.7rem;
             }
         }
     }
@@ -124,7 +124,7 @@ nav {
         align-items: center;
         width: 100%;
         cursor: pointer;
-        margin-bottom: .25vmin;
+        margin-bottom: 5px;
 
         &:hover {
             color: $blue;
@@ -140,8 +140,8 @@ nav {
 
         .badge {
             position: absolute;
-            top: 1vmin;
-            right: .25vmin;
+            top: .25rem;
+            right: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -158,18 +158,18 @@ nav {
 
         .nav-element-label {
             flex: 1 0 auto;
-            margin: 0 0 0 2vmin;
-            font-size: 2vmin;
-            font-weight: bold;
+            margin: 0 0 0 1rem;
+            font-size: 1rem;
+            font-weight: 300;
             order: 1;
-            width: 20vmin;
+            width: 12rem;
         }
 
         .nav-element-icon {
             flex: none;
-            width: 6.5vmin;
-            height: 6.5vmin;
-            padding: 1vmin;
+            width: 2.5rem;
+            height: 2.5rem;
+            padding: .5rem;
             order: 2;
         }
     }
@@ -183,86 +183,4 @@ nav {
     right: 0;
     bottom: 0;
     opacity: 0;
-}
-/* IE Specific overrides */
-@media all and (-ms-high-contrast: none), (-ms-high-contrast: active) {
-
-    .navbar-offset {
-        padding-left: 4rem;
-    }
-
-    nav {
-        left: -18.5em;
-        width: 18.5em;
-
-        &.loaded.open {
-            left: 0;
-
-            #navbar-button-inner:before {
-                transform: translate3d(-1em, .5em, 0) rotate(-45deg) scaleX(.5);
-            }
-
-            #navbar-button-inner:after {
-                transform: translate3d(-1em, -.5em, 0) rotate(45deg) scaleX(.5);
-            }
-        }
-
-        &.close #navbar-button:hover {
-
-            #navbar-button-inner:before {
-                transform: translate3d(1em, .5em, 0) rotate(45deg) scaleX(.5);
-            }
-
-            #navbar-button-inner:after {
-                transform: translate3d(1em, -.5em, 0) rotate(-45deg) scaleX(.5);
-            }
-        }
-
-
-        #navbar-button {
-            top: 0;
-            width: 4rem;
-            height: 4rem;
-            padding: .5em;
-
-            #navbar-button-box {
-
-                #navbar-button-inner {
-                    margin-top: 0px;
-                }
-
-                #navbar-button-inner,
-                #navbar-button-inner:before,
-                #navbar-button-inner:after {
-                    width: 3em;
-                }
-
-                #navbar-button-inner:before {
-                    top: -1em;
-                }
-
-                #navbar-button-inner:after {
-                    bottom: -1em;
-                }
-            }
-        }
-               
-        &.loaded {
-            left: -14.5em;
-        }
-
-        .nav-element {
-            margin-bottom: .25em;
-
-            .nav-element-label {
-                font-size: 1em;
-            }
-
-            .nav-element-icon {
-                width: 4em;
-                height: 4em;
-                padding: .5rem;
-            }
-        }
-    }
 }
