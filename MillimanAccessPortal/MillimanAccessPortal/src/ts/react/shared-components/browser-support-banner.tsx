@@ -2,8 +2,10 @@
 
 import * as React from 'react';
 
+import { ActionIcon } from './action-icon';
+
 interface BrowserSupportBannerState {
-  browserWillNoLongerBeSupported: boolean;
+  browserWillBeSupported: boolean;
   hasAcceptedBrowserSupportNotice: boolean;
 }
 
@@ -13,20 +15,28 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
     super(props);
 
     // Check if the users browser is one that will no longer be supported
-    const browserWillNoLongerBeSupported = this.browserWillBeSupported();
+    const browserWillBeSupported = this.browserWillBeSupported();
 
     // Check if the user has accepted the notification during this session already
     const hasAcceptedBrowserSupportNotice = sessionStorage.getItem('hasAcceptedBrowserSupportNotice') ? true : false;
 
     this.state = {
-      browserWillNoLongerBeSupported,
+      browserWillBeSupported,
       hasAcceptedBrowserSupportNotice,
     };
   }
 
   public browserWillBeSupported = () => {
-    if ('fetch' in window && 'Promise' in window && 'Map' in window && 'Set' in window) {
-      return true;
+    const WebAssembly: any = (global as any).WebAssembly;
+    try {
+      if (typeof WebAssembly === 'object' && typeof WebAssembly.instantiate === 'function') {
+        const module = new WebAssembly.Module(Uint8Array.of(0x0, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00));
+        if (module instanceof WebAssembly.Module) {
+          return new WebAssembly.Instance(module) instanceof WebAssembly.Instance;
+        }
+      }
+    } catch (e) {
+      return false;
     }
     return false;
   }
@@ -39,22 +49,25 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
   }
 
   public render() {
-    const { browserWillNoLongerBeSupported, hasAcceptedBrowserSupportNotice } = this.state;
+    const { browserWillBeSupported, hasAcceptedBrowserSupportNotice } = this.state;
 
     return (
-      (browserWillNoLongerBeSupported && !hasAcceptedBrowserSupportNotice) &&
+      (
+        !browserWillBeSupported &&
+        !hasAcceptedBrowserSupportNotice
+      ) &&
       (
         <div className="browser-support-banner">
           <p>
-            <strong>As of 8/17/2021 this browser will no longer be supported.</strong><br />
-            Please use one of our supported browsers (Microsoft Edge, Chrome, or Firefox) instead.
+            <strong>Browser Support Expiration</strong>&nbsp;&nbsp;
+            MAP will not support this browser after August 17, 2021.
+            Please use one of our supported browsers (Edge, Chrome, Firefox) instead.
           </p>
-          <button
-            className="blue-button"
-            onClick={this.acceptNotice}
-          >
-            Acknowledge
-          </button>
+          <ActionIcon
+            icon="cancel"
+            action={this.acceptNotice}
+            label="Accept"
+          />
         </div>
       )
     );
