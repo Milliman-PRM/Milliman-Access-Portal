@@ -490,7 +490,11 @@ namespace AuditLogLib.Event
                         user.Id,
                         user.UserName,
                     },
-                    Reason = reason,
+                    Reason = new
+                    {
+                        NumericValue = (int) reason,
+                        Description = reason.GetDisplayDescriptionString(),
+                    },
                 };
             });
         public static readonly AuditEventType<ApplicationUser, ReenableDisabledAccountReason> DisabledAccountReenabled = new AuditEventType<ApplicationUser, ReenableDisabledAccountReason>(
@@ -503,7 +507,11 @@ namespace AuditLogLib.Event
                         user.Id,
                         user.UserName,
                     },
-                    Reason = reason,
+                    Reason = new
+                    {
+                        NumericValue = (int) reason,
+                        Description = reason.GetDisplayDescriptionString(),
+                    },
                 };
             });
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =
