@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -45,23 +46,32 @@ namespace MillimanAccessPortal.DataQueries
 
         public async Task<ClientReviewClientsModel> GetClientModelAsync(ApplicationUser user)
         {
-            var clients = (await _dbContext.UserRoleInClient
-                                           .Where(r => r.User.Id == user.Id)
-                                           .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
-                                           .OrderBy(r => r.Client.Name)
-                                           .Select(c => c.Client)
-                                           .ToListAsync())
-                                           .ConvertAll(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")));
-            var clientIds = clients.Select(c => c.Id).ToList();
-            var parentIds = clients.Where(c => c.ParentId.HasValue)
-                                   .Select(c => c.ParentId.Value)
-                                   .Where(id => !clientIds.Contains(id))
-                                   .ToList();
-            var parents = await _dbContext.Client
-                                          .Where(c => parentIds.Contains(c.Id))
-                                          .OrderBy(c => c.Name)
-                                          .Select(c => new ClientReviewModel(c, _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")))
-                                          .ToListAsync();
+            List<ClientReviewModel> clients = (await _dbContext.UserRoleInClient
+                                                               .Where(r => r.User.Id == user.Id)
+                                                               .Where(r => r.Role.RoleEnum == RoleEnum.Admin)
+                                                               .OrderBy(r => r.Client.Name)
+                                                               .Select(c => c.Client)
+                                                               .ToListAsync())
+                                                               .ConvertAll(c => new ClientReviewModel(c, 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), 
+                                                                                                      _appConfig.GetValue<int>("ClientReviewNotificationTimeOfDayHourUtc"), 
+                                                                                                      user.TimeZoneId));
+            List<Guid> clientIds = clients.Select(c => c.Id).ToList();
+            List<Guid> parentIds = clients.Where(c => c.ParentId.HasValue)
+                                          .Select(c => c.ParentId.Value)
+                                          .Where(id => !clientIds.Contains(id))
+                                          .ToList();
+            List<ClientReviewModel> parents = _dbContext.Client
+                                                        .Where(c => parentIds.Contains(c.Id))
+                                                        .OrderBy(c => c.Name)
+                                                        .AsEnumerable()
+                                                        .Select(c => new ClientReviewModel(c, 
+                                                                                           _appConfig.GetValue<int>("ClientReviewRenewalPeriodDays"), 
+                                                                                           _appConfig.GetValue<int>("ClientReviewEarlyWarningDays"), 
+                                                                                           _appConfig.GetValue<int>("ClientReviewNotificationTimeOfDayHourUtc"), 
+                                                                                           user.TimeZoneId))
+                                                        .ToList();
 
             return new ClientReviewClientsModel
             {
@@ -70,7 +80,7 @@ namespace MillimanAccessPortal.DataQueries
             };
         }
 
-        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId)
+        public async Task<ClientSummaryModel> GetClientSummaryAsync(Guid clientId, string userTimeZone)
         {
             Client client = await _dbContext.Client
                                             .Include(c => c.ProfitCenter)
@@ -97,13 +107,13 @@ namespace MillimanAccessPortal.DataQueries
                 ClientName = client.Name,
                 ClientCode = client.ClientCode,
                 AssignedProfitCenter = client.ProfitCenter.Name,
-                LastReviewDate = client.LastAccessReview.LastReviewDateTimeUtc,
+                LastReviewDate = GlobalFunctions.UtcToLocalString(client.LastAccessReview.LastReviewDateTimeUtc, userTimeZone),
                 LastReviewedBy = lastApprover == null  // Usually null indicates the username is the default "N/A", indicating no previous review
                     ? new ClientActorModel { Name = client.LastAccessReview.UserName }  // This avoids potential null reference exception in the ClientActorModel cast operator
                     : (ClientActorModel)lastApprover,
                 PrimaryContactName = client.ContactName,
                 PrimaryContactEmail = client.ContactEmail,
-                ReviewDueDate = client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")),
+                ReviewDueDate = GlobalFunctions.UtcToLocalString(client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")), userTimeZone),
             };
             clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add((ClientActorModel)ca));
             profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));

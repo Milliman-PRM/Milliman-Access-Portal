@@ -17,8 +17,8 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
     {
         public string ClientName { get; set; }
         public string ClientCode { get; set; }
-        public DateTime ReviewDueDate { get; set; }
-        public DateTime LastReviewDate { get; set; }
+        public string ReviewDueDate { get; set; }
+        public string LastReviewDate { get; set; }
         public ClientActorModel LastReviewedBy { get; set; }
         public string PrimaryContactName { get; set; }
         public string PrimaryContactEmail { get; set; }

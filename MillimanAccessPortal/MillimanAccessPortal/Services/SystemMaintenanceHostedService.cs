@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -108,15 +109,19 @@ namespace MillimanAccessPortal.Services
 
                     if (relevantClients.Any())
                     {
+                        var userTimeZone = TimeZoneInfo.FindSystemTimeZoneById(user.TimeZoneId);
+
                         string emailBody = "You have the role of Client Administrator of the below listed Client(s) in Milliman Access Portal (MAP). ";
                         emailBody += "Each of these Clients has an approaching deadline for the required periodic review of access assignments. ";
                         emailBody += "User access to Content published for the Client will be discontinued if the review is not completed before the deadline. " + Environment.NewLine + Environment.NewLine;
-                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine;
+                        emailBody += $"Please login to MAP at {mapUrl} and perform the Client Access Review. Thank you for using MAP." + Environment.NewLine + Environment.NewLine;
+                        emailBody += $"Note that the time zone reported for your user account can be adjusted in the Account Settings view of MAP." + Environment.NewLine + Environment.NewLine;
+                        emailBody += $"Thank you for using MAP." + Environment.NewLine;
 
                         foreach (Client client in relevantClients.OrderBy(c => c.LastAccessReview.LastReviewDateTimeUtc))
                         {
-                            DateTime deadline = client.LastAccessReview.LastReviewDateTimeUtc.Date + clientReviewRenewalPeriodDays;
-                            emailBody += Environment.NewLine + $"  - Client Name: {client.Name}, deadline for review: {(client.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays).ToShortDateString()}";
+                            DateTime deadline = client.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays;  // UTC
+                            emailBody += Environment.NewLine + $"  - Client Name: {client.Name}, deadline for review: {GlobalFunctions.UtcToLocalString(deadline, user.TimeZoneId)}";
                         }
 
                         messageQueue.QueueEmail(user.Email, emailSubject, emailBody);

@@ -22,6 +22,8 @@ const _initialData: AccountStateData = {
     email: '',
     phone: '',
     employer: '',
+    timeZoneSelected: '',
+    timeZoneSelections: [],
   },
 };
 const _initialValidation: AccountStateForm = {
@@ -29,12 +31,16 @@ const _initialValidation: AccountStateForm = {
   lastName: { valid: true },
   phone: { valid: true },
   employer: { valid: true },
+  timeZoneSelected: { valid: true },
+  timeZoneSelections: { valid: true },
 };
 const _initialPendingInputs: PendingInputState = {
   firstName: null,
   lastName: null,
   phone: null,
   employer: null,
+  timeZoneSelected: null,
+  timeZoneSelections: null,
 };
 const _initialPendingRequests: PendingRequestState = {
   fetchUser: true,
@@ -52,18 +58,31 @@ const _initialPendingValidation: PendingValidationState = {
 const createReducer = createReducerCreator<AccountAction>();
 
 const data = createReducer<AccountStateData>(_initialData, ({
-  FETCH_USER_SUCCEEDED: (state, { response }: AccountActions.FetchUserSucceeded) => ({
+  FETCH_ACCOUNT_SETTINGS_DATA_SUCCEEDED: (state, { response }: AccountActions.FetchAccountSettingsDataSucceeded) => ({
     ...state,
     user: {
       ...state.user,
-      ...response,
+      userName: response.userName,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      phone: response.phone,
+      employer: response.employer,
+      timeZoneSelected: (response.timeZoneSelected as { id: string, displayName: string }).id,
+      timeZoneSelections: response.timeZoneSelections,
     },
   }),
   UPDATE_ACCOUNT_SUCCEEDED: (state, { response }: AccountActions.UpdateAccountSucceeded) => ({
     ...state,
     user: {
       ...state.user,
-      ...response,
+      ...state.user,
+      userName: response.userName,
+      firstName: response.firstName,
+      lastName: response.lastName,
+      phone: response.phone,
+      employer: response.employer,
+      timeZoneSelected: (response.timeZoneSelected as { id: string, displayName: string }).id,
+      timeZoneSelections: response.timeZoneSelections,
     },
   }),
 }));
@@ -76,15 +95,15 @@ const pendingInputs = createReducer<PendingInputState>(_initialPendingInputs, ({
   UPDATE_ACCOUNT_SUCCEEDED: () => _initialPendingInputs,
 }));
 const pendingRequests = createReducer<PendingRequestState>(_initialPendingRequests, ({
-  FETCH_USER: (state) => ({
+  FETCH_ACCOUNT_SETTINGS_DATA: (state) => ({
     ...state,
     fetchUser: true,
   }),
-  FETCH_USER_SUCCEEDED: (state) => ({
+  FETCH_ACCOUNT_SETTINGS_DATA_SUCCEEDED: (state) => ({
     ...state,
     fetchUser: false,
   }),
-  FETCH_USER_FAILED: (state) => ({
+  FETCH_ACCOUNT_SETTINGS_DATA_FAILED: (state) => ({
     ...state,
     fetchUser: false,
   }),
