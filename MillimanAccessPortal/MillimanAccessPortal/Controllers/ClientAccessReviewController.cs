@@ -214,7 +214,7 @@ namespace MillimanAccessPortal.Controllers
             ClientAccessReviewModel clientAccessReviewModel = await _clientAccessReviewQueries.GetClientAccessReviewModel(ClientId);
             string clientAccessReviewSummaryExportDirectory = Path.Combine(_applicationConfig.GetValue<string>("Storage:TemporaryExports"), $"{Guid.NewGuid()}");
             var writerConfig = new CsvConfiguration(CultureInfo.InvariantCulture) { IgnoreQuotes = true };
-            string zipFileName = $"{clientAccessReviewModel.ClientName} - Client Access Review Summary - {DateTime.Now.ToString("MM-dd-yyyy")}";
+            string zipFileName = $"{clientAccessReviewModel.ClientName} - Client Access Review Summary - {DateTime.UtcNow.ToString("MM-dd-yyyy")}";
 
             try
             {
