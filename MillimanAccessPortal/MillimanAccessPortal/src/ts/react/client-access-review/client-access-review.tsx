@@ -227,17 +227,20 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
                 <CardSectionButtons>
-                  <a
-                    href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${entity.id}`}
-                    download={true}
-                  >
-                    <CardButton
-                      icon={'download'}
-                      color={'green'}
-                      tooltip={'Download Client Access Review summary'}
-                      onClick={null}
-                    />
-                  </a>
+                  {
+                    !card.disabled &&
+                    <a
+                      href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${entity.id}`}
+                      download={true}
+                    >
+                      <CardButton
+                        icon={'download'}
+                        color={'green'}
+                        tooltip={'Download Client Access Review summary'}
+                        onClick={null}
+                      />
+                    </a>
+                  }
                 </CardSectionButtons>
               </CardSectionMain>
             </Card>

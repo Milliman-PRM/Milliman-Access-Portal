@@ -204,7 +204,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> DownloadClientAccessReviewSummary(Guid ClientId)
         {
             #region Authorization
-            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            var roleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, ClientId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -232,7 +232,8 @@ namespace MillimanAccessPortal.Controllers
                 }
 
                 #region Client Summary
-                ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
+                var currentUser = await _userManager.GetUserAsync(User);
+                ClientSummaryModel clientSummaryModel = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId, currentUser.TimeZoneId);
                 string clientSummaryTxtPath = Path.Combine(clientAccessReviewSummaryExportDirectory, "Client_Summary.txt");
                 using (var stream = new StreamWriter(clientSummaryTxtPath))
                 {
