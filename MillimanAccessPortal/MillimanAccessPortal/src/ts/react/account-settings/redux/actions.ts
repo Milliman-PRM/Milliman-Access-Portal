@@ -10,6 +10,7 @@ type UserInputName =
   | 'lastName'
   | 'phone'
   | 'employer'
+  | 'timeZoneSelected'
   ;
 type InputName =
   | UserInputName
@@ -33,18 +34,18 @@ export interface ResetForm {
 
 /**
  * GET:
- *   current user information
+ *   current user information + timezone data
  */
-export interface FetchUser {
-  type: 'FETCH_USER';
+export interface FetchAccountSettingsData {
+  type: 'FETCH_ACCOUNT_SETTINGS_DATA';
   request: {};
 }
-export interface FetchUserSucceeded {
-  type: 'FETCH_USER_SUCCEEDED';
+export interface FetchAccountSettingsDataSucceeded {
+  type: 'FETCH_ACCOUNT_SETTINGS_DATA_SUCCEEDED';
   response: UserFull;
 }
-export interface FetchUserFailed {
-  type: 'FETCH_USER_FAILED';
+export interface FetchAccountSettingsDataFailed {
+  type: 'FETCH_ACCOUNT_SETTINGS_DATA_FAILED';
   error: TSError;
 }
 
@@ -143,7 +144,7 @@ export type ScheduleAccountAction =
  * An action that makes an Ajax request.
  */
 export type RequestAccountAction =
-  | FetchUser
+  | FetchAccountSettingsData
   | UpdateAccount
   | RequestPasswordReset
   | FetchSessionCheck
@@ -153,7 +154,7 @@ export type RequestAccountAction =
  * An action that marks the succesful response of an Ajax request.
  */
 export type ResponseAccountAction =
-  | FetchUserSucceeded
+  | FetchAccountSettingsDataSucceeded
   | UpdateAccountSucceeded
   | RequestPasswordResetSucceeded
   | FetchSessionCheckSucceeded
@@ -163,7 +164,7 @@ export type ResponseAccountAction =
  * An action that marks the errored response of an Ajax request.
  */
 export type ErrorAccountAction =
-  | FetchUserFailed
+  | FetchAccountSettingsDataFailed
   | UpdateAccountFailed
   | RequestPasswordResetFailed
   | FetchSessionCheckFailed

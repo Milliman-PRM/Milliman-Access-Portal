@@ -28,7 +28,8 @@ import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsA
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
-  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientSummaryModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientReviewDeadlineStatusEnum,
+  ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -167,15 +168,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             return <div className="hr" key={key} />;
           }
           const card = cardAttributes.client[entity.id];
-          const daysUntilDue =
-            moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
           const notificationType = () => {
-            if (daysUntilDue < 0) {
-              return 'error';
-            } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
-              return 'informational';
-            } else {
-              return 'message';
+            switch (entity.deadlineStatus) {
+              case ClientReviewDeadlineStatusEnum.Expired:
+                return 'error';
+                break;
+              case ClientReviewDeadlineStatusEnum.EarlyWarning:
+                return 'informational';
+              default:
+                return 'message';
             }
           };
           return (
@@ -195,18 +196,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               }}
               indentation={entity.indent}
               bannerMessage={!card.disabled &&
-                (daysUntilDue < globalData.clientReviewEarlyWarningDays
-                  || clientAccessReview && clientAccessReview.id === entity.id) ? {
+                (
+                  entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
+                  entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired ||
+                  (clientAccessReview && clientAccessReview.id === entity.id)) ? {
                   level: notificationType(),
                   message: (
                     <div className="review-due-container">
                       {
-                        daysUntilDue < globalData.clientReviewEarlyWarningDays &&
+                        (entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
+                        entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired) &&
                         <>
                           <span className="needs-review">
-                            {notificationType() === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
+                            {entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired ?
+                              'Overdue' : 'Needs Review'}:&nbsp;
                           </span>
-                          Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                          Due {entity.reviewDueDateTime}
                         </>
                       }
                       {
@@ -341,7 +346,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                     'by. Client Access Reviews must be completed by a Client Admin every 90 days.'}
                   />
                 </span>
-                <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
+                <h2>{clientSummary.reviewDueDate}</h2>
                 <p>At least one Client Admin must perform the <br />Client Access Review every 90 days</p>
               </div>
               <div className="detail-section">
@@ -354,7 +359,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   />
                 </span>
                 <span className="detail-value-name">
-                  {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
+                  {clientSummary.lastReviewDate}
                 </span>
               </div>
               <div className="detail-section">

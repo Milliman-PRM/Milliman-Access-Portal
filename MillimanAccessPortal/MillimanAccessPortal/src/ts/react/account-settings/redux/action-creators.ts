@@ -10,8 +10,8 @@ export const resetForm =
 export const scheduleSessionCheck =
   createActionCreator<AccountActions.ScheduleSessionCheck>('SCHEDULE_SESSION_CHECK');
 
-export const fetchUser =
-  createRequestActionCreator<AccountActions.FetchUser>('FETCH_USER');
+export const fetchAccountSettingsData =
+  createRequestActionCreator<AccountActions.FetchAccountSettingsData>('FETCH_ACCOUNT_SETTINGS_DATA');
 export const fetchSessionCheck =
   createRequestActionCreator<AccountActions.FetchSessionCheck>('FETCH_SESSION_CHECK');
 export const updateAccount =
