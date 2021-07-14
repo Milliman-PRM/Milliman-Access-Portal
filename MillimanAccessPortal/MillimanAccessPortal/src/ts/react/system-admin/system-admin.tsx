@@ -7,6 +7,7 @@ import '../../../images/icons/reports.svg';
 import '../../../images/icons/user.svg';
 import '../../../scss/react/system-admin/system-admin.scss';
 
+import * as _ from 'lodash';
 import * as moment from 'moment';
 import * as React from 'react';
 
@@ -27,19 +28,20 @@ import { CardStat } from '../shared-components/card/card-stat';
 import { ColumnIndicator, ColumnSelector } from '../shared-components/column-selector';
 import { EntityHelper } from '../shared-components/entity';
 import { Filter } from '../shared-components/filter';
-import { Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
+import { EnableDisabledAccountReasonEnum, Guid, QueryFilter, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import {
     ClientInfo, ClientInfoWithDepth, EntityInfo, EntityInfoCollection, isClientDetail,
     isClientInfo, isClientInfoTree, isProfitCenterInfo, isRootContentItemDetail, isRootContentItemInfo,
-    isUserClientRoles, isUserDetail, isUserInfo, PrimaryDetail, PrimaryDetailData, SecondaryDetail,
-    SecondaryDetailData, UserClientRoles, UserInfo,
+    isUserClientRoles, isUserDetail, isUserDetailForProfitCenter, isUserInfo, PrimaryDetail, PrimaryDetailData,
+    SecondaryDetail, SecondaryDetailData, UserClientRoles, UserInfo,
 } from './interfaces';
 import { AddUserToProfitCenterModal } from './modals/add-user-to-profit-center';
 import { CardModal } from './modals/card-modal';
 import { ChangeSystemAdminStatusModal } from './modals/change-system-admin-status-modal';
 import { CreateProfitCenterModal } from './modals/create-profit-center';
 import { CreateUserModal } from './modals/create-user';
+import { ReenableUserModal } from './modals/reenable-user-modal';
 import { RemoveProfitCenterModals } from './modals/remove-profit-center';
 import { RemoveUserFromProfitCenterModal } from './modals/remove-user-from-profit-center';
 import { SetDomainLimitClientModal } from './modals/set-domain-limit';
@@ -82,6 +84,12 @@ export interface SystemAdminState {
     open: boolean;
     enabled: boolean;
   };
+  reenableUserModal: {
+    open: boolean;
+    targetUserId: Guid;
+    targetUserEmail: string;
+    targetEntitySet: 'primary' | 'secondary';
+  };
   removeProfitCenterModal: {
     open: boolean;
     profitCenterId: Guid;
@@ -91,6 +99,11 @@ export interface SystemAdminState {
     open: boolean;
     configurations: string;
   };
+}
+export interface UserStatus {
+  isAccountDisabled: boolean;
+  isAccountNearDisabled: boolean;
+  accountDisableDate: string;
 }
 
 export enum SystemAdminColumn {
@@ -152,6 +165,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         open: false,
         enabled: false,
       },
+      reenableUserModal: {
+        open: false,
+        targetUserId: null,
+        targetUserEmail: null,
+        targetEntitySet: null,
+      },
       removeProfitCenterModal: {
         open: false,
         profitCenterId: null,
@@ -162,6 +181,9 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
         configurations: null,
       },
     };
+
+    this.handleReenableUser = this.handleReenableUser.bind(this);
+    this.resetUserStatus = this.resetUserStatus.bind(this);
   }
 
   public componentDidUpdate() {
@@ -508,6 +530,16 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             profitCenterId={this.state.primaryPanel.selected.card}
             userId={this.state.secondaryPanel.selected.card}
           />
+          <ReenableUserModal
+            isOpen={this.state.reenableUserModal.open}
+            onRequestClose={this.handleReenableUserModalClose}
+            ariaHideApp={false}
+            className="modal"
+            overlayClassName="modal-overlay"
+            targetUserId={this.state.reenableUserModal.targetUserId}
+            targetUserEmail={this.state.reenableUserModal.targetUserEmail}
+            handleSubmit={this.handleReenableUser}
+          />
           {
             this.state.primaryPanel.selected.column === SystemAdminColumn.CLIENT
             && primaryDetail
@@ -730,7 +762,10 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             onPushSuspend={this.pushSuspendUser}
             checkedSuspended={isUserDetail(primaryDetail) && primaryDetail.isSuspended}
             doDomainLimitOpen={this.handleDomainLimitOpen}
+            onPushEnableUserAccount={isUserDetail(primaryDetail) && this.handleReenableUserModalOpen}
+            status={isUserDetail(primaryDetail) && this.getClientUserStatus(pEntities as UserInfo[], primaryDetail.id)}
           />
+
           <SecondaryDetailPanel
             selectedCard={secondaryCard}
             primarySelectedColumn={primaryColumn}
@@ -747,7 +782,13 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
             checkedFileDropUser={isUserClientRoles(secondaryDetail) && secondaryDetail.isFileDropUser}
             checkedSuspended={isRootContentItemDetail(secondaryDetail) && secondaryDetail.isSuspended}
             onPushSuspend={this.pushSuspendContent}
+            onPushEnableUserAccount={
+              (isUserClientRoles(secondaryDetail) || isUserDetailForProfitCenter(secondaryDetail)) &&
+                this.handleReenableUserModalOpen
+            }
+            status={secondaryDetail && this.getClientUserStatus(sEntities as UserInfo[], secondaryDetail.id)}
           />
+          <div>{isUserClientRoles(secondaryDetail)}</div>
         </div>
       </>
     );
@@ -793,7 +834,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           rootIndices.push(i);
         }
       });
-      const cardGroups = rootIndices.map((_, i) =>
+      const cardGroups = rootIndices.map((_v, i) =>
         filteredCards.slice(rootIndices[i], rootIndices[i + 1]));
       return cardGroups.reduce((cum, cur) => [...cum, ...cur], []);
     } else {
@@ -1001,6 +1042,12 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
           systemAdminModal: {
             open: false,
             enabled: false,
+          },
+          reenableUserModal: {
+            open: false,
+            targetUserId: null,
+            targetUserEmail: null,
+            targetEntitySet: null,
           },
           removeProfitCenterModal: {
             open: false,
@@ -1541,6 +1588,30 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     }));
   }
 
+  private handleReenableUserModalOpen = (id: Guid, email: string, entitySet: 'primary' | 'secondary') => {
+    this.setState((prevState) => ({
+      ...prevState,
+      reenableUserModal: {
+        open: true,
+        targetUserId: id,
+        targetUserEmail: email,
+        targetEntitySet: entitySet,
+      },
+    }));
+  }
+
+  private handleReenableUserModalClose = () => {
+    this.setState((prevState) => ({
+      ...prevState,
+      reenableUserModal: {
+        ...prevState.reenableUserModal,
+        open: false,
+        targetUserId: null,
+        targetUserEmail: null,
+      },
+    }));
+  }
+
   private handleRemoveProfitCenterModalClose = () => {
     this.setState((prevState) => ({
       ...prevState,
@@ -1594,6 +1665,62 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     .then(() => {
       alert('Password reset email sent.');
     });
+  }
+
+  private handleProfitCenterDelete = (id: Guid) => {
+    postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
+    .then(() => {
+      alert('Profit center deleted.');
+    });
+  }
+
+  private handleReenableUser(userId: Guid, reason: EnableDisabledAccountReasonEnum) {
+    event.preventDefault();
+    postData('SystemAdmin/ReenableDisabledUserAccount', { userId, reason }).then(() => {
+      alert('User re-enabled.');
+      this.resetUserStatus(userId);
+    });
+  }
+
+  private resetUserStatus(userId: Guid) {
+    const selectedEntityData = _.find(
+      (this.state.reenableUserModal.targetEntitySet === 'primary' ?
+        this.state.data.primaryEntities : this.state.data.secondaryEntities) as UserInfo[],
+      (e) => e.id === userId);
+    selectedEntityData.isAccountDisabled = false;
+    selectedEntityData.isAccountNearDisabled = false;
+    const updatedEntities = (this.state.reenableUserModal.targetEntitySet === 'primary') ?
+      _.map(this.state.data.primaryEntities as UserInfo[], (e) => e.id === userId ? selectedEntityData : e) :
+      _.map(this.state.data.secondaryEntities as UserInfo[], (e) => e.id === userId ? selectedEntityData : e);
+    switch (this.state.reenableUserModal.targetEntitySet) {
+      case 'primary':
+        this.setState((prevState) => ({
+          ...prevState,
+          data: {
+            ...prevState.data,
+            primaryEntities: updatedEntities,
+          },
+        }));
+        break;
+      case 'secondary':
+        this.setState((prevState) => ({
+          ...prevState,
+          data: {
+            ...prevState.data,
+            secondaryEntities: updatedEntities,
+          },
+        }));
+        break;
+    }
+  }
+
+  private getClientUserStatus = (entities: UserInfo[], selectedId: Guid): UserStatus => {
+    const selectedEntityData = _.find(entities, (e) => e.id === selectedId);
+    return {
+      isAccountDisabled: selectedEntityData ? selectedEntityData.isAccountDisabled : false,
+      isAccountNearDisabled: selectedEntityData ? selectedEntityData.isAccountNearDisabled : false,
+      accountDisableDate: selectedEntityData ? selectedEntityData.accontDisableDate : '',
+    };
   }
 
   private initializeCardAttributes(entities: EntityInfoCollection): { [id: string]: CardAttributes } {

@@ -106,7 +106,7 @@ export class LoginForm extends Form<{}, LoginFormState> {
           By continuing, you are agreeing to Milliman Access Portal's
           <a href="/Account/UserAgreementReadOnly" target="_blank"> User Agreement</a>.
         </p>
-        {loginWarning && <div className="error-message">{loginWarning}</div>}
+        {loginWarning && <div className="error-message" dangerouslySetInnerHTML={{ __html: loginWarning }} />}
         <div className={'button-container' + (userConfirmed ? ' visible' : ' hidden')}>
           <a href="/Account/ForgotPassword" className="link-button">Forgot Password</a>
           <button

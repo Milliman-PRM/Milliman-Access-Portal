@@ -1531,6 +1531,76 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
+        /// Creates a support request to re-enable a disabled user account
+        /// </summary>
+        /// <param name="Model"></param>
+        /// <param name="Password"></param>
+        /// <returns></returns>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestReenableUserAccount([FromBody] RequestReenableUserAccountRequestModel Model)
+        {
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with model {@Model}", Model);
+
+            Client ExistingClientRecord = await DbContext.Client.FindAsync(Model.ClientId);
+            ApplicationUser RequestedAccount = await DbContext.Users.FindAsync(Model.UserId);
+
+            #region Preliminary Validation
+            if (Model.ClientId == null || Model.ClientId == Guid.Empty || (Model.UserId == null || Model.UserId == Guid.Empty))
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: no client ID provided");
+                return BadRequest("An error has occcurred.");
+            }
+            if (Model.UserId == null || Model.UserId == Guid.Empty)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: no user ID provided");
+                return BadRequest("An error has occcurred.");
+            }
+
+            // Client must exist
+            if (ExistingClientRecord == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: referenced client not found");
+                return BadRequest("The modified client was not found in the system.");
+            }
+            // Disabled account must exist
+            if (RequestedAccount == null)
+            {
+                Log.Warning($"In {ControllerContext.ActionDescriptor.DisplayName} action: requested user account not found");
+                return BadRequest("The requested user account was not foun in the system.");
+            }
+            #endregion
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin, Model.ClientId));
+            if (!Result1.Succeeded)
+            {
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName} action: current user {User.Identity.Name} is not administrator of client {Model.ClientId}");
+                Response.Headers.Add("Warning", $"The requesting user is not a ClientAdministrator for the requested client ({ExistingClientRecord.Name})");
+                return Unauthorized();
+            }
+            #endregion
+
+            ApplicationUser Requestor = await _userManager.FindByNameAsync(User.Identity.Name);
+
+            // Email.
+            string emailSubject = "Request to re-enable user";
+            string emailBody = $"A Client Admin has requested that an existing MAP user account be re-enabled. {Environment.NewLine}{Environment.NewLine}";
+            emailBody += $"Requestor: {Requestor.FirstName} {Requestor.LastName} ({Requestor.UserName}) {Environment.NewLine}";
+            emailBody += $"Account to re-enable: {RequestedAccount.FirstName} {RequestedAccount.LastName} ({RequestedAccount.UserName}) {Environment.NewLine}";
+            emailBody += $"Reason: {Model.Reason.GetDisplayNameString()}";
+
+            string supportEmailAlias = ApplicationConfig.GetValue<string>("SecurityEmailAlias");
+            MessageQueueService.QueueEmail(supportEmailAlias, emailSubject, emailBody);
+
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: Client Admin {Requestor.Id} requested user {RequestedAccount.Id} be re-enabled. Support email sent.");
+
+            AuditLogger.Log(AuditEventType.ClientAdminRequestedUserAccountReenable.ToEvent(ExistingClientRecord, Requestor, RequestedAccount, Model.Reason), Requestor.UserName, Requestor.Id);
+
+            return Json(new { });
+        }
+
+        /// <summary>
         /// Returns an array of individual whitelist items without nulls, optionally tested for validity as either domain or full email address
         /// </summary>
         /// <param name="inList">0 or more strings that may contain 0 or more email entries or a delimited list</param>

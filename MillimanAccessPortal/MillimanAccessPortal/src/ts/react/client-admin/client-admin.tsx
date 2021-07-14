@@ -38,7 +38,7 @@ import { Checkbox } from '../shared-components/form/checkbox';
 import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
-import { HitrustReasonEnum, RoleEnum } from '../shared-components/interfaces';
+import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from '../shared-components/interfaces';
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
@@ -99,6 +99,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     { selectionValue: HitrustReasonEnum.EmployeeTermination, selectionLabel: 'Employee termination' },
     { selectionValue: HitrustReasonEnum.NewEmployeeHire, selectionLabel: 'New employee hire' },
     { selectionValue: HitrustReasonEnum.NewMapClient, selectionLabel: 'New MAP Client' },
+  ];
+  private readonly requestForRenableDisabledAccountReasons:
+    Array<{ selectionValue: number, selectionLabel: string }> = [
+      {
+        selectionValue: EnableDisabledAccountReasonEnum.ChangeInEmployeeResponsibilities,
+        selectionLabel: 'Change in employee responsibilities',
+      },
+      {
+        selectionValue: EnableDisabledAccountReasonEnum.ReturningEmployee,
+        selectionLabel: 'Returning employee',
+      },
   ];
 
   public componentDidMount() {
@@ -929,84 +940,101 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </CardSectionButtons> : null
                   }
                 </CardSectionMain>
-                {!selected.readonly ?
-                  <CardExpansion
-                    label={'User roles'}
-                    expanded={card && card.expanded}
-                    setExpanded={(value) => value
-                      ? this.props.setExpandedUser({ id: entity.id })
-                      : this.props.setCollapsedUser({ id: entity.id })}
-                  >
-                    <Checkbox
-                      name={'Client Admin'}
-                      selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content Access Admin'}
-                      selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentAccessAdmin,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content Publisher'}
-                      selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentPublisher,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'Content User'}
-                      selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.ContentUser,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'File Drop Admin'}
-                      selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.FileDropAdmin,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                    <Checkbox
-                      name={'File Drop User'}
-                      selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
-                        pending.roles.roleAssignments)}
-                      onChange={(checked) => {
-                        this.props.changeUserRolePending({
-                          roleEnum: RoleEnum.FileDropUser,
-                          isAssigned: checked,
-                        });
-                      }}
-                      readOnly={entity.id !== selected.user || !edit.userEnabled}
-                    />
-                  </CardExpansion> : null}
+                <CardExpansion
+                  label={'User roles'}
+                  expanded={card && card.expanded}
+                  setExpanded={(value) => value
+                    ? this.props.setExpandedUser({ id: entity.id })
+                    : this.props.setCollapsedUser({ id: entity.id })}
+                >
+                  {!selected.readonly ?
+                    <div>
+                      <Checkbox
+                        name={'Client Admin'}
+                        selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({ roleEnum: RoleEnum.Admin, isAssigned: checked });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                      <Checkbox
+                        name={'Content Access Admin'}
+                        selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({
+                            roleEnum: RoleEnum.ContentAccessAdmin,
+                            isAssigned: checked,
+                          });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                      <Checkbox
+                        name={'Content Publisher'}
+                        selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({
+                            roleEnum: RoleEnum.ContentPublisher,
+                            isAssigned: checked,
+                          });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                      <Checkbox
+                        name={'Content User'}
+                        selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({
+                            roleEnum: RoleEnum.ContentUser,
+                            isAssigned: checked,
+                          });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                      <Checkbox
+                        name={'File Drop Admin'}
+                        selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({
+                            roleEnum: RoleEnum.FileDropAdmin,
+                            isAssigned: checked,
+                          });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                      <Checkbox
+                        name={'File Drop User'}
+                        selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
+                          pending.roles.roleAssignments)}
+                        onChange={(checked) => {
+                          this.props.changeUserRolePending({
+                            roleEnum: RoleEnum.FileDropUser,
+                            isAssigned: checked,
+                          });
+                        }}
+                        readOnly={entity.id !== selected.user || !edit.userEnabled}
+                      />
+                    </div> : null
+                  }
+                  {entity.isAccountDisabled ?
+                    <button
+                      className="link-button small-padding"
+                      type="button"
+                      onClick={() =>
+                        this.props.openRequestReenableDisabledAccountModal({
+                          userId: entity.id,
+                          userEmail: entity.email,
+                        })
+                      }
+                    >
+                      Re-enable User Account
+                    </button> : null
+                  }
+                </CardExpansion>
               </Card>
             );
           }}
@@ -1536,6 +1564,63 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                 type="submit"
               >
                 Discard
+              </button>
+            </div>
+          </form>
+        </Modal>
+        <Modal
+          isOpen={modals.requestReenableDisabledAccount.isOpen}
+          onRequestClose={() => this.props.closeRequestReenableDisabledAccountModal({})}
+          ariaHideApp={false}
+          className="modal"
+          overlayClassName="modal-overlay"
+          closeTimeoutMS={100}
+        >
+          <h2 className="title blue">Contact Support</h2>
+          <span className="modal-text text-muted">
+            Re-enable user <strong>{pending.reenableDisabledAccountReason.userEmail}</strong>
+          </span>
+          <form
+            onSubmit={(event) => {
+              event.nativeEvent.preventDefault();
+            }}
+          >
+            <DropDown
+              name="reason"
+              label="Reason *"
+              value={pending.reenableDisabledAccountReason.reason.toString()}
+              values={this.requestForRenableDisabledAccountReasons}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.props.setAcountReenableRequestReason({ reason: parseInt(target.value, 10) });
+              }}
+              error={null}
+              placeholderText={'Select a reason for this request'}
+            />
+            <div className="button-container">
+              <button
+                className="link-button"
+                type="button"
+                onClick={() => this.props.closeRequestReenableDisabledAccountModal({})}
+              >
+                Cancel
+              </button>
+              <button
+                className="blue-button"
+                type="submit"
+                disabled={!pending.reenableDisabledAccountReason.reason}
+                onClick={() =>
+                  this.props.requestReenableUserAccount({
+                    clientId: selected.client,
+                    userId: pending.reenableDisabledAccountReason.userId,
+                    reason: pending.reenableDisabledAccountReason.reason,
+                  })
+                }
+              >
+                Submit
+                {this.props.pending.data.requestReenableDisabledAccount
+                  ? <ButtonSpinner version="circle" />
+                  : null
+                }
               </button>
             </div>
           </form>

@@ -229,7 +229,9 @@ namespace MillimanAccessPortal.Controllers
                     NotifyUserAboutDisabledAccount(user);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, user {model.Username} disabled, local login rejected");
                     _auditLogger.Log(AuditEventType.LoginFailure.ToEvent(model.Username, (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name, LoginFailureReason.UserAccountDisabled), null);
-                    Response.Headers.Add("Warning", UserMessageEnum.AccountDisabled.GetDisplayDescriptionString());
+
+                    Response.Headers.Add("Warning", new UserMessageModel(UserMessageEnum.AccountDisabled).PrimaryMessages.First());
+
                     return Ok();
                 }
 
@@ -238,7 +240,8 @@ namespace MillimanAccessPortal.Controllers
                     _auditLogger.Log(AuditEventType.LoginIsSuspended.ToEvent(user.UserName), null);
                     Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, User {user.UserName} suspended, local login rejected");
 
-                    Response.Headers.Add("Warning", UserMessageEnum.AccountSuspended.GetDisplayDescriptionString());
+                    Response.Headers.Add("Warning", new UserMessageModel(UserMessageEnum.AccountSuspended).PrimaryMessages.First());
+
                     return Ok();
                 }
 

@@ -34,6 +34,11 @@ a,
     color: $blue;
     background-color: transparent;
 
+    &.small-padding {
+        margin-left: 0em;
+        padding: 0em 0em 0.25em 0em !important;
+    }
+
     &:hover, &:active {
         color: darken( $blue, 15% );
         text-decoration: none;

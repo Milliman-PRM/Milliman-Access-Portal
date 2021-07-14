@@ -2301,6 +2301,50 @@ namespace MillimanAccessPortal.Controllers
 
             return Json(rootContentItem.IsSuspended);
         }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> ReenableDisabledUserAccount(Guid userId, ReenableDisabledAccountReason reason)
+        {
+            #region Authorization
+            // User must have a global Admin role
+            AuthorizationResult result = await _authService.AuthorizeAsync(User, null, new UserGlobalRoleRequirement(RoleEnum.Admin));
+            if (!result.Succeeded)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failure, user {User.Identity.Name}, global role {RoleEnum.Admin.ToString()}, aborting");
+                Response.Headers.Add("Warning", $"You are not authorized to the System Admin page.");
+                return Unauthorized();
+            }
+            #endregion
+            
+            var accountToEnable = await _dbContext.Users.FindAsync(userId);
+
+            #region Validation
+            if (userId == null || userId == Guid.Empty)
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: User ID is invalid.");
+                Response.Headers.Add("Warning", "The specified content item does not exist.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            int disableInactiveUserMonths = _configuration.GetValue<int>("DisableInactiveUserMonths", 12);
+            if (accountToEnable.LastLoginUtc >= DateTime.UtcNow.Date.AddMonths(-disableInactiveUserMonths))
+            {
+                Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: Account with ID {userId} is not currently disabled.");
+                Response.Headers.Add("Warning", "This user is not disabled.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            accountToEnable.LastLoginUtc = DateTime.UtcNow.Date;
+            await _dbContext.SaveChangesAsync();
+            Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success");
+
+            var currentUser = await _userManager.GetUserAsync(User);
+            _auditLogger.Log(AuditEventType.DisabledAccountReenabled.ToEvent(accountToEnable, reason), currentUser.UserName, currentUser.Id);
+
+            return Json(new { });
+        }
         #endregion
     }
 }
