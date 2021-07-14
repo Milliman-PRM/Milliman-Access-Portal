@@ -388,14 +388,17 @@ namespace PowerBiMigration
         private async Task<ProcessedItem> ExportOneContentItem(Client client, RootContentItem contentItem, string clientFolder, ApplicationDbContext db)
         {
             Stopwatch timer = Stopwatch.StartNew();
-            string logMsg = string.Empty;
 
             PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
             PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
+            Log.Information($"Preparing to export content item {contentItem.ContentName}, workspace ID {typeSpecificDetail.LiveWorkspaceId}, report ID {typeSpecificDetail.LiveReportId}");
+
             // Do the export from the source
             long itemExportStartMs = timer.ElapsedMilliseconds;
             var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId.Value, typeSpecificDetail.LiveReportId.Value, clientFolder, chkWriteFiles.Checked);
+
+            Log.Information($"Finished streaming content of report {JsonSerializer.Serialize(exportReturn.report)}{(string.IsNullOrEmpty(exportReturn.reportFilePath) ? ", no file written" : $" to file {exportReturn.reportFilePath}")}");
 
             ProcessedItem newProcessedItem = new ProcessedItem
             {
