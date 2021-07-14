@@ -1,4 +1,6 @@
-﻿import * as React from 'react';
+﻿import '../../../scss/react/shared-components/browser-support-banner.scss';
+
+import * as React from 'react';
 
 interface BrowserSupportBannerState {
   browserWillNoLongerBeSupported: boolean;

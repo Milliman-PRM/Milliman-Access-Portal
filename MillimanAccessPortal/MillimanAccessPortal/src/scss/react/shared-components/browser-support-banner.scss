@@ -1,0 +1,21 @@
+﻿@import "../../map_modules/variables";
+
+.browser-support-banner {
+    position: fixed;
+    bottom: 3em;
+    left: 50%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    padding: 1em 2em;
+    transform: translate(-50%, 0);
+    max-width: 95vw;
+    z-index: 999;
+    background-color: $white;
+    border: 1px solid $charcoal;
+    border-radius: .25em;
+
+    p {
+        margin: 0 1em 0 0;
+    }
+}
