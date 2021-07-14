@@ -84,10 +84,10 @@
                                 </div>
                             </div>
                             <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
-                                <label class="form-input-text-title" asp-for="TimeZone"></label>
+                                <label class="form-input-text-title" asp-for="TimeZoneId"></label>
                                 <div>
-                                    @Html.DropDownListFor(m => m.TimeZone, new SelectList(Model.TimeZoneSelections))
-                                    <span asp-validation-for="TimeZone" class="text-danger"></span>
+                                    @Html.DropDownListFor(m => m.TimeZoneId, new SelectList(Model.TimeZoneSelections, "Id", "DisplayName"))
+                                    <span asp-validation-for="TimeZoneId" class="text-danger"></span>
                                 </div>
                             </div>
 							@if (Model.IsLocalAccount) 
