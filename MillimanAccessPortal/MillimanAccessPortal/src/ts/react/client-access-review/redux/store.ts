@@ -33,6 +33,7 @@ export interface ClientActorModel {
   disableAccountDate?: string;
   isAccountDisabled: boolean;
   isAccountNearDisabled: boolean;
+  isSuspended: boolean;
 }
 
 export interface ClientAccessReviewModel {
