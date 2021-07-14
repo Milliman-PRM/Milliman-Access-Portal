@@ -128,7 +128,9 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var model = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId);
+            var user = await _userManager.GetUserAsync(User);
+
+            ClientSummaryModel model = await _clientAccessReviewQueries.GetClientSummaryAsync(ClientId, user.TimeZoneId);
 
             return Json(model);
         }

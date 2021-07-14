@@ -96,27 +96,7 @@ function calculateReviewDueDates(response: {
     ..._.mapValues(response.clients, (client) => ({ ...client, canManage: true })),
     ..._.mapValues(response.parentClients, (client) => ({ ...client, canManage: false })),
   };
-  const combinedClientDueDates: Dict<Moment[]> = {};
-  Object.keys(combinedClients).forEach((client) => {
-    const parentId = combinedClients[client].parentId || combinedClients[client].id;
-    if (combinedClients[client].canManage) {
-      (parentId in combinedClientDueDates) ?
-        combinedClientDueDates[parentId].push(moment(combinedClients[client].reviewDueDateTimeUtc)) :
-        combinedClientDueDates[parentId] = [moment(combinedClients[client].reviewDueDateTimeUtc)];
-    } else {
-      if (!(parentId in combinedClientDueDates)) {
-        combinedClientDueDates[parentId] = [];
-      }
-    }
-  });
-  const clients = combinedClients;
-  Object.keys(clients).forEach((client) => {
-    if (client in combinedClientDueDates) {
-      clients[client].maxReviewDueDate = moment.max(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
-      clients[client].minReviewDueDate = moment.min(combinedClientDueDates[client]).format('YYYY-MM-DDTHH:mm:ss');
-    }
-  });
-  return clients;
+  return combinedClients;
 }
 
 const clientCardAttributes = createReducer<Dict<CardAttributes>>({},

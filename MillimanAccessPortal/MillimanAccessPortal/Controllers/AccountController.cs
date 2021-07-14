@@ -777,6 +777,7 @@ namespace MillimanAccessPortal.Controllers
                 Code = code,
                 Username = user.UserName,
                 IsLocalAccount = await IsUserAccountLocal(user.UserName),
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones(),
             };
             Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} GET action: complete");
             return View(model);
@@ -874,6 +875,7 @@ namespace MillimanAccessPortal.Controllers
                 user.LastName = model.LastName;
                 user.Employer = model.Employer;
                 user.PhoneNumber = model.Phone;
+                user.TimeZoneId = model.TimeZoneId;
                 var updateAccountSettingsResult = await _userManager.UpdateAsync(user);
                 if (!updateAccountSettingsResult.Succeeded)
                 {
@@ -1249,13 +1251,13 @@ namespace MillimanAccessPortal.Controllers
             if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
             {
                 TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
-                // Check whether an sftp account of the user is currently authorized to any File Drop for an authorized client
+                // Check whether any sftp account of the user is currently authorized to any File Drop for an authorized and available client
                 List<Guid> authorizedClientIds = (await DbContext.UserRoleInClient
                                                                  .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
                                                                  .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                                  .Select(urc => urc.Client)
                                                                  .ToListAsync())
-                                                  .FindAll(c => DateTime.UtcNow.Date - c.LastAccessReview.LastReviewDateTimeUtc.Date <= expirationTime)
+                                                  .FindAll(c => DateTime.UtcNow - c.LastAccessReview.LastReviewDateTimeUtc <= expirationTime)
                                                   .ConvertAll(c => c.Id);
                 if (!await DbContext.SftpAccount.AnyAsync(a => authorizedClientIds.Contains(a.FileDrop.Client.Id)
                                                       && (a.FileDropUserPermissionGroup.ReadAccess || 
@@ -1312,13 +1314,14 @@ namespace MillimanAccessPortal.Controllers
             // Conditionally add the Client Access Review element
             if (ClientAdminResult1.Succeeded)
             {
-                List<Guid> myClientIds = (await DbContext.UserRoleInClient
-                                                         .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
-                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
-                                                         .Select(urc => urc.ClientId)
-                                                         .Distinct()
-                                                         .ToListAsync());
-                DateTime countableLastReviewTime = DateTime.UtcNow
+                List<Guid> myClientIds = await DbContext.UserRoleInClient
+                                                        .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                        .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
+                                                        .Select(urc => urc.ClientId)
+                                                        .Distinct()
+                                                        .ToListAsync();
+                DateTime countableLastReviewTime = DateTime.Today
+                                                    + TimeSpan.FromHours(_configuration.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9))
                                                     - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"))
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
                 int numClientsDue = (await DbContext.Client
@@ -1506,11 +1509,11 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult> AccountSettings2()
+        public async Task<ActionResult> AccountSettingsData()
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
 
-            return Json(new UserFullModel
+            UserFullModel returnModel = new UserFullModel
             {
                 Id = user.Id,
                 IsActivated = user.EmailConfirmed,
@@ -1522,7 +1525,11 @@ namespace MillimanAccessPortal.Controllers
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
                 IsLocal = await IsUserAccountLocal(user.UserName),
-            });
+                TimeZoneSelected = new TimeZoneSelection { Id = user.TimeZoneId, DisplayName = TimeZoneInfo.FindSystemTimeZoneById(user.TimeZoneId).DisplayName },
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(zi => new TimeZoneSelection { Id = zi.Id, DisplayName = zi.DisplayName }).ToList()
+            };
+
+            return Json(returnModel);
         }
 
         [HttpPost]
@@ -1619,7 +1626,8 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(model.User.FirstName) ||
                 string.IsNullOrWhiteSpace(model.User.LastName) ||
                 string.IsNullOrWhiteSpace(model.User.Employer) ||
-                string.IsNullOrWhiteSpace(model.User.Phone)
+                string.IsNullOrWhiteSpace(model.User.Phone) ||
+                string.IsNullOrWhiteSpace(model.User.TimeZoneSelected)
             )
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, {model} does not contain all required field.");
@@ -1636,6 +1644,7 @@ namespace MillimanAccessPortal.Controllers
                     user.LastName = model.User.LastName;
                     user.PhoneNumber = model.User.Phone;
                     user.Employer = model.User.Employer;
+                    user.TimeZoneId = model.User.TimeZoneSelected;
                 }
 
                 await DbContext.SaveChangesAsync();
@@ -1654,6 +1663,8 @@ namespace MillimanAccessPortal.Controllers
                 Phone = user.PhoneNumber,
                 Employer = user.Employer,
                 IsLocal = await IsUserAccountLocal(user.UserName),
+                TimeZoneSelected = new TimeZoneSelection { Id = user.TimeZoneId, DisplayName = TimeZoneInfo.FindSystemTimeZoneById(user.TimeZoneId).DisplayName },
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(zi => new TimeZoneSelection { Id = zi.Id, DisplayName = zi.DisplayName }).ToList()
             });
         }
 

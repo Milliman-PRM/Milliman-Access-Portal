@@ -7,7 +7,7 @@
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Generic;
 using System;
-using System.Linq;
+using System.Globalization;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Newtonsoft.Json;
@@ -90,5 +90,8 @@ namespace MapDbContextLib.Identity
         public AuthenticationScheme AuthenticationScheme { get; set; }
 
         public IEnumerable<SftpAccount> SftpAccounts { get; set; }
+
+        [Required]
+        public string TimeZoneId { get; set; }
     }
 }

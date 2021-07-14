@@ -1,4 +1,5 @@
 import { PublicationStatus, ReductionStatus } from '../view-models/content-publishing';
+import { ClientReviewDeadlineStatusEnum } from './client-access-review/redux/store';
 import { Dict } from './shared-components/redux/store';
 
 export type Guid = string;
@@ -20,6 +21,8 @@ export interface UserFull extends User {
   isLocal: boolean;
   phone: string;
   employer: string;
+  timeZoneSelected: string | { id: string, displayName: string };
+  timeZoneSelections: Array<{ id: string, displayName: string }>;
 }
 export interface UserRole {
   roleEnum: number;
@@ -45,9 +48,8 @@ export interface Client {
 }
 export interface ClientWithReviewDate extends Client {
   canManage?: boolean;
-  reviewDueDateTimeUtc: string;
-  maxReviewDueDate?: string;
-  minReviewDueDate?: string;
+  reviewDueDateTime: string;
+  deadlineStatus: ClientReviewDeadlineStatusEnum;
 }
 export interface ClientWithStats extends Client {
   canManage?: boolean;
