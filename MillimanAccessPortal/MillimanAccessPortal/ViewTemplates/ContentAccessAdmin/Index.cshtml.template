@@ -5,7 +5,7 @@
      * DEVELOPER NOTES:
      */
 
-    ViewData["Title"] = "Content Access Administration";
+    ViewData["Title"] = "Content Access Admin";
     Layout = "_Layout_w_NB_H_F";
     ViewData["NavIcon"] = "ContentAccessAdmin";
 }

@@ -23,8 +23,8 @@ export const fetchClientReview =
   createJsonRequestor<AccessReviewActions.FetchClientReview, AccessReviewActions.FetchClientReviewSucceeded>
     ('GET', '/ClientAccessReview/BeginClientAccessReview');
 
-export const approvedClientAccessReview = createJsonRequestor<
-  AccessReviewActions.ApproveClientAccessReview, AccessReviewActions.ApproveClientAccessReviewSucceeded>
+export const approvedClientAccessReview = createJsonRequestor
+  <AccessReviewActions.ApproveClientAccessReview, AccessReviewActions.ApproveClientAccessReviewSucceeded>
     ('POST', '/ClientAccessReview/ApproveClientAccessReview');
 
 export const fetchSessionCheck =

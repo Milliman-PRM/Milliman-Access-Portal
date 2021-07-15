@@ -14,7 +14,8 @@ export interface CardButtonProps {
   color: 'red' | 'blue' | 'green';
   tooltip: string;
   onClick: () => void;
-  icon: 'add' | 'cancel' | 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card' | 'remove-circle' | 'upload';
+  icon: 'add' | 'cancel' | 'checkmark' | 'delete' | 'edit' | 'email' | 'expand-card'
+  | 'remove-circle' | 'upload' | 'download';
   additionalClasses: string[];
 }
 

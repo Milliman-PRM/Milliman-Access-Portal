@@ -74,6 +74,18 @@ namespace AuditLogLib.Event
         UserRemovedFromSelectionGroup,
     }
 
+    public enum ReenableDisabledAccountReason
+    {
+        [Display(Name = "Unknown")]
+        Unknown = 0,
+
+        [Display(Name = "Change in employee responsibilities")]
+        ChangeInEmployeeResponsibilities,
+
+        [Display(Name = "Returning employee")]
+        ReturningEmployee,
+    }
+
     public class HitrustReason
     {
         private static Dictionary<int, HitrustReason> AllReasons;
@@ -114,6 +126,9 @@ namespace AuditLogLib.Event
             RevokeSysAdminReasons = new List<HitrustReason> { EmployeeTermination, ChangeInEmployeeResponsibilities };
         }
 
+        public int NumericValue { get; protected set; }
+        public string Description { get; protected set; }
+
         private HitrustReason(int numericValue, string description)
         {
             NumericValue = numericValue;
@@ -121,9 +136,6 @@ namespace AuditLogLib.Event
 
             AllReasons.Add(numericValue, this);
         }
-
-        public int NumericValue { get; private set; }
-        public string Description { get; private set; }
 
         public static bool TryGetReason(int numericValue, out HitrustReason reason)
         {
@@ -458,7 +470,50 @@ namespace AuditLogLib.Event
             {
                 RequestedEmail = email,
             });
-
+        public static readonly AuditEventType<Client, ApplicationUser, ApplicationUser, ReenableDisabledAccountReason> ClientAdminRequestedUserAccountReenable = new AuditEventType<Client, ApplicationUser, ApplicationUser, ReenableDisabledAccountReason>(
+            3014, "Client admin requested that a disabled user account be reenabled.", (client, requestor, user, reason) =>
+            {
+                return new
+                {
+                    Client = new
+                    {
+                        client.Id,
+                        client.Name,
+                    },
+                    Requestor = new
+                    {
+                        requestor.Id,
+                        requestor.UserName,
+                    },
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        NumericValue = (int) reason,
+                        Description = reason.GetDisplayDescriptionString(),
+                    },
+                };
+            });
+        public static readonly AuditEventType<ApplicationUser, ReenableDisabledAccountReason> DisabledAccountReenabled = new AuditEventType<ApplicationUser, ReenableDisabledAccountReason>(
+            3015, "Disabled account re-enabled by a system admin.", (user, reason) =>
+            {
+                return new
+                {
+                    User = new
+                    {
+                        user.Id,
+                        user.UserName,
+                    },
+                    Reason = new
+                    {
+                        NumericValue = (int) reason,
+                        Description = reason.GetDisplayDescriptionString(),
+                    },
+                };
+            });
         public static readonly AuditEventType<UserAgreementLogModel> UserAgreementPresented =
             new AuditEventType<UserAgreementLogModel>(3101, "User agreement presented to user",
                 (UserAgreementLogModel) => new

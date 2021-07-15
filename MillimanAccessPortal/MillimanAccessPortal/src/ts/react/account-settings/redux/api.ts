@@ -17,6 +17,7 @@ export type UserInputState = Pick<PendingInputState,
   | 'lastName'
   | 'phone'
   | 'employer'
+  | 'timeZoneSelected'
   >;
 
 const userSchema = yup.object<UserInputState>({
@@ -24,11 +25,12 @@ const userSchema = yup.object<UserInputState>({
   lastName: yup.string().required('This field is required'),
   phone: yup.string().required('This field is required'),
   employer: yup.string().required('This field is required'),
+  timeZoneSelected: yup.string().required('This field is required'),
 });
 
-export const fetchUser =
-  createJsonRequestor<AccountActions.FetchUser, AccountActions.FetchUserSucceeded>
-  ('GET', '/Account/AccountSettings2');
+export const fetchAccountSettingsData =
+  createJsonRequestor<AccountActions.FetchAccountSettingsData, AccountActions.FetchAccountSettingsDataSucceeded>
+  ('GET', '/Account/AccountSettingsData');
 
 export const fetchSessionCheck =
   createJsonRequestor<AccountActions.FetchSessionCheck, AccountActions.FetchSessionCheckSucceeded>
