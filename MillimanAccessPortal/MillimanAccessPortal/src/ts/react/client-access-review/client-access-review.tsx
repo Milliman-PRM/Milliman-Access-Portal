@@ -16,7 +16,8 @@ import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
-import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
+import CardButton from '../shared-components/card/card-button';
+import { CardSectionButtons, CardSectionMain, CardText } from '../shared-components/card/card-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { Checkbox } from '../shared-components/form/checkbox';
@@ -225,6 +226,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionButtons>
+                  {
+                    !card.disabled &&
+                    <a
+                      href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${entity.id}`}
+                      download={true}
+                    >
+                      <CardButton
+                        icon={'download'}
+                        color={'green'}
+                        tooltip={'Download Client Access Review summary'}
+                        onClick={null}
+                      />
+                    </a>
+                  }
+                </CardSectionButtons>
               </CardSectionMain>
             </Card>
           );
@@ -242,6 +259,47 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
       </CardPanel>
+    );
+  }
+
+  private renderClientSummaryHeader() {
+    const { clientSummary, clientAccessReviewProgress, selected } = this.props;
+    const reviewDescription = () => {
+      switch (clientAccessReviewProgress.step) {
+        case ClientAccessReviewProgressEnum.clientReview:
+          return 'Review the Client information to proceed';
+        case ClientAccessReviewProgressEnum.userRoles:
+          return 'Review the User information to proceed';
+        case ClientAccessReviewProgressEnum.contentAccess:
+          return 'Review content access information to proceed';
+        case ClientAccessReviewProgressEnum.fileDropAccess:
+          return 'Review File Drop access information to proceed';
+        case ClientAccessReviewProgressEnum.attestations:
+          return 'Attest to the Client information to complete the review';
+        default:
+          return '';
+      }
+    };
+    return (
+      <div className="title-container">
+        <div className="client-info">
+          <span className="client-name">{clientSummary.clientName}</span>
+          <span className="client-code">{clientSummary.clientCode}</span>
+        </div>
+        <div className="client-download-button">
+          <a
+            href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${selected.client}`}
+            download={true}
+          >
+            <ActionIcon
+              label="Download Client Access Review summary"
+              icon="download"
+              action={() => null}
+            />
+          </a>
+        </div>
+        <span className="client-code">{reviewDescription()}</span>
+      </div>
     );
   }
 
@@ -272,10 +330,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         >
           <div className="header">
             <div className="title">
-              <div className="title-container">
-                <span className="client-name">{clientSummary.clientName}</span>
-                <span className="client-code">{clientSummary.clientCode}</span>
-              </div>
+              {this.renderClientSummaryHeader()}
               {
                 dueDateClass() !== null ? (
                   <ActionIcon icon="error" />
@@ -418,22 +473,6 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
 
   private renderClientAccessReviewPanel() {
     const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
-    const reviewDescription = () => {
-      switch (clientAccessReviewProgress.step) {
-        case ClientAccessReviewProgressEnum.clientReview:
-          return 'Review the Client information to proceed';
-        case ClientAccessReviewProgressEnum.userRoles:
-          return 'Review the User information to proceed';
-        case ClientAccessReviewProgressEnum.contentAccess:
-          return 'Review content access information to proceed';
-        case ClientAccessReviewProgressEnum.fileDropAccess:
-          return 'Review File Drop access information to proceed';
-        case ClientAccessReviewProgressEnum.attestations:
-          return 'Attest to the Client information to complete the review';
-        default:
-          return '';
-      }
-    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -441,11 +480,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <div className="client-review-container" ref={this.clientReviewContainer}>
           <div className="header">
             <div className="title">
-              <div className="title-container">
-                <span className="client-name">{clientAccessReview.clientName}</span>
-                <span className="client-code">{clientAccessReview.clientCode}</span>
-                <span className="client-code">{reviewDescription()}</span>
-              </div>
+              {this.renderClientSummaryHeader()}
               <ProgressIndicator
                 progressObjects={{
                   [ClientAccessReviewProgressEnum.clientReview]: {
