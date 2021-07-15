@@ -4,6 +4,7 @@ import * as React from 'react';
 import { connect } from 'react-redux';
 import ReduxToastr from 'react-redux-toastr';
 
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { Input } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { NavBar } from '../shared-components/navbar';
@@ -54,6 +55,7 @@ class AccountSettings extends React.Component<AccountSettingsProps & typeof Acco
           transitionOut="fadeOut"
         />
         <NavBar currentView="AccountSettings" />
+        <BrowserSupportBanner />
         {this.renderAccountSettingsForm()}
       </>
     );

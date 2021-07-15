@@ -1,0 +1,33 @@
+﻿@import "../../map_modules/variables";
+
+#content-wrapper {
+
+    &.navbar-offset .browser-support-banner {
+        left: 4.5rem;
+    }
+}
+
+.browser-support-banner {
+    position: fixed;
+    bottom: 3rem;
+    left: 1rem;
+    right: 1rem;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: space-between;
+    padding: .5rem 1em;
+    z-index: 999;
+    background-color: $white;
+    border-left: 5px solid $orange;
+    opacity: .95;
+    box-shadow: rgba($charcoal, .42) .2em .2em .75em;
+
+    &:hover {
+        box-shadow: rgba($charcoal, .9) .3em .3em .75em;
+    }
+
+    p {
+        margin: 0 1em 0 0;
+    }
+}

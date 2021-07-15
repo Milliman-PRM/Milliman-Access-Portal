@@ -21,6 +21,7 @@ import {
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import { PanelSectionToolbar, PanelSectionToolbarButtons } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
@@ -131,6 +132,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
           transitionOut="fadeOut"
         />
         <NavBar currentView={this.currentView} />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {this.props.selected.client !== null ?
           <div
