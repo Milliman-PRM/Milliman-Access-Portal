@@ -19,9 +19,16 @@
     padding: .5rem 1em;
     z-index: 999;
     background-color: $white;
-    border-left: 5px solid $orange;
     opacity: .95;
     box-shadow: rgba($charcoal, .42) .2em .2em .75em;
+
+    &.support-expired {
+        border-left: 5px solid $red;
+    }
+
+    &.support-expiring-soon {
+        border-left: 5px solid $orange;
+    }
 
     &:hover {
         box-shadow: rgba($charcoal, .9) .3em .3em .75em;
