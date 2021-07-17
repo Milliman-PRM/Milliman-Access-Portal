@@ -5,6 +5,7 @@ import * as React from 'react';
 import { ActionIcon } from './action-icon';
 
 interface BrowserSupportBannerState {
+  browserSupportHasExpired: boolean;
   browserWillBeSupported: boolean;
   hasAcceptedBrowserSupportNotice: boolean;
 }
@@ -14,6 +15,9 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
   public constructor(props: any) {
     super(props);
 
+    // Check if the browser support expiration date has already passed
+    const browserSupportHasExpired = this.browserSupportHasExpired();
+
     // Check if the users browser is one that will no longer be supported
     const browserWillBeSupported = this.browserWillBeSupported();
 
@@ -21,6 +25,7 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
     const hasAcceptedBrowserSupportNotice = sessionStorage.getItem('hasAcceptedBrowserSupportNotice') ? true : false;
 
     this.state = {
+      browserSupportHasExpired,
       browserWillBeSupported,
       hasAcceptedBrowserSupportNotice,
     };
@@ -48,8 +53,15 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
     }
   }
 
+  public browserSupportHasExpired = () => {
+    const expirationDate = new Date('2021-08-17').getTime();
+    const today = new Date().getTime();
+    return expirationDate <= today;
+  }
+
   public render() {
-    const { browserWillBeSupported, hasAcceptedBrowserSupportNotice } = this.state;
+    const { browserSupportHasExpired, browserWillBeSupported, hasAcceptedBrowserSupportNotice } = this.state;
+    const browserSupportBannerClass = (browserSupportHasExpired) ? 'support-expired' : 'support-expiring-soon';
 
     return (
       (
@@ -57,10 +69,21 @@ export class BrowserSupportBanner extends React.Component<{}, BrowserSupportBann
         !hasAcceptedBrowserSupportNotice
       ) &&
       (
-        <div className="browser-support-banner">
+        <div className={`browser-support-banner ${browserSupportBannerClass}`}>
           <p>
-            <strong>Browser Support Expiration</strong>&nbsp;&nbsp;
-            MAP will not support this browser after August 17, 2021.
+            {
+              browserSupportHasExpired ? (
+                <>
+                  <strong>Browser Support Has Expired</strong>&nbsp;&nbsp;
+                  MAP no longer supports this browser.&nbsp;
+                </>
+              ) : (
+                <>
+                  <strong>Browser Support Expiration</strong>&nbsp;&nbsp;
+                  MAP will not support this browser after August 17, 2021.&nbsp;
+                </>
+              )
+            }
             Please use one of our supported browsers (Edge, Chrome, Firefox) instead.
           </p>
           <ActionIcon
