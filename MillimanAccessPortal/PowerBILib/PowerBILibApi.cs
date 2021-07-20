@@ -208,7 +208,7 @@ namespace PowerBiLib
                     Report foundReport = await client.Reports.GetReportInGroupAsync(groupId, reportId);
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
-                        Log.Error($"From PowerBiLibApi.DeleteReport, requested report <{reportId}> not found, or related dataset Id not found");
+                        Log.Error($"From PowerBiLibApi.ExportReportAsync, requested report <{reportId}> not found, or related dataset Id not found");
                         return (null, null);
                     }
 
