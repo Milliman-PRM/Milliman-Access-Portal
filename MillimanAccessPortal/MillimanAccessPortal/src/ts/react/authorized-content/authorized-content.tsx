@@ -5,6 +5,7 @@ import * as React from 'react';
 import { getJsonData } from '../../shared';
 import { StatusMonitor } from '../../status-monitor';
 import { ContentTypeEnum } from '../../view-models/content-publishing';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { NavBar } from '../shared-components/navbar';
@@ -126,6 +127,7 @@ export class AuthorizedContent extends React.Component<{}, AuthorizedContentStat
     return (
       <React.Fragment>
         <NavBar currentView={this.currentView} />
+        <BrowserSupportBanner />
         {contentContainer}
         {
           !this.state.hasLoaded

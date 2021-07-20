@@ -33,6 +33,7 @@ export interface ClientActorModel {
   disableAccountDate?: string;
   isAccountDisabled: boolean;
   isAccountNearDisabled: boolean;
+  isSuspended: boolean;
 }
 
 export interface ClientAccessReviewModel {
@@ -150,6 +151,13 @@ export interface AccessReviewStateCardAttributes {
 export interface ClientSort {
   sortBy: 'date' | 'name';
   sortOrder: 'asc' | 'desc';
+}
+
+export enum ClientReviewDeadlineStatusEnum {
+  Unspecified = 0,
+  Current = 1,
+  EarlyWarning = 2,
+  Expired = 3,
 }
 
 /**

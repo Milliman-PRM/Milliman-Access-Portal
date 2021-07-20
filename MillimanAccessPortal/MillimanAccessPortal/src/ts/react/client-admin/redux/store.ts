@@ -7,7 +7,7 @@ import sagas from './sagas';
 
 import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
-import { HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
+import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
 import { ClientDetail } from '../../system-admin/interfaces';
 
@@ -18,6 +18,7 @@ export interface PendingDataState {
   clients: boolean;
   details: boolean;
   clientUsers: boolean;
+  requestReenableDisabledAccount: boolean;
 }
 export interface PendingUserRoleAssignments {
   roleAssignments: Array<{
@@ -27,6 +28,11 @@ export interface PendingUserRoleAssignments {
 }
 export interface PendingHitrustReason {
   reason: HitrustReasonEnum;
+}
+export interface PendingReenableAccountReason {
+  userId: Guid;
+  userEmail: string;
+  reason: EnableDisabledAccountReasonEnum;
 }
 
 /**
@@ -137,6 +143,7 @@ export interface AccessStatePending {
   data: PendingDataState;
   roles: PendingUserRoleAssignments;
   hitrustReason: PendingHitrustReason;
+  reenableDisabledAccountReason: PendingReenableAccountReason;
   deleteClient: PendingDeleteClientState;
   createClientUser: PendingCreateClientUserState;
   removeClientUser: PendingRemoveClientUserState;
@@ -156,6 +163,7 @@ export interface AccessStateModals {
   discardEditAfterSelect: ModalState;
   changeUserRoles: ModalState;
   discardUserRoleChanges: ModalState;
+  requestReenableDisabledAccount: ModalState;
 }
 
 export interface AccessState {

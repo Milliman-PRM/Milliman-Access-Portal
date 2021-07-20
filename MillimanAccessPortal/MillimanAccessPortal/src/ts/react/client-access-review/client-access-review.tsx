@@ -11,12 +11,14 @@ import ReduxToastr from 'react-redux-toastr';
 import { setUnloadAlert } from '../../unload-alerts';
 import { Client, ClientWithReviewDate } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { CardPanel } from '../shared-components/card-panel/card-panel';
 import {
     PanelSectionToolbar, PanelSectionToolbarButtons,
 } from '../shared-components/card-panel/panel-sections';
 import { Card } from '../shared-components/card/card';
-import { CardSectionMain, CardText } from '../shared-components/card/card-sections';
+import CardButton from '../shared-components/card/card-button';
+import { CardSectionButtons, CardSectionMain, CardText } from '../shared-components/card/card-sections';
 import { ColumnSpinner } from '../shared-components/column-spinner';
 import { Filter } from '../shared-components/filter';
 import { Checkbox } from '../shared-components/form/checkbox';
@@ -27,7 +29,8 @@ import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsA
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
-  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientSummaryModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientReviewDeadlineStatusEnum,
+  ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -76,6 +79,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           currentView={this.currentView}
           updateNavBarElements={this.props.pending.navBarRenderInt}
         />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {
           selected.client
@@ -166,15 +170,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             return <div className="hr" key={key} />;
           }
           const card = cardAttributes.client[entity.id];
-          const daysUntilDue =
-            moment.utc(entity.reviewDueDateTimeUtc).local().diff(moment(), 'days');
           const notificationType = () => {
-            if (daysUntilDue < 0) {
-              return 'error';
-            } else if (daysUntilDue < globalData.clientReviewEarlyWarningDays) {
-              return 'informational';
-            } else {
-              return 'message';
+            switch (entity.deadlineStatus) {
+              case ClientReviewDeadlineStatusEnum.Expired:
+                return 'error';
+                break;
+              case ClientReviewDeadlineStatusEnum.EarlyWarning:
+                return 'informational';
+              default:
+                return 'message';
             }
           };
           return (
@@ -194,18 +198,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
               }}
               indentation={entity.indent}
               bannerMessage={!card.disabled &&
-                (daysUntilDue < globalData.clientReviewEarlyWarningDays
-                  || clientAccessReview && clientAccessReview.id === entity.id) ? {
+                (
+                  entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
+                  entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired ||
+                  (clientAccessReview && clientAccessReview.id === entity.id)) ? {
                   level: notificationType(),
                   message: (
                     <div className="review-due-container">
                       {
-                        daysUntilDue < globalData.clientReviewEarlyWarningDays &&
+                        (entity.deadlineStatus === ClientReviewDeadlineStatusEnum.EarlyWarning ||
+                        entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired) &&
                         <>
                           <span className="needs-review">
-                            {notificationType() === 'error' ? 'Overdue' : 'Needs Review'}:&nbsp;
+                            {entity.deadlineStatus === ClientReviewDeadlineStatusEnum.Expired ?
+                              'Overdue' : 'Needs Review'}:&nbsp;
                           </span>
-                          Due {moment.utc(entity.reviewDueDateTimeUtc).local().format('MMM DD, YYYY')}
+                          Due {entity.reviewDueDateTime}
                         </>
                       }
                       {
@@ -220,6 +228,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             >
               <CardSectionMain>
                 <CardText text={entity.name} subtext={entity.code} />
+                <CardSectionButtons>
+                  {
+                    !card.disabled &&
+                    <a
+                      href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${entity.id}`}
+                      download={true}
+                    >
+                      <CardButton
+                        icon={'download'}
+                        color={'green'}
+                        tooltip={'Download Client Access Review summary'}
+                        onClick={null}
+                      />
+                    </a>
+                  }
+                </CardSectionButtons>
               </CardSectionMain>
             </Card>
           );
@@ -237,6 +261,47 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           </PanelSectionToolbarButtons>
         </PanelSectionToolbar>
       </CardPanel>
+    );
+  }
+
+  private renderClientSummaryHeader() {
+    const { clientSummary, clientAccessReviewProgress, selected } = this.props;
+    const reviewDescription = () => {
+      switch (clientAccessReviewProgress.step) {
+        case ClientAccessReviewProgressEnum.clientReview:
+          return 'Review the Client information to proceed';
+        case ClientAccessReviewProgressEnum.userRoles:
+          return 'Review the User information to proceed';
+        case ClientAccessReviewProgressEnum.contentAccess:
+          return 'Review content access information to proceed';
+        case ClientAccessReviewProgressEnum.fileDropAccess:
+          return 'Review File Drop access information to proceed';
+        case ClientAccessReviewProgressEnum.attestations:
+          return 'Attest to the Client information to complete the review';
+        default:
+          return '';
+      }
+    };
+    return (
+      <div className="title-container">
+        <div className="client-info">
+          <span className="client-name">{clientSummary.clientName}</span>
+          <span className="client-code">{clientSummary.clientCode}</span>
+        </div>
+        <div className="client-download-button">
+          <a
+            href={`./ClientAccessReview/DownloadClientAccessReviewSummary?clientId=${selected.client}`}
+            download={true}
+          >
+            <ActionIcon
+              label="Download Client Access Review summary"
+              icon="download"
+              action={() => null}
+            />
+          </a>
+        </div>
+        <span className="client-code">{reviewDescription()}</span>
+      </div>
     );
   }
 
@@ -267,10 +332,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         >
           <div className="header">
             <div className="title">
-              <div className="title-container">
-                <span className="client-name">{clientSummary.clientName}</span>
-                <span className="client-code">{clientSummary.clientCode}</span>
-              </div>
+              {this.renderClientSummaryHeader()}
               {
                 dueDateClass() !== null ? (
                   <ActionIcon icon="error" />
@@ -281,31 +343,67 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
           <div className="details-container">
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Review due date</span>
-                <h2>{moment.utc(clientSummary.reviewDueDate).local().format('MMM DD, YYYY')}</h2>
+                <span className="detail-label">
+                  Review due date
+                  <ActionIcon
+                    icon="information"
+                    label={'Review due date: the date and time that the next Client Access Review must be completed ' +
+                    'by. Client Access Reviews must be completed by a Client Admin every 90 days.'}
+                  />
+                </span>
+                <h2>{clientSummary.reviewDueDate}</h2>
+                <p>At least one Client Admin must perform the <br />Client Access Review every 90 days</p>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Last review date</span>
+                <span className="detail-label">
+                  Last review date
+                  <ActionIcon
+                    icon="information"
+                    label={'Last review date: the last time that the Client Access Review ' +
+                    'was performed for this Client.'}
+                  />
+                </span>
                 <span className="detail-value-name">
-                  {moment.utc(clientSummary.lastReviewDate).local().format('MMM DD, YYYY')}
+                  {clientSummary.lastReviewDate}
                 </span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Last review by</span>
+                <span className="detail-label">
+                    Last review by
+                    <ActionIcon
+                      icon="information"
+                      label={'Last review by: the Client Admin who last performed the ' +
+                      'Client Access Review for this Client.'}
+                    />
+                </span>
                 <span className="detail-value-name">{clientSummary.lastReviewedBy.name}</span>
                 <span className="detail-value-email">{clientSummary.lastReviewedBy.userEmail}</span>
               </div>
             </div>
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Primary contact</span>
+                <span className="detail-label">
+                    Primary contact
+                    <ActionIcon
+                      icon="information"
+                      label={'Primary contact: the primary Client contact for this Client. ' +
+                      'This is set within the Client Admin page.'}
+                    />
+                </span>
                 <span className="detail-value-name">{clientSummary.primaryContactName}</span>
                 <span className="detail-value-email">
                   {clientSummary.primaryContactEmail ? clientSummary.primaryContactEmail : '(None assigned)'}
                 </span>
               </div>
               <div className="detail-section">
-                <span className="detail-label">Client Admins</span>
+                <span className="detail-label">
+                  Client Admins
+                  <ActionIcon
+                    icon="information"
+                    label={'Client Admins: a list of all of the Client Admins for this Client. ' +
+                    'This is determined within the Client Admin page.'}
+                  />
+                </span>
                 <ul className="detail-list">
                   {
                     clientSummary.clientAdmins.map((admin) => {
@@ -324,7 +422,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
             </div>
             <div className="detail-column">
               <div className="detail-section">
-                <span className="detail-label">Profit center</span>
+                <span className="detail-label">
+                  Profit center
+                  <ActionIcon
+                    icon="information"
+                    label={'Profit center: the Profit Center associated ' +
+                    'with this Client for billing purposes. This is set within the Client Admin page.'}
+                  />
+
+                </span>
                 <span className="detail-value-name">{clientSummary.assignedProfitCenter}</span>
               </div>
               <div className="detail-section">
@@ -332,7 +438,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                   Profit Center Admins
                   <ActionIcon
                     icon="information"
-                    label="Profit Center Admins are users authorized to create new Clients for the Profit Center"
+                    label={'Profit Center Admins: a list of all of the Proft Center Admins ' +
+                    'associated with the Profit Center. To add or remove Profit Center Admins' +
+                    ', contact map.support@milliman.com.'}
                   />
                 </span>
                 <ul className="detail-list">
@@ -367,22 +475,6 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
 
   private renderClientAccessReviewPanel() {
     const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
-    const reviewDescription = () => {
-      switch (clientAccessReviewProgress.step) {
-        case ClientAccessReviewProgressEnum.clientReview:
-          return 'Review the Client information to proceed';
-        case ClientAccessReviewProgressEnum.userRoles:
-          return 'Review the User information to proceed';
-        case ClientAccessReviewProgressEnum.contentAccess:
-          return 'Review content access information to proceed';
-        case ClientAccessReviewProgressEnum.fileDropAccess:
-          return 'Review File Drop access information to proceed';
-        case ClientAccessReviewProgressEnum.attestations:
-          return 'Attest to the Client information to complete the review';
-        default:
-          return '';
-      }
-    };
     return (
       <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
@@ -390,11 +482,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         <div className="client-review-container" ref={this.clientReviewContainer}>
           <div className="header">
             <div className="title">
-              <div className="title-container">
-                <span className="client-name">{clientAccessReview.clientName}</span>
-                <span className="client-code">{clientAccessReview.clientCode}</span>
-                <span className="client-code">{reviewDescription()}</span>
-              </div>
+              {this.renderClientSummaryHeader()}
               <ProgressIndicator
                 progressObjects={{
                   [ClientAccessReviewProgressEnum.clientReview]: {
@@ -543,7 +631,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                         return (
                           <tr key={user.userEmail} className="table-row-divider">
                             <td>
-                              <span className="detail-value-name">{user.name ? user.name : 'n/a'}</span><br />
+                              <span className={`detail-value-name${user.isSuspended ? '-suspended' : '' }`}>
+                              {user.isSuspended! &&
+                                <ActionIcon
+                                  icon="information"
+                                  label={user.name + ' is suspended'}
+                                />
+                              }
+                                {user.name ? user.name : 'n/a'}
+                              </span><br />
                               <span className="detail-value-email">{user.userEmail}</span><br />
                               {this.renderUserAccountStatus(user)}
                             </td>
@@ -611,8 +707,18 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                         >
                                           {
                                             index === 0 ? (
-                                              <td rowSpan={sg.authorizedUsers.length} className="table-row-divider">
-                                                {sg.selectionGroupName}
+                                              <td
+                                                rowSpan={sg.authorizedUsers.length}
+                                                className={`table-row-divider${sg.isSuspended ? '-suspended' :
+                                                ''}`}
+                                              >
+                                                {sg.isSuspended ? (
+                                                  <ActionIcon
+                                                    icon="information"
+                                                    label={sg.selectionGroupName + ' is suspended'}
+                                                  />
+                                                ) : null}
+                                                {' ' + sg.selectionGroupName}
                                               </td>
                                             ) : null
                                           }

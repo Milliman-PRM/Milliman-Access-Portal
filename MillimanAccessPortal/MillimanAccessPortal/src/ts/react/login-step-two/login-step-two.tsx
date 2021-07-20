@@ -3,6 +3,7 @@
 import * as React from 'react';
 import * as Yup from 'yup';
 
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
 
@@ -53,6 +54,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
     const { formIsValid, errors } = this.state;
     return (
       <>
+        <BrowserSupportBanner />
         <div className="form-content-container">
           <div id="login-logo-container">
             <svg id="login-logo">

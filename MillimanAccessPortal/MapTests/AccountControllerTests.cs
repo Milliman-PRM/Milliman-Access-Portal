@@ -158,6 +158,7 @@ namespace MapTests
                 string FirstName = "MyFirstName";
                 string LastName = "MyLastName";
                 string Phone = "3173171212";
+                string UserTimeZoneId = TimeZoneInfo.GetSystemTimeZones().First().Id;
                 EnableAccountViewModel model = new EnableAccountViewModel
                 {
                     Id = TestUtil.MakeTestGuid(1),
@@ -170,6 +171,7 @@ namespace MapTests
                     Phone = Phone,
                     IsLocalAccount = true,
                     Username = controller.HttpContext.User.Identity.Name,
+                    TimeZoneId = UserTimeZoneId,
                 };
                 #endregion
 
@@ -186,6 +188,7 @@ namespace MapTests
                 Assert.Equal(FirstName, UserRecord.FirstName);
                 Assert.Equal(LastName, UserRecord.LastName);
                 Assert.Equal(Phone, UserRecord.PhoneNumber);
+                Assert.Equal(UserTimeZoneId, UserRecord.TimeZoneId);
                 #endregion
             }
         }
@@ -627,6 +630,7 @@ namespace MapTests
                 string NewFirstName = "MyFirstName";
                 string NewLastName = "MyLastName";
                 string NewPhone = "3173171212";
+                string NewTimeZoneId = TimeZoneInfo.GetSystemTimeZones().Last().Id;
                 UpdateAccountModel model = new UpdateAccountModel
                 {
                     User = new UpdateAccountModel.UserModel
@@ -635,6 +639,7 @@ namespace MapTests
                         Employer = NewEmployer,
                         LastName = NewLastName,
                         Phone = NewPhone,
+                        TimeZoneSelected = NewTimeZoneId,
                     },
                 };
                 #endregion
@@ -650,6 +655,7 @@ namespace MapTests
                 Assert.Equal(NewFirstName, UserRecord.FirstName);
                 Assert.Equal(NewLastName, UserRecord.LastName);
                 Assert.Equal(NewPhone, UserRecord.PhoneNumber);
+                Assert.Equal(NewTimeZoneId, UserRecord.TimeZoneId);
                 #endregion
             }
         }

@@ -189,6 +189,18 @@ namespace MapCommonLib
         {
             Log.Write(level, ex, $"{issue.GetDisplayNameString()}: {message}", parms);
         }
+
+        public static string UtcToLocalString(DateTime dateTime, string timeZoneId)
+        {
+            TimeZoneInfo requestedTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+
+            dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, requestedTimeZone);
+            string timeZoneString = requestedTimeZone.IsDaylightSavingTime(dateTime)
+                ? requestedTimeZone.DaylightName
+                : requestedTimeZone.StandardName;
+
+            return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
+        }
     }
 
     /// <summary>
