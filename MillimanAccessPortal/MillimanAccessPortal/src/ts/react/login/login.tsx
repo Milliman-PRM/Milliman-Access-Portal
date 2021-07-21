@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
 import { LoginForm } from './login-form';
 
 import '../../../images/map-logo.svg';
@@ -24,6 +25,7 @@ export class Login extends React.Component {
             </div>
           </section>
         </div>
+        <BrowserSupportBanner />
       </>
     );
   }

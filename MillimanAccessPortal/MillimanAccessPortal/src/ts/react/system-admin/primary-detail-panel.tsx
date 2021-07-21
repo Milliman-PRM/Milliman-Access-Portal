@@ -1,11 +1,13 @@
 import '../../../scss/react/system-admin/detail-panel.scss';
 
+import * as moment from 'moment';
 import * as React from 'react';
 
 import { Toggle } from '../shared-components/form/toggle';
-import { QueryFilter } from '../shared-components/interfaces';
+import { Guid, QueryFilter } from '../shared-components/interfaces';
 import { ClientDetail, PrimaryDetail, ProfitCenterDetail, UserDetail } from './interfaces';
-import { SystemAdminColumn } from './system-admin';
+import { SystemAdminColumn, UserStatus } from './system-admin';
+import { UserStatusDisplay } from './user-status-display';
 
 interface PrimaryDetailPanelProps {
   selectedColumn: SystemAdminColumn;
@@ -16,6 +18,8 @@ interface PrimaryDetailPanelProps {
   checkedSystemAdmin: boolean;
   onPushSuspend: (event: React.MouseEvent<HTMLDivElement>) => void;
   checkedSuspended: boolean;
+  onPushEnableUserAccount: (id: Guid, email: string, targetEntitySet: 'primary' | 'secondary') => void;
+  status: UserStatus;
   doDomainLimitOpen: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
@@ -91,6 +95,15 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                         onClick={this.props.onPushSuspend}
                       />
                     </div>
+                  </div>
+                  <div className="detail-section">
+                    <UserStatusDisplay
+                      userId={this.props.detail.id}
+                      userEmail={(this.props.detail as UserDetail).email}
+                      targetSet={'primary'}
+                      status={this.props.status}
+                      onPushEnableUserAccount={this.props.onPushEnableUserAccount}
+                    />
                   </div>
                 </div>
               </div>

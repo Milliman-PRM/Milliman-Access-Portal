@@ -21,15 +21,27 @@ namespace MapDbContextLib.Models
         /// <returns>true if the stored checksum matches the file content</returns>
         public bool ValidateChecksum()
         {
-            (string fileChecksum, long length) = GlobalFunctions.GetFileChecksum(_FullPath);
+            try
+            {
+                return StaticUtil.DoRetryOperationWithReturn<ApplicationException, bool>(
+                    () => {
+                        (string fileChecksum, long length) = GlobalFunctions.GetFileChecksum(_FullPath);
 
-            if (_Checksum.Equals(fileChecksum, StringComparison.OrdinalIgnoreCase))
-            {
-                return true;
+                        if (_Checksum.Equals(fileChecksum, StringComparison.OrdinalIgnoreCase))
+                        {
+                            return true;
+                        }
+                        else
+                        {
+                            ApplicationException newException = new ApplicationException($"Checksums do not match (retryable): file checksum is {fileChecksum}, length is {length}");
+                            Log.Warning(newException.Message);
+                            // This is what triggers the retry, up to the specified number of times
+                            throw newException;
+                        }
+                    }, 3, 500, true);
             }
-            else
+            catch (ApplicationException)
             {
-                Log.Warning($"Checksums do not match: file checksum is {fileChecksum}, length is {length}");
                 return false;
             }
         }

@@ -14,6 +14,8 @@ import * as FileDropActionCreator from './redux/action-creators';
 import * as Selector from './redux/selectors';
 import * as State from './redux/store';
 
+import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
+
 import { generateUniqueId } from '../../generate-unique-identifier';
 import { setUnloadAlert } from '../../unload-alerts';
 
@@ -161,6 +163,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           transitionOut="fadeOut"
         />
         <NavBar currentView={this.currentView} userGuidePath={isFileDropAdmin ? 'FileDropAdmin' : null} />
+        <BrowserSupportBanner />
         {this.renderClientPanel()}
         {selected.client && !activeSelectedClient.isAccessReviewExpired && this.renderFileDropPanel()}
         {selected.fileDrop && this.renderFileDropManagementPanel()}

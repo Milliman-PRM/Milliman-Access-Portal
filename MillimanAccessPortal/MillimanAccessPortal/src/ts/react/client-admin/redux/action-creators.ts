@@ -22,6 +22,8 @@ export const changeUserRolePending =
   createActionCreator<AccessActions.ChangeUserRolePending>('CHANGE_USER_ROLE_PENDING');
 export const setRoleChangeReason =
   createActionCreator<AccessActions.SetRoleChangeReason>('SET_ROLE_CHANGE_REASON');
+export const setAcountReenableRequestReason =
+  createActionCreator<AccessActions.SetAcountReenableRequestReason>('SET_ACCOUNT_REENABLE_REQUEST_REASON');
 
 // Collapse/expand actions
 export const setExpandedUser =
@@ -84,6 +86,12 @@ export const openDiscardUserRoleChangesModal =
   createActionCreator<AccessActions.OpenDiscardUserRoleChangesModal>('OPEN_DISCARD_USER_ROLE_CHANGES_MODAL');
 export const closeDiscardUserRoleChangesModal =
   createActionCreator<AccessActions.CloseDiscardUserRoleChangesModal>('CLOSE_DISCARD_USER_ROLE_CHANGES_MODAL');
+export const openRequestReenableDisabledAccountModal =
+  createActionCreator<AccessActions.OpenRequestReenableDisabledAccountModal>
+    ('OPEN_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL');
+export const closeRequestReenableDisabledAccountModal =
+  createActionCreator<AccessActions.CloseRequestReenableDisabledAccountModal>
+    ('CLOSE_REQUEST_REENABLE_DISABLED_ACCOUNT_MODAL');
 
 // Validity Actions
 export const resetValidity =
@@ -110,3 +118,5 @@ export const saveNewClientUser =
   createRequestActionCreator<AccessActions.SaveNewClientUser>('SAVE_NEW_CLIENT_USER');
 export const removeClientUser =
   createRequestActionCreator<AccessActions.RemoveClientUser>('REMOVE_CLIENT_USER');
+export const requestReenableUserAccount =
+  createRequestActionCreator<AccessActions.RequestReenableUserAccount>('REQUEST_REENABLE_USER_ACCOUNT');

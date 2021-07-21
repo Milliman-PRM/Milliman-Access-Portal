@@ -303,7 +303,7 @@ export type FilterAccessReviewAction =
 /**
  * An action that opens a modal.
  */
-export type OpenAccessReviewModalAction = 
+export type OpenAccessReviewModalAction =
   | OpenLeavingActiveReviewModal
   ;
 

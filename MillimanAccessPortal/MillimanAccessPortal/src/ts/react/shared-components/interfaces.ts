@@ -25,6 +25,11 @@ export enum HitrustReasonEnum {
   ClientRemoval = 5,
 }
 
+export enum EnableDisabledAccountReasonEnum {
+  ChangeInEmployeeResponsibilities = 1,
+  ReturningEmployee = 2,
+}
+
 export interface NavBarElement {
   order: number;
   label: string;

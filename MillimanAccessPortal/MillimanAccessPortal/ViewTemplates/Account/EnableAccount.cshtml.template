@@ -83,6 +83,13 @@
                                     <span asp-validation-for="Employer" class="text-danger"></span>
                                 </div>
                             </div>
+                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
+                                <label class="form-input-text-title" asp-for="TimeZoneId"></label>
+                                <div>
+                                    @Html.DropDownListFor(m => m.TimeZoneId, new SelectList(Model.TimeZoneSelections, "Id", "DisplayName"))
+                                    <span asp-validation-for="TimeZoneId" class="text-danger"></span>
+                                </div>
+                            </div>
 							@if (Model.IsLocalAccount) 
 							{
 								<div class="form-input form-input-text flex-item-12-12">

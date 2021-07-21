@@ -38,8 +38,9 @@ export function modifiedInputs(state: AccountState) {
  */
 export function anyUserInputModified(state: AccountState) {
   return _.reduce(
-    _.filter(modifiedInputs(state), (__, key) => ['firstName', 'lastName', 'phone', 'employer'].indexOf(key) !== -1)
-    , (prev, cur) => prev || cur.modified, false);
+    _.filter(modifiedInputs(state), (__, key) =>
+      ['firstName', 'lastName', 'phone', 'employer', 'timeZoneSelected'].indexOf(key) !== -1),
+    (prev, cur) => prev || cur.modified, false);
 }
 
 /**
@@ -74,6 +75,8 @@ export function inputProps(state: AccountState) {
     lastName: values.lastName,
     phone: values.phone,
     employer: values.employer,
+    timeZoneSelected: values.timeZoneSelected as string,
+    timeZoneSelections: values.timeZoneSelections,
   };
 }
 
@@ -105,7 +108,21 @@ export function updateProps(state: AccountState) {
         lastName: values.lastName,
         phone: values.phone,
         employer: values.employer,
+        timeZoneSelected: values.timeZoneSelected,
       }
       : null,
   };
+}
+
+/**
+ * Get Time Zone values in a format compatible with the DropDown UI object.
+ * @param state Redux store
+ */
+export function getTimeZones(state: AccountState) {
+  return state.data.user.timeZoneSelections.map((tz) => {
+    return {
+      selectionValue: tz.id,
+      selectionLabel: tz.displayName,
+    };
+  });
 }

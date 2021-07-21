@@ -36,3 +36,6 @@ export const saveNewClientUser =
 export const removeClientUser =
   createJsonRequestor<AccessActions.RemoveClientUser, AccessActions.RemoveClientUserSucceeded>
     ('POST', '/ClientAdmin/RemoveUserFromClient');
+export const requestReenableUserAccount =
+  createJsonRequestor<AccessActions.RequestReenableUserAccount, AccessActions.RequestReenableUserAccountSucceeded>
+    ('POST', '/ClientAdmin/RequestReenableUserAccount');
