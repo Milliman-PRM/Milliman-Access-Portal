@@ -23,6 +23,8 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public bool IsContentUser { get; set; }
         public bool IsFileDropAdmin { get; set; }
         public bool IsFileDropUser { get; set; }
+        public bool IsSuspended { get; set; }
+
     }
     public class UserRolesCsvMap : ClassMap<UserRolesRowItem>
     {
@@ -37,6 +39,8 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
             Map(m => m.IsContentUser).Index(6).Name("Content User").ConvertUsing(m => m.IsContentUser ? "Yes" : "No");
             Map(m => m.IsFileDropAdmin).Index(7).Name("File Drop Admin").ConvertUsing(m => m.IsFileDropAdmin ? "Yes" : "No");
             Map(m => m.IsFileDropUser).Index(3).Name("File Drop User").ConvertUsing(m => m.IsFileDropUser ? "Yes" : "No");
+            Map(m => m.IsSuspended).Index(8).Name("Suspended").ConvertUsing(m => m.IsSuspended ? "Yes" : "No");
+
         }
     }
 }
