@@ -73,6 +73,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     bookmarksPaneEnabled: false,
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
+    roleList: [],
   },
 };
 

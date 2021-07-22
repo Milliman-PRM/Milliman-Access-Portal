@@ -191,6 +191,9 @@ export interface PublishRequest {
   newRelatedFiles?: UploadedRelatedFile[];
   associatedFiles?: RequestedAssociatedFile[];
   deleteFilePurposes?: string[];
+  typeSpecificDetail?: {
+    roleList: string[];
+  };
 }
 
 export interface PreLiveContentValidationSummary {

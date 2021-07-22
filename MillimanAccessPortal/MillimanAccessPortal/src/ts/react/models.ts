@@ -126,6 +126,7 @@ export interface ContentItemDetail {
     liveReportId?: Guid;
     liveWorkspaceId?: Guid;
     navigationPaneEnabled?: boolean;
+    roleList?: string[];
     previewEmbedUrl?: string;
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
