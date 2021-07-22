@@ -42,7 +42,7 @@ import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
-import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
@@ -808,6 +808,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 {
                   contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI' &&
                   <>
+                    <h4>Document Settings</h4>
                     <Checkbox
                       name="Editable"
                       selected={formData.pendingFormData.typeSpecificDetailObject.editableEnabled}
@@ -851,6 +852,63 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       description={' - this will allow users to capture the current view of a report page' +
                                    ' including filters and the state of visuals'}
                     />
+                    <h4>Security Settings</h4>
+                    <Checkbox
+                      name="Row Level Security"
+                      selected={formData.pendingFormData.doesReduce}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'doesReduce',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read' || formData.originalFormData.id.length > 0}
+                      description={' - this can be used to restrict data access for any given user.  The ability ' +
+                                   'to restrict access will be accessible in the Content Access Admin tab'}
+                    />
+                    {
+                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) &&
+                        formState === 'read' ?
+                        <Input
+                          name="rolesList"
+                          label="Power BI Role Values"
+                          type="text"
+                          value={''}
+                          onChange={null}
+                          readOnly={formState === 'read'}
+                          onBlur={() => { return; }}
+                          error={null}
+                        /> :
+                        <MultiAddInput
+                          name="rolesList"
+                          label="Power BI Role Names"
+                          type="text"
+                          limit={null}
+                          limitText={'roles'}
+                          list={formData.pendingFormData.typeSpecificDetailObject.roleList}
+                          value={''}
+                          exceptions={null}
+                          addItem={(item: string, _: boolean, itemAlreadyExists: boolean) => {
+                            if (itemAlreadyExists) {
+                              toastr.warning('', 'That role already exists.');
+                            } else {
+                              this.props.setPublishingFormTextArrayValue({
+                                inputName: 'roleList',
+                                value:
+                                  formData.pendingFormData.typeSpecificDetailObject.roleList.concat(item.trim()),
+                              });
+                            }
+                          }}
+                          removeItemCallback={(index: number) => {
+                            this.props.setPublishingFormTextArrayValue({
+                              inputName: 'roleList',
+                              value: formData.pendingFormData.typeSpecificDetailObject.roleList.slice(0, index)
+                                .concat(formData.pendingFormData.typeSpecificDetailObject.roleList.slice(index + 1)),
+                            });
+                          }}
+                          readOnly={formState === 'read'}
+                          onBlur={() => { return; }}
+                          error={null}
+                        />
+                    }
                   </>
                 }
               </FormSection>
