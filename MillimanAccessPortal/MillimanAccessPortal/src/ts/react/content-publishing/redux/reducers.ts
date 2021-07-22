@@ -73,6 +73,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     bookmarksPaneEnabled: false,
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
+    roleList: [],
   },
 };
 
@@ -672,6 +673,16 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       };
     }
   },
+  SET_PENDING_TEXT_ARRAY_VALUE: (state, action: PublishingActions.SetPublishingFormTextArrayValue) => ({
+    ...state,
+    pendingFormData: {
+      ...state.pendingFormData,
+      typeSpecificDetailObject: {
+        ...state.pendingFormData.typeSpecificDetailObject,
+        [action.inputName]: action.value,
+      },
+    },
+  }),
   RESET_CONTENT_ITEM_FORM: (state) => {
     const { originalFormData } = state;
 
