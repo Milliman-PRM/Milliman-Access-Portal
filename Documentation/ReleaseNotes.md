@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.14.1
+
+- Fixed a bug that prevented non-SSO users from starting the password reset process from Account Settings
+
 ### v1.14.0
 
 - Modified Client Access Reviews to begin the visible indication of an approaching deadline consistent with the timing of email notifications
