@@ -890,10 +890,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             if (itemAlreadyExists) {
                               toastr.warning('', 'That role already exists.');
                             } else {
-                              this.props.setPublishingFormTextArrayValue({
+                              this.props.appendPublishingFormTextArrayValue({
                                 inputName: 'roleList',
-                                value:
-                                  formData.pendingFormData.typeSpecificDetailObject.roleList.concat(item.trim()),
+                                value: item,
                               });
                             }
                           }}
