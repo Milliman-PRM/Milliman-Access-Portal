@@ -683,6 +683,16 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     },
   }),
+  APPEND_PENDING_TEXT_ARRAY_VALUE: (state, action: PublishingActions.AppendPublishingFormTextArrayValue) => ({
+    ...state,
+    pendingFormData: {
+      ...state.pendingFormData,
+      typeSpecificDetailObject: {
+        ...state.pendingFormData.typeSpecificDetailObject,
+        [action.inputName]: state.pendingFormData.typeSpecificDetailObject[action.inputName].concat(action.value),
+      },
+    },
+  }),
   RESET_CONTENT_ITEM_FORM: (state) => {
     const { originalFormData } = state;
 
