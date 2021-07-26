@@ -552,35 +552,6 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
 
-        #region Temporary, delete this region
-        public class PostTestModel
-        {
-            public string xyz;
-            public bool isIt;
-            public JObject typeSpecificDetail;
-        }
-
-        [AllowAnonymous]
-        public IActionResult TestPost([FromBody] PostTestModel request /*PublishRequest request*/)
-        {
-            Random random = new Random();
-            ContentTypeEnum selectedContentType = (ContentTypeEnum) random.Next(6);
-
-            // Actually switch on the content type of the RootContentItem
-            TypeSpecificPublicationPropertiesBase typeSpecificPublicationProperties = selectedContentType switch
-            {
-                ContentTypeEnum.PowerBi => request.typeSpecificDetail.ToObject<PowerBiPublicationProperties>(),
-                _ => null,
-            };
-
-            Log.Information($"Content Type {selectedContentType.GetDisplayNameString()}, type specific details {JsonSerializer.Serialize((object)typeSpecificPublicationProperties)}");
-
-            TypeSpecificPublicationPropertiesBase typeSpecificDetails = typeSpecificPublicationProperties;
-
-            return Json(new { contentType = selectedContentType.GetDisplayNameString(), typeSpecificDetails });
-        }
-        #endregion
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Publish([FromBody] PublishRequest request)
@@ -845,7 +816,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            // Cancel all realted ContentReductionTask records
+            // Cancel all related ContentReductionTask records
             List<ContentReductionTask> relatedTasks = await _dbContext.ContentReductionTask
                                                                       .Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id)
                                                                       .ToListAsync();
@@ -868,7 +839,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest), currentUser.UserName, currentUser.Id);
 
-            var rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
+            CancelPublicationModel rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
             return new JsonResult(rootContentItemStatusList);
         }
