@@ -191,7 +191,7 @@ export interface PublishRequest {
   newRelatedFiles?: UploadedRelatedFile[];
   associatedFiles?: RequestedAssociatedFile[];
   deleteFilePurposes?: string[];
-  typeSpecificDetail?: {
+  typeSpecificPublishingDetail?: {
     roleList: string[];
   };
 }

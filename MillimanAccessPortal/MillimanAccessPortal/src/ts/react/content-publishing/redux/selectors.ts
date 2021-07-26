@@ -312,7 +312,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
-  const typeSpecificDetail = (isPowerBI && pendingFormData.doesReduce) ? {
+  const typeSpecificPublishingDetail = (isPowerBI && pendingFormData.doesReduce) ? {
     roleList: pendingFormData.typeSpecificDetailObject.roleList,
   } : null;
 
@@ -321,7 +321,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     newRelatedFiles: filesToPublish,
     associatedFiles: [],
     deleteFilePurposes,
-    typeSpecificDetail,
+    typeSpecificPublishingDetail,
   };
 }
 
