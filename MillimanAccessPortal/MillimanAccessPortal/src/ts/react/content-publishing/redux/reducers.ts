@@ -537,6 +537,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     const contentItemDetail = {
       ...action.response,
+      typeSpecificDetailObject: {
+        ..._initialFormData.pendingFormData.typeSpecificDetailObject,
+        ...action.response.typeSpecificDetailObject,
+      },
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
@@ -973,7 +977,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
-        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        typeSpecificDetailObject: {
+          ...detail.typeSpecificDetailObject,
+          roleList: state.pendingFormData.typeSpecificDetailObject.roleList,
+        },
         isEditable: detail.isEditable,
       },
       formState: 'read',
