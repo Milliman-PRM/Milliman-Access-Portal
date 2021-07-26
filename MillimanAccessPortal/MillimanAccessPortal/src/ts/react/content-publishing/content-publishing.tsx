@@ -873,7 +873,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           type="text"
                           value={''}
                           onChange={null}
-                          readOnly={formState === 'read'}
+                          readOnly={true}
                           onBlur={() => { return; }}
                           error={null}
                         /> :
@@ -903,7 +903,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 .concat(formData.pendingFormData.typeSpecificDetailObject.roleList.slice(index + 1)),
                             });
                           }}
-                          readOnly={formState === 'read'}
+                          readOnly={false}
                           onBlur={() => { return; }}
                           error={null}
                         />
