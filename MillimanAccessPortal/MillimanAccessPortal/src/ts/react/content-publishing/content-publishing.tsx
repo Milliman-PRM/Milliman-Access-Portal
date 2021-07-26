@@ -865,8 +865,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                    'to restrict access will be accessible in the Content Access Admin tab'}
                     />
                     {
-                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) &&
-                        formState === 'read' ?
+                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) && (
+                      formState === 'read' ?
                         <Input
                           name="rolesList"
                           label="Power BI Role Values"
@@ -907,6 +907,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           onBlur={() => { return; }}
                           error={null}
                         />
+                      )
                     }
                   </>
                 }
