@@ -5,6 +5,7 @@
  */
 
 using MapDbContextLib.Models;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -23,5 +24,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         [Required]
         public string[] DeleteFilePurposes { get; set; } = new string[0];
+
+        public JObject TypeSpecificPublishingDetail { get; set; }
     }
 }

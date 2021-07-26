@@ -37,7 +37,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -552,6 +552,35 @@ namespace MillimanAccessPortal.Controllers
             return Json(model);
         }
 
+        #region Temporary, delete this region
+        public class PostTestModel
+        {
+            public string xyz;
+            public bool isIt;
+            public JObject typeSpecificDetail;
+        }
+
+        [AllowAnonymous]
+        public IActionResult TestPost([FromBody] PostTestModel request /*PublishRequest request*/)
+        {
+            Random random = new Random();
+            ContentTypeEnum selectedContentType = (ContentTypeEnum) random.Next(6);
+
+            // Actually switch on the content type of the RootContentItem
+            TypeSpecificPublicationPropertiesBase typeSpecificPublicationProperties = selectedContentType switch
+            {
+                ContentTypeEnum.PowerBi => request.typeSpecificDetail.ToObject<PowerBiPublicationProperties>(),
+                _ => null,
+            };
+
+            Log.Information($"Content Type {selectedContentType.GetDisplayNameString()}, type specific details {JsonSerializer.Serialize((object)typeSpecificPublicationProperties)}");
+
+            TypeSpecificPublicationPropertiesBase typeSpecificDetails = typeSpecificPublicationProperties;
+
+            return Json(new { contentType = selectedContentType.GetDisplayNameString(), typeSpecificDetails });
+        }
+        #endregion
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Publish([FromBody] PublishRequest request)
@@ -669,15 +698,29 @@ namespace MillimanAccessPortal.Controllers
                     UploadedRelatedFilesObj = request.NewRelatedFiles,
                     RequestedAssociatedFileList = request.AssociatedFiles,
                 };
+                if (ContentItem.DoesReduce)
+                {
+                    switch (ContentItem.ContentType.TypeEnum) {
+                        case ContentTypeEnum.PowerBi:
+                            PowerBiPublicationProperties typedObject = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>();
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(typedObject);
+                            break;
+
+                        default:
+                            NewContentPublicationRequest.TypeSpecificDetail = null;
+                            break;
+                    };
+
+                }
                 _dbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
                 try
                 {
                     await _dbContext.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Log.Error($"In ContentPublishingController.Publish action: failed to save database changes, aborting");
+                    Log.Error(ex, $"In ContentPublishingController.Publish action: failed to save database changes, aborting");
                     Response.Headers.Add("Warning", "Failed to save database changes");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
