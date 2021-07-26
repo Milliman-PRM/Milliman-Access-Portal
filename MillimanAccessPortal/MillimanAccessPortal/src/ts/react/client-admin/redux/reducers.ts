@@ -511,6 +511,10 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
     ...state,
     [action.field]: action.value,
   }),
+  APPEND_FORM_FIELD_ARRAY_VALUE: (state, action: AccessActions.AppendFormFieldArrayValue) => ({
+    ...state,
+    [action.field]: state[action.field].concat(action.value),
+  }),
 });
 
 const valid = createReducer<AccessStateValid>(_initialValidation, {

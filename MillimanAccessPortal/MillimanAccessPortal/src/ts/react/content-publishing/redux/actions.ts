@@ -369,6 +369,13 @@ export interface SetPublishingFormTextArrayValue {
   value: string[];
 }
 
+export interface AppendPublishingFormTextArrayValue {
+  type: 'APPEND_PENDING_TEXT_ARRAY_VALUE';
+  inputName:
+  | 'roleList';
+  value: string;
+}
+
 export interface ResetContentItemForm {
   type: 'RESET_CONTENT_ITEM_FORM';
 }
@@ -536,6 +543,7 @@ export type PagePublishingAction =
   | SetPublishingFormTextInputValue
   | SetPublishingFormBooleanInputValue
   | SetPublishingFormTextArrayValue
+  | AppendPublishingFormTextArrayValue
   | ResetContentItemForm
   | PromptStatusRefreshStopped
   | DecrementStatusRefreshAttempts

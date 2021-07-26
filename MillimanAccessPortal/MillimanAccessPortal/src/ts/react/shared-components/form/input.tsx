@@ -211,23 +211,34 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
 
   private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void,
                           list: string[] = [], exceptions: string[] = [], limit: number) {
+    const inputArray = this.state.currentText.trim().split(';');
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
-    const overLimit = limit > 0 ? (effectiveListLength >= limit ? true : false) : false;
-    const itemAlreadyExists = _.includes(list, this.state.currentText.trim());
 
-    addItemCallback(this.state.currentText, overLimit, itemAlreadyExists);
+    for (let i = 0; i < inputArray.length; i++) {
+      const inputItem = inputArray[i].trim();
+      const overLimit = limit > 0 ? (effectiveListLength + i >= limit ? true : false) : false;
+      const itemAlreadyExists = _.includes(list, inputItem);
+      const itemIsExemptFromLimit = _.includes(exceptions, inputItem);
+      if (itemIsExemptFromLimit) {
+        addItemCallback(inputItem, false, itemAlreadyExists);
+      }
+      if (inputItem.length > 0) {
+        addItemCallback(inputItem, overLimit, itemAlreadyExists);
+      }
+    }
     this.setState({ currentText: '' });
   }
 
   private getEffectiveListLength(list: string[], exceptions: string[]) {
     const tempList = list.slice();
-    tempList.push(this.state.currentText);
+    const inputArray = this.state.currentText.trim().split(';');
+    tempList.concat(inputArray);
     const numberOfExceptions = tempList.filter((value) => _.includes(exceptions, value)).length;
 
     if (_.includes(exceptions, this.state.currentText)) {
       return tempList.length - numberOfExceptions;
     }
-    return tempList.length - numberOfExceptions - 1;
+    return tempList.length - numberOfExceptions;
   }
 
   private handleBlur() {

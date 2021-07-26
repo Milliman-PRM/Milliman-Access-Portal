@@ -865,8 +865,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                    'to restrict access will be accessible in the Content Access Admin tab'}
                     />
                     {
-                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) &&
-                        formState === 'read' ?
+                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) && (
+                      formState === 'read' ?
                         <Input
                           name="rolesList"
                           label="Power BI Role Values"
@@ -890,10 +890,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             if (itemAlreadyExists) {
                               toastr.warning('', 'That role already exists.');
                             } else {
-                              this.props.setPublishingFormTextArrayValue({
+                              this.props.appendPublishingFormTextArrayValue({
                                 inputName: 'roleList',
-                                value:
-                                  formData.pendingFormData.typeSpecificDetailObject.roleList.concat(item.trim()),
+                                value: item,
                               });
                             }
                           }}
@@ -908,6 +907,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           onBlur={() => { return; }}
                           error={null}
                         />
+                      )
                     }
                   </>
                 }
