@@ -865,48 +865,43 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                    'to restrict access will be accessible in the Content Access Admin tab'}
                     />
                     {
-                      (formData.pendingFormData.doesReduce || formData.originalFormData.doesReduce) && (
-                      formState === 'read' ?
-                        <Input
-                          name="rolesList"
-                          label="Power BI Role Values"
-                          type="text"
-                          value={''}
-                          onChange={null}
-                          readOnly={true}
-                          onBlur={() => { return; }}
-                          error={null}
-                        /> :
-                        <MultiAddInput
-                          name="rolesList"
-                          label="Power BI Role Names"
-                          type="text"
-                          limit={null}
-                          limitText={'roles'}
-                          list={formData.pendingFormData.typeSpecificDetailObject.roleList}
-                          value={''}
-                          exceptions={null}
-                          addItem={(item: string, _: boolean, itemAlreadyExists: boolean) => {
-                            if (itemAlreadyExists) {
-                              toastr.warning('', 'That role already exists.');
-                            } else {
-                              this.props.appendPublishingFormTextArrayValue({
+                      (pendingFormData.doesReduce || originalFormData.doesReduce) && (
+                        formState === 'read' ?
+                          <TextAreaInput
+                            name="roleList"
+                            label="Power BI Role Values"
+                            value={pendingFormData.typeSpecificPublicationProperties.roleList.join(', ')}
+                            readOnly={true}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="rolesList"
+                            label="Power BI Role Names"
+                            type="text"
+                            list={pendingFormData.typeSpecificPublicationProperties.roleList}
+                            value={''}
+                            addItem={(item: string, _: boolean, itemAlreadyExists: boolean) => {
+                              if (itemAlreadyExists) {
+                                toastr.warning('', 'That role already exists.');
+                              } else {
+                                this.props.appendPublishingFormTextArrayValue({
+                                  inputName: 'roleList',
+                                  value: item,
+                                });
+                              }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setPublishingFormTextArrayValue({
                                 inputName: 'roleList',
-                                value: item,
+                                value:
+                                  pendingFormData.typeSpecificPublicationProperties.roleList.slice(0, index)
+                                  .concat(
+                                    pendingFormData.typeSpecificPublicationProperties.roleList.slice(index + 1),
+                                  ),
                               });
-                            }
-                          }}
-                          removeItemCallback={(index: number) => {
-                            this.props.setPublishingFormTextArrayValue({
-                              inputName: 'roleList',
-                              value: formData.pendingFormData.typeSpecificDetailObject.roleList.slice(0, index)
-                                .concat(formData.pendingFormData.typeSpecificDetailObject.roleList.slice(index + 1)),
-                            });
-                          }}
-                          readOnly={false}
-                          onBlur={() => { return; }}
-                          error={null}
-                        />
+                            }}
+                            error={null}
+                          />
                       )
                     }
                   </>
