@@ -221,8 +221,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
       const itemIsExemptFromLimit = _.includes(exceptions, inputItem);
       if (itemIsExemptFromLimit) {
         addItemCallback(inputItem, false, itemAlreadyExists);
-      }
-      if (inputItem.length > 0) {
+      } else if (inputItem.length > 0) {
         addItemCallback(inputItem, overLimit, itemAlreadyExists);
       }
     }
