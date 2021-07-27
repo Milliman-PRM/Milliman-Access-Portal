@@ -23,7 +23,7 @@ module.exports = {
     'message': './src/ts/message.ts',
     'reset-password': './src/ts/react/reset-password/index.tsx',
     'system-admin': './src/ts/react/system-admin/index.tsx',
-    'update-user-agreement': './src/ts/update-user-agreement.ts',
+    'update-user-agreement': './src/ts/react/system-admin/update-user-agreement/index.tsx',
     'user-agreement': './src/ts/user-agreement.ts',
     'user-agreement-read-only': './src/ts/user-agreement-read-only.ts',
   },
