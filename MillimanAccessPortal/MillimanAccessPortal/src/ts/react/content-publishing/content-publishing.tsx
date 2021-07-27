@@ -1147,22 +1147,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             </a>
           </div>
         ) : (
-            <ContentContainer
-              contentType={contentTypeMap[goLiveSummary.contentTypeName]}
-              contentURL={goLiveSummary.masterContentLink}
+          <ContentContainer
+            contentType={contentTypeMap[goLiveSummary.contentTypeName]}
+            contentURL={goLiveSummary.masterContentLink}
+          >
+            <a
+              href={goLiveSummary.masterContentLink}
+              className="new-tab-icon"
+              target="_blank"
+              title="Open in new tab"
             >
-              <a
-                href={goLiveSummary.masterContentLink}
-                className="new-tab-icon"
-                target="_blank"
-                title="Open in new tab"
-              >
-                <svg className="action-icon-expand-frame action-icon tooltip">
-                  <use xlinkHref="#expand-frame" />
-                </svg>
-              </a>
-            </ContentContainer>
-          )}
+              <svg className="action-icon-expand-frame action-icon tooltip">
+                <use xlinkHref="#expand-frame" />
+              </svg>
+            </a>
+          </ContentContainer>
+        )}
       </GoLiveSection>
     );
     const thumbnailPreview = goLiveSummary && goLiveSummary.thumbnailLink && (
@@ -1228,14 +1228,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </ContentContainer>
       </GoLiveSection>
     );
-    const hierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy && (
-      <GoLiveSection
-        title="Hierarchy Changes"
-        checkboxLabel="All hierarchy changes are as expected"
-        checkboxTarget="reductionHierarchy"
-        checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
-        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
-      >
+    const hierarchyChildren = (
+      <>
         <Toggle
           label="Show only changed values"
           checked={onlyChangesShown}
@@ -1245,8 +1239,33 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           changedOnly={onlyChangesShown}
           hierarchy={goLiveSummary.reductionHierarchy}
         />
-      </GoLiveSection>
+      </>
     );
+    const qlikViewHierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy
+      && goLiveSummary.contentTypeName === 'QlikView' && (
+      <GoLiveSection
+        title="Hierarchy Changes"
+        checkboxLabel="All hierarchy changes are as expected"
+        checkboxTarget="reductionHierarchy"
+        checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        {hierarchyChildren}
+      </GoLiveSection>
+      );
+    const powerBiHierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy
+      && goLiveSummary.contentTypeName === 'Power BI' && (
+      <GoLiveSection
+        title="Role Changes"
+        checkboxLabel="All role changes are as expected"
+        checkboxTarget="roleChanges"
+        checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        {hierarchyChildren}
+      </GoLiveSection>
+      );
+    const hierarchyValues = goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues : (goLiveSummary.contentTypeName === 'Power BI' ? powerBiHierarchyValues : null);
     const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
       <GoLiveSection
         title="Selection Groups"
