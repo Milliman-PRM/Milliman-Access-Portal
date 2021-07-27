@@ -296,6 +296,10 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   const { relatedFiles } = state.formData.pendingFormData;
   const filesToPublish: UploadedRelatedFile[] = [];
   const deleteFilePurposes: string[] = [];
+  const { contentTypes } = state.data;
+  const { pendingFormData } = state.formData;
+  const isPowerBI = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -308,12 +312,16 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
+  const typeSpecificPublishingDetail = (isPowerBI && pendingFormData.doesReduce) ? {
+    roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
+  } : null;
 
   return {
     rootContentItemId,
     newRelatedFiles: filesToPublish,
     associatedFiles: [],
     deleteFilePurposes,
+    typeSpecificPublishingDetail,
   };
 }
 

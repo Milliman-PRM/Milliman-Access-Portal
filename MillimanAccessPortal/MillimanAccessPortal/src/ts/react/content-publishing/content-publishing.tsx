@@ -42,7 +42,7 @@ import { FileUploadInput } from '../shared-components/form/file-upload-input';
 import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
-import { Input, TextAreaInput } from '../shared-components/form/input';
+import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
@@ -111,6 +111,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   public render() {
     const { modals, selected, formData, goLiveSummary, pending } = this.props;
+    const { pendingFormData, originalFormData } = this.props.formData;
     return (
       <>
         <ReduxToastr
@@ -127,7 +128,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {(goLiveSummary.rootContentItemId)
           ? this.renderGoLiveSummary()
           : (selected.item
-            && formData.pendingFormData.clientId) ? this.renderContentItemForm() : null
+            && pendingFormData.clientId) ? this.renderContentItemForm() : null
         }
         <Modal
           isOpen={modals.contentItemDeletion.isOpen}
@@ -644,7 +645,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
 
   private renderContentItemForm() {
     const { contentTypes, formData, items, pending } = this.props;
-    const { formErrors, pendingFormData, formState, uploads } = formData;
+    const { formErrors, pendingFormData, originalFormData, formState, uploads } = formData;
     const editFormButton = (
       <>
         {
@@ -738,21 +739,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       });
                     }}
                     placeholderText="Content Type *"
-                    value={formData.pendingFormData.contentTypeId}
+                    value={pendingFormData.contentTypeId}
                     values={this.props.contentTypesList}
                     readOnly={
                       formState === 'read'
-                      || formData.originalFormData.id.length > 0
-                      || (formData.pendingFormData.relatedFiles.MasterContent
-                        && formData.pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0)
+                      || originalFormData.id.length > 0
+                      || (pendingFormData.relatedFiles.MasterContent
+                        && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0)
                     }
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={8}>
                   <FileUploadInput
                     fileExtensions={
-                      contentTypes[formData.pendingFormData.contentTypeId] !== undefined
-                        ? contentTypes[formData.pendingFormData.contentTypeId].fileExtensions
+                      contentTypes[pendingFormData.contentTypeId] !== undefined
+                        ? contentTypes[pendingFormData.contentTypeId].fileExtensions
                         : []
                     }
                     label="File"
@@ -778,39 +779,40 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         : null
                     }
                     value={pendingFormData.relatedFiles.MasterContent.fileOriginalName}
-                    readOnly={formState === 'read' || formData.pendingFormData.contentTypeId.length === 0}
+                    readOnly={formState === 'read' || pendingFormData.contentTypeId.length === 0}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
             {
-              formData.pendingFormData && formData.pendingFormData.contentTypeId &&
+              pendingFormData && pendingFormData.contentTypeId &&
               (
-                contentTypes[formData.pendingFormData.contentTypeId].displayName === 'QlikView' ||
-                contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI'
+                contentTypes[pendingFormData.contentTypeId].displayName === 'QlikView' ||
+                contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI'
               ) &&
               <FormSection
-                title={`${contentTypes[formData.pendingFormData.contentTypeId].displayName} Specific Settings`}
+                title={`${contentTypes[pendingFormData.contentTypeId].displayName} Specific Settings`}
               >
                 {
-                  contentTypes[formData.pendingFormData.contentTypeId].displayName === 'QlikView' &&
+                  contentTypes[pendingFormData.contentTypeId].displayName === 'QlikView' &&
                   <Checkbox
                     name="Reducible"
-                    selected={formData.pendingFormData.doesReduce}
+                    selected={pendingFormData.doesReduce}
                     onChange={(status) => this.props.setPublishingFormBooleanInputValue({
                       inputName: 'doesReduce',
                       value: status,
                     })}
-                    readOnly={formState === 'read' || formData.originalFormData.id.length > 0}
+                    readOnly={formState === 'read' || originalFormData.id.length > 0}
                     hoverText="This can only be changed on the initial publication of this content item"
                   />
                 }
                 {
-                  contentTypes[formData.pendingFormData.contentTypeId].displayName === 'Power BI' &&
+                  contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI' &&
                   <>
+                    <h4>Document Settings</h4>
                     <Checkbox
                       name="Editable"
-                      selected={formData.pendingFormData.typeSpecificDetailObject.editableEnabled}
+                      selected={pendingFormData.typeSpecificDetailObject.editableEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({
                         inputName: 'editableEnabled',
                         value: status,
@@ -821,7 +823,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     />
                     <Checkbox
                       name="Navigation Pane"
-                      selected={formData.pendingFormData.typeSpecificDetailObject.navigationPaneEnabled}
+                      selected={pendingFormData.typeSpecificDetailObject.navigationPaneEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({
                         inputName: 'navigationPaneEnabled',
                         value: status,
@@ -831,7 +833,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     />
                     <Checkbox
                       name="Filter Pane"
-                      selected={formData.pendingFormData.typeSpecificDetailObject.filterPaneEnabled}
+                      selected={pendingFormData.typeSpecificDetailObject.filterPaneEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({
                         inputName: 'filterPaneEnabled',
                         value: status,
@@ -842,7 +844,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     />
                     <Checkbox
                       name="Bookmark Pane"
-                      selected={formData.pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled}
+                      selected={pendingFormData.typeSpecificDetailObject.bookmarksPaneEnabled}
                       onChange={(status) => this.props.setPublishingFormBooleanInputValue({
                         inputName: 'bookmarksPaneEnabled',
                         value: status,
@@ -851,6 +853,58 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       description={' - this will allow users to capture the current view of a report page' +
                                    ' including filters and the state of visuals'}
                     />
+                    <h4>Security Settings</h4>
+                    <Checkbox
+                      name="Row Level Security"
+                      selected={pendingFormData.doesReduce}
+                      onChange={(status) => this.props.setPublishingFormBooleanInputValue({
+                        inputName: 'doesReduce',
+                        value: status,
+                      })}
+                      readOnly={formState === 'read' || originalFormData.id.length > 0}
+                      description={' - this can be used to restrict data access for any given user.  The ability ' +
+                                   'to restrict access will be accessible in the Content Access Admin tab'}
+                    />
+                    {
+                      (pendingFormData.doesReduce || originalFormData.doesReduce) && (
+                        formState === 'read' ?
+                          <TextAreaInput
+                            name="roleList"
+                            label="Power BI Role Values"
+                            value={pendingFormData.typeSpecificPublicationProperties.roleList.join(', ')}
+                            readOnly={true}
+                            error={null}
+                          /> :
+                          <MultiAddInput
+                            name="rolesList"
+                            label="Power BI Role Names"
+                            type="text"
+                            list={pendingFormData.typeSpecificPublicationProperties.roleList}
+                            value={''}
+                            addItem={(item: string, _: boolean, itemAlreadyExists: boolean) => {
+                              if (itemAlreadyExists) {
+                                toastr.warning('', 'That role already exists.');
+                              } else {
+                                this.props.appendPublishingFormTextArrayValue({
+                                  inputName: 'roleList',
+                                  value: item,
+                                });
+                              }
+                            }}
+                            removeItemCallback={(index: number) => {
+                              this.props.setPublishingFormTextArrayValue({
+                                inputName: 'roleList',
+                                value:
+                                  pendingFormData.typeSpecificPublicationProperties.roleList.slice(0, index)
+                                  .concat(
+                                    pendingFormData.typeSpecificPublicationProperties.roleList.slice(index + 1),
+                                  ),
+                              });
+                            }}
+                            error={null}
+                          />
+                      )
+                    }
                   </>
                 }
               </FormSection>
@@ -863,7 +917,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     label="Thumbnail"
                     name="thumbnail"
                     placeholderText="Thumbnail"
-                    imageURL={formData.originalFormData.thumbnailLink}
+                    imageURL={originalFormData.thumbnailLink}
                     beginUpload={(uploadId, fileName) =>
                       this.props.beginFileUpload({ uploadId, fileName })}
                     cancelFileUpload={(uploadId) =>
@@ -954,8 +1008,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {
               (formData.formState !== 'read'
                 || (
-                  formData.pendingFormData.contentDescription &&
-                  formData.pendingFormData.contentDescription.length > 0
+                  pendingFormData.contentDescription &&
+                  pendingFormData.contentDescription.length > 0
                 )
               ) &&
               <FormSection title="Content Description">
@@ -973,7 +1027,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         });
                       }}
                       placeholderText="Content Description..."
-                      value={formData.pendingFormData.contentDescription}
+                      value={pendingFormData.contentDescription}
                       readOnly={formState === 'read'}
                     />
                   </FormFlexContainer>
@@ -983,8 +1037,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {
               (formData.formState !== 'read'
                 || (
-                  formData.pendingFormData.contentDisclaimer &&
-                  formData.pendingFormData.contentDisclaimer.length > 0
+                  pendingFormData.contentDisclaimer &&
+                  pendingFormData.contentDisclaimer.length > 0
                 )
               ) &&
               <FormSection title="Custom Content Disclaimer">
@@ -1005,7 +1059,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <div
                             className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
                             dangerouslySetInnerHTML={{
-                              __html: convertMarkdownToHTML(formData.pendingFormData.contentDisclaimer),
+                              __html: convertMarkdownToHTML(pendingFormData.contentDisclaimer),
                             }}
                           />
                         ) : (
@@ -1022,7 +1076,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 });
                               }}
                               placeholderText="Custom Disclaimer Text..."
-                              value={formData.pendingFormData.contentDisclaimer}
+                              value={pendingFormData.contentDisclaimer}
                               readOnly={formState === 'read'}
                             />
                             <div className="disclaimer-instructions">
@@ -1038,8 +1092,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             {
               (formData.formState !== 'read'
                 || (
-                  formData.pendingFormData.contentNotes &&
-                  formData.pendingFormData.contentNotes.length > 0
+                  pendingFormData.contentNotes &&
+                  pendingFormData.contentNotes.length > 0
                 )
               ) &&
               <FormSection title="Internal Notes (Not Shown To End Users)">
@@ -1057,7 +1111,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         });
                       }}
                       placeholderText="Notes..."
-                      value={formData.pendingFormData.contentNotes}
+                      value={pendingFormData.contentNotes}
                       readOnly={formState === 'read'}
                     />
                   </FormFlexContainer>
@@ -1090,7 +1144,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
               onClick={(event: React.MouseEvent) => {
                 event.preventDefault();
-                if (!formData.pendingFormData.id) {
+                if (!pendingFormData.id) {
                   this.props.createNewContentItem(this.props.contentItemForPublication);
                 } else {
                   if (this.props.formChangesPending) {
@@ -1102,7 +1156,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 }
               }}
             >
-              {`${formData.pendingFormData.id ? 'Update' : 'Create'} Content Item`}
+              {`${pendingFormData.id ? 'Update' : 'Create'} Content Item`}
               {this.props.pending.data.formSubmit
                 ? <ButtonSpinner version="circle" />
                 : null

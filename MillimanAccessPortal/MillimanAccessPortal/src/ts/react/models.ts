@@ -130,6 +130,9 @@ export interface ContentItemDetail {
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
   };
+  typeSpecificPublicationProperties?: {
+    roleList?: string[];
+  };
 }
 
 export interface ContentItemPublicationDetail {
@@ -147,6 +150,9 @@ export interface ContentItemPublicationDetail {
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
+  };
+  typeSpecificPublicationProperties?: {
+    roleList: [];
   };
 }
 
@@ -185,6 +191,9 @@ export interface ContentItemFormErrors {
     previewEmbedUrl?: string;
     previewReportId?: string;
     previewWorkspaceId?: string;
+  };
+  typeSpecificPublicationProperties?: {
+    roleList?: string;
   };
 }
 
