@@ -37,7 +37,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -669,15 +669,29 @@ namespace MillimanAccessPortal.Controllers
                     UploadedRelatedFilesObj = request.NewRelatedFiles,
                     RequestedAssociatedFileList = request.AssociatedFiles,
                 };
+                if (ContentItem.DoesReduce)
+                {
+                    switch (ContentItem.ContentType.TypeEnum) {
+                        case ContentTypeEnum.PowerBi:
+                            PowerBiPublicationProperties typedObject = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>();
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(typedObject);
+                            break;
+
+                        default:
+                            NewContentPublicationRequest.TypeSpecificDetail = null;
+                            break;
+                    };
+
+                }
                 _dbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
                 try
                 {
                     await _dbContext.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Log.Error($"In ContentPublishingController.Publish action: failed to save database changes, aborting");
+                    Log.Error(ex, $"In ContentPublishingController.Publish action: failed to save database changes, aborting");
                     Response.Headers.Add("Warning", "Failed to save database changes");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
@@ -802,7 +816,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            // Cancel all realted ContentReductionTask records
+            // Cancel all related ContentReductionTask records
             List<ContentReductionTask> relatedTasks = await _dbContext.ContentReductionTask
                                                                       .Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id)
                                                                       .ToListAsync();
@@ -825,7 +839,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest), currentUser.UserName, currentUser.Id);
 
-            var rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
+            CancelPublicationModel rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
             return new JsonResult(rootContentItemStatusList);
         }

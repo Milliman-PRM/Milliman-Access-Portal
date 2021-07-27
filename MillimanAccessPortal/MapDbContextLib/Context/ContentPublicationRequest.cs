@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MapDbContextLib.Context
 {
@@ -184,6 +185,9 @@ namespace MapDbContextLib.Context
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string RequestedAssociatedFiles { get; set; } = "[]";
+
+        [Column(TypeName = "jsonb")]
+        public string TypeSpecificDetail { get; set; } = null;
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }
