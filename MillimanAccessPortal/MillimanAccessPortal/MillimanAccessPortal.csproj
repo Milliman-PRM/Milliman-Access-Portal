@@ -85,6 +85,8 @@
     <None Remove="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
     <None Remove="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
     <None Remove="src\ts\react\system-admin\modals\view-configs.tsx" />
+    <None Remove="src\ts\react\system-admin\update-user-agreement.tsx" />
+    <None Remove="src\ts\react\system-admin\update-user-agreement\index.tsx" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
@@ -184,6 +186,8 @@
     <TypeScriptCompile Include="src\ts\react\client-admin\redux\sagas.ts" />
     <TypeScriptCompile Include="src\ts\react\client-admin\redux\selectors.ts" />
     <TypeScriptCompile Include="src\ts\react\client-admin\redux\store.ts" />
+    <TypeScriptCompile Include="src\ts\react\system-admin\update-user-agreement\index.tsx" />
+    <TypeScriptCompile Include="src\ts\react\system-admin\update-user-agreement\update-user-agreement.tsx" />
     <TypeScriptCompile Include="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
     <TypeScriptCompile Include="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
     <TypeScriptCompile Include="src\ts\react\system-admin\modals\view-configs.tsx" />
