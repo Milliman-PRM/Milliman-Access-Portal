@@ -313,7 +313,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     }
   }
   const typeSpecificPublishingDetail = (isPowerBI && pendingFormData.doesReduce) ? {
-    roleList: pendingFormData.typeSpecificDetailObject.roleList,
+    roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
   } : null;
 
   return {

@@ -126,10 +126,12 @@ export interface ContentItemDetail {
     liveReportId?: Guid;
     liveWorkspaceId?: Guid;
     navigationPaneEnabled?: boolean;
-    roleList?: string[];
     previewEmbedUrl?: string;
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
+  };
+  typeSpecificPublicationProperties?: {
+    roleList?: string[];
   };
 }
 
@@ -148,6 +150,9 @@ export interface ContentItemPublicationDetail {
     BookmarksPaneEnabled?: boolean;
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
+  };
+  typeSpecificPublicationProperties?: {
+    roleList: [];
   };
 }
 
@@ -186,6 +191,9 @@ export interface ContentItemFormErrors {
     previewEmbedUrl?: string;
     previewReportId?: string;
     previewWorkspaceId?: string;
+  };
+  typeSpecificPublicationProperties?: {
+    roleList?: string;
   };
 }
 

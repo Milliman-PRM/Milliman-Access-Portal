@@ -73,6 +73,9 @@ const emptyContentItemDetail: ContentItemDetail = {
     bookmarksPaneEnabled: false,
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
+    editableEnabled: false,
+  },
+  typeSpecificPublicationProperties: {
     roleList: [],
   },
 };
@@ -95,6 +98,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
+  typeSpecificPublicationProperties: {},
 };
 
 const _initialFormData: PublishingFormData = {
@@ -537,10 +541,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     const contentItemDetail = {
       ...action.response,
-      typeSpecificDetailObject: {
-        ..._initialFormData.pendingFormData.typeSpecificDetailObject,
-        ...action.response.typeSpecificDetailObject,
-      },
+      typeSpecificDetailObject: action.response.typeSpecificDetailObject,
+      typeSpecificPublicationProperties: action.response.typeSpecificPublicationProperties,
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
@@ -638,6 +640,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           doesReduce: false,
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
+          typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
         },
       };
     } else {
@@ -681,8 +684,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     ...state,
     pendingFormData: {
       ...state.pendingFormData,
-      typeSpecificDetailObject: {
-        ...state.pendingFormData.typeSpecificDetailObject,
+      typeSpecificPublicationProperties: {
+        ...state.pendingFormData.typeSpecificPublicationProperties,
         [action.inputName]: action.value,
       },
     },
@@ -691,9 +694,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     ...state,
     pendingFormData: {
       ...state.pendingFormData,
-      typeSpecificDetailObject: {
-        ...state.pendingFormData.typeSpecificDetailObject,
-        [action.inputName]: state.pendingFormData.typeSpecificDetailObject[action.inputName].concat(action.value),
+      typeSpecificPublicationProperties: {
+        ...state.pendingFormData.typeSpecificPublicationProperties,
+        [action.inputName]:
+          state.pendingFormData.typeSpecificPublicationProperties[action.inputName].concat(action.value),
       },
     },
   }),
@@ -965,6 +969,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
         isEditable: detail.isEditable,
       },
       pendingFormData: {
@@ -977,9 +982,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
-        typeSpecificDetailObject: {
-          ...detail.typeSpecificDetailObject,
-          roleList: state.pendingFormData.typeSpecificDetailObject.roleList,
+        typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        typeSpecificPublicationProperties: {
+          ...detail.typeSpecificPublicationProperties,
+          ...state.pendingFormData.typeSpecificPublicationProperties,
         },
         isEditable: detail.isEditable,
       },
@@ -999,6 +1005,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       contentDisclaimer: detail.contentDisclaimer,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
       isEditable: detail.isEditable,
     };
 
