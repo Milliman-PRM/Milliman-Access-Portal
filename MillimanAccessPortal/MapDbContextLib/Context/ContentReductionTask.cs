@@ -79,6 +79,7 @@ namespace MapDbContextLib.Context
         HierarchyOnly = 1,
         HierarchyAndReduction = 2,
         ReductionOnly = 3,
+        None = 4,
     }
 
     public class ContentReductionTask

@@ -86,9 +86,21 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
-                if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
+                switch (JobDetail.Request.ContentType)
                 {
-                    await QueueReductionActivityAsync(JobDetail.Request.MasterContentFile);
+                    case ContentTypeEnum.Qlikview:
+                        if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
+                        {
+                            await QueueReductionActivityAsync(JobDetail.Request.MasterContentFile);
+                        }
+                        break;
+
+                    case ContentTypeEnum.PowerBi:
+                        if (JobDetail.Request.DoesReduce)
+                        {
+                            await GeneratePbiRlsReductionTaskRecords();
+                        }
+                        break;
                 }
 
                 int PendingTaskCount = await CountPendingReductionTasks();
@@ -469,6 +481,54 @@ namespace ContentPublishingLib.JobRunners
             {
                 // nothing to queue, but do not resolve publication request status here
             }
+        }
+
+        private async Task GeneratePbiRlsReductionTaskRecords()
+        {
+            using (ApplicationDbContext db = new ApplicationDbContext(ContextOptions))
+            {
+                List<SelectionGroup> selectionGroups = await db.SelectionGroup
+                                                               .Where(g => g.RootContentItemId == JobDetail.Request.RootContentId)
+                                                               .ToListAsync();
+
+                foreach (SelectionGroup group in selectionGroups)
+                {
+                    DateTime now = DateTime.UtcNow;
+
+                    var newTaskRecord = new ContentReductionTask
+                    {
+                        Id = Guid.NewGuid(),
+                        SelectionGroupId = group.Id,
+                        ApplicationUserId = JobDetail.Request.ApplicationUserId,
+                        ContentPublicationRequestId = JobDetail.JobId,
+                        CreateDateTimeUtc = now,
+                        ProcessingStartDateTimeUtc = now,
+                        TaskAction = TaskActionEnum.Unspecified,
+                        ResultFilePath = null,
+                    };
+
+                    try
+                    {
+                        newTaskRecord.MasterContentHierarchyObj = null;   // TODO
+                        newTaskRecord.ReducedContentHierarchyObj = null;   // TODO
+                        newTaskRecord.SelectionCriteriaObj = null;   // TODO
+                        newTaskRecord.OutcomeMetadataObj = null;   // TODO
+
+                        newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
+                        newTaskRecord.ReductionStatusMessage = "";   // TODO
+                    }
+                    catch
+                    {
+                        newTaskRecord.ReductionStatus = ReductionStatusEnum.Error;
+                        newTaskRecord.ReductionStatusMessage = "";   // TODO
+                    }
+
+                    db.ContentReductionTask.Add(newTaskRecord);
+                }
+
+                await db.SaveChangesAsync();
+            }
+
         }
     }
 }
