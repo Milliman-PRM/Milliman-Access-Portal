@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
@@ -158,6 +159,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
+                        #region QlikView
                         // retrieve all related reduction tasks that are associated with selection groups
                         List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
                                                                       .Include(t => t.SelectionGroup)
@@ -330,9 +332,34 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 });
                             }
                         }
+                        #endregion
                         break;
                     case ContentTypeEnum.PowerBi:
-                        break;  
+                        List<string> specifiedRoles = JsonConvert.DeserializeObject<JObject>(PubRequest.TypeSpecificDetail)["RoleList"].Values<string>().ToList();
+                        if (specifiedRoles != null)
+                        {
+                            specifiedRoles.Sort();
+                            ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
+                        }
+                        ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
+
+                        Guid hierarchyId = new Guid();
+                        ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
+                        {
+                            Id = hierarchyId,
+                            DisplayName = "Roles",
+                            FieldName = "Roles",
+                            StructureType = FieldStructureType.Unknown,
+                            ValueDelimiter = string.Empty,
+                            Values = specifiedRoles.Select(role => new ReductionFieldValueChange()
+                            {
+                                Id = hierarchyId,
+                                Value = role,
+                                ValueChange = FieldValueChange.Added,
+                            }).OrderBy(v => v.Value).ToList(),
+                        });
+
+                        break;
                 }
             }
 

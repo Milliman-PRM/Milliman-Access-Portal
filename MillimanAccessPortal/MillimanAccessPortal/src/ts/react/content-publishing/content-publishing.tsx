@@ -1319,7 +1319,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {hierarchyChildren}
       </GoLiveSection>
       );
-    const hierarchyValues = goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues : (goLiveSummary.contentTypeName === 'Power BI' ? powerBiHierarchyValues : null);
+    const hierarchyValues = goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues :
+      (goLiveSummary.contentTypeName === 'Power BI' ? powerBiHierarchyValues : null);
     const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
       <GoLiveSection
         title="Selection Groups"
