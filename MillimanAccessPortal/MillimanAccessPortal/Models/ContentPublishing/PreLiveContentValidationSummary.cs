@@ -156,210 +156,167 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             if (PubRequest.RootContentItem.DoesReduce)
             {
-                switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+                // retrieve all related reduction tasks that are associated with selection groups
+                List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
+                                                              .Include(t => t.SelectionGroup)
+                                                              .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
+                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
+                                                              .ToListAsync();
+
+                #region Validation of reduction tasks and related nav properties from db
+                if (AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId))
                 {
-                    case ContentTypeEnum.Qlikview:
-                        #region QlikView
-                        // retrieve all related reduction tasks that are associated with selection groups
-                        List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
-                                                                      .Include(t => t.SelectionGroup)
-                                                                      .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                                      .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
-                                                                      .ToListAsync();
+                    // this probably means db corruption or connection failed
+                    throw new ApplicationException($"While building content validation summary, reduction task query failed");
+                }
+                #endregion
 
-                        #region Validation of reduction tasks and related nav properties from db
-                        if (AllTasks.Any(t => t.SelectionGroup.RootContentItemId != PubRequest.RootContentItemId))
+                ContentReductionHierarchy<ReductionFieldValue> newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
+                if (newHierarchy != null)
+                {
+                    newHierarchy.Sort();
+
+                    ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
+                    foreach (var task in AllTasks)
+                    {
+                        var selectionGroupUsers = new List<UserInfoViewModel>();
+                        var userQuery = Db.UserInSelectionGroup
+                            .Where(usg => usg.SelectionGroupId == task.SelectionGroup.Id)
+                            .Select(usg => usg.User);
+                        foreach (var user in userQuery)
                         {
-                            // this probably means db corruption or connection failed
-                            throw new ApplicationException($"While building content validation summary, reduction task query failed");
+                            var userInfo = (UserInfoViewModel)user;
+                            selectionGroupUsers.Add(userInfo);
                         }
-                        #endregion
 
-                        ContentReductionHierarchy<ReductionFieldValue> newHierarchy = AllTasks.FirstOrDefault()?.MasterContentHierarchyObj;
-                        if (newHierarchy != null)
+                        string errorMessage = null;
+                        switch (task.OutcomeMetadataObj.OutcomeReason)
                         {
-                            newHierarchy.Sort();
+                            case MapDbReductionTaskOutcomeReason.Success:
+                            case MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned:
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
+                                errorMessage = "This group has no selections.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
+                                errorMessage = "None of this group's selections exist in the new hierarchy.";
+                                break;
+                            case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
+                                errorMessage = "The reduction did not produce an output file. This could be caused by selections that result in no matching data.";
+                                break;
+                            default:
+                                Log.Warning($"Unexpected outcome reason in go live preview for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
+                                break;
+                        }
 
-                            ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
-                            foreach (var task in AllTasks)
-                            {
-                                var selectionGroupUsers = new List<UserInfoViewModel>();
-                                var userQuery = Db.UserInSelectionGroup
-                                    .Where(usg => usg.SelectionGroupId == task.SelectionGroup.Id)
-                                    .Select(usg => usg.User);
-                                foreach (var user in userQuery)
+                        var liveSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(Db, task.SelectionGroupId.Value);
+                        var pendingSelections = task.SelectionGroup.IsMaster
+                            ? null
+                            : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
+
+                        UriBuilder reducedLinkBuilder = BuildReducibleContentItemPreviewUri(task, ReturnObj.MasterContentLink, Context);
+
+                        ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
+                        {
+                            Id = task.SelectionGroup.Id,
+                            Name = task.SelectionGroup.GroupName,
+                            IsMaster = task.SelectionGroup.IsMaster,
+                            Duration = task.OutcomeMetadataObj.ElapsedTime,
+                            Users = selectionGroupUsers,
+                            WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
+                            IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
+                            InactiveReason = errorMessage,
+                            PreviewLink = reducedLinkBuilder.Uri.AbsoluteUri,
+                            SelectionChanges = task.SelectionGroup.IsMaster
+                                ? null
+                                : new ContentReductionHierarchy<ReductionFieldValueChange>
                                 {
-                                    var userInfo = (UserInfoViewModel)user;
-                                    selectionGroupUsers.Add(userInfo);
-                                }
-
-                                string errorMessage = null;
-                                switch (task.OutcomeMetadataObj.OutcomeReason)
-                                {
-                                    case MapDbReductionTaskOutcomeReason.Success:
-                                    case MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned:
-                                        break;
-                                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValues:
-                                        errorMessage = "This group has no selections.";
-                                        break;
-                                    case MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                                        errorMessage = "None of this group's selections exist in the new hierarchy.";
-                                        break;
-                                    case MapDbReductionTaskOutcomeReason.NoReducedFileCreated:
-                                        errorMessage = "The reduction did not produce an output file. This could be caused by selections that result in no matching data.";
-                                        break;
-                                    default:
-                                        Log.Warning($"Unexpected outcome reason in go live preview for reduction task {task.Id}: {task.OutcomeMetadataObj.OutcomeReason}");
-                                        break;
-                                }
-
-                                var liveSelections = task.SelectionGroup.IsMaster
-                                    ? null
-                                    : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(Db, task.SelectionGroupId.Value);
-                                var pendingSelections = task.SelectionGroup.IsMaster
-                                    ? null
-                                    : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
-
-                                UriBuilder reducedLinkBuilder =
-                                    task.SelectionGroup.IsMaster
-                                    ? new UriBuilder(ReturnObj.MasterContentLink)
-                                    : new UriBuilder
+                                    RootContentItemId = RootContentItemId,
+                                    Fields = task.SelectionCriteriaObj.Fields.Select(f =>
                                     {
-                                        Scheme = Context.Request.Scheme,
-                                        Host = Context.Request.Host.Host,
-                                        Port = Context.Request.Host.Port ?? -1,
-                                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
-                                        Query = $"publicationRequestId={PubRequest.Id}&reductionTaskId={task.Id}",
-                                    };
+                                        var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
+                                            liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());
 
-                                ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
-                                {
-                                    Id = task.SelectionGroup.Id,
-                                    Name = task.SelectionGroup.GroupName,
-                                    IsMaster = task.SelectionGroup.IsMaster,
-                                    Duration = task.OutcomeMetadataObj.ElapsedTime,
-                                    Users = selectionGroupUsers,
-                                    WasInactive = task.SelectionGroup.ContentInstanceUrl == null,
-                                    IsInactive = task.ReductionStatus != ReductionStatusEnum.Reduced,
-                                    InactiveReason = errorMessage,
-                                    PreviewLink = reducedLinkBuilder.Uri.AbsoluteUri,
-                                    SelectionChanges = task.SelectionGroup.IsMaster
-                                        ? null
-                                        : new ContentReductionHierarchy<ReductionFieldValueChange>
+                                        var removedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Except(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        var unchangedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Intersect(
+                                            pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
+
+                                        return new ReductionField<ReductionFieldValueChange>
                                         {
-                                            RootContentItemId = RootContentItemId,
-                                            Fields = task.SelectionCriteriaObj.Fields.Select(f =>
+                                            FieldName = f.FieldName,
+                                            DisplayName = f.DisplayName,
+                                            Id = f.Id,
+                                            StructureType = f.StructureType,
+                                            ValueDelimiter = f.ValueDelimiter,
+                                            Values = addedValues.Select(v => new ReductionFieldValueChange
                                             {
-                                                var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
-                                                    liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());
-
-                                                var removedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Except(
-                                                    pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
-
-                                                var unchangedValues = liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus).Intersect(
-                                                    pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus), new ReductionFieldValueComparer());
-
-                                                return new ReductionField<ReductionFieldValueChange>
-                                                {
-                                                    FieldName = f.FieldName,
-                                                    DisplayName = f.DisplayName,
-                                                    Id = f.Id,
-                                                    StructureType = f.StructureType,
-                                                    ValueDelimiter = f.ValueDelimiter,
-                                                    Values = addedValues.Select(v => new ReductionFieldValueChange
-                                                    {
-                                                        Value = v.Value,
-                                                        Id = v.Id,
-                                                        ValueChange = FieldValueChange.Added,
-                                                    })
-                                                    .Concat(removedValues.Select(v => new ReductionFieldValueChange
-                                                    {
-                                                        Value = v.Value,
-                                                        Id = v.Id,
-                                                        ValueChange = FieldValueChange.Removed,
-                                                    }))
-                                                    .Concat(unchangedValues.Select(v => new ReductionFieldValueChange
-                                                    {
-                                                        Value = v.Value,
-                                                        Id = v.Id,
-                                                        ValueChange = FieldValueChange.NoChange,
-                                                    }))
-                                                    .OrderBy(v => v.Value)
-                                                    .ToList()
-                                                };
+                                                Value = v.Value,
+                                                Id = v.Id,
+                                                ValueChange = FieldValueChange.Added,
                                             })
-                                            .ToList(),
-                                        }
-                                });
-                            }
-
-                            ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
-                            var liveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
-
-                            foreach (var field in newHierarchy.Fields)
-                            {
-                                var addedValues = field.Values.Except(liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values), new ReductionFieldValueComparer());
-                                var removedValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Except(field.Values, new ReductionFieldValueComparer());
-                                var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
-
-                                ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
-                                {
-                                    Id = field.Id,
-                                    DisplayName = field.DisplayName,
-                                    FieldName = field.FieldName,
-                                    StructureType = field.StructureType,
-                                    ValueDelimiter = field.ValueDelimiter,
-                                    Values = addedValues.Select(v => new ReductionFieldValueChange
-                                    {
-                                        Id = v.Id,
-                                        Value = v.Value,
-                                        ValueChange = FieldValueChange.Added,
-                                    })
                                             .Concat(removedValues.Select(v => new ReductionFieldValueChange
                                             {
-                                                Id = v.Id,
                                                 Value = v.Value,
+                                                Id = v.Id,
                                                 ValueChange = FieldValueChange.Removed,
                                             }))
-                                            .Concat(sameValues.Select(v => new ReductionFieldValueChange
+                                            .Concat(unchangedValues.Select(v => new ReductionFieldValueChange
                                             {
-                                                Id = v.Id,
                                                 Value = v.Value,
+                                                Id = v.Id,
                                                 ValueChange = FieldValueChange.NoChange,
                                             }))
                                             .OrderBy(v => v.Value)
-                                            .ToList(),
-                                });
-                            }
-                        }
-                        #endregion
-                        break;
-                    case ContentTypeEnum.PowerBi:
-                        List<string> specifiedRoles = JsonConvert.DeserializeObject<JObject>(PubRequest.TypeSpecificDetail)["RoleList"].Values<string>().ToList();
-                        if (specifiedRoles != null)
-                        {
-                            specifiedRoles.Sort();
-                            ReturnObj.SelectionGroups = new List<SelectionGroupSummary>();
-                        }
-                        ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
+                                            .ToList()
+                                        };
+                                    })
+                                    .ToList(),
+                                }
+                        });
+                    }
 
-                        Guid hierarchyId = new Guid();
+                    ReturnObj.ReductionHierarchy = new ContentReductionHierarchy<ReductionFieldValueChange> { RootContentItemId = RootContentItemId };
+                    var liveHierarchy = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(Db, RootContentItemId);
+
+                    foreach (var field in newHierarchy.Fields)
+                    {
+                        var addedValues = field.Values.Except(liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values), new ReductionFieldValueComparer());
+                        var removedValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Except(field.Values, new ReductionFieldValueComparer());
+                        var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
+
                         ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
                         {
-                            Id = hierarchyId,
-                            DisplayName = "Roles",
-                            FieldName = "Roles",
-                            StructureType = FieldStructureType.Unknown,
-                            ValueDelimiter = string.Empty,
-                            Values = specifiedRoles.Select(role => new ReductionFieldValueChange()
+                            Id = field.Id,
+                            DisplayName = field.DisplayName,
+                            FieldName = field.FieldName,
+                            StructureType = field.StructureType,
+                            ValueDelimiter = field.ValueDelimiter,
+                            Values = addedValues.Select(v => new ReductionFieldValueChange
                             {
-                                Id = hierarchyId,
-                                Value = role,
+                                Id = v.Id,
+                                Value = v.Value,
                                 ValueChange = FieldValueChange.Added,
-                            }).OrderBy(v => v.Value).ToList(),
+                            })
+                                    .Concat(removedValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.Removed,
+                                    }))
+                                    .Concat(sameValues.Select(v => new ReductionFieldValueChange
+                                    {
+                                        Id = v.Id,
+                                        Value = v.Value,
+                                        ValueChange = FieldValueChange.NoChange,
+                                    }))
+                                    .OrderBy(v => v.Value)
+                                    .ToList(),
                         });
-
-                        break;
+                    }
                 }
             }
 
@@ -379,6 +336,32 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
+        }
+
+        private static UriBuilder BuildReducibleContentItemPreviewUri(ContentReductionTask task, string masterContentLink, HttpContext context)
+        {
+            return task.SelectionGroup.IsMaster ?
+                new UriBuilder(masterContentLink) :
+                task.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum switch
+                {
+                    ContentTypeEnum.Qlikview => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
+                        Query = $"publicationRequestId={task.ContentPublicationRequestId}&reductionTaskId={task.Id}",
+                    },
+                    ContentTypeEnum.PowerBi => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
+                        Query = $"request={task.ContentPublicationRequestId}", // TODO roles
+                },
+                    _ => null,
+                };
         }
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
