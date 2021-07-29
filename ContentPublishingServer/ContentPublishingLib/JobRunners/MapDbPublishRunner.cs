@@ -14,10 +14,10 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using AuditLogLib;
+using AuditLogLib.Event;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
-using AuditLogLib.Event;
 using Newtonsoft.Json;
 
 namespace ContentPublishingLib.JobRunners
@@ -485,6 +485,26 @@ namespace ContentPublishingLib.JobRunners
 
         private async Task GeneratePbiRlsReductionTaskRecords()
         {
+            // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
+            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+            {
+                // if there are no selection groups for this content, create a master group
+                if (!await Db.SelectionGroup.AnyAsync(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
+                {
+                    SelectionGroup NewMasterSelectionGroup = new SelectionGroup
+                    {
+                        RootContentItemId = JobDetail.Request.RootContentId,
+                        GroupName = "Master Content Access",
+                        IsMaster = true,
+                        Id = Guid.NewGuid(),
+                        TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
+                        SelectedHierarchyFieldValueList = new List<Guid>(),
+                    };
+                    Db.SelectionGroup.Add(NewMasterSelectionGroup);
+                    await Db.SaveChangesAsync();
+                }
+            }
+
             using (ApplicationDbContext db = new ApplicationDbContext(ContextOptions))
             {
                 List<SelectionGroup> selectionGroups = await db.SelectionGroup
@@ -494,6 +514,10 @@ namespace ContentPublishingLib.JobRunners
                 foreach (SelectionGroup group in selectionGroups)
                 {
                     DateTime now = DateTime.UtcNow;
+                    List<string> liveRolesOfGroup = db.HierarchyFieldValue
+                                                      .Where(v => group.SelectedHierarchyFieldValueList.Contains(v.Id))
+                                                      .Select(v => v.Value)
+                                                      .ToList();
 
                     var newTaskRecord = new ContentReductionTask
                     {
@@ -505,22 +529,55 @@ namespace ContentPublishingLib.JobRunners
                         ProcessingStartDateTimeUtc = now,
                         TaskAction = TaskActionEnum.Unspecified,
                         ResultFilePath = null,
+                        MasterFilePath = string.Empty,
                     };
 
                     try
                     {
+                        ContentReductionHierarchy<ReductionFieldValueSelection> selectionHierarchy = new ContentReductionHierarchy<ReductionFieldValueSelection> 
+                        { 
+                            RootContentItemId = JobDetail.Request.RootContentId, 
+                        };
+                        selectionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueSelection>
+                        {
+                            Id = Guid.Empty,
+                            FieldName = "Roles",
+                            DisplayName = "Roles",
+                            StructureType = FieldStructureType.Flat,
+                            Values = ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList
+                                .Select(r => new ReductionFieldValueSelection { Value = r, SelectionStatus = group.IsMaster ? true : liveRolesOfGroup.Contains(r) })
+                                .ToList(),
+                        });
+                        newTaskRecord.SelectionCriteriaObj = selectionHierarchy;
+
                         newTaskRecord.MasterContentHierarchyObj = null;   // TODO
                         newTaskRecord.ReducedContentHierarchyObj = null;   // TODO
-                        newTaskRecord.SelectionCriteriaObj = null;   // TODO
-                        newTaskRecord.OutcomeMetadataObj = null;   // TODO
 
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
-                        newTaskRecord.ReductionStatusMessage = "";   // TODO
+                        newTaskRecord.ReductionStatusMessage = "";
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Error;
-                        newTaskRecord.ReductionStatusMessage = "";   // TODO
+                        newTaskRecord.ReductionStatusMessage = $"";   // TODO
+                        Log.Error(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})");
+                    }
+                    finally
+                    {
+                        newTaskRecord.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                        {
+                            OutcomeReason = newTaskRecord.ReductionStatus switch
+                            {
+                                ReductionStatusEnum.Reduced => MapDbReductionTaskOutcomeReason.Success,
+                                _ => MapDbReductionTaskOutcomeReason.UnspecifiedError,
+                            },
+                            ProcessingStartedUtc = newTaskRecord.ProcessingStartDateTimeUtc,
+                            ElapsedTime = TimeSpan.Zero,
+                            ReductionTaskId = Guid.Empty,
+                            SelectionGroupName = group.GroupName,
+                            UserMessage = newTaskRecord.ReductionStatusMessage,
+                            SupportMessage = "Automated role list processing performed by ContentPublishingServer",
+                        };
                     }
 
                     db.ContentReductionTask.Add(newTaskRecord);
