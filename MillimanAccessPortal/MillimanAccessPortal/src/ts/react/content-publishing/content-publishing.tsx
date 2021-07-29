@@ -1282,7 +1282,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </ContentContainer>
       </GoLiveSection>
     );
-    const hierarchyChildren = (
+    const hierarchyChildren = goLiveSummary && goLiveSummary.reductionHierarchy && (
       <>
         <Toggle
           label="Show only changed values"
@@ -1308,7 +1308,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       </GoLiveSection>
       );
     const powerBiHierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy
-      && goLiveSummary.contentTypeName === 'Power BI' && (
+      && goLiveSummary.contentTypeName === 'PowerBi' && (
       <GoLiveSection
         title="Role Changes"
         checkboxLabel="All role changes are as expected"
@@ -1319,8 +1319,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {hierarchyChildren}
       </GoLiveSection>
       );
-    const hierarchyValues = goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues :
-      (goLiveSummary.contentTypeName === 'Power BI' ? powerBiHierarchyValues : null);
+    const hierarchyValues = goLiveSummary && goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues :
+      ((goLiveSummary && goLiveSummary.contentTypeName) === 'PowerBi' ? powerBiHierarchyValues : null);
     const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
       <GoLiveSection
         title="Selection Groups"
