@@ -550,8 +550,22 @@ namespace ContentPublishingLib.JobRunners
                         });
                         newTaskRecord.SelectionCriteriaObj = selectionHierarchy;
 
-                        newTaskRecord.MasterContentHierarchyObj = null;   // TODO
-                        newTaskRecord.ReducedContentHierarchyObj = null;   // TODO
+                        ContentReductionHierarchy<ReductionFieldValue> contentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
+                        {
+                            RootContentItemId = JobDetail.Request.RootContentId,
+                        };
+                        contentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                        {
+                            Id = Guid.Empty,
+                            FieldName = "Roles",
+                            DisplayName = "Roles",
+                            StructureType = FieldStructureType.Flat,
+                            Values = ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList
+                                .Select(r => new ReductionFieldValue { Value = r })
+                                .ToList(),
+                        });
+                        newTaskRecord.MasterContentHierarchyObj = contentHierarchy;
+                        newTaskRecord.ReducedContentHierarchyObj = contentHierarchy;
 
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                         newTaskRecord.ReductionStatusMessage = "";
@@ -559,7 +573,7 @@ namespace ContentPublishingLib.JobRunners
                     catch (Exception ex)
                     {
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Error;
-                        newTaskRecord.ReductionStatusMessage = $"";   // TODO
+                        newTaskRecord.ReductionStatusMessage = $"Error while storing reduced hierarchy information for Power BI content";
                         Log.Error(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})");
                     }
                     finally
