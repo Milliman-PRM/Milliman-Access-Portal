@@ -4,51 +4,66 @@ import '../../../../../src/scss/update-user-agreement.scss';
 import '../../../../images/map-logo.svg';
 import '../../../../scss/map.scss';
 import { convertMarkdownToHTML } from '../../../../ts/convert-markdown';
+import { postData } from '../../../shared';
 
-export class UpdateUserAgreement extends React.Component {
-    public state = {
-        visible: true ,
-    };
+interface UpdateUserAgreementState {
+    visible: boolean;
+    newAgreement: string;
 
-    public handleToggle = () => {
-        this.setState({ visible: !this.state.visible });
+}
 
-    }
-    public setToEdit = () => {
-        const rawAgreementMarkdown = (document.getElementById('newAgreementText') as HTMLTextAreaElement).value;
-        const processedAgreementHTML = convertMarkdownToHTML(rawAgreementMarkdown);
-        document.getElementById('AgreementPreview').innerHTML = processedAgreementHTML;
+export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreementState> {
+
+    public constructor(props: {}) {
+      super(props);
+
+      this.state = {
+        visible: true,
+        newAgreement: '',
+      };
+
+      this.handleChangeMessage = this.handleChangeMessage.bind(this);
+      this.handleSubmit = this.handleSubmit.bind(this);
+
     }
 
     public render() {
         const { visible } = this.state;
         return (
             <div id="agreement-container" className="admin-panel-content-container">
-                <form id="user-agreement-form" action="updateUserAgreement" method="POST">
+                <form id="user-agreement-form" onSubmit={this.handleSubmit}>
                     <h3 className="section-title">User Agreement Text</h3>
                     <div className="markdown-view-button-container">
                         <span
                             className={
                               `markdown-view-toggle markdown-select-edit'${visible ? ' selected' : ''}`}
-                            onClick={() => {
-                              this.handleToggle();
-                              this.setToEdit();
-                            }}
+                            onClick={this.handleToggle}
                         >
                         Edit
                         </span>
                         <span
-                          className={
-                            `markdown-view-toggle markdown-select-edit'${!visible ? ' selected' : ''}`}
-                          onClick={this.handleToggle}
+                            className={
+                                `markdown-view-toggle markdown-select-edit'${!visible ? ' selected' : ''}`}
+                            onClick={() => {
+                                this.handleToggle();
+                                this.setToPreview();
+
+                            }}
                         >
                         Preview
                         </span>
                     </div>
                     <div id="user-agreement-text">
                       <textarea
-                            id="newAgreementText" // need to change
-                       // disabled={visible ? false : true}
+                        id="newAgreementText"
+                        name="newAgreementText"
+                        style={{display: !visible ? 'none' : ''}}
+                        onChange={this.handleChangeMessage}
+
+                      />
+                      <div
+                        id="AgreementPreview"
+                        style={{display: visible ? 'none' : ''}}
                       />
                     </div>
                     <div className="button-container">
@@ -58,6 +73,32 @@ export class UpdateUserAgreement extends React.Component {
             </div>
         );
 
+    }
+    private handleToggle = () => {
+        this.setState({ visible: !this.state.visible });
+
+    }
+    private setToPreview = () => {
+        const rawAgreementMarkdown = (document.getElementById('newAgreementText') as HTMLTextAreaElement).value;
+        const processedAgreementHTML = convertMarkdownToHTML(rawAgreementMarkdown);
+        document.getElementById('AgreementPreview').innerHTML = processedAgreementHTML;
+    }
+
+    private handleChangeMessage(event: React.ChangeEvent<HTMLTextAreaElement>) {
+        this.setState({
+            newAgreement: event.target.value,
+        });
+    }
+    private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
+        event.preventDefault();
+        event.persist();
+       // const { newAgreement } = this.state.newAgreement;
+        postData('/SystemAdmin/UpdateUserAgreement', { newAgreement: this.state.newAgreement }, true)
+            .then((response) => {
+                if (response.ok) {
+                    window.location.replace('/');
+                }
+            });
     }
 
 }
