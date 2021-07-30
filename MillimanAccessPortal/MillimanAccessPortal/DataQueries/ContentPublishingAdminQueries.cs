@@ -179,7 +179,7 @@ namespace MillimanAccessPortal.DataQueries
             {
                 case ContentTypeEnum.PowerBi:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    if (publicationRequest != null)
+                    if (publicationRequest != null && !String.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
                     {
                         model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<PowerBiPublicationProperties>(publicationRequest.TypeSpecificDetail);
                     }

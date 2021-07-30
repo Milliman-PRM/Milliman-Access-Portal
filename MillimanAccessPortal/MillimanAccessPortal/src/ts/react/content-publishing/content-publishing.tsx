@@ -1312,7 +1312,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       <GoLiveSection
         title="Role Changes"
         checkboxLabel="All role changes are as expected"
-        checkboxTarget="roleChanges"
+        checkboxTarget="reductionHierarchy"
         checkboxSelectedValue={elementsToConfirm.reductionHierarchy}
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
