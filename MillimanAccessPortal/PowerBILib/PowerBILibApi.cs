@@ -276,12 +276,16 @@ namespace PowerBiLib
             return true;
         }
 
-        public async Task<string> GetEmbedTokenAsync(Guid groupId, Guid reportId, bool editableView)
+        public async Task<string> GetEmbedTokenAsync(Guid groupId, Guid reportId, bool editableView, List<string> roleList = null)
         {
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
                 var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
+                if (roleList != null)
+                {
+                    generateTokenRequestParameters.Identities.Add(new EffectiveIdentity("username", roleList));
+                }
                 EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
                 return tokenResponse.Token;
             }
