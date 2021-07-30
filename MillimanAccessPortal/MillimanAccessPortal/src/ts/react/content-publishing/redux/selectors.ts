@@ -284,7 +284,9 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
     || (pendingFormData.contentNotes !== originalFormData.contentNotes)
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
-    || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
+    || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject)
+    || !_.isEqual(pendingFormData.typeSpecificPublicationProperties,
+      originalFormData.typeSpecificPublicationProperties);
   return changesPending;
 }
 
@@ -312,7 +314,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
-  const typeSpecificPublishingDetail = (isPowerBI && pendingFormData.doesReduce) ? {
+  const typeSpecificPublishingDetail =
+    (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) ? {
     roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
   } : null;
 
@@ -386,6 +389,12 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
       FilterPaneEnabled: pendingFormData.typeSpecificDetailObject.filterPaneEnabled,
       NavigationPaneEnabled: pendingFormData.typeSpecificDetailObject.navigationPaneEnabled,
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties) {
+      contentItemInformation.typeSpecificPublicationProperties = {
+        roleList: pendingFormData.typeSpecificPublicationProperties.roleList ?? [],
+      };
+    }
   }
 
   return contentItemInformation;
