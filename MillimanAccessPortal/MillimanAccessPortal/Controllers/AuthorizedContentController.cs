@@ -409,14 +409,11 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await UserManager.GetUserAsync(User);
 
             #region Authorization
-            var PubRequest = DataContext.ContentPublicationRequest
-                                        .FirstOrDefault(r => r.Id == request);
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(
-                User, null, new RoleInRootContentItemRequirement(
-                    RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            var PubRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == request);
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
-                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, "
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failed for user {User.Identity.Name}, "
                     + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
 
@@ -426,11 +423,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             RootContentItem contentItem = await DataContext.ContentPublicationRequest
-                                                     .Include(r => r.RootContentItem)
-                                                        .ThenInclude(c => c.ContentType)
-                                                     .Where(r => r.Id == request)
-                                                     .Select(r => r.RootContentItem)
-                                                     .SingleOrDefaultAsync();
+                                                           .Include(r => r.RootContentItem)
+                                                              .ThenInclude(c => c.ContentType)
+                                                           .Where(r => r.Id == request)
+                                                           .Select(r => r.RootContentItem)
+                                                           .SingleOrDefaultAsync();
 
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
@@ -445,6 +442,62 @@ namespace MillimanAccessPortal.Controllers
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                     BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
                 };
+
+            return View("PowerBi", embedModel);
+        }
+
+        /// <summary>
+        /// Display the Power BIpreview report for the identified reduction task
+        /// </summary>
+        /// <param name="reductionId">A ContentReductionTask Id, used to display pre-approval content</param>
+        /// <returns></returns>
+        public async Task<IActionResult> ReducedPowerBiPreview(Guid reductionId)
+        {
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
+            var reductionTask = DataContext.ContentReductionTask
+                                           .Include(r => r.ContentPublicationRequest)
+                                               .ThenInclude(p => p.RootContentItem)
+                                                   .ThenInclude(c => c.ContentType)
+                                           .SingleOrDefault(r => r.Id == reductionId);
+
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, reductionTask.ContentPublicationRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {reductionTask.ContentPublicationRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            #region Validation
+            if (reductionTask?.ContentPublicationRequest?.RootContentItem?.ContentType == null ||
+                reductionTask.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.PowerBi)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested reduction task is not properly associated with a Power BI content item");
+                Response.Headers.Add("Warning", $"An error was encountered with this request");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            PowerBiContentItemProperties embedProperties = reductionTask.ContentPublicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+            List<string> roleList = reductionTask.SelectionCriteriaObj.Fields.Single().Values.Select(v => v.Value).ToList();
+
+            PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            PowerBiEmbedModel embedModel = new PowerBiEmbedModel
+            {
+                EmbedUrl = embedProperties.PreviewEmbedUrl,
+                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled, roleList),  
+                ReportId = embedProperties.PreviewReportId.Value,
+                EditableEnabled = embedProperties.EditableEnabled,
+                FilterPaneEnabled = embedProperties.FilterPaneEnabled,
+                NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
+                BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
+            };
 
             return View("PowerBi", embedModel);
         }

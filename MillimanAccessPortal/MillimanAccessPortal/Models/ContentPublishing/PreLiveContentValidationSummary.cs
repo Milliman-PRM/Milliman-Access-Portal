@@ -100,7 +100,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case ContentTypeEnum.PowerBi:
                                 contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
                                 contentUri.Query = $"request={PubRequest.Id}";
-
+                                // TODO Does this work when the document has roles enabled?
                                 ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
                                 break;
 
@@ -340,9 +340,14 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         private static UriBuilder BuildReducibleContentItemPreviewUri(ContentReductionTask task, string masterContentLink, HttpContext context)
         {
-            return task.SelectionGroup.IsMaster ?
-                new UriBuilder(masterContentLink) :
-                task.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum switch
+            if (task.SelectionGroup.IsMaster)
+            {
+                // TODO Is this the right choice here?
+                return new UriBuilder(masterContentLink);
+            }
+            else
+            {
+                UriBuilder x = task.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum switch
                 {
                     ContentTypeEnum.Qlikview => new UriBuilder
                     {
@@ -357,11 +362,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         Scheme = context.Request.Scheme,
                         Host = context.Request.Host.Host,
                         Port = context.Request.Host.Port ?? -1,
-                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
-                        Query = $"request={task.ContentPublicationRequestId}", // TODO roles
-                },
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedPowerBiPreview)}",
+                        Query = $"reductionId={task.Id}",
+                    },
                     _ => null,
                 };
+                return x;
+            }
         }
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
