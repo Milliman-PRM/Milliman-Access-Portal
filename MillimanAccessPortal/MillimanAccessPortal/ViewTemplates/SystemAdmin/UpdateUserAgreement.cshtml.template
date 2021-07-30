@@ -11,6 +11,7 @@
     <% } %>
 }
 @Html.AntiForgeryToken()
+@Html.Hidden("userAgreementText", @Model)
 <div id="content-container">
 </div>
 

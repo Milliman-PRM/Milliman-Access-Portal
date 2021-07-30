@@ -8,6 +8,7 @@ import { postData } from '../../../shared';
 
 interface UpdateUserAgreementState {
     visible: boolean;
+    originalAgreementText: string;
     newAgreement: string;
 
 }
@@ -19,6 +20,7 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
 
       this.state = {
         visible: true,
+        originalAgreementText: '',
         newAgreement: '',
       };
 
@@ -47,7 +49,6 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                             onClick={() => {
                                 this.handleToggle();
                                 this.setToPreview();
-
                             }}
                         >
                         Preview
@@ -55,11 +56,11 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                     </div>
                     <div id="user-agreement-text">
                       <textarea
-                        id="newAgreementText"
-                        name="newAgreementText"
-                        style={{display: !visible ? 'none' : ''}}
-                        onChange={this.handleChangeMessage}
-
+                            id="newAgreementText"
+                            name="newAgreementText"
+                            style={{ display: !visible ? 'none' : '' }}
+                            onChange={this.handleChangeMessage}
+                            value={this.state.newAgreement}
                       />
                       <div
                         id="AgreementPreview"
@@ -67,17 +68,34 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                       />
                     </div>
                     <div className="button-container">
-                        <button id="update-button" type="submit" className="green-button">Update</button>
+                      <button
+                        id="update-button"
+                        type="submit"
+                        className="green-button"
+                        disabled={this.state.originalAgreementText === this.state.newAgreement}
+                      >
+                        Update
+                      </button>
                     </div>
                 </form>
             </div>
         );
 
     }
+    public componentDidMount() {
+        const newAgreementText = (document.getElementById('userAgreementText') as HTMLTextAreaElement).value;
+        this.setState({
+            originalAgreementText: newAgreementText,
+            newAgreement: newAgreementText,
+        });
+        document.getElementById('userAgreementText').innerHTML = newAgreementText;
+    }
+
     private handleToggle = () => {
-        this.setState({ visible: !this.state.visible });
+      this.setState({ visible: !this.state.visible });
 
     }
+
     private setToPreview = () => {
         const rawAgreementMarkdown = (document.getElementById('newAgreementText') as HTMLTextAreaElement).value;
         const processedAgreementHTML = convertMarkdownToHTML(rawAgreementMarkdown);
@@ -89,16 +107,16 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
             newAgreement: event.target.value,
         });
     }
+
     private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
         event.preventDefault();
         event.persist();
-       // const { newAgreement } = this.state.newAgreement;
-        postData('/SystemAdmin/UpdateUserAgreement', { newAgreement: this.state.newAgreement }, true)
+        // const { newAgreement } = this.state.newAgreement;
+        postData('/SystemAdmin/UpdateUserAgreement', { newAgreementText: this.state.newAgreement }, true)
             .then((response) => {
                 if (response.ok) {
                     window.location.replace('/');
                 }
             });
     }
-
 }
