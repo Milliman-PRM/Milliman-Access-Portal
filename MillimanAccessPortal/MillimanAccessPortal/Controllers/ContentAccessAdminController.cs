@@ -676,8 +676,8 @@ namespace MillimanAccessPortal.Controllers
 
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (LiveMasterFile == null
-             || !System.IO.File.Exists(LiveMasterFile.FullPath))
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap() &&
+             (LiveMasterFile == null || !System.IO.File.Exists(LiveMasterFile.FullPath)))
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
