@@ -406,11 +406,11 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
 
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
-         /*   if (_userManager.Users.Any())
+            if (_userManager.Users.Any())
             {
                 return NotFound();
             }
-         */
+         
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -428,11 +428,11 @@ namespace MillimanAccessPortal.Controllers
             IdentityResult roleGrantResult = null;
 
             // If any users exist, return 404. We don't want to even hint that this URL is valid.
-           /* if (_userManager.Users.Any())
+            if (_userManager.Users.Any())
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, unsuccessful, some user(s) already exist");
                 return NotFound();
-            } */
+            } 
 
             ViewData["ReturnUrl"] = "/Account/LogIn";
             if (ModelState.IsValid)
