@@ -194,7 +194,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = await _accessAdminQueries.SelectSelectionsAsync(groupId);
+            SelectionsResponseModel selections = await _accessAdminQueries.SelectSelectionsAsync(groupId);
 
             return Json(selections);
         }
