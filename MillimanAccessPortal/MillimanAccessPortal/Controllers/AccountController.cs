@@ -423,7 +423,7 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model, string returnUrl = null)
+        public async Task<IActionResult> CreateInitialUser(CreateInitialUserViewModel model)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action with {{@CreateInitialUserViewModel}}", model);
 
@@ -437,7 +437,7 @@ namespace MillimanAccessPortal.Controllers
                 return NotFound();
             }
 
-            ViewData["ReturnUrl"] = returnUrl;
+            ViewData["ReturnUrl"] = "/Account/LogIn";
             if (ModelState.IsValid)
             {
                 ApplicationUser newUser = new ApplicationUser { UserName = model.Email, Email = model.Email, LastLoginUtc = DateTime.UtcNow };
@@ -460,7 +460,7 @@ namespace MillimanAccessPortal.Controllers
                         string welcomeText = _configuration["Global:DefaultNewUserWelcomeText"];  // could be null, that's ok
                         await SendNewAccountWelcomeEmail(newUser, Request.Scheme, Request.Host, welcomeText);
 
-                        return RedirectToLocal(returnUrl);
+                        return Ok();
                     }
                 }
             }
@@ -468,7 +468,7 @@ namespace MillimanAccessPortal.Controllers
             // If we got this far, something failed, redisplay form
             AddErrors(createUserResult);
             AddErrors(roleGrantResult);
-            return View(model);
+            return BadRequest(model);
         }
 
         //
