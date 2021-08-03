@@ -245,20 +245,29 @@ namespace MillimanAccessPortal
             DbContextOptions<ApplicationDbContext> ContextOptions = ContextBuilder.Options;
 
             ReductionStatusEnum resultingStatus = ReductionStatusEnum.Error;  // initialize
-            try
+            switch (reductionTask.SelectionGroup.RootContentItem.ContentType.TypeEnum)
             {
-                Task copyTask =Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget, true), cancellationTokenSource.Token);
-                await copyTask;
+                case ContentTypeEnum.Qlikview:
+                    try
+                    {
+                        Task copyTask = Task.Run(() => FileSystemUtil.CopyFileWithRetry(CopySource, CopyTarget, true), cancellationTokenSource.Token);
+                        await copyTask;
 
-                if (copyTask.IsCompletedSuccessfully)
-                {
-                    resultingStatus = ReductionStatusEnum.Queued;
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Failed to complete ContentAccessSupport.LongRunningUpdateSelectionCodeAsync() processing for reduction task {reductionTask.Id}");
-                cancellationTokenSource.Cancel();  // signal to this.MonitorReductionTaskForGoLive()
+                        if (copyTask.IsCompletedSuccessfully)
+                        {
+                            resultingStatus = ReductionStatusEnum.Queued;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Error(ex, $"Failed to complete ContentAccessSupport.LongRunningUpdateSelectionCodeAsync() processing for reduction task {reductionTask.Id}");
+                        cancellationTokenSource.Cancel();  // signal to this.MonitorReductionTaskForGoLive()
+                    }
+                    break;
+
+                case ContentTypeEnum.PowerBi:
+                    resultingStatus = ReductionStatusEnum.Reduced;
+                    break;
             }
 
             // update the status reflecting the outcome
