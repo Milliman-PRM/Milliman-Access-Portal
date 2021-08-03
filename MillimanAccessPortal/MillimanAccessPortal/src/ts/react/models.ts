@@ -152,7 +152,7 @@ export interface ContentItemPublicationDetail {
     NavigationPaneEnabled?: boolean;
   };
   typeSpecificPublicationProperties?: {
-    roleList: [];
+    roleList: string[];
   };
 }
 

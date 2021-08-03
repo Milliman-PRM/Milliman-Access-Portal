@@ -20,16 +20,6 @@ namespace MapDbContextLib.Models
         public ContentReductionHierarchy()
         {}
 
-        public static void Test(string JsonString = "")
-        {
-            if (JsonString == string.Empty)
-            {
-                JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
-            }
-            ContentReductionHierarchy<ReductionFieldValue> ObjFromJson = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(JsonString);
-            string str = ObjFromJson.SerializeJson();
-        }
-
         public List<ReductionField<T>> Fields { get; set; } = new List<ReductionField<T>>();
 
         public Guid RootContentItemId { get; set; }

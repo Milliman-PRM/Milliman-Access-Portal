@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
@@ -99,7 +100,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             case ContentTypeEnum.PowerBi:
                                 contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
                                 contentUri.Query = $"request={PubRequest.Id}";
-
+                                // TODO Does this work when the document has roles enabled?
                                 ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
                                 break;
 
@@ -185,7 +186,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         foreach (var user in userQuery)
                         {
                             var userInfo = (UserInfoViewModel)user;
-                            selectionGroupUsers.Add(userInfo); 
+                            selectionGroupUsers.Add(userInfo);
                         }
 
                         string errorMessage = null;
@@ -215,17 +216,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             ? null
                             : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
 
-                        UriBuilder reducedLinkBuilder = 
-                            task.SelectionGroup.IsMaster
-                            ? new UriBuilder(ReturnObj.MasterContentLink)
-                            : new UriBuilder
-                            {
-                                Scheme = Context.Request.Scheme,
-                                Host = Context.Request.Host.Host,
-                                Port = Context.Request.Host.Port ?? -1,
-                                Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
-                                Query = $"publicationRequestId={PubRequest.Id}&reductionTaskId={task.Id}",
-                            };
+                        UriBuilder reducedLinkBuilder = BuildReducibleContentItemPreviewUri(task, ReturnObj.MasterContentLink, Context);
 
                         ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
                         {
@@ -298,18 +289,18 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
 
                         ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
+                        {
+                            Id = field.Id,
+                            DisplayName = field.DisplayName,
+                            FieldName = field.FieldName,
+                            StructureType = field.StructureType,
+                            ValueDelimiter = field.ValueDelimiter,
+                            Values = addedValues.Select(v => new ReductionFieldValueChange
                             {
-                                Id = field.Id,
-                                DisplayName = field.DisplayName,
-                                FieldName = field.FieldName,
-                                StructureType = field.StructureType,
-                                ValueDelimiter = field.ValueDelimiter,
-                                Values = addedValues.Select(v => new ReductionFieldValueChange
-                                    {
-                                        Id = v.Id,
-                                        Value = v.Value,
-                                        ValueChange = FieldValueChange.Added,
-                                    })
+                                Id = v.Id,
+                                Value = v.Value,
+                                ValueChange = FieldValueChange.Added,
+                            })
                                     .Concat(removedValues.Select(v => new ReductionFieldValueChange
                                     {
                                         Id = v.Id,
@@ -324,7 +315,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     }))
                                     .OrderBy(v => v.Value)
                                     .ToList(),
-                            });
+                        });
                     }
                 }
             }
@@ -345,6 +336,39 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
+        }
+
+        private static UriBuilder BuildReducibleContentItemPreviewUri(ContentReductionTask task, string masterContentLink, HttpContext context)
+        {
+            if (task.SelectionGroup.IsMaster)
+            {
+                // TODO Is this the right choice here?
+                return new UriBuilder(masterContentLink);
+            }
+            else
+            {
+                UriBuilder x = task.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum switch
+                {
+                    ContentTypeEnum.Qlikview => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
+                        Query = $"publicationRequestId={task.ContentPublicationRequestId}&reductionTaskId={task.Id}",
+                    },
+                    ContentTypeEnum.PowerBi => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedPowerBiPreview)}",
+                        Query = $"reductionId={task.Id}",
+                    },
+                    _ => null,
+                };
+                return x;
+            }
         }
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)
