@@ -410,7 +410,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 return NotFound();
             }
-         
+
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -432,7 +432,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName}, unsuccessful, some user(s) already exist");
                 return NotFound();
-            } 
+            }
 
             ViewData["ReturnUrl"] = "/Account/LogIn";
             if (ModelState.IsValid)
