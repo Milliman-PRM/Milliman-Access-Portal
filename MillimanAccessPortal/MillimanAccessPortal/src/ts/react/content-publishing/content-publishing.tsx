@@ -871,7 +871,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <TextAreaInput
                             name="roleList"
                             label="Power BI Role Values"
-                            value={pendingFormData.typeSpecificPublicationProperties.roleList.join(', ')}
+                            value={pendingFormData.typeSpecificPublicationProperties ?
+                              pendingFormData.typeSpecificPublicationProperties.roleList.join(', ') : null}
                             readOnly={true}
                             error={null}
                           /> :
