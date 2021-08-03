@@ -392,7 +392,8 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
 
     if (pendingFormData.typeSpecificPublicationProperties) {
       contentItemInformation.typeSpecificPublicationProperties = {
-        roleList: pendingFormData.typeSpecificPublicationProperties.roleList ?? [],
+        roleList: pendingFormData.typeSpecificPublicationProperties.roleList ?
+          pendingFormData.typeSpecificPublicationProperties.roleList : [],
       };
     }
   }
