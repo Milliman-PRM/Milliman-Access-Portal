@@ -26,7 +26,14 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
         errorMessage: '',
       };
       this.handleSubmit = this.handleSubmit.bind(this);
+    }
 
+    public componentDidMount() {
+        const newAgreementText = (document.getElementById('userAgreementText') as HTMLTextAreaElement).value;
+        this.setState({
+            originalAgreementText: newAgreementText,
+            newAgreement: newAgreementText,
+        });
     }
 
     public render() {
