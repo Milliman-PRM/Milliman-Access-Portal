@@ -281,11 +281,11 @@ namespace PowerBiLib
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
-                if (roleList != null)
-                {
-                    generateTokenRequestParameters.Identities.Add(new EffectiveIdentity("username", roleList));
-                }
+                var generateTokenRequestParameters = 
+                    roleList == null
+                    ? new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View)
+                    : new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View, identity: new EffectiveIdentity(null, roleList));
+
                 EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
                 return tokenResponse.Token;
             }

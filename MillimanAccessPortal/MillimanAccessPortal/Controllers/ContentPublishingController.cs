@@ -961,7 +961,8 @@ namespace MillimanAccessPortal.Controllers
                                                         .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
                                                         .ToListAsync();
 
-            if (ReductionIsInvolved)
+            if (publicationRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.Qlikview && 
+                ReductionIsInvolved)
             {
                 // For each reducing SelectionGroup related to the RootContentItem:
                 var relatedSelectionGroups = _dbContext.SelectionGroup
