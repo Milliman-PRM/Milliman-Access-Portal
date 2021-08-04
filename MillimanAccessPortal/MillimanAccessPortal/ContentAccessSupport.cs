@@ -140,9 +140,9 @@ namespace MillimanAccessPortal
         /// Moves files and updates db, requires navigation property chain SelectionGroup, RootContentItem, and Client. Cooperates in a transaction
         /// </summary>
         /// <param name="Db">A valid instance of database context</param>
-        /// <param name="auditLogger">A valid instance of audit logger</param>
         /// <param name="reductionTask">The reduction task with navigation property chain SelectionGroup and RootContentItem</param>
         /// <param name="contentRootShareFolder">The configured root path for live content files</param>
+        /// <param name="ContentTypeConfig">A content type specific configuration object</param>
         /// <returns>A list of files that should be deleted by the caller</returns>
         internal static async Task<List<string>> ReducedContentGoLive(ApplicationDbContext Db, ContentReductionTask reductionTask, string contentRootShareFolder, object ContentTypeConfig = null)
         {
@@ -150,36 +150,45 @@ namespace MillimanAccessPortal
 
             if (reductionTask == null || 
                 reductionTask.SelectionGroup == null || 
-                reductionTask.SelectionGroup.RootContentItem == null)
+                reductionTask.SelectionGroup.RootContentItem == null ||
+                reductionTask.SelectionGroup.RootContentItem.Client == null)
             {
-                throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called without required navigation properties");
+                throw new ApplicationException("ContentAccessSupport.ReducedContentGoLive called without required reduction task or its navigation properties");
             }
             if (reductionTask.SelectionCriteria == null)
             {
-                throw new ApplicationException("ContentAccessSupport.PositionReducedContentForGoLive called for ContentReductionTask with null SelectionCriteria");
+                throw new ApplicationException("ContentAccessSupport.ReducedContentGoLive called for ContentReductionTask with null SelectionCriteria");
             }
 
-            string targetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(reductionTask.SelectionGroupId.Value, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
-            string targetFilePath = Path.Combine(contentRootShareFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
-            string backupFilePath = targetFilePath + ".bak";
-
-            // rename the live reduced file to *.bak
-            if (File.Exists(targetFilePath))
+            if (reductionTask.SelectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
             {
-                File.Delete(backupFilePath);  // does not throw if !Exists
-                File.Move(targetFilePath, backupFilePath);
-                FilesToDelete.Add(backupFilePath);
-            }
+                string targetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(reductionTask.SelectionGroupId.Value, reductionTask.SelectionGroup.RootContentItemId, Path.GetExtension(reductionTask.ResultFilePath));
+                string targetFilePath = Path.Combine(contentRootShareFolder, reductionTask.SelectionGroup.RootContentItemId.ToString(), targetFileName);
+                string backupFilePath = targetFilePath + ".bak";
 
-            // Copy the new reduced file to live.  Entire source directirectory is removed by the caller of this function
-            File.Copy(reductionTask.ResultFilePath, targetFilePath);
+                // rename the live reduced file to *.bak
+                if (File.Exists(targetFilePath))
+                {
+                    File.Delete(backupFilePath);  // does not throw if !Exists
+                    File.Move(targetFilePath, backupFilePath);
+                    FilesToDelete.Add(backupFilePath);
+                }
+
+                // Copy the new reduced file to live.  Entire source directirectory is removed by the caller of this function
+                File.Copy(reductionTask.ResultFilePath, targetFilePath);
+
+                reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
+            }
+            else
+            {
+                reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(null));
+            }
 
             // update selection group
             List<Guid> ValueIdList = new List<Guid>();
             reductionTask.SelectionCriteriaObj.Fields.ForEach(f => ValueIdList.AddRange(f.Values.Where(v => v.SelectionStatus).Select(v => v.Id)));
             reductionTask.SelectionGroup.SelectedHierarchyFieldValueList = ValueIdList;
             reductionTask.SelectionGroup.IsMaster = false;
-            reductionTask.SelectionGroup.SetContentUrl(Path.GetFileName(targetFileName));
             reductionTask.SelectionGroup.ReducedContentChecksum = reductionTask.ReducedContentChecksum;
 
             // update reduction tasks status (previous: Live -> Replaced, new: Reduced -> Live

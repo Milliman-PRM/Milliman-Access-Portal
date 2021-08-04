@@ -722,10 +722,12 @@ namespace MillimanAccessPortal.Controllers
                     ReductionStatusMessage = $"Selection Group {selectionGroup.Id} has been updated with unrestricted access",
                     SelectionGroupId = selectionGroup.Id,
                     TaskAction = TaskActionEnum.Unspecified,
-                    MasterContentChecksum = selectionGroup.RootContentItem
-                                                          .ContentFilesList
-                                                          .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
-                                                          .Checksum,
+                    MasterContentChecksum = selectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap()
+                        ? selectionGroup.RootContentItem
+                                        .ContentFilesList
+                                        .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
+                                        .Checksum
+                        : null,
                     MasterContentHierarchyObj = liveTask.MasterContentHierarchyObj,
                 });
 
