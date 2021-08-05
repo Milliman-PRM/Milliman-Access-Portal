@@ -447,7 +447,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Display the Power BIpreview report for the identified reduction task
+        /// Display the Power BI preview report for the identified reduction task
         /// </summary>
         /// <param name="reductionId">A ContentReductionTask Id, used to display pre-approval content</param>
         /// <returns></returns>
@@ -528,6 +528,9 @@ namespace MillimanAccessPortal.Controllers
                                                            .ThenInclude(rci => rci.ContentType)
                                                        .Where(sg => sg.Id == group)
                                                        .SingleOrDefault();
+            var reductionTask = DataContext.ContentReductionTask.SingleOrDefault(r => r.SelectionGroupId == group);
+            List<string> roleList = reductionTask?.SelectionCriteriaObj.Fields.Single().Values.Select(v => v.Value).ToList();
+
             if (selectionGroup == null)
             {
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
@@ -542,7 +545,7 @@ namespace MillimanAccessPortal.Controllers
                 PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.LiveEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable),
+                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable, roleList),
                     ReportId = embedProperties.LiveReportId.Value,
                     EditableEnabled = selectionGroup.Editable,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
