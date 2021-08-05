@@ -528,16 +528,34 @@ namespace MillimanAccessPortal.Controllers
                                                            .ThenInclude(rci => rci.ContentType)
                                                        .Where(sg => sg.Id == group)
                                                        .SingleOrDefault();
-            var reductionTask = DataContext.ContentReductionTask.SingleOrDefault(r => r.SelectionGroupId == group);
-            List<string> roleList = reductionTask?.SelectionCriteriaObj.Fields.Single().Values.Select(v => v.Value).ToList();
 
             if (selectionGroup == null)
             {
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            if (selectionGroup.IsInactive)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
 
             PowerBiContentItemProperties embedProperties = selectionGroup.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+            List<string> roleList = null;
+            if (!selectionGroup.IsMaster)
+            {
+                List<HierarchyFieldValue> hierarchyFieldValues = DataContext.HierarchyFieldValue
+                                                .Where(fv => selectionGroup.SelectedHierarchyFieldValueList.Contains(fv.Id))
+                                                .ToList();
+                roleList = hierarchyFieldValues.Select(fv => fv.Value).ToList();
+            }
 
             try
             {
