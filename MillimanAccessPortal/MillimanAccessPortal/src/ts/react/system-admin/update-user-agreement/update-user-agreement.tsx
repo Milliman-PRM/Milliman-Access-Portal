@@ -4,6 +4,7 @@ import '../../../../../src/scss/update-user-agreement.scss';
 
 import { convertMarkdownToHTML } from '../../../../ts/convert-markdown';
 import { postData } from '../../../shared';
+import { TabRow } from '../../shared-components/tab-row';
 
 interface UpdateUserAgreementState {
     viewSelect: 'edit' | 'preview';
@@ -25,7 +26,6 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
         previewHTML: '',
         errorMessage: '',
       };
-      this.handleSubmit = this.handleSubmit.bind(this);
     }
 
     public componentDidMount() {
@@ -40,33 +40,18 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
       const { viewSelect } = this.state;
       return (
         <div id="agreement-container" className="admin-panel-content-container">
-          <form id="user-agreement-form" onSubmit={this.handleSubmit}>
+          <form id="user-agreement-form" onSubmit={(evt) => this.handleSubmit(evt)}>
             <h3 className="section-title">User Agreement Text</h3>
             <div className="markdown-view-button-container">
-              <span
-                className={
-                `markdown-view-toggle markdown-select-edit'${viewSelect === 'edit' ? ' selected' : ''}`}
-                onClick={this.setToEdit}
-              >
-                Edit
-              </span>
-              <span
-               // TODO change span to tab row
-                className={
-                `markdown-view-toggle markdown-select-edit'${viewSelect === 'preview' ? ' selected' : ''}`}
-                onClick={this.setToPreview}
-              >
-                Preview
-              </span>
+              <TabRow
+                tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
+                selectedTab={viewSelect}
+                onTabSelect={(tab: 'edit' | 'preview') => this.tabSelect( tab )}
+                fullWidth={true}
+              />
             </div>
             <div id="user-agreement-text">
               {
-                this.state.errorMessage &&
-                <div className="error-message">
-                {this.state.errorMessage}
-                </div>
-               }
-               {
                 viewSelect === 'edit' ?
                   <textarea
                     id="newAgreementText"
@@ -77,6 +62,12 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                   :
                   <div dangerouslySetInnerHTML={{ __html: this.state.previewHTML }} />
               }
+              {
+                this.state.errorMessage &&
+                <div className="error-message">
+                  {this.state.errorMessage}
+                </div>
+              }
             </div>
             <div className="button-container">
               <button
@@ -84,7 +75,6 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                 type="submit"
                 className="green-button"
                 disabled={this.state.originalAgreementText === this.state.newAgreement}
-
               >
                 Update
               </button>
@@ -94,17 +84,11 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
         );
     }
 
-    private setToEdit = () => {
+    private tabSelect = (selectedTab: 'edit' | 'preview') => {
+        const agreementHTML = (selectedTab === 'preview') ? convertMarkdownToHTML(this.state.newAgreement) : null;
         this.setState({
-            viewSelect: 'edit',
-        });
-    }
-
-    private setToPreview = () => {
-        const processedAgreementHTML = convertMarkdownToHTML(this.state.newAgreement);
-        this.setState({
-            previewHTML: processedAgreementHTML,
-            viewSelect: 'preview',
+            viewSelect: selectedTab,
+            previewHTML: agreementHTML,
         });
     }
 
@@ -114,7 +98,7 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
         });
     }
 
-    private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
+    private handleSubmit(event: React.FormEvent<HTMLFormElement>) {
         event.preventDefault();
         postData('/SystemAdmin/UpdateUserAgreement', { newAgreementText: this.state.newAgreement }, true)
             .then((response) => {
