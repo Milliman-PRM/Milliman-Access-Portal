@@ -1,6 +1,6 @@
 ﻿import * as React from 'react';
 
-import '../../../../../src/scss/update-user-agreement.scss';
+import '../../../../../src/scss/react/update-user-agreement/update-user-agreement.scss';
 
 import { convertMarkdownToHTML } from '../../../../ts/convert-markdown';
 import { postData } from '../../../shared';
