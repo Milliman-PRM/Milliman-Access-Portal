@@ -1,11 +1,11 @@
-﻿@import "map";
-@import "map_modules/variables";
+﻿@import "../../map_modules/variables";
 
 #agreement-container {
     flex: 1 0 auto;
     padding: 1em 5em 4em;
     height: auto;
     max-height: 90%;
+    width: 100%;
 
     #user-agreement-form {
         display: flex;
@@ -18,12 +18,17 @@
             flex: none;
         }
 
+        #newAgreementText {
+            height: 100%;
+            width: 100%;
+            margin-bottom: 1em;
+        }
+
         #user-agreement-text {
             flex: 1 0;
             padding: 1em;
-            overflow: hidden;
+            overflow: auto;
 
-            textarea,
             #AgreementPreview {
                 height: 100%;
                 width: 100%;
