@@ -50,25 +50,25 @@ export class UpdateUserAgreement extends React.Component<{}, UpdateUserAgreement
                 fullWidth={true}
               />
             </div>
-            <div id="user-agreement-text">
-              {
-                viewSelect === 'edit' ?
-                  <textarea
-                    id="newAgreementText"
-                    name="newAgreementText"
-                    onChange={(evt) => this.handleChangeMessage(evt)}
-                    value={this.state.newAgreement}
-                  />
-                  :
+            {
+              viewSelect === 'edit' ?
+                <textarea
+                  id="newAgreementText"
+                  name="newAgreementText"
+                  onChange={(evt) => this.handleChangeMessage(evt)}
+                  value={this.state.newAgreement}
+                />
+                :
+                <div id="user-agreement-text">
                   <div dangerouslySetInnerHTML={{ __html: this.state.previewHTML }} />
-              }
-              {
-                this.state.errorMessage &&
-                <div className="error-message">
-                  {this.state.errorMessage}
                 </div>
-              }
-            </div>
+            }
+            {
+              this.state.errorMessage &&
+              <div className="error-message">
+                {this.state.errorMessage}
+              </div>
+            }
             <div className="button-container">
               <button
                 id="update-button"
