@@ -29,7 +29,6 @@
     "resumablejs": "^1.1.0",
     "toastr": "2.1.4",
     "tooltipster": "4.2.6",
-    "typeahead.js": "v0.11.1",
     "yup": "^0.26.10"
   },
   "devDependencies": {
@@ -52,7 +51,6 @@
     "@types/resumablejs": "1.0.6",
     "@types/toastr": "^2.1.35",
     "@types/tooltipster": "^0.0.29",
-    "@types/typeahead": "^0.11.32",
     "@types/webpack-env": "^1.13.5",
     "@types/yup": "^0.26.7",
     "aspnet-webpack": "^3.0.0",
