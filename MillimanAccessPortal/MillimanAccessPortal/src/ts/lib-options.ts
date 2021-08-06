@@ -1,8 +1,6 @@
 import $ = require('jquery');
 require('jquery-validation');
 import toastr = require('toastr');
-const vex = require('vex-js');
-vex.registerPlugin(require('vex-dialog'));
 const initialAppSettings = require('../../appsettings.json');
 
 interface GlobalSettings {
@@ -25,22 +23,6 @@ $(() => {
 $.validator.methods.email = function(value: string, element: any) {
   return this.optional(element)
     || new RegExp(globalSettings.emailValidationRegex).test(value);
-};
-// Configure default vex options
-vex.defaultOptions = $.extend(
-  {}, vex.defaultOptions,
-  {
-    className: 'vex-theme-default screen-center',
-    closeAllOnPopState: false,
-  },
-);
-
-vex.dialog.buttons.yes = (text: string, color: string) => {
-  return $.extend({}, vex.dialog.buttons.YES, { text, className: color + '-button' });
-};
-
-vex.dialog.buttons.no = (text: string) => {
-  return $.extend({}, vex.dialog.buttons.NO, { text, className: 'link-button' });
 };
 
 // Configure toastr options

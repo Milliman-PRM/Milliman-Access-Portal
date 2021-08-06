@@ -31,7 +31,6 @@
     "toastr": "2.1.4",
     "tooltipster": "4.2.6",
     "typeahead.js": "v0.11.1",
-    "vex-js": "v4.1.0",
     "yup": "^0.26.10"
   },
   "devDependencies": {
