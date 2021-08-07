@@ -1,15 +1,13 @@
 ﻿@model EnableAccountViewModel;
 
-@{
-    /*
-     * CODE OWNERS: Joseph Sweeney
-     * OBJECTIVE: Allow the user to enable their account
-     * DEVELOPER NOTES:
-     */
+@Html.AntiForgeryToken()
 
+<div id="content-container">
+</div>
+
+@{
     ViewData["Title"] = "Account Activation";
     Layout = "_Layout_w_H_F";
-    ViewData["NavIcon"] = "EnableAccount";
 }
 
 @section CSS {
@@ -24,6 +22,8 @@
     <% } %>
 }
 
+@{
+/*
 <div id="enable-account-container">
     <div id="enable-account" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
         <div class="form-content-container">
@@ -128,3 +128,5 @@
         </div>
     </div>
 </div>
+*/
+}

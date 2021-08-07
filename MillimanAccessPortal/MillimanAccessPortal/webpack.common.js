@@ -15,7 +15,7 @@ module.exports = {
     'content-wrapper': './src/ts/react/authorized-content/content-wrapper.tsx',
     'content-publishing': './src/ts/react/content-publishing/index.tsx',
     'create-initial-user': './src/ts/react/create-initial-user/index.tsx',
-    'enable-account': './src/ts/enable-account.ts',
+    'enable-account': './src/ts/react/enable-account/index.tsx',
     'file-drop': './src/ts/react/file-drop/index.tsx',
     'forgot-password': './src/ts/react/forgot-password/index.tsx',
     'login': './src/ts/react/login/index.tsx',
