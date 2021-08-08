@@ -14,6 +14,7 @@ const validatePassword = async (requestModel: { proposedPassword: string }) =>
 
 interface EnableAccountState extends BaseFormState {
   pageData: {
+    requestVerificationToken: string;
     id: Guid;
     code: string;
     isLocalAccount: boolean;
@@ -77,6 +78,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
 
     this.state = {
       pageData: {
+        requestVerificationToken: null,
         id: null,
         code: null,
         isLocalAccount: true,
@@ -146,83 +148,95 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
   public renderUserInformationSection() {
     const { data, errors } = this.state;
     return (
-      <>
-        <div className="form-section" data-section="username">
+      <div className="form-section-container">
+        <div className="form-section">
           <h3 className="form-section-title">User Information</h3>
-          <Input
-            name="userName"
-            label="Username"
-            type="text"
-            value={data.username}
-            error={null}
-            readOnly={true}
-          />
+          <div className="form-input-container">
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="userName"
+                label="Username"
+                type="text"
+                value={data.username}
+                error={null}
+                readOnly={true}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="firstName"
+                label="First Name"
+                type="text"
+                autoFocus={true}
+                value={data.firstName}
+                error={errors.firstName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, firstName: target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="lastName"
+                label="Last Name"
+                type="text"
+                value={data.lastName}
+                error={errors.lastName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, lastName: target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="phone"
+                label="Phone Number"
+                type="phone"
+                value={data.phone}
+                error={errors.phone}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, phone: target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="employer"
+                label="Employer"
+                type="text"
+                value={data.employer}
+                error={errors.employer}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, employer: target.value },
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <DropDown
+                name="timezone"
+                label="Timezone"
+                value={data.timeZoneId}
+                values={this.state.pageData.timeZones}
+                error={errors.timeZoneId}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                  const timezoneValue = target.value ? target.value : null;
+                  this.setState({
+                    data: { ...data, timeZoneId: timezoneValue },
+                  });
+                }}
+              />
+            </div>
+          </div>
         </div>
-        <div className="form-section" data-section="account">
-          <Input
-            name="firstName"
-            label="First"
-            type="text"
-            autoFocus={true}
-            value={data.firstName}
-            error={errors.firstName}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              this.setState({
-                data: { ...data, firstName: target.value },
-              });
-            }}
-          />
-          <Input
-            name="lastName"
-            label="Last"
-            type="text"
-            value={data.lastName}
-            error={errors.lastName}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              this.setState({
-                data: { ...data, lastName: target.value },
-              });
-            }}
-          />
-          <Input
-            name="phone"
-            label="Phone Number"
-            type="phone"
-            value={data.phone}
-            error={errors.phone}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              this.setState({
-                data: { ...data, phone: target.value },
-              });
-            }}
-          />
-          <Input
-            name="employer"
-            label="Employer"
-            type="text"
-            value={data.employer}
-            error={errors.employer}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              this.setState({
-                data: { ...data, employer: target.value },
-              });
-            }}
-          />
-          <DropDown
-            name="timezone"
-            label="Timezone"
-            value={data.timeZoneId}
-            values={this.state.pageData.timeZones}
-            error={errors.timeZoneId}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-              const timezoneValue = target.value ? target.value : null;
-              this.setState({
-                data: { ...data, timeZoneId: timezoneValue },
-              });
-            }}
-          />
-        </div>
-      </>
+      </div>
     );
   }
 
@@ -230,49 +244,68 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     const { newPassword, confirmNewPassword } = this.state.data;
     const { newPassword: newPasswordError, confirmNewPassword: confirmNewPasswordError } = this.state.errors;
     return (
-      <>
+      <div className="form-section-container">
         <div className="form-section">
           <h3 className="form-section-title">Password</h3>
-          <Input
-            name="newPassword"
-            label="New Password"
-            type="password"
-            value={newPassword}
-            error={newPasswordError}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              const { name, value } = target;
-              const { data, errors } = Object.assign({}, this.state);
-              data.newPassword = value;
+          <div className="form-input-container">
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="newPassword"
+                label="New Password"
+                type="password"
+                value={newPassword}
+                error={newPasswordError}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { name, value } = target;
+                  const { data, errors } = Object.assign({}, this.state);
+                  data.newPassword = value;
 
-              this.setState({ data }, async () => {
-                const errorMessage = await this.validateProperty(target);
-                this.validate();
+                  this.setState({ data }, async () => {
+                    const errorMessage = await this.validateProperty(target);
+                    this.validate();
 
-                if (errorMessage && value) {
-                  errors.newPassword = errorMessage.newPassword;
-                } else {
-                  errors.newPassword = null;
-                }
-                this.setState({ errors });
-              });
-            }}
-          />
+                    if (errorMessage && value) {
+                      errors.newPassword = errorMessage.newPassword;
+                    } else {
+                      errors.newPassword = null;
+                    }
+                    this.setState({ errors });
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="confirmNewPassword"
+                label="Confirm New Password"
+                type="password"
+                value={confirmNewPassword}
+                error={confirmNewPasswordError}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...this.state.data, confirmNewPassword: target.value },
+                  });
+                }}
+              />
+            </div>
+          </div>
         </div>
-        <div className="form-section">
-          <Input
-            name="confirmNewPassword"
-            label="Confirm New Password"
-            type="password"
-            value={confirmNewPassword}
-            error={confirmNewPasswordError}
-            onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-              this.setState({
-                data: { ...this.state.data, confirmNewPassword: target.value },
-              });
-            }}
-          />
-        </div>
-      </>
+      </div>
+    );
+  }
+
+  public renderButtonSection() {
+    const { formIsValid } = this.state;
+    return (
+      <div className="button-container">
+        <button
+          type="submit"
+          disabled={!formIsValid}
+          className="blue-button"
+        >
+          Activate Account
+        </button>
+      </div>
     );
   }
 
@@ -283,6 +316,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
         <form autoComplete="off" className="admin-panel-content">
           {this.renderUserInformationSection()}
           {isLocalAccount && this.renderNewPasswordSection()}
+          {this.renderButtonSection()}
         </form>
       </div>
     );
