@@ -90,7 +90,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
         lastName: null,
         phone: null,
         employer: null,
-        timeZoneId: null,
+        timeZoneId: 'UTC',
         newPassword: null,
         confirmNewPassword: null,
       },
@@ -123,6 +123,17 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     const username = document
       .querySelector('input[name="__Username"]')
       .getAttribute('value');
+    const timeZonesRaw: Array<{ DisplayName: string; Id: string; }> = JSON.parse(
+      document
+        .querySelector('input[name="__TimeZones"]')
+        .getAttribute('value'));
+    const timeZones: Array<{ selectionValue: string | number; selectionLabel: string }> =
+      timeZonesRaw.map((x) => {
+        return {
+          selectionValue: x.Id,
+          selectionLabel: x.DisplayName,
+        };
+      });
     validatePassword({ proposedPassword: '' })
       .catch(() => {
         location.reload(true);
@@ -130,10 +141,11 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     this.setState({
       pageData: {
         ...this.state.pageData,
+        requestVerificationToken,
         id,
         code,
         isLocalAccount: isLocalAccountString === 'True' ? true : false,
-        requestVerificationToken,
+        timeZones,
       },
       data: {
         ...this.state.data,

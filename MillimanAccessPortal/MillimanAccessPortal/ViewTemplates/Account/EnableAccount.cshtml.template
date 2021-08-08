@@ -1,10 +1,12 @@
-﻿@model EnableAccountViewModel;
+﻿@using Newtonsoft.Json
+@model EnableAccountViewModel;
 
 @Html.AntiForgeryToken()
 <input name="__Id" type="hidden" value="@Model.Id" />
 <input name="__Code" type="hidden" value="@Model.Code" />
 <input name="__IsLocalAccount" type="hidden" value="@Model.IsLocalAccount.ToString()" />
 <input name="__Username" type="hidden" value="@Model.Username" />
+<input name="__TimeZones" type="hidden" value="@JsonConvert.SerializeObject(Model.TimeZoneSelections)" />
 
 <div id="content-container">
 </div>
