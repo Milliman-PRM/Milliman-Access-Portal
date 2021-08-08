@@ -1,6 +1,10 @@
 ﻿@model EnableAccountViewModel;
 
 @Html.AntiForgeryToken()
+<input name="__Id" type="hidden" value="@Model.Id" />
+<input name="__Code" type="hidden" value="@Model.Code" />
+<input name="__IsLocalAccount" type="hidden" value="@Model.IsLocalAccount.ToString()" />
+<input name="__Username" type="hidden" value="@Model.Username" />
 
 <div id="content-container">
 </div>

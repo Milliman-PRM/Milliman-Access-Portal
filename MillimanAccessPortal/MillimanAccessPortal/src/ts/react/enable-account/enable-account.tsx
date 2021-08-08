@@ -105,6 +105,44 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     };
   }
 
+  public componentDidMount() {
+    const requestVerificationToken = document
+      .querySelector('input[name="__RequestVerificationToken"]')
+      .getAttribute('value');
+    const id = document
+      .querySelector('input[name="__Id"]')
+      .getAttribute('value');
+    const code = document
+      .querySelector('input[name="__Code"]')
+      .getAttribute('value');
+    const isLocalAccountString = document
+      .querySelector('input[name="__IsLocalAccount"]')
+      .getAttribute('value');
+    const username = document
+      .querySelector('input[name="__Username"]')
+      .getAttribute('value');
+    validatePassword({ proposedPassword: '' })
+      .catch(() => {
+        location.reload(true);
+      });
+    this.setState({
+      pageData: {
+        ...this.state.pageData,
+        id,
+        code,
+        isLocalAccount: isLocalAccountString === 'True' ? true : false,
+        requestVerificationToken,
+      },
+      data: {
+        ...this.state.data,
+        username,
+      },
+      errors: {
+        ...this.state.errors,
+      },
+    });
+  }
+
   public renderUserInformationSection() {
     const { data, errors } = this.state;
     return (
