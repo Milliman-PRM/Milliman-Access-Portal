@@ -106,7 +106,7 @@ namespace SftpServerLib
                                           "aes128-gcm@openssh.com," +
                                           "chacha20-poly1305@openssh.com",
             };
-            Log.Debug($"SFTP Server instance constructed, encryption {_sftpServer.SSHEncryptionAlgorithms}");
+            Log.Debug("SFTP Server instance constructed");
 
             #region assign event handlers
             //[Description("Information about errors during data delivery.")]
