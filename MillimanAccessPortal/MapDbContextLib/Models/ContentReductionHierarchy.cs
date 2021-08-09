@@ -167,6 +167,7 @@ namespace MapDbContextLib.Models
                     switch (ContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
+                        case ContentTypeEnum.PowerBi:
                             ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
                                 Id = Field.Id,
@@ -185,7 +186,6 @@ namespace MapDbContextLib.Models
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
-                        case ContentTypeEnum.PowerBi:
                         default:
                             // Should never get here because no hierarchy fields should exist for non-reducible types
                             break;
