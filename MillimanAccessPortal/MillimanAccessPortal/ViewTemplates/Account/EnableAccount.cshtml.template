@@ -1,6 +1,11 @@
 ﻿@using Newtonsoft.Json
 @model EnableAccountViewModel;
 
+@{
+    ViewData["Title"] = "Activate Account";
+    Layout = "_Layout_w_H_F";
+}
+
 @Html.AntiForgeryToken()
 <input name="__Id" type="hidden" value="@Model.Id" />
 <input name="__Code" type="hidden" value="@Model.Code" />
@@ -10,11 +15,6 @@
 
 <div id="content-container">
 </div>
-
-@{
-    ViewData["Title"] = "Account Activation";
-    Layout = "_Layout_w_H_F";
-}
 
 @section CSS {
   <% for (var css in htmlWebpackPlugin.files.css) { %>
