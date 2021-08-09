@@ -86,13 +86,13 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
       },
       data: {
         username: null,
-        firstName: null,
-        lastName: null,
-        phone: null,
-        employer: null,
+        firstName: '',
+        lastName: '',
+        phone: '',
+        employer: '',
         timeZoneId: 'UTC',
-        newPassword: null,
-        confirmNewPassword: null,
+        newPassword: '',
+        confirmNewPassword: '',
       },
       errors: {
         firstName: null,
@@ -187,6 +187,18 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                     data: { ...data, firstName: target.value },
                   });
                 }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { name, value } = target;
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.firstName = errorMessage[name];
+                  } else {
+                    currentErrors.firstName = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
               />
             </div>
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
@@ -200,6 +212,18 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   this.setState({
                     data: { ...data, lastName: target.value },
                   });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { name, value } = target;
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.lastName = errorMessage[name];
+                  } else {
+                    currentErrors.lastName = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
                 }}
               />
             </div>
@@ -215,6 +239,18 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                     data: { ...data, phone: target.value },
                   });
                 }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { name, value } = target;
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.phone = errorMessage[name];
+                  } else {
+                    currentErrors.phone = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
               />
             </div>
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
@@ -229,6 +265,18 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                     data: { ...data, employer: target.value },
                   });
                 }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { name, value } = target;
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.employer = errorMessage[name];
+                  } else {
+                    currentErrors.employer = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
               />
             </div>
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
@@ -242,7 +290,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   const timezoneValue = target.value ? target.value : null;
                   this.setState({
                     data: { ...data, timeZoneId: timezoneValue },
-                  });
+                  }, () => this.validate());
                 }}
               />
             </div>
@@ -277,7 +325,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                     this.validate();
 
                     if (errorMessage && value) {
-                      errors.newPassword = errorMessage.newPassword;
+                      errors.newPassword = errorMessage[name];
                     } else {
                       errors.newPassword = null;
                     }
@@ -294,8 +342,21 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                 value={confirmNewPassword}
                 error={confirmNewPasswordError}
                 onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  this.setState({
-                    data: { ...this.state.data, confirmNewPassword: target.value },
+                  const { name, value } = target;
+                  const { data, errors } = Object.assign({}, this.state);
+                  data.confirmNewPassword = value;
+
+                  this.setState({ data }, async () => {
+                    const errorMessage = await this.validateProperty(target);
+                    this.validate();
+
+                    if (errorMessage && value) {
+                      errors.confirmNewPassword = errorMessage[name];
+                    } else {
+                      errors.confirmNewPassword = null;
+                    }
+                    this.setState({ errors });
+                    this.validate();
                   });
                 }}
               />
