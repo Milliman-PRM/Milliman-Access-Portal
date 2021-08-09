@@ -336,7 +336,13 @@ namespace MillimanAccessPortal.Controllers
                         $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
                         $"Please contact MAP Support if this error continues.",
                     };
-                    string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                    string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}" +
+                                     $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                                     $"Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}" +
+                                     $"Selection group: {selectionGroup.GroupName}{Environment.NewLine}" +
+                                     $"Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}" +
+                                     $"User: {HttpContext.User.Identity.Name}{Environment.NewLine}{Environment.NewLine}" +
+                                     $"Check for more details in the MAP application log file";
                     var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
