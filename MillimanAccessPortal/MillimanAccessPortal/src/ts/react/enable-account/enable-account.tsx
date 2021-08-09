@@ -325,7 +325,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     const { isLocalAccount } = this.state.pageData;
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-6-12">
-        <form autoComplete="off" className="admin-panel-content">
+        <form autoComplete="off" className="enable-account-form">
           {this.renderUserInformationSection()}
           {isLocalAccount && this.renderNewPasswordSection()}
           {this.renderButtonSection()}

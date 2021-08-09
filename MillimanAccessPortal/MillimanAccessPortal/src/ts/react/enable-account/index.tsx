@@ -2,6 +2,7 @@
 
 import '../../../images/map-logo.svg';
 import '../../../scss/map.scss';
+import '../../../scss/react/enable-account/enable-account.scss';
 import '../../../scss/react/shared-components/form-elements.scss';
 
 import * as React from 'react';
