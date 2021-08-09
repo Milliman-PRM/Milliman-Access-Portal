@@ -796,8 +796,8 @@ namespace MillimanAccessPortal.Controllers
 
             List<string> nonRequiredKeysForExternalAuthentication = new List<string> {
                 nameof(EnableAccountViewModel.NewPassword),
-                nameof(EnableAccountViewModel.ConfirmNewPassword),
-                nameof(EnableAccountViewModel.PasswordsAreValid) };
+                nameof(EnableAccountViewModel.ConfirmNewPassword) };
+
 
             if ((model.IsLocalAccount && !ModelState.IsValid) ||
                 (!model.IsLocalAccount && ModelState.Where(v => v.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
