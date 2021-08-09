@@ -8,6 +8,7 @@ import { DropDown } from '../shared-components/form/select';
 
 import { PasswordValidation } from '../../../ts/react/models';
 import { postJsonData } from '../../../ts/shared';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 
 const validatePassword = async (requestModel: { proposedPassword: string }) =>
   await postJsonData<PasswordValidation>('/Account/CheckPasswordValidity2', requestModel);
@@ -40,6 +41,7 @@ interface EnableAccountState extends BaseFormState {
     confirmNewPassword: string;
   };
   errorMessage: string;
+  awaitingResponse: boolean;
 }
 
 export class EnableAccount extends Form<{}, EnableAccountState> {
@@ -110,6 +112,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
       },
       formIsValid: false,
       errorMessage: '',
+      awaitingResponse: false,
     };
   }
 
@@ -170,6 +173,15 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
         <div className="form-section">
           <h3 className="form-section-title">User Information</h3>
           <div className="form-input-container">
+            <input type="text" hidden={true} name="id" value={pageData.id} readOnly={true} />
+            <input type="text" hidden={true} name="code" value={pageData.code} readOnly={true} />
+            <input
+              type="checkbox"
+              hidden={true}
+              name="isLocalAccount"
+              checked={pageData.isLocalAccount}
+              readOnly={true}
+            />
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <Input
                 name="username"
@@ -388,6 +400,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
           className="blue-button"
         >
           Activate Account
+          {this.state.awaitingResponse && <ButtonSpinner version="bars" />}
         </button>
       </div>
     );
@@ -398,12 +411,66 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
     const { errorMessage } = this.state;
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-6-12">
-        <form autoComplete="off" className="enable-account-form">
+        <form autoComplete="off" className="enable-account-form" onSubmit={(evt) => this.handleFormSubmit(evt)}>
           {this.renderUserInformationSection()}
           {isLocalAccount && this.renderNewPasswordSection()}
+          {
+            errorMessage &&
+            <div className="error-message">
+              {this.state.errorMessage}
+            </div>
+          }
           {this.renderButtonSection()}
         </form>
       </div>
     );
+  }
+
+  private handleFormSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const { data, pageData } = this.state;
+    const unknownError = 'An unknown error occurred.  Please try again.';
+    const accountActivationData = {
+      id: pageData.id,
+      code: pageData.code,
+      isLocalAccount: pageData.isLocalAccount,
+      username: pageData.username,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      employer: data.employer,
+      timeZoneId: data.timeZoneId,
+      newPassword: data.newPassword,
+      confirmNewPassword: data.confirmNewPassword,
+    };
+    this.setState({ awaitingResponse: true });
+    fetch('/Account/EnableAccount', {
+      method: 'POST',
+      cache: 'no-cache',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': this.state.pageData.requestVerificationToken,
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(accountActivationData),
+    })
+      .then((response) => {
+        const warningMessage = response.headers.get('Warning');
+        const redirectUrl = response.headers.get('NavigateTo');
+        if (warningMessage) {
+          this.setState({ errorMessage: warningMessage, awaitingResponse: false });
+          return;
+        } else if (response.ok || redirectUrl) {
+          window.location.replace(redirectUrl || '/');
+        } else {
+          this.setState({ errorMessage: unknownError });
+        }
+        this.setState({ awaitingResponse: false });
+      })
+      .catch(() => {
+        this.setState({ errorMessage: unknownError });
+        this.setState({ awaitingResponse: false });
+      });
   }
 }
