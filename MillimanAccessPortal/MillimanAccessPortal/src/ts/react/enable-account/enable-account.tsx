@@ -177,7 +177,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
               <Input
                 name="firstName"
-                label="First Name"
+                label="First Name *"
                 type="text"
                 autoFocus={true}
                 value={data.firstName}
@@ -192,7 +192,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
               <Input
                 name="lastName"
-                label="Last Name"
+                label="Last Name *"
                 type="text"
                 value={data.lastName}
                 error={errors.lastName}
@@ -206,7 +206,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
               <Input
                 name="phone"
-                label="Phone Number"
+                label="Phone Number *"
                 type="phone"
                 value={data.phone}
                 error={errors.phone}
@@ -220,7 +220,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
               <Input
                 name="employer"
-                label="Employer"
+                label="Employer *"
                 type="text"
                 value={data.employer}
                 error={errors.employer}
@@ -234,7 +234,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <DropDown
                 name="timezone"
-                label="Timezone"
+                label="Timezone *"
                 value={data.timeZoneId}
                 values={this.state.pageData.timeZones}
                 error={errors.timeZoneId}
@@ -263,7 +263,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <Input
                 name="newPassword"
-                label="New Password"
+                label="New Password *"
                 type="password"
                 value={newPassword}
                 error={newPasswordError}
@@ -289,7 +289,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <Input
                 name="confirmNewPassword"
-                label="Confirm New Password"
+                label="Confirm New Password *"
                 type="password"
                 value={confirmNewPassword}
                 error={confirmNewPasswordError}
