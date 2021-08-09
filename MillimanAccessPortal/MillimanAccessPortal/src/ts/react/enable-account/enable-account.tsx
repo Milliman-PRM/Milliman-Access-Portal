@@ -18,10 +18,10 @@ interface EnableAccountState extends BaseFormState {
     id: Guid;
     code: string;
     isLocalAccount: boolean;
+    username: string;
     timeZones: Array<{ selectionValue: string | number, selectionLabel: string }>;
   };
   data: {
-    username: string;
     firstName: string;
     lastName: string;
     phone: string;
@@ -39,35 +39,40 @@ interface EnableAccountState extends BaseFormState {
     newPassword: string;
     confirmNewPassword: string;
   };
+  errorMessage: string;
 }
 
 export class EnableAccount extends Form<{}, EnableAccountState> {
 
   protected schema = Yup.object({
-    username: Yup.string().email().required(),
-    firstName: Yup.string().required(),
-    lastName: Yup.string().required(),
-    phone: Yup.string().required(),
-    employer: Yup.string().required(),
-    timeZoneId: Yup.string().required(),
+    firstName: Yup.string().required().label('First name'),
+    lastName: Yup.string().required().label('Last name'),
+    phone: Yup.string().required().label('Phone'),
+    employer: Yup.string().required().label('Employer'),
+    timeZoneId: Yup.string().required().label('Time zone'),
     newPassword: Yup.string()
-      .required('This field is required')
       .label('New Password')
-      .test('new-password-is-valid', () => this.msg, (value) =>
-        validatePassword({ proposedPassword: value })
-          .then((response) => {
-            this.msg = response.messages
-              ? response.messages.join('\r\n')
-              : null;
-            return response.valid;
-          })),
+      .test('new-password-is-valid', () => this.msg, (value) => {
+        if (this.state.pageData.isLocalAccount && !value) {
+          return false;
+        }
+        return this.state.pageData.isLocalAccount ?
+          validatePassword({ proposedPassword: value })
+            .then((response) => {
+              this.msg = response.messages
+                ? response.messages.join('\r\n')
+                : null;
+              return response.valid;
+            }) : true;
+      }),
     confirmNewPassword: Yup.string()
-      .required('This field is required')
       .label('Confirm Password')
       .test(
         'confirm-password-matches-new',
         'Does not match new password',
-        () => this.state.data.confirmNewPassword === this.state.data.newPassword,
+        () => this.state.pageData.isLocalAccount
+          ? this.state.data.confirmNewPassword === this.state.data.newPassword
+          : true,
       ),
   }).notRequired();
 
@@ -78,14 +83,14 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
 
     this.state = {
       pageData: {
-        requestVerificationToken: null,
-        id: null,
-        code: null,
+        requestVerificationToken: '',
+        id: '',
+        code: '',
         isLocalAccount: true,
+        username: '',
         timeZones: [],
       },
       data: {
-        username: null,
         firstName: '',
         lastName: '',
         phone: '',
@@ -104,6 +109,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
         confirmNewPassword: null,
       },
       formIsValid: false,
+      errorMessage: '',
     };
   }
 
@@ -145,11 +151,11 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
         id,
         code,
         isLocalAccount: isLocalAccountString === 'True' ? true : false,
+        username,
         timeZones,
       },
       data: {
         ...this.state.data,
-        username,
       },
       errors: {
         ...this.state.errors,
@@ -158,7 +164,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
   }
 
   public renderUserInformationSection() {
-    const { data, errors } = this.state;
+    const { data, errors, pageData } = this.state;
     return (
       <div className="form-section-container">
         <div className="form-section">
@@ -166,10 +172,10 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
           <div className="form-input-container">
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <Input
-                name="userName"
+                name="username"
                 label="Username"
                 type="text"
-                value={data.username}
+                value={pageData.username}
                 error={null}
                 readOnly={true}
               />
@@ -188,11 +194,10 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   });
                 }}
                 onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
                   const { errors: currentErrors } = Object.assign({}, this.state);
                   const errorMessage = await this.validateProperty(target);
                   if (errorMessage) {
-                    currentErrors.firstName = errorMessage[name];
+                    currentErrors.firstName = errorMessage.firstName;
                   } else {
                     currentErrors.firstName = null;
                   }
@@ -214,11 +219,10 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   });
                 }}
                 onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
                   const { errors: currentErrors } = Object.assign({}, this.state);
                   const errorMessage = await this.validateProperty(target);
                   if (errorMessage) {
-                    currentErrors.lastName = errorMessage[name];
+                    currentErrors.lastName = errorMessage.lastName;
                   } else {
                     currentErrors.lastName = null;
                   }
@@ -240,11 +244,10 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   });
                 }}
                 onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
                   const { errors: currentErrors } = Object.assign({}, this.state);
                   const errorMessage = await this.validateProperty(target);
                   if (errorMessage) {
-                    currentErrors.phone = errorMessage[name];
+                    currentErrors.phone = errorMessage.phone;
                   } else {
                     currentErrors.phone = null;
                   }
@@ -266,11 +269,10 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   });
                 }}
                 onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
                   const { errors: currentErrors } = Object.assign({}, this.state);
                   const errorMessage = await this.validateProperty(target);
                   if (errorMessage) {
-                    currentErrors.employer = errorMessage[name];
+                    currentErrors.employer = errorMessage.employer;
                   } else {
                     currentErrors.employer = null;
                   }
@@ -281,7 +283,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
             </div>
             <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
               <DropDown
-                name="timezone"
+                name="timeZoneId"
                 label="Timezone *"
                 value={data.timeZoneId}
                 values={this.state.pageData.timeZones}
@@ -290,7 +292,18 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                   const timezoneValue = target.value ? target.value : null;
                   this.setState({
                     data: { ...data, timeZoneId: timezoneValue },
-                  }, () => this.validate());
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.timeZoneId = errorMessage.timeZoneId;
+                  } else {
+                    currentErrors.timeZoneId = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
                 }}
               />
             </div>
@@ -316,20 +329,19 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                 value={newPassword}
                 error={newPasswordError}
                 onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
+                  const { value } = target;
                   const { data, errors } = Object.assign({}, this.state);
                   data.newPassword = value;
 
                   this.setState({ data }, async () => {
                     const errorMessage = await this.validateProperty(target);
-                    this.validate();
-
                     if (errorMessage && value) {
-                      errors.newPassword = errorMessage[name];
+                      errors.newPassword = errorMessage.newPassword;
                     } else {
                       errors.newPassword = null;
                     }
                     this.setState({ errors });
+                    this.validate();
                   });
                 }}
               />
@@ -342,16 +354,15 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
                 value={confirmNewPassword}
                 error={confirmNewPasswordError}
                 onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
-                  const { name, value } = target;
+                  const { value } = target;
                   const { data, errors } = Object.assign({}, this.state);
                   data.confirmNewPassword = value;
 
                   this.setState({ data }, async () => {
                     const errorMessage = await this.validateProperty(target);
-                    this.validate();
 
                     if (errorMessage && value) {
-                      errors.confirmNewPassword = errorMessage[name];
+                      errors.confirmNewPassword = errorMessage.confirmNewPassword;
                     } else {
                       errors.confirmNewPassword = null;
                     }
@@ -384,6 +395,7 @@ export class EnableAccount extends Form<{}, EnableAccountState> {
 
   public render() {
     const { isLocalAccount } = this.state.pageData;
+    const { errorMessage } = this.state;
     return (
       <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-6-12">
         <form autoComplete="off" className="enable-account-form">
