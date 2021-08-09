@@ -88,9 +88,25 @@ namespace SftpServerLib
             {
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
-                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,"
+                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,",
+                SSHEncryptionAlgorithms = "aes256-ctr," +
+                                          "aes192-ctr," +
+                                          "aes128-ctr," +
+                                          "aes256-cbc," +
+                                          "aes192-cbc," +
+                                          "aes128-cbc," +
+                                          "3des-ctr," +
+                                          "3des-cbc," +
+                                          "blowfish-cbc," +
+                                          // "arcfour256," +
+                                          // "arcfour128," +
+                                          // "arcfour," +
+                                          "cast128-cbc," +
+                                          "aes256-gcm@openssh.com," +
+                                          "aes128-gcm@openssh.com," +
+                                          "chacha20-poly1305@openssh.com",
             };
-            Log.Verbose("SFTP Server instance constructed");
+            Log.Debug($"SFTP Server instance constructed, encryption {_sftpServer.SSHEncryptionAlgorithms}");
 
             #region assign event handlers
             //[Description("Information about errors during data delivery.")]
