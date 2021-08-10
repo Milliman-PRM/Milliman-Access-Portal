@@ -30,8 +30,6 @@ import '../../../images/icons/upload.svg';
 import '../../../images/icons/user.svg';
 import '../../../images/icons/userguide.svg';
 
-import 'tooltipster';
-import 'tooltipster/src/css/tooltipster.css';
 import '../../../scss/react/shared-components/action-icon.scss';
 
 import * as React from 'react';
@@ -59,7 +57,7 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     const { inline, disabled, label, icon, action } = this.props;
     return action && (
       <div
-        className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''} tooltip`}
+        className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''}`}
         title={label}
         onClick={this.action}
       >

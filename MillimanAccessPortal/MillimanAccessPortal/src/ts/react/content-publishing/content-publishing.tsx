@@ -1157,7 +1157,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 target="_blank"
                 title="Open in new tab"
               >
-                <svg className="action-icon-expand-frame action-icon tooltip">
+                <svg className="action-icon-expand-frame action-icon">
                   <use xlinkHref="#expand-frame" />
                 </svg>
               </a>
@@ -1196,7 +1196,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             target="_blank"
             title="Open in new tab"
           >
-            <svg className="action-icon-expand-frame action-icon tooltip">
+            <svg className="action-icon-expand-frame action-icon">
               <use xlinkHref="#expand-frame" />
             </svg>
           </a>
@@ -1221,7 +1221,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             target="_blank"
             title="Open in new tab"
           >
-            <svg className="action-icon-expand-frame action-icon tooltip">
+            <svg className="action-icon-expand-frame action-icon">
               <use xlinkHref="#expand-frame" />
             </svg>
           </a>

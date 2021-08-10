@@ -7,9 +7,6 @@ import * as ReactDOM from 'react-dom';
 
 import { AuthorizedContent as Root } from './authorized-content';
 
-import 'tooltipster';
-
-import 'tooltipster/src/css/tooltipster.css';
 import '../../../scss/map.scss';
 
 let AuthorizedContent: typeof Root = require('./authorized-content').AuthorizedContent;
