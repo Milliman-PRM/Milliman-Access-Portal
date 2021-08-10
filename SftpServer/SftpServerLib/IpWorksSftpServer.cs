@@ -79,6 +79,7 @@ namespace SftpServerLib
                 Fingerprint = _sftpServer.SSHCert.Fingerprint,
                 About = _sftpServer.About,
                 LocalPort = _sftpServer.LocalPort,
+                SshEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms,
             };
         }
 
@@ -89,23 +90,12 @@ namespace SftpServerLib
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
                 RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,",
-                SSHEncryptionAlgorithms = "aes256-ctr," +
-                                          "aes192-ctr," +
-                                          "aes128-ctr," +
-                                          "aes256-cbc," +
-                                          "aes192-cbc," +
-                                          "aes128-cbc," +
-                                          "3des-ctr," +
-                                          "3des-cbc," +
-                                          "blowfish-cbc," +
-                                          // "arcfour256," +
-                                          // "arcfour128," +
-                                          // "arcfour," +
-                                          "cast128-cbc," +
-                                          "aes256-gcm@openssh.com," +
-                                          "aes128-gcm@openssh.com," +
-                                          "chacha20-poly1305@openssh.com",
             };
+
+            string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
+            IEnumerable<string> algorithmsToRemove = defaultEncryptionAlgorithms.Where(a => a.Contains("arcfour", StringComparison.InvariantCultureIgnoreCase));
+            _sftpServer.SSHEncryptionAlgorithms = string.Join(',', defaultEncryptionAlgorithms.Except(algorithmsToRemove));
+
             Log.Debug("SFTP Server instance constructed");
 
             #region assign event handlers
