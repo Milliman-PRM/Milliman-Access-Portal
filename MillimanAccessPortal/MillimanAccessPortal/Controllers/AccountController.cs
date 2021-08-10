@@ -834,7 +834,7 @@ namespace MillimanAccessPortal.Controllers
                         Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, WelcomeText));
 
                         Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
-                        Response.Headers.Add("warning", "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.");
+                        Response.Headers.Add("Warning", "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.");
                         return BadRequest();
                     }
                     else
