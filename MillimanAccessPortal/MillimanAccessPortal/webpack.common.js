@@ -107,10 +107,6 @@ module.exports = {
         to: '../Views/',
       },
     ]),
-    new webpack.ProvidePlugin({
-      $: 'jquery',
-      jQuery: 'jquery',
-    }),
     new webpack.NamedModulesPlugin(),
     new SpriteLoaderPlugin({
       plainSprite: true
