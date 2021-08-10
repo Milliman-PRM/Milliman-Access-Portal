@@ -1,5 +1,5 @@
 export function setUnloadAlert(fn: () => boolean) {
-  window.onbeforeunload = (e) => {
+  window.onbeforeunload = (e: BeforeUnloadEvent) => {
     // If the assigned callback is false, do not prompt for confirmation.
     if (!fn()) { return; }
     // In modern browsers, a generic message is displayed instead.
