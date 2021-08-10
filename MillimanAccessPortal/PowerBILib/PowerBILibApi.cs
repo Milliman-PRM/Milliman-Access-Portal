@@ -290,8 +290,17 @@ namespace PowerBiLib
                     tokenRequestParameters.Identities = new List<EffectiveIdentity> { new EffectiveIdentity("forty-two", datasets: new List<string> { dataset.Id }, roles: roleList) };
                 }
 
-                EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
-                return tokenResponse.Token;
+                try
+                {
+                    EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
+                    return tokenResponse.Token;
+                }
+                catch (Exception ex)
+                {
+                    string tmp = $"Failed to generate Power BI embed token with request parameters: {JsonConvert.SerializeObject(tokenRequestParameters)}";
+                    Log.Error(ex, tmp);
+                    return null;
+                }
             }
         }
 

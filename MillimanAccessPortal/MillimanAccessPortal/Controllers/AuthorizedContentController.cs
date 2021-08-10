@@ -566,10 +566,16 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+                var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable, roleList);
+                if (embedToken is null)
+                {
+                    throw new ApplicationException($"Failed to generate Power BI embed token for content item {selectionGroup.RootContentItemId} ({selectionGroup.RootContentItem.ContentName}), selection group {selectionGroup.Id} ({selectionGroup.GroupName})");
+                }
+
                 PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.LiveEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable, roleList),
+                    EmbedToken = embedToken,
                     ReportId = embedProperties.LiveReportId.Value,
                     EditableEnabled = selectionGroup.Editable,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
