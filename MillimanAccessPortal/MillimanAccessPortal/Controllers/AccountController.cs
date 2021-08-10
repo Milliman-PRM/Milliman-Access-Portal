@@ -790,32 +790,36 @@ namespace MillimanAccessPortal.Controllers
         [HttpPost]
         [AllowAnonymous]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> EnableAccount(EnableAccountViewModel model)
+        public async Task<IActionResult> EnableAccount([FromBody] EnableAccountViewModel model)
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} POST action with {{@UserName}}", model.Username);
 
             List<string> nonRequiredKeysForExternalAuthentication = new List<string> {
                 nameof(EnableAccountViewModel.NewPassword),
-                nameof(EnableAccountViewModel.ConfirmNewPassword),
-                nameof(EnableAccountViewModel.PasswordsAreValid) };
+                nameof(EnableAccountViewModel.ConfirmNewPassword) };
+
+            string genericWarningHeaderMessage = "An unknown error ocurred.";
 
             if ((model.IsLocalAccount && !ModelState.IsValid) ||
                 (!model.IsLocalAccount && ModelState.Where(v => v.Value.ValidationState == Microsoft.AspNetCore.Mvc.ModelBinding.ModelValidationState.Invalid)
                                                     .Any(v => !nonRequiredKeysForExternalAuthentication.Contains(v.Key))))
             {
-                return View(model);
+                Response.Headers.Add("warning", genericWarningHeaderMessage);
+                return BadRequest();
             }
             var user = await _userManager.FindByIdAsync(model.Id.ToString());
             if (user == null)
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {model.Id} not found, aborting");
-                return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+                Response.Headers.Add("warning", genericWarningHeaderMessage);
+                return BadRequest();
             }
 
             if (user.EmailConfirmed)  // Account is already activated
             {
                 Log.Information($"{ControllerContext.ActionDescriptor.DisplayName} POST action: user {model.Id} account is already activated, aborting");
-                return RedirectToAction(nameof(Login));
+                Response.Headers.Add("warning", "This account has already been activated.");
+                return BadRequest();
             }
 
             using (var Txn = await DbContext.Database.BeginTransactionAsync())
@@ -830,17 +834,15 @@ namespace MillimanAccessPortal.Controllers
                         Task DontWaitForMe = Task.Run(() => SendNewAccountWelcomeEmail(user, Request.Scheme, Request.Host, WelcomeText));
 
                         Log.Information($"EnableAccount failed for user {model.Username} with code 'InvalidToken', it is likely that the token is expired, new welcome email sent");
-                        string WhatHappenedMessage = "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.";
-                        return View("UserMessage", new UserMessageModel(WhatHappenedMessage));
+                        Response.Headers.Add("warning", "Your previous Milliman Access Portal account activation link is invalid and may have expired.  A new link has been emailed to you.");
+                        return BadRequest();
                     }
                     else
                     {
                         string confirmEmailErrors = $"Error while confirming account: {string.Join($", ", confirmEmailResult.Errors.Select(e => e.Description))}";
-                        Response.Headers.Add("Warning", confirmEmailErrors);
-
                         Log.Error($"EnableAccount failed from _userManager.ConfirmEmailAsync(user, model.Code), not due to token expiration: user {user.UserName}, errors: {confirmEmailErrors}");
-
-                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+                        Response.Headers.Add("Warning", genericWarningHeaderMessage);
+                        return BadRequest();
                     }
                 }
 
@@ -851,11 +853,9 @@ namespace MillimanAccessPortal.Controllers
                     if (!addPasswordResult.Succeeded)
                     {
                         string addPasswordErrors = $"Error while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}";
-                        Response.Headers.Add("Warning", addPasswordErrors);
-
                         Log.Error($"Error for user {model.Username} while adding initial password: {string.Join($", ", addPasswordResult.Errors.Select(e => e.Description))}");
-
-                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+                        Response.Headers.Add("Warning", addPasswordErrors);
+                        return BadRequest();
                     }
 
                     // Save password hash in history
@@ -865,11 +865,9 @@ namespace MillimanAccessPortal.Controllers
                     if (!addPasswordHistoryResult.Succeeded)
                     {
                         string addPasswordHistoryErrors = $"Error while setting password history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}";
-                        Response.Headers.Add("Warning", addPasswordHistoryErrors);
-
                         Log.Information($"Error for user {model.Username} while saving history: {string.Join($", ", addPasswordHistoryResult.Errors.Select(e => e.Description))}");
-
-                        return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+                        Response.Headers.Add("Warning", genericWarningHeaderMessage);
+                        return BadRequest();
                     }
                 }
 
@@ -883,19 +881,17 @@ namespace MillimanAccessPortal.Controllers
                 if (!updateAccountSettingsResult.Succeeded)
                 {
                     string updateAccountSettingsErrors = $"Error while setting password history: {string.Join($", ", updateAccountSettingsResult.Errors.Select(e => e.Description))}";
-                    Response.Headers.Add("Warning", updateAccountSettingsErrors);
-
                     Log.Information($"Error for user {model.Username} while saving updated user profile {{Profile}}", user);
-
-                    return View("UserMessage", new UserMessageModel(GlobalFunctions.GenerateErrorMessage(_configuration, "Account Activation Error")));
+                    Response.Headers.Add("Warning", genericWarningHeaderMessage);
+                    return BadRequest();
                 }
 
                 await Txn.CommitAsync();
 
                 Log.Verbose($"User {model.Username} account enabled and profile saved");
                 _auditLogger.Log(AuditEventType.UserAccountEnabled.ToEvent(user), user.Id);
-
-                return RedirectToAction(nameof(Login));
+                Response.Headers.Add("NavigateTo", "/");
+                return Ok();
             }
         }
 

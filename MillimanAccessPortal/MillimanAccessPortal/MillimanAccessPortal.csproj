@@ -84,6 +84,8 @@
     <None Remove="src\ts\react\client-admin\redux\store.ts" />
     <None Remove="src\ts\react\create-initial-user\create-initial-user.tsx" />
     <None Remove="src\ts\react\create-initial-user\index.tsx" />
+    <None Remove="src\ts\react\enable-account\enable-account.tsx" />
+    <None Remove="src\ts\react\enable-account\index.tsx" />
     <None Remove="src\ts\react\system-admin\modals\change-system-admin-status-modal.tsx" />
     <None Remove="src\ts\react\system-admin\modals\remove-user-from-profit-center.tsx" />
     <None Remove="src\ts\react\system-admin\modals\view-configs.tsx" />
@@ -180,6 +182,8 @@
   <ItemGroup>
     <TypeScriptCompile Include="src\ts\react\create-initial-user\create-initial-user.tsx" />
     <TypeScriptCompile Include="src\ts\react\create-initial-user\index.tsx" />
+    <TypeScriptCompile Include="src\ts\react\enable-account\enable-account.tsx" />
+    <TypeScriptCompile Include="src\ts\react\enable-account\index.tsx" />
     <TypeScriptCompile Include="src\ts\react\login-step-two\login-step-two.tsx" />
     <TypeScriptCompile Include="src\ts\react\client-admin\client-admin.tsx" />
     <TypeScriptCompile Include="src\ts\react\client-admin\index.tsx" />
