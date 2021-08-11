@@ -471,6 +471,7 @@ namespace MillimanAccessPortal.Controllers
                                            .Include(r => r.ContentPublicationRequest)
                                                .ThenInclude(p => p.RootContentItem)
                                                    .ThenInclude(c => c.ContentType)
+                                           .Include(r => r.SelectionGroup)
                                            .SingleOrDefault(r => r.Id == reductionId);
 
             #region Authorization
