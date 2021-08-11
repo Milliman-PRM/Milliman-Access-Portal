@@ -440,9 +440,14 @@ namespace MillimanAccessPortal.Controllers
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
-                    EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled),
-                    ReportId = embedProperties.PreviewReportId.Value,
+                    EmbedUrl = embedProperties.PreviewEmbedUrl == null ? embedProperties.LiveEmbedUrl : embedProperties.PreviewEmbedUrl,
+                    EmbedToken = await api.GetEmbedTokenAsync(
+                        embedProperties.PreviewWorkspaceId == null ? embedProperties.LiveWorkspaceId.Value : embedProperties.PreviewWorkspaceId.Value,
+                        embedProperties.PreviewReportId == null ? embedProperties.LiveReportId.Value :
+                          embedProperties.PreviewReportId.Value,
+                        embedProperties.EditableEnabled
+                    ),
+                    ReportId = embedProperties.PreviewReportId == null ? embedProperties.LiveReportId.Value : embedProperties.PreviewReportId.Value,
                     EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                     NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
