@@ -491,7 +491,12 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             PowerBiContentItemProperties embedProperties = reductionTask.ContentPublicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-            List<string> roleList = reductionTask.SelectionCriteriaObj.Fields.Single().Values.Select(v => v.Value).ToList();
+            List<string> roleList = reductionTask.SelectionCriteriaObj.Fields
+                                                                      .Single()
+                                                                      .Values
+                                                                      .Where(v => v.SelectionStatus)
+                                                                      .Select(v => v.Value)
+                                                                      .ToList();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel

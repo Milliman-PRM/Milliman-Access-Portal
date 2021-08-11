@@ -54,10 +54,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                            .SingleOrDefaultAsync(r => r.RequestStatus == PublicationStatus.Processed);
 
             #region Validation of PubRequest and related nav properties from db
-            if (PubRequest == null
-             || PubRequest.RootContentItem == null
-             || PubRequest.RootContentItem.ContentType == null
-             || PubRequest.RootContentItem.Client == null
+            if (PubRequest is null
+             || PubRequest.RootContentItem is null
+             || PubRequest.RootContentItem.ContentType is null
+             || PubRequest.RootContentItem.Client is null
              )  // if any of this happens it probably means db corruption or connection failed
             {
                 throw new ApplicationException($"While building content validation summary, publication request query failed");
@@ -83,6 +83,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
+            if (PubRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+            {
+                UriBuilder contentUri = new UriBuilder
+                {
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                    Port = Context.Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
+                    Query = $"request={PubRequest.Id}",
+                };
+                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+            }
+
             foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
             {
                 UriBuilder contentUri = new UriBuilder
@@ -98,10 +111,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
-                                contentUri.Query = $"request={PubRequest.Id}";
-                                // TODO Does this work when the document has roles enabled?
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                // This case is handled outside the switch because a new master file is not required for hierarchy change
                                 break;
 
                             case ContentTypeEnum.Qlikview:
@@ -160,7 +170,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
                                                               .Include(t => t.SelectionGroup)
                                                               .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
+                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new QVW master hierarchy
                                                               .ToListAsync();
 
                 #region Validation of reduction tasks and related nav properties from db
