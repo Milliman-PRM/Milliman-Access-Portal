@@ -326,6 +326,9 @@ namespace MillimanAccessPortal.Services
                         break;
                     case ContentTypeEnum.PowerBi:
                         PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+
+                        PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
                         var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                         if (newMasterFile != null)
                         {
@@ -349,14 +352,19 @@ namespace MillimanAccessPortal.Services
                                 throw;
                             }
 
-                            PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                             contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
                             contentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
                             contentItemProperties.PreviewReportId = embedProperties.ReportId;
-
-                            contentItem.TypeSpecificDetailObject = contentItemProperties;
-                            await dbContext.SaveChangesAsync();
                         }
+                        else
+                        {
+                            contentItemProperties.PreviewWorkspaceId = contentItemProperties.LiveWorkspaceId;
+                            contentItemProperties.PreviewEmbedUrl = contentItemProperties.LiveEmbedUrl;
+                            contentItemProperties.PreviewReportId = contentItemProperties.LiveReportId;
+                        }
+
+                        contentItem.TypeSpecificDetailObject = contentItemProperties;
+                        await dbContext.SaveChangesAsync();
                         break;
 
                     case ContentTypeEnum.Pdf:

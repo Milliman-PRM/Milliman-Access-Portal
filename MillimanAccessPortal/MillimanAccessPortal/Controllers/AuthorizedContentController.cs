@@ -438,10 +438,16 @@ namespace MillimanAccessPortal.Controllers
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, false);
+            if (embedToken is null)
+            {
+                throw new ApplicationException($"Failed to generate Power BI embed token for content item {contentItem.Id} ({contentItem.ContentName})");
+            }
+
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled),
+                    EmbedToken = embedToken,
                     ReportId = embedProperties.PreviewReportId.Value,
                     EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
@@ -499,10 +505,16 @@ namespace MillimanAccessPortal.Controllers
                                                                       .ToList();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, reductionTask.SelectionGroup.Editable, roleList);
+            if (embedToken is null)
+            {
+                throw new ApplicationException($"Failed to generate Power BI embed token for content item {reductionTask.SelectionGroup.RootContentItemId} ({reductionTask.SelectionGroup.RootContentItem.ContentName}), selection group {reductionTask.SelectionGroup.Id} ({reductionTask.SelectionGroup.GroupName}), reduction {reductionTask.Id}");
+            }
+
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.PreviewEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled, roleList),  
+                EmbedToken = embedToken,
                 ReportId = embedProperties.PreviewReportId.Value,
                 EditableEnabled = embedProperties.EditableEnabled,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
