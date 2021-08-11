@@ -628,8 +628,12 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            // There must be new files or files to delete
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
+            List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.ToList().Select(v => v.Value)).ToList();
+            List<string> newRoleList = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList;
+            var isPublicationWithPersistingFile = ContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&
+                !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList); // Only supports reducible Power BI
+
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !isPublicationWithPersistingFile)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -655,7 +659,7 @@ namespace MillimanAccessPortal.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            if (request.NewRelatedFiles.Any())
+            if (request.NewRelatedFiles.Any() || isPublicationWithPersistingFile)
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest

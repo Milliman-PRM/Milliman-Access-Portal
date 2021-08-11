@@ -267,7 +267,8 @@ export function submitButtonIsActive(state: PublishingState) {
  */
 export function uploadChangesPending(state: PublishingState) {
   const { pendingFormData, originalFormData } = state.formData;
-  const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles);
+  const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles) ||
+    !_.isEqual(pendingFormData.typeSpecificPublicationProperties, originalFormData.typeSpecificPublicationProperties);
   return changesPending;
 }
 
@@ -284,9 +285,7 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
     || (pendingFormData.contentNotes !== originalFormData.contentNotes)
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
-    || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject)
-    || !_.isEqual(pendingFormData.typeSpecificPublicationProperties,
-      originalFormData.typeSpecificPublicationProperties);
+    || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
   return changesPending;
 }
 
