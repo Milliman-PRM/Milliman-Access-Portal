@@ -290,8 +290,18 @@ namespace PowerBiLib
                     tokenRequestParameters.Identities = new List<EffectiveIdentity> { new EffectiveIdentity("forty-two", datasets: new List<string> { dataset.Id }, roles: roleList) };
                 }
 
-                EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
-                return tokenResponse.Token;
+                try
+                {
+                    EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
+                    return tokenResponse.Token;
+                }
+                catch (Exception ex)
+                {
+                    string tmp = $"Failed to generate Power BI embed token. This might be due to a selection group role list that is not compatible with the content file.{Environment.NewLine} " +
+                                 $"Request parameters are: {JsonConvert.SerializeObject(tokenRequestParameters)}";
+                    Log.Error(ex, tmp);
+                    return null;
+                }
             }
         }
 
