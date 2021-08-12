@@ -534,22 +534,6 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        ContentReductionHierarchy<ReductionFieldValueSelection> selectionHierarchy = new ContentReductionHierarchy<ReductionFieldValueSelection> 
-                        { 
-                            RootContentItemId = JobDetail.Request.RootContentId, 
-                        };
-                        selectionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueSelection>
-                        {
-                            Id = Guid.Empty,
-                            FieldName = "Roles",
-                            DisplayName = "Roles",
-                            StructureType = FieldStructureType.Flat,
-                            Values = ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList
-                                .Select(r => new ReductionFieldValueSelection { Value = r, SelectionStatus = group.IsMaster ? true : liveRolesOfGroup.Contains(r) })
-                                .ToList(),
-                        });
-                        newTaskRecord.SelectionCriteriaObj = selectionHierarchy;
-
                         ContentReductionHierarchy<ReductionFieldValue> contentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
                         {
                             RootContentItemId = JobDetail.Request.RootContentId,
@@ -564,9 +548,14 @@ namespace ContentPublishingLib.JobRunners
                                 .Select(r => new ReductionFieldValue { Value = r })
                                 .ToList(),
                         });
-                        newTaskRecord.MasterContentHierarchyObj = contentHierarchy;
-                        newTaskRecord.ReducedContentHierarchyObj = contentHierarchy;
 
+                        newTaskRecord.MasterContentHierarchyObj = contentHierarchy;
+                        newTaskRecord.ReducedContentHierarchyObj = group.IsMaster
+                            ? null
+                            : contentHierarchy;
+                        newTaskRecord.SelectionCriteriaObj = group.IsMaster
+                            ? null
+                            : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(db, group.Id);
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                         newTaskRecord.ReductionStatusMessage = "";
                     }

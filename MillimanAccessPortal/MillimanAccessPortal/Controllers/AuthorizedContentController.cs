@@ -438,7 +438,7 @@ namespace MillimanAccessPortal.Controllers
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-            var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, embedProperties.EditableEnabled);
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled);
             if (embedToken is null)
             {
                 throw new ApplicationException($"Failed to generate Power BI embed token for content item {contentItem.Id} ({contentItem.ContentName})");
@@ -506,7 +506,7 @@ namespace MillimanAccessPortal.Controllers
                                                                       .ToList();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-            var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, reductionTask.SelectionGroup.Editable, roleList);
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, reductionTask.SelectionGroup.Editable, roleList);
             if (embedToken is null)
             {
                 throw new ApplicationException($"Failed to generate Power BI embed token for content item {reductionTask.SelectionGroup.RootContentItemId} ({reductionTask.SelectionGroup.RootContentItem.ContentName}), selection group {reductionTask.SelectionGroup.Id} ({reductionTask.SelectionGroup.GroupName}), reduction {reductionTask.Id}");
