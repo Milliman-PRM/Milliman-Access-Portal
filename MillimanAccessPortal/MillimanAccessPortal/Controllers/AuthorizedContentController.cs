@@ -517,7 +517,7 @@ namespace MillimanAccessPortal.Controllers
                 EmbedUrl = embedProperties.PreviewEmbedUrl,
                 EmbedToken = embedToken,
                 ReportId = embedProperties.PreviewReportId.Value,
-                EditableEnabled = embedProperties.EditableEnabled,
+                EditableEnabled = reductionTask.SelectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
