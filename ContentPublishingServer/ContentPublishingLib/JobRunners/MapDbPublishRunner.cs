@@ -523,12 +523,28 @@ namespace ContentPublishingLib.JobRunners
                         MasterFilePath = string.Empty,
                     };
 
+                    newTaskRecord.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                    {
+                        ProcessingStartedUtc = now,
+                        ReductionTaskId = newTaskRecord.Id,
+                        SelectionGroupName = group.GroupName,
+                    };
+
                     try
                     {
+                        List<HierarchyFieldValue> existingSelectedValues = db.HierarchyFieldValue
+                                                                             .Where(v => group.SelectedHierarchyFieldValueList != null && group.SelectedHierarchyFieldValueList.Contains(v.Id))
+                                                                             .ToList();
+
                         ContentReductionHierarchy<ReductionFieldValue> newContentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
                         {
                             RootContentItemId = JobDetail.Request.RootContentId,
                         };
+                        HierarchyField existingHierarchyField = db.HierarchyField
+                                                                  .Include(f => f.HierarchyFieldValues)
+                                                                  .Single(f => f.FieldName == "Roles" &&
+                                                                               f.RootContentItemId == JobDetail.Request.RootContentId);
+
                         newContentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
                         {
                             Id = Guid.Empty,
@@ -547,17 +563,36 @@ namespace ContentPublishingLib.JobRunners
                         if (group.IsMaster)
                         {
                             newTaskRecord.SelectionCriteriaObj = null;
+
+                            newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
+                            newTaskRecord.ReductionStatusMessage = "";
+                            newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned;
+                            newTaskRecord.OutcomeMetadataObj.UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString();
+                        }
+                        else if (!existingSelectedValues.Select(v => v.Value).Any(r => ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList.Contains(r)))
+                        {
+                            // There are no values selected
+                            newTaskRecord.ReductionStatus = ReductionStatusEnum.Warning;
+                            newTaskRecord.ReductionStatusMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent.GetDisplayDescriptionString();
+                            newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                            newTaskRecord.OutcomeMetadataObj.UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent.GetDisplayDescriptionString();
+                            newTaskRecord.OutcomeMetadataObj.SupportMessage = "No roles of the new publication are selected for this selection group";
+                            newTaskRecord.SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>
+                            {
+                                RootContentItemId = JobDetail.Request.RootContentId,
+                                Fields = new List<ReductionField<ReductionFieldValueSelection>> { new ReductionField<ReductionFieldValueSelection>
+                                    // always one field for Power BI
+                                    {
+                                        Id = existingHierarchyField.Id,
+                                        FieldName = existingHierarchyField.FieldName,
+                                        DisplayName = existingHierarchyField.FieldDisplayName,
+                                        StructureType = existingHierarchyField.StructureType,
+                                        ValueDelimiter = existingHierarchyField.FieldDelimiter,
+                                    }},
+                            };
                         }
                         else
                         {
-                            List<HierarchyFieldValue> existingSelectedValues = db.HierarchyFieldValue
-                                                                                 .Where(v => group.SelectedHierarchyFieldValueList.Contains(v.Id))
-                                                                                 .ToList();
-
-                            HierarchyField existingHierarchyField = db.HierarchyField
-                                                                      .Include(f => f.HierarchyFieldValues)
-                                                                      .Single(f => f.FieldName == "Roles" &&
-                                                                                   f.RootContentItemId == JobDetail.Request.RootContentId);
                             var newSelectionList = new ContentReductionHierarchy<ReductionFieldValueSelection>
                             {
                                 RootContentItemId = JobDetail.Request.RootContentId,
@@ -583,37 +618,28 @@ namespace ContentPublishingLib.JobRunners
                             }
 
                             newTaskRecord.SelectionCriteriaObj = newSelectionList;
-                        }
 
-                        newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
-                        newTaskRecord.ReductionStatusMessage = "";
+                            newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
+                            newTaskRecord.ReductionStatusMessage = "";
+
+                            newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Success;
+                            newTaskRecord.OutcomeMetadataObj.UserMessage = newTaskRecord.ReductionStatusMessage;
+                        }
                     }
                     catch (Exception ex)
                     {
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Error;
                         newTaskRecord.ReductionStatusMessage = $"Error while storing reduced hierarchy information for Power BI content";
+
+                        newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                        newTaskRecord.OutcomeMetadataObj.UserMessage = newTaskRecord.ReductionStatusMessage;
+                        newTaskRecord.OutcomeMetadataObj.SupportMessage = GlobalFunctions.LoggableExceptionString(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})", IncludeStackTrace: true);
+
                         Log.Error(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})");
-                    }
-                    finally
-                    {
-                        newTaskRecord.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
-                        {
-                            OutcomeReason = newTaskRecord.ReductionStatus switch
-                            {
-                                ReductionStatusEnum.Reduced => MapDbReductionTaskOutcomeReason.Success,
-                                _ => MapDbReductionTaskOutcomeReason.UnspecifiedError,
-                            },
-                            ProcessingStartedUtc = newTaskRecord.ProcessingStartDateTimeUtc,
-                            ElapsedTime = TimeSpan.Zero,
-                            ReductionTaskId = Guid.Empty,
-                            SelectionGroupName = group.GroupName,
-                            UserMessage = newTaskRecord.ReductionStatusMessage,
-                            SupportMessage = "Automated role list processing performed by ContentPublishingServer",
-                        };
                     }
 
                     db.ContentReductionTask.Add(newTaskRecord);
-                }
+                } // foreach group
 
                 await db.SaveChangesAsync();
             }
