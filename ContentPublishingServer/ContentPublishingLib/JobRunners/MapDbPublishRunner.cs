@@ -339,11 +339,7 @@ namespace ContentPublishingLib.JobRunners
                         GroupName = "Master Content Access",
                         IsMaster = true,
                         Id = Guid.NewGuid(),
-                        TypeSpecificDetail = JobDetail.Request.ContentType switch
-                        {
-                            ContentTypeEnum.PowerBi => JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
-                            _ => JsonConvert.SerializeObject(new object()),
-                        },
+                        TypeSpecificDetail = JsonConvert.SerializeObject(new object()),
                     };
                     Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     await Db.SaveChangesAsync();
@@ -498,7 +494,6 @@ namespace ContentPublishingLib.JobRunners
                         IsMaster = true,
                         Id = Guid.NewGuid(),
                         TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
-                        SelectedHierarchyFieldValueList = new List<Guid>(),
                     };
                     Db.SelectionGroup.Add(NewMasterSelectionGroup);
                     await Db.SaveChangesAsync();
@@ -514,10 +509,6 @@ namespace ContentPublishingLib.JobRunners
                 foreach (SelectionGroup group in selectionGroups)
                 {
                     DateTime now = DateTime.UtcNow;
-                    List<string> liveRolesOfGroup = db.HierarchyFieldValue
-                                                      .Where(v => group.SelectedHierarchyFieldValueList.Contains(v.Id))
-                                                      .Select(v => v.Value)
-                                                      .ToList();
 
                     var newTaskRecord = new ContentReductionTask
                     {
@@ -534,11 +525,11 @@ namespace ContentPublishingLib.JobRunners
 
                     try
                     {
-                        ContentReductionHierarchy<ReductionFieldValue> contentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
+                        ContentReductionHierarchy<ReductionFieldValue> newContentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
                         {
                             RootContentItemId = JobDetail.Request.RootContentId,
                         };
-                        contentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                        newContentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
                         {
                             Id = Guid.Empty,
                             FieldName = "Roles",
@@ -549,13 +540,51 @@ namespace ContentPublishingLib.JobRunners
                                 .ToList(),
                         });
 
-                        newTaskRecord.MasterContentHierarchyObj = contentHierarchy;
+                        newTaskRecord.MasterContentHierarchyObj = newContentHierarchy;
                         newTaskRecord.ReducedContentHierarchyObj = group.IsMaster
                             ? null
-                            : contentHierarchy;
-                        newTaskRecord.SelectionCriteriaObj = group.IsMaster
-                            ? null
-                            : await ContentReductionHierarchy<ReductionFieldValueSelection>.GetFieldSelectionsForSelectionGroupAsync(db, group.Id);
+                            : newContentHierarchy;
+                        if (group.IsMaster)
+                        {
+                            newTaskRecord.SelectionCriteriaObj = null;
+                        }
+                        else
+                        {
+                            List<HierarchyFieldValue> existingSelectedValues = db.HierarchyFieldValue
+                                                                                 .Where(v => group.SelectedHierarchyFieldValueList.Contains(v.Id))
+                                                                                 .ToList();
+
+                            HierarchyField existingHierarchyField = db.HierarchyField
+                                                                      .Include(f => f.HierarchyFieldValues)
+                                                                      .Single(f => f.FieldName == "Roles" &&
+                                                                                   f.RootContentItemId == JobDetail.Request.RootContentId);
+                            var newSelectionList = new ContentReductionHierarchy<ReductionFieldValueSelection>
+                            {
+                                RootContentItemId = JobDetail.Request.RootContentId,
+                                Fields = new List<ReductionField<ReductionFieldValueSelection>> { new ReductionField<ReductionFieldValueSelection>
+                                    // always one field for Power BI
+                                    {
+                                        Id = existingHierarchyField.Id,
+                                        FieldName = existingHierarchyField.FieldName,
+                                        DisplayName = existingHierarchyField.FieldDisplayName,
+                                        StructureType = existingHierarchyField.StructureType,
+                                        ValueDelimiter = existingHierarchyField.FieldDelimiter,
+                                    }},
+                            };
+
+                            foreach (string roleName in ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList)
+                            {
+                                newSelectionList.Fields[0].Values.Add(new ReductionFieldValueSelection
+                                {
+                                    Id = existingHierarchyField.HierarchyFieldValues.SingleOrDefault(v => v.Value == roleName)?.Id ?? Guid.Empty,
+                                    Value = roleName,
+                                    SelectionStatus = existingSelectedValues.Select(v => v.Value).Contains(roleName),
+                                });
+                            }
+
+                            newTaskRecord.SelectionCriteriaObj = newSelectionList;
+                        }
+
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                         newTaskRecord.ReductionStatusMessage = "";
                     }
