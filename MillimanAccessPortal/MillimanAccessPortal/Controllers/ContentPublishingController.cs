@@ -629,7 +629,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
-            List<string> newRoleList = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList;
+            List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
             var isPublicationWithPersistingFile = ContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList); // Only supports reducible Power BI
 
             if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !isPublicationWithPersistingFile)
