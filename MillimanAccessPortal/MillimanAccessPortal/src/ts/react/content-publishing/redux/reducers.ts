@@ -1130,6 +1130,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       associatedFiles: {
         ...associatedContentItems,
       },
+      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
     };
 
     const uploads: Dict<UploadState> = {
