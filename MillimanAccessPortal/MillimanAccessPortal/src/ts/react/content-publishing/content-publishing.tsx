@@ -880,7 +880,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             name="rolesList"
                             label="Power BI Role Names"
                             type="text"
-                            list={pendingFormData.typeSpecificPublicationProperties.roleList}
+                            list={pendingFormData.typeSpecificPublicationProperties ?
+                              pendingFormData.typeSpecificPublicationProperties.roleList : []}
                             value={''}
                             addItem={(item: string, _: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
