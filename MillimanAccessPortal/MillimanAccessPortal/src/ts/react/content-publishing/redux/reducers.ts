@@ -542,7 +542,12 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     const contentItemDetail = {
       ...action.response,
       typeSpecificDetailObject: action.response.typeSpecificDetailObject,
-      typeSpecificPublicationProperties: action.response.typeSpecificPublicationProperties,
+      typeSpecificPublicationProperties: {
+        ...action.response.typeSpecificPublicationProperties,
+        roleList: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.roleList ?
+          action.response.typeSpecificPublicationProperties.roleList : [],
+      },
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
