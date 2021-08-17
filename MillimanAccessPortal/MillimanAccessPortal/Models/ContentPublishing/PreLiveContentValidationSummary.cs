@@ -244,7 +244,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 : new ContentReductionHierarchy<ReductionFieldValueChange>
                                 {
                                     RootContentItemId = RootContentItemId,
-                                    Fields = task.SelectionCriteriaObj.Fields.Select(f =>
+                                    Fields = task.SelectionCriteriaObj is null
+                                    ? null
+                                    : task.SelectionCriteriaObj.Fields.Select(f =>
                                     {
                                         var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
                                             liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());

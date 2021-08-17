@@ -25,6 +25,19 @@ namespace MapDbContextLib.Models
         /// Instance of this could also be type child class ReductionFieldValueSelection
         /// </summary>
         public List<T> Values { get; set; } = new List<T>();
+
+        public ReductionField() { }
+        public static ReductionField<T> FieldWithNoValues(ReductionField<ReductionFieldValue> source)
+        {
+            return new ReductionField<T>
+            {
+                Id = source.Id,
+                FieldName = source.FieldName,
+                DisplayName = source.DisplayName,
+                StructureType = source.StructureType,
+                ValueDelimiter = source.ValueDelimiter,
+            };
+        }
     }
 }
 

@@ -572,7 +572,7 @@ namespace ContentPublishingLib.JobRunners
                                                                             .SingleOrDefaultAsync(f => f.FieldName == "Roles" &&
                                                                                                   f.RootContentItemId == JobDetail.Request.RootContentId);
 
-                            // If there is no stored hierarchy there can be no reduction task saved
+                            // If there is no stored hierarchy the reduction gets warning status
                             if (existingHierarchyField is null)
                             {
                                 newTaskRecord.ReductionStatus = ReductionStatusEnum.Warning;
