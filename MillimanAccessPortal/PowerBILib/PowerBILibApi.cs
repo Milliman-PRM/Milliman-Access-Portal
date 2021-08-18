@@ -132,23 +132,23 @@ namespace PowerBiLib
         }
 
         /// <summary>
-        /// Import a .pbix file to PowerBI in the cloud
+        /// Import a .pbix file to PowerBI in the cloud.  The named group is created if it is not found
         /// </summary>
         /// <param name="pbixFullPath"></param>
         /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
-        /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
+        /// <param name="capacityIdOverride">Used only if the named group does not exist and a capacity other than the globally configured one is to be used to create the requested group</param>
         /// <returns></returns>
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, Guid? capacityIdOverride)
         {
+            Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
+
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var groups = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.ToList();
-
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
                 if (group == null)
                 {
                     Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == Guid.Parse(_config.PbiCapacityId)) ?? allCapacities.Value.Single();
+                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId) ?? allCapacities.Value.Single();
 
                     group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
                     if (group == null)

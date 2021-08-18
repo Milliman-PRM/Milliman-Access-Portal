@@ -126,7 +126,9 @@ namespace MillimanAccessPortal.Services
 
                 ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest
                                                                           .Include(r => r.RootContentItem)
-                                                                          .ThenInclude(c => c.ContentType)
+                                                                              .ThenInclude(c => c.ContentType)
+                                                                          .Include(r => r.RootContentItem)
+                                                                              .ThenInclude(c => c.Client)
                                                                           .SingleOrDefaultAsync(r => r.Id == publicationRequestId);
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
@@ -336,7 +338,7 @@ namespace MillimanAccessPortal.Services
                             PowerBiEmbedModel embedProperties = default;
                             try
                             {
-                                embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString()); // The related client ID is used as group name
+                                embedProperties = await api.ImportPbixAsync(newMasterFile.FullPath, contentItem.ClientId.ToString(), contentItem.Client.ConfigurationOverride.PowerBiCapacityId); // The related client ID is used as group name
                             }
                             catch (Microsoft.Rest.HttpOperationException ex)
                             {
