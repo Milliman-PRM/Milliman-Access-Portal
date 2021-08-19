@@ -379,6 +379,14 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                 <span className="detail-value-name">{clientSummary.lastReviewedBy.name}</span>
                 <span className="detail-value-email">{clientSummary.lastReviewedBy.userEmail}</span>
               </div>
+              {clientSummary.usesCustomPowerBICapacity &&
+                <div className="detail-section">
+                  <span className="detail-label">
+                    This Client is using a separate Power BI capacity for all Power BI content
+                    <ActionIcon icon="information" />
+                  </span>
+                </div>
+              }
             </div>
             <div className="detail-column">
               <div className="detail-section">
