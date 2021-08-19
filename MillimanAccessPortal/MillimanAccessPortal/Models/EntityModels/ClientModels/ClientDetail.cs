@@ -30,7 +30,8 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
         public string ConsultantEmail { get; set; }
         public string NewUserWelcomeText { get; set; }
         public Guid? ParentClientId { get; set; }
-        public Guid? CustomCapacityId { get; set; }
+        public bool UsesCustomPowerBICapacity { get; set; }
+        public Guid? CustomCapacityId { get; set; }        
 
         public static explicit operator ClientDetail(Client client)
         {
@@ -57,6 +58,7 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
                 ConsultantEmail = client.ConsultantEmail,
                 NewUserWelcomeText = client.NewUserWelcomeText,
                 ParentClientId = client.ParentClientId,
+                UsesCustomPowerBICapacity = client.ConfigurationOverride.PowerBiCapacityId != null,
                 CustomCapacityId = client.ConfigurationOverride.PowerBiCapacityId,
             };
         }

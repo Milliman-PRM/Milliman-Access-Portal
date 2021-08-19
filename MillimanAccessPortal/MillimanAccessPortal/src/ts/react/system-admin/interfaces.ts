@@ -129,7 +129,8 @@ export interface ClientDetail {
   consultantEmail: string;
   newUserWelcomeText: string;
   parentClientId?: Guid;
-  customCapacityId: Guid;
+  customCapacityId?: Guid;
+  usesCustomPowerBICapacity: boolean;
 }
 export function isClientDetail(detail: PrimaryDetail): detail is ClientDetail {
   return detail && (detail as ClientDetail).domainListCountLimit !== null;
