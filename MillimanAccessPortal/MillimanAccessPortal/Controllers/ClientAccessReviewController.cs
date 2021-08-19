@@ -294,6 +294,11 @@ namespace MillimanAccessPortal.Controllers
                             stream.WriteLine($"- {emailException}");
                         });
                     }
+                    
+                    if (clientSummaryModel.UsesCustomPowerBICapacity)
+                    {
+                        stream.WriteLine($"This client is using a separate Power BI capacity for all Power BI content.");
+                    }
                     stream.Close();
                 }
                 #endregion

@@ -97,6 +97,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
         public List<UserInfoModel> AssignedUsers { get; set; } = new List<UserInfoModel>();
         public List<RootContentItem> ContentItems { get; set; } = new List<RootContentItem>();
         public bool CanManage { get; set; }
+        public bool UsesCustomCapacity { get; set; }
 
         internal async Task GenerateSupportingProperties(ApplicationDbContext DbContext, UserManager<ApplicationUser> UserManager, ApplicationUser CurrentUser, RoleEnum ClientRoleRequiredToManage, bool RequireProfitCenterAuthority, int MonthsBeforeDisableAccount = 12, int EarlyWarningDaysBeforeAccountDisable = 14)
         {
@@ -151,6 +152,7 @@ namespace MillimanAccessPortal.Models.ClientAdminViewModels
                 .Where(urp => urp.ProfitCenterId == ClientEntity.ProfitCenterId)
                 .AnyAsync();
             CanManage = hasRequiredRole && (!RequireProfitCenterAuthority || hasProfitCenterAuthority);
+            UsesCustomCapacity = ClientEntity.ConfigurationOverride.PowerBiCapacityId != null;
 
             // Assign the remaining assigned user properties
             if (CanManage)
