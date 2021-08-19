@@ -24,6 +24,7 @@ export interface ClientSummaryModel {
   assignedProfitCenter: string;
   clientAdmins: ClientActorModel[];
   profitCenterAdmins: ClientActorModel[];
+  usesCustomPowerBICapacity: boolean;
 }
 
 export interface ClientActorModel {
