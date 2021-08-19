@@ -129,6 +129,7 @@ export interface ClientDetail {
   consultantEmail: string;
   newUserWelcomeText: string;
   parentClientId?: Guid;
+  customCapacityId: Guid;
 }
 export function isClientDetail(detail: PrimaryDetail): detail is ClientDetail {
   return detail && (detail as ClientDetail).domainListCountLimit !== null;
@@ -183,6 +184,7 @@ export interface ClientDetailForUser {
   id: Guid;
   clientName: string;
   clientCode: string;
+  customCapacityId: Guid;
 }
 export interface ClientDetailForProfitCenter {
   id: Guid;
@@ -192,6 +194,7 @@ export interface ClientDetailForProfitCenter {
   contactEmail: string;
   contactPhone: string;
   authorizedUsers: NestedList;
+  customCapacityId: Guid;
 }
 export interface RootContentItemDetailForUser {
   id: Guid;
