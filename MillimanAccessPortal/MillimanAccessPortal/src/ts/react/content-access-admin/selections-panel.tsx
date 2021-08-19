@@ -1,7 +1,6 @@
 import * as React from 'react';
 
 import {
-    ContentTypeEnum,
   isPublicationActive, isReductionActive, PublicationStatus, ReductionStatus,
 } from '../../view-models/content-publishing';
 import { ButtonSpinner } from '../shared-components/button-spinner';
