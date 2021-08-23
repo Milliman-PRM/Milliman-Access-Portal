@@ -154,11 +154,6 @@ namespace MillimanAccessPortal.Services
                     return;
                 }
 
-                ContentTypeEnum thisContentType = await dbContext.RootContentItem
-                                                                 .Where(i => i.Id == thisPubRequest.RootContentItemId)
-                                                                 .Select(i => i.ContentType.TypeEnum)
-                                                                 .SingleAsync();
-
                 // Prepare useful lists of reduction tasks for use below
                 List<ContentReductionTask> AllRelatedReductionTasks = await dbContext.ContentReductionTask
                     .Where(t => t.ContentPublicationRequestId == thisPubRequest.Id)
@@ -205,21 +200,24 @@ namespace MillimanAccessPortal.Services
                     }
                 }
                 // Validate the existence and checksum of each successfully reduced file
-                foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
+                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
                 {
-                    if (File.Exists(relatedTask.ResultFilePath))
+                    foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
                     {
-                        (string checksum, long length) = GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath);
-                        if (!relatedTask.ReducedContentChecksum.Equals(checksum))
+                        if (File.Exists(relatedTask.ResultFilePath))
                         {
-                            string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), length {length}, checksum {checksum} found for file {relatedTask.ResultFilePath}";
+                            (string checksum, long length) = GlobalFunctions.GetFileChecksum(relatedTask.ResultFilePath);
+                            if (!relatedTask.ReducedContentChecksum.Equals(checksum))
+                            {
+                                string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), length {length}, checksum {checksum} found for file {relatedTask.ResultFilePath}";
+                                throw new ApplicationException(Msg);
+                            }
+                        }
+                        else
+                        {
+                            string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {relatedTask.ResultFilePath}";
                             throw new ApplicationException(Msg);
                         }
-                    }
-                    else
-                    {
-                        string Msg = $"In QueuedPublicationPostProcessingHostedService.PostProcess(), file not found: {relatedTask.ResultFilePath}";
-                        throw new ApplicationException(Msg);
                     }
                 }
                 #endregion
@@ -302,22 +300,25 @@ namespace MillimanAccessPortal.Services
                 await dbContext.SaveChangesAsync();
 
                 // PostProcess the output of successful reduction tasks
-                foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
+                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())  // Tanslation: not for Power BI
                 {
-                    // This assignment defines the live file name
-                    string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
-                                                relatedTask.SelectionGroupId.Value,   // .HasValue is true for tasks in SuccessfulReductionTasks
-                                                thisPubRequest.RootContentItemId,
-                                                Path.GetExtension(relatedTask.ResultFilePath));
-                    string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
-                    File.Copy(relatedTask.ResultFilePath, TargetFilePath);
+                    foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
+                    {
+                        // This assignment defines the live file name
+                        string TargetFileName = ContentTypeSpecificApiBase.GenerateReducedContentFileName(
+                                                    relatedTask.SelectionGroupId.Value,   // .HasValue is true for tasks in SuccessfulReductionTasks
+                                                    thisPubRequest.RootContentItemId,
+                                                    Path.GetExtension(relatedTask.ResultFilePath));
+                        string TargetFilePath = Path.Combine(tempContentDestinationFolder, TargetFileName);
+                        File.Copy(relatedTask.ResultFilePath, TargetFilePath);
 
-                    // Update reduction task record with revised path
-                    relatedTask.ResultFilePath = TargetFilePath;
+                        // Update reduction task record with revised path
+                        relatedTask.ResultFilePath = TargetFilePath;
+                    }
+                    await dbContext.SaveChangesAsync();
                 }
-                await dbContext.SaveChangesAsync();
 
-                switch (thisContentType)
+                switch (contentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
                         QlikviewConfig qvConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
@@ -325,6 +326,9 @@ namespace MillimanAccessPortal.Services
                         break;
                     case ContentTypeEnum.PowerBi:
                         PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+
+                        PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
                         var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                         if (newMasterFile != null)
                         {
@@ -348,14 +352,19 @@ namespace MillimanAccessPortal.Services
                                 throw;
                             }
 
-                            PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
                             contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
                             contentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
                             contentItemProperties.PreviewReportId = embedProperties.ReportId;
-
-                            contentItem.TypeSpecificDetailObject = contentItemProperties;
-                            await dbContext.SaveChangesAsync();
                         }
+                        else
+                        {
+                            contentItemProperties.PreviewWorkspaceId = contentItemProperties.LiveWorkspaceId;
+                            contentItemProperties.PreviewEmbedUrl = contentItemProperties.LiveEmbedUrl;
+                            contentItemProperties.PreviewReportId = contentItemProperties.LiveReportId;
+                        }
+
+                        contentItem.TypeSpecificDetailObject = contentItemProperties;
+                        await dbContext.SaveChangesAsync();
                         break;
 
                     case ContentTypeEnum.Pdf:

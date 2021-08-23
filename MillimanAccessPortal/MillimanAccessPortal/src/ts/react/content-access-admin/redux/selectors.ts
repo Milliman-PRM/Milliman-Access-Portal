@@ -608,3 +608,13 @@ export function addableUsers(state: AccessState) {
 export function remainingStatusRefreshAttempts(state: AccessState) {
   return state.pending.statusTries;
 }
+
+/**
+ * Get content type display name of the currently selected content item
+ * @param state Redux store
+ */
+export function contentTypeForSelectedItem(state: AccessState) {
+  return (state.data.contentTypes && state.data.items && state.selected.item) ?
+    state.data.contentTypes[state.data.items[state.selected.item].contentTypeId].displayName
+    : null;
+}

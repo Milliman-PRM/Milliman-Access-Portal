@@ -20,16 +20,6 @@ namespace MapDbContextLib.Models
         public ContentReductionHierarchy()
         {}
 
-        public static void Test(string JsonString = "")
-        {
-            if (JsonString == string.Empty)
-            {
-                JsonString = File.ReadAllText(@"C:\Users\Tom.Puckett\Desktop\testHierarchy.json");
-            }
-            ContentReductionHierarchy<ReductionFieldValue> ObjFromJson = ContentReductionHierarchy<ReductionFieldValue>.DeserializeJson(JsonString);
-            string str = ObjFromJson.SerializeJson();
-        }
-
         public List<ReductionField<T>> Fields { get; set; } = new List<ReductionField<T>>();
 
         public Guid RootContentItemId { get; set; }
@@ -121,11 +111,11 @@ namespace MapDbContextLib.Models
                     })
                     .ToList();
 
-                ReductionField<ReductionFieldValueSelection> ReductionField = default;
                 switch (SelectionGroup.RootContentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
-                        ReductionField = new ReductionField<ReductionFieldValueSelection>
+                    case ContentTypeEnum.PowerBi:
+                        ReductionField<ReductionFieldValueSelection> ReductionField = new ReductionField<ReductionFieldValueSelection>
                         {
                             Id = HierarchyField.Id,
                             FieldName = HierarchyField.FieldName,
@@ -134,18 +124,16 @@ namespace MapDbContextLib.Models
                             StructureType = HierarchyField.StructureType,
                             Values = HierarchyFieldValues,
                         };
+                        ContentReductionHierarchy.Fields.Add(ReductionField);
                         break;
 
                     case ContentTypeEnum.Html:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.FileDownload:
-                    case ContentTypeEnum.PowerBi:
                     default:
                         // Should never get here because RelatedHierarchyFields should be empty for non-reducible types
                         break;
                 }
-
-                ContentReductionHierarchy.Fields.Add(ReductionField);
             }
 
             return ContentReductionHierarchy;
@@ -179,6 +167,7 @@ namespace MapDbContextLib.Models
                     switch (ContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
+                        case ContentTypeEnum.PowerBi:
                             ReturnObject.Fields.Add(new ReductionField<ReductionFieldValue>
                             {
                                 Id = Field.Id,
@@ -197,7 +186,6 @@ namespace MapDbContextLib.Models
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
-                        case ContentTypeEnum.PowerBi:
                         default:
                             // Should never get here because no hierarchy fields should exist for non-reducible types
                             break;
@@ -227,6 +215,12 @@ namespace MapDbContextLib.Models
             {
                 RootContentItemId = hierarchy?.RootContentItemId ?? selections.RootContentItemId,
             };
+
+            if (selections is null)
+            {
+                result.Fields = hierarchy.Fields.Select(f => ReductionField<ReductionFieldValueSelection>.FieldWithNoValues(f)).ToList();
+                return result;
+            }
 
             foreach (var field in hierarchy?.Fields ?? new List<ReductionField<ReductionFieldValue>> { })
             {
