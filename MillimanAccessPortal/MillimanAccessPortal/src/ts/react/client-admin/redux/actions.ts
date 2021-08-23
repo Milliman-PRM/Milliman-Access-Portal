@@ -112,6 +112,11 @@ export interface SetFormFieldValue {
   field: string;
   value: string | string[] | Guid | boolean;
 }
+export interface AppendFormFieldArrayValue {
+  type: 'APPEND_FORM_FIELD_ARRAY_VALUE';
+  field: 'acceptedEmailDomainList' | 'acceptedEmailAddressExceptionList';
+  value: string;
+}
 
 // ~ Checking validity of form items ~
 export interface ResetValidity {
@@ -401,6 +406,7 @@ export type FormAction =
   | ClearFormData
   | ResetFormData
   | SetFormFieldValue
+  | AppendFormFieldArrayValue
   ;
 
 export type ValidityAction =

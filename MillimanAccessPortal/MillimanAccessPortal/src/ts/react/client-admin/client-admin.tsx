@@ -503,9 +503,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   Contact map.support@milliman.com to request an increase to this limit.
                                 `);
                               } else {
-                                this.props.setFormFieldValue({
+                                this.props.appendFormFieldArrayValue({
                                   field: 'acceptedEmailDomainList',
-                                  value: formData.acceptedEmailDomainList.concat(item.trim()),
+                                  value: item,
                                 });
                               }
                             }}
@@ -547,10 +547,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               } else if (itemAlreadyExists) {
                                 toastr.warning('', 'That email address already exists.');
                               } else {
-                                this.props.setFormFieldValue({
+                                this.props.appendFormFieldArrayValue({
                                   field: 'acceptedEmailAddressExceptionList',
-                                  value: formData.acceptedEmailAddressExceptionList.
-                                    concat(item.trim()),
+                                  value: item,
                                 });
                               }
                             }}

@@ -14,11 +14,11 @@ export class HierarchyDiffs extends React.Component<HierarchyDiffsProps, {}> {
 
   public render() {
     const { hierarchy } = this.props;
-    const hierarchyValues = hierarchy.fields.map((item, key) => (
+    const hierarchyValues = hierarchy.fields ? hierarchy.fields.map((item, key) => (
       <div key={key}>
         {this.renderFieldValues(item)}
       </div>
-    ));
+    )) : null;
     return (
       <div className="hierarchy-diffs">
         {hierarchyValues}

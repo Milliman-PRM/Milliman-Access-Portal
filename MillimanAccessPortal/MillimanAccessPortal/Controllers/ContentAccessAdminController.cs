@@ -158,7 +158,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> SelectionGroups([EmitBeforeAfterLog] Guid contentItemId)
         {
             #region Authorization
-            var roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
+            AuthorizationResult roleResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(requiredRole, contentItemId));
             if (!roleResult.Succeeded)
             {
                 Log.Debug($"Failed to authorize action {ControllerContext.ActionDescriptor.DisplayName} for user {User.Identity.Name}");
@@ -167,7 +167,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selectionGroups = await _accessAdminQueries.SelectSelectionGroupsAsync(contentItemId);
+            SelectionGroupsResponseModel selectionGroups = await _accessAdminQueries.SelectSelectionGroupsAsync(contentItemId);
 
             return Json(selectionGroups);
         }
@@ -194,7 +194,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            var selections = await _accessAdminQueries.SelectSelectionsAsync(groupId);
+            SelectionsResponseModel selections = await _accessAdminQueries.SelectSelectionsAsync(groupId);
 
             return Json(selections);
         }
@@ -536,7 +536,7 @@ namespace MillimanAccessPortal.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSelections([FromBody] UpdateSelectionsRequestModel model)
         {
-            return await UpdateSelectionsAsync(model.GroupId, model.IsMaster, model.Selections.ToArray());
+            return await UpdateSelectionsAsync(model.GroupId, model.IsMaster, model.Selections);
         }
 
         /// <summary>
@@ -676,8 +676,8 @@ namespace MillimanAccessPortal.Controllers
 
             // Require that the live master file path is stored in the RootContentItem and the file exists
             ContentRelatedFile LiveMasterFile = selectionGroup.RootContentItem.ContentFilesList.SingleOrDefault(f => f.FilePurpose.ToLower() == "mastercontent");
-            if (LiveMasterFile == null
-             || !System.IO.File.Exists(LiveMasterFile.FullPath))
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap() &&
+             (LiveMasterFile == null || !System.IO.File.Exists(LiveMasterFile.FullPath)))
             {
                 Log.Information($"In ContentAccessAdminController.UpdateSelections: request to update selection group {selectionGroup.Id} but master content file {LiveMasterFile?.FullPath ?? "<unspecified>"} for the content item {selectionGroup.RootContentItemId} is not found");
                 Response.Headers.Add("Warning", "A master content file does not exist for the requested content item.");
@@ -722,10 +722,12 @@ namespace MillimanAccessPortal.Controllers
                     ReductionStatusMessage = $"Selection Group {selectionGroup.Id} has been updated with unrestricted access",
                     SelectionGroupId = selectionGroup.Id,
                     TaskAction = TaskActionEnum.Unspecified,
-                    MasterContentChecksum = selectionGroup.RootContentItem
-                                                          .ContentFilesList
-                                                          .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
-                                                          .Checksum,
+                    MasterContentChecksum = selectionGroup.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap()
+                        ? selectionGroup.RootContentItem
+                                        .ContentFilesList
+                                        .Single(f => f.FilePurpose.Equals("MasterContent", StringComparison.InvariantCultureIgnoreCase))
+                                        .Checksum
+                        : null,
                     MasterContentHierarchyObj = liveTask.MasterContentHierarchyObj,
                 });
 
@@ -786,15 +788,20 @@ namespace MillimanAccessPortal.Controllers
                 {
                     CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
 
+                    string MasterFileCopyTarget = string.Empty;
+
+                    if (selectionGroup.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.Qlikview)
+                    {
+                        string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
+                        Directory.CreateDirectory(TaskFolderPath);
+                        MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
+                    }
                     // The master file will be copied to a task folder in the file exchange share
-                    string TaskFolderPath = Path.Combine(ApplicationConfig.GetValue<string>("Storage:MapPublishingServerExchangePath"), NewTaskGuid.ToString("D"));
-                    Directory.CreateDirectory(TaskFolderPath);
-                    string MasterFileCopyTarget = Path.Combine(TaskFolderPath, Path.GetFileName(LiveMasterFile.FullPath));
 
                     var contentReductionTask = new ContentReductionTask
                     {
                         Id = NewTaskGuid,
-                        ApplicationUser = await UserManager.GetUserAsync(User),
+                        ApplicationUser = currentUser,
                         SelectionGroupId = selectionGroup.Id,
                         MasterFilePath = MasterFileCopyTarget,
                         MasterContentChecksum = LiveMasterFile.Checksum,
@@ -809,25 +816,28 @@ namespace MillimanAccessPortal.Controllers
 
                     string CxnString = ApplicationConfig.GetConnectionString("DefaultConnection");  // key string must match that used in startup.cs
 
-                    Task DontAwaitThisTask = ContentAccessSupport.LongRunningUpdateSelectionCodeAsync(CxnString, LiveMasterFile.FullPath, MasterFileCopyTarget, contentReductionTask, cancellationTokenSource);
-
-                    Log.Information($"In ContentAccessAdminController.UpdateSelections: reduction task {contentReductionTask.Id} submitted with status {contentReductionTask.ReductionStatus.ToString()}.  Background processing will continue.");
-
-                    object ContentTypeConfigObj = null;
                     switch (selectionGroup.RootContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.Qlikview:
-                            ContentTypeConfigObj = QvConfig;
+                        case ContentTypeEnum.PowerBi:
+                            Task DontAwaitThisTask = ContentAccessSupport.LongRunningUpdateSelectionCodeAsync(CxnString, LiveMasterFile.FullPath, MasterFileCopyTarget, contentReductionTask, cancellationTokenSource);
+                            Log.Information($"In ContentAccessAdminController.UpdateSelections: Qlikview reduction task {contentReductionTask.Id} submitted with status {contentReductionTask.ReductionStatus}.  Background processing will continue.");
                             break;
 
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
                         case ContentTypeEnum.FileDownload:
-                        case ContentTypeEnum.PowerBi:
                         default:
                             // should never get here because non-reducible content types are blocked in validation above
                             break;
                     }
+
+                    object ContentTypeConfigObj = selectionGroup.RootContentItem.ContentType.TypeEnum switch
+                    {
+                        ContentTypeEnum.Qlikview => QvConfig,
+                        _ => null,
+                    };
+
                     string ContentItemRootPath = ApplicationConfig.GetValue<string>("Storage:ContentItemRootPath");
                     ContentAccessSupport.AddReductionMonitor(Task.Run(() => ContentAccessSupport.MonitorReductionTaskForGoLive(NewTaskGuid, CxnString, ContentItemRootPath, ContentTypeConfigObj, cancellationTokenSource.Token), cancellationTokenSource.Token));
 

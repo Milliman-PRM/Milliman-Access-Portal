@@ -48,6 +48,8 @@ export const resetFormData =
   createActionCreator<AccessActions.ResetFormData>('RESET_FORM_DATA');
 export const setFormFieldValue =
   createActionCreator<AccessActions.SetFormFieldValue>('SET_FORM_FIELD_VALUE');
+export const appendFormFieldArrayValue =
+  createActionCreator<AccessActions.AppendFormFieldArrayValue>('APPEND_FORM_FIELD_ARRAY_VALUE');
 
 // Modal Actions
 export const openDeleteClientModal =

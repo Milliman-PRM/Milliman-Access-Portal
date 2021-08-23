@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Text;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContentPublishingLib.JobRunners
 {
@@ -39,7 +41,7 @@ namespace ContentPublishingLib.JobRunners
         // cast operator to convert a MAP ContentReductionTask to this type
         public static PublishJobDetail New(ContentPublicationRequest DbTask, bool SkipReductionTaskQueueing = false)
         {
-            return new PublishJobDetail
+            var returnObject = new PublishJobDetail
             {
                 JobId = DbTask.Id,
                 Request = new PublishJobRequest
@@ -54,7 +56,21 @@ namespace ContentPublishingLib.JobRunners
                 },
                 Result = new PublishJobResult(),
             };
+            if (!string.IsNullOrWhiteSpace(DbTask.TypeSpecificDetail))
+            {
+                ContentTypeEnum contentType = DbTask.RootContentItem?.ContentType?.TypeEnum ?? ContentTypeEnum.Unknown;
+                switch (contentType)
+                {
+                    case ContentTypeEnum.PowerBi:
+                        returnObject.Request.TypeSpecificDetail = JsonConvert.DeserializeObject<PowerBiPublicationProperties>(DbTask.TypeSpecificDetail);
+                        break;
 
+                    default:
+                        break;
+                }
+            }
+
+            return returnObject;
         }
 
         public class PublishJobResult
@@ -76,6 +92,7 @@ namespace ContentPublishingLib.JobRunners
             public Guid ApplicationUserId { get; set; }
             public DateTime CreateDateTimeUtc { get; set; }
             public bool SkipReductionTaskQueueing { get; set; }
+            public TypeSpecificPublicationPropertiesBase TypeSpecificDetail { get; set; } = null;
         }
 
     }

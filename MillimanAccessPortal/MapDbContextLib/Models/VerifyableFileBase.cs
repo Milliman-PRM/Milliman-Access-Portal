@@ -33,7 +33,7 @@ namespace MapDbContextLib.Models
                         }
                         else
                         {
-                            ApplicationException newException = new ApplicationException($"Checksums do not match (retryable): file checksum is {fileChecksum}, length is {length}");
+                            ApplicationException newException = new ApplicationException($"Checksums do not match (retryable): file checksum is {fileChecksum}, length is {length}, expected checksum {_Checksum ?? "<null>"}");
                             Log.Warning(newException.Message);
                             // This is what triggers the retry, up to the specified number of times
                             throw newException;

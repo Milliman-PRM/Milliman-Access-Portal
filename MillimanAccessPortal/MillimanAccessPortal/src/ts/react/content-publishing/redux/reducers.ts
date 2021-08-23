@@ -73,6 +73,10 @@ const emptyContentItemDetail: ContentItemDetail = {
     bookmarksPaneEnabled: false,
     filterPaneEnabled: false,
     navigationPaneEnabled: false,
+    editableEnabled: false,
+  },
+  typeSpecificPublicationProperties: {
+    roleList: [],
   },
 };
 
@@ -94,6 +98,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
+  typeSpecificPublicationProperties: {},
 };
 
 const _initialFormData: PublishingFormData = {
@@ -536,6 +541,13 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
 
     const contentItemDetail = {
       ...action.response,
+      typeSpecificDetailObject: action.response.typeSpecificDetailObject,
+      typeSpecificPublicationProperties: {
+        ...action.response.typeSpecificPublicationProperties,
+        roleList: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.roleList ?
+          action.response.typeSpecificPublicationProperties.roleList : [],
+      },
       relatedFiles: {
         MasterContent: {
           fileOriginalName: defaultIfUndefined(action.response.relatedFiles.MasterContent, 'fileOriginalName'),
@@ -633,6 +645,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           doesReduce: false,
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
+          typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
         },
       };
     } else {
@@ -672,6 +685,27 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       };
     }
   },
+  SET_PENDING_TEXT_ARRAY_VALUE: (state, action: PublishingActions.SetPublishingFormTextArrayValue) => ({
+    ...state,
+    pendingFormData: {
+      ...state.pendingFormData,
+      typeSpecificPublicationProperties: {
+        ...state.pendingFormData.typeSpecificPublicationProperties,
+        [action.inputName]: action.value,
+      },
+    },
+  }),
+  APPEND_PENDING_TEXT_ARRAY_VALUE: (state, action: PublishingActions.AppendPublishingFormTextArrayValue) => ({
+    ...state,
+    pendingFormData: {
+      ...state.pendingFormData,
+      typeSpecificPublicationProperties: {
+        ...state.pendingFormData.typeSpecificPublicationProperties,
+        [action.inputName]:
+          state.pendingFormData.typeSpecificPublicationProperties[action.inputName].concat(action.value),
+      },
+    },
+  }),
   RESET_CONTENT_ITEM_FORM: (state) => {
     const { originalFormData } = state;
 
@@ -940,6 +974,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
         isEditable: detail.isEditable,
       },
       pendingFormData: {
@@ -953,6 +988,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         contentDisclaimer: detail.contentDisclaimer,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
+        typeSpecificPublicationProperties: {
+          ...detail.typeSpecificPublicationProperties,
+          ...state.pendingFormData.typeSpecificPublicationProperties,
+        },
         isEditable: detail.isEditable,
       },
       formState: 'read',
@@ -971,6 +1010,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       contentDisclaimer: detail.contentDisclaimer,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
+      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
       isEditable: detail.isEditable,
     };
 
@@ -1095,6 +1135,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       associatedFiles: {
         ...associatedContentItems,
       },
+      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
     };
 
     const uploads: Dict<UploadState> = {

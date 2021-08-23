@@ -36,7 +36,7 @@ import * as AccessActionCreators from './redux/action-creators';
 import {
     activeReductionFieldsets, activeSelectedClient, activeSelectedGroup, activeSelectedItem,
     addableUsers, allGroupsCollapsed, allGroupsExpanded, allValuesDeselected, allValuesSelected,
-    clientEntities, groupEntities, groupToDelete, itemEntities, modifiedReductionValues,
+    clientEntities, contentTypeForSelectedItem, groupEntities, groupToDelete, itemEntities, modifiedReductionValues,
     pendingMaster, pendingReductionValues, reductionValuesModified, selectedGroupWithStatus, selectedItem,
     selectionsFormModified,
 } from './redux/selectors';
@@ -69,6 +69,7 @@ interface ContentAccessAdminProps {
   modals: AccessStateModals;
 
   selectedItem: RootContentItem;
+  selectedItemContentType: string;
   selectedGroup: SelectionGroupWithStatus;
   activeSelectedClient: Client;
   activeSelectedItem: RootContentItem;
@@ -644,6 +645,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
       selectedMaster,
       formModified,
       valuesModified,
+      selectedItemContentType,
     } = this.props;
     const fieldsets = reductionFieldsets.map((s) => ({
       name: s.field.displayName,
@@ -658,6 +660,7 @@ class ContentAccessAdmin extends React.Component<ContentAccessAdminProps & typeo
     }));
     return activeClient && activeItem && activeGroup && (
       <SelectionsPanel
+        contentType={selectedItemContentType}
         isEditable={group.editable}
         onIsEditableChange={(value) => this.props.setGroupPowerBiEditability({ groupId: group.id, editable: value })}
         isSuspended={group.isSuspended}
@@ -754,6 +757,7 @@ function mapStateToProps(state: AccessState): ContentAccessAdminProps {
     filters,
     modals,
     selectedItem: selectedItem(state),
+    selectedItemContentType: contentTypeForSelectedItem(state),
     selectedGroup: selectedGroupWithStatus(state),
     activeSelectedClient: activeSelectedClient(state),
     activeSelectedItem: activeSelectedItem(state),
