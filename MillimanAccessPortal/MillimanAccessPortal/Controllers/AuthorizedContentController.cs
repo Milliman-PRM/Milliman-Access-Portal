@@ -336,7 +336,13 @@ namespace MillimanAccessPortal.Controllers
                         $"The system could not validate the file for content item {selectionGroup.RootContentItem.ContentName}, selection group {selectionGroup.GroupName}.",
                         $"Please contact MAP Support if this error continues.",
                     };
-                    string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}Selection group: {selectionGroup.GroupName}{Environment.NewLine}Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}User: {HttpContext.User.Identity.Name}";
+                    string MailMsg = $"The content item below failed checksum validation and may have been altered improperly.{Environment.NewLine}{Environment.NewLine}" +
+                                     $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                                     $"Content item: {selectionGroup.RootContentItem.ContentName}{Environment.NewLine}" +
+                                     $"Selection group: {selectionGroup.GroupName}{Environment.NewLine}" +
+                                     $"Client: {selectionGroup.RootContentItem.Client.Name}{Environment.NewLine}" +
+                                     $"User: {HttpContext.User.Identity.Name}{Environment.NewLine}{Environment.NewLine}" +
+                                     $"Check for more details in the MAP application log file";
                     var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
 
                     notifier.sendSupportMail(MailMsg, "Checksum verification (content item)");
@@ -432,10 +438,16 @@ namespace MillimanAccessPortal.Controllers
             PowerBiContentItemProperties embedProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled);
+            if (embedToken is null)
+            {
+                throw new ApplicationException($"Failed to generate Power BI embed token for content item {contentItem.Id} ({contentItem.ContentName})");
+            }
+
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.PreviewEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled),
+                    EmbedToken = embedToken,
                     ReportId = embedProperties.PreviewReportId.Value,
                     EditableEnabled = embedProperties.EditableEnabled,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,
@@ -447,7 +459,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         /// <summary>
-        /// Display the Power BIpreview report for the identified reduction task
+        /// Display the Power BI preview report for the identified reduction task
         /// </summary>
         /// <param name="reductionId">A ContentReductionTask Id, used to display pre-approval content</param>
         /// <returns></returns>
@@ -459,6 +471,7 @@ namespace MillimanAccessPortal.Controllers
                                            .Include(r => r.ContentPublicationRequest)
                                                .ThenInclude(p => p.RootContentItem)
                                                    .ThenInclude(c => c.ContentType)
+                                           .Include(r => r.SelectionGroup)
                                            .SingleOrDefault(r => r.Id == reductionId);
 
             #region Authorization
@@ -485,15 +498,26 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             PowerBiContentItemProperties embedProperties = reductionTask.ContentPublicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-            List<string> roleList = reductionTask.SelectionCriteriaObj.Fields.Single().Values.Select(v => v.Value).ToList();
+            List<string> roleList = reductionTask.SelectionCriteriaObj.Fields
+                                                                      .Single()
+                                                                      .Values
+                                                                      .Where(v => v.SelectionStatus)
+                                                                      .Select(v => v.Value)
+                                                                      .ToList();
 
             PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+            var embedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, reductionTask.SelectionGroup.Editable, roleList);
+            if (embedToken is null)
+            {
+                throw new ApplicationException($"Failed to generate Power BI embed token for content item {reductionTask.SelectionGroup.RootContentItemId} ({reductionTask.SelectionGroup.RootContentItem.ContentName}), selection group {reductionTask.SelectionGroup.Id} ({reductionTask.SelectionGroup.GroupName}), reduction {reductionTask.Id}");
+            }
+
             PowerBiEmbedModel embedModel = new PowerBiEmbedModel
             {
                 EmbedUrl = embedProperties.PreviewEmbedUrl,
-                EmbedToken = await api.GetEmbedTokenAsync(embedProperties.PreviewWorkspaceId.Value, embedProperties.PreviewReportId.Value, embedProperties.EditableEnabled, roleList),  
+                EmbedToken = embedToken,
                 ReportId = embedProperties.PreviewReportId.Value,
-                EditableEnabled = embedProperties.EditableEnabled,
+                EditableEnabled = reductionTask.SelectionGroup.Editable,
                 FilterPaneEnabled = embedProperties.FilterPaneEnabled,
                 NavigationPaneEnabled = embedProperties.NavigationPaneEnabled,
                 BookmarksPaneEnabled = embedProperties.BookmarksPaneEnabled,
@@ -528,21 +552,48 @@ namespace MillimanAccessPortal.Controllers
                                                            .ThenInclude(rci => rci.ContentType)
                                                        .Where(sg => sg.Id == group)
                                                        .SingleOrDefault();
+
             if (selectionGroup == null)
             {
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            if (selectionGroup.IsInactive)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
 
             PowerBiContentItemProperties embedProperties = selectionGroup.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+            List<string> roleList = null;
+            if (!selectionGroup.IsMaster)
+            {
+                List<HierarchyFieldValue> hierarchyFieldValues = DataContext.HierarchyFieldValue
+                                                .Where(fv => selectionGroup.SelectedHierarchyFieldValueList.Contains(fv.Id))
+                                                .ToList();
+                roleList = hierarchyFieldValues.Select(fv => fv.Value).ToList();
+            }
 
             try
             {
                 PowerBiLibApi api = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
+                var embedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable, roleList);
+                if (embedToken is null)
+                {
+                    throw new ApplicationException($"Failed to generate Power BI embed token for content item {selectionGroup.RootContentItemId} ({selectionGroup.RootContentItem.ContentName}), selection group {selectionGroup.Id} ({selectionGroup.GroupName})");
+                }
+
                 PowerBiEmbedModel embedModel = new PowerBiEmbedModel
                 {
                     EmbedUrl = embedProperties.LiveEmbedUrl,
-                    EmbedToken = await api.GetEmbedTokenAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, selectionGroup.Editable),
+                    EmbedToken = embedToken,
                     ReportId = embedProperties.LiveReportId.Value,
                     EditableEnabled = selectionGroup.Editable,
                     FilterPaneEnabled = embedProperties.FilterPaneEnabled,

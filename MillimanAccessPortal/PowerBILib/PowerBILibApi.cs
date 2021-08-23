@@ -281,13 +281,27 @@ namespace PowerBiLib
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
-                if (roleList != null)
+                GenerateTokenRequest tokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
+                if (roleList is not null)
                 {
-                    generateTokenRequestParameters.Identities.Add(new EffectiveIdentity("username", roleList));
+                    Report report = await client.Reports.GetReportAsync(reportId);
+                    Dataset dataset = await client.Datasets.GetDatasetInGroupAsync(groupId, report.DatasetId);
+
+                    tokenRequestParameters.Identities = new List<EffectiveIdentity> { new EffectiveIdentity("forty-two", datasets: new List<string> { dataset.Id }, roles: roleList) };
                 }
-                EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
-                return tokenResponse.Token;
+
+                try
+                {
+                    EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
+                    return tokenResponse.Token;
+                }
+                catch (Exception ex)
+                {
+                    string tmp = $"Failed to generate Power BI embed token. This might be due to a selection group role list that is not compatible with the content file.{Environment.NewLine} " +
+                                 $"Request parameters are: {JsonConvert.SerializeObject(tokenRequestParameters)}";
+                    Log.Error(ex, tmp);
+                    return null;
+                }
             }
         }
 

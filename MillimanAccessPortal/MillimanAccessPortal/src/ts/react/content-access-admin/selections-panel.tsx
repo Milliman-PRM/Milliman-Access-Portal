@@ -10,6 +10,7 @@ import { Toggle } from '../shared-components/form/toggle';
 import { Fieldset, FieldsetData } from './fieldset';
 
 export interface SelectionsPanelProps {
+  contentType: string;
   isEditable: boolean;
   onIsEditableChange: (value: boolean) => void;
   isSuspended: boolean;
@@ -136,7 +137,7 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       ? null
       : (
         <div className="fieldset-container" style={{ flex: '1 1 1px', overflowY: 'auto' }}>
-          <h4>Reduction Values</h4>
+          <h4>{this.renderReductionSectionTitle()}</h4>
           {
             !isReductionActive(status)
             && !isPublicationActive(itemStatus)
@@ -231,6 +232,17 @@ export class SelectionsPanel extends React.Component<SelectionsPanelProps> {
       }
     } else {
       return null;
+    }
+  }
+
+  private renderReductionSectionTitle() {
+    switch (this.props.contentType) {
+      case 'Power BI':
+        return 'Role Values';
+      case 'QlikView':
+        return 'Reduction Hierarchy';
+      default:
+        return '';
     }
   }
 }
