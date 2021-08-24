@@ -476,7 +476,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
   private renderClientAccessReviewPanel() {
     const { clientAccessReview, clientAccessReviewProgress, continueButtonActive, pending } = this.props;
     return (
-      <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-9-12">
+      <div className="admin-panel-container admin-panel-container flex-item-12-12 flex-item-for-tablet-up-8-12">
         {pending.data.clientAccessReview && <ColumnSpinner />}
         <h3 className="admin-panel-header">Client Access Review Summary</h3>
         <div className="client-review-container" ref={this.clientReviewContainer}>
@@ -618,11 +618,11 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                       <th>User Name<br />Email</th>
                       <th>Last Login</th>
                       <th className="role-column center-text">Client Admin</th>
+                      <th className="role-column center-text">File Drop User</th>
                       <th className="role-column center-text">Content Publisher</th>
                       <th className="role-column center-text">Content Access Admin</th>
                       <th className="role-column center-text">Content User</th>
                       <th className="role-column center-text">File Drop Admin</th>
-                      <th className="role-column center-text">File Drop User</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -654,6 +654,9 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               {user.clientUserRoles.Admin ? this.renderCheckmark() : ''}
                             </td>
                             <td className="center-text">
+                              {user.clientUserRoles.FileDropUser ? this.renderCheckmark() : ''}
+                            </td>
+                            <td className="center-text">
                               {user.clientUserRoles.ContentPublisher ? this.renderCheckmark() : ''}
                             </td>
                             <td className="center-text">
@@ -664,9 +667,6 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                             </td>
                             <td className="center-text">
                               {user.clientUserRoles.FileDropAdmin ? this.renderCheckmark() : ''}
-                            </td>
-                            <td className="center-text">
-                              {user.clientUserRoles.FileDropUser ? this.renderCheckmark() : ''}
                             </td>
                           </tr>
                         );
