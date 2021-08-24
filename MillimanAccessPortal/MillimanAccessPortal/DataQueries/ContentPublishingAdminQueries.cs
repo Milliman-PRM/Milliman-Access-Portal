@@ -19,6 +19,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.DataQueries
@@ -122,10 +123,12 @@ namespace MillimanAccessPortal.DataQueries
 
         internal async Task<RootContentItemDetail> BuildContentItemDetailModelAsync(RootContentItem rootContentItem, HttpRequest httpRequest)
         {
-            var publicationRequest = await _dbContext.ContentPublicationRequest
-                                                     .Where(r => r.RootContentItemId == rootContentItem.Id)
-                                                     .OrderByDescending(r => r.CreateDateTimeUtc)
-                                                     .FirstOrDefaultAsync();
+            IEnumerable<PublicationStatus> validStatusValues = PublicationStatusExtensions.ActiveStatuses.Append(PublicationStatus.Confirmed);
+            ContentPublicationRequest publicationRequest = await _dbContext.ContentPublicationRequest
+                                                                           .Where(r => r.RootContentItemId == rootContentItem.Id)
+                                                                           .Where(r => validStatusValues.Contains(r.RequestStatus))
+                                                                           .OrderByDescending(r => r.CreateDateTimeUtc)
+                                                                           .FirstOrDefaultAsync();
             var contentType = await _dbContext.ContentType.FindAsync(rootContentItem.ContentTypeId);
 
             List<ContentRelatedFile> relatedFiles = rootContentItem.ContentFilesList;
@@ -170,11 +173,16 @@ namespace MillimanAccessPortal.DataQueries
                 IsSuspended = rootContentItem.IsSuspended,
                 IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&  (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
                 TypeSpecificDetailObject = default,
+                TypeSpecificPublicationProperties = default,
             };
             switch (contentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                    if (publicationRequest != null && !String.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
+                    {
+                        model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<PowerBiPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                    }
                     break;
                 case ContentTypeEnum.Qlikview:
                 case ContentTypeEnum.Pdf:

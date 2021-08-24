@@ -267,7 +267,8 @@ export function submitButtonIsActive(state: PublishingState) {
  */
 export function uploadChangesPending(state: PublishingState) {
   const { pendingFormData, originalFormData } = state.formData;
-  const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles);
+  const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles) ||
+    !_.isEqual(pendingFormData.typeSpecificPublicationProperties, originalFormData.typeSpecificPublicationProperties);
   return changesPending;
 }
 
@@ -296,6 +297,10 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   const { relatedFiles } = state.formData.pendingFormData;
   const filesToPublish: UploadedRelatedFile[] = [];
   const deleteFilePurposes: string[] = [];
+  const { contentTypes } = state.data;
+  const { pendingFormData } = state.formData;
+  const isPowerBI = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -308,12 +313,17 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
+  const typeSpecificPublishingDetail =
+    (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) ? {
+    roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
+  } : null;
 
   return {
     rootContentItemId,
     newRelatedFiles: filesToPublish,
     associatedFiles: [],
     deleteFilePurposes,
+    typeSpecificPublishingDetail,
   };
 }
 
@@ -378,6 +388,13 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
       FilterPaneEnabled: pendingFormData.typeSpecificDetailObject.filterPaneEnabled,
       NavigationPaneEnabled: pendingFormData.typeSpecificDetailObject.navigationPaneEnabled,
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties) {
+      contentItemInformation.typeSpecificPublicationProperties = {
+        roleList: pendingFormData.typeSpecificPublicationProperties.roleList ?
+          pendingFormData.typeSpecificPublicationProperties.roleList : [],
+      };
+    }
   }
 
   return contentItemInformation;

@@ -183,12 +183,12 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>List of selections</returns>
-        internal async Task<List<Guid>> SelectSelectionsWhereSelectionGroupAsync(Guid selectionGroupId)
+        internal async Task<List<Guid>> GetLiveSelectionValueIdsForSelectionGroupAsync(Guid selectionGroupId)
         {
-            var selections = await _dbContext.SelectionGroup
-                                             .Where(g => g.Id == selectionGroupId)
-                                             .Select(g => g.SelectedHierarchyFieldValueList)
-                                             .SingleOrDefaultAsync();
+            List<Guid> selections = await _dbContext.SelectionGroup
+                                                    .Where(g => g.Id == selectionGroupId)
+                                                    .Select(g => g.SelectedHierarchyFieldValueList)
+                                                    .SingleOrDefaultAsync();
 
             return selections ?? new List<Guid>();
         }
