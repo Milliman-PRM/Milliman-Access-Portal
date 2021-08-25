@@ -205,34 +205,37 @@ namespace PowerBiLib
             {
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
-                    Report foundReport = await client.Reports.GetReportInGroupAsync(groupId, reportId);
+                    Report foundReport = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception,Report>(async() => await client.Reports.GetReportInGroupAsync(groupId, reportId), 3, 500);
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.ExportReportAsync, requested report <{reportId}> not found, or related dataset Id not found");
                         return (null, null);
                     }
 
-                    string fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix");
+                    (string fullOutputFilePath, BinaryWriter writer) = writeFiles && Directory.Exists(outputFolderFullPath)
+                        ? (fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix"), new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
+                        : (default, default);
 
-                    Stream exportStream = await client.Reports.ExportReportAsync(foundReport.Id);
+                    Stream exportStream = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Stream>(async () => await client.Reports.ExportReportAsync(foundReport.Id), 3, 500);
                     using (BinaryReader reader = new BinaryReader(exportStream))
                     {
-                        using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
+                        for (; ; )
                         {
-                            for (; ; )
+                            byte[] buffer = reader.ReadBytes(65_536);
+                            if (buffer.Length > 0)
                             {
-                                byte[] buffer = reader.ReadBytes(65_536);
-                                if (buffer.Length > 0)
+                                if (writer != default)
                                 {
-                                    if (writeFiles)
-                                    {
-                                        writer.Write(buffer);
-                                    }
+                                    writer.Write(buffer);
                                 }
-                                else
+                            }
+                            else
+                            {
+                                if (writer != default)
                                 {
-                                    break;
+                                    writer.Close();
                                 }
+                                break;
                             }
                         }
 
@@ -390,16 +393,17 @@ namespace PowerBiLib
             // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
             try
             {
-                var response = await _config.PbiTokenEndpoint
-                        .PostMultipartAsync(mp => mp
-                            .AddString("grant_type", _config.PbiGrantType)
-                            .AddString("scope", _config.PbiAuthenticationScope)
-                            .AddString("client_id", _config.PbiAzureADClientId)
-                            .AddString("client_secret", _config.PbiAzureADClientSecret)
-                            .AddString("username", _config.PbiAzureADUsername)
-                            .AddString("password", _config.PbiAzureADPassword)
-                        )
-                        .ReceiveJson<MicrosoftAuthenticationResponse>();
+                MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () => 
+                                                                        await _config.PbiTokenEndpoint
+                                                                        .PostMultipartAsync(mp => mp
+                                                                            .AddString("grant_type", _config.PbiGrantType)
+                                                                            .AddString("scope", _config.PbiAuthenticationScope)
+                                                                            .AddString("client_id", _config.PbiAzureADClientId)
+                                                                            .AddString("client_secret", _config.PbiAzureADClientSecret)
+                                                                            .AddString("username", _config.PbiAzureADUsername)
+                                                                            .AddString("password", _config.PbiAzureADPassword)
+                                                                        )
+                                                                        .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
                 if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
                 {
