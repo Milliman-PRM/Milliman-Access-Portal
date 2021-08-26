@@ -79,6 +79,7 @@ namespace SftpServerLib
                 Fingerprint = _sftpServer.SSHCert.Fingerprint,
                 About = _sftpServer.About,
                 LocalPort = _sftpServer.LocalPort,
+                SshEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms,
             };
         }
 
@@ -88,9 +89,14 @@ namespace SftpServerLib
             {
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
-                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,"
+                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,",
             };
-            Log.Verbose("SFTP Server instance constructed");
+
+            string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
+            IEnumerable<string> algorithmsToRemove = defaultEncryptionAlgorithms.Where(a => a.Contains("arcfour", StringComparison.InvariantCultureIgnoreCase));
+            _sftpServer.SSHEncryptionAlgorithms = string.Join(',', defaultEncryptionAlgorithms.Except(algorithmsToRemove));
+
+            Log.Debug("SFTP Server instance constructed");
 
             #region assign event handlers
             //[Description("Information about errors during data delivery.")]

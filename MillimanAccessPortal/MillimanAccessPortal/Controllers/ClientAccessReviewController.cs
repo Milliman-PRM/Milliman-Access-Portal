@@ -325,7 +325,8 @@ namespace MillimanAccessPortal.Controllers
                         IsContentUser = mu.ClientUserRoles.TryGetValue(RoleEnum.ContentUser, out contentUserValue) ? contentUserValue : false,
                         IsFileDropAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out fileDropAdminValue) ? fileDropAdminValue : false,
                         IsFileDropUser = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out fileDropUserValue) ? fileDropUserValue : false,
-                    });
+                        IsSuspended = mu.IsSuspended,
+                    }); 
                 });
                 using (var stream = new StreamWriter(userRolesCsvPath))
                 using (var csv = new CsvWriter(stream, writerConfig))

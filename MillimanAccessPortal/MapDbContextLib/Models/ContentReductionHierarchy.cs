@@ -216,6 +216,12 @@ namespace MapDbContextLib.Models
                 RootContentItemId = hierarchy?.RootContentItemId ?? selections.RootContentItemId,
             };
 
+            if (selections is null)
+            {
+                result.Fields = hierarchy.Fields.Select(f => ReductionField<ReductionFieldValueSelection>.FieldWithNoValues(f)).ToList();
+                return result;
+            }
+
             foreach (var field in hierarchy?.Fields ?? new List<ReductionField<ReductionFieldValue>> { })
             {
                 var sourceField = selections.Fields.SingleOrDefault((f) => f.FieldName == field.FieldName);

@@ -1598,6 +1598,17 @@ namespace MillimanAccessPortal.Controllers
                 activePublication.RequestStatus = PublicationStatus.Canceled;
                 activePublication.UploadedRelatedFilesObj = null;
             }
+            List<Guid> publicationIdList = activePublications.Select(p => p.Id).ToList();
+            List<ContentReductionTask> activeReductionTasks = await _dbContext.ContentReductionTask
+                                                                              .Where(t => publicationIdList.Contains(t.ContentPublicationRequestId.Value))
+                                                                              .ToListAsync();
+
+            foreach (ContentReductionTask activeTask in activeReductionTasks)
+            {
+                activeTask.ReductionStatus = ReductionStatusEnum.Canceled;
+                activeTask.ReductionStatusMessage = activeTask.ReductionStatusMessage +
+                    $"{Environment.NewLine}This reduction task was canceled by the MAP system administrator at {DateTime.UtcNow} UTC";
+            }
 
             try
             {

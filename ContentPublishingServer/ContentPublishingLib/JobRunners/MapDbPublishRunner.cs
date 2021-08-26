@@ -523,7 +523,7 @@ namespace ContentPublishingLib.JobRunners
                         MasterFilePath = string.Empty,
                     };
 
-                    newTaskRecord.OutcomeMetadataObj = new ReductionTaskOutcomeMetadata
+                    var outcomeMetadata = new ReductionTaskOutcomeMetadata
                     {
                         ProcessingStartedUtc = now,
                         ReductionTaskId = newTaskRecord.Id,
@@ -562,8 +562,8 @@ namespace ContentPublishingLib.JobRunners
 
                             newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                             newTaskRecord.ReductionStatusMessage = "";
-                            newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned;
-                            newTaskRecord.OutcomeMetadataObj.UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString();
+                            outcomeMetadata.OutcomeReason = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned;
+                            outcomeMetadata.UserMessage = MapDbReductionTaskOutcomeReason.MasterHierarchyAssigned.GetDisplayDescriptionString();
                         }
                         else
                         {
@@ -572,23 +572,23 @@ namespace ContentPublishingLib.JobRunners
                                                                             .SingleOrDefaultAsync(f => f.FieldName == "Roles" &&
                                                                                                   f.RootContentItemId == JobDetail.Request.RootContentId);
 
-                            // If there is no stored hierarchy there can be no reduction task saved
+                            // If there is no stored hierarchy the reduction gets warning status
                             if (existingHierarchyField is null)
                             {
                                 newTaskRecord.ReductionStatus = ReductionStatusEnum.Warning;
                                 newTaskRecord.ReductionStatusMessage = "There is currently no active role list for this content item";
-                                newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
-                                newTaskRecord.OutcomeMetadataObj.UserMessage = "There is currently no active role list for this content item";
-                                newTaskRecord.OutcomeMetadataObj.SupportMessage = "There is currently no active role list for this content item";
+                                outcomeMetadata.OutcomeReason = MapDbReductionTaskOutcomeReason.SelectionForInvalidFieldName;
+                                outcomeMetadata.UserMessage = "There is currently no active role list for this content item";
+                                outcomeMetadata.SupportMessage = "There is currently no active (live) role list for this content item";
                             }
                             else if (!existingSelectedValues.Select(v => v.Value).Any(r => ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList.Contains(r)))
                             {
                                 // There are no values selected
                                 newTaskRecord.ReductionStatus = ReductionStatusEnum.Warning;
                                 newTaskRecord.ReductionStatusMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent.GetDisplayDescriptionString();
-                                newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
-                                newTaskRecord.OutcomeMetadataObj.UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent.GetDisplayDescriptionString();
-                                newTaskRecord.OutcomeMetadataObj.SupportMessage = "No roles of the new publication are selected for this selection group";
+                                outcomeMetadata.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
+                                outcomeMetadata.UserMessage = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent.GetDisplayDescriptionString();
+                                outcomeMetadata.SupportMessage = "No roles of the new publication are selected for this selection group";
                                 newTaskRecord.SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>
                                 {
                                     RootContentItemId = JobDetail.Request.RootContentId,
@@ -634,24 +634,26 @@ namespace ContentPublishingLib.JobRunners
                                 newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                                 newTaskRecord.ReductionStatusMessage = "";
 
-                                newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.Success;
-                                newTaskRecord.OutcomeMetadataObj.UserMessage = newTaskRecord.ReductionStatusMessage;
+                                outcomeMetadata.OutcomeReason = MapDbReductionTaskOutcomeReason.Success;
+                                outcomeMetadata.UserMessage = newTaskRecord.ReductionStatusMessage;
                             }
                         }
-
-                        db.ContentReductionTask.Add(newTaskRecord);
                     }
                     catch (Exception ex)
                     {
                         newTaskRecord.ReductionStatus = ReductionStatusEnum.Error;
                         newTaskRecord.ReductionStatusMessage = $"Error while storing reduced hierarchy information for Power BI content";
 
-                        newTaskRecord.OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
-                        newTaskRecord.OutcomeMetadataObj.UserMessage = newTaskRecord.ReductionStatusMessage;
-                        newTaskRecord.OutcomeMetadataObj.SupportMessage = GlobalFunctions.LoggableExceptionString(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})", IncludeStackTrace: true);
+                        outcomeMetadata.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
+                        outcomeMetadata.UserMessage = newTaskRecord.ReductionStatusMessage;
+                        outcomeMetadata.SupportMessage = GlobalFunctions.LoggableExceptionString(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})", IncludeStackTrace: true);
 
                         Log.Error(ex, $"Failed to populate ContentReductionTask record for Power BI role assignment processing, selection group {group.Id} ({group.GroupName})");
                     }
+
+                    newTaskRecord.OutcomeMetadataObj = outcomeMetadata;
+
+                    db.ContentReductionTask.Add(newTaskRecord);
                 } // foreach group
 
                 await db.SaveChangesAsync();
