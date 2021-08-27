@@ -4,7 +4,7 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>f332be56-1c11-4275-9d82-8a84f4b022c3</UserSecretsId>
-    <Version>1.14.0</Version>
+    <Version>1.15.0</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
   </PropertyGroup>

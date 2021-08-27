@@ -2,8 +2,9 @@
 
 ## Release Notes
 
-### v1.xx.0
+### v1.15.0
 
+- Added the ability to publish and manage Power BI content using role based row level security
 - Fixed a bug that prevented non-SSO users from starting the password reset process from Account Settings
 
 ### v1.14.0
