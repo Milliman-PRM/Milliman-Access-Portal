@@ -14,6 +14,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public Guid Id { get; set; }
         public string ClientName { get; set; }
         public string ClientCode { get; set; }
+        public Guid? CustomCapacityId { get; set; }
 
         public static explicit operator ClientDetailForUser(Client client)
         {
@@ -27,6 +28,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 Id = client.Id,
                 ClientName = client.Name,
                 ClientCode = client.ClientCode,
+                CustomCapacityId = client.ConfigurationOverride.PowerBiCapacityId,
             };
         }
     }

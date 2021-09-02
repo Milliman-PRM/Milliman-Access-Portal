@@ -3,9 +3,6 @@
  * OBJECTIVE: Configuration values utilized by PowerBiLibApi
  * DEVELOPER NOTES:
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace PowerBiLib
 {

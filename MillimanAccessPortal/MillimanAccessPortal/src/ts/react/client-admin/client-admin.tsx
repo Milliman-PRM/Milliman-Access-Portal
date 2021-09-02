@@ -465,6 +465,12 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                         />
                       </div>
                     </div>
+                    {details.usesCustomPowerBICapacity &&
+                      <small className="text-muted">
+                        <ActionIcon icon="information" cursor={false} />&nbsp;
+                        <span>This Client is using a separate Power BI capacity for all Power BI content.</span>
+                      </small>
+                    }
                   </div>
                 </div>
                 <div className="form-section">
@@ -710,6 +716,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     </div>
                   </div>
                 </div>
+
                 {!edit.disabled ?
                   <div className="form-submission-section">
                     {selected.client === 'new' || selected.client === 'child' ?
