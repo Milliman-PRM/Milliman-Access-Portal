@@ -25,7 +25,7 @@ namespace MillimanAccessPortal.Migrations
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "3.1.18")
+                .HasAnnotation("ProductVersion", "3.1.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("MapDbContextLib.Context.AuthenticationScheme", b =>
