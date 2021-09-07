@@ -334,7 +334,8 @@ CREATE OR REPLACE VIEW public."UserInContentItemHistory" AS
      JOIN "ContentType" ct ON ct."Id" = rci."ContentTypeId"
      JOIN "Client" cl ON rci."ClientId" = cl."Id"
      JOIN "ClientInProfitCenter" cpc ON cl."Id" = cpc."ClientId" AND cpc."EndDate" = '9999-12-31'::date
-     JOIN "ProfitCenter" pc ON pc."Id" = cpc."ProfitCenterId";
+     JOIN "ProfitCenter" pc ON pc."Id" = cpc."ProfitCenterId"
+   WHERE usg."EndDate" > now() - interval '6 hours';
 
 ALTER TABLE public."UserInContentItemHistory"
     OWNER TO prmpgadmin;
@@ -358,7 +359,8 @@ CREATE OR REPLACE VIEW public."QlikViewAuditSession" AS
  SELECT qvs."Id" AS "SessionId",
     qva."Id" AS "AuditId"
    FROM "QlikViewSession" qvs
-     JOIN "QlikViewAudit" qva ON qvs."Document" = qva."Document" AND qvs."Session" = qva."Session" AND qva."Timestamp" >= qvs."SessionStartTime" AND qva."Timestamp" <= qvs."SessionEndTime";
+     JOIN "QlikViewAudit" qva ON qvs."Document" = qva."Document" AND qvs."Session" = qva."Session" AND qva."Timestamp" >= qvs."SessionStartTime" AND qva."Timestamp" <= qvs."SessionEndTime"
+  WHERE qva."Timestamp" > now() - interval '6 hours';
 
 ALTER TABLE public."QlikViewAuditSession"
     OWNER TO prmpgadmin;
@@ -372,6 +374,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionFile" AS
             "QlikViewSession"."LogFileName",
             "QlikViewSession"."LogFileLineNumber"
            FROM "QlikViewSession"
+           where "SessionStartTime" > now() - interval '6 hours'
         )
  SELECT sf."SessionId",
     sf."SessionStartTime",
@@ -584,29 +587,10 @@ CREATE OR REPLACE VIEW public."NYExportCounts" AS
      JOIN "Client" cl ON rci."ClientId" = cl."Id"
      JOIN "ClientInProfitCenter" cpc ON cl."Id" = cpc."ClientId"
      JOIN "ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id"
-  WHERE cpc."EndDate" = '9999-12-31'::date AND strpos(qva."Message", 'action(11)') > 0
+  WHERE cpc."EndDate" = '9999-12-31'::date AND strpos(qva."Message", 'action(11)') > 0 AND qva."Timestamp" > now() - interval '6 hours'
   GROUP BY pc."Name", cl."Name", rci."ContentName", qvs."Username", (date_part('month'::text, qva."Timestamp")), (date_part('year'::text, qva."Timestamp"));
 
 ALTER TABLE public."NYExportCounts"
-    OWNER TO prmpgadmin;
-
-CREATE OR REPLACE VIEW public."UserContentAccess" AS
- SELECT "AuditEvent"."Id",
-        CASE
-            WHEN ("AuditEvent"."EventData" #>> '{ContentItem,Id}'::text[]) IS NULL THEN "AuditEvent"."EventData" ->> 'ContentItem'::text
-            ELSE "AuditEvent"."EventData" #>> '{ContentItem,Id}'::text[]
-        END AS "ContentItemId",
-        CASE
-            WHEN ("AuditEvent"."EventData" #>> '{ContentItem,Id}'::text[]) IS NULL THEN "AuditEvent"."EventData" ->> 'SelectionGroup'::text
-            ELSE "AuditEvent"."EventData" #>> '{SelectionGroup,Id}'::text[]
-        END AS "SelectionGroupId",
-    "AuditEvent"."SessionId",
-    "AuditEvent"."TimeStampUtc" AS "TimeStampEasternTime",
-    "AuditEvent"."User"
-   FROM "AuditEvent"
-  WHERE "AuditEvent"."EventCode" = 1008;
-
-ALTER TABLE public."UserContentAccess"
     OWNER TO prmpgadmin;
 
 CREATE OR REPLACE VIEW public."UserRoleListing" AS
@@ -666,7 +650,8 @@ CREATE OR REPLACE VIEW public."UserInFileDrop" AS
      JOIN "FileDrop" fd ON pg."FileDropId" = fd."Id"
      JOIN public."Client" cl ON fd."ClientId" = cl."Id"
 	 JOIN public."ClientInProfitCenter" cpc ON cpc."ClientId" = cl."Id"
-     JOIN public."ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id";
+     JOIN public."ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id"
+    WHERE psa."EndDate" > now() - interval '6 months';
 
 ALTER TABLE public."UserInFileDrop"
     OWNER TO prmpgadmin;
