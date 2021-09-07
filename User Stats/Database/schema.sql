@@ -335,7 +335,7 @@ CREATE OR REPLACE VIEW public."UserInContentItemHistory" AS
      JOIN "Client" cl ON rci."ClientId" = cl."Id"
      JOIN "ClientInProfitCenter" cpc ON cl."Id" = cpc."ClientId" AND cpc."EndDate" = '9999-12-31'::date
      JOIN "ProfitCenter" pc ON pc."Id" = cpc."ProfitCenterId"
-   WHERE usg."EndDate" > now() - interval '6 hours';
+   WHERE usg."EndDate" > now() - interval '6 months';
 
 ALTER TABLE public."UserInContentItemHistory"
     OWNER TO prmpgadmin;
@@ -360,7 +360,7 @@ CREATE OR REPLACE VIEW public."QlikViewAuditSession" AS
     qva."Id" AS "AuditId"
    FROM "QlikViewSession" qvs
      JOIN "QlikViewAudit" qva ON qvs."Document" = qva."Document" AND qvs."Session" = qva."Session" AND qva."Timestamp" >= qvs."SessionStartTime" AND qva."Timestamp" <= qvs."SessionEndTime"
-  WHERE qva."Timestamp" > now() - interval '6 hours';
+  WHERE qva."Timestamp" > now() - interval '6 months';
 
 ALTER TABLE public."QlikViewAuditSession"
     OWNER TO prmpgadmin;
@@ -374,7 +374,7 @@ CREATE OR REPLACE VIEW public."QlikViewSessionFile" AS
             "QlikViewSession"."LogFileName",
             "QlikViewSession"."LogFileLineNumber"
            FROM "QlikViewSession"
-           where "SessionStartTime" > now() - interval '6 hours'
+           where "SessionStartTime" > now() - interval '6 months'
         )
  SELECT sf."SessionId",
     sf."SessionStartTime",
@@ -587,7 +587,7 @@ CREATE OR REPLACE VIEW public."NYExportCounts" AS
      JOIN "Client" cl ON rci."ClientId" = cl."Id"
      JOIN "ClientInProfitCenter" cpc ON cl."Id" = cpc."ClientId"
      JOIN "ProfitCenter" pc ON cpc."ProfitCenterId" = pc."Id"
-  WHERE cpc."EndDate" = '9999-12-31'::date AND strpos(qva."Message", 'action(11)') > 0 AND qva."Timestamp" > now() - interval '6 hours'
+  WHERE cpc."EndDate" = '9999-12-31'::date AND strpos(qva."Message", 'action(11)') > 0 AND qva."Timestamp" > now() - interval '6 months'
   GROUP BY pc."Name", cl."Name", rci."ContentName", qvs."Username", (date_part('month'::text, qva."Timestamp")), (date_part('year'::text, qva."Timestamp"));
 
 ALTER TABLE public."NYExportCounts"
