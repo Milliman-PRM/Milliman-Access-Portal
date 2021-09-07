@@ -1298,7 +1298,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
       </>
     );
     const qlikViewHierarchyValues = goLiveSummary && goLiveSummary.reductionHierarchy
-      && goLiveSummary.contentTypeName === 'QlikView' && (
+      && goLiveSummary.contentTypeName === 'Qlikview' && (
       <GoLiveSection
         title="Hierarchy Changes"
         checkboxLabel="All hierarchy changes are as expected"
@@ -1321,7 +1321,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         {hierarchyChildren}
       </GoLiveSection>
       );
-    const hierarchyValues = goLiveSummary && goLiveSummary.contentTypeName === 'QlikView' ? qlikViewHierarchyValues :
+    const hierarchyValues = goLiveSummary && goLiveSummary.contentTypeName === 'Qlikview' ? qlikViewHierarchyValues :
       ((goLiveSummary && goLiveSummary.contentTypeName) === 'PowerBi' ? powerBiHierarchyValues : null);
     const selectionGroups = goLiveSummary && goLiveSummary.selectionGroups && (
       <GoLiveSection
