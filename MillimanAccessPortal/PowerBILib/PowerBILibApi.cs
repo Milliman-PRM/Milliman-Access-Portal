@@ -105,58 +105,54 @@ namespace PowerBiLib
         /// Creates a group
         /// </summary>
         /// <returns>the Id of the newly created group</returns>
-        public async Task<Guid> CreateGroupAsync(string name, Guid? capacityId = null)
+        internal async Task<Group> CreateGroupAsync(PowerBIClient client, string groupName, Guid? capacityIdOverride)
         {
-            using (var client = new PowerBIClient(_tokenCredentials))
+            // If this method is ever changed to public for outside caller use, the return type should be changed to GroupModel.  
+            // Otherwise the Microsoft namespace will need to be included in the caller's scope and that would violate encapsulation goals
+            Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
+
+            Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
+            Capacity targetCapacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId);
+
+            if (targetCapacity == null)
             {
-                Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
-                Capacity targetCapacity = capacityId.HasValue
-                    ? allCapacities.Value.SingleOrDefault(c => c.Id == capacityId.Value)
-                    : allCapacities.Value.SingleOrDefault();
-
-                if (targetCapacity == null)
-                {
-                    throw new ApplicationException("Designated Power BI capacity was not found");
-                }
-
-                Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(name), true);
-                if (newGroup == null)
-                {
-                    throw new ApplicationException("Failed to create new Power BI group");
-                }
-
-                await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
-
-                return newGroup.Id;
+                throw new ApplicationException("Designated Power BI capacity was not found");
             }
+
+            Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
+            if (newGroup == null)
+            {
+                throw new ApplicationException("Failed to create new Power BI group");
+            }
+
+            await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
+
+            return newGroup;
         }
 
         /// <summary>
-        /// Import a .pbix file to PowerBI in the cloud
+        /// Import a .pbix file to PowerBI in the cloud.  The named group is created if it is not found
         /// </summary>
         /// <param name="pbixFullPath"></param>
         /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
-        /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
+        /// <param name="capacityIdOverride">Used if the named group does not exist and a capacity other than the globally configured one is to be used</param>
         /// <returns></returns>
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, Guid? capacityIdOverride)
         {
+            Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
+
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var groups = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.ToList();
-
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
-                if (group == null)
+                if (group is null)
                 {
-                    Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == Guid.Parse(_config.PbiCapacityId)) ?? allCapacities.Value.Single();
-
-                    group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
-                    if (group == null)
-                    {
-                        string msg = $"Requested group <{groupName}> not found and could not be created";
-                        throw new ApplicationException(msg);
-                    }
-                    await client.Groups.AssignToCapacityAsync(group.Id, new AssignToCapacityRequest(capacityId: capacity.Id));
+                    group = await CreateGroupAsync(client, groupName, capacityId);
+                }
+                
+                if (group.CapacityId != capacityId)
+                {
+                    string msg = $"Power BI group {group.Id} is associated with capacity Id {group.CapacityId}, not the specified capacity Id {capacityId}";
+                    throw new ApplicationException(msg);
                 }
 
                 string pbixFileName = Path.GetFileName(pbixFullPath);

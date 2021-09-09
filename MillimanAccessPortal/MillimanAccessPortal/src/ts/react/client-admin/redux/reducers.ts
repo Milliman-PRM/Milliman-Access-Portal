@@ -81,6 +81,7 @@ const _initialDetails: ClientDetail = {
   consultantName: '',
   consultantEmail: null,
   newUserWelcomeText: '',
+  usesCustomPowerBICapacity: false,
 };
 
 const _initialData: AccessStateData = {

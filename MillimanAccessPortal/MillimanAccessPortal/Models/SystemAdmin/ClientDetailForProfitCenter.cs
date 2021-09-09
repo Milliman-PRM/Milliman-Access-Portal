@@ -20,6 +20,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public string ContactEmail { get; set; }
         public string ContactPhone { get; set; }
         public NestedList AuthorizedUsers { get; set; } = null;
+        public Guid? CustomCapacityId { get; set; }
 
         public static explicit operator ClientDetailForProfitCenter(Client client)
         {
@@ -36,6 +37,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 ContactName = client.ContactName,
                 ContactEmail = client.ContactEmail,
                 ContactPhone = client.ContactPhone,
+                CustomCapacityId = client.ConfigurationOverride.PowerBiCapacityId,
             };
         }
 

@@ -88,17 +88,17 @@ namespace ContentPublishingLib.JobRunners
             {
                 switch (JobDetail.Request.ContentType)
                 {
-                    case ContentTypeEnum.Qlikview:
-                        if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
-                        {
-                            await QueueReductionActivityAsync(JobDetail.Request.MasterContentFile);
-                        }
-                        break;
-
                     case ContentTypeEnum.PowerBi:
                         if (JobDetail.Request.DoesReduce)
                         {
                             await GeneratePbiRlsReductionTaskRecords();
+                        }
+                        break;
+
+                    default:
+                        if (JobDetail.Request.MasterContentFile != null && !JobDetail.Request.SkipReductionTaskQueueing)
+                        {
+                            await QueueReductionActivityAsync(JobDetail.Request.MasterContentFile);
                         }
                         break;
                 }
