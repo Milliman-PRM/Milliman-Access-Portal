@@ -50,6 +50,7 @@ namespace PowerBiMigration
             this.btnExportSelectedClient = new System.Windows.Forms.Button();
             this.txtReportDetails = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.GetCapacityIDs = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnGetAllInventory
@@ -260,11 +261,22 @@ namespace PowerBiMigration
             this.label1.TabIndex = 13;
             this.label1.Text = "Temporary Folder";
             // 
+            // GetCapacityIDs
+            // 
+            this.GetCapacityIDs.Location = new System.Drawing.Point(13, 172);
+            this.GetCapacityIDs.Name = "GetCapacityIDs";
+            this.GetCapacityIDs.Size = new System.Drawing.Size(104, 23);
+            this.GetCapacityIDs.TabIndex = 14;
+            this.GetCapacityIDs.Text = "List Capacities";
+            this.GetCapacityIDs.UseVisualStyleBackColor = true;
+            this.GetCapacityIDs.Click += new System.EventHandler(this.GetCapacityIDs_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1066, 539);
+            this.Controls.Add(this.GetCapacityIDs);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.txtReportDetails);
             this.Controls.Add(this.radioTarget);
@@ -315,6 +327,7 @@ namespace PowerBiMigration
         private System.Windows.Forms.Button btnExportSelectedClient;
         private System.Windows.Forms.TextBox txtReportDetails;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Button GetCapacityIDs;
     }
 }
 

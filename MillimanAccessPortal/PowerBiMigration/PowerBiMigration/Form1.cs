@@ -434,7 +434,7 @@ namespace PowerBiMigration
                 PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
 
                 long importStart = timer.ElapsedMilliseconds;
-                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString());
+                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString(), Guid.Parse(_targetPbiConfig.PbiCapacityId));
 
                 if (embedModel == null)
                 {
@@ -485,6 +485,20 @@ namespace PowerBiMigration
             {
                 txtReportDetails.Clear();
             }
+        }
+
+        private async void GetCapacityIDs_Click(object sender, EventArgs e)
+        {
+            using (new OperationScope(this, "Getting capacity IDs")) ;
+            PowerBiLibApi pbiApi = Controls.OfType<RadioButton>().Single(b => b.Checked) switch
+            {
+                RadioButton b when b.Name == "radioSource" => await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync(),
+                RadioButton b when b.Name == "radioTarget" => await new PowerBiLibApi(_targetPbiConfig).InitializeAsync(),
+                _ => throw new ApplicationException("Unhandled radio button is checked"),
+            };
+
+            string capacityInfo = await pbiApi.GetAllCapacityInfo();
+            MessageBox.Show($"Capacities for the {Controls.OfType<RadioButton>().Single(b => b.Checked).Name.Replace("radio", "")} credentials:{Environment.NewLine}{capacityInfo}");
         }
     }
 }
