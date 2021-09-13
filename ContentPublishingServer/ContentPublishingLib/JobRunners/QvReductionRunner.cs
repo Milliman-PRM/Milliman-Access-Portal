@@ -37,6 +37,7 @@ namespace ContentPublishingLib.JobRunners
         {
             // Initialize members
             QmsUrl = Configuration.ApplicationConfiguration["QdsQmsApiUrl"];
+            string configuredSourceDocsPath = Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"];
 
             Task initTask = Task.Run(async () =>
             {
@@ -50,14 +51,15 @@ namespace ContentPublishingLib.JobRunners
                 foreach (DocumentFolder DocFolder in docFolderArray)
                 {
                     // eliminate any trailing slash issue
-                    if (Path.GetFullPath(Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]) == Path.GetFullPath(DocFolder.General.Path))
+                    if (Path.GetFullPath(configuredSourceDocsPath) == Path.GetFullPath(DocFolder.General.Path))
                     {
                         SourceDocFolder = DocFolder;
                         return;  // Returns from this Task, not the method
                     }
                 }
 
-                throw new ApplicationException($"Qlikview Source Document folder {Configuration.ApplicationConfiguration["Storage:QvSourceDocumentsPath"]} not found by Qlikview server");
+                string serverSourceDocsList = string.Join(", ", docFolderArray.Select(f => Path.GetFullPath(f.General.Path)));
+                throw new ApplicationException($"Configured QVP Source Document folder {Path.GetFullPath(configuredSourceDocsPath)} not found by Qlikview server, available choices are {serverSourceDocsList}");
             });
             while (!initTask.IsCompleted)
             {
@@ -232,7 +234,7 @@ namespace ContentPublishingLib.JobRunners
                 JobDetail.Result.ProcessingDuration = DateTime.UtcNow - ProcessingStartTime;
                 try
                 {
-                    Cleanup();
+                    bool cleanupResult = Cleanup();
                 }
                 catch (System.Exception e)  // fail safe in case any exception gets to this point
                 {
@@ -546,23 +548,30 @@ namespace ContentPublishingLib.JobRunners
         /// </summary>
         private bool Cleanup()
         {
-            string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
-            if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
+            if (SourceDocFolder is null)
             {
-                try
-                {
-                    FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute, true);
-                }
-                catch (System.Exception e)  // Do not let this throw upward
-                {
-                    // It's an error, but the reduction task has completed by now so just log this and continue.
-                    Log.Error(e, $"QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
-                }
+                Log.Warning($"QvReductionRunner.Cleanup(), unable to run because SourceDocFolder is null");
+                return false;
             }
+            else
+            {
+                string WorkingFolderAbsolute = Path.Combine(SourceDocFolder.General.Path, WorkingFolderRelative);
+                if (!string.IsNullOrWhiteSpace(WorkingFolderRelative) && Directory.Exists(WorkingFolderAbsolute))
+                {
+                    try
+                    {
+                        FileSystemUtil.DeleteDirectoryWithRetry(WorkingFolderAbsolute, true);
+                    }
+                    catch (System.Exception e)  // Do not let this throw upward
+                    {
+                        // It's an error, but the reduction task has completed by now so just log this and continue.
+                        Log.Error(e, $"QvReductionRunner.Cleanup(), failed to delete temporary reduction directory {WorkingFolderAbsolute}, continuing");
+                    }
+                }
 
-            Log.Information($"QvReductionRunner.Cleanup(), reduction Task {JobDetail.TaskId} completed Cleanup");
-
-            return true;
+                Log.Information($"QvReductionRunner.Cleanup(), reduction Task {JobDetail.TaskId} completed Cleanup");
+                return true;
+            }
         }
 
         /// <summary>
