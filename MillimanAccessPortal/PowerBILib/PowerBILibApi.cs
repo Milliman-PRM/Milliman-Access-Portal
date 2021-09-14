@@ -380,6 +380,17 @@ namespace PowerBiLib
             }
         }
 
+        public async Task<string> GetAllCapacityInfo()
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                var capacities = await client.Capacities.GetCapacitiesAsync();
+                string result = JsonConvert.SerializeObject(capacities, Formatting.Indented);
+                return result;
+            }
+
+        }
+
         /// <summary>
         /// Initialize a new access token
         /// </summary>
