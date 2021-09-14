@@ -446,9 +446,8 @@ namespace PowerBiMigration
 
                 PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
 
-                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString(), Guid.Parse(_targetPbiConfig.PbiCapacityId));
-
                 long importStart = timer.ElapsedMilliseconds;
+                PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString(), Guid.Parse(_targetPbiConfig.PbiCapacityId));
                 newProcessedItem.ImportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - importStart);
 
                 if (embedModel == null)
