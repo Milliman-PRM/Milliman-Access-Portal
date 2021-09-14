@@ -272,17 +272,27 @@ namespace PowerBiMigration
 
                         foreach (var contentItem in contentItems)
                         {
-                            var newProcessedItem = await ExportOneContentItem(client, contentItem, newSubFolder, db);
+                            Log.Information($"Preparing to process content item <{contentItem.ContentName}> ({contentItem.Id}) in Client {client.Name} ({client.Id})");
+                            ProcessedItem newProcessedItem = await ExportOneContentItem(client, contentItem, newSubFolder, db);
                             _processedItems.Add(newProcessedItem);
                         }
                     }
 
-                    if (_processedItems.All(i => i.Status == ProcessingStatus.DbUpdateSuccess))
+                    if (chkUpdateDatabase.Enabled && chkUpdateDatabase.Checked)
                     {
-                        DialogResult confirmation = MessageBox.Show("Please review the operation log and confirm that no errors are indicated. Click \"Yes\" to commit all updates to the MAP application database", "Processing Complete", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
-                        if (confirmation == DialogResult.Yes)
+                        if (_processedItems.All(i => i.Status == ProcessingStatus.DbUpdateSuccess))
                         {
-                            txn.Commit();
+                            DialogResult confirmation = MessageBox.Show("Please review the operation log and confirm that no errors are indicated. Click \"Yes\" to commit all updates to the MAP application database", "Processing Complete", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation, MessageBoxDefaultButton.Button2);
+                            if (confirmation == DialogResult.Yes)
+                            {
+                                txn.Commit();
+                            }
+                        }
+                        else
+                        {
+                            MessageBox.Show($"Not all content metadata was successfully updated in the database{Environment.NewLine}" +
+                                string.Join(Environment.NewLine, _processedItems.Where(i => i.Status != ProcessingStatus.DbUpdateSuccess).Select(i => $"Client {i.ClientName}, Content {i.ContentItemName}, Status {i.Status}"))
+                                );
                         }
                     }
                 }
@@ -387,41 +397,42 @@ namespace PowerBiMigration
 
         private async Task<ProcessedItem> ExportOneContentItem(Client client, RootContentItem contentItem, string clientFolder, ApplicationDbContext db)
         {
+            ProcessedItem newProcessedItem = new ProcessedItem
+            {
+                ClientId = contentItem.ClientId,
+                ClientName = client.Name,
+                ContentItemId = contentItem.Id,
+                ContentItemName = contentItem.ContentName,
+                OldGroupId = client.Id,
+            };
+
             Stopwatch timer = Stopwatch.StartNew();
 
             PowerBiLibApi sourcePbiApi = await new PowerBiLibApi(_sourcePbiConfig).InitializeAsync();
             PowerBiContentItemProperties typeSpecificDetail = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-            Log.Information($"Preparing to export content item {contentItem.ContentName}, workspace ID {typeSpecificDetail.LiveWorkspaceId}, report ID {typeSpecificDetail.LiveReportId}");
+            Log.Information($"Preparing to export from workspace ID {typeSpecificDetail.LiveWorkspaceId}, report ID {typeSpecificDetail.LiveReportId}");
 
             // Do the export from the source
             long itemExportStartMs = timer.ElapsedMilliseconds;
             var exportReturn = await sourcePbiApi.ExportReportAsync(typeSpecificDetail.LiveWorkspaceId.Value, typeSpecificDetail.LiveReportId.Value, clientFolder, chkWriteFiles.Checked);
 
-            Log.Information($"Finished streaming content of report {JsonSerializer.Serialize(exportReturn.report)}{(string.IsNullOrEmpty(exportReturn.reportFilePath) ? ", no file written" : $" to file {exportReturn.reportFilePath}")}");
-
-            ProcessedItem newProcessedItem = new ProcessedItem
-            {
-                ClientId = contentItem.ClientId,
-                ContentItemId = contentItem.Id,
-                OldGroupId = client.Id,
-                ExportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - itemExportStartMs),
-            };
+            newProcessedItem.ExportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - itemExportStartMs);
 
             switch (exportReturn.reportFilePath)
             {
                 case null:
-                    Log.Information($"Error while exporting content item {contentItem.ContentName}, time {newProcessedItem.ExportTime}");
+                    Log.Error($"Error while exporting content item {contentItem.ContentName}, time {newProcessedItem.ExportTime}");
                     newProcessedItem.Status = ProcessingStatus.ExportFail;
                     return newProcessedItem;
                 case "":
-                    Log.Information($"Content item <{contentItem.ContentName}> exported, not saved, time {newProcessedItem.ExportTime}");
+                    Log.Information($"Exported, not saved, time {newProcessedItem.ExportTime}");
                     newProcessedItem.Status = ProcessingStatus.ExportSuccess;
                     newProcessedItem.OldReportId = exportReturn.report.ReportId;
                     newProcessedItem.ReportName = exportReturn.report.ReportName;
                     break;
                 default:
-                    Log.Information($"Content item <{contentItem.ContentName}> exported, saved to file {exportReturn.reportFilePath}, time {newProcessedItem.ExportTime}");
+                    Log.Information($"Exported and saved to file {exportReturn.reportFilePath}, time {newProcessedItem.ExportTime}");
                     newProcessedItem.Status = ProcessingStatus.FileSaveSuccess;
                     newProcessedItem.OldReportId = exportReturn.report.ReportId;
                     newProcessedItem.ReportName = exportReturn.report.ReportName;
@@ -431,25 +442,32 @@ namespace PowerBiMigration
             // if selected, do the import to the target
             if (chkImportToTarget.Enabled && chkImportToTarget.Checked && File.Exists(exportReturn.reportFilePath))
             {
+                Log.Information($"Preparing to import to target, report name <{exportReturn.report.ReportName}>");
+
                 PowerBiLibApi targetPbiApi = await new PowerBiLibApi(_targetPbiConfig).InitializeAsync();
 
                 long importStart = timer.ElapsedMilliseconds;
                 PowerBiEmbedModel embedModel = await targetPbiApi.ImportPbixAsync(exportReturn.reportFilePath, client.Id.ToString());
+                newProcessedItem.ImportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - importStart);
 
                 if (embedModel == null)
                 {
-                    Log.Error($"Import of report named <{exportReturn.report.ReportName}> to Power BI target failed");
                     newProcessedItem.Status = ProcessingStatus.ImportFail;
+                    Log.Error($"Import failed to Power BI target");
                     return newProcessedItem;
                 }
-
-                newProcessedItem.ImportTime = TimeSpan.FromMilliseconds(timer.ElapsedMilliseconds - importStart);
-                newProcessedItem.NewGroupId = embedModel.WorkspaceId;
-                newProcessedItem.NewReportId = embedModel.ReportId;
-                newProcessedItem.Status = ProcessingStatus.ImportSuccess;
+                else
+                {
+                    newProcessedItem.NewGroupId = embedModel.WorkspaceId;
+                    newProcessedItem.NewReportId = embedModel.ReportId;
+                    newProcessedItem.Status = ProcessingStatus.ImportSuccess;
+                    Log.Information($"Import completed to target, new workspace Id {embedModel.WorkspaceId}, new report Id {embedModel.ReportId}");
+                }
 
                 if (chkUpdateDatabase.Enabled && chkUpdateDatabase.Checked)
                 {
+                    Log.Information("Preparing to save new embed model properties to database");
+
                     typeSpecificDetail.LiveEmbedUrl = embedModel.EmbedUrl;
                     typeSpecificDetail.LiveReportId = embedModel.ReportId;
                     typeSpecificDetail.LiveWorkspaceId = embedModel.WorkspaceId;
@@ -458,14 +476,15 @@ namespace PowerBiMigration
                     try
                     {
                         db.SaveChanges();
+                        newProcessedItem.Status = ProcessingStatus.DbUpdateSuccess;
+                        Log.Information($"Pending transaction commit, database successfully updated");
                     }
-                    catch
+                    catch (Exception ex)
                     {
                         newProcessedItem.Status = ProcessingStatus.DbUpdateFail;
+                        Log.Error(ex, "Exception while saving new embed model properties to database");
                         return newProcessedItem;
                     }
-                    newProcessedItem.Status = ProcessingStatus.DbUpdateSuccess;
-                    Log.Information($"Database updated for content item {contentItem.ContentName}, {contentItem.Id}");
                 }
             }
 
