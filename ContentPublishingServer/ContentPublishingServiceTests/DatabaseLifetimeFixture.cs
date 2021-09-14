@@ -41,8 +41,7 @@ namespace ContentPublishingServiceTests
                 .CreateLogger();
 
             Log.Information($"Running as user {Environment.UserDomainName} \\ {new string(Environment.UserName.Reverse().ToArray())}");
-            Log.Information($"or {Environment.UserDomainName} \\ {new string(Environment.GetEnvironmentVariable("Username", EnvironmentVariableTarget.Machine).Reverse().ToArray())}");
-            Log.Information($"or {new string(System.Security.Principal.WindowsIdentity.GetCurrent().Name.Reverse().ToArray())}");
+            Log.Information($"Running in named environment {Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")}");
 
             Configuration = GenerateConfiguration();
 
