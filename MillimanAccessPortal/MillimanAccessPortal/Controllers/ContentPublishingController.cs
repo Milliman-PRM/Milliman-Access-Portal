@@ -517,7 +517,14 @@ namespace MillimanAccessPortal.Controllers
                     PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                     PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-                    await powerBiApi.DeleteReportAsync(props.LiveReportId.Value);
+                    if (props?.LiveReportId is not null)
+                    {
+                        await powerBiApi.DeleteReportAsync(props.LiveReportId.Value);
+                    }
+                    if (props?.PreviewReportId is not null)
+                    {
+                        await powerBiApi.DeleteReportAsync(props.PreviewReportId.Value);
+                    }
                     break;
 
                 case ContentTypeEnum.Html:
