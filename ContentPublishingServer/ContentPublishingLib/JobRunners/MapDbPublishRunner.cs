@@ -486,6 +486,21 @@ namespace ContentPublishingLib.JobRunners
                 {
                     DateTime now = DateTime.UtcNow;
 
+                    ContentReductionHierarchy<ReductionFieldValue> newContentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
+                    {
+                        RootContentItemId = JobDetail.Request.RootContentId,
+                    };
+                    newContentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
+                    {
+                        Id = Guid.Empty,
+                        FieldName = "Roles",
+                        DisplayName = "Roles",
+                        StructureType = FieldStructureType.Flat,
+                        Values = ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList
+                            .Select(r => new ReductionFieldValue { Value = r })
+                            .ToList(),
+                    });
+
                     var newTaskRecord = new ContentReductionTask
                     {
                         Id = Guid.NewGuid(),
@@ -497,6 +512,7 @@ namespace ContentPublishingLib.JobRunners
                         TaskAction = TaskActionEnum.Unspecified,
                         ResultFilePath = null,
                         MasterFilePath = string.Empty,
+                        MasterContentHierarchyObj = newContentHierarchy,
                     };
 
                     var outcomeMetadata = new ReductionTaskOutcomeMetadata
@@ -510,7 +526,6 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (group.IsMaster)
                         {
-                            newTaskRecord.MasterContentHierarchyObj = new ContentReductionHierarchy<ReductionFieldValue>();
                             newTaskRecord.ReducedContentHierarchyObj = null;
                             newTaskRecord.SelectionCriteriaObj = null;
                             newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
@@ -525,23 +540,6 @@ namespace ContentPublishingLib.JobRunners
                                                                                  .Where(v => group.SelectedHierarchyFieldValueList != null && group.SelectedHierarchyFieldValueList.Contains(v.Id))
                                                                                  .ToList();
 
-                            ContentReductionHierarchy<ReductionFieldValue> newContentHierarchy = new ContentReductionHierarchy<ReductionFieldValue>
-                            {
-                                RootContentItemId = JobDetail.Request.RootContentId,
-                            };
-
-                            newContentHierarchy.Fields.Add(new ReductionField<ReductionFieldValue>
-                            {
-                                Id = Guid.Empty,
-                                FieldName = "Roles",
-                                DisplayName = "Roles",
-                                StructureType = FieldStructureType.Flat,
-                                Values = ((PowerBiPublicationProperties)JobDetail.Request.TypeSpecificDetail).RoleList
-                                    .Select(r => new ReductionFieldValue { Value = r })
-                                    .ToList(),
-                            });
-
-                            newTaskRecord.MasterContentHierarchyObj = newContentHierarchy;
                             newTaskRecord.ReducedContentHierarchyObj = newContentHierarchy;
 
                             HierarchyField existingHierarchyField = await db.HierarchyField
