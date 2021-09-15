@@ -86,6 +86,25 @@ namespace ContentPublishingLib.JobRunners
 
             try
             {
+                // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
+                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                {
+                    // if there are no selection groups for this content, create a master group
+                    if (!await Db.SelectionGroup.AnyAsync(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
+                    {
+                        SelectionGroup NewMasterSelectionGroup = new SelectionGroup
+                        {
+                            RootContentItemId = JobDetail.Request.RootContentId,
+                            GroupName = "Master Content Access",
+                            IsMaster = true,
+                            Id = Guid.NewGuid(),
+                            TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
+                        };
+                        Db.SelectionGroup.Add(NewMasterSelectionGroup);
+                        await Db.SaveChangesAsync();
+                    }
+                }
+
                 switch (JobDetail.Request.ContentType)
                 {
                     case ContentTypeEnum.PowerBi:
@@ -327,25 +346,6 @@ namespace ContentPublishingLib.JobRunners
         /// <param name="masterContentFile"></param>
         private async Task QueueReductionActivityAsync(ContentRelatedFile masterContentFile)
         {
-            // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-            {
-                // if there are no selection groups for this content, create a master group
-                if (!await Db.SelectionGroup.AnyAsync(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
-                {
-                    SelectionGroup NewMasterSelectionGroup = new SelectionGroup
-                    {
-                        RootContentItemId = JobDetail.Request.RootContentId,
-                        GroupName = "Master Content Access",
-                        IsMaster = true,
-                        Id = Guid.NewGuid(),
-                        TypeSpecificDetail = JsonConvert.SerializeObject(new object()),
-                    };
-                    Db.SelectionGroup.Add(NewMasterSelectionGroup);
-                    await Db.SaveChangesAsync();
-                }
-            }
-
             if (JobDetail.Request.DoesReduce)
             {
                 switch (JobDetail.Request.ContentType)
@@ -466,11 +466,6 @@ namespace ContentPublishingLib.JobRunners
                             }
                         }
                         break;
-
-                    case ContentTypeEnum.PowerBi:
-                        Log.Information($"Reducing Power BI document");
-                        // TODO maybe nothing is needed here
-                        break;
                 }
             }
             else
@@ -481,25 +476,6 @@ namespace ContentPublishingLib.JobRunners
 
         private async Task GeneratePbiRlsReductionTaskRecords()
         {
-            // If there is no SelectionGroup for this content item, create a new SelectionGroup with IsMaster = true
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-            {
-                // if there are no selection groups for this content, create a master group
-                if (!await Db.SelectionGroup.AnyAsync(sg => sg.RootContentItemId == JobDetail.Request.RootContentId))
-                {
-                    SelectionGroup NewMasterSelectionGroup = new SelectionGroup
-                    {
-                        RootContentItemId = JobDetail.Request.RootContentId,
-                        GroupName = "Master Content Access",
-                        IsMaster = true,
-                        Id = Guid.NewGuid(),
-                        TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiSelectionGroupProperties()),
-                    };
-                    Db.SelectionGroup.Add(NewMasterSelectionGroup);
-                    await Db.SaveChangesAsync();
-                }
-            }
-
             using (ApplicationDbContext db = new ApplicationDbContext(ContextOptions))
             {
                 List<SelectionGroup> selectionGroups = await db.SelectionGroup
