@@ -120,12 +120,13 @@ namespace PowerBiLib
             }
 
             Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
-            if (newGroup == null)
+            if (newGroup is null)
             {
                 throw new ApplicationException("Failed to create new Power BI group");
             }
 
             await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
+            newGroup = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
 
             return newGroup;
         }
