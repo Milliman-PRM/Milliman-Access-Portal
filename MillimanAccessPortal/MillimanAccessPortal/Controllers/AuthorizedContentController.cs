@@ -1119,7 +1119,7 @@ namespace MillimanAccessPortal.Controllers
 
                 Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: success, returning file {contentFile.FullPath}");
 
-                return PhysicalFile(contentFile.FullPath, "pbix");
+                return PhysicalFile(contentFile.FullPath, "application/octet-stream", contentFile.FileOriginalName);
             }
             catch (Exception e)
             {
