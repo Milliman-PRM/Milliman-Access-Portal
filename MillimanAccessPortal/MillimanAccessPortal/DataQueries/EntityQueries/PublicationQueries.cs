@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     .SingleAsync(r => r.Id == publicationId);
 
                 // Provide queue position for publications that have not yet begun
-                if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publication.RequestStatus))
+                if (PublicationStatusExtensions.BeforeOrInQueueStatusList.Contains(publication.RequestStatus))
                 {
                     var precedingPublicationRequestCount = await _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
