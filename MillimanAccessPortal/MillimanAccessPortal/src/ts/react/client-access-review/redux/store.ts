@@ -74,7 +74,7 @@ interface ClientContentItemModel {
   selectionGroups: ClientContentItemSelectionGroupModel[];
 }
 
-interface ClientContentItemSelectionGroupModel {
+export interface ClientContentItemSelectionGroupModel {
   selectionGroupName: string;
   isSuspended: boolean;
   authorizedUsers: ClientActorModel[];
