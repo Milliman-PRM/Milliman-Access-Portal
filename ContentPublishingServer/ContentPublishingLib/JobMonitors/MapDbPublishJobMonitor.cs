@@ -437,6 +437,7 @@ namespace ContentPublishingLib.JobMonitors
                         case MapDbPublishJobMonitorType.ReducingPublications:
                             inProgressPublicationRequests = await Db.ContentPublicationRequest
                                                                     .Include(r => r.RootContentItem)
+                                                                        .ThenInclude(rci => rci.ContentType)
                                                                     .Where(r => r.RequestStatus == PublicationStatus.Processing)
                                                                     .Where(r => r.RootContentItem.DoesReduce)
                                                                     .ToListAsync();
