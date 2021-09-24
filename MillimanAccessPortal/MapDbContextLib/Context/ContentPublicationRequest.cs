@@ -99,6 +99,12 @@ namespace MapDbContextLib.Context
             PublicationStatus.Error,
         };
 
+        public static List<PublicationStatus> BeforeOrInQueueStatusList { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
+        };
+
         public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
         {
             PublicationStatus.Validating,

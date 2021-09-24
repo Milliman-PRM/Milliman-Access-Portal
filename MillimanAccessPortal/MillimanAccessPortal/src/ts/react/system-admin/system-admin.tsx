@@ -273,7 +273,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                           ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
                         issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
                           ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
-                          + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                          + moment.utc(entity.accountDisableDate).local().format('MMM DD, YYYY')
                           : null
                         }
                       />
@@ -394,7 +394,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                         ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
                       issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
                         ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
-                        + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                        + moment.utc(entity.accountDisableDate).local().format('MMM DD, YYYY')
                         : null
                       }
                     />
@@ -577,7 +577,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       ? (entity.isAccountDisabled ? 'error' : 'warning') : 'none'}
                     issueIconText={(entity.isAccountDisabled || entity.isAccountNearDisabled)
                       ? (entity.isAccountDisabled ? 'Account disabled on ' : 'Account will be disabled on ')
-                      + moment.utc(entity.accontDisableDate).local().format('MMM DD, YYYY')
+                      + moment.utc(entity.accountDisableDate).local().format('MMM DD, YYYY')
                       : null
                     }
                   />
@@ -1719,7 +1719,7 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     return {
       isAccountDisabled: selectedEntityData ? selectedEntityData.isAccountDisabled : false,
       isAccountNearDisabled: selectedEntityData ? selectedEntityData.isAccountNearDisabled : false,
-      accountDisableDate: selectedEntityData ? selectedEntityData.accontDisableDate : '',
+      accountDisableDate: selectedEntityData ? selectedEntityData.accountDisableDate : '',
     };
   }
 

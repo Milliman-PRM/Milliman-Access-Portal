@@ -29,8 +29,8 @@ import { activeSelectedClient, clientEntities, clientSortIcon, continueButtonIsA
 import {
   AccessReviewGlobalData, AccessReviewState, AccessReviewStateCardAttributes, AccessReviewStateFilters,
   AccessReviewStateModals, AccessReviewStatePending, AccessReviewStateSelected, ClientAccessReviewModel,
-  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientReviewDeadlineStatusEnum,
-  ClientSummaryModel,
+  ClientAccessReviewProgress, ClientAccessReviewProgressEnum, ClientActorModel, ClientContentItemSelectionGroupModel,
+  ClientReviewDeadlineStatusEnum, ClientSummaryModel,
 } from './redux/store';
 
 type ClientEntity = (ClientWithReviewDate & { indent: 1 | 2 }) | 'divider';
@@ -705,7 +705,22 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                               return (
                                 <React.Fragment key={sg.selectionGroupName}>
                                   {
-                                    sg.authorizedUsers.map((user, index) => {
+                                    sg.authorizedUsers.length === 0 ?
+                                      <tr
+                                        key={sg.selectionGroupName}
+                                        className="table-row-divider"
+                                      >
+                                        <td
+                                          rowSpan={1}
+                                          className={`table-row-divider${sg.isSuspended ? '-suspended' : ''}`}
+                                        >
+                                          {this.showSuspendedSelectionGroupIcon(sg)}
+                                          {' ' + sg.selectionGroupName}
+                                        </td>
+                                        <td />
+                                        <td />
+                                      </tr>
+                                    : sg.authorizedUsers.map((user, index) => {
                                       return (
                                         <tr
                                           key={user.userEmail}
@@ -720,12 +735,7 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
                                                 className={`table-row-divider${sg.isSuspended ? '-suspended' :
                                                 ''}`}
                                               >
-                                                {sg.isSuspended ? (
-                                                  <ActionIcon
-                                                    icon="information"
-                                                    label={sg.selectionGroupName + ' is suspended'}
-                                                  />
-                                                ) : null}
+                                                {this.showSuspendedSelectionGroupIcon(sg)}
                                                 {' ' + sg.selectionGroupName}
                                               </td>
                                             ) : null
@@ -1026,6 +1036,15 @@ class ClientAccessReview extends React.Component<ClientAccessReviewProps & typeo
         </div>
       );
     }
+  }
+
+  private showSuspendedSelectionGroupIcon(selectionGroup: ClientContentItemSelectionGroupModel) {
+    return selectionGroup.isSuspended ? (
+      <ActionIcon
+        icon="information"
+        label={selectionGroup.selectionGroupName + ' is suspended'}
+      />
+    ) : null;
   }
 }
 
