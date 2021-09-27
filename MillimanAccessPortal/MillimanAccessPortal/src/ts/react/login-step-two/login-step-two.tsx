@@ -4,6 +4,7 @@ import * as React from 'react';
 import * as Yup from 'yup';
 
 import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
+import { ButtonSpinner } from '../shared-components/button-spinner';
 import { BaseFormState, Form } from '../shared-components/form/form';
 import { Input } from '../shared-components/form/input';
 
@@ -51,7 +52,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   }
 
   public render() {
-    const { formIsValid, errors } = this.state;
+    const { awaitingLogin, formIsValid, errors } = this.state;
     return (
       <>
         <BrowserSupportBanner />
@@ -104,6 +105,7 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
                   className="blue-button"
                 >
                   Log in
+                  {awaitingLogin && <ButtonSpinner version="bars" />}
                 </button>
               </div>
             </div>
@@ -116,33 +118,43 @@ export class LoginStepTwo extends Form<{}, LoginStepTwoFormState> {
   protected handleSubmit = async (e: React.MouseEvent<HTMLButtonElement> | React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    const errors = { ...this.state.errors };
-    const errorMessage = await this.validateProperty({ name: 'code', value: this.state.data.codeCancel });
-    if (errorMessage) {
-      errors.code = errorMessage.code;
-      this.setState({ errors });
-      return;
-    } else {
-      this.setState({ errors: {} });
-    }
+    if (!this.state.awaitingLogin) {
+      const errors = { ...this.state.errors };
+      const errorMessage = await this.validateProperty({ name: 'code', value: this.state.data.codeCancel });
+      if (errorMessage) {
+        errors.code = errorMessage.code;
+        this.setState({ errors });
+        return;
+      } else {
+        this.setState({ errors: {} });
+      }
 
-    const requestData = this.state.data.returnUrl ? this.state.data :
-    {
-      code: this.state.data.code,
-    };
+      const requestData = this.state.data.returnUrl ? this.state.data :
+      {
+        code: this.state.data.code,
+      };
 
-    postData(window.location.href, requestData, true)
-      .then((response) => {
-        if (response) {
-          const redirectUrl = response.headers.get('NavigateTo');
-          window.location.replace(redirectUrl || this.state.data.returnUrl);
-        }
-      }).catch((error) => {
-        errors.code = error.message;
-        this.setState({ errors }, () => {
-          this.focusCodeInput();
-        });
+      this.setState({
+        awaitingLogin: true,
+      }, () => {
+        postData(window.location.href, requestData, true)
+          .then((response) => {
+            if (response) {
+              const redirectUrl = response.headers.get('NavigateTo');
+              window.location.replace(redirectUrl || this.state.data.returnUrl);
+            }
+            this.setState({ awaitingLogin: false });
+          }).catch((error) => {
+            errors.code = error.message;
+            this.setState({
+              awaitingLogin: false,
+              errors,
+            }, () => {
+              this.focusCodeInput();
+            });
+          });
       });
+    }
   }
 
   private focusCodeInput() {

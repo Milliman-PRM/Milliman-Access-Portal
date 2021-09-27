@@ -16,6 +16,10 @@
         }
     }
 
+    &.no-cursor {
+        cursor: default !important;
+    }
+
     &.disabled svg.action-icon {
         color: $grey !important;
     }
@@ -38,7 +42,7 @@
 
     .action-icon-container-inline {
         margin: 0 !important;
-    } 
+    }
     
     svg {
         color: $white;

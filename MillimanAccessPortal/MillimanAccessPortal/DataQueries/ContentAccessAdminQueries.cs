@@ -3,6 +3,7 @@ using MillimanAccessPortal.DataQueries.EntityQueries;
 using MillimanAccessPortal.Models.EntityModels.ClientModels;
 using MillimanAccessPortal.Models.ContentAccessAdmin;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
+using MillimanAccessPortal.Models.EntityModels.HierarchyModels;
 using MillimanAccessPortal.Models.EntityModels.SelectionGroupModels;
 using System;
 using System.Collections.Generic;
@@ -132,10 +133,10 @@ namespace MillimanAccessPortal.DataQueries
         /// <returns>Response model</returns>
         public async Task<SelectionsResponseModel> SelectSelectionsAsync(Guid selectionGroupId)
         {
-            var liveSelections = await _selectionGroupQueries.SelectSelectionsWhereSelectionGroupAsync(selectionGroupId);
-            var reductionSelections = await _publicationQueries.SelectReductionSelectionsAsync(selectionGroupId);
-            var fields = await _hierarchyQueries.SelectFieldsWhereSelectionGroupAsync(selectionGroupId);
-            var values = await _hierarchyQueries.SelectValuesWhereSelectionGroupAsync(selectionGroupId);
+            List<Guid> liveSelections = await _selectionGroupQueries.GetLiveSelectionValueIdsForSelectionGroupAsync(selectionGroupId);
+            List<Guid> reductionSelections = await _publicationQueries.SelectReductionSelectionsAsync(selectionGroupId);
+            List<BasicField> fields = await _hierarchyQueries.SelectFieldsWhereSelectionGroupAsync(selectionGroupId);
+            List<BasicValue> values = await _hierarchyQueries.SelectValuesWhereSelectionGroupAsync(selectionGroupId);
 
             return new SelectionsResponseModel
             {
@@ -301,7 +302,7 @@ namespace MillimanAccessPortal.DataQueries
                                         ? new List<Guid> { }
                                         : new List<Guid> { reduction.Id }))
                                   .SingleOrDefault();
-            var liveSelections = await _selectionGroupQueries.SelectSelectionsWhereSelectionGroupAsync(selectionGroupId);
+            var liveSelections = await _selectionGroupQueries.GetLiveSelectionValueIdsForSelectionGroupAsync(selectionGroupId);
 
             return new SingleReductionModel
             {

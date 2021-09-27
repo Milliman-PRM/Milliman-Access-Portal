@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                     .SingleAsync(r => r.Id == publicationId);
 
                 // Provide queue position for publications that have not yet begun
-                if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publication.RequestStatus))
+                if (PublicationStatusExtensions.BeforeOrInQueueStatusList.Contains(publication.RequestStatus))
                 {
                     var precedingPublicationRequestCount = await _dbContext.ContentPublicationRequest
                         .Where(r => r.CreateDateTimeUtc < publication.CreateDateTimeUtc)
@@ -192,36 +192,35 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
         }
 
         /// <summary>
-        /// Select the list of selections for a reduction task
+        /// Gets the list of selections for a reduction task, as a subset of 
         /// </summary>
         /// <param name="selectionGroupId">Selection group ID</param>
         /// <returns>IDs of selected values minus any values not in the new reduced hierarchy</returns>
         internal async Task<List<Guid>> SelectReductionSelectionsAsync(Guid selectionGroupId)
         {
-            var reductionTask = await ReductionWhereSelectionGroupAsync(selectionGroupId);
+            ContentReductionTask reductionTask = await ReductionWhereSelectionGroupAsync(selectionGroupId);
             if (reductionTask == null)
             {
                 return new List<Guid> { };
             }
 
-            ContentReductionHierarchy<ReductionFieldValueSelection> selections = (await _dbContext.ContentReductionTask.FindAsync(reductionTask.Id))
-                ?.SelectionCriteriaObj;
+            ContentReductionHierarchy<ReductionFieldValueSelection> selections = reductionTask.SelectionCriteriaObj;
 
-            // remove selected values not contained in the hierarchy of the newly reduced content
+            // remove any selected values of the newly reduced content not contained in the hierarchy
             if (reductionTask.ReducedContentHierarchyObj != null && selections != null)
             {
                 foreach (var selectionHierarchyField in selections.Fields)
                 {
-                    var reducedValueList = reductionTask.ReducedContentHierarchyObj
-                        .Fields
-                        .Single(f => f.FieldName == selectionHierarchyField.FieldName)
-                        .Values
-                        .Select(v => v.Value)
-                        .ToList();
+                    List<string> reducedHierarchyFieldValueList = reductionTask.ReducedContentHierarchyObj
+                                                                               .Fields
+                                                                               .Single(f => f.FieldName == selectionHierarchyField.FieldName)
+                                                                               .Values
+                                                                               .Select(v => v.Value)
+                                                                               .ToList();
 
                     foreach (ReductionFieldValueSelection selectedValue in selectionHierarchyField.Values.Where(v => v.SelectionStatus))
                     {
-                        if (!reducedValueList.Contains(selectedValue.Value))
+                        if (!reducedHierarchyFieldValueList.Contains(selectedValue.Value))
                         {
                             selectedValue.SelectionStatus = false;
                         }

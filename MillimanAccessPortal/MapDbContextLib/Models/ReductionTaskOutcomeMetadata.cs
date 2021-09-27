@@ -35,7 +35,7 @@ namespace MapDbContextLib.Models
         [Display(Description = "No field values were selected for this reduction")]
         NoSelectedFieldValues = 101,
 
-        [Display(Description = "None of the selected values for this selection group exist in the new file")]
+        [Display(Description = "None of the selected values for this selection group exist in the new publication")]
         NoSelectedFieldValueExistsInNewContent = 102,
 
         [Display(Description = "A value was selected for an invalid field")]

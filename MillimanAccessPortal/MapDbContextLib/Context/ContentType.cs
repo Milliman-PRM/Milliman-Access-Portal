@@ -95,7 +95,7 @@ namespace MapDbContextLib.Context
                 },
                 new ContentType {
                     TypeEnum = ContentTypeEnum.PowerBi,
-                    CanReduce = false,
+                    CanReduce = true,
                     DefaultIconName = "PowerBI_Icon.png",
                     FileExtensions = new List<string> { "pbix" },
                 },

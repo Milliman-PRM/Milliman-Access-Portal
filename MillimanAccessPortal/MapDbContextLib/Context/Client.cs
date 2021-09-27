@@ -5,6 +5,7 @@
  */
 
 using MapCommonLib;
+using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
@@ -82,6 +83,10 @@ namespace MapDbContextLib.Context
         [Display(Name = "Profit Center *")]
         public Guid ProfitCenterId { get; set; }
         public ProfitCenter ProfitCenter { get; set; }
+
+        [Column(TypeName = "jsonb")]
+        [Required]
+        public ClientConfigurationOverride ConfigurationOverride { get; set; } = new ClientConfigurationOverride();
 
         public IEnumerable<Client> ChildClients { get; set; }
     }

@@ -166,6 +166,15 @@ export class PrimaryDetailPanel extends React.Component<PrimaryDetailPanelProps>
                         </button>
                       </span>
                     </div>
+                    {clientDetail.usesCustomPowerBICapacity &&
+                      <div className="detail-container">
+                        <span className="detail-label">Power BI Capacity</span>
+                        <span className="detail-value">
+                          This Client is using a separate Power BI capacity for all Power BI content.
+                          <br />Capacity ID: {clientDetail.customCapacityId}
+                        </span>
+                      </div>
+                    }
                   </div>
                 </div>
                 <div className="detail-column flex-item-for-desktop-up-6-12">

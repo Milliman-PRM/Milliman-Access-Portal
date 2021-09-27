@@ -13,6 +13,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace MapDbContextLib.Context
 {
@@ -96,6 +97,12 @@ namespace MapDbContextLib.Context
             PublicationStatus.Processed,
             PublicationStatus.Confirming,
             PublicationStatus.Error,
+        };
+
+        public static List<PublicationStatus> BeforeOrInQueueStatusList { get; } = new List<PublicationStatus>
+        {
+            PublicationStatus.Validating,
+            PublicationStatus.Queued,
         };
 
         public static List<PublicationStatus> QueueWaitableStatusList { get; } = new List<PublicationStatus>
@@ -184,6 +191,9 @@ namespace MapDbContextLib.Context
         /// </summary>
         [Column(TypeName = "jsonb")]
         public string RequestedAssociatedFiles { get; set; } = "[]";
+
+        [Column(TypeName = "jsonb")]
+        public string TypeSpecificDetail { get; set; } = null;
 
         [Required]
         public PublicationStatus RequestStatus { get; set; }

@@ -48,5 +48,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
         public TypeSpecificContentItemProperties TypeSpecificDetailObject { get; set; }
 
+        public TypeSpecificPublicationPropertiesBase TypeSpecificPublicationProperties { get; set; }
+
     }
 }

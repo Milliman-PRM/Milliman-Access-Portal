@@ -5,15 +5,17 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210722164440_AddTypeSpecificPublicationDetails")]
+    partial class AddTypeSpecificPublicationDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -25,7 +27,7 @@ namespace MillimanAccessPortal.Migrations
                 .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
                 .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "3.1.15")
+                .HasAnnotation("ProductVersion", "3.1.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("MapDbContextLib.Context.AuthenticationScheme", b =>
@@ -76,12 +78,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ClientCode")
                         .HasColumnType("text");
-
-                    b.Property<ClientConfigurationOverride>("ConfigurationOverride")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("jsonb")
-                        .HasDefaultValueSql("jsonb_build_object()");
 
                     b.Property<string>("ConsultantEmail")
                         .HasColumnType("text");
@@ -1171,7 +1167,7 @@ namespace MillimanAccessPortal.Migrations
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyFieldValue", b =>
                 {
                     b.HasOne("MapDbContextLib.Context.HierarchyField", "HierarchyField")
-                        .WithMany("HierarchyFieldValues")
+                        .WithMany()
                         .HasForeignKey("HierarchyFieldId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();

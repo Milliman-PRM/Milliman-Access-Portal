@@ -81,6 +81,7 @@ const _initialDetails: ClientDetail = {
   consultantName: '',
   consultantEmail: null,
   newUserWelcomeText: '',
+  usesCustomPowerBICapacity: false,
 };
 
 const _initialData: AccessStateData = {
@@ -510,6 +511,10 @@ const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
   SET_FORM_FIELD_VALUE: (state, action: AccessActions.SetFormFieldValue) => ({
     ...state,
     [action.field]: action.value,
+  }),
+  APPEND_FORM_FIELD_ARRAY_VALUE: (state, action: AccessActions.AppendFormFieldArrayValue) => ({
+    ...state,
+    [action.field]: state[action.field].concat(action.value),
   }),
 });
 
