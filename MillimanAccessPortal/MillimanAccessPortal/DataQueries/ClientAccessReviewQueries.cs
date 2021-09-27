@@ -114,6 +114,7 @@ namespace MillimanAccessPortal.DataQueries
                 PrimaryContactName = client.ContactName,
                 PrimaryContactEmail = client.ContactEmail,
                 ReviewDueDate = GlobalFunctions.UtcToLocalString(client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(_appConfig.GetValue<int>("ClientReviewRenewalPeriodDays")), userTimeZone),
+                UsesCustomPowerBICapacity = client.ConfigurationOverride.PowerBiCapacityId != null,
             };
             clientAdmins.ForEach(ca => returnModel.ClientAdmins.Add((ClientActorModel)ca));
             profitCenterAdmins.ForEach(pca => returnModel.ProfitCenterAdmins.Add((ClientActorModel)pca));

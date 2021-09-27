@@ -24,6 +24,7 @@ export interface ClientSummaryModel {
   assignedProfitCenter: string;
   clientAdmins: ClientActorModel[];
   profitCenterAdmins: ClientActorModel[];
+  usesCustomPowerBICapacity: boolean;
 }
 
 export interface ClientActorModel {
@@ -73,7 +74,7 @@ interface ClientContentItemModel {
   selectionGroups: ClientContentItemSelectionGroupModel[];
 }
 
-interface ClientContentItemSelectionGroupModel {
+export interface ClientContentItemSelectionGroupModel {
   selectionGroupName: string;
   isSuspended: boolean;
   authorizedUsers: ClientActorModel[];

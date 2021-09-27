@@ -2,9 +2,14 @@
 
 ## Release Notes
 
-### v1.xx.0
+### v1.15.0
 
+- Added the ability to publish and manage Power BI content using role based row level security
+- Added support for configuring Clients to use dedicated powerbi.com capacity for storage of powerbi content files
 - Fixed a bug that prevented non-SSO users from starting the password reset process from Account Settings
+- Fixed a bug in the Client Access Review page where Selection Groups having no assigned users were not displayed
+- Fixed a bug that prevented the display of progress in the processing of a reducing Qlikview content publication
+- Removed support for a group of weak encryption algorithms used in the SFTP feature set
 
 ### v1.14.0
 

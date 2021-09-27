@@ -56,6 +56,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <span className="detail-label">Client Code</span>
                           <span className="detail-value">{clientDetailForUser.clientCode}</span>
                         </div>
+                        {clientDetailForUser.customCapacityId &&
+                          <div className="detail-container">
+                            <span className="detail-label">Power BI Capacity</span>
+                            <span className="detail-value">
+                              This Client is using a separate Power BI capacity for all Power BI content.
+                              <br />Capacity ID: {clientDetailForUser.customCapacityId}
+                            </span>
+                          </div>
+                        }
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
@@ -278,6 +287,15 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                           <span className="detail-label">Phone</span>
                           <span className="detail-value">{clientDetailForProfitCenter.contactPhone}</span>
                         </div>
+                        {clientDetailForProfitCenter.customCapacityId &&
+                          <div className="detail-container">
+                            <span className="detail-label">Power BI Capacity</span>
+                            <span className="detail-value">
+                              This Client is using a separate Power BI capacity for all Power BI content.
+                              <br />Capacity ID: {clientDetailForProfitCenter.customCapacityId}
+                            </span>
+                          </div>
+                        }
                       </div>
                     </div>
                     <div className="detail-column flex-item-for-desktop-up-6-12">
