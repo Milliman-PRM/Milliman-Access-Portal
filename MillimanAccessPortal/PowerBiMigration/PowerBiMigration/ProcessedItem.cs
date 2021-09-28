@@ -5,8 +5,12 @@ namespace PowerBiMigration
     public class ProcessedItem
     {
         public Guid ClientId { get; set; }
-        
+
+        public string ClientName { get; set; }
+
         public Guid ContentItemId { get; set; }
+
+        public string ContentItemName { get; set; }
 
         public Guid OldGroupId { get; set; }
         

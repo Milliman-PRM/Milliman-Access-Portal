@@ -44,6 +44,7 @@ export interface ActionIconProps {
   action: () => void;
   inline: boolean;
   disabled?: boolean;
+  cursor?: boolean;
 }
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
@@ -52,12 +53,14 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     action: (): null => null,
     inline: true,
     disabled: false,
+    cursor: true,
   };
   public render() {
-    const { inline, disabled, label, icon, action } = this.props;
+    const { inline, disabled, label, icon, action, cursor } = this.props;
     return action && (
       <div
-        className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''}`}
+        className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''}
+                    tooltip ${!cursor ? ' no-cursor' : ''}`}
         title={label}
         onClick={this.action}
       >

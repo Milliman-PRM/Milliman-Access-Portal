@@ -56,11 +56,11 @@ namespace MillimanAccessPortal.Models.ContentPublishing
 
             var publicationSummary = (PublicationSummary)publicationRequest;
 
-            if (PublicationStatusExtensions.QueueWaitableStatusList.Contains(publicationRequest.RequestStatus))
+            if (PublicationStatusExtensions.BeforeOrInQueueStatusList.Contains(publicationRequest.RequestStatus))
             {
                 var precedingPublicationRequestCount = await dbContext.ContentPublicationRequest
                     .Where(r => r.CreateDateTimeUtc < publicationRequest.CreateDateTimeUtc)
-                    .Where(r => PublicationStatusExtensions.CancelablePublicationStatusList.Contains(r.RequestStatus))
+                    .Where(r => PublicationStatusExtensions.QueueWaitableStatusList.Contains(r.RequestStatus))
                     .CountAsync();
                 publicationSummary.QueuePosition = precedingPublicationRequestCount;
             }

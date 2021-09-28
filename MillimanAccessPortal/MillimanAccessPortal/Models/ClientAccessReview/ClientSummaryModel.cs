@@ -25,6 +25,7 @@ namespace MillimanAccessPortal.Models.ClientAccessReview
         public string AssignedProfitCenter {get;set;}
         public List<ClientActorModel> ClientAdmins { get; set; } = new List<ClientActorModel>();
         public List<ClientActorModel> ProfitCenterAdmins { get; set; } = new List<ClientActorModel>();
+        public bool UsesCustomPowerBICapacity { get; set; }
     }
 
     public class ClientActorModel

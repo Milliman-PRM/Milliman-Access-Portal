@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.AccountViewModels;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
 using System;
@@ -53,10 +54,10 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                                            .SingleOrDefaultAsync(r => r.RequestStatus == PublicationStatus.Processed);
 
             #region Validation of PubRequest and related nav properties from db
-            if (PubRequest == null
-             || PubRequest.RootContentItem == null
-             || PubRequest.RootContentItem.ContentType == null
-             || PubRequest.RootContentItem.Client == null
+            if (PubRequest is null
+             || PubRequest.RootContentItem is null
+             || PubRequest.RootContentItem.ContentType is null
+             || PubRequest.RootContentItem.Client is null
              )  // if any of this happens it probably means db corruption or connection failed
             {
                 throw new ApplicationException($"While building content validation summary, publication request query failed");
@@ -82,6 +83,19 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ThumbnailLink = null,
             };
 
+            if (PubRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+            {
+                UriBuilder contentUri = new UriBuilder
+                {
+                    Scheme = Context.Request.Scheme,
+                    Host = Context.Request.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                    Port = Context.Request.Host.Port ?? -1,
+                    Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}",
+                    Query = $"request={PubRequest.Id}",
+                };
+                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+            }
+
             foreach (ContentRelatedFile RelatedFile in PubRequest.LiveReadyFilesObj)
             {
                 UriBuilder contentUri = new UriBuilder
@@ -97,10 +111,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.PowerBiPreview)}";
-                                contentUri.Query = $"request={PubRequest.Id}";
-
-                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
+                                // This case is handled outside the switch because a new master file is not required for hierarchy change
                                 break;
 
                             case ContentTypeEnum.Qlikview:
@@ -159,7 +170,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 List<ContentReductionTask> AllTasks = await Db.ContentReductionTask
                                                               .Include(t => t.SelectionGroup)
                                                               .Where(t => t.ContentPublicationRequestId == PubRequest.Id)
-                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new master hierarchy
+                                                              .Where(t => t.SelectionGroup != null)  // omit the task that extracts the new QVW master hierarchy
                                                               .ToListAsync();
 
                 #region Validation of reduction tasks and related nav properties from db
@@ -185,7 +196,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         foreach (var user in userQuery)
                         {
                             var userInfo = (UserInfoViewModel)user;
-                            selectionGroupUsers.Add(userInfo); 
+                            selectionGroupUsers.Add(userInfo);
                         }
 
                         string errorMessage = null;
@@ -215,17 +226,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                             ? null
                             : ContentReductionHierarchy<ReductionFieldValueSelection>.Apply(task.MasterContentHierarchyObj, task.SelectionCriteriaObj);
 
-                        UriBuilder reducedLinkBuilder = 
-                            task.SelectionGroup.IsMaster
-                            ? new UriBuilder(ReturnObj.MasterContentLink)
-                            : new UriBuilder
-                            {
-                                Scheme = Context.Request.Scheme,
-                                Host = Context.Request.Host.Host,
-                                Port = Context.Request.Host.Port ?? -1,
-                                Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
-                                Query = $"publicationRequestId={PubRequest.Id}&reductionTaskId={task.Id}",
-                            };
+                        UriBuilder reducedLinkBuilder = BuildReducibleContentItemPreviewUri(task, ReturnObj.MasterContentLink, Context);
 
                         ReturnObj.SelectionGroups.Add(new SelectionGroupSummary
                         {
@@ -243,7 +244,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 : new ContentReductionHierarchy<ReductionFieldValueChange>
                                 {
                                     RootContentItemId = RootContentItemId,
-                                    Fields = task.SelectionCriteriaObj.Fields.Select(f =>
+                                    Fields = task.SelectionCriteriaObj is null
+                                    ? null
+                                    : task.SelectionCriteriaObj.Fields.Select(f =>
                                     {
                                         var addedValues = pendingSelections.Fields.Single(fp => fp.FieldName == f.FieldName).Values.Where(vp => vp.SelectionStatus).Except(
                                             liveSelections.Fields.Single(fl => fl.FieldName == f.FieldName).Values.Where(vl => vl.SelectionStatus), new ReductionFieldValueComparer());
@@ -298,18 +301,18 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         var sameValues = liveHierarchy.Fields.Where(f => f.FieldName == field.FieldName).SelectMany(f => f.Values).Intersect(field.Values, new ReductionFieldValueComparer());
 
                         ReturnObj.ReductionHierarchy.Fields.Add(new ReductionField<ReductionFieldValueChange>
+                        {
+                            Id = field.Id,
+                            DisplayName = field.DisplayName,
+                            FieldName = field.FieldName,
+                            StructureType = field.StructureType,
+                            ValueDelimiter = field.ValueDelimiter,
+                            Values = addedValues.Select(v => new ReductionFieldValueChange
                             {
-                                Id = field.Id,
-                                DisplayName = field.DisplayName,
-                                FieldName = field.FieldName,
-                                StructureType = field.StructureType,
-                                ValueDelimiter = field.ValueDelimiter,
-                                Values = addedValues.Select(v => new ReductionFieldValueChange
-                                    {
-                                        Id = v.Id,
-                                        Value = v.Value,
-                                        ValueChange = FieldValueChange.Added,
-                                    })
+                                Id = v.Id,
+                                Value = v.Value,
+                                ValueChange = FieldValueChange.Added,
+                            })
                                     .Concat(removedValues.Select(v => new ReductionFieldValueChange
                                     {
                                         Id = v.Id,
@@ -324,7 +327,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                     }))
                                     .OrderBy(v => v.Value)
                                     .ToList(),
-                            });
+                        });
                     }
                 }
             }
@@ -345,6 +348,39 @@ namespace MillimanAccessPortal.Models.ContentPublishing
             }
 
             return ReturnObj;
+        }
+
+        private static UriBuilder BuildReducibleContentItemPreviewUri(ContentReductionTask task, string masterContentLink, HttpContext context)
+        {
+            if (task.SelectionGroup.IsMaster)
+            {
+                // TODO Is this the right choice here?
+                return new UriBuilder(masterContentLink);
+            }
+            else
+            {
+                UriBuilder x = task.ContentPublicationRequest.RootContentItem.ContentType.TypeEnum switch
+                {
+                    ContentTypeEnum.Qlikview => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedQvwPreview)}",
+                        Query = $"publicationRequestId={task.ContentPublicationRequestId}&reductionTaskId={task.Id}",
+                    },
+                    ContentTypeEnum.PowerBi => new UriBuilder
+                    {
+                        Scheme = context.Request.Scheme,
+                        Host = context.Request.Host.Host,
+                        Port = context.Request.Host.Port ?? -1,
+                        Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ReducedPowerBiPreview)}",
+                        Query = $"reductionId={task.Id}",
+                    },
+                    _ => null,
+                };
+                return x;
+            }
         }
 
         public static explicit operator PreLiveContentValidationSummaryLogModel(PreLiveContentValidationSummary source)

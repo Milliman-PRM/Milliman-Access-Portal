@@ -104,6 +104,7 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.DomainListCountLimit).HasDefaultValue(GlobalFunctions.DefaultClientDomainListCountLimit);
                 b.Property(x => x.LastAccessReview).HasDefaultValueSql("jsonb_build_object('UserName', 'N/A', 'LastReviewDateTimeUtc', now() at time zone 'utc')");
                 b.HasOne(x => x.ParentClient).WithMany(c => c.ChildClients).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
+                b.Property(x => x.ConfigurationOverride).HasDefaultValueSql("jsonb_build_object()");
             });
             builder.Entity<UserRoleInClient>(b =>
             {
@@ -138,6 +139,8 @@ namespace MapDbContextLib.Context
             builder.Entity<HierarchyFieldValue>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
+                b.Property(x => x.Id);
+                b.HasOne(x => x.HierarchyField).WithMany(f => f.HierarchyFieldValues).OnDelete(DeleteBehavior.Cascade);
             });
             builder.Entity<ContentType>(b =>
             {

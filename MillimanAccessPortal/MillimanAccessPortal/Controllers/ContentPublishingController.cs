@@ -37,7 +37,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -517,7 +517,14 @@ namespace MillimanAccessPortal.Controllers
                     PowerBiContentItemProperties props = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                     PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
-                    await powerBiApi.DeleteReportAsync(props.LiveReportId.Value);
+                    if (props is not null && props.LiveReportId.HasValue)
+                    {
+                        await powerBiApi.DeleteReportAsync(props.LiveReportId.Value);
+                    }
+                    if (props is not null && props.PreviewReportId.HasValue)
+                    {
+                        await powerBiApi.DeleteReportAsync(props.PreviewReportId.Value);
+                    }
                     break;
 
                 case ContentTypeEnum.Html:
@@ -628,8 +635,11 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            // There must be new files or files to delete
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any())
+            List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
+            List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
+            var isPublicationWithPersistingFile = ContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList); // Only supports reducible Power BI
+
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !isPublicationWithPersistingFile)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -655,7 +665,7 @@ namespace MillimanAccessPortal.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            if (request.NewRelatedFiles.Any())
+            if (request.NewRelatedFiles.Any() || isPublicationWithPersistingFile)
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
@@ -669,15 +679,29 @@ namespace MillimanAccessPortal.Controllers
                     UploadedRelatedFilesObj = request.NewRelatedFiles,
                     RequestedAssociatedFileList = request.AssociatedFiles,
                 };
+                if (ContentItem.DoesReduce)
+                {
+                    switch (ContentItem.ContentType.TypeEnum) {
+                        case ContentTypeEnum.PowerBi:
+                            PowerBiPublicationProperties typedObject = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>();
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(typedObject);
+                            break;
+
+                        default:
+                            NewContentPublicationRequest.TypeSpecificDetail = null;
+                            break;
+                    };
+
+                }
                 _dbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
                 try
                 {
                     await _dbContext.SaveChangesAsync();
                 }
-                catch
+                catch (Exception ex)
                 {
-                    Log.Error($"In ContentPublishingController.Publish action: failed to save database changes, aborting");
+                    Log.Error(ex, $"In ContentPublishingController.Publish action: failed to save database changes, aborting");
                     Response.Headers.Add("Warning", "Failed to save database changes");
                     return StatusCode(StatusCodes.Status500InternalServerError);
                 }
@@ -802,7 +826,7 @@ namespace MillimanAccessPortal.Controllers
                 }
             }
 
-            // Cancel all realted ContentReductionTask records
+            // Cancel all related ContentReductionTask records
             List<ContentReductionTask> relatedTasks = await _dbContext.ContentReductionTask
                                                                       .Where(t => t.ContentPublicationRequestId == contentPublicationRequest.Id)
                                                                       .ToListAsync();
@@ -825,7 +849,7 @@ namespace MillimanAccessPortal.Controllers
             Log.Verbose($"In ContentPublishingController.CancelContentPublicationRequest action: success");
             AuditLogger.Log(AuditEventType.PublicationCanceled.ToEvent(rootContentItem, rootContentItem.Client, contentPublicationRequest), currentUser.UserName, currentUser.Id);
 
-            var rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
+            CancelPublicationModel rootContentItemStatusList = await _publishingQueries.SelectCancelContentPublicationRequestAsync(await _userManager.GetUserAsync(User), rootContentItem, Request);
 
             return new JsonResult(rootContentItemStatusList);
         }
@@ -947,7 +971,8 @@ namespace MillimanAccessPortal.Controllers
                                                         .Where(t => t.ContentPublicationRequestId == publicationRequest.Id)
                                                         .ToListAsync();
 
-            if (ReductionIsInvolved)
+            if (publicationRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.Qlikview && 
+                ReductionIsInvolved)
             {
                 // For each reducing SelectionGroup related to the RootContentItem:
                 var relatedSelectionGroups = _dbContext.SelectionGroup

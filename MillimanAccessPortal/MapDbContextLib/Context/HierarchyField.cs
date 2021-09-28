@@ -5,6 +5,7 @@
  */
 
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using MapDbContextLib.Models;
@@ -32,5 +33,6 @@ namespace MapDbContextLib.Context
         public Guid RootContentItemId { get; set; }
         public RootContentItem RootContentItem { get; set; }
 
+        public IEnumerable<HierarchyFieldValue> HierarchyFieldValues { get; set; }
     }
 }

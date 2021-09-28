@@ -30,6 +30,10 @@ export const setPublishingFormTextInputValue =
   createActionCreator<PublishActions.SetPublishingFormTextInputValue>('SET_PENDING_TEXT_INPUT_VALUE');
 export const setPublishingFormBooleanInputValue =
   createActionCreator<PublishActions.SetPublishingFormBooleanInputValue>('SET_PENDING_BOOLEAN_INPUT_VALUE');
+export const setPublishingFormTextArrayValue =
+  createActionCreator<PublishActions.SetPublishingFormTextArrayValue>('SET_PENDING_TEXT_ARRAY_VALUE');
+export const appendPublishingFormTextArrayValue =
+  createActionCreator<PublishActions.AppendPublishingFormTextArrayValue>('APPEND_PENDING_TEXT_ARRAY_VALUE');
 export const resetContentItemForm =
   createActionCreator<PublishActions.ResetContentItemForm>('RESET_CONTENT_ITEM_FORM');
 export const removeExistingFile =

@@ -105,58 +105,55 @@ namespace PowerBiLib
         /// Creates a group
         /// </summary>
         /// <returns>the Id of the newly created group</returns>
-        public async Task<Guid> CreateGroupAsync(string name, Guid? capacityId = null)
+        internal async Task<Group> CreateGroupAsync(PowerBIClient client, string groupName, Guid? capacityIdOverride)
         {
-            using (var client = new PowerBIClient(_tokenCredentials))
+            // If this method is ever changed to public for outside caller use, the return type should be changed to GroupModel.  
+            // Otherwise the Microsoft namespace will need to be included in the caller's scope and that would violate encapsulation goals
+            Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
+
+            Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
+            Capacity targetCapacity = allCapacities.Value.SingleOrDefault(c => c.Id == capacityId);
+
+            if (targetCapacity == null)
             {
-                Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
-                Capacity targetCapacity = capacityId.HasValue
-                    ? allCapacities.Value.SingleOrDefault(c => c.Id == capacityId.Value)
-                    : allCapacities.Value.SingleOrDefault();
-
-                if (targetCapacity == null)
-                {
-                    throw new ApplicationException("Designated Power BI capacity was not found");
-                }
-
-                Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(name), true);
-                if (newGroup == null)
-                {
-                    throw new ApplicationException("Failed to create new Power BI group");
-                }
-
-                await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
-
-                return newGroup.Id;
+                throw new ApplicationException("Designated Power BI capacity was not found");
             }
+
+            Group newGroup = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
+            if (newGroup is null)
+            {
+                throw new ApplicationException("Failed to create new Power BI group");
+            }
+
+            await client.Groups.AssignToCapacityAsync(newGroup.Id, new AssignToCapacityRequest(capacityId: targetCapacity.Id));
+            newGroup = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
+
+            return newGroup;
         }
 
         /// <summary>
-        /// Import a .pbix file to PowerBI in the cloud
+        /// Import a .pbix file to PowerBI in the cloud.  The named group is created if it is not found
         /// </summary>
         /// <param name="pbixFullPath"></param>
         /// <param name="groupName">Name (not Id) of the group that the report and dataset should be assigned to.  A new group is created if a group with this name is not found</param>
-        /// <param name="capacityId">Required only if both the named group does not exist and multiple capacities exists</param>
+        /// <param name="capacityIdOverride">Used if the named group does not exist and a capacity other than the globally configured one is to be used</param>
         /// <returns></returns>
-        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName)
+        public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, Guid? capacityIdOverride)
         {
+            Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
+
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var groups = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.ToList();
-
                 Group group = (await client.Groups.GetGroupsAsync($"contains(name,'{groupName}')")).Value.SingleOrDefault();
-                if (group == null)
+                if (group is null)
                 {
-                    Capacities allCapacities = await client.Capacities.GetCapacitiesAsync();
-                    Capacity capacity = allCapacities.Value.SingleOrDefault(c => c.Id == Guid.Parse(_config.PbiCapacityId)) ?? allCapacities.Value.Single();
-
-                    group = await client.Groups.CreateGroupAsync(new GroupCreationRequest(groupName), true);
-                    if (group == null)
-                    {
-                        string msg = $"Requested group <{groupName}> not found and could not be created";
-                        throw new ApplicationException(msg);
-                    }
-                    await client.Groups.AssignToCapacityAsync(group.Id, new AssignToCapacityRequest(capacityId: capacity.Id));
+                    group = await CreateGroupAsync(client, groupName, capacityId);
+                }
+                
+                if (group.CapacityId != capacityId)
+                {
+                    string msg = $"Power BI group {group.Id} is associated with capacity Id {group.CapacityId}, not the specified capacity Id {capacityId}";
+                    throw new ApplicationException(msg);
                 }
 
                 string pbixFileName = Path.GetFileName(pbixFullPath);
@@ -205,34 +202,37 @@ namespace PowerBiLib
             {
                 using (var client = new PowerBIClient(_tokenCredentials))
                 {
-                    Report foundReport = await client.Reports.GetReportInGroupAsync(groupId, reportId);
+                    Report foundReport = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception,Report>(async() => await client.Reports.GetReportInGroupAsync(groupId, reportId), 3, 500);
                     if (foundReport == null || !Guid.TryParse(foundReport.DatasetId, out _))
                     {
                         Log.Error($"From PowerBiLibApi.ExportReportAsync, requested report <{reportId}> not found, or related dataset Id not found");
                         return (null, null);
                     }
 
-                    string fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix");
+                    (string fullOutputFilePath, BinaryWriter writer) = writeFiles && Directory.Exists(outputFolderFullPath)
+                        ? (fullOutputFilePath = Path.ChangeExtension(Path.Combine(outputFolderFullPath, foundReport.Name), "pbix"), new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
+                        : (default, default);
 
-                    Stream exportStream = await client.Reports.ExportReportAsync(foundReport.Id);
+                    Stream exportStream = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, Stream>(async () => await client.Reports.ExportReportAsync(foundReport.Id), 3, 500);
                     using (BinaryReader reader = new BinaryReader(exportStream))
                     {
-                        using (BinaryWriter writer = new BinaryWriter(File.OpenWrite(fullOutputFilePath)))
+                        for (; ; )
                         {
-                            for (; ; )
+                            byte[] buffer = reader.ReadBytes(65_536);
+                            if (buffer.Length > 0)
                             {
-                                byte[] buffer = reader.ReadBytes(65_536);
-                                if (buffer.Length > 0)
+                                if (writer != default)
                                 {
-                                    if (writeFiles)
-                                    {
-                                        writer.Write(buffer);
-                                    }
+                                    writer.Write(buffer);
                                 }
-                                else
+                            }
+                            else
+                            {
+                                if (writer != default)
                                 {
-                                    break;
+                                    writer.Close();
                                 }
+                                break;
                             }
                         }
 
@@ -276,14 +276,32 @@ namespace PowerBiLib
             return true;
         }
 
-        public async Task<string> GetEmbedTokenAsync(Guid groupId, Guid reportId, bool editableView)
+        public async Task<string> GetEmbedTokenAsync(Guid groupId, Guid reportId, bool editableView, List<string> roleList = null)
         {
             // Create a Power BI Client object. it's used to call Power BI APIs.
             using (var client = new PowerBIClient(_tokenCredentials))
             {
-                var generateTokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
-                EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, generateTokenRequestParameters);
-                return tokenResponse.Token;
+                GenerateTokenRequest tokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
+                if (roleList is not null)
+                {
+                    Report report = await client.Reports.GetReportAsync(reportId);
+                    Dataset dataset = await client.Datasets.GetDatasetInGroupAsync(groupId, report.DatasetId);
+
+                    tokenRequestParameters.Identities = new List<EffectiveIdentity> { new EffectiveIdentity("forty-two", datasets: new List<string> { dataset.Id }, roles: roleList) };
+                }
+
+                try
+                {
+                    EmbedToken tokenResponse = await client.Reports.GenerateTokenInGroupAsync(groupId, reportId, tokenRequestParameters);
+                    return tokenResponse.Token;
+                }
+                catch (Exception ex)
+                {
+                    string tmp = $"Failed to generate Power BI embed token. This might be due to a selection group role list that is not compatible with the content file.{Environment.NewLine} " +
+                                 $"Request parameters are: {JsonConvert.SerializeObject(tokenRequestParameters)}";
+                    Log.Error(ex, tmp);
+                    return null;
+                }
             }
         }
 
@@ -363,6 +381,17 @@ namespace PowerBiLib
             }
         }
 
+        public async Task<string> GetAllCapacityInfo()
+        {
+            using (var client = new PowerBIClient(_tokenCredentials))
+            {
+                var capacities = await client.Capacities.GetCapacitiesAsync();
+                string result = JsonConvert.SerializeObject(capacities, Formatting.Indented);
+                return result;
+            }
+
+        }
+
         /// <summary>
         /// Initialize a new access token
         /// </summary>
@@ -372,16 +401,17 @@ namespace PowerBiLib
             // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
             try
             {
-                var response = await _config.PbiTokenEndpoint
-                        .PostMultipartAsync(mp => mp
-                            .AddString("grant_type", _config.PbiGrantType)
-                            .AddString("scope", _config.PbiAuthenticationScope)
-                            .AddString("client_id", _config.PbiAzureADClientId)
-                            .AddString("client_secret", _config.PbiAzureADClientSecret)
-                            .AddString("username", _config.PbiAzureADUsername)
-                            .AddString("password", _config.PbiAzureADPassword)
-                        )
-                        .ReceiveJson<MicrosoftAuthenticationResponse>();
+                MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () => 
+                                                                        await _config.PbiTokenEndpoint
+                                                                        .PostMultipartAsync(mp => mp
+                                                                            .AddString("grant_type", _config.PbiGrantType)
+                                                                            .AddString("scope", _config.PbiAuthenticationScope)
+                                                                            .AddString("client_id", _config.PbiAzureADClientId)
+                                                                            .AddString("client_secret", _config.PbiAzureADClientSecret)
+                                                                            .AddString("username", _config.PbiAzureADUsername)
+                                                                            .AddString("password", _config.PbiAzureADPassword)
+                                                                        )
+                                                                        .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
                 if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
                 {

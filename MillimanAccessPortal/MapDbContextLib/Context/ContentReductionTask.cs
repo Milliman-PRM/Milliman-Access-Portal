@@ -47,6 +47,7 @@ namespace MapDbContextLib.Context
                 ReductionStatusEnum.Queued,
                 ReductionStatusEnum.Reducing,
                 ReductionStatusEnum.Reduced,
+                ReductionStatusEnum.Warning,
             };
 
         public static List<ReductionStatusEnum> accessAdminStatusList = new List<ReductionStatusEnum>
@@ -56,6 +57,7 @@ namespace MapDbContextLib.Context
                 ReductionStatusEnum.Reducing,
                 ReductionStatusEnum.Reduced,
                 ReductionStatusEnum.Live,
+                ReductionStatusEnum.Warning,
                 ReductionStatusEnum.Error,
             };
 
@@ -79,6 +81,7 @@ namespace MapDbContextLib.Context
         HierarchyOnly = 1,
         HierarchyAndReduction = 2,
         ReductionOnly = 3,
+        None = 4,
     }
 
     public class ContentReductionTask

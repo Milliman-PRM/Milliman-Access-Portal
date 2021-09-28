@@ -1466,7 +1466,7 @@ namespace MillimanAccessPortal.Controllers
                     Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { messageCode = UserMessageEnum.AccountLocked }));
                     return Ok();
                 case var r when r.IsNotAllowed:
-                    Log.Information("User {user.UserName} account not allowed.");
+                    Log.Information($"User {user.UserName} account not allowed.");
                     Response.Headers.Add("NavigateTo", Url.Action(nameof(SharedController.UserMessage), nameof(SharedController).Replace("Controller", ""), new { messageCode = UserMessageEnum.AccountNotAllowed }));
                     return Ok();
                 default:
