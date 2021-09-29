@@ -32,6 +32,7 @@ Completed by: ___________
 - [ ] Check that issues for this milestone have been resolved in UAT
 - [ ] Identify peer reviewer(s) by adding to requested reviewers of this pull request
 - [ ] Communicate changes and documentation location to peer reviewers
+- [ ] Request deployment to production using [this form](https://hd.milliman.com/support/catalog/items/161). An estimated date should be provided at this point. 
 - [ ] Create logins for reviewer(s)
 - [ ] Hand off to Peer Reviewer(s)
 
@@ -75,8 +76,8 @@ Completed by: ___________
 - [ ] Leave a comment in this pull request below, tagging the Account Manager(s), with release notes for this new version and any needed additional information to be communicated to clients
 - [ ] Tag the release in the `master` branch with the new version number
 - [ ] Open a pull request to merge `master` to `develop` and obtain a successful CI run (creates the release in the deployment system)
-- [ ] Request and confirm deployment to production using [this form](https://hd.milliman.com/support/catalog/items/161). The requested deployment date/time should be no sooner than the next business day, unless a same-day deployment is agreed upon by the Infrastructure & Security team lead.
-- [ ] Leave a comment in this pull request below, tagging the Account Manager, stating when the deployment is scheduled to take place
+- [ ] **Only after a successful CI run from `master`**, communicate to I&S about readiness of the release for production deployment and agree on the expected deployment timing
+- [ ] Leave a comment in this pull request below, tagging the Account Manager, stating when the deployment is expected to take place
 - [ ] Merge released code base into `develop` to make sure warm changes are propagated
 - [ ] Schedule a retrospective meeting
 
