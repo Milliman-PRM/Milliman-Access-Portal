@@ -29,7 +29,7 @@ module.exports = merge(clean, common, {
     },
   },
   output: {
-    filename: 'js/[contenthash].js',
+    filename: 'js/[name].[contenthash].js',
   },
   module: {
     rules: [
@@ -44,7 +44,7 @@ module.exports = merge(clean, common, {
         test: /\.s[ac]ss$/,
         use: [
           { loader: MiniCssExtractPlugin.loader },
-          { loader: 'css-loader' },
+          { loader: 'css-loader?url=false' },
           { loader: 'sass-loader' },
         ],
       },
