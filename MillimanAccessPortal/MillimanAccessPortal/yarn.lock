@@ -6315,12 +6315,12 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"marked@npm:^0.6.2":
-  version: 0.6.2
-  resolution: "marked@npm:0.6.2"
+"marked@npm:^3.0.4":
+  version: 3.0.4
+  resolution: "marked@npm:3.0.4"
   bin:
-    marked: ./bin/marked
-  checksum: 930b450895db34328c69488695e6d365313305d04af2eb4eece879f48e7e473dc821e316935fc96a7740dc13e0b2e23a2c3c9a907cb9a178cf9a43632cd252fb
+    marked: bin/marked
+  checksum: fdc6bf48c1997ab5d0edead3748de785a333d7ce29fad7d4ed8e239b736b642c029796380ce39c97d934edd96c5e4cf05dd32116e7f6e80e05ea97b32cef6741
   languageName: node
   linkType: hard
 
@@ -6554,10 +6554,10 @@ fsevents@~2.3.2:
     jest: ^23.6.0
     jest-junit: ^5.2.0
     lodash: ^4.17.11
-    marked: ^0.6.2
+    marked: ^3.0.4
     mini-css-extract-plugin: ^1.6.2
     moment: ^2.22.2
-    node-forge: ^0.7.5
+    node-forge: ^0.10.0
     node-sass: ^4.14.1
     optimize-css-assets-webpack-plugin: ^5.0.1
     prop-types: ^15.5.7
@@ -7024,10 +7024,10 @@ fsevents@~2.3.2:
   languageName: node
   linkType: hard
 
-"node-forge@npm:^0.7.5":
-  version: 0.7.6
-  resolution: "node-forge@npm:0.7.6"
-  checksum: 661d420847da736d82f3aad0e8ad2b5fceddc4bd5f4065b923c566e9fd68e568509677374f101c1f4321c541dcbef0864516a2a55ff03a9236d0895195dfa7aa
+"node-forge@npm:^0.10.0":
+  version: 0.10.0
+  resolution: "node-forge@npm:0.10.0"
+  checksum: 5aa6dc9922e424a20ef101d2f517418e2bc9cfc0255dd22e0701c0fad1568445f510ee67f6f3fcdf085812c4ca1b847b8ba45683b34776828e41f5c1794e42e1
   languageName: node
   linkType: hard
 
