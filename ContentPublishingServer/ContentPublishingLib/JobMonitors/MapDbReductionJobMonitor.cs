@@ -148,11 +148,11 @@ namespace ContentPublishingLib.JobMonitors
                                     }
 
                                     NewTask = Runner.Execute(cancelSource.Token);
-                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain() executing TaskAction {DbTask.TaskAction.ToString()} for ContentReductionTask {DbTask.Id}");
+                                    Log.Information($"ReductionJobMonitor.JobMonitorThreadMain() executing TaskAction {DbTask.TaskAction.GetDisplayNameString()} for ContentReductionTask {DbTask.Id}");
                                     break;
 
                                 default:
-                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain(), task record discovered for unsupported content type {type.ToString()}");
+                                    Log.Information($"In ReductionJobMonitor.JobMonitorThreadMain(), task record discovered for unsupported content type {type.GetDisplayNameString()}");
                                     break;
                             }
 
@@ -200,7 +200,7 @@ namespace ContentPublishingLib.JobMonitors
 
                 foreach (var Item in ActiveReductionRunnerItems)
                 {
-                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() after timer expired, task {Item.dbTask.Id.ToString()} not completed");
+                    Log.Information($"MapDbReductionJobMonitor.JobMonitorThreadMain() after timer expired, task {Item.dbTask.Id} not completed");
                 }
             }
 
@@ -220,50 +220,48 @@ namespace ContentPublishingLib.JobMonitors
                 return new List<ContentReductionTask>();
             }
 
-            using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
-            using (IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync())
+            using ApplicationDbContext Db = new ApplicationDbContext(ContextOptions);
+            using IDbContextTransaction Transaction = await Db.Database.BeginTransactionAsync();
+            try
             {
-                try
-                {
-                    DateTime EarliestPublicationRequestTimestamp = await Db.ContentPublicationRequest
-                                                                           .Where(r => r.RequestStatus == PublicationStatus.Queued)
-                                                                           .OrderBy(r => r.CreateDateTimeUtc)
-                                                                           .Select(r => r.CreateDateTimeUtc)
-                                                                           .FirstOrDefaultAsync();
+                DateTime EarliestPublicationRequestTimestamp = await Db.ContentPublicationRequest
+                                                                       .Where(r => r.RequestStatus == PublicationStatus.Queued)
+                                                                       .OrderBy(r => r.CreateDateTimeUtc)
+                                                                       .Select(r => r.CreateDateTimeUtc)
+                                                                       .FirstOrDefaultAsync();
 
-                    if (EarliestPublicationRequestTimestamp == default(DateTime))  // if no publications are queued or processing
-                    {
-                        EarliestPublicationRequestTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
-                    }
-
-                    List<ContentReductionTask> TopItems = await Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
-                                                                                       .Where(t => t.CreateDateTimeUtc <= EarliestPublicationRequestTimestamp)
-                                                                                       .Include(t => t.SelectionGroup)
-                                                                                           .ThenInclude(sg => sg.RootContentItem)
-                                                                                               .ThenInclude(rc => rc.ContentType)
-                                                                                       .Include(t => t.ContentPublicationRequest)
-                                                                                           .ThenInclude(r => r.RootContentItem)
-                                                                                               .ThenInclude(rc => rc.ContentType)
-                                                                                       .OrderBy(t => t.CreateDateTimeUtc)
-                                                                                       .Take(ReturnNoMoreThan)
-                                                                                       .ToListAsync();
-                    if (TopItems.Count > 0)
-                    {
-                        TopItems.ForEach(rt =>
-                        {
-                            rt.ReductionStatus = ReductionStatusEnum.Reducing;
-                            rt.ProcessingStartDateTimeUtc = DateTime.UtcNow;
-                        });
-                        await Db.SaveChangesAsync();
-                        await Transaction.CommitAsync();
-                    }
-                    return TopItems;
-                }
-                catch (Exception e)
+                if (EarliestPublicationRequestTimestamp == default)  // if no publications are queued or processing
                 {
-                    Log.Information($"MapDbReductionJobMonitor.GetReadyTasksAsync(), failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
-                    throw;
+                    EarliestPublicationRequestTimestamp = DateTime.MaxValue;  // DateTime.MaxValue does not exceed max value of a timestamp in PostgreSQL (so this is ok)
                 }
+
+                List<ContentReductionTask> TopItems = await Db.ContentReductionTask.Where(t => t.ReductionStatus == ReductionStatusEnum.Queued)
+                                                                                   .Where(t => t.CreateDateTimeUtc <= EarliestPublicationRequestTimestamp)
+                                                                                   .Include(t => t.SelectionGroup)
+                                                                                       .ThenInclude(sg => sg.RootContentItem)
+                                                                                           .ThenInclude(rc => rc.ContentType)
+                                                                                   .Include(t => t.ContentPublicationRequest)
+                                                                                       .ThenInclude(r => r.RootContentItem)
+                                                                                           .ThenInclude(rc => rc.ContentType)
+                                                                                   .OrderBy(t => t.CreateDateTimeUtc)
+                                                                                   .Take(ReturnNoMoreThan)
+                                                                                   .ToListAsync();
+                if (TopItems.Count > 0)
+                {
+                    TopItems.ForEach(rt =>
+                    {
+                        rt.ReductionStatus = ReductionStatusEnum.Reducing;
+                        rt.ProcessingStartDateTimeUtc = DateTime.UtcNow;
+                    });
+                    await Db.SaveChangesAsync();
+                    await Transaction.CommitAsync();
+                }
+                return TopItems;
+            }
+            catch (Exception e)
+            {
+                Log.Information($"MapDbReductionJobMonitor.GetReadyTasksAsync(), failed to query MAP database for available tasks.  Exception:{Environment.NewLine}{e.Message}{Environment.NewLine}{e.StackTrace}");
+                throw;
             }
         }
 
@@ -312,21 +310,13 @@ namespace ContentPublishingLib.JobMonitors
                             break;
                         case ReductionJobDetail.JobStatusEnum.Warning:
                             DbTask.ReductionStatus = ReductionStatusEnum.Warning;
-                            switch (JobDetail.Result.OutcomeReason)
+                            OutcomeMetadataObj.OutcomeReason = JobDetail.Result.OutcomeReason switch
                             {
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent;
-                                    break;
-                                case ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoSelectedFieldValues;
-                                    break;
-                                case ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.NoReducedFileCreated;
-                                    break;
-                                default:
-                                    OutcomeMetadataObj.OutcomeReason = MapDbReductionTaskOutcomeReason.UnspecifiedError;
-                                    break;
-                            }
+                                ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValueExistsInNewContent => MapDbReductionTaskOutcomeReason.NoSelectedFieldValueExistsInNewContent,
+                                ReductionJobDetail.JobOutcomeReason.NoSelectedFieldValues => MapDbReductionTaskOutcomeReason.NoSelectedFieldValues,
+                                ReductionJobDetail.JobOutcomeReason.NoReducedFileCreated => MapDbReductionTaskOutcomeReason.NoReducedFileCreated,
+                                _ => MapDbReductionTaskOutcomeReason.UnspecifiedError,
+                            };
                             break;
                         case ReductionJobDetail.JobStatusEnum.Error:
                             DbTask.ReductionStatus = ReductionStatusEnum.Error;
@@ -407,37 +397,35 @@ namespace ContentPublishingLib.JobMonitors
 
             try
             {
-                using (ApplicationDbContext Db = new ApplicationDbContext(ContextOptions))
+                using ApplicationDbContext Db = new ApplicationDbContext(ContextOptions);
+                List<ContentReductionTask> inProgressReductionTasks = await Db.ContentReductionTask
+                                                                              .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
+                                                                              .Where(t => t.ContentPublicationRequestId == null)
+                                                                              .ToListAsync();
+                Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+
+                foreach (ContentReductionTask task in inProgressReductionTasks)
                 {
-                    List<ContentReductionTask> inProgressReductionTasks = await Db.ContentReductionTask
-                                                                                  .Where(t => t.ReductionStatus == ReductionStatusEnum.Reducing)
-                                                                                  .Where(t => t.ContentPublicationRequestId == null)
-                                                                                  .ToListAsync();
-                    Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, found {inProgressReductionTasks.Count} reductions tasks in progress");
+                    // Don't retry forever
+                    int nextRetry = !string.IsNullOrWhiteSpace(task.ReductionStatusMessage) && task.ReductionStatusMessage.StartsWith(retryStatusMessagePrefix)
+                        ? int.Parse(task.ReductionStatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
+                        : 1;
 
-                    foreach (ContentReductionTask task in inProgressReductionTasks)
+                    if (nextRetry > maxRetries)
                     {
-                        // Don't retry forever
-                        int nextRetry = !string.IsNullOrWhiteSpace(task.ReductionStatusMessage) && task.ReductionStatusMessage.StartsWith(retryStatusMessagePrefix)
-                            ? int.Parse(task.ReductionStatusMessage.Replace(retryStatusMessagePrefix, "")) + 1
-                            : 1;
+                        task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
+                        task.ReductionStatus = ReductionStatusEnum.Error;
 
-                        if (nextRetry > maxRetries)
-                        {
-                            task.ReductionStatusMessage = $"This reduction task has exceeded the retry limit of {maxRetries}";
-                            task.ReductionStatus = ReductionStatusEnum.Error;
-
-                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
-                        }
-                        else
-                        {
-                            task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
-                            task.ReductionStatus = ReductionStatusEnum.Queued;
-
-                            Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
-                        }
-                        await Db.SaveChangesAsync();
+                        Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} has exceeded the max retry limit, setting Error status");
                     }
+                    else
+                    {
+                        task.ReductionStatusMessage = $"{retryStatusMessagePrefix}{nextRetry}";
+                        task.ReductionStatus = ReductionStatusEnum.Queued;
+
+                        Log.Information($"MapDbReductionJobMonitor.CleanupOnStart(), reduction job monitor, reduction task {task.Id} will be retried, setting Queued status");
+                    }
+                    await Db.SaveChangesAsync();
                 }
             }
             finally
