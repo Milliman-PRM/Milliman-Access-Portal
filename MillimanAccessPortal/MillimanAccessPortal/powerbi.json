@@ -1,10 +1,10 @@
 {
   "PbiAuthenticationScope": "https://analysis.windows.net/powerbi/api/.default",
-  "PbiAzureADClientID": "54e100b0-4785-451e-be05-bce8f1a35b1d",
+  "PbiAzureADClientID": "c64e3568-42bc-4b44-a7f5-09372937a9ba",
   "PbiAzureADClientSecret": "",
   "PbiGrantType": "password",
-  "PbiAzureADUsername": "powerbi-multicapacity-test@millimanprmdev.onmicrosoft.com",
+  "PbiAzureADUsername": "PRMMAPPowerBI@milliman.onmicrosoft.com",
   "PbiAzureADPassword": "",
-  "PbiTenantId": "ecd586dd-352e-4830-8c8f-b6ca8be7ca04",
+  "PbiTenantId": "e240d61e-61e3-4c9e-ab90-8644b2f4d2a9",
   "PbiCapacityId": "698DFF5A-6D96-4D79-A288-A899A24F2374"
 }
