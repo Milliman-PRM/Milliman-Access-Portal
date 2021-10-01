@@ -758,6 +758,7 @@ namespace ContentPublishingLib.JobRunners
                     IdentityType = UserIdentityValueType.DisplayName,
                     Destinations = new List<TaskDistributionDestination>(),
                 },
+                CloudNativeLinks = new DocumentTask.TaskDistribute.TaskDistributeCloudNative(),
             };
             #endregion
 
