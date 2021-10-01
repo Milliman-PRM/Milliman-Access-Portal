@@ -1,6 +1,6 @@
 {
   "PbiAuthenticationScope": "https://analysis.windows.net/powerbi/api/.default",
-  "PbiAzureADClientID": "c64e3568-42bc-4b44-a7f5-09372937a9ba",
+  "PbiAzureADClientID": "3658b008-9e96-499d-ad34-989d5a89f932",
   "PbiAzureADClientSecret": "",
   "PbiGrantType": "password",
   "PbiAzureADUsername": "PRMMAPPowerBI@milliman.onmicrosoft.com",
