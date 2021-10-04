@@ -103,7 +103,8 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
-$env:MSBuildSDKsPath=$core3
+$net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
+$env:MSBuildSDKsPath=$net5
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -246,7 +247,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-$env:MSBuildSDKsPath=$core3
+$env:MSBuildSDKsPath=$net5
 Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
