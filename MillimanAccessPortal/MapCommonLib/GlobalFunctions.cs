@@ -24,6 +24,7 @@ namespace MapCommonLib
         public static int DefaultClientDomainListCountLimit { get; set; } = 3;
         public static string MillimanSupportEmailAlias { get; set; } = "";
         public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
+        public static List<string> ProhibitedDomains { get; set; } = new List<string> { "hotmail.com" };
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;

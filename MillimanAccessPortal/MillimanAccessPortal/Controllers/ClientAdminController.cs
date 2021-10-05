@@ -1149,6 +1149,17 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            // Check prohibited domains
+            List<string> prohibitedDomains = Model.AcceptedEmailDomainList
+                                                  .Where(d => GlobalFunctions.ProhibitedDomains.Contains(d, StringComparer.InvariantCultureIgnoreCase))
+                                                  .ToList();
+            if (prohibitedDomains.Any())
+            {
+                Log.Debug($"In ClientAdminController.SaveNewClient action: domains <{string.Join(", ", prohibitedDomains)}> are prohibited by the system");
+                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains maybe added to the client in the email exception list");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             // Apply domain limit
             if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
             {
@@ -1340,6 +1351,17 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In ClientAdminController.EditClient action: referenced profit center with ID {Model.ProfitCenterId} not found");
                 Response.Headers.Add("Warning", "The specified ProfitCenter is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // Check prohibited domains
+            List<string> prohibitedDomains = Model.AcceptedEmailDomainList
+                                                  .Where(d => GlobalFunctions.ProhibitedDomains.Contains(d, StringComparer.InvariantCultureIgnoreCase))
+                                                  .ToList();
+            if (prohibitedDomains.Any())
+            {
+                Log.Debug($"In ClientAdminController.EditClient action: domains <{string.Join(", ", prohibitedDomains)}> are prohibited by the system");
+                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains maybe added to the client in the email exception list");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
