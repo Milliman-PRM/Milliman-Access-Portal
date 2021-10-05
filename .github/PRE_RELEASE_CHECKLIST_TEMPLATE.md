@@ -2,15 +2,15 @@
 
 ## Purpose
 
-- Get and document approval for the new release of the Milliman Access Portal (MAP)
+- Get and document approval for the new release of Milliman Access Portal (MAP)
 
 ## Release Version
 
 - *vX.X.X*
 
-## Staging URL
+## URL of UAT Environment
 
-- *URL to Staging Instance*
+- https://map-uat-app.trafficmanager.net/
 
 ## Tasks and Assertions
 
@@ -22,30 +22,31 @@ Completed by: ___________
 
 ##### Tasks
 
-- [ ] Deploy application to staging for testing and paste URL in pull request
-- [ ] Fill in the Release Version above and name this pull request "Pre-Release - MAP vX.X.X" to match the release version
+- [ ] Deploy application to the UAT environment for testing
+- [ ] Ensure the correct URL to the UAT system in this pull request above
+- [ ] Fill in the release version above and name this pull request `Pre-Release - MAP vX.X.X` matching this release version
 - [ ] Prepare formal UAT document
-- [ ] Complete the testing checklist
-- [ ] Complete the deployment checklist
-- [ ] Create issues for any bugs found, prioritize them, and add to release milestone
-- [ ] Address all remaining issues to complete the release milestone
-- [ ] Check that issues have been resolved in staging
-- [ ] Identify reviewer(s) and communicate changes to them
-- [ ] Hand off to Peer Reviewer(s)
+- [ ] Complete all applicable testing 
+- [ ] Create issues for any bugs found, prioritize them, and add issues to be fixed in this version to the release milestone
+- [ ] Address all issues prioritized for this release milestone and deploy to the UAT environment
+- [ ] Check that issues for this milestone have been resolved in UAT
+- [ ] Identify peer reviewer(s) by adding to requested reviewers of this pull request
+- [ ] Communicate changes and documentation location to peer reviewers
+- [ ] Request deployment to production using [this form](https://hd.milliman.com/support/catalog/items/161). An estimated date should be provided at this point. 
 - [ ] Create logins for reviewer(s)
-- [ ] Leave a comment for the Account Manager(s) with a feature / change list for the new release 
+- [ ] Hand off to Peer Reviewer(s)
 
 ##### Assertions
 
 - [ ] The Release Version and URL have been updated in this pull request above
-- [ ] All tests are passing
+- [ ] All tests are passing or outstanding issues prioritized to be addressed later
 - [ ] The software version and release versions match
 - [ ] The release notes are up to date and reflect the changes included in this release
 - [ ] The UAT Documentation has been prepared for the reviewer(s)
-- [ ] All developers that have completed this section have been documented above
-- [ ] The staging instance deployed successfuly and is working properly
+- [ ] All developers who have completed this section have been documented above
+- [ ] The UAT instance deployed successfuly and is working properly
 
-### PRPR
+### Peer Review
 
 *This section should be completed by the reviewer, and is intended to track review progress.*
 
@@ -54,8 +55,8 @@ Completed by: ___________
 ##### Tasks
 
 - [ ] Determine risk level
-- [ ] Perform PRPR
-- [ ] Document your Peer Review in comment below
+- [ ] Perform peer review activities
+- [ ] Each reviewer documents your Peer Review with appropriate attestation language in a comment below
 
 ##### Assertions
 
@@ -72,16 +73,15 @@ Completed by: ___________
 
 ##### Tasks
 
-- [ ] Request deployment to production using [this form](https://hd.milliman.com/support/catalog/items/161). The requested deployment date/time should be no sooner than the next business day, unless a same-day deployment is agreed upon by the Infrastructure & Security team lead.
-- [ ] Merge into Master and promote released code base
-- [ ] Tag release
-- [ ] Merge into Develop to make sure warm changes are propagated
-- [ ] Leave a comment tagging the Account Manager in this PR stating when the deployment is scheduled to take place
-- [ ] Schedule a Hosting retrospective meeting
-- [ ] Schedule next milestone meeting
+- [ ] Leave a comment in this pull request below, tagging the Account Manager(s), with release notes for this new version and any needed additional information to be communicated to clients
+- [ ] Tag the release in the `master` branch with the new version number
+- [ ] Open a pull request to merge `master` to `develop` and obtain a successful CI run (creates the release in the deployment system)
+- [ ] **Only after a successful CI run from `master`**, communicate to I&S about readiness of the release for production deployment and agree on the expected deployment timing
+- [ ] Leave a comment in this pull request below, tagging the Account Manager, stating when the deployment is expected to take place
+- [ ] Merge released code base into `develop` to make sure warm changes are propagated
+- [ ] Schedule a retrospective meeting
 
 ##### Assertions
 
 - [ ] All tasks have been completed
-- [ ] All assertions have been met
 - [ ] All developers that have completed this section have been documented above
