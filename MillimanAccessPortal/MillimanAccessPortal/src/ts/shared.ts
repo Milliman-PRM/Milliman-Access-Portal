@@ -704,6 +704,11 @@ export function isDomainNameValid(domainName: string): boolean {
   return domainName !== null && domainName.trim() !== '' && domainNameRegex.test(domainName);
 }
 
+export function isDomainNameProhibited(domainName: string, prohibitedDomains: string[]): boolean {
+  const domainIsProhibited = prohibitedDomains.map((domain) => domain.toLowerCase()).includes(domainName.toLowerCase());
+  return domainIsProhibited;
+}
+
 export function isEmailAddressValid(email: string): boolean {
   const emailRegex = new RegExp([
     '^(([^<>()[\\]\\\\.,;:\\s@\']+(\\.[^ <>()[\\]\\\\.,;: \\s@\']+)*)',
