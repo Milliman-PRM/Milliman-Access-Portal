@@ -165,8 +165,8 @@ if ($buildType -ne "Release")
 log_statement "Restoring packages and building MAP"
 
 # Switch to the correct version of Node.js using NVM
-$command = "nvm use 14.18.0"
-Invoke-Expression $command
+$url = "http://localhost:8042/nvm_use?version=14.18.0"
+Invoke-Webrequest $url
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Switching to Node.js v14.18.0 failed"
