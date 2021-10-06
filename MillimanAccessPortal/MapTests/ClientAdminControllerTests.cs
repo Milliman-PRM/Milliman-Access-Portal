@@ -127,7 +127,7 @@ namespace MapTests
         /// Checks whether ClientFamilyList returns an error when the user is not authorized to view the ClientAdmin page
         /// </summary>
         [Fact]
-        public async Task ClientFamilyList_ErrorWhenUnauthorized()
+        public async Task PageGlobalData_ErrorWhenUnauthorized()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
@@ -136,7 +136,7 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var view = await controller.ClientFamilyList();
+                var view = await controller.PageGlobalData();
                 #endregion
 
                 #region Assert
@@ -149,7 +149,7 @@ namespace MapTests
         /// Checks whether ClientFamilyList returns a list of clients for authorized users
         /// </summary>
         [Fact]
-        public async Task ClientFamilyList_ReturnsAList()
+        public async Task PageGlobalData_ReturnsCorrectType()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
             {
@@ -158,12 +158,12 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var view = await controller.ClientFamilyList();
+                var view = await controller.PageGlobalData();
                 #endregion
 
                 #region Assert
                 JsonResult typedResult = Assert.IsType<JsonResult>(view);
-                Assert.IsType<ClientAdminIndexViewModel>(typedResult.Value);
+                Assert.IsType<ClientAdminPageGlobalDataModel>(typedResult.Value);
                 #endregion
             }
         }
