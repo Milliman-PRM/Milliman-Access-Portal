@@ -12,9 +12,9 @@ const createJsonRequestor = createJsonRequestorCreator<RequestAccessAction, Resp
 export const fetchClients =
   createJsonRequestor<AccessActions.FetchClients, AccessActions.FetchClientsSucceeded>
     ('GET', '/ClientAdmin/Clients');
-export const fetchProfitCenters =
-  createJsonRequestor<AccessActions.FetchProfitCenters, AccessActions.FetchProfitCentersSucceeded>
-    ('GET', '/ClientAdmin/AuthorizedProfitCenters');
+export const fetchGlobalData =
+  createJsonRequestor<AccessActions.FetchGlobalData, AccessActions.FetchGlobalDataSucceeded>
+    ('GET', '/ClientAdmin/PageGlobalData');
 export const fetchClientDetails =
   createJsonRequestor<AccessActions.FetchClientDetails, AccessActions.FetchClientDetailsSucceeded>
     ('GET', '/ClientAdmin/ClientDetail');

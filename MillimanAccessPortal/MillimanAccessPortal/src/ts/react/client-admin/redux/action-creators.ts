@@ -108,8 +108,8 @@ export const fetchClientDetails =
   createRequestActionCreator<AccessActions.FetchClientDetails>('FETCH_CLIENT_DETAILS');
 export const updateAllUserRolesInClient =
   createRequestActionCreator<AccessActions.UpdateAllUserRolesInClient>('UPDATE_ALL_USER_ROLES_IN_CLIENT');
-export const fetchProfitCenters =
-  createRequestActionCreator<AccessActions.FetchProfitCenters>('FETCH_PROFIT_CENTERS');
+export const fetchGlobalData =
+  createRequestActionCreator<AccessActions.FetchGlobalData>('FETCH_GLOBAL_DATA');
 export const saveNewClient =
   createRequestActionCreator<AccessActions.SaveNewClient>('SAVE_NEW_CLIENT');
 export const editClient =

@@ -88,6 +88,10 @@ const _initialData: AccessStateData = {
   clients: {},
   parentClients: {},
   profitCenters: [],
+  defaultWelcomeEmailText: '',
+  nonLimitedDomains: [],
+  prohibitedDomains: [],
+  defaultDomainLimit: 3,
   details: _initialDetails,
   assignedUsers: [],
 };
@@ -313,9 +317,13 @@ const data = createReducer<AccessStateData>(_initialData, {
       ...action.response.parentClients,
     },
   }),
-  FETCH_PROFIT_CENTERS_SUCCEEDED: (state, action: AccessActions.FetchProfitCentersSucceeded) => ({
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: AccessActions.FetchGlobalDataSucceeded) => ({
     ...state,
-    profitCenters: action.response,
+    profitCenters: action.response.authorizedProfitCenterList,
+    defaultWelcomeEmailText: action.response.systemDefaultWelcomeEmailText,
+    nonLimitedDomains: action.response.nonLimitedDomains,
+    prohibitedDomains: action.response.prohibitedDomains,
+    defaultDomainLimit: action.response.defaultDomainLimit,
   }),
   RESET_CLIENT_DETAILS: (state) => ({
     ...state,
