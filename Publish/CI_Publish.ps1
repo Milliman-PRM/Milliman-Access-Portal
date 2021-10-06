@@ -176,7 +176,7 @@ if ($LASTEXITCODE -ne 0) {
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --frozen-lockfile"
+$command = "yarn install --immutable"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
