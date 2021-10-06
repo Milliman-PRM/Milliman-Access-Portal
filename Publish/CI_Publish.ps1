@@ -174,16 +174,6 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-# Install Yarn globally
-$command = "npm install -g yarn@1.22.11"
-Invoke-Expression $command
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failed to install yarn"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 $command = "yarn install --frozen-lockfile"
