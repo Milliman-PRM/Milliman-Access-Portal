@@ -120,8 +120,6 @@ $runTests = $env:RunTests -ne "False"
 mkdir -p ${rootPath}\_test_results
 #endregion
 
-remove-item ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
-
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
 if ($buildType -ne "Release")
@@ -166,18 +164,19 @@ if ($buildType -ne "Release")
 
 log_statement "Restoring packages and building MAP"
 
-$command = "npm install -g yarn@1.12.3"
-invoke-expression $command
+# Switch to the correct version of Node.js using NVM
+$command = "nvm use 14.18.0"
+Invoke-Expression $command
 
 if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failed to install yarn"
+    log_statement "ERROR: Switching to Node.js v14.18.0 failed"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $LASTEXITCODE
 }
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --frozen-lockfile"
+$command = "yarn install --immutable"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
