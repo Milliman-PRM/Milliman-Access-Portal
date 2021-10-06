@@ -141,7 +141,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
               {list.map((element: string, index: number) => {
                 return (
                   <div
-                    className={`badge ${!exceptions || (exceptions && exceptions.indexOf(element) === -1) ?
+                    className={`badge ${!exceptions
+                      || (exceptions && !exceptions.map((item) => item.toLowerCase()).includes(element.toLowerCase())) ?
                       'badge-secondary' : 'badge-primary'}`}
                     key={index}
                   >
@@ -217,8 +218,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
     for (let i = 0; i < inputArray.length; i++) {
       const inputItem = inputArray[i].trim();
       const overLimit = limit > 0 ? (effectiveListLength + i >= limit ? true : false) : false;
-      const itemAlreadyExists = _.includes(list, inputItem);
-      const itemIsExemptFromLimit = _.includes(exceptions, inputItem);
+      const itemAlreadyExists = _.includes(list.map((item) => item.toLowerCase()), inputItem.toLowerCase());
+      const itemIsExemptFromLimit = _.includes(exceptions.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       if (itemIsExemptFromLimit) {
         addItemCallback(inputItem, false, itemAlreadyExists);
       } else if (inputItem.length > 0) {
@@ -230,13 +231,11 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
 
   private getEffectiveListLength(list: string[], exceptions: string[]) {
     const tempList = list.slice();
-    const inputArray = this.state.currentText.trim().split(';');
+    const inputArray = this.state.currentText.toLowerCase().trim().split(';');
     tempList.concat(inputArray);
-    const numberOfExceptions = tempList.filter((value) => _.includes(exceptions, value)).length;
-
-    if (_.includes(exceptions, this.state.currentText)) {
-      return tempList.length - numberOfExceptions;
-    }
+    const exceptionsToLower = exceptions.map((item) => item.toLowerCase());
+    const numberOfExceptions =
+      tempList.filter((value) => _.includes(exceptionsToLower, value.toLowerCase())).length;
     return tempList.length - numberOfExceptions;
   }
 
