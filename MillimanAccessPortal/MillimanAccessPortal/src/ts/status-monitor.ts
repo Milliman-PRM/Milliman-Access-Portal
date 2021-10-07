@@ -1,5 +1,3 @@
-import * as $ from 'jquery';
-
 export class StatusMonitor<T> {
   public readonly interval: number = 5000;
   private active: boolean = false;
@@ -22,7 +20,7 @@ export class StatusMonitor<T> {
     this.monitor();
   }
 
-  public stop(response?: JQueryXHR) {
+  public stop(response?: Response) {
     if (response && response.status === 401) {
       // session timed out, reload the page
       window.location.reload();
@@ -31,11 +29,19 @@ export class StatusMonitor<T> {
   }
 
   public checkStatus() {
-    $.get({
-      url: this.url,
+    fetch(this.url, {
+      method: 'GET',
+      cache: 'no-cache',
+      credentials: 'same-origin',
     })
-    .done(this.callback)
-    .fail(this.stop);
+      .then((response) => {
+        if (!response.ok) {
+          this.stop(response);
+        }
+        return response.json() as Promise<T>;
+      })
+      .then((response) => this.callback(response))
+      .catch((response) => this.stop(response));
   }
 
   private monitor() {
