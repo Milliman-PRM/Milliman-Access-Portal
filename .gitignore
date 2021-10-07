@@ -92,3 +92,13 @@ _[Ss]cripts
 *.ncrunchsolution
 *.dot[Cc]over
 MillimanAccessPortal/MillimanAccessPortal/obj/Debug/netcoreapp1.1/MillimanAccessPortal.csproj.FileListAbsolute.txt
+########
+# Yarn #
+########
+.yarn/*
+!.yarn/patches
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
+.pnp.*
