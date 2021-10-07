@@ -1,8 +1,6 @@
 ﻿import '../../../scss/map_modules/_form.scss';
 import '../../../scss/react/shared-components/content-container.scss';
 
-import 'tooltipster';
-import 'tooltipster/src/css/tooltipster.css';
 import '../../../images/icons/cancel.svg';
 
 import * as React from 'react';

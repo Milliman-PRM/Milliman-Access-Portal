@@ -1,6 +1,7 @@
 const path = require('path');
 const merge = require('webpack-merge');
 const common = require('./webpack.common.js');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const webpack = require('webpack');
 
 module.exports = merge(common, {
@@ -12,23 +13,15 @@ module.exports = merge(common, {
       {
         test: /\.css$/,
         use: [
-          { loader: 'style-loader' },
+          { loader: MiniCssExtractPlugin.loader },
           { loader: 'css-loader' },
-        ],
-      },
-      {
-        test: /\.less$/,
-        use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
-          { loader: 'less-loader' },
         ],
       },
       {
         test: /\.s[ac]ss$/,
         use: [
-          { loader: 'style-loader' },
-          { loader: 'css-loader' },
+          { loader: MiniCssExtractPlugin.loader },
+          { loader: 'css-loader?url=false' },
           { loader: 'sass-loader' },
         ],
       },
@@ -37,6 +30,11 @@ module.exports = merge(common, {
   mode: 'development',
   devServer: {
     contentBase: path.resolve(__dirname, 'wwwroot'),
-  },
+  },  
+  plugins: [
+    new MiniCssExtractPlugin({
+      filename: 'css/[name].css',
+    }),
+  ],
   devtool: 'inline-source-map',
 });

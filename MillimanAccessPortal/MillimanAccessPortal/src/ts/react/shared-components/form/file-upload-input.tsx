@@ -344,7 +344,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             {
               !cancelable &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Upload file"
                 onClick={() => this.uploadRef.current.click()}
               >
@@ -364,7 +364,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             {
               cancelable &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Cancel upload"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
@@ -382,7 +382,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               && value !== '[Pending Removal]'
               && this.props.removeExistingFile &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Delete existing file"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
