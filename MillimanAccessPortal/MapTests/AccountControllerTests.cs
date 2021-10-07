@@ -176,13 +176,14 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var view = await controller.EnableAccount(model);
+                var response = await controller.EnableAccount(model);
                 var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
                 #endregion
 
                 #region Assert
-                RedirectToActionResult typedResult = Assert.IsType<RedirectToActionResult>(view);
-                Assert.Equal("Login", typedResult.ActionName);
+                OkResult typedResult = Assert.IsType<OkResult>(response);
+                Assert.Contains(controller.Response.Headers, h => h.Key == "NavigateTo");
+                Assert.NotEmpty(controller.Response.Headers["NavigateTo"]);
                 Assert.True(await TestResources.UserManager.CheckPasswordAsync(user, NewPass));
                 Assert.Equal(NewEmployer, UserRecord.Employer);
                 Assert.Equal(FirstName, UserRecord.FirstName);
@@ -219,13 +220,14 @@ namespace MapTests
                 #endregion
 
                 #region Act
-                var view = await controller.EnableAccount(model);
+                var response = await controller.EnableAccount(model);
                 var UserRecord = TestResources.DbContext.ApplicationUser.Single(u => u.UserName == "user1");
                 #endregion
 
                 #region Assert
-                ViewResult viewAsViewResult = Assert.IsType<ViewResult>(view);
-                Assert.Equal("UserMessage", viewAsViewResult.ViewName);
+                BadRequestResult typedResult = Assert.IsType<BadRequestResult>(response);
+                Assert.Contains(controller.Response.Headers, h => h.Key.Equals("Warning", StringComparison.InvariantCultureIgnoreCase));
+                Assert.NotEmpty(controller.Response.Headers["Warning"]);
                 #endregion
             }
         }

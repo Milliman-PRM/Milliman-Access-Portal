@@ -6,12 +6,9 @@
  */
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography.X509Certificates;
 using AuditLogLib.Event;
@@ -61,18 +58,18 @@ namespace AuditLogLib
             // Add your customizations after calling base.OnModelCreating(builder);
         }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder Builder)
+        protected override void OnConfiguring(DbContextOptionsBuilder builder)
         {
-            if (Builder.Options.Extensions.Any(e => e.GetType() == typeof(Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension)))
+            if (builder.IsConfigured)
             {
-                // This block supports the use of a connection string provided through dependency injection
-                string cxnstr = Builder.Options.GetExtension<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension>().ConnectionString;
-                Builder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
+                RelationalOptionsExtension extension = builder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
+                string connectionString = extension.ConnectionString;
+                builder.UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6));
             }
             else
             {
                 // This block supports ef migration add, where no connection string is provided through dependency injection
-                Builder.UseNpgsql(GetConfiguredConnectionString(), o => o.SetPostgresVersion(9, 6));
+                builder.UseNpgsql(GetConfiguredConnectionString(), o => o.SetPostgresVersion(9, 6));
             }
         }
 
