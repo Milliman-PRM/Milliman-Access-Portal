@@ -38,6 +38,8 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
             checksumProgress: progress,
           },
         };
+      } else {
+        return { ...state };
       }
     },
     UPDATE_UPLOAD_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateUploadProgress) => {
@@ -49,6 +51,8 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
             uploadProgress: progress,
           },
         };
+      } else {
+        return { ...state };
       }
     },
     SET_UPLOAD_ERROR: (state, { uploadId, errorMsg }: UploadActions.SetUploadError) => ({

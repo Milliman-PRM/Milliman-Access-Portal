@@ -880,6 +880,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
+    } else {
+      return { ...state };
     }
   },
   UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => {
@@ -894,6 +896,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
+    } else {
+      return { ...state };
     }
   },
   CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
