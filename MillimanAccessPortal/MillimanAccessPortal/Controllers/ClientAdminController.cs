@@ -1162,7 +1162,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.SaveNewClient action: number of domains subject to limit ({{@Domains}}> exceeds the default limit of {GlobalFunctions.DefaultClientDomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The requested domain list exceeds the default limit");
@@ -1310,7 +1310,7 @@ namespace MillimanAccessPortal.Controllers
             Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailAddressExceptionList, false);
             
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > ExistingClientRecord.DomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > ExistingClientRecord.DomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.EditClient action: number of requested domains {{@WhiteListedDomains}} exceeds the configured limit of {ExistingClientRecord.DomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The domain list exceeds the configured limit");
