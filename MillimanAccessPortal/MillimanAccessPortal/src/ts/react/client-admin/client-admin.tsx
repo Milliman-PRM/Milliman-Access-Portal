@@ -510,7 +510,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                               } else if (isDomainNameProhibited(item, this.props.prohibitedDomains)) {
                                 toastr.warning('', `
                                   "${item}" is not allowed in the Approved Email Domain List.
-                                  Please add individual users to the Approved Email Address Exception List instead.
+                                  Please add individual users with email addresses at this domain to the
+                                  Approved Email Address Exception List instead.
                                 `);
                               } else if (overLimit) {
                                 toastr.warning('', `
