@@ -64,14 +64,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
             {label}
             {
               informationalText &&
-              <span
-                className="information-icon-container"
-                title={informationalText}
-              >
-                <svg className="information-icon">
-                  <use xlinkHref={'#information'} />
-                </svg>
-              </span>
+              InformationalSnippet(informationalText)
             }
           </label>
         </div>
@@ -112,14 +105,7 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps
             {label}
             {
               informationalText &&
-              <span
-                className="information-icon-container"
-                title={informationalText}
-              >
-                <svg className="information-icon">
-                  <use xlinkHref={'#information'} />
-                </svg>
-              </span>
+              InformationalSnippet(informationalText)
             }
           </label>
         </div>
@@ -235,14 +221,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
               }
               {
                 informationalText &&
-                <span
-                  className="information-icon-container"
-                  title={informationalText}
-                >
-                  <svg className="information-icon">
-                    <use xlinkHref={'#information'} />
-                  </svg>
-                </span>
+                InformationalSnippet(informationalText)
               }
             </label>
           </div>
