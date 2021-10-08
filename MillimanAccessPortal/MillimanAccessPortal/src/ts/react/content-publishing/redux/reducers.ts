@@ -868,26 +868,34 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
     };
   },
-  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => ({
-    ...state,
-    uploads: {
-      ...state.uploads,
-     [action.uploadId]: {
-        ...state.uploads[action.uploadId],
-        checksumProgress: action.progress,
-      },
-    },
-  }),
-  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => ({
-    ...state,
-    uploads: {
-      ...state.uploads,
-      [action.uploadId]: {
-        ...state.uploads[action.uploadId],
-        uploadProgress: action.progress,
-      },
-    },
-  }),
+  UPDATE_CHECKSUM_PROGRESS: (state, action: UploadActions.UpdateChecksumProgress) => {
+    if (state.uploads[action.uploadId]) {
+      return {
+        ...state,
+        uploads: {
+          ...state.uploads,
+          [action.uploadId]: {
+            ...state.uploads[action.uploadId],
+            checksumProgress: action.progress,
+          },
+        },
+      };
+    }
+  },
+  UPDATE_UPLOAD_PROGRESS: (state, action: UploadActions.UpdateUploadProgress) => {
+    if (state.uploads[action.uploadId]) {
+      return {
+        ...state,
+        uploads: {
+          ...state.uploads,
+          [action.uploadId]: {
+            ...state.uploads[action.uploadId],
+            checksumProgress: action.progress,
+          },
+        },
+      };
+    }
+  },
   CANCEL_FILE_UPLOAD: (state, action: UploadActions.CancelFileUpload) => {
     const { relatedFiles } = state.pendingFormData;
     const relatedFilesKeys = Object.keys(state.pendingFormData.relatedFiles);

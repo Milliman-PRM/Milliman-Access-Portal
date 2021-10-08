@@ -29,20 +29,28 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
         cancelable,
       },
     }),
-    UPDATE_CHECKSUM_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateChecksumProgress) => ({
-      ...state,
-      [uploadId]: {
-        ...state[uploadId],
-        checksumProgress: progress,
-      },
-    }),
-    UPDATE_UPLOAD_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateUploadProgress) => ({
-      ...state,
-      [uploadId]: {
-        ...state[uploadId],
-        uploadProgress: progress,
-      },
-    }),
+    UPDATE_CHECKSUM_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateChecksumProgress) => {
+      if (state[uploadId]) {
+        return {
+          ...state,
+          [uploadId]: {
+            ...state[uploadId],
+            checksumProgress: progress,
+          },
+        };
+      }
+    },
+    UPDATE_UPLOAD_PROGRESS: (state, { uploadId, progress }: UploadActions.UpdateUploadProgress) => {
+      if (state[uploadId]) {
+        return {
+          ...state,
+          [uploadId]: {
+            ...state[uploadId],
+            uploadProgress: progress,
+          },
+        };
+      }
+    },
     SET_UPLOAD_ERROR: (state, { uploadId, errorMsg }: UploadActions.SetUploadError) => ({
       ...state,
       [uploadId]: {
@@ -69,6 +77,12 @@ export const uploadStatus = createReducer<Dict<UploadState>>({},
       return {};
     },
     PUBLISH_CONTENT_FILES_SUCCEEDED: () => {
+      return {};
+    },
+    FETCH_CONTENT_ITEM_DETAIL_SUCCEEDED: () => {
+      return {};
+    },
+    FETCH_ITEMS_SUCCEEDED: () => {
       return {};
     },
   },
