@@ -88,6 +88,10 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
         </a>
       );
     });
+    const contactFormTopics = ['Account Inquiry', 'Technical Issue', 'Other Support Question'];
+    if (this.state.navBarElements && this.state.navBarElements.filter((el) => el.view === 'ClientAdmin').length) {
+      contactFormTopics.push('Increase Client Domain Limit');
+    }
 
     return (
       <>
@@ -123,6 +127,7 @@ export class NavBar extends React.Component<NavBarProps, NavBarState> {
             <ContactFormModal
               isOpen={this.state.contactFormOpen}
               onRequestClose={this.closeContactForm}
+              topics={contactFormTopics}
             />
             <UserGuideModal
               isOpen={this.state.userGuideOpen}

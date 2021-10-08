@@ -4,6 +4,8 @@ import * as React from 'react';
 import * as Modal from 'react-modal';
 
 import { postData } from '../shared';
+import { TextAreaInput } from './shared-components/form/input';
+import { DropDown } from './shared-components/form/select';
 
 // Toastr related imports
 import toastr = require('toastr');
@@ -13,20 +15,30 @@ require('toastr/toastr.scss');
 interface ContactFormModalState {
   topic: string;
   message: string;
+  errors: {
+    topic: string;
+    message: string;
+  };
 }
 
-export class ContactFormModal extends React.Component<Modal.Props, ContactFormModalState> {
+interface ContactFormModalProps extends Modal.Props {
+  topics: string[];
+}
 
-  public constructor(props: Modal.Props) {
+export class ContactFormModal extends React.Component<ContactFormModalProps, ContactFormModalState> {
+
+  public constructor(props: ContactFormModalProps) {
     super(props);
 
     this.state = {
       topic: '',
       message: '',
+      errors: {
+        topic: '',
+        message: '',
+      },
     };
 
-    this.handleChangeTopic = this.handleChangeTopic.bind(this);
-    this.handleChangeMessage = this.handleChangeMessage.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
     this.cancel = this.cancel.bind(this);
   }
@@ -42,21 +54,35 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
         <h3 className="title blue">Contact Support</h3>
         <form onSubmit={this.handleSubmit}>
           <div>
-            <select
-              className="modal-input"
-              required={true}
-              onChange={this.handleChangeTopic}
-            >
-              <option value="">Please Select a Topic</option>
-              <option value="Account Inquiry">Account Inquiry</option>
-              <option value="Technical Issue">Technical Issue</option>
-              <option value="Other Support Question">Other</option>
-            </select>
-            <textarea
-              className="modal-input"
-              placeholder="Message"
-              required={true}
-              onChange={this.handleChangeMessage}
+            <DropDown
+              name="supportTopic"
+              label="Support Topic *"
+              placeholderText="Select a Topic..."
+              values={this.props.topics.map((topic) => {
+                return {
+                  selectionValue: topic,
+                  selectionLabel: topic,
+                };
+              })}
+              value={this.state.topic}
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                this.setState({
+                  topic: target.value,
+                });
+              }}
+              readOnly={false}
+              error={this.state.errors.topic}
+            />
+            <TextAreaInput
+              label="Message *"
+              name="ContactFormMessage"
+              onChange={({ currentTarget: target }: React.FormEvent<HTMLTextAreaElement>) => {
+                this.setState({
+                  message: target.value,
+                });
+              }}
+              error={this.state.errors.message}
+              value={this.state.message}
             />
           </div>
           <div className="button-container">
@@ -70,6 +96,7 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
             <button
               className="blue-button"
               type="submit"
+              disabled={!(this.state.topic && this.state.message)}
             >
               Submit
             </button>
@@ -77,18 +104,6 @@ export class ContactFormModal extends React.Component<Modal.Props, ContactFormMo
         </form>
       </Modal>
     );
-  }
-
-  private handleChangeTopic(event: React.ChangeEvent<HTMLSelectElement>) {
-    this.setState({
-      topic: event.target.value,
-    });
-  }
-
-  private handleChangeMessage(event: React.ChangeEvent<HTMLTextAreaElement>) {
-    this.setState({
-      message: event.target.value,
-    });
   }
 
   private handleSubmit(event: React.MouseEvent<HTMLFormElement> | React.KeyboardEvent<HTMLFormElement>) {
