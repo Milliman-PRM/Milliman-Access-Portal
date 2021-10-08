@@ -398,6 +398,8 @@ namespace MillimanAccessPortal
 
             services.AddApplicationInsightsTelemetry(Configuration);
 
+            services.AddDatabaseDeveloperPageExceptionFilter();
+
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
             // This variable should never be set on a real production or staging system
@@ -504,7 +506,6 @@ namespace MillimanAccessPortal
             if (env.IsDevelopment() || env.EnvironmentName.ToUpper() == "AZURECI")
             {
                 app.UseDeveloperExceptionPage();
-                app.UseDatabaseErrorPage();
                 app.UseBrowserLink();
 
                 if (env.IsDevelopment())

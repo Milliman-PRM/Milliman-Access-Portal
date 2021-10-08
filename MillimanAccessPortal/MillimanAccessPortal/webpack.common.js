@@ -204,12 +204,12 @@ module.exports = {
       minify: false,
     }),
     new HtmlWebpackPlugin({
-        filename: path.resolve(__dirname, 'Views', 'Shared', 'UserMessage.cshtml'),
-        template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'UserMessage.cshtml.template'),
-        inject: false,
-        chunks: ['commons', 'message'],
-        minify: false,
-      }),
+      filename: path.resolve(__dirname, 'Views', 'Shared', 'UserMessage.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'Shared', 'UserMessage.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'message'],
+      minify: false,
+    }),
     new HtmlWebpackPlugin({
       filename: path.resolve(__dirname, 'Views', 'Account', 'Login.cshtml'),
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'Login.cshtml.template'),

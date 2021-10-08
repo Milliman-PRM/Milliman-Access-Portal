@@ -15,6 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
 if (module.hot) {
     module.hot.accept(['./update-user-agreement'], () => {
-        UpdateUserAgreement = require('./update-user-agreement').SystemAdmin;
+        UpdateUserAgreement = require('./update-user-agreement').UpdateUserAgreement;
     });
 }

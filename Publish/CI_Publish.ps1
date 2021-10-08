@@ -103,7 +103,8 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
-$env:MSBuildSDKsPath=$core3
+$net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
+$env:MSBuildSDKsPath=$net5
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -165,8 +166,10 @@ if ($buildType -ne "Release")
 log_statement "Restoring packages and building MAP"
 
 # Switch to the correct version of Node.js using NVM
-$command = "nvm use 14.18.0"
-Invoke-Expression $command
+$url   = "http://localhost:8042/nvm_use?version=14.18.0"
+$result = Invoke-Webrequest $url
+log_statement "Status code: $($result.StatusCode)"
+log_statement "Content: $($result.Content)"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: Switching to Node.js v14.18.0 failed"
@@ -174,19 +177,9 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-# Install Yarn globally
-$command = "npm install -g yarn@1.22.11"
-Invoke-Expression $command
-
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failed to install yarn"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --frozen-lockfile"
+$command = "yarn install --immutable"
 invoke-expression "&$command"
 
 if ($LASTEXITCODE -ne 0) {
@@ -255,7 +248,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-$env:MSBuildSDKsPath=$core3
+$env:MSBuildSDKsPath=$net5
 Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
@@ -447,15 +440,15 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-log_statement "Creating web app release"
+log_statement "Creating releases in Octopus"
 # Determine appropriate release channel (applies only at the time the release is created)
-if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+if ($BranchName.ToLower() -eq "master")
 {
-    $channelName = "Pre-Release"
+    $channelName = "Release"
 }
 else
 {
-    $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
+    $channelName = "Pre-Release"
 }
 
 octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
