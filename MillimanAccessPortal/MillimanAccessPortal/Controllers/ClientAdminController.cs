@@ -161,8 +161,11 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> PageGlobalData()
         {
             #region Authorization
-            AuthorizationResult RoleInClientResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
-            if (!RoleInClientResult.Succeeded)
+            // User must have Admin role to at least 1 Client or ProfitCenter
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.Admin));
+            AuthorizationResult Result2 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInProfitCenterRequirement(RoleEnum.Admin));
+            if (!Result1.Succeeded &&
+                !Result2.Succeeded)
             {
                 Log.Debug($"In ClientAdminController.PageGlobalData action: authorization failure, user {User.Identity.Name}, role {RoleEnum.Admin}");
                 Response.Headers.Add("Warning", "You are not authorized to manage clients.");
@@ -1159,7 +1162,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.SaveNewClient action: number of domains subject to limit ({{@Domains}}> exceeds the default limit of {GlobalFunctions.DefaultClientDomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The requested domain list exceeds the default limit");
@@ -1307,7 +1310,7 @@ namespace MillimanAccessPortal.Controllers
             Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailAddressExceptionList, false);
             
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > ExistingClientRecord.DomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > ExistingClientRecord.DomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.EditClient action: number of requested domains {{@WhiteListedDomains}} exceeds the configured limit of {ExistingClientRecord.DomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The domain list exceeds the configured limit");
