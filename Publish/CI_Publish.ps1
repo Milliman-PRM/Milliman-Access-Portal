@@ -440,15 +440,15 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-log_statement "Creating web app release"
+log_statement "Creating releases in Octopus"
 # Determine appropriate release channel (applies only at the time the release is created)
-if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+if ($BranchName.ToLower() -eq "master")
 {
-    $channelName = "Pre-Release"
+    $channelName = "Release"
 }
 else
 {
-    $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
+    $channelName = "Pre-Release"
 }
 
 octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
