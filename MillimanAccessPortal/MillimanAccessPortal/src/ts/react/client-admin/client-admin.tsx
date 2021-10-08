@@ -293,6 +293,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     const {
       formData, profitCenters, details, selected, edit, valid, formModified, rolesModified, formValid,
     } = this.props;
+    const currentDomainLimit = formData.id ? formData.domainListCountLimit : this.props.defaultDomainLimit;
+    const approvedEmailDomainInformationalText =
+      'The approved email domain list is a list of email domains that can be used within ' +
+      'this Client. When adding users to this Client, you will be able to add any user ' +
+      `with the domains listed here. The domain limit for this Client is currently ${currentDomainLimit} ` +
+      'domains, plus "milliman.com". If you have a business need to allow more domains ' +
+      'for this Client, please use the "Contact support" button on the navigation bar to request ' +
+      'a domain limit increase.';
     return (
       <>
         <div
@@ -492,6 +500,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
                             error={null}
+                            informationalText={approvedEmailDomainInformationalText}
                           /> :
                           <MultiAddInput
                             name="approvedEmailDomainList"
@@ -535,6 +544,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
                             error={null}
+                            informationalText={approvedEmailDomainInformationalText}
                           />
                         }
                       </div>
