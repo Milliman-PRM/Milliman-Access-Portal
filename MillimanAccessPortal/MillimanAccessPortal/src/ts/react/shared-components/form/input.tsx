@@ -31,6 +31,17 @@ interface InputProps extends BaseInputProps {
   type: string;
 }
 
+const InformationalSnippet = (informationalText: string) => (
+  <span
+    className="information-icon-container"
+    title={informationalText}
+  >
+    <svg className="information-icon">
+      <use xlinkHref={'#information'} />
+    </svg>
+  </span>
+);
+
 export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
   const { name, label, error, inputIcon, informationalText, placeholderText, children, readOnly, hidden,
     onSubmitCallback, usesOnSubmitCallback, ...rest } = props;
