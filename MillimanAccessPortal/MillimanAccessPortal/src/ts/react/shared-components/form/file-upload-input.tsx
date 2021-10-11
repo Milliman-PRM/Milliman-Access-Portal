@@ -198,10 +198,12 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
                 }
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
-                this.props.setUploadError(
-                  this.props.uploadId,
-                  fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
-                );
+                if (!this.canceled) {
+                  this.props.setUploadError(
+                    this.props.uploadId,
+                    fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
+                  );
+                }
                 this.statusMonitor.stop();
               }
             });
@@ -277,10 +279,8 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     if (nextProps.value === '') {
       this.setState({ imageSrc: null });
     }
-    if (nextProps.uploadId !== this.props.uploadId && this.statusMonitor) {
-      // Stop monitor that checks for finalized uploads in the event that user
-      // switches Content Items while file upload takes place.
-      this.statusMonitor.stop();
+    if (nextProps.uploadId !== this.props.uploadId) {
+      this.canceled = true;
     }
   }
 
