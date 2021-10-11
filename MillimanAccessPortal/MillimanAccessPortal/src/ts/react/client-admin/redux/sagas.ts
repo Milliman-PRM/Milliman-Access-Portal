@@ -39,7 +39,7 @@ const takeEveryToast = createTakeEveryToast<AccessAction, ResponseAccessAction>(
 export default function* rootSaga() {
   // API requests
   yield takeLatestRequest('FETCH_CLIENTS', api.fetchClients);
-  yield takeLatestRequest('FETCH_PROFIT_CENTERS', api.fetchProfitCenters);
+  yield takeLatestRequest('FETCH_GLOBAL_DATA', api.fetchGlobalData);
   yield takeLatestRequest('FETCH_CLIENT_DETAILS', api.fetchClientDetails);
   yield takeLatestRequest('UPDATE_ALL_USER_ROLES_IN_CLIENT', api.updateAllUserRolesInClient);
   yield takeLatestRequest('SAVE_NEW_CLIENT', api.saveNewClient);
@@ -73,7 +73,7 @@ export default function* rootSaga() {
 
   yield takeEveryToast<ErrorAccessAction>([
     'FETCH_CLIENTS_FAILED',
-    'FETCH_PROFIT_CENTERS_FAILED',
+    'FETCH_GLOBAL_DATA_FAILED',
     'FETCH_CLIENT_DETAILS_FAILED',
     'UPDATE_ALL_USER_ROLES_IN_CLIENT_FAILED',
     'SAVE_NEW_CLIENT_FAILED',

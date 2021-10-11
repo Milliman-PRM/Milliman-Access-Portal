@@ -43,7 +43,7 @@ import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from '..
 import { NavBar } from '../shared-components/navbar';
 import { ClientDetail } from '../system-admin/interfaces';
 
-import { isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../shared';
+import { isDomainNameProhibited, isDomainNameValid, isEmailAddressValid, isStringNotEmpty } from '../../shared';
 import { setUnloadAlert } from '../../unload-alerts';
 
 type ClientEntity = ((ClientWithEligibleUsers | ClientWithStats) & { indent: 1 | 2 }) | 'divider' | 'new';
@@ -52,6 +52,10 @@ interface ClientAdminProps {
   pending: AccessStatePending;
   clients: ClientEntity[];
   profitCenters: ProfitCenter[];
+  defaultWelcomeEmailText: string;
+  nonLimitedDomains: string[];
+  prohibitedDomains: string[];
+  defaultDomainLimit: number;
   details: ClientDetail;
   formData: AccessStateFormData;
   assignedUsers: UserEntity[];
@@ -115,7 +119,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
 
   public componentDidMount() {
     this.props.setCurrentUser({ username: document.getElementById('current-user-email').innerText });
-    this.props.fetchProfitCenters({});
+    this.props.fetchGlobalData({});
     this.props.fetchClients({});
     setUnloadAlert(() => (this.props.edit.userEnabled && this.props.rolesModified)
       || (!this.props.edit.disabled && this.props.formModified));
@@ -289,6 +293,14 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
     const {
       formData, profitCenters, details, selected, edit, valid, formModified, rolesModified, formValid,
     } = this.props;
+    const currentDomainLimit = formData.id ? formData.domainListCountLimit : this.props.defaultDomainLimit;
+    const approvedEmailDomainInformationalText =
+      'The approved email domain list is a list of email domains that can be used within ' +
+      'this Client. When adding users to this Client, you will be able to add any user ' +
+      `with the domains listed here. The domain limit for this Client is currently ${currentDomainLimit} ` +
+      'domains, plus "milliman.com". If you have a business need to allow more domains ' +
+      'for this Client, please use the "Contact support" button on the navigation bar to request ' +
+      'a domain limit increase.';
     return (
       <>
         <div
@@ -488,21 +500,28 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
                             error={null}
+                            informationalText={approvedEmailDomainInformationalText}
                           /> :
                           <MultiAddInput
                             name="approvedEmailDomainList"
                             label="Approved Email Domain List"
                             type="text"
-                            limit={formData.domainListCountLimit}
+                            limit={formData.id ? formData.domainListCountLimit : this.props.defaultDomainLimit}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
                             value={''}
-                            exceptions={['milliman.com']}
+                            exceptions={this.props.nonLimitedDomains}
                             addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
                                 toastr.warning('', 'That domain already exists.');
                               } else if (!isDomainNameValid(item)) {
                                 toastr.warning('', 'Please enter a valid domain name (e.g. domain.com)');
+                              } else if (isDomainNameProhibited(item, this.props.prohibitedDomains)) {
+                                toastr.warning('', `
+                                  "${item}" is not allowed in the Approved Email Domain List.
+                                  Please add individual users with email addresses at this domain to the
+                                  Approved Email Address Exception List instead.
+                                `);
                               } else if (overLimit) {
                                 toastr.warning('', `
                                   You have reached the allowed domain limit for this client.
@@ -525,6 +544,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             readOnly={edit.disabled}
                             onBlur={() => { return; }}
                             error={null}
+                            informationalText={approvedEmailDomainInformationalText}
                           />
                         }
                       </div>
@@ -709,7 +729,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             });
                           }}
                           error={null}
-                          value={formData.useNewUserWelcomeText ? formData.newUserWelcomeText : ''}
+                          value={formData.useNewUserWelcomeText
+                            ? formData.newUserWelcomeText
+                            : this.props.defaultWelcomeEmailText
+                          }
                           readOnly={edit.disabled || !formData.useNewUserWelcomeText}
                         />
                       </div>
@@ -1737,6 +1760,10 @@ function mapStateToProps(state: AccessState): ClientAdminProps {
   return {
     clients: clientEntities(state),
     profitCenters: data.profitCenters,
+    defaultWelcomeEmailText: data.defaultWelcomeEmailText,
+    nonLimitedDomains: data.nonLimitedDomains,
+    prohibitedDomains: data.prohibitedDomains,
+    defaultDomainLimit: data.defaultDomainLimit,
     details: data.details,
     cardAttributes,
     assignedUsers: userEntities(state),
