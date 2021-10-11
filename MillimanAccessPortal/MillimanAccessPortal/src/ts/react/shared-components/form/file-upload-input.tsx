@@ -277,6 +277,11 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     if (nextProps.value === '') {
       this.setState({ imageSrc: null });
     }
+    if (nextProps.uploadId !== this.props.uploadId && this.statusMonitor) {
+      // Stop monitor that checks for finalized uploads in the event that user 
+      // switches Content Items while file upload takes place.
+      this.statusMonitor.stop();
+    }
   }
 
   public openFileUploadDialogOnEnter(event: React.KeyboardEvent) {
