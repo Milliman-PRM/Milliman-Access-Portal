@@ -85,13 +85,7 @@ namespace MillimanAccessPortal
                             ?.Select(d => d.Trim())
                             ?? GlobalFunctions.NonLimitedDomains
                         ).ToList();
-                    GlobalFunctions.ProhibitedDomains =
-                        (
-                            Configuration.GetValue<string>("Global:ProhibitedDomains", null)
-                            ?.Split(';', StringSplitOptions.RemoveEmptyEntries)
-                            ?.Select(d => d.Trim())
-                            ?? GlobalFunctions.ProhibitedDomains
-                        ).ToList();
+                    GlobalFunctions.ProhibitedDomains = Configuration.GetSection("Global:ProhibitedDomains").GetChildren().Select(c => c.Value).ToList();
                     Directory.CreateDirectory(Configuration.GetValue<string>("Storage:TemporaryExports"));
 
                     #region Configure Audit Logger connection string
