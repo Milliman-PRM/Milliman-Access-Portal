@@ -182,7 +182,7 @@ log_statement "Result of $($url): response content: $($result.Content)"
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 $command = "yarn install --immutable"
-invoke-expression "&$command"
+invoke-expression "& $command"
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn package restore failed"
