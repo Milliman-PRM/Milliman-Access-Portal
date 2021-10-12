@@ -117,6 +117,7 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
+$nodeVersion = "14.18.0"   # maybe this should be a script parameter
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -166,18 +167,17 @@ if ($buildType -ne "Release")
 log_statement "Restoring packages and building MAP"
 
 # Switch to the correct version of Node.js using NVM
-$url   = "http://localhost:8042/nvm_use?version=14.18.0"
+$url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
 $result = Invoke-Webrequest $url
 
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Switching to Node.js v14.18.0 failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    log_statement "Status code: $($result.StatusCode)"
-    log_statement "Content: $($result.Content)"
-    exit $LASTEXITCODE
+if ($? -eq $false) {
+    log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
+    log_statement "Result of $($url): status code: $($result.StatusCode)"
+    log_statement "Result of $($url): response content: $($result.Content)"
+    exit 1
 }
-log_statement "Status code: $($result.StatusCode)"
-log_statement "Content: $($result.Content)"
+log_statement "Result of $($url): status code: $($result.StatusCode)"
+log_statement "Result of $($url): response content: $($result.Content)"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
