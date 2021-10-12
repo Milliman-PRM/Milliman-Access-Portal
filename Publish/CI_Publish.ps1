@@ -68,7 +68,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 
     while ($attempts -lt $maxRetries -and $success -eq $false) {
         $attempts = $attempts + 1
-        invoke-expression "&$command"
+        invoke-expression "& $command"
         if ($LASTEXITCODE -eq 0) {
             $success = $true
             log_statement "$newDbName was created successfully"
@@ -182,7 +182,7 @@ log_statement "Result of $($url): response content: $($result.Content)"
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 $command = "yarn install --immutable"
-invoke-expression "& $command"
+invoke-expression $command
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn package restore failed"
@@ -290,7 +290,7 @@ if($runTests) {
     $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
     $command = "yarn test --ci --reporters='jest-junit'"
-    invoke-expression "&$command"
+    invoke-expression "& $command"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more Jest tests failed"
