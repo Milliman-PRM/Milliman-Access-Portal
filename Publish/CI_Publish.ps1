@@ -181,8 +181,7 @@ log_statement "Result of $($url): response content: $($result.Content)"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --immutable"
-invoke-expression $command
+yarn install --immutable
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn package restore failed"
@@ -191,6 +190,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Set-Location $rootpath\MillimanAccessPortal\
+
+log_statement "Building MAP web application"
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
@@ -213,16 +214,16 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-log_statement "Building documentation"
+# log_statement "Building documentation"
 
-Set-Location "$rootpath\Documentation\"
-cmd /c "compileUserDocs.bat"
+# Set-Location "$rootpath\Documentation\"
+# cmd /c "compileUserDocs.bat"
 
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: failed to build documentation"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
+# if ($LASTEXITCODE -ne 0) {
+#     log_statement "ERROR: failed to build documentation"
+#     log_statement "errorlevel was $LASTEXITCODE"
+#     exit $LASTEXITCODE
+# }
 
 Set-Location $rootpath\ContentPublishingServer
 
