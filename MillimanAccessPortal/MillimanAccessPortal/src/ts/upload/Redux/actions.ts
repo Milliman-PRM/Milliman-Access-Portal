@@ -62,4 +62,6 @@ export type PageUploadAction =
   | ContentPublishingActions.CreateNewContentItemSucceeded
   | ContentPublishingActions.UpdateContentItemSucceeded
   | ContentPublishingActions.PublishContentFilesSucceeded
+  | ContentPublishingActions.FetchContentItemDetailSucceeded
+  | ContentPublishingActions.FetchItemsSucceeded
   ;
