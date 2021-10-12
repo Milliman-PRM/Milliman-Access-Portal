@@ -176,8 +176,8 @@ if ($? -eq $false) {
     log_statement "Result of $($url): response content: $($result.Content)"
     exit 1
 }
-log_statement "Result of $url: status code: $($result.StatusCode)"
-log_statement "Result of $url: response content: $($result.Content)"
+log_statement "Result of $($url): status code: $($result.StatusCode)"
+log_statement "Result of $($url): response content: $($result.Content)"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
