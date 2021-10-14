@@ -2,6 +2,8 @@
 
 ## Release Notes
 
+### v1.16.0
+
 ### v1.15.0
 
 - Added the ability to publish and manage Power BI content using role based row level security
