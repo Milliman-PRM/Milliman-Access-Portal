@@ -149,17 +149,16 @@ namespace MillimanAccessPortal.Controllers
             #endregion
             
             var currentUser = await _userManager.GetUserAsync(User);
-            var AuthorizedProfitCenterList = await _clientAdminQueries.GetAuthorizedProfitCentersListAsync(currentUser);
+            List<AuthorizedProfitCenterModel> AuthorizedProfitCenterList = await _clientAdminQueries.GetAuthorizedProfitCentersListAsync(currentUser);
             return Json(AuthorizedProfitCenterList);
         }
 
-        // GET: ClientAdmin/ClientFamilyList
         /// <summary>
-        /// Returns the list of Client families that the current user has visibility to (defined by GetClientAdminIndexModelForUser(...)
+        /// Global constant data that is relevant at the page level
         /// </summary>
-        /// <returns>JsonResult or UnauthorizedResult</returns>
+        /// <returns></returns>
         [HttpGet]
-        public async Task<IActionResult> ClientFamilyList()
+        public async Task<IActionResult> PageGlobalData()
         {
             #region Authorization
             // User must have Admin role to at least 1 Client or ProfitCenter
@@ -168,14 +167,16 @@ namespace MillimanAccessPortal.Controllers
             if (!Result1.Succeeded &&
                 !Result2.Succeeded)
             {
-                Response.Headers.Add("Warning", $"You are not authorized as a client admin or profit center admin");
+                Log.Debug($"In ClientAdminController.PageGlobalData action: authorization failure, user {User.Identity.Name}, role {RoleEnum.Admin}");
+                Response.Headers.Add("Warning", "You are not authorized to manage clients.");
                 return Unauthorized();
             }
             #endregion
 
-            ClientAdminIndexViewModel ModelToReturn = await ClientAdminIndexViewModel.GetClientAdminIndexModelForUser(await _userManager.GetUserAsync(User), _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
+            ApplicationUser currentUser = await _userManager.GetUserAsync(User);
+            ClientAdminPageGlobalDataModel model = await ClientAdminPageGlobalDataModel.GetClientAdminPageGlobalDataForUser(currentUser, _userManager, DbContext, ApplicationConfig["Global:DefaultNewUserWelcomeText"]);
 
-            return Json(ModelToReturn);
+            return Json(model);
         }
 
         // GET: ClientAdmin/ClientDetail
@@ -1149,8 +1150,19 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
+            // Check prohibited domains
+            List<string> prohibitedDomains = Model.AcceptedEmailDomainList
+                                                  .Where(d => GlobalFunctions.ProhibitedDomains.Contains(d, StringComparer.InvariantCultureIgnoreCase))
+                                                  .ToList();
+            if (prohibitedDomains.Any())
+            {
+                Log.Debug($"In ClientAdminController.SaveNewClient action: domains <{string.Join(", ", prohibitedDomains)}> are prohibited by the system");
+                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains maybe added to the client in the email exception list");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > GlobalFunctions.DefaultClientDomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.SaveNewClient action: number of domains subject to limit ({{@Domains}}> exceeds the default limit of {GlobalFunctions.DefaultClientDomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The requested domain list exceeds the default limit");
@@ -1298,7 +1310,7 @@ namespace MillimanAccessPortal.Controllers
             Model.AcceptedEmailAddressExceptionList = GetCleanClientEmailWhitelistList(Model.AcceptedEmailAddressExceptionList, false);
             
             // Apply domain limit
-            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains).Count() > ExistingClientRecord.DomainListCountLimit)
+            if (Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains, StringComparer.InvariantCultureIgnoreCase).Count() > ExistingClientRecord.DomainListCountLimit)
             {
                 Log.Debug($"In ClientAdminController.EditClient action: number of requested domains {{@WhiteListedDomains}} exceeds the configured limit of {ExistingClientRecord.DomainListCountLimit}, aborting", Model.AcceptedEmailDomainList.Except(GlobalFunctions.NonLimitedDomains));
                 Response.Headers.Add("Warning", $"The domain list exceeds the configured limit");
@@ -1340,6 +1352,17 @@ namespace MillimanAccessPortal.Controllers
             {
                 Log.Warning($"In ClientAdminController.EditClient action: referenced profit center with ID {Model.ProfitCenterId} not found");
                 Response.Headers.Add("Warning", "The specified ProfitCenter is invalid.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+
+            // Check prohibited domains
+            List<string> prohibitedDomains = Model.AcceptedEmailDomainList
+                                                  .Where(d => GlobalFunctions.ProhibitedDomains.Contains(d, StringComparer.InvariantCultureIgnoreCase))
+                                                  .ToList();
+            if (prohibitedDomains.Any())
+            {
+                Log.Debug($"In ClientAdminController.EditClient action: domains <{string.Join(", ", prohibitedDomains)}> are prohibited by the system");
+                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains maybe added to the client in the email exception list");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 

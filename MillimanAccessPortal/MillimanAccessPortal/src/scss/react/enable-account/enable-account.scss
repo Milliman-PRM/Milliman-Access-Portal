@@ -1,0 +1,13 @@
+﻿@import "../../map_modules/variables";
+
+#content-wrapper div#content-container {
+    overflow: auto;
+}
+
+.form-content-container {
+    max-height: 95%;
+
+    form.enable-account-form {
+        margin: 1em;
+    }
+}

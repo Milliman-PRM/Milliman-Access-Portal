@@ -70,6 +70,10 @@ export interface AccessStateData {
   clients: Dict<ClientWithEligibleUsers | ClientWithStats>;
   parentClients: Dict<ClientWithEligibleUsers | ClientWithStats>;
   profitCenters: ProfitCenter[];
+  defaultWelcomeEmailText: string;
+  nonLimitedDomains: string[];
+  prohibitedDomains: string[];
+  defaultDomainLimit: number;
   details: ClientDetail;
   assignedUsers: User[];
 }

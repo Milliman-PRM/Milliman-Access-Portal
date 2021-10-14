@@ -1,6 +1,7 @@
 ﻿import * as _ from 'lodash';
 
 import '../../../../images/icons/hide-password.svg';
+import '../../../../images/icons/information.svg';
 import '../../../../images/icons/show-password.svg';
 
 import '../../../../scss/react/shared-components/form-elements.scss';
@@ -23,14 +24,26 @@ interface BaseInputProps {
   inputIcon?: string;
   readOnly?: boolean;
   hidden?: boolean;
+  informationalText?: string;
 }
 
 interface InputProps extends BaseInputProps {
   type: string;
 }
 
+const InformationalSnippet = (informationalText: string) => (
+  <span
+    className="information-icon-container"
+    title={informationalText}
+  >
+    <svg className="information-icon">
+      <use xlinkHref={'#information'} />
+    </svg>
+  </span>
+);
+
 export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref) => {
-  const { name, label, error, inputIcon, placeholderText, children, readOnly, hidden,
+  const { name, label, error, inputIcon, informationalText, placeholderText, children, readOnly, hidden,
     onSubmitCallback, usesOnSubmitCallback, ...rest } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
@@ -58,7 +71,13 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>((props, ref)
             readOnly={readOnly}
             {...rest}
           />
-          <label className="form-input-label" htmlFor={name}>{label}</label>
+          <label className="form-input-label" htmlFor={name}>
+            {label}
+            {
+              informationalText &&
+              InformationalSnippet(informationalText)
+            }
+          </label>
         </div>
         {children}
       </div>
@@ -73,7 +92,9 @@ interface TextareaProps extends BaseInputProps {
 }
 
 export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps>((props, ref) => {
-  const { name, label, error, placeholderText, children, readOnly, hidden, value, rows, maxRows, ...rest } = props;
+  const {
+    name, label, error, informationalText, placeholderText, children, readOnly, hidden, value, rows, maxRows, ...rest
+  } = props;
   return (
     <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
       <div className={'form-element-textarea' + (error ? ' error' : '')}>
@@ -91,7 +112,13 @@ export const TextAreaInput = React.forwardRef<HTMLTextAreaElement, TextareaProps
             rows={rows ? rows : 5}
             maxRows={maxRows ? maxRows : 10}
           />
-          <label className="form-input-label" htmlFor={name}>{label}</label>
+          <label className="form-input-label" htmlFor={name}>
+            {label}
+            {
+              informationalText &&
+              InformationalSnippet(informationalText)
+            }
+          </label>
         </div>
         {children}
       </div>
@@ -128,8 +155,10 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   }
 
   public render() {
-    const { name, label, error, placeholderText, children, readOnly, hidden, value, list, limit, limitText, exceptions,
-      addItem, removeItemCallback, ...rest } = this.props;
+    const {
+      name, label, error, informationalText, children, readOnly, hidden, list, limit,
+      limitText, exceptions, addItem, removeItemCallback,
+    } = this.props;
 
     return (
       <div className={'form-element-container' + (readOnly ? ' disabled' : '') + (hidden ? ' hidden' : '')}>
@@ -141,7 +170,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
               {list.map((element: string, index: number) => {
                 return (
                   <div
-                    className={`badge ${!exceptions || (exceptions && exceptions.indexOf(element) === -1) ?
+                    className={`badge ${!exceptions
+                      || (exceptions && !exceptions.map((item) => item.toLowerCase()).includes(element.toLowerCase())) ?
                       'badge-secondary' : 'badge-primary'}`}
                     key={index}
                   >
@@ -200,6 +230,10 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 </span>
                 : null
               }
+              {
+                informationalText &&
+                InformationalSnippet(informationalText)
+              }
             </label>
           </div>
           {children}
@@ -217,8 +251,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
     for (let i = 0; i < inputArray.length; i++) {
       const inputItem = inputArray[i].trim();
       const overLimit = limit > 0 ? (effectiveListLength + i >= limit ? true : false) : false;
-      const itemAlreadyExists = _.includes(list, inputItem);
-      const itemIsExemptFromLimit = _.includes(exceptions, inputItem);
+      const itemAlreadyExists = _.includes(list.map((item) => item.toLowerCase()), inputItem.toLowerCase());
+      const itemIsExemptFromLimit = _.includes(exceptions.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       if (itemIsExemptFromLimit) {
         addItemCallback(inputItem, false, itemAlreadyExists);
       } else if (inputItem.length > 0) {
@@ -230,13 +264,11 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
 
   private getEffectiveListLength(list: string[], exceptions: string[]) {
     const tempList = list.slice();
-    const inputArray = this.state.currentText.trim().split(';');
+    const inputArray = this.state.currentText.toLowerCase().trim().split(';');
     tempList.concat(inputArray);
-    const numberOfExceptions = tempList.filter((value) => _.includes(exceptions, value)).length;
-
-    if (_.includes(exceptions, this.state.currentText)) {
-      return tempList.length - numberOfExceptions;
-    }
+    const exceptionsToLower = exceptions.map((item) => item.toLowerCase());
+    const numberOfExceptions =
+      tempList.filter((value) => _.includes(exceptionsToLower, value.toLowerCase())).length;
     return tempList.length - numberOfExceptions;
   }
 

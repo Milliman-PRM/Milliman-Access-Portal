@@ -9,6 +9,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using Npgsql;
 using System;
@@ -210,8 +211,13 @@ namespace MapDbContextLib.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string cxnstr = optionsBuilder.Options.GetExtension<Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal.NpgsqlOptionsExtension>().ConnectionString;
-            optionsBuilder.UseNpgsql(cxnstr, o => o.SetPostgresVersion(9, 6));
+            if (optionsBuilder.IsConfigured)
+            {
+                RelationalOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
+                string connectionString = extension.ConnectionString;
+
+                optionsBuilder.UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6));
+            }
         }
 
         public static async Task InitializeAllAsync(IServiceProvider serviceProvider)

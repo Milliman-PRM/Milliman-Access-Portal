@@ -1,0 +1,476 @@
+﻿import * as React from 'react';
+import * as Yup from 'yup';
+
+import { Guid } from '../models';
+import { BaseFormState, Form } from '../shared-components/form/form';
+import { Input } from '../shared-components/form/input';
+import { DropDown } from '../shared-components/form/select';
+
+import { PasswordValidation } from '../../../ts/react/models';
+import { postJsonData } from '../../../ts/shared';
+import { ButtonSpinner } from '../shared-components/button-spinner';
+
+const validatePassword = async (requestModel: { proposedPassword: string }) =>
+  await postJsonData<PasswordValidation>('/Account/CheckPasswordValidity2', requestModel);
+
+interface EnableAccountState extends BaseFormState {
+  pageData: {
+    requestVerificationToken: string;
+    id: Guid;
+    code: string;
+    isLocalAccount: boolean;
+    username: string;
+    timeZones: Array<{ selectionValue: string | number, selectionLabel: string }>;
+  };
+  data: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    employer: string;
+    timeZoneId: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  };
+  errors: {
+    firstName: string;
+    lastName: string;
+    phone: string;
+    employer: string;
+    timeZoneId: string;
+    newPassword: string;
+    confirmNewPassword: string;
+  };
+  errorMessage: string;
+  awaitingResponse: boolean;
+}
+
+export class EnableAccount extends Form<{}, EnableAccountState> {
+
+  protected schema = Yup.object({
+    firstName: Yup.string().required().label('First name'),
+    lastName: Yup.string().required().label('Last name'),
+    phone: Yup.string().required().label('Phone'),
+    employer: Yup.string().required().label('Employer'),
+    timeZoneId: Yup.string().required().label('Time zone'),
+    newPassword: Yup.string()
+      .label('New Password')
+      .test('new-password-is-valid', () => this.msg, (value) => {
+        if (this.state.pageData.isLocalAccount && !value) {
+          return false;
+        }
+        return this.state.pageData.isLocalAccount ?
+          validatePassword({ proposedPassword: value })
+            .then((response) => {
+              this.msg = response.messages
+                ? response.messages.join('\r\n')
+                : null;
+              return response.valid;
+            }) : true;
+      }),
+    confirmNewPassword: Yup.string()
+      .label('Confirm Password')
+      .test(
+        'confirm-password-matches-new',
+        'Does not match new password',
+        () => this.state.pageData.isLocalAccount
+          ? this.state.data.confirmNewPassword === this.state.data.newPassword
+          : true,
+      ),
+  }).notRequired();
+
+  private msg: string = null;
+
+  public constructor(props: {}) {
+    super(props);
+
+    this.state = {
+      pageData: {
+        requestVerificationToken: '',
+        id: '',
+        code: '',
+        isLocalAccount: true,
+        username: '',
+        timeZones: [],
+      },
+      data: {
+        firstName: '',
+        lastName: '',
+        phone: '',
+        employer: '',
+        timeZoneId: 'UTC',
+        newPassword: '',
+        confirmNewPassword: '',
+      },
+      errors: {
+        firstName: null,
+        lastName: null,
+        phone: null,
+        employer: null,
+        timeZoneId: null,
+        newPassword: null,
+        confirmNewPassword: null,
+      },
+      formIsValid: false,
+      errorMessage: '',
+      awaitingResponse: false,
+    };
+  }
+
+  public componentDidMount() {
+    const requestVerificationToken = document
+      .querySelector('input[name="__RequestVerificationToken"]')
+      .getAttribute('value');
+    const id = document
+      .querySelector('input[name="__Id"]')
+      .getAttribute('value');
+    const code = document
+      .querySelector('input[name="__Code"]')
+      .getAttribute('value');
+    const isLocalAccountString = document
+      .querySelector('input[name="__IsLocalAccount"]')
+      .getAttribute('value');
+    const username = document
+      .querySelector('input[name="__Username"]')
+      .getAttribute('value');
+    const timeZonesRaw: Array<{ DisplayName: string; Id: string; }> = JSON.parse(
+      document
+        .querySelector('input[name="__TimeZones"]')
+        .getAttribute('value'));
+    const timeZones: Array<{ selectionValue: string | number; selectionLabel: string }> =
+      timeZonesRaw.map((x) => {
+        return {
+          selectionValue: x.Id,
+          selectionLabel: x.DisplayName,
+        };
+      });
+    validatePassword({ proposedPassword: '' })
+      .catch(() => {
+        location.reload(true);
+      });
+    this.setState({
+      pageData: {
+        ...this.state.pageData,
+        requestVerificationToken,
+        id,
+        code,
+        isLocalAccount: isLocalAccountString === 'True' ? true : false,
+        username,
+        timeZones,
+      },
+      data: {
+        ...this.state.data,
+      },
+      errors: {
+        ...this.state.errors,
+      },
+    });
+  }
+
+  public renderUserInformationSection() {
+    const { data, errors, pageData } = this.state;
+    return (
+      <div className="form-section-container">
+        <div className="form-section">
+          <h3 className="form-section-title">User Information</h3>
+          <div className="form-input-container">
+            <input type="text" hidden={true} name="id" value={pageData.id} readOnly={true} />
+            <input type="text" hidden={true} name="code" value={pageData.code} readOnly={true} />
+            <input
+              type="checkbox"
+              hidden={true}
+              name="isLocalAccount"
+              checked={pageData.isLocalAccount}
+              readOnly={true}
+            />
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="username"
+                label="Username"
+                type="text"
+                value={pageData.username}
+                error={null}
+                readOnly={true}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="firstName"
+                label="First Name *"
+                type="text"
+                autoFocus={true}
+                value={data.firstName}
+                error={errors.firstName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, firstName: target.value },
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.firstName = errorMessage.firstName;
+                  } else {
+                    currentErrors.firstName = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="lastName"
+                label="Last Name *"
+                type="text"
+                value={data.lastName}
+                error={errors.lastName}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, lastName: target.value },
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.lastName = errorMessage.lastName;
+                  } else {
+                    currentErrors.lastName = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="phone"
+                label="Phone Number *"
+                type="phone"
+                value={data.phone}
+                error={errors.phone}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, phone: target.value },
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.phone = errorMessage.phone;
+                  } else {
+                    currentErrors.phone = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
+              <Input
+                name="employer"
+                label="Employer *"
+                type="text"
+                value={data.employer}
+                error={errors.employer}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  this.setState({
+                    data: { ...data, employer: target.value },
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.employer = errorMessage.employer;
+                  } else {
+                    currentErrors.employer = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <DropDown
+                name="timeZoneId"
+                label="Timezone *"
+                value={data.timeZoneId}
+                values={this.state.pageData.timeZones}
+                error={errors.timeZoneId}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                  const timezoneValue = target.value ? target.value : null;
+                  this.setState({
+                    data: { ...data, timeZoneId: timezoneValue },
+                  });
+                }}
+                onBlur={async ({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                  const { errors: currentErrors } = Object.assign({}, this.state);
+                  const errorMessage = await this.validateProperty(target);
+                  if (errorMessage) {
+                    currentErrors.timeZoneId = errorMessage.timeZoneId;
+                  } else {
+                    currentErrors.timeZoneId = null;
+                  }
+                  this.setState({ errors: currentErrors });
+                  this.validate();
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  public renderNewPasswordSection() {
+    const { newPassword, confirmNewPassword } = this.state.data;
+    const { newPassword: newPasswordError, confirmNewPassword: confirmNewPasswordError } = this.state.errors;
+    return (
+      <div className="form-section-container">
+        <div className="form-section">
+          <h3 className="form-section-title">Password</h3>
+          <div className="form-input-container">
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="newPassword"
+                label="New Password *"
+                type="password"
+                value={newPassword}
+                error={newPasswordError}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { value } = target;
+                  const { data, errors } = Object.assign({}, this.state);
+                  data.newPassword = value;
+
+                  this.setState({ data }, async () => {
+                    const errorMessage = await this.validateProperty(target);
+                    if (errorMessage && value) {
+                      errors.newPassword = errorMessage.newPassword;
+                    } else {
+                      errors.newPassword = null;
+                    }
+                    this.setState({ errors });
+                    this.validate();
+                  });
+                }}
+              />
+            </div>
+            <div className="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-12-12">
+              <Input
+                name="confirmNewPassword"
+                label="Confirm New Password *"
+                type="password"
+                value={confirmNewPassword}
+                error={confirmNewPasswordError}
+                onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                  const { value } = target;
+                  const { data, errors } = Object.assign({}, this.state);
+                  data.confirmNewPassword = value;
+
+                  this.setState({ data }, async () => {
+                    const errorMessage = await this.validateProperty(target);
+
+                    if (errorMessage && value) {
+                      errors.confirmNewPassword = errorMessage.confirmNewPassword;
+                    } else {
+                      errors.confirmNewPassword = null;
+                    }
+                    this.setState({ errors });
+                    this.validate();
+                  });
+                }}
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  public renderButtonSection() {
+    const { formIsValid } = this.state;
+    return (
+      <div className="button-container">
+        <button
+          type="submit"
+          disabled={!formIsValid}
+          className="blue-button"
+        >
+          Activate Account
+          {this.state.awaitingResponse && <ButtonSpinner version="bars" />}
+        </button>
+      </div>
+    );
+  }
+
+  public render() {
+    const { isLocalAccount } = this.state.pageData;
+    const { errorMessage } = this.state;
+    return (
+      <div className="form-content-container flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-6-12">
+        <form autoComplete="off" className="enable-account-form" onSubmit={(evt) => this.handleFormSubmit(evt)}>
+          {this.renderUserInformationSection()}
+          {isLocalAccount && this.renderNewPasswordSection()}
+          {
+            errorMessage &&
+            <div className="error-message">
+              {this.state.errorMessage}
+            </div>
+          }
+          {this.renderButtonSection()}
+        </form>
+      </div>
+    );
+  }
+
+  private handleFormSubmit(event: React.FormEvent) {
+    event.preventDefault();
+    const { data, pageData } = this.state;
+    const unknownError = 'An unknown error occurred.  Please try again.';
+    const accountActivationData = {
+      id: pageData.id,
+      code: pageData.code,
+      isLocalAccount: pageData.isLocalAccount,
+      username: pageData.username,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone,
+      employer: data.employer,
+      timeZoneId: data.timeZoneId,
+      newPassword: data.newPassword,
+      confirmNewPassword: data.confirmNewPassword,
+    };
+    this.setState({ awaitingResponse: true });
+    fetch('/Account/EnableAccount', {
+      method: 'POST',
+      cache: 'no-cache',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'RequestVerificationToken': this.state.pageData.requestVerificationToken,
+      },
+      credentials: 'same-origin',
+      body: JSON.stringify(accountActivationData),
+    })
+      .then((response) => {
+        const warningMessage = response.headers.get('Warning');
+        const redirectUrl = response.headers.get('NavigateTo');
+        if (warningMessage) {
+          this.setState({ errorMessage: warningMessage, awaitingResponse: false });
+          return;
+        } else if (response.ok || redirectUrl) {
+          window.location.replace(redirectUrl || '/');
+        } else {
+          this.setState({ errorMessage: unknownError });
+        }
+        this.setState({ awaitingResponse: false });
+      })
+      .catch(() => {
+        this.setState({ errorMessage: unknownError });
+        this.setState({ awaitingResponse: false });
+      });
+  }
+}

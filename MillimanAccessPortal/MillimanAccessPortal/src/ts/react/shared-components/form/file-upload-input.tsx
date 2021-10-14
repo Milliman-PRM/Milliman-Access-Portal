@@ -198,10 +198,12 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
                 }
                 this.statusMonitor.stop();
               } else if (fileUpload.status === FileUploadStatus.Error) {
-                this.props.setUploadError(
-                  this.props.uploadId,
-                  fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
-                );
+                if (!this.canceled) {
+                  this.props.setUploadError(
+                    this.props.uploadId,
+                    fileUpload.statusMessage || 'Something went wrong during upload. Please try again.',
+                  );
+                }
                 this.statusMonitor.stop();
               }
             });
@@ -277,6 +279,9 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
     if (nextProps.value === '') {
       this.setState({ imageSrc: null });
     }
+    if (nextProps.uploadId !== this.props.uploadId) {
+      this.canceled = true;
+    }
   }
 
   public openFileUploadDialogOnEnter(event: React.KeyboardEvent) {
@@ -344,7 +349,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             {
               !cancelable &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Upload file"
                 onClick={() => this.uploadRef.current.click()}
               >
@@ -364,7 +369,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
             {
               cancelable &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Cancel upload"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
@@ -382,7 +387,7 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               && value !== '[Pending Removal]'
               && this.props.removeExistingFile &&
               <div
-                className="upload-icon tooltip"
+                className="upload-icon"
                 title="Delete existing file"
                 onClick={(event: React.MouseEvent) => {
                   event.stopPropagation();
