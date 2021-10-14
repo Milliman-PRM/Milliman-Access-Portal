@@ -214,16 +214,16 @@ if ($LASTEXITCODE -ne 0) {
     exit $LASTEXITCODE
 }
 
-# log_statement "Building documentation"
+log_statement "Building documentation"
 
-# Set-Location "$rootpath\Documentation\"
-# cmd /c "compileUserDocs.bat"
+Set-Location "$rootpath\Documentation\"
+cmd /c "compileUserDocs.bat"
 
-# if ($LASTEXITCODE -ne 0) {
-#     log_statement "ERROR: failed to build documentation"
-#     log_statement "errorlevel was $LASTEXITCODE"
-#     exit $LASTEXITCODE
-# }
+if ($LASTEXITCODE -ne 0) {
+    log_statement "ERROR: failed to build documentation"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
 
 Set-Location $rootpath\ContentPublishingServer
 
