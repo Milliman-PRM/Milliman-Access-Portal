@@ -2,73 +2,54 @@
     .SYNOPSIS
         Deploy FileDrop SFTP server
 
-    .DESCRIPTION
-        This script assumes the environment is set up in CI_Publish
-
     .NOTES
-        AUTHORS - Steve Gredell
+        AUTHORS - Steve Gredell, Ben Wyatt
 #>
-Param(
-    [Parameter()]
-    [string]$envCommonName,
-    [Parameter()]
-    [string]$azTenantId=$env:azTenantId,
-    [Parameter()]
-    [PSCredential]$SPCredential,
-    [Parameter()]
-    [string]$azSubscriptionId=$env:azSubscriptionId,
-    [Parameter()]
-    [string]$FDRG,
-    [Parameter()]
-    [string]$FDConName="filedropsftp-cont",
-    [Parameter()]
-    [string]$FDImageName,
-    [Parameter()]
-    [PSCredential]$FDACRCred,
-    [Parameter()]
-    [string]$FDFileName,
-    [Parameter()]
-    [PSCredential]$FDFileCred,
-    [Parameter()]
-    [string]$azCertPass,
-    [Parameter()]
-    [string]$thumbprint,
-    [Parameter()]
-    [string]$FDLocation = "eastus2"
-)
 
+import-module PSTokens
+$version = $OctopusParameters["Octopus.Action.Package[MillimanAccessPortal].PackageVersion"].split('-')[0]
+$branch = "$version-$TrimmedBranch"
 
-Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $azTenantId -Subscription $azSubscriptionId
+$passwd = ConvertTo-SecureString $AzDeploymentPrincipalPassword -AsPlainText -Force
+$SPCredential = New-Object System.Management.Automation.PSCredential($AzDeploymentPrincipalClient, $passwd)
+
+Connect-AzAccount -ServicePrincipal -Credential $SPCredential -Tenant $AzureTenantId -Subscription $AzDeploymentPrincipalSubscriptionNumber
+
+$FDImageName = "$ContainerRegistryUrl/filedropsftp:$branch"
+
+$azFileShareRootPass = (Get-AzStorageAccountKey -ResourceGroupName $StorageAccountResourceGroupName -AccountName $FileStorageAccount)[0].Value
 
 $params = @{
-    ResourceGroupName                   = $FDRG
-    Name                                = $FDConName
+    AZURE_TENANT_ID                     = $AzureTenantId
+    AZURE_CLIENT_ID                     = $FileDropServicePrincipalClient
+    AZURE_CLIENT_SECRET                 = $FileDropServicePrincipalPassword
+    ResourceGroupName                   = $FileDropResourceGroup
+    container_name                      = $FileDropContainerName
+    location                            = $FileDropLocation
+    azCertPass                          = $azCertPass
+    thumbprint                          = $thumbprint
+    ASPNETCORE_ENVIRONMENT              = $EnvironmentCode.ToUpper()
+    AzureVaultName                      = $AzureVaultName
+    acr_url                             = $ContainerRegistryUrl
+    acr_user                            = $ContainerRegistryUsername
+    acr_password                        = $ContainerRegistryPassword
     Image                               = $FDImageName
-    RegistryCredential                  = $FDACRCred
-    Location                            = $FDLocation
-    OsType                              = "Linux"
-    CPU                                 = 1
-    MemoryInGB                          = 1.5
-    IpAddressType                       = "Public"
-    Port                                = 22
-    Command                             = "/bin/sh /app/startsftpserver.sh $azCertPass $thumbprint" # "tail -f /dev/null"
-    EnvironmentVariable                 = @{ASPNETCORE_ENVIRONMENT = $env:ASPNETCORE_ENVIRONMENT}
-    AzureFileVolumeShareName            = $FDFileName
-    AzureFileVolumeAccountCredential    = $FDFileCred
-    AzureFileVolumeMountPath            = "/mnt/filedropshare"
-    DnsNameLabel                        = "filedrop-$envCommonName"
+    filedropdns                         = "map-$EnvironmentShortCode-sftp"
+    filedroprootsharename               = $FileDropFileShareName
+    filedroplogssharename               = $FileDropLogShareName
+    filedroprootstoragename             = $FileStorageAccount
+    filedroprootkey                     = $azFileShareRootPass
+    filedroplogsstoragename             = $FileStorageAccount
+    filedroplogskey                     = $azFileShareRootPass
+    MAP_DATABASE_SERVER                 = $DatabaseServerPublicFqdn
 }
 
-$containerGroup = New-AzContainerGroup @params
+$template = Get-Content ".\MillimanAccessPortal\SFTPServer.yaml.template" | Merge-Tokens -tokens $params
 
-$TMName = switch ($($env:ASPNETCORE_ENVIRONMENT).ToUpper()) {
-    "STAGING" {"filedrop-staging"}
-    "PRODUCTION" {"filedrop-prod"}
-    default {"filedrop-ci"}
-}
+$template_path = ".\SFTPServer.yaml"
+$template | Set-Content -path $template_path
 
-$TrafficManagerEndpoint = Get-AzTrafficManagerEndpoint -Name $TMName -Type "ExternalEndpoints" -ResourceGroupName $FDRG -ProfileName "filedrop-sftp-endpoint"
-
-$TrafficManagerEndpoint.Target = $($containerGroup).Fqdn
-
-Set-AzTrafficManagerEndpoint -TrafficManagerEndpoint $TrafficManagerEndpoint
+az login --service-principal -u $AzDeploymentPrincipalClient -p $AzDeploymentPrincipalPassword  --tenant $AzureTenantId
+az account set --subscription $AzDeploymentPrincipalSubscriptionNumber
+az container create --resource-group $FileDropResourceGroup --file $template_path --registry-login-server $ContainerRegistryUrl  --registry-username $ContainerRegistryUsername  --registry-password $ContainerRegistryPassword
+    
