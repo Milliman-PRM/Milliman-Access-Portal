@@ -159,20 +159,6 @@ namespace ContentPublishingLib.JobRunners
 
                         _CancellationToken.ThrowIfCancellationRequested();
 
-                        #region Extract reduced content hierarchy
-                        JobDetail.Result.ReducedContentHierarchy = await ExtractReductionHierarchy(ReducedDocumentNode);
-
-                        DetailObj = new {
-                            ReductionJobId = JobDetail.TaskId.ToString(),
-                            JobAction = JobDetail.Request.JobAction,
-                            Hierarchy = JobDetail.Result.ReducedContentHierarchy,
-                            ContentFile = "Reduced",
-                        };
-                        AuditLog.Log(AuditEventType.HierarchyExtractionSucceeded.ToEvent(DetailObj), null, null);
-                        #endregion
-
-                        _CancellationToken.ThrowIfCancellationRequested();
-
                         DistributeReducedContent();
                     }
 

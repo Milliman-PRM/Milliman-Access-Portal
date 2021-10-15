@@ -359,8 +359,6 @@ namespace ContentPublishingLib.JobMonitors
 
                     DbTask.MasterContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.MasterContentHierarchy;
 
-                    DbTask.ReducedContentHierarchyObj = (ContentReductionHierarchy<ReductionFieldValue>)JobDetail.Result.ReducedContentHierarchy;
-
                     DbTask.ResultFilePath = JobDetail.Result.ReducedContentFilePath;
 
                     DbTask.ReducedContentChecksum = JobDetail.Result.ReducedContentFileChecksum;
