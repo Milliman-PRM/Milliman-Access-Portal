@@ -259,7 +259,7 @@ log_statement "Building SFTP Server"
 Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
 mkdir "out"
 
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
 
 if ($LASTEXITCODE -ne 0)
 {
