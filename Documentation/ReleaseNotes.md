@@ -6,8 +6,6 @@
 
 - Made required changes to maintain MAP compatibility with Qlikview server upgraded to version 12.50 SR3
 - Added a configuration setting that prohibits free public email domains from being added to any client domain list
-- Converted all MAP production applications to run on the .NET 5.0 runtime
-- Added the ability to configure a client to store Power BI content on a dedicated capacity, potentially with a unique encryption key
 - Fixed a bug that sometimes counted "milliman.com" against the domain count limit for a client
 - Fixed a rare bug on the Content Publishing page where the Submit button did not appear enabled when it should have been
 - Fixed a bug that caused MAP application logs to accumulate in a single file rather than separated into daily rolling files
