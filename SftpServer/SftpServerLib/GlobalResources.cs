@@ -16,7 +16,6 @@ using System.Reflection;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
-using System.Security.Cryptography.X509Certificates;
 using System.IO;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Extensions.AspNetCore.Configuration.Secrets;
