@@ -4,7 +4,7 @@
 
 ### v1.16.0
 
-- Made required changes to maintain MAP compatibility with Qlikview server upgraded to version 12.50 SR3
+- Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version
 - Added a configuration setting that prohibits free public email domains from being added to any client domain list
 - Fixed a bug that sometimes counted "milliman.com" against the domain count limit for a client
 - Fixed a rare bug on the Content Publishing page where the Submit button did not appear enabled when it should have been
