@@ -563,10 +563,10 @@ export interface SuspendGroupFailed {
  */
 export interface SetGroupPowerBiEditability {
   type: 'SET_GROUP_POWER_BI_EDITABILITY';
-  request: {
-    groupId: Guid;
-    editable: boolean;
-  }
+    request: {
+        groupId: Guid;
+        editable: boolean;
+    };
 }
 export interface SetGroupPowerBiEditabilitySucceeded {
   type: 'SET_GROUP_POWER_BI_EDITABILITY_SUCCEEDED';
