@@ -1,9 +1,9 @@
-﻿import { Dict } from "../../shared-components/redux/store";
-import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from "../../models";
-import { TSError } from "../../shared-components/redux/actions";
-import { ClientDetail } from "../../system-admin/interfaces";
-import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from "../../shared-components/interfaces";
-import { AccessStateFormData } from "./store";
+﻿import { Dict } from '../../shared-components/redux/store';
+import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../../models';
+import { TSError } from '../../shared-components/redux/actions';
+import { ClientDetail } from '../../system-admin/interfaces';
+import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
+import { AccessStateFormData } from './store';
 
 // ~ Page Actions ~
 
