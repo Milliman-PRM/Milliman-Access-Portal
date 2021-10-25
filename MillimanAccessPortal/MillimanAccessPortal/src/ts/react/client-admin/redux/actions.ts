@@ -1,8 +1,8 @@
-﻿import { Dict } from '../../shared-components/redux/store';
-import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../../models';
-import { TSError } from '../../shared-components/redux/actions';
-import { ClientDetail } from '../../system-admin/interfaces';
+﻿import { ClientWithEligibleUsers, ClientWithStats, Guid, ProfitCenter, User, UserRole } from '../../models';
 import { EnableDisabledAccountReasonEnum, HitrustReasonEnum, RoleEnum } from '../../shared-components/interfaces';
+import { TSError } from '../../shared-components/redux/actions';
+import { Dict } from '../../shared-components/redux/store';
+import { ClientDetail } from '../../system-admin/interfaces';
 import { AccessStateFormData } from './store';
 
 // ~ Page Actions ~
@@ -450,8 +450,8 @@ export type ResponseAccessAction =
   ;
 
 /**
-* An action that marks the errored response of an Ajax request.
-*/
+ * An action that marks the errored response of an Ajax request.
+ */
 export type ErrorAccessAction =
   | FetchClientsFailed
   | FetchGlobalDataFailed
