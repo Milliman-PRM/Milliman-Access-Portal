@@ -1385,11 +1385,15 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           <button
             className="green-button"
             disabled={!this.props.goLiveApproveButtonIsActive}
-            onClick={() => this.props.approveGoLiveSummary({
-              rootContentItemId,
-              publicationRequestId: goLiveSummary.publicationRequestId,
-              validationSummaryId: goLiveSummary.validationSummaryId,
-            })}
+            onClick={() => {
+                if (!this.props.pending.data.goLiveApproval) {
+                    this.props.approveGoLiveSummary({
+                        rootContentItemId,
+                        publicationRequestId: goLiveSummary.publicationRequestId,
+                        validationSummaryId: goLiveSummary.validationSummaryId,
+                    });
+                }
+            }}
           >
             Approve
             {this.props.pending.data.goLiveApproval
