@@ -101,7 +101,8 @@ log_statement "$BranchName trimmed to $TrimmedBranch"
 
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
-$core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
+# $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
+$core2="C:\Program Files\dotnet\sdk\2.1.818\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
 $net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
 $env:MSBuildSDKsPath=$net5
