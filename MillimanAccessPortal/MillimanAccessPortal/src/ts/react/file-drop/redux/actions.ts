@@ -456,10 +456,10 @@ export interface SetFileDropNotificationSetting {
   type: 'SET_FILE_DROP_NOTIFICATION_SETTING';
   request: {
     fileDropId: Guid;
-    notifications: {
+    notifications: Array<{
       notificationType: FileDropNotificationTypeEnum;
       isEnabled: boolean;
-    }[];
+    }>;
   };
 }
 /** Action called upon successful return of the SetFileDropNotificationSetting API call */
