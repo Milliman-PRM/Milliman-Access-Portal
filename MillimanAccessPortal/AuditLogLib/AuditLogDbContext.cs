@@ -64,12 +64,12 @@ namespace AuditLogLib
             {
                 RelationalOptionsExtension extension = builder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
                 string connectionString = extension.ConnectionString;
-                builder.UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6));
+                builder.UseNpgsql(connectionString);
             }
             else
             {
                 // This block supports ef migration add, where no connection string is provided through dependency injection
-                builder.UseNpgsql(GetConfiguredConnectionString(), o => o.SetPostgresVersion(9, 6));
+                builder.UseNpgsql(GetConfiguredConnectionString());
             }
         }
 

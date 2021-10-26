@@ -216,7 +216,7 @@ namespace MapDbContextLib.Context
                 RelationalOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
                 string connectionString = extension.ConnectionString;
 
-                optionsBuilder.UseNpgsql(connectionString, o => o.SetPostgresVersion(9, 6));
+                optionsBuilder.UseNpgsql(connectionString);
             }
         }
 
