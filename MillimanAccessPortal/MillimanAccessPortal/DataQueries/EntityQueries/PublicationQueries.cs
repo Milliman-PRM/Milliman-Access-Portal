@@ -207,20 +207,20 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
             ContentReductionHierarchy<ReductionFieldValueSelection> selections = reductionTask.SelectionCriteriaObj;
 
             // remove any selected values of the newly reduced content not contained in the hierarchy
-            if (reductionTask.ReducedContentHierarchyObj != null && selections != null)
+            if (reductionTask.MasterContentHierarchyObj != null && selections != null)
             {
                 foreach (var selectionHierarchyField in selections.Fields)
                 {
-                    List<string> reducedHierarchyFieldValueList = reductionTask.ReducedContentHierarchyObj
-                                                                               .Fields
-                                                                               .Single(f => f.FieldName == selectionHierarchyField.FieldName)
-                                                                               .Values
-                                                                               .Select(v => v.Value)
-                                                                               .ToList();
+                    List<string> masterHierarchyFieldValueList = reductionTask.MasterContentHierarchyObj
+                                                                              .Fields
+                                                                              .Single(f => f.FieldName == selectionHierarchyField.FieldName)
+                                                                              .Values
+                                                                              .Select(v => v.Value)
+                                                                              .ToList();
 
                     foreach (ReductionFieldValueSelection selectedValue in selectionHierarchyField.Values.Where(v => v.SelectionStatus))
                     {
-                        if (!reducedHierarchyFieldValueList.Contains(selectedValue.Value))
+                        if (!masterHierarchyFieldValueList.Contains(selectedValue.Value))
                         {
                             selectedValue.SelectionStatus = false;
                         }
@@ -228,7 +228,6 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 }
             }
             else if (reductionTask.TaskAction != TaskActionEnum.HierarchyOnly && 
-                     reductionTask.ReducedContentHierarchyObj == null && 
                      reductionTask.ReductionStatus == ReductionStatusEnum.Warning)
             {
                 return new List<Guid>();

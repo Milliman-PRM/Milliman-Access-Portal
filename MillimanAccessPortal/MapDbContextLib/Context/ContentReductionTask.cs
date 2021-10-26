@@ -162,24 +162,6 @@ namespace MapDbContextLib.Context
             set { MasterContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
         }
 
-        /// <summary>
-        /// From reduction server. json is intended to deserialize to an instance of ContentReductionHierarchy
-        /// </summary>
-        [Column(TypeName = "jsonb")]
-        public string ReducedContentHierarchy { get; set; }
-
-        [NotMapped]
-        public ContentReductionHierarchy<ReductionFieldValue> ReducedContentHierarchyObj
-        {
-            get
-            {
-                return ReducedContentHierarchy == null
-                    ? null
-                    : JsonConvert.DeserializeObject<ContentReductionHierarchy<ReductionFieldValue>>(ReducedContentHierarchy);
-            }
-            set { ReducedContentHierarchy = JsonConvert.SerializeObject(value, Formatting.Indented); }
-        }
-
         [Column(TypeName ="jsonb")]
         public string SelectionCriteria { get; set; }
 
