@@ -284,14 +284,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                           icon={'reports'}
                         />
                       </CardSectionStats>
-                      <CardSectionButtons>
-                        <CardButton
-                          color={'blue'}
-                          tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
-                          onClick={() => this.handleSendReset(entity.email)}
-                          icon={'email'}
-                        />
-                      </CardSectionButtons>
                     </CardSectionMain>
                     {entity.rootContentItems && entity.rootContentItems.length
                       ? (
@@ -406,12 +398,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       />
                     </CardSectionStats>
                     <CardSectionButtons>
-                      <CardButton
-                        color={'blue'}
-                        tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
-                        onClick={() => this.handleSendReset(entity.email)}
-                        icon={'email'}
-                      />
                       <CardButton
                         color={'red'}
                         tooltip="Remove from profit center"
@@ -593,14 +579,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
                       icon={'reports'}
                     />
                   </CardSectionStats>
-                  <CardSectionButtons>
-                    <CardButton
-                      color={'blue'}
-                      tooltip={entity.activated ? 'Send password reset email' : 'Resend account activation email'}
-                      onClick={() => this.handleSendReset(entity.email)}
-                      icon={'email'}
-                    />
-                  </CardSectionButtons>
                 </>
               );
             } else if (isClientInfo(entity)) {
