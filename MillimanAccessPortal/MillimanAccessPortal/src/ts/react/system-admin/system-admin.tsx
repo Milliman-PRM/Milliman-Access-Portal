@@ -1638,13 +1638,6 @@ export class SystemAdmin extends React.Component<{}, SystemAdminState> {
     );
   }
 
-  private handleSendReset = (email: string) => {
-    postData('Account/ForgotPassword', { Email: email }, true)
-    .then(() => {
-      alert('Password reset email sent.');
-    });
-  }
-
   private handleProfitCenterDelete = (id: Guid) => {
     postData('SystemAdmin/DeleteProfitCenter', { profitCenterId: id }, true)
     .then(() => {
