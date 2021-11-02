@@ -1374,12 +1374,21 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // Name must be unique
-            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name && 
+            // Name must be unique among parents, if the new client is a parent, or among child clients of the mutual parent if new client is a child
+            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name &&
+                                                     c.ParentClientId == Model.ParentClientId &&
                                                      c.Id != Model.Id))
             {
-                Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use");
-                Response.Headers.Add("Warning", $"The client name ({Model.Name}) already exists for another client.");
+                if (Model.ParentClientId == null)
+                {
+                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another client");
+                    Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                }
+                else
+                {
+                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
+                    Response.Headers.Add("Warning", $"The client name already exists under the parent client: ({Model.Name})");
+                }
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
