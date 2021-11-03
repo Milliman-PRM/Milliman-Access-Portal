@@ -813,6 +813,66 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that a parent can't have a 2nd client of the same name saved as a subclient
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_SameNameAndParent()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient = GetValidClient();
+                #endregion
+
+                #region Act
+                testClient.ParentClientId = TestUtil.MakeTestGuid(1);
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
+                testClient.Name = "Name2";
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
+
+                #region Assert
+                StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, result.StatusCode);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Validate that a 2 different parents can have child clients of the same name saved as a subclient
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_SameNameDifferentParent()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient = GetValidClient();
+
+                int beforeCount = TestResources.DbContext.Client.Count();
+                int expectedAfterCount = beforeCount + 1;
+                #endregion
+
+                #region Act
+                testClient.ParentClientId = null;
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
+                testClient.Name = "Name8";
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<SaveNewClientResponseModel>(result.Value);
+
+                int afterCount = TestResources.DbContext.Client.Count();
+                Assert.Equal<int>(expectedAfterCount, afterCount);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Validate that new clients are added successfully when the model is valid and the user is authorized
         /// </summary>
         [Fact]
