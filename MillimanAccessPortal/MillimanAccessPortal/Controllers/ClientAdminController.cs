@@ -1399,6 +1399,7 @@ namespace MillimanAccessPortal.Controllers
                             if (result.GetType() != typeof(JsonResult))
                             {
                                 Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified email whitelist");
+                                Response.Headers.Add("Warning", $"A current user's email ({ClientMemberUser.Email}) is not present on either the new accepted domain list or the email exception list.");
                                 await Tx.RollbackAsync();
                                 return result;
                             }
