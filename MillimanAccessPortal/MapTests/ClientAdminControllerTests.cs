@@ -970,6 +970,50 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that the different parent clientID can have child clients of the same name.
+        /// </summary>
+        [Fact]
+        public async Task EditClient_RepeatNameDifferentParentClient()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient1 = GetValidClient();
+                Client testClient2 = GetValidClient();
+                #endregion
+
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       Both test clients have different parent
+                 */
+                testClient1.Id = TestUtil.MakeTestGuid(6);
+                testClient1.ParentClientId = TestUtil.MakeTestGuid(1);
+                testClient1.Name = "TestName";
+                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                testClient2.Id = TestUtil.MakeTestGuid(8);
+                testClient2.ParentClientId = TestUtil.MakeTestGuid(7);
+                testClient2.Name = "TestName";
+                testClient2.AcceptedEmailDomainList = new List<string> { "example2.com", "example.com" };
+
+                var view1 = await controller.EditClient(testClient1); //this should be fine, its the only one with this name so far in the client list
+                var view2 = await controller.EditClient(testClient2); //this should be fine as while it is a repeat name, it is still unique for its parent
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view1);
+                Assert.IsType<ClientsResponseModel>(result.Value);
+
+                JsonResult result2 = Assert.IsType<JsonResult>(view2);
+                Assert.IsType<ClientsResponseModel>(result2.Value);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Validate that the same parent clientID can not have child clients of the same name.
         /// </summary>
         [Fact]
@@ -987,7 +1031,7 @@ namespace MapTests
                 /*
                  * Requirements/Assumptions for the test client:
                  *       The test user must be a client admin
-                 *       The parent client must not be null
+                 *       The parent client must be null
                  *       Both test clients have the same parent
                  */
                 testClient1.Id = TestUtil.MakeTestGuid(4);
@@ -997,7 +1041,7 @@ namespace MapTests
                 testClient2.Id = TestUtil.MakeTestGuid(5);
                 testClient2.ParentClientId = null;
                 testClient2.Name = "TestName";
-                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                testClient2.AcceptedEmailDomainList = new List<string> { "example2.com" };
 
                 var view1 = await controller.EditClient(testClient1); //this should be fine, its the only one with this name so far for the parent
                 var view2 = await controller.EditClient(testClient2); //this should be throw an error as it is a repeat subclient name
