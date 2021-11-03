@@ -1297,10 +1297,6 @@ namespace MillimanAccessPortal.Controllers
                     return Unauthorized();
                 }
             }
-            else
-            {
-                // 
-            }
             #endregion Authorization
 
             #region Validation
