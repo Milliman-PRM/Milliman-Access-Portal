@@ -2,15 +2,14 @@
 
 *Why are you opening this pull request?*
 
-## Potential Tasks
+## Connected Issues
+  - *Closes issue #XXX*
 
-  - [ ] Connects to #¿¿¿???
-  - [ ] Label with appropriate Milestone
-  - [ ] Update user guides/release notes as needed
-  - [ ] Loop in collaborators when appropriate
-  - [ ] All files have appropriate code owners documented
-  - [ ] ¿¿¿???
+## Tasks
 
-## Links to Development Spaces
-
-  - *If you setup a development space or report trigger you want to share...*
+  - [ ] ???
+  - [ ] User guides updated
+  - [ ] Release Notes updated
+  - [ ] TestRail tests updated
+  - [ ] Unit tests updated/passing
+  - [ ] Connected issue(s) tagged
