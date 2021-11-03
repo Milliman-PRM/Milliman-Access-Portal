@@ -970,6 +970,50 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that the same parent clientID can not have child clients of the same name.
+        /// </summary>
+        [Fact]
+        public async Task EditClient_RepeatNameSameParentClient()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient1 = GetValidClient();
+                Client testClient2 = GetValidClient();
+                #endregion
+
+                #region Act
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       Both test clients have the same parent
+                 */
+                testClient1.Id = TestUtil.MakeTestGuid(4);
+                testClient1.ParentClientId = null;
+                testClient1.Name = "TestName";
+                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                testClient2.Id = TestUtil.MakeTestGuid(5);
+                testClient2.ParentClientId = null;
+                testClient2.Name = "TestName";
+                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+
+                var view1 = await controller.EditClient(testClient1); //this should be fine, its the only one with this name so far for the parent
+                var view2 = await controller.EditClient(testClient2); //this should be throw an error as it is a repeat subclient name
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view1);
+                Assert.IsType<ClientsResponseModel>(result.Value);
+
+                Assert.IsType<StatusCodeResult>(view2);
+                Assert.Equal(422, (view2 as StatusCodeResult).StatusCode);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Validate that invalid data causes return code 422
         /// Multiple scenarios should cause code 422 and must be tested
         /// 
