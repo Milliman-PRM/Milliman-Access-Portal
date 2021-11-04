@@ -1398,16 +1398,9 @@ namespace MillimanAccessPortal.Controllers
 
                             if (result.GetType() != typeof(JsonResult))
                             {  
-                                if (Model.AcceptedEmailDomainList.Contains(ClientMemberUser.Email.Split("@")[1]))
-                                {
-                                    Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
-                                    Response.Headers.Add("Warning", $"A current user's email domain ({ClientMemberUser.Email.Split("@")[1]}) is not present on the new accepted domain list. Consider adding the user to the approved email exception list.");
-                                }
-                                else
-                                {
-                                    Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified approved email address exception whitelist");
-                                    Response.Headers.Add("Warning", $"A current user's email({ClientMemberUser.Email.Split("@")[1]}) is not present on the new approved email exception list.");
-                                }
+
+                                Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
+                                Response.Headers.Add("Warning", $"This change could not be processed because one or more users are currently associated with this client that must be removed before this change can be made.");
                                 await Tx.RollbackAsync();
                                 return result;
                             }
