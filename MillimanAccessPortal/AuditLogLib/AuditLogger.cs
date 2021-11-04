@@ -218,10 +218,17 @@ namespace AuditLogLib
                     serverQuery = serverQuery.Take(limit);
                 }
 
-                filteredAuditEvents = await serverQuery.ToListAsync();
+                try
+                {
+                    filteredAuditEvents = await serverQuery.ToListAsync();
+                }
+                catch (Exception e)
+                {
+                    Serilog.Log.Error(e, "In AuditLogger.GetAuditEventsAsync(), exception while querying AuditLog with filter expressions.");
+                }
             }
 
-            if (clientFilters != null)
+            if (clientFilters != null && clientFilters.Count > 0)
             {
                 IQueryable<AuditEvent> clientQuery = filteredAuditEvents.AsQueryable();
                 foreach (Expression<Func<AuditEvent, bool>> whereClause in clientFilters)

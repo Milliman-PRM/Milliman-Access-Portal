@@ -550,7 +550,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
-            string idCompareString = $"%{fileDropId}%";
 
             var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
@@ -561,7 +560,7 @@ namespace MillimanAccessPortal.Controllers
             // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => EF.Functions.ILike(e.EventData, idCompareString) }
+                { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
             };
 
             List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(serverFilters, _dbContext, true, clientFilters);
@@ -599,8 +598,6 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string idCompareString = $"%{fileDropId}%";
-
             var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
@@ -609,7 +606,7 @@ namespace MillimanAccessPortal.Controllers
             // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => EF.Functions.ILike(e.EventData, idCompareString) }
+                { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
             };
 
             List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(serverFilters, _dbContext, true, clientFilters);
