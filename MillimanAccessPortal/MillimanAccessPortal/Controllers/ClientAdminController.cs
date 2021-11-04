@@ -1398,7 +1398,7 @@ namespace MillimanAccessPortal.Controllers
 
                             if (result.GetType() != typeof(JsonResult))
                             {  
-                                if (ExistingClientRecord.AcceptedEmailDomainList != Model.AcceptedEmailDomainList)
+                                if (Model.AcceptedEmailDomainList.Contains(ClientMemberUser.Email.Split("@")[1]))
                                 {
                                     Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
                                     Response.Headers.Add("Warning", $"A current user's email domain ({ClientMemberUser.Email.Split("@")[1]}) is not present on the new accepted domain list. Consider adding the user to the approved email exception list.");
