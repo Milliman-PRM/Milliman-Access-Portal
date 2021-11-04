@@ -8,9 +8,10 @@
 ## Tasks
 
   - [ ] ???
-  - [ ] User guides updated
-  - [ ] Release Notes updated
-  - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated
-  - [ ] Unit tests updated/passing
+  - [ ] User guides updated where appropriate
+  - [ ] Release Notes updated where appropriate
+  - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated where appropriate
+  - [ ] Unit tests updated where appropriate
+  - [ ] Unit tests passing
   - [ ] Linter passing
   - [ ] Connected issue(s) tagged
