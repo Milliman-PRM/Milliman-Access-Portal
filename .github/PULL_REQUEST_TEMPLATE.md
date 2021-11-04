@@ -18,6 +18,7 @@
 
 ## Review Tasks (Reviewer)
 
+  - [ ] Code changes are appropriate and address the goal(s) of this pull request 
   - [ ] User guides have been updated where appropriate
   - [ ] Release Notes have been updated where appropriate
   - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests have been updated where appropriate
