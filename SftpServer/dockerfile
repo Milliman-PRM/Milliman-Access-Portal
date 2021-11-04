@@ -1,6 +1,5 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-windowsservercore-ltsc2019
 
 COPY SftpServer/out/* /app/
-COPY UtilityScripts/startsftpserver.sh /app/
 
-ENTRYPOINT ["/bin/sh", "/app/startsftpserver.sh"]
+ENTRYPOINT ["SftpServer.exe"]
