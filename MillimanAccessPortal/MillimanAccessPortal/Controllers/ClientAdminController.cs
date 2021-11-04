@@ -1148,11 +1148,12 @@ namespace MillimanAccessPortal.Controllers
                 if (Model.ParentClientId == null)
                 {
                     Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another client");
-                    Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
-                } else
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists for another client. Please choose a different name");
+                }
+                else
                 {
                     Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
-                    Response.Headers.Add("Warning", $"The client name already exists under the parent client: ({Model.Name})");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists under this client. Please choose a different name.");
                 }
 
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
@@ -1377,13 +1378,13 @@ namespace MillimanAccessPortal.Controllers
             {
                 if (Model.ParentClientId == null)
                 {
-                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another client");
-                    Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                    Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use by another client");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists for another client. Please choose a different name");
                 }
                 else
                 {
-                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
-                    Response.Headers.Add("Warning", $"The client name already exists under the parent client: ({Model.Name})");
+                    Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists under this client. Please choose a different name.");
                 }
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
