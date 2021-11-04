@@ -12,4 +12,5 @@
   - [ ] Release Notes updated
   - [ ] TestRail tests updated
   - [ ] Unit tests updated/passing
+  - [ ] Linter passing
   - [ ] Connected issue(s) tagged
