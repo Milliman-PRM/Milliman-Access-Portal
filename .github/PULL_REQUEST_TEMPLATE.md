@@ -10,7 +10,7 @@
   - [ ] ???
   - [ ] User guides updated
   - [ ] Release Notes updated
-  - [ ] TestRail tests updated
+  - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated
   - [ ] Unit tests updated/passing
   - [ ] Linter passing
   - [ ] Connected issue(s) tagged
