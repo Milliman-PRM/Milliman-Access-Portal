@@ -1398,9 +1398,8 @@ namespace MillimanAccessPortal.Controllers
 
                             if (result.GetType() != typeof(JsonResult))
                             {  
-
-                                Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
-                                Response.Headers.Add("Warning", $"This change could not be processed because one or more users are currently associated with this client that must be removed before this change can be made.");
+                                Log.Information("In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
+                                Response.Headers.Add("Warning", "This change could not be processed because one or more users are currently associated with this client that must be removed before this change can be made.");
                                 await Tx.RollbackAsync();
                                 return result;
                             }
