@@ -1,3 +1,4 @@
 #! /bin/sh
 
-dotnet /app/SftpServer.dll
+echo "test log output"
+#dotnet /app/SftpServer.dll
