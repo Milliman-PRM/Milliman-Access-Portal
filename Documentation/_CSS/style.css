@@ -77,7 +77,7 @@ h1 {
 
 .content.show {
     transition: max-height 1.0s ease-in-out;
-    max-height: 100em;
+    max-height: 150em;
     border-left: 4px solid rgba(0,128,226,.75);
     margin: 0px 16px 12px 18px;
 }
