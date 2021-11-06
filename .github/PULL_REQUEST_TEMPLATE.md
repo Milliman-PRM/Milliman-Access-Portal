@@ -13,7 +13,7 @@
   - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated where appropriate
   - [ ] Unit tests updated where appropriate
   - [ ] Unit tests passing
-  - [ ] Linter passing
+  - [ ] Linter passing (`yarn run tslint --project .`)
   - [ ] Connected issue(s) tagged
 
 ## Review Tasks (Reviewer)
@@ -24,5 +24,5 @@
   - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests have been updated where appropriate
   - [ ] Relevant Unit Tests have been updated appropriately
   - [ ] All Unit Tests are passing
-  - [ ] Linter is passing
+  - [ ] Linter is passing (`yarn run tslint --project .`)
   - [ ] All relevant issues have been tagged appropriately in this Pull Request
