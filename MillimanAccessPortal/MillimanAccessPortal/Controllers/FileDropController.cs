@@ -557,7 +557,9 @@ namespace MillimanAccessPortal.Controllers
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
             };
 
-            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
+            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters. An additional alternative to this approah could be to convert the EventData field from
+            // type string to type JsonDocument. More information can be found here: 
+            // https://www.npgsql.org/efcore/mapping/json.html?tabs=data-annotations%2Cpoco#querying-json-columns
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
@@ -603,7 +605,9 @@ namespace MillimanAccessPortal.Controllers
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
             };
 
-            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
+            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters. An additional alternative to this approah could be to convert the EventData field from
+            // type string to type JsonDocument. More information can be found here: 
+            // https://www.npgsql.org/efcore/mapping/json.html?tabs=data-annotations%2Cpoco#querying-json-columns
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
