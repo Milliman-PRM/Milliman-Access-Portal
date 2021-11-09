@@ -550,7 +550,6 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             DateTime oldestTimestamp = DateTime.UtcNow - TimeSpan.FromDays(30);
-            string idCompareString = $"%{fileDropId}%";
 
             var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
@@ -558,10 +557,12 @@ namespace MillimanAccessPortal.Controllers
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
             };
 
-            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
+            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters. An additional alternative to this approah could be to convert the EventData field from
+            // type string to type JsonDocument. More information can be found here: 
+            // https://www.npgsql.org/efcore/mapping/json.html?tabs=data-annotations%2Cpoco#querying-json-columns
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => EF.Functions.ILike(e.EventData, idCompareString) }
+                { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
             };
 
             List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(serverFilters, _dbContext, true, clientFilters);
@@ -599,17 +600,17 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            string idCompareString = $"%{fileDropId}%";
-
             var serverFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
                 { e => e.EventCode >= 8000 && e.EventCode < 9000 },
             };
 
-            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters
+            // TODO When PostgreSQL 12 is deployed create a computed field as text so this search can run server side & move this expression into the server filters. An additional alternative to this approah could be to convert the EventData field from
+            // type string to type JsonDocument. More information can be found here: 
+            // https://www.npgsql.org/efcore/mapping/json.html?tabs=data-annotations%2Cpoco#querying-json-columns
             var clientFilters = new List<Expression<Func<AuditEvent, bool>>>
             {
-                { e => EF.Functions.ILike(e.EventData, idCompareString) }
+                { e => e.EventData.Contains(fileDropId.ToString(), StringComparison.InvariantCultureIgnoreCase) }
             };
 
             List<ActivityEventModel> filteredEvents = await _auditLogger.GetAuditEventsAsync(serverFilters, _dbContext, true, clientFilters);
