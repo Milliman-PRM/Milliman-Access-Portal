@@ -613,7 +613,6 @@ namespace SftpServerLib
                     SftpAccount userAccount = db.SftpAccount
                                                 .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                 .Where(a => a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess)
-                                                .Where(a => !a.IsSuspended)
                                                 .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
                                                     .ThenInclude(u => u.AuthenticationScheme)
@@ -635,9 +634,6 @@ namespace SftpServerLib
                         return;
                     }
 
-                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
-                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
-
                     if (userAccount.IsSuspended)
                     {
                         evtData.Accept = false;
@@ -645,6 +641,9 @@ namespace SftpServerLib
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                         return;
                     }
+
+                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
+                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
 
                     if (DateTime.UtcNow > clientReviewDeadline)
                     {
