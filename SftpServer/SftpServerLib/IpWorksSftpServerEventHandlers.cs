@@ -613,7 +613,6 @@ namespace SftpServerLib
                     SftpAccount userAccount = db.SftpAccount
                                                 .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                 .Where(a => a.FileDropUserPermissionGroup.ReadAccess || a.FileDropUserPermissionGroup.WriteAccess || a.FileDropUserPermissionGroup.DeleteAccess)
-                                                .Where(a => !a.FileDrop.IsSuspended)
                                                 .Include(a => a.ApplicationUser)
                                                     .ThenInclude(u => u.AuthenticationScheme)
                                                 .Include(a => a.FileDrop)
@@ -639,6 +638,14 @@ namespace SftpServerLib
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The requested account with name <{evtData.User}> is suspended");
                         new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.AccountSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
+                        return;
+                    }
+
+                    if (userAccount.FileDrop.IsSuspended)
+                    {
+                        evtData.Accept = false;
+                        Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  The file drop named <{userAccount.FileDrop.Name}>, linked to the requested account with name <{evtData.User}> is suspended");
+                        new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.FileDropSuspended, (FileDropLogModel)userAccount.FileDrop, clientAddress), userAccount.ApplicationUser.UserName, userAccount.ApplicationUser.Id);
                         return;
                     }
 
