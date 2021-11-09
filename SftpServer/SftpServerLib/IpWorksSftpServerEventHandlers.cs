@@ -623,10 +623,7 @@ namespace SftpServerLib
                                                         .ThenInclude(d => d.Client)
                                                 .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
 
-                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
-                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
-
-                    if (userAccount == null)
+                    if (userAccount is null)
                     {
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
@@ -637,6 +634,9 @@ namespace SftpServerLib
                         }
                         return;
                     }
+
+                    int clientReviewRenewalPeriodDays = GlobalResources.ApplicationConfiguration.GetValue<int>("ClientReviewRenewalPeriodDays");
+                    DateTime clientReviewDeadline = userAccount.FileDropUserPermissionGroup.FileDrop.Client.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(clientReviewRenewalPeriodDays);
 
                     if (userAccount.IsSuspended)
                     {
