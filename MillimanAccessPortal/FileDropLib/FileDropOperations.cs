@@ -357,7 +357,7 @@ namespace FileDropLib
                             return FileDropOperationResult.FAILURE;
                         }
 
-                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath));
+                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, parentCanonicalPath));
                         FileDropDirectory newDirRecord = new FileDropDirectory
                         {
                             CanonicalFileDropPath = requestedCanonicalPath,
