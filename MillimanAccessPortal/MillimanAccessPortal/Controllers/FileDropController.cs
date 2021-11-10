@@ -190,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             if (_dbContext.FileDrop.Any(d => d.ClientId == referencedClient.Id &&
-                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+                                             EF.Functions.ILike(d.Name, fileDropModel.Name)))
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to create FileDrop with name <{fileDropModel.Name}>, already in use for client {referencedClient.Id}");
                 Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
@@ -294,7 +294,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (_dbContext.FileDrop.Any(d => d.ClientId == fileDropRecord.ClientId &&
                                              d.Id != fileDropRecord.Id && 
-                                             EF.Functions.ILike(fileDropModel.Name, d.Name)))
+                                             EF.Functions.ILike(d.Name, fileDropModel.Name)))
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to update FileDrop with name <{fileDropModel.Name}>, already in use for client {fileDropRecord.ClientId}");
                 Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
