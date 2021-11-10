@@ -137,7 +137,7 @@ namespace SftpServerLib
             {
                 containingDirectory = db.FileDropDirectory
                                         .Where(d => d.FileDropId == connection.FileDropId)
-                                        .SingleOrDefault(d => EF.Functions.ILike(dirPathToFind, d.CanonicalFileDropPath));
+                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, dirPathToFind));
             }
 
             if (evtData.BeforeExec)
@@ -619,7 +619,7 @@ namespace SftpServerLib
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
-                                                .SingleOrDefault(a => EF.Functions.ILike(evtData.User, a.UserName));
+                                                .SingleOrDefault(a => EF.Functions.ILike(a.UserName, evtData.User));
 
                     if (userAccount is null)
                     {
