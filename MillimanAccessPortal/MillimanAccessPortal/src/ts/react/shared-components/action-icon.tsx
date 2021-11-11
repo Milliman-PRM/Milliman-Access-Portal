@@ -40,7 +40,7 @@ export interface ActionIconProps {
   'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'delete' | 'download' | 'edit' | 'email' |
   'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' |
   'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' |
-  'userguide';
+  'userguide' | 'reports';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
