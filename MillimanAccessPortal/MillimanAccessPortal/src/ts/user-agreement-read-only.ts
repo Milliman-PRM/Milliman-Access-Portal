@@ -1,9 +1,8 @@
 ﻿import '../images/map-logo.svg';
 import { convertMarkdownToHTML } from './convert-markdown';
 
-require('../scss/map.scss');
-
 import '../../src/scss/disclaimer.scss';
+import '../scss/map.scss';
 
 document.addEventListener('DOMContentLoaded', () => {
   const rawMarkdown = document.getElementById('raw-markdown').textContent;

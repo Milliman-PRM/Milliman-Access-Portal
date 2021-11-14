@@ -1,16 +1,20 @@
-﻿@model EnableAccountViewModel;
+﻿@using Newtonsoft.Json
+@model EnableAccountViewModel;
 
 @{
-    /*
-     * CODE OWNERS: Joseph Sweeney
-     * OBJECTIVE: Allow the user to enable their account
-     * DEVELOPER NOTES:
-     */
-
-    ViewData["Title"] = "Account Activation";
+    ViewData["Title"] = "Activate Account";
     Layout = "_Layout_w_H_F";
-    ViewData["NavIcon"] = "EnableAccount";
 }
+
+@Html.AntiForgeryToken()
+<input name="__Id" type="hidden" value="@Model.Id" />
+<input name="__Code" type="hidden" value="@Model.Code" />
+<input name="__IsLocalAccount" type="hidden" value="@Model.IsLocalAccount.ToString()" />
+<input name="__Username" type="hidden" value="@Model.Username" />
+<input name="__TimeZones" type="hidden" value="@JsonConvert.SerializeObject(Model.TimeZoneSelections)" />
+
+<div id="content-container">
+</div>
 
 @section CSS {
   <% for (var css in htmlWebpackPlugin.files.css) { %>
@@ -19,112 +23,7 @@
 }
 
 @section Scripts {
-    <% for (var chunk in htmlWebpackPlugin.files.chunks) { %>
-    <script src="<%= htmlWebpackPlugin.files.chunks[chunk].entry %>"></script>
+    <% for (var chunk in htmlWebpackPlugin.files.js) { %>
+    <script src="<%= htmlWebpackPlugin.files.js[chunk] %>"></script>
     <% } %>
 }
-
-<div id="enable-account-container">
-    <div id="enable-account" class="admin-panel-container flex-item-for-phone-only-12-12 flex-item-for-tablet-up-10-12 flex-item-for-desktop-up-5-12">
-        <div class="form-content-container">
-            <form id="enable-account-form" autocomplete="off" class="admin-panel-content" autocomplete="off" action="EnableAccount/" method="post">
-                <div class="form-section-container">
-                    <div class="form-section" style="display: none;">
-                        <div class="form-input-container">
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <div>
-                                    <input asp-for="Id" data-original-value="@Model.Id" />
-                                    <span asp-validation-for="Id" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <div>
-                                    <input asp-for="Code" data-original-value="@Model.Code" />
-                                    <span asp-validation-for="Code" class="text-danger"></span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-section" data-section="account">
-                        <h4 class="form-section-title">Activate Account</h4>
-                        <div class="form-input-container">
-                            <div class="form-input form-input-text flex-item-12-12">
-                                <label class="form-input-text-title" asp-for="Username"></label>
-                                <div>
-                                    <input asp-for="Username" data-original-value="@Model.Username" readonly />
-                                    <span asp-validation-for="Username" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                                <label class="form-input-text-title" asp-for="FirstName"></label>
-                                <div>
-                                    <input asp-for="FirstName" data-original-value="@Model.FirstName" autofocus />
-                                    <span asp-validation-for="FirstName" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-6-12">
-                                <label class="form-input-text-title" asp-for="LastName"></label>
-                                <div>
-                                    <input asp-for="LastName" data-original-value="@Model.LastName" />
-                                    <span asp-validation-for="LastName" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-4-12">
-                                <label class="form-input-text-title" asp-for="Phone"></label>
-                                <div>
-                                    <input asp-for="Phone" data-original-value="@Model.Phone" />
-                                    <span asp-validation-for="Phone" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
-                                <label class="form-input-text-title" asp-for="Employer"></label>
-                                <div>
-                                    <input asp-for="Employer" data-original-value="@Model.Employer" />
-                                    <span asp-validation-for="Employer" class="text-danger"></span>
-                                </div>
-                            </div>
-                            <div class="form-input form-input-text flex-item-for-phone-only-12-12 flex-item-for-tablet-up-8-12">
-                                <label class="form-input-text-title" asp-for="TimeZoneId"></label>
-                                <div>
-                                    @Html.DropDownListFor(m => m.TimeZoneId, new SelectList(Model.TimeZoneSelections, "Id", "DisplayName"))
-                                    <span asp-validation-for="TimeZoneId" class="text-danger"></span>
-                                </div>
-                            </div>
-							@if (Model.IsLocalAccount) 
-							{
-								<div class="form-input form-input-text flex-item-12-12">
-									<label class="form-input-text-title" asp-for="NewPassword"></label>
-									<div>
-										<input asp-for="NewPassword" data-original-value="@Model.NewPassword" />
-										<span asp-validation-for="NewPassword" class="text-danger"></span>
-									</div>
-								</div>
-								<div class="form-input form-input-text flex-item-12-12">
-									<label class="form-input-text-title" asp-for="ConfirmNewPassword"></label>
-									<div>
-										<input asp-for="ConfirmNewPassword" data-original-value="@Model.ConfirmNewPassword" />
-										<span asp-validation-for="ConfirmNewPassword" class="text-danger"></span>
-									</div>
-								</div>
-								<div class="form-input form-input-text flex-item-12-12">
-									<div>
-										<input style="display: none;" asp-for="PasswordsAreValid" data-original-value="" />
-										<span asp-validation-for="PasswordsAreValid" class="text-danger"></span>
-									</div>
-								</div>
-							}
-                        </div>
-                        <div class="form-submission-section">
-                            <div class="button-container button-container-update">
-                                <button type="submit" disabled="disabled" class="button-submit blue-button">Activate Account</button>
-                            </div>
-                        </div>
-                        <div class="form-antiforgery-token" style="display: none;">
-                            @Html.AntiForgeryToken()
-                        </div>
-                    </div>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>

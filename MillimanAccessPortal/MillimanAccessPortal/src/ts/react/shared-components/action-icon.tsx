@@ -30,8 +30,6 @@ import '../../../images/icons/upload.svg';
 import '../../../images/icons/user.svg';
 import '../../../images/icons/userguide.svg';
 
-import 'tooltipster';
-import 'tooltipster/src/css/tooltipster.css';
 import '../../../scss/react/shared-components/action-icon.scss';
 
 import * as React from 'react';

@@ -152,18 +152,24 @@ export interface FetchClientsFailed {
 
 /**
  * GET:
- *  profit center the current user has access to; 
+ *   Data used to define global page behavior.
  */
-export interface FetchProfitCenters {
-  type: 'FETCH_PROFIT_CENTERS';
+export interface FetchGlobalData {
+  type: 'FETCH_GLOBAL_DATA';
   request: {};
 }
-export interface FetchProfitCentersSucceeded {
-  type: 'FETCH_PROFIT_CENTERS_SUCCEEDED';
-  response: ProfitCenter[];
+export interface FetchGlobalDataSucceeded {
+  type: 'FETCH_GLOBAL_DATA_SUCCEEDED';
+  response: {
+    authorizedProfitCenterList: ProfitCenter[];
+    systemDefaultWelcomeEmailText: string;
+    nonLimitedDomains: string[];
+    prohibitedDomains: string[];
+    defaultDomainLimit: number;
+  };
 }
-export interface FetchProfitCentersFailed {
-  type: 'FETCH_PROFIT_CENTERS_FAILED';
+export interface FetchGlobalDataFailed {
+  type: 'FETCH_GLOBAL_DATA_FAILED';
   error: TSError;
 }
 
@@ -419,7 +425,7 @@ export type ValidityAction =
  */
 export type RequestAccessAction =
   | FetchClients
-  | FetchProfitCenters
+  | FetchGlobalData
   | FetchClientDetails
   | UpdateAllUserRolesInClient
   | SaveNewClient
@@ -432,7 +438,7 @@ export type RequestAccessAction =
 
 export type ResponseAccessAction =
   | FetchClientsSucceeded
-  | FetchProfitCentersSucceeded
+  | FetchGlobalDataSucceeded
   | FetchClientDetailsSucceeded
   | UpdateAllUserRolesInClientSucceeded
   | SaveNewClientSucceeded
@@ -448,7 +454,7 @@ export type ResponseAccessAction =
 */
 export type ErrorAccessAction =
   | FetchClientsFailed
-  | FetchProfitCentersFailed
+  | FetchGlobalDataFailed
   | FetchClientDetailsFailed
   | UpdateAllUserRolesInClientFailed
   | SaveNewClientFailed

@@ -98,7 +98,6 @@ namespace ContentPublishingServiceTests
                 Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
                 Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
 
-                Assert.Null(TaskResult.ReducedContentHierarchy);
                 Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
                 Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
             }
@@ -156,8 +155,6 @@ namespace ContentPublishingServiceTests
             Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
             Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.Null(TaskResult.ReducedContentHierarchy);
-
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
 
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
@@ -211,7 +208,6 @@ namespace ContentPublishingServiceTests
             Assert.Single(TaskResult.MasterContentHierarchy.Fields[0].FieldValues); // using .Equal for expected value 1 gives compiler warning
             Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
             Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
-            Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
             Assert.Contains("None of the 1 specified selections exist in the master content hierarchy", TaskResult.StatusMessage);
@@ -272,12 +268,6 @@ namespace ContentPublishingServiceTests
             Assert.Equal(7, TaskResult.MasterContentHierarchy.Fields[1].FieldValues.Count);
             Assert.Equal(54, TaskResult.MasterContentHierarchy.Fields[2].FieldValues.Count);
 
-            Assert.NotNull(TaskResult.ReducedContentHierarchy);
-            Assert.Equal(3, TaskResult.ReducedContentHierarchy.Fields.Count);
-            Assert.Single(TaskResult.ReducedContentHierarchy.Fields[0].FieldValues);
-            Assert.Single(TaskResult.ReducedContentHierarchy.Fields[1].FieldValues);
-            Assert.Equal(7, TaskResult.ReducedContentHierarchy.Fields[2].FieldValues.Count);
-
             Assert.Equal(Path.Combine(_dbLifeTimeFixture.Configuration.GetValue<string>("Storage:SampleData"), 
                                       "Test1",
                                       @$"{ContentTypeSpecificApiBase.GenerateReducedContentFileName(DbTask.SelectionGroupId.Value, DbTask.SelectionGroup.RootContentItemId, ".qvw")}"), 
@@ -330,7 +320,6 @@ namespace ContentPublishingServiceTests
             Assert.False(MonitorTask.IsFaulted);
             Assert.Equal(ReductionJobDetail.JobStatusEnum.Error, JobDetail.Status);
             Assert.Null(TaskResult.MasterContentHierarchy);
-            Assert.Null(TaskResult.ReducedContentHierarchy);
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFilePath));
             Assert.True(string.IsNullOrWhiteSpace(TaskResult.ReducedContentFileChecksum));
             Assert.Matches("(Master file).*(does not exist)", TaskResult.StatusMessage);

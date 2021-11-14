@@ -222,12 +222,15 @@ namespace MillimanAccessPortal.DataQueries
                     CurrentUserPermissions = await _dbContext.SftpAccount
                                                              .Where(a => a.FileDropId == eachDrop.Id)
                                                              .Where(a => a.ApplicationUserId == userId)
-                                                             .Select(a => new PermissionSet
-                                                             {
-                                                                 ReadAccess = a.FileDropUserPermissionGroup.ReadAccess,
-                                                                 WriteAccess = a.FileDropUserPermissionGroup.WriteAccess,
-                                                                 DeleteAccess = a.FileDropUserPermissionGroup.DeleteAccess,
-                                                             })
+                                                             .Select(a => a.FileDropUserPermissionGroup != null
+                                                                ? new PermissionSet
+                                                                  {
+                                                                    ReadAccess = a.FileDropUserPermissionGroup.ReadAccess,
+                                                                    WriteAccess = a.FileDropUserPermissionGroup.WriteAccess,
+                                                                    DeleteAccess = a.FileDropUserPermissionGroup.DeleteAccess,
+                                                                  }
+                                                                : null
+                                                              )
                                                              .SingleOrDefaultAsync(),
                 });
             }

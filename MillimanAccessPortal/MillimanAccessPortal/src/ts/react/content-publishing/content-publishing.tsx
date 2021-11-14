@@ -1144,6 +1144,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             <button
               type="button"
               className={`green-button${this.props.formCanSubmit ? '' : ' disabled'}`}
+              disabled={!this.props.formCanSubmit}
               onClick={(event: React.MouseEvent) => {
                 event.preventDefault();
                 if (!pendingFormData.id) {
@@ -1252,7 +1253,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             target="_blank"
             title="Open in new tab"
           >
-            <svg className="action-icon-expand-frame action-icon tooltip">
+            <svg className="action-icon-expand-frame action-icon">
               <use xlinkHref="#expand-frame" />
             </svg>
           </a>
@@ -1277,7 +1278,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             target="_blank"
             title="Open in new tab"
           >
-            <svg className="action-icon-expand-frame action-icon tooltip">
+            <svg className="action-icon-expand-frame action-icon">
               <use xlinkHref="#expand-frame" />
             </svg>
           </a>

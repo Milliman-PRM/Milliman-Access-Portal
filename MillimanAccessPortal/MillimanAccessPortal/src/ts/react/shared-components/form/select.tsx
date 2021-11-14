@@ -8,6 +8,7 @@ interface DropDownProps {
   value: string | number;
   values: Array<{ selectionValue: string | number, selectionLabel: string }>;
   onChange: (currentTarget: React.FormEvent<HTMLSelectElement>) => void;
+  onBlur?: (currentTarget: React.FormEvent<HTMLSelectElement>) => void;
   error: string;
   placeholderText?: string;
   autoFocus?: boolean;

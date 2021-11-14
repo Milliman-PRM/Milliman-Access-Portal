@@ -757,6 +757,7 @@ namespace MapTests
 
                 #region Assert
                 Assert.IsType<BadRequestResult>(result);
+                Assert.Contains(controller.Response.Headers, h => h.Key == "Warning" && h.Value == "Content item cannot be downloaded.");
                 #endregion
             }
         }

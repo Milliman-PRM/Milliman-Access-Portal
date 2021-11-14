@@ -68,7 +68,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 
     while ($attempts -lt $maxRetries -and $success -eq $false) {
         $attempts = $attempts + 1
-        invoke-expression "&$command"
+        invoke-expression "& $command"
         if ($LASTEXITCODE -eq 0) {
             $success = $true
             log_statement "$newDbName was created successfully"
@@ -103,7 +103,8 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
-$env:MSBuildSDKsPath=$core3
+$net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
+$env:MSBuildSDKsPath=$net5
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -116,11 +117,10 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
+$nodeVersion = "14.18.0"   # maybe this should be a script parameter
 
 mkdir -p ${rootPath}\_test_results
 #endregion
-
-remove-item ${rootPath}\MillimanAccessPortal\MillimanAccessPortal\.yarnrc
 
 #region Exit if only notes have changed within the current branch (comparing against develop)
 # if we're not building in "Release" mode
@@ -166,19 +166,22 @@ if ($buildType -ne "Release")
 
 log_statement "Restoring packages and building MAP"
 
-$command = "npm install -g yarn@1.12.3"
-invoke-expression $command
+# Switch to the correct version of Node.js using NVM
+$url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
+$result = Invoke-Webrequest $url
 
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Failed to install yarn"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
+if ($? -eq $false) {
+    log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
+    log_statement "Result of $($url): status code: $($result.StatusCode)"
+    log_statement "Result of $($url): response content: $($result.Content)"
+    exit 1
 }
+log_statement "Result of $($url): status code: $($result.StatusCode)"
+log_statement "Result of $($url): response content: $($result.Content)"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --frozen-lockfile"
-invoke-expression "&$command"
+yarn install --immutable
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn package restore failed"
@@ -187,6 +190,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Set-Location $rootpath\MillimanAccessPortal\
+
+log_statement "Building MAP web application"
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
@@ -246,7 +251,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-$env:MSBuildSDKsPath=$core3
+$env:MSBuildSDKsPath=$net5
 Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
@@ -254,7 +259,7 @@ log_statement "Building SFTP Server"
 Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
 mkdir "out"
 
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -286,7 +291,7 @@ if($runTests) {
     $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
     $command = "yarn test --ci --reporters='jest-junit'"
-    invoke-expression "&$command"
+    invoke-expression "& $command"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more Jest tests failed"
@@ -438,15 +443,15 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-log_statement "Creating web app release"
+log_statement "Creating releases in Octopus"
 # Determine appropriate release channel (applies only at the time the release is created)
-if ($BranchName.ToLower() -like "*pre-release*" -or $BranchName.ToLower() -like "*hotfix*")
+if ($BranchName.ToLower() -eq "master")
 {
-    $channelName = "Pre-Release"
+    $channelName = "Release"
 }
 else
 {
-    $channelName = "Pre-Release" # TODO: Set this to "Dev" once the Dev Azure environment is up and running
+    $channelName = "Pre-Release"
 }
 
 octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL

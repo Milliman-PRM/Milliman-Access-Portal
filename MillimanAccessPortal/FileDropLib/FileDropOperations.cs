@@ -357,7 +357,7 @@ namespace FileDropLib
                             return FileDropOperationResult.FAILURE;
                         }
 
-                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(parentCanonicalPath, d.CanonicalFileDropPath));
+                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, parentCanonicalPath));
                         FileDropDirectory newDirRecord = new FileDropDirectory
                         {
                             CanonicalFileDropPath = requestedCanonicalPath,
@@ -574,7 +574,7 @@ namespace FileDropLib
                                                                                  .Include(d => d.ChildDirectories)
                                                                                  .ToList();
 
-                        FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalOldPath));
+                        FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => d.CanonicalFileDropPath.Equals(canonicalOldPath, StringComparison.InvariantCultureIgnoreCase));
                         if (directoryRecord == null)
                         {
                             return FileDropOperationResult.FAILURE;
@@ -587,7 +587,7 @@ namespace FileDropLib
                         { // This move involves a change in parent directory
                             FileDropDirectory newParentDirectoryRecord = allDirectoriesInThisFileDrop
                                                                            .Where(d => d.FileDropId == fileDropId)
-                                                                           .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, newCanonicalParentPath));
+                                                                           .SingleOrDefault(d => d.CanonicalFileDropPath.Equals(newCanonicalParentPath, StringComparison.InvariantCultureIgnoreCase));
                             if (newParentDirectoryRecord == null)
                             {
                                 return FileDropOperationResult.FAILURE;
