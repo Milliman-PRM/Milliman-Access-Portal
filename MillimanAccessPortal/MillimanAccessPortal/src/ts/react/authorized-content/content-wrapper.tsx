@@ -1,3 +1,4 @@
+import '../../../scss/react/authorized-content/authorized-content.scss';
 import '../../../scss/react/authorized-content/content-wrapper.scss';
 
 import * as React from 'react';

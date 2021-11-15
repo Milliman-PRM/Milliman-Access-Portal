@@ -1378,6 +1378,9 @@ namespace AuditLogLib.Event
 
             [Display(Description = "The access review deadline for the client related to this file drop has been exceeded")]
             ClientAccessReviewDeadlineMissed,
+
+            [Display(Description = "The file drop connected to the requested SFTP account name is suspended")]
+            FileDropSuspended,
         }
 
         public static readonly AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string> SftpAuthenticationFailed = new AuditEventType<SftpAccount, SftpAuthenticationFailReason, FileDropLogModel, string>(

@@ -5,13 +5,10 @@
  */
 
 using AuditLogLib;
-using Microsoft.Extensions.Configuration;
 using nsoftware.IPWorksSSH;
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 
 namespace SftpServerLib
@@ -89,7 +86,7 @@ namespace SftpServerLib
             {
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
-                RuntimeLicense = "31484E4641443153554232303231303231335241454E545032444D30474B30300000000000000000345444484443435700004D594E4A59423758584E47320000,",
+                RuntimeLicense = GlobalResources.GetConfigValue("SftpServerRuntimeLicense", "31484E4641443153554232303232303231335241454E545032444D30474B303000000000000000003454444844434357000054454B385A533434424347330000"),
             };
 
             string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
