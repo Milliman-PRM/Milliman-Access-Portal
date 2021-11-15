@@ -5,7 +5,6 @@
     <Version>1.16.0</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
-    <LangVersion>latest</LangVersion>
     <UserSecretsId>67c29e11-379f-467a-97ec-759fa8a7a7d5</UserSecretsId>
   </PropertyGroup>
 
