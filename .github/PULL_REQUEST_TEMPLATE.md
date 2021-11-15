@@ -2,15 +2,27 @@
 
 *Why are you opening this pull request?*
 
-## Potential Tasks
+## Connected Issues
+  - *Closes issue #XXX*
 
-  - [ ] Connects to #¿¿¿???
-  - [ ] Label with appropriate Milestone
-  - [ ] Update user guides/release notes as needed
-  - [ ] Loop in collaborators when appropriate
-  - [ ] All files have appropriate code owners documented
-  - [ ] ¿¿¿???
+## Tasks (Developer)
 
-## Links to Development Spaces
+  - [ ] ???
+  - [ ] User guides updated where appropriate
+  - [ ] Release Notes updated where appropriate
+  - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated where appropriate
+  - [ ] Unit tests updated where appropriate
+  - [ ] Unit tests passing
+  - [ ] Linter passing (`yarn run tslint --project .`)
+  - [ ] Connected issue(s) tagged
 
-  - *If you setup a development space or report trigger you want to share...*
+## Review Tasks (Reviewer)
+
+  - [ ] Code changes are appropriate and address the goal(s) of this pull request 
+  - [ ] User guides have been updated where appropriate
+  - [ ] Release Notes have been updated where appropriate
+  - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests have been updated where appropriate
+  - [ ] Relevant Unit Tests have been updated appropriately
+  - [ ] All Unit Tests are passing
+  - [ ] Linter is passing (`yarn run tslint --project .`)
+  - [ ] All relevant issues have been tagged appropriately in this Pull Request
