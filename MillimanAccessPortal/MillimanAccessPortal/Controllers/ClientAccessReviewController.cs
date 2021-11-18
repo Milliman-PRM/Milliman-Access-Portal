@@ -240,7 +240,7 @@ namespace MillimanAccessPortal.Controllers
                     stream.WriteLine($"Client Summary{Environment.NewLine}");
                     stream.WriteLine($"Client name: {clientSummaryModel.ClientName}");
                     stream.WriteLine($"Client code: {(!string.IsNullOrEmpty(clientSummaryModel.ClientCode) ? clientSummaryModel.ClientCode : "N/A")}");
-                    stream.WriteLine($"Review due date: {(clientSummaryModel.LastReviewDate == default ? clientSummaryModel.LastReviewDate : "N/A")}");
+                    stream.WriteLine($"Review due date: {clientSummaryModel.ReviewDueDate}");
                     stream.WriteLine($"Last review by: {(clientSummaryModel.LastReviewedBy != null && !string.IsNullOrEmpty(clientSummaryModel.LastReviewedBy.Name) ? clientSummaryModel.LastReviewedBy.UserEmail : "N/A")}");
                     stream.WriteLine($"Primary Contact: {(!string.IsNullOrEmpty(clientSummaryModel.PrimaryContactEmail) ? clientSummaryModel.PrimaryContactEmail : "N/A")}");
                     stream.WriteLine("Client Admins:");
