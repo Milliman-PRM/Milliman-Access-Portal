@@ -33,7 +33,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
+using DockerLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -96,7 +96,7 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Content()
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
-
+            await new DockerLibApi().Demonstrate();
             var model = await _authorizedContentQueries.GetAuthorizedContentViewModel(HttpContext);
 
             return Json(model);

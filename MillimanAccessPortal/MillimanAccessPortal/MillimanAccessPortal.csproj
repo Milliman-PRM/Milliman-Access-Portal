@@ -102,6 +102,7 @@
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
     <ProjectReference Include="..\PowerBILib\PowerBiLib.csproj" />
     <ProjectReference Include="..\QlikviewLib\QlikviewLib.csproj" />
+    <ProjectReference Include="..\DockerLib\DockerLib.csproj" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\PublishProfiles\" />
