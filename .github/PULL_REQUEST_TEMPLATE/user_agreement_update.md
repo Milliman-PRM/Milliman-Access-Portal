@@ -11,31 +11,31 @@ assignees: 'ben-wyatt'
 
 ## Purpose
 
-- Get and document approval for the proposed update to the User Agreement Language
+_Get and document approval for the proposed update to the User Agreement Language_
 
 ## Reason for the Change
 
-- *Why is this change necessary?*
+_Why is this change necessary?_
 
 ## Involved Parties
 
-- *List everyone involved in requesting, facilitating, or drafting the proposed changes*
+_List everyone involved in requesting, facilitating, or drafting the proposed changes_
 
 ## Accompanying Documentation
 
-- *List network locations of any supporting emails or documentation related to the propsed changes*
+_List network locations of any supporting emails or documentation related to the propsed changes_
 
 ## Notification of Change Emails
 
-- *Link to all emails sent notifying hosting clients of the upcoming changes*
+_Link to all emails sent notifying hosting clients of the upcoming changes_
 
 ## Notification of Deployment Emails
 
-- *Link to all emails sent asking hosting clients to inform their clients/users of the upcoming changes*
+_Link to all emails sent asking hosting clients to inform their clients/users of the upcoming changes_
 
 ## Proposed Deployment Date
 
-- *The date that was communicated to the end users for these changes to take effect*
+_The date that was communicated to the end users for these changes to take effect_
 
 ## Assertions
 
