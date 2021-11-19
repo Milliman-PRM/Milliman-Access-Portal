@@ -7,11 +7,11 @@ assignees: kelsie-gosser
 
 ---
 
-**Describe the issue**
+## Describe the issue
 
 _Provide a description of the issue that you've observed._
 
-**To Reproduce**
+## To Reproduce
 
 _Steps to reproduce the behavior:_
 1. Go to '...'
@@ -19,10 +19,10 @@ _Steps to reproduce the behavior:_
 3. Scroll down to '....'
 4. See error
 
-**Expected behavior**
+## Expected behavior
 
 _A clear and concise description of what you expected to happen._
 
-**Screenshots**
+## Screenshots
 
 _If applicable, add screenshots to help explain your problem._
