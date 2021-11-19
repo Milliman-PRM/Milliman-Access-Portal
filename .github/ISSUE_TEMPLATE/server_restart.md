@@ -1,3 +1,12 @@
+---
+name: Server Restart Request
+about: Request that a MAP resource be restarted
+title: "[SERVER RESTART REQUEST] - "
+labels: 'Security'
+assignees: 'ben-wyatt'
+
+---
+
 # Server Restart Template
 
 Server to be restarted:

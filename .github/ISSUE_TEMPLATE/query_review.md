@@ -1,3 +1,12 @@
+---
+name: Manual Query Review
+about: Propose a manual query to be run against MAP databases
+title: "[MANUAL QUERY REVIEW] - "
+labels: 'Security'
+assignees: 'ben-wyatt'
+
+---
+
 # Manual Query Review
 
 ## Issue to be solved

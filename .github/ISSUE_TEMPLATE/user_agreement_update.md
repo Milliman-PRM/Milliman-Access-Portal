@@ -1,3 +1,12 @@
+---
+name: User Agreement Update Request
+about: Request an update to the MAP User Agreement
+title: "[USER AGREEMENT UPDATE REQUEST] - "
+labels: 'Security'
+assignees: 'ben-wyatt'
+
+---
+
 # User Agreement Update Pull Request
 
 ## Purpose

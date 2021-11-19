@@ -1,3 +1,12 @@
+---
+name: Access Request
+about: Request access to MAP resources
+title: "[ACCESS REQUEST] - "
+labels: 'Security'
+assignees: 'ben-wyatt'
+
+---
+
 # MAP Network Access Request
 
 _Use this issue template to request access to MAP internal resources within the production & staging environments. These access requests are required under the Milliman Information Security Policy._

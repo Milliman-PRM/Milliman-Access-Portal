@@ -1,3 +1,12 @@
+---
+name: New Profit Center Request
+about: Request a new profit center
+title: "[PROFIT CENTER REQUEST] - "
+labels: 'Security'
+assignees: 'ben-wyatt'
+
+---
+
 # New Profit Center Request
 
 * **Name:** _Fill in_
