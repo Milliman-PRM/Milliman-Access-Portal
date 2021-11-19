@@ -485,7 +485,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <span>{data.fileDropSettings.sftpUserName}</span>
                     <ActionIcon
                       label="Copy Username"
-                      icon="reports"
+                      icon="copy"
                       inline={true}
                       action={() => this.saveInputValueToClipboard('sftpUserName', 'Username copied to clipboard.')}
                     />
@@ -497,7 +497,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                     <span>{data.fileDropSettings.fileDropPassword}</span>
                     <ActionIcon
                       label="Copy Password"
-                      icon="reports"
+                      icon="copy"
                       inline={true}
                       action={() => this.saveInputValueToClipboard('password', 'Password copied to clipboard.')}
                     />

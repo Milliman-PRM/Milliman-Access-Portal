@@ -10,6 +10,7 @@ import '../../../images/icons/check-circle.svg';
 import '../../../images/icons/checkmark.svg';
 import '../../../images/icons/collapse-card.svg';
 import '../../../images/icons/collapse-cards.svg';
+import '../../../images/icons/copy.svg';
 import '../../../images/icons/delete.svg';
 import '../../../images/icons/download.svg';
 import '../../../images/icons/edit.svg';
@@ -40,7 +41,7 @@ export interface ActionIconProps {
   'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'delete' | 'download' | 'edit' | 'email' |
   'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' |
   'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' |
-  'userguide' | 'reports';
+  'userguide' | 'copy';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
