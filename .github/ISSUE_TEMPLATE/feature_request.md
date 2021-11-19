@@ -9,7 +9,7 @@ assignees: kelsie-gosser
 
 ## Is your feature request related to a problem? Please describe
 
-_A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]_
+_A clear and concise description of what the problem is. Ex. I would like MAP to be able to [...]_
 
 ## Describe the solution you'd like
 
