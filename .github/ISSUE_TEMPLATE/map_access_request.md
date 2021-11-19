@@ -1,5 +1,5 @@
 ---
-name: Access Request
+name: MAP Access Request
 about: Request access to MAP resources
 title: "[ACCESS REQUEST] - "
 labels: 'Security'
