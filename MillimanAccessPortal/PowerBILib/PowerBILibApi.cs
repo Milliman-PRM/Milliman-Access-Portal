@@ -282,7 +282,7 @@ namespace PowerBiLib
             using (var client = new PowerBIClient(_tokenCredentials))
             {
                 GenerateTokenRequest tokenRequestParameters = new GenerateTokenRequest(accessLevel: editableView ? TokenAccessLevel.Edit : TokenAccessLevel.View);
-                if (roleList is not null)
+                if (!(roleList is null))
                 {
                     Report report = await client.Reports.GetReportAsync(reportId);
                     Dataset dataset = await client.Datasets.GetDatasetInGroupAsync(groupId, report.DatasetId);

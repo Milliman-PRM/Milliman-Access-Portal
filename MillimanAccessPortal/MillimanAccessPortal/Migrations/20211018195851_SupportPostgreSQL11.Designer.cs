@@ -5,20 +5,22 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MillimanAccessPortal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211018195851_SupportPostgreSQL11")]
+    partial class SupportPostgreSQL11
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasPostgresEnum(null, "authentication_type", new[] { "default", "ws_federation" })
-                .HasPostgresEnum(null, "content_type_enum", new[] { "unknown", "qlikview", "html", "pdf", "file_download", "power_bi", "container_app" })
+                .HasPostgresEnum(null, "content_type_enum", new[] { "unknown", "qlikview", "html", "pdf", "file_download", "power_bi" })
                 .HasPostgresEnum(null, "file_drop_notification_type", new[] { "file_write", "file_read", "file_delete" })
                 .HasPostgresEnum(null, "publication_status", new[] { "unknown", "canceled", "rejected", "validating", "queued", "processing", "post_process_ready", "post_processing", "processed", "confirming", "confirmed", "replaced", "error" })
                 .HasPostgresEnum(null, "reduction_status_enum", new[] { "unspecified", "canceled", "rejected", "validating", "queued", "reducing", "reduced", "live", "replaced", "warning", "error" })
@@ -233,6 +235,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ReducedContentChecksum")
                         .HasColumnType("text");
+
+                    b.Property<string>("ReducedContentHierarchy")
+                        .HasColumnType("jsonb");
 
                     b.Property<ReductionStatusEnum>("ReductionStatus")
                         .ValueGeneratedOnAdd()

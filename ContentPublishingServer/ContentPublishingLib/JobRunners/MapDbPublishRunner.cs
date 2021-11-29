@@ -526,7 +526,6 @@ namespace ContentPublishingLib.JobRunners
                     {
                         if (group.IsMaster)
                         {
-                            newTaskRecord.ReducedContentHierarchyObj = null;
                             newTaskRecord.SelectionCriteriaObj = null;
                             newTaskRecord.ReductionStatus = ReductionStatusEnum.Reduced;
                             newTaskRecord.ReductionStatusMessage = "";
@@ -539,8 +538,6 @@ namespace ContentPublishingLib.JobRunners
                             List<HierarchyFieldValue> existingSelectedValues = db.HierarchyFieldValue
                                                                                  .Where(v => group.SelectedHierarchyFieldValueList != null && group.SelectedHierarchyFieldValueList.Contains(v.Id))
                                                                                  .ToList();
-
-                            newTaskRecord.ReducedContentHierarchyObj = newContentHierarchy;
 
                             HierarchyField existingHierarchyField = await db.HierarchyField
                                                                             .Include(f => f.HierarchyFieldValues)
