@@ -134,6 +134,7 @@ export enum ContentTypeEnum {
   Pdf = 3,
   FileDownload = 4,
   PowerBi = 5,
+  ContainerApp = 6,
 }
 export enum ContentAssociatedFileTypeEnum {
     Unknown = 0,
