@@ -788,7 +788,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               pendingFormData && pendingFormData.contentTypeId &&
               (
                 contentTypes[pendingFormData.contentTypeId].displayName === 'QlikView' ||
-                contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI'
+                contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI' ||
+                contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App'
               ) &&
               <FormSection
                 title={`${contentTypes[pendingFormData.contentTypeId].displayName} Specific Settings`}
@@ -907,6 +908,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           />
                       )
                     }
+                  </>
+                }
+                {
+                  contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
+                  <>
+                    <h4>Container Settings</h4>
                   </>
                 }
               </FormSection>
