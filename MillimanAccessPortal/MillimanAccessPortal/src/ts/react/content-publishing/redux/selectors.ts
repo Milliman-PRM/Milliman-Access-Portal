@@ -227,7 +227,7 @@ export function availableContentTypes(state: PublishingState) {
       selectionLabel: contentTypes[contentType].displayName,
     });
   }
-  return contentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
+  return contentTypesArray.sort((a, b) => (a.selectionLabel > b.selectionLabel) ? 1 : -1);
 }
 
 /**
