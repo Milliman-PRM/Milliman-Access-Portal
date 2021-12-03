@@ -6,7 +6,7 @@ import {
 } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
-  ContentReductionTask, Guid, RootContentItemWithStats,
+  ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -301,6 +301,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   const { pendingFormData } = state.formData;
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const isContainerApp = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -313,10 +315,21 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
-  const typeSpecificPublishingDetail =
-    (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) ? {
-    roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
-  } : null;
+  let typeSpecificPublishingDetail: TypeSpecificPublicationProperties = null;
+
+  if (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) {
+    typeSpecificPublishingDetail = {
+      roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
+    };
+  }
+
+  if (isContainerApp) {
+    typeSpecificPublishingDetail = {
+      containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
+      containerRam: pendingFormData.typeSpecificPublicationProperties.containerRam,
+      containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+    };
+  }
 
   return {
     rootContentItemId,
@@ -364,6 +377,8 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   const { pendingFormData } = state.formData;
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const isContainerApp = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Container App';
   const contentItemInformation: ContentItemPublicationDetail = {
     ClientId: pendingFormData.clientId,
     ContentName: pendingFormData.contentName,
@@ -393,6 +408,16 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
       contentItemInformation.typeSpecificPublicationProperties = {
         roleList: pendingFormData.typeSpecificPublicationProperties.roleList ?
           pendingFormData.typeSpecificPublicationProperties.roleList : [],
+      };
+    }
+  }
+
+  if (isContainerApp) {
+    if (pendingFormData.typeSpecificPublicationProperties) {
+      contentItemInformation.typeSpecificPublicationProperties = {
+        containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
+        containerRam: pendingFormData.typeSpecificPublicationProperties.containerRam,
+        containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
       };
     }
   }
