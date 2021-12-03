@@ -24,6 +24,7 @@ namespace MapDbContextLib.Models
             Unspecified = 0,
             One = 1,
             Two = 2,
+            Three = 3,
             Four = 4,
         }
 
@@ -48,10 +49,10 @@ namespace MapDbContextLib.Models
             Sixteen = 16,
         }
 
-        public ContainerCpuCoresEnum CpuCores { get; set; }
+        public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
 
-        public ContainerRamEnum Ram { get; set; }
+        public ContainerRamEnum ContainerRam { get; set; }
 
-        public uint InternalPort { get; set; }
+        public uint ContainerInternalPort { get; set; }
     }
 }
