@@ -179,8 +179,17 @@ if ($auditFileCount -gt 0)
 
 
         $lineNumber = 0
+        $validLines = 0
+        $invalidLines = 0
         foreach ($audit in $audits)
         {
+            # Check for invalid data cases which have been seen in the past and skip processing for such lines in the file
+            if (($null -eq $audit.Document) -or ($audit.Document.StartsWith("\\") -eq $false)) {
+                $invalidLines++
+                $lineNumber++
+                continue;
+            }
+
             if ($firstValue) # This approach allows us to ensure we're working with the first overall values, regardless of which file or line number it is
             {
                 $auditValues += "`r`n`r`n " # the first set of values should stand alone
@@ -192,22 +201,31 @@ if ($auditFileCount -gt 0)
             }
 
             $auditValues += "($($audit.Session), '$($audit.Timestamp)', '$($audit.Document)', '$($audit.Type)', '$($audit.Message.Replace('''', ''))', '$($file.Name)', $lineNumber)"
+            $validLines++
             $lineNumber++
         }
         
 		write-output "$(get-date) $lineNumber records processed"
-		$auditRecordCount += $lineNumber
+        write-output "$(get-date) $validLines were valid and were added to the insert statement"
+        write-output "$(get-date) $invalidLines were invalid and were ignored"
+	    $auditRecordCount += $validLines
         $fileCounter++
     }
 
-    write-output "$(get-date) writing audit insert statements to file ($auditRecordCount rows)"
-    $auditValues | Add-Content $auditInsertFilePath -Force -Encoding UTF8
+    if ($auditRecordCount -gt 0)
+    {
+        write-output "$(get-date) writing audit insert statements to file ($auditRecordCount rows)"
+        $auditValues | Add-Content $auditInsertFilePath -Force -Encoding UTF8
 
-    # Finalize file with ON CONFLICT [...] DO NOTHING statement
-    write-output "$(get-date) finalizing query"
-    $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVAudit_LogFileName_LogFileLine`" DO NOTHING"
-    $EndQuery | Add-Content $auditInsertFilePath -Force -Encoding UTF8
-
+        # Finalize file with ON CONFLICT [...] DO NOTHING statement
+        write-output "$(get-date) finalizing query"
+        $EndQuery = "`r`n ON CONFLICT ON CONSTRAINT `"UNIQUE_QVAudit_LogFileName_LogFileLine`" DO NOTHING"
+        $EndQuery | Add-Content $auditInsertFilePath -Force -Encoding UTF8
+    }
+    else 
+    {
+        Write-Output "$(get-date) No valid audit records were found in any log file."
+    }
 }
 
 if ($sessionFileCount -eq 0 -and $auditFileCount -eq 0)
@@ -235,7 +253,7 @@ if ($sessionFileCount -gt 0)
     }
 }
 
-if ($auditFileCount -gt 0)
+if ($auditRecordCount -gt 0)
 {
     # Load audit records
     write-output "$(get-date) Loading Qlikview audit records into database"
