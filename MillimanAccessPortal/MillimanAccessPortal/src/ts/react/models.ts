@@ -130,9 +130,7 @@ export interface ContentItemDetail {
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
   };
-  typeSpecificPublicationProperties?: {
-    roleList?: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
 
 export interface ContentItemPublicationDetail {
@@ -151,9 +149,16 @@ export interface ContentItemPublicationDetail {
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
   };
-  typeSpecificPublicationProperties?: {
-    roleList: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
+}
+
+export interface TypeSpecificPublicationProperties {
+  // PowerBi specific:
+  roleList?: string[];
+  // Container App specific:
+  containerCpuCores?: ContainerCpuCoresEnum;
+  containerRam?: ContainerRamEnum;
+  containerInternalPort?: number;
 }
 
 export interface GoLiveViewModel {
@@ -194,6 +199,9 @@ export interface ContentItemFormErrors {
   };
   typeSpecificPublicationProperties?: {
     roleList?: string;
+    containerCpuCores?: string;
+    containerRam?: string;
+    containerInternalPort?: string;
   };
 }
 

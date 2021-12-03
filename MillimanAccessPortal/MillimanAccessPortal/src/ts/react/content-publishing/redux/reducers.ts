@@ -9,7 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamEnum, ContentItemDetail,
+  ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -77,6 +78,9 @@ const emptyContentItemDetail: ContentItemDetail = {
   },
   typeSpecificPublicationProperties: {
     roleList: [],
+    containerCpuCores: ContainerCpuCoresEnum.Two,
+    containerRam: ContainerRamEnum.Eight,
+    containerInternalPort: 3838,
   },
 };
 
