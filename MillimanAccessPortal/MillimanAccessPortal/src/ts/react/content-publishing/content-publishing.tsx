@@ -16,8 +16,8 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContentAssociatedFileType, ContentItemPublicationDetail,
-  ContentType, RootContentItem, RootContentItemWithPublication,
+  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerRamEnum, ContentAssociatedFileType,
+  ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
@@ -96,6 +96,32 @@ interface ContentPublishingProps {
   canDownloadCurrentContentItem: boolean;
   contentItemForPublication: ContentItemPublicationDetail;
 }
+
+const cpuCoresDropdownValues: Array<{ selectionValue: ContainerCpuCoresEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerCpuCoresEnum.One, selectionLabel: '1 Core' },
+  { selectionValue: ContainerCpuCoresEnum.Two, selectionLabel: '2 Cores' },
+  { selectionValue: ContainerCpuCoresEnum.Three, selectionLabel: '3 Cores' },
+  { selectionValue: ContainerCpuCoresEnum.Four, selectionLabel: '4 Cores' },
+];
+
+const containerRamDropdownValues: Array<{ selectionValue: ContainerRamEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerRamEnum.One, selectionLabel: '1GB' },
+  { selectionValue: ContainerRamEnum.Two, selectionLabel: '2GB' },
+  { selectionValue: ContainerRamEnum.Three, selectionLabel: '3GB' },
+  { selectionValue: ContainerRamEnum.Four, selectionLabel: '4GB' },
+  { selectionValue: ContainerRamEnum.Five, selectionLabel: '5GB' },
+  { selectionValue: ContainerRamEnum.Six, selectionLabel: '6GB' },
+  { selectionValue: ContainerRamEnum.Seven, selectionLabel: '7GB' },
+  { selectionValue: ContainerRamEnum.Eight, selectionLabel: '8GB' },
+  { selectionValue: ContainerRamEnum.Nine, selectionLabel: '9GB' },
+  { selectionValue: ContainerRamEnum.Ten, selectionLabel: '10GB' },
+  { selectionValue: ContainerRamEnum.Eleven, selectionLabel: '11GB' },
+  { selectionValue: ContainerRamEnum.Twelve, selectionLabel: '12GB' },
+  { selectionValue: ContainerRamEnum.Thirteen, selectionLabel: '13GB' },
+  { selectionValue: ContainerRamEnum.Fourteen, selectionLabel: '14GB' },
+  { selectionValue: ContainerRamEnum.Fifteen, selectionLabel: '15GB' },
+  { selectionValue: ContainerRamEnum.Sixteen, selectionLabel: '16GB' },
+];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
   private readonly currentView: string = document
@@ -914,6 +940,42 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
                   <>
                     <h4>Container Settings</h4>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                        <DropDown
+                          error={null}
+                          label="vCPU Cores"
+                          name="vCPUCores"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCpuCores',
+                              value: target.value,
+                            });
+                          }}
+                          placeholderText="vCPU Cores *"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerCpuCores}
+                          values={cpuCoresDropdownValues}
+                          readOnly={formState === 'read'}
+                        />
+                      </ FormFlexContainer>
+                      <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                        <DropDown
+                          error={null}
+                          label="RAM"
+                          name="ram"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerRam',
+                              value: target.value,
+                            });
+                          }}
+                          placeholderText="RAM *"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerRam}
+                          values={containerRamDropdownValues}
+                          readOnly={formState === 'read'}
+                        />
+                      </ FormFlexContainer>
+                    </ FormSectionRow>
                   </>
                 }
               </FormSection>

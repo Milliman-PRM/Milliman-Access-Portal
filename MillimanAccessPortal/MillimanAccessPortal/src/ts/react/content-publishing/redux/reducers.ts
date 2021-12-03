@@ -652,6 +652,19 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
         },
       };
+    } else if (action.inputName === 'containerCpuCores'
+      || action.inputName === 'containerRam'
+      || action.inputName === 'containerInternalPort') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: parseInt(action.value, 10),
+          },
+        },
+      };
     } else {
       return {
         ...state,
