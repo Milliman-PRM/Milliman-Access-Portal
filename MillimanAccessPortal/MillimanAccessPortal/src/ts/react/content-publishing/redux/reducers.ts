@@ -102,7 +102,12 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
-  typeSpecificPublicationProperties: {},
+  typeSpecificPublicationProperties: {
+    roleList: '',
+    containerCpuCores: '',
+    containerRam: '',
+    containerInternalPort: '',
+  },
 };
 
 const _initialFormData: PublishingFormData = {
@@ -655,13 +660,18 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     } else if (action.inputName === 'containerCpuCores'
       || action.inputName === 'containerRam'
       || action.inputName === 'containerInternalPort') {
+      const value = parseInt(action.value, 10);
+      if (action.inputName === 'containerInternalPort' &&
+        (value < 0 || value > 65535 || isNaN(value))) {
+        return state;
+      }
       return {
         ...state,
         pendingFormData: {
           ...state.pendingFormData,
           typeSpecificPublicationProperties: {
             ...state.pendingFormData.typeSpecificPublicationProperties,
-            [action.inputName]: parseInt(action.value, 10),
+            [action.inputName]: value,
           },
         },
       };

@@ -975,7 +975,26 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           readOnly={formState === 'read'}
                         />
                       </ FormFlexContainer>
-                    </ FormSectionRow>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12}>
+                        <Input
+                          error={null}
+                          label="Internal Port"
+                          placeholderText="Internal Port *"
+                          name="containerInternalPort"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerInternalPort',
+                              value: target.value,
+                            });
+                          }}
+                          type="text"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerInternalPort}
+                          readOnly={formState === 'read'}
+                        />
+                      </FormFlexContainer>
+                    </FormSectionRow>
                   </>
                 }
               </FormSection>
