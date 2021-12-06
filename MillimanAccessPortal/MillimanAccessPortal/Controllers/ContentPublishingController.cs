@@ -527,6 +527,10 @@ namespace MillimanAccessPortal.Controllers
                     }
                     break;
 
+                case ContentTypeEnum.ContainerApp:
+#warning TODO: Implement the removal of image/container related resources here
+                    break;
+
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
@@ -1162,6 +1166,10 @@ namespace MillimanAccessPortal.Controllers
                                 props.PreviewReportId = null;
                                 props.PreviewWorkspaceId = null;
                                 rootContentItem.TypeSpecificDetailObject = props;
+                                break;
+
+                            case ContentTypeEnum.ContainerApp:
+#warning TODO: Is anything needed here?
                                 break;
 
                             default:
