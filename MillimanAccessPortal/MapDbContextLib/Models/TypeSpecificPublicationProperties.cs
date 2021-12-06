@@ -28,7 +28,7 @@ namespace MapDbContextLib.Models
             Four = 4,
         }
 
-        public enum ContainerRamEnum
+        public enum ContainerRamGbEnum
         {
             Unspecified = 0,
             One = 1,
@@ -51,7 +51,7 @@ namespace MapDbContextLib.Models
 
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
 
-        public ContainerRamEnum ContainerRam { get; set; }
+        public ContainerRamGbEnum ContainerRamGb { get; set; }
 
         public uint ContainerInternalPort { get; set; }
     }
