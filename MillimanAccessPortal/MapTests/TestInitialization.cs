@@ -667,6 +667,7 @@ namespace MapTests
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = true }) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 6", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = false }) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 7", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.ContainerApp).Id  },
             });
             #endregion
 
@@ -728,10 +729,9 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
-                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(5) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(9), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
-                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(9), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(10), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(7) },
             });
             #endregion
 
