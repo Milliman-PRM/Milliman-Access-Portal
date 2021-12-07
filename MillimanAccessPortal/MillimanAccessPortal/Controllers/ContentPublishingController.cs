@@ -527,6 +527,10 @@ namespace MillimanAccessPortal.Controllers
                     }
                     break;
 
+                case ContentTypeEnum.ContainerApp:
+#warning TODO: Implement the removal of image/container related resources here
+                    break;
+
                 case ContentTypeEnum.Html:
                 case ContentTypeEnum.Pdf:
                 case ContentTypeEnum.FileDownload:
@@ -679,20 +683,28 @@ namespace MillimanAccessPortal.Controllers
                     UploadedRelatedFilesObj = request.NewRelatedFiles,
                     RequestedAssociatedFileList = request.AssociatedFiles,
                 };
-                if (ContentItem.DoesReduce)
+
+                switch (ContentItem.ContentType.TypeEnum)
                 {
-                    switch (ContentItem.ContentType.TypeEnum) {
-                        case ContentTypeEnum.PowerBi:
-                            PowerBiPublicationProperties typedObject = request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>();
-                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(typedObject);
-                            break;
+                    case ContentTypeEnum.PowerBi:
+                        if (ContentItem.DoesReduce)
+                        {
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>());
+                        }
+                        break;
 
-                        default:
-                            NewContentPublicationRequest.TypeSpecificDetail = null;
-                            break;
-                    };
+                    case ContentTypeEnum.ContainerApp:
+                        if (request.TypeSpecificPublishingDetail != null)
+                        {
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(request.TypeSpecificPublishingDetail.ToObject<ContainerizedContentPublicationProperties>());
+                        }
+                        break;
 
-                }
+                    default:
+                        NewContentPublicationRequest.TypeSpecificDetail = null;
+                        break;
+                };
+
                 _dbContext.ContentPublicationRequest.Add(NewContentPublicationRequest);
 
                 try
@@ -1154,6 +1166,10 @@ namespace MillimanAccessPortal.Controllers
                                 props.PreviewReportId = null;
                                 props.PreviewWorkspaceId = null;
                                 rootContentItem.TypeSpecificDetailObject = props;
+                                break;
+
+                            case ContentTypeEnum.ContainerApp:
+#warning TODO: Is anything needed here?
                                 break;
 
                             default:

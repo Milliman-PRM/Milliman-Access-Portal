@@ -9,7 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentItemDetail,
+  ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -77,6 +78,9 @@ const emptyContentItemDetail: ContentItemDetail = {
   },
   typeSpecificPublicationProperties: {
     roleList: [],
+    containerCpuCores: ContainerCpuCoresEnum.Two,
+    containerRamGb: ContainerRamGbEnum.Eight,
+    containerInternalPort: 3838,
   },
 };
 
@@ -98,7 +102,12 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
-  typeSpecificPublicationProperties: {},
+  typeSpecificPublicationProperties: {
+    roleList: '',
+    containerCpuCores: '',
+    containerRamGb: '',
+    containerInternalPort: '',
+  },
 };
 
 const _initialFormData: PublishingFormData = {
@@ -646,6 +655,24 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
           typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
+        },
+      };
+    } else if (action.inputName === 'containerCpuCores'
+      || action.inputName === 'containerRamGb'
+      || action.inputName === 'containerInternalPort') {
+      const value = parseInt(action.value, 10);
+      if (action.inputName === 'containerInternalPort' &&
+        (value < 0 || value > 65535 || isNaN(value))) {
+        return state;
+      }
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: value,
+          },
         },
       };
     } else {

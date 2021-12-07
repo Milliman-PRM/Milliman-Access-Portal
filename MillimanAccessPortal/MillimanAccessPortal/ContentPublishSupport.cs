@@ -134,6 +134,7 @@ namespace MillimanAccessPortal
                 var relatedFiles = publicationRequest.UploadedRelatedFilesObj;
                 switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                 {
+                    case ContentTypeEnum.ContainerApp:
                     case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:
@@ -257,6 +258,7 @@ namespace MillimanAccessPortal
                 string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
                 switch (ContentItem.ContentType.TypeEnum)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
+                    case ContentTypeEnum.ContainerApp:
                     case ContentTypeEnum.PowerBi:
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Html:

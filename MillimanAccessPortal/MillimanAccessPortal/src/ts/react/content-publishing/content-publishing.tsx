@@ -16,8 +16,8 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContentAssociatedFileType, ContentItemPublicationDetail,
-  ContentType, RootContentItem, RootContentItemWithPublication,
+  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentAssociatedFileType,
+  ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
 import { BrowserSupportBanner } from '../shared-components/browser-support-banner';
@@ -96,6 +96,32 @@ interface ContentPublishingProps {
   canDownloadCurrentContentItem: boolean;
   contentItemForPublication: ContentItemPublicationDetail;
 }
+
+const cpuCoresDropdownValues: Array<{ selectionValue: ContainerCpuCoresEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerCpuCoresEnum.One, selectionLabel: '1 Core' },
+  { selectionValue: ContainerCpuCoresEnum.Two, selectionLabel: '2 Cores' },
+  { selectionValue: ContainerCpuCoresEnum.Three, selectionLabel: '3 Cores' },
+  { selectionValue: ContainerCpuCoresEnum.Four, selectionLabel: '4 Cores' },
+];
+
+const containerRamGbDropdownValues: Array<{ selectionValue: ContainerRamGbEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerRamGbEnum.One, selectionLabel: '1GB' },
+  { selectionValue: ContainerRamGbEnum.Two, selectionLabel: '2GB' },
+  { selectionValue: ContainerRamGbEnum.Three, selectionLabel: '3GB' },
+  { selectionValue: ContainerRamGbEnum.Four, selectionLabel: '4GB' },
+  { selectionValue: ContainerRamGbEnum.Five, selectionLabel: '5GB' },
+  { selectionValue: ContainerRamGbEnum.Six, selectionLabel: '6GB' },
+  { selectionValue: ContainerRamGbEnum.Seven, selectionLabel: '7GB' },
+  { selectionValue: ContainerRamGbEnum.Eight, selectionLabel: '8GB' },
+  { selectionValue: ContainerRamGbEnum.Nine, selectionLabel: '9GB' },
+  { selectionValue: ContainerRamGbEnum.Ten, selectionLabel: '10GB' },
+  { selectionValue: ContainerRamGbEnum.Eleven, selectionLabel: '11GB' },
+  { selectionValue: ContainerRamGbEnum.Twelve, selectionLabel: '12GB' },
+  { selectionValue: ContainerRamGbEnum.Thirteen, selectionLabel: '13GB' },
+  { selectionValue: ContainerRamGbEnum.Fourteen, selectionLabel: '14GB' },
+  { selectionValue: ContainerRamGbEnum.Fifteen, selectionLabel: '15GB' },
+  { selectionValue: ContainerRamGbEnum.Sixteen, selectionLabel: '16GB' },
+];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
   private readonly currentView: string = document
@@ -788,7 +814,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               pendingFormData && pendingFormData.contentTypeId &&
               (
                 contentTypes[pendingFormData.contentTypeId].displayName === 'QlikView' ||
-                contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI'
+                contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI' ||
+                contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App'
               ) &&
               <FormSection
                 title={`${contentTypes[pendingFormData.contentTypeId].displayName} Specific Settings`}
@@ -907,6 +934,67 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           />
                       )
                     }
+                  </>
+                }
+                {
+                  contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
+                  <>
+                    <h4>Container Settings</h4>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                        <DropDown
+                          error={null}
+                          label="vCPU Cores"
+                          name="vCPUCores"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCpuCores',
+                              value: target.value,
+                            });
+                          }}
+                          placeholderText="vCPU Cores *"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerCpuCores}
+                          values={cpuCoresDropdownValues}
+                          readOnly={formState === 'read'}
+                        />
+                      </ FormFlexContainer>
+                      <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                        <DropDown
+                          error={null}
+                          label="RAM"
+                          name="ram"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerRamGb',
+                              value: target.value,
+                            });
+                          }}
+                          placeholderText="RAM *"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerRamGb}
+                          values={containerRamGbDropdownValues}
+                          readOnly={formState === 'read'}
+                        />
+                      </ FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12}>
+                        <Input
+                          error={null}
+                          label="Internal Port"
+                          placeholderText="Internal Port *"
+                          name="containerInternalPort"
+                          onChange={({ currentTarget: target }: React.FormEvent<HTMLInputElement>) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerInternalPort',
+                              value: target.value,
+                            });
+                          }}
+                          type="text"
+                          value={pendingFormData.typeSpecificPublicationProperties.containerInternalPort}
+                          readOnly={formState === 'read'}
+                        />
+                      </FormFlexContainer>
+                    </FormSectionRow>
                   </>
                 }
               </FormSection>

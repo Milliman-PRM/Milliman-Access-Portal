@@ -346,7 +346,14 @@ export interface CancelPublicationRequestFailed {
 
 export interface SetPublishingFormTextInputValue {
   type: 'SET_PENDING_TEXT_INPUT_VALUE';
-  inputName: 'contentDisclaimer' | 'contentName' | 'contentTypeId' | 'contentDescription' | 'contentNotes';
+  inputName: 'contentDisclaimer'
+  | 'contentName'
+  | 'contentTypeId'
+  | 'contentDescription'
+  | 'contentNotes'
+  | 'containerCpuCores'
+  | 'containerRamGb'
+  | 'containerInternalPort';
   value: string;
 }
 

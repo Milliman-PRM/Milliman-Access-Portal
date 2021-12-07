@@ -134,6 +134,7 @@ export enum ContentTypeEnum {
   Pdf = 3,
   FileDownload = 4,
   PowerBi = 5,
+  ContainerApp = 6,
 }
 export enum ContentAssociatedFileTypeEnum {
     Unknown = 0,
@@ -192,7 +193,7 @@ export interface PublishRequest {
   associatedFiles?: RequestedAssociatedFile[];
   deleteFilePurposes?: string[];
   typeSpecificPublishingDetail?: {
-    roleList: string[];
+    roleList?: string[];
   };
 }
 

@@ -130,9 +130,7 @@ export interface ContentItemDetail {
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
   };
-  typeSpecificPublicationProperties?: {
-    roleList?: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
 
 export interface ContentItemPublicationDetail {
@@ -151,9 +149,16 @@ export interface ContentItemPublicationDetail {
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
   };
-  typeSpecificPublicationProperties?: {
-    roleList: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
+}
+
+export interface TypeSpecificPublicationProperties {
+  // PowerBi specific:
+  roleList?: string[];
+  // Container App specific:
+  containerCpuCores?: ContainerCpuCoresEnum;
+  containerRamGb?: ContainerRamGbEnum;
+  containerInternalPort?: number;
 }
 
 export interface GoLiveViewModel {
@@ -194,6 +199,9 @@ export interface ContentItemFormErrors {
   };
   typeSpecificPublicationProperties?: {
     roleList?: string;
+    containerCpuCores?: string;
+    containerRamGb?: string;
+    containerInternalPort?: string;
   };
 }
 
@@ -711,4 +719,32 @@ export interface FileUpload {
 export interface FileDropFileUpload {
   status: FileDropUploadTaskStatus;
   fileName: string;
+}
+
+export enum ContainerCpuCoresEnum {
+  Unspecified = 0,
+  One = 1,
+  Two = 2,
+  Three = 3,
+  Four = 4,
+}
+
+export enum ContainerRamGbEnum {
+  Unspecified = 0,
+  One = 1,
+  Two = 2,
+  Three = 3,
+  Four = 4,
+  Five = 5,
+  Six = 6,
+  Seven = 7,
+  Eight = 8,
+  Nine = 9,
+  Ten = 10,
+  Eleven = 11,
+  Twelve = 12,
+  Thirteen = 13,
+  Fourteen = 14,
+  Fifteen = 15,
+  Sixteen = 16,
 }

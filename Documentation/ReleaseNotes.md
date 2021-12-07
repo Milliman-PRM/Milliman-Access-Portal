@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.17.0
+
+- Introduced support for Containerized Apps as a new content type
+
 ### v1.16.0
 
 - Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version

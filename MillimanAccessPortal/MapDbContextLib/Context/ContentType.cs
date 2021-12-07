@@ -29,6 +29,8 @@ namespace MapDbContextLib.Context
         FileDownload = 4,
         [Display(Name = "Power BI")]
         PowerBi = 5,
+        [Display(Name = "Containerized App")]
+        ContainerApp = 6,
     }
 
     public static class EnumExtensions
@@ -99,6 +101,13 @@ namespace MapDbContextLib.Context
                     DefaultIconName = "PowerBI_Icon.png",
                     FileExtensions = new List<string> { "pbix" },
                 },
+                new ContentType
+                {
+                    TypeEnum = ContentTypeEnum.ContainerApp,
+                    CanReduce = false,
+                    DefaultIconName = "Container_Icon.png",
+                    FileExtensions = new List<string> { "gz", "tar" },
+                }
             };
 
             ApplicationDbContext Db = serviceProvider.GetService<ApplicationDbContext>();
