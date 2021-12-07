@@ -9,7 +9,7 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamEnum, ContentItemDetail,
+  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentItemDetail,
   ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
@@ -79,7 +79,7 @@ const emptyContentItemDetail: ContentItemDetail = {
   typeSpecificPublicationProperties: {
     roleList: [],
     containerCpuCores: ContainerCpuCoresEnum.Two,
-    containerRam: ContainerRamEnum.Eight,
+    containerRamGb: ContainerRamGbEnum.Eight,
     containerInternalPort: 3838,
   },
 };
@@ -105,7 +105,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   typeSpecificPublicationProperties: {
     roleList: '',
     containerCpuCores: '',
-    containerRam: '',
+    containerRamGb: '',
     containerInternalPort: '',
   },
 };
@@ -658,7 +658,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         },
       };
     } else if (action.inputName === 'containerCpuCores'
-      || action.inputName === 'containerRam'
+      || action.inputName === 'containerRamGb'
       || action.inputName === 'containerInternalPort') {
       const value = parseInt(action.value, 10);
       if (action.inputName === 'containerInternalPort' &&

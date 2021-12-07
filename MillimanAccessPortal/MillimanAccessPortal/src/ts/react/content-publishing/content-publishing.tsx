@@ -16,7 +16,7 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerRamEnum, ContentAssociatedFileType,
+  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentAssociatedFileType,
   ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -104,23 +104,23 @@ const cpuCoresDropdownValues: Array<{ selectionValue: ContainerCpuCoresEnum, sel
   { selectionValue: ContainerCpuCoresEnum.Four, selectionLabel: '4 Cores' },
 ];
 
-const containerRamDropdownValues: Array<{ selectionValue: ContainerRamEnum, selectionLabel: string }> = [
-  { selectionValue: ContainerRamEnum.One, selectionLabel: '1GB' },
-  { selectionValue: ContainerRamEnum.Two, selectionLabel: '2GB' },
-  { selectionValue: ContainerRamEnum.Three, selectionLabel: '3GB' },
-  { selectionValue: ContainerRamEnum.Four, selectionLabel: '4GB' },
-  { selectionValue: ContainerRamEnum.Five, selectionLabel: '5GB' },
-  { selectionValue: ContainerRamEnum.Six, selectionLabel: '6GB' },
-  { selectionValue: ContainerRamEnum.Seven, selectionLabel: '7GB' },
-  { selectionValue: ContainerRamEnum.Eight, selectionLabel: '8GB' },
-  { selectionValue: ContainerRamEnum.Nine, selectionLabel: '9GB' },
-  { selectionValue: ContainerRamEnum.Ten, selectionLabel: '10GB' },
-  { selectionValue: ContainerRamEnum.Eleven, selectionLabel: '11GB' },
-  { selectionValue: ContainerRamEnum.Twelve, selectionLabel: '12GB' },
-  { selectionValue: ContainerRamEnum.Thirteen, selectionLabel: '13GB' },
-  { selectionValue: ContainerRamEnum.Fourteen, selectionLabel: '14GB' },
-  { selectionValue: ContainerRamEnum.Fifteen, selectionLabel: '15GB' },
-  { selectionValue: ContainerRamEnum.Sixteen, selectionLabel: '16GB' },
+const containerRamGbDropdownValues: Array<{ selectionValue: ContainerRamGbEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerRamGbEnum.One, selectionLabel: '1GB' },
+  { selectionValue: ContainerRamGbEnum.Two, selectionLabel: '2GB' },
+  { selectionValue: ContainerRamGbEnum.Three, selectionLabel: '3GB' },
+  { selectionValue: ContainerRamGbEnum.Four, selectionLabel: '4GB' },
+  { selectionValue: ContainerRamGbEnum.Five, selectionLabel: '5GB' },
+  { selectionValue: ContainerRamGbEnum.Six, selectionLabel: '6GB' },
+  { selectionValue: ContainerRamGbEnum.Seven, selectionLabel: '7GB' },
+  { selectionValue: ContainerRamGbEnum.Eight, selectionLabel: '8GB' },
+  { selectionValue: ContainerRamGbEnum.Nine, selectionLabel: '9GB' },
+  { selectionValue: ContainerRamGbEnum.Ten, selectionLabel: '10GB' },
+  { selectionValue: ContainerRamGbEnum.Eleven, selectionLabel: '11GB' },
+  { selectionValue: ContainerRamGbEnum.Twelve, selectionLabel: '12GB' },
+  { selectionValue: ContainerRamGbEnum.Thirteen, selectionLabel: '13GB' },
+  { selectionValue: ContainerRamGbEnum.Fourteen, selectionLabel: '14GB' },
+  { selectionValue: ContainerRamGbEnum.Fifteen, selectionLabel: '15GB' },
+  { selectionValue: ContainerRamGbEnum.Sixteen, selectionLabel: '16GB' },
 ];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -965,13 +965,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           name="ram"
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerRam',
+                              inputName: 'containerRamGb',
                               value: target.value,
                             });
                           }}
                           placeholderText="RAM *"
-                          value={pendingFormData.typeSpecificPublicationProperties.containerRam}
-                          values={containerRamDropdownValues}
+                          value={pendingFormData.typeSpecificPublicationProperties.containerRamGb}
+                          values={containerRamGbDropdownValues}
                           readOnly={formState === 'read'}
                         />
                       </ FormFlexContainer>

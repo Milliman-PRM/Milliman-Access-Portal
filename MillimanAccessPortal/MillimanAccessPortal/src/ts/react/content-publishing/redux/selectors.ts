@@ -326,7 +326,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   if (isContainerApp) {
     typeSpecificPublishingDetail = {
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
-      containerRam: pendingFormData.typeSpecificPublicationProperties.containerRam,
+      containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
       containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
     };
   }
@@ -416,7 +416,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
     if (pendingFormData.typeSpecificPublicationProperties) {
       contentItemInformation.typeSpecificPublicationProperties = {
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
-        containerRam: pendingFormData.typeSpecificPublicationProperties.containerRam,
+        containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
       };
     }

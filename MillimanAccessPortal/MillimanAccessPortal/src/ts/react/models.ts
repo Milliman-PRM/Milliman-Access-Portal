@@ -157,7 +157,7 @@ export interface TypeSpecificPublicationProperties {
   roleList?: string[];
   // Container App specific:
   containerCpuCores?: ContainerCpuCoresEnum;
-  containerRam?: ContainerRamEnum;
+  containerRamGb?: ContainerRamGbEnum;
   containerInternalPort?: number;
 }
 
@@ -200,7 +200,7 @@ export interface ContentItemFormErrors {
   typeSpecificPublicationProperties?: {
     roleList?: string;
     containerCpuCores?: string;
-    containerRam?: string;
+    containerRamGb?: string;
     containerInternalPort?: string;
   };
 }
@@ -729,7 +729,7 @@ export enum ContainerCpuCoresEnum {
   Four = 4,
 }
 
-export enum ContainerRamEnum {
+export enum ContainerRamGbEnum {
   Unspecified = 0,
   One = 1,
   Two = 2,
