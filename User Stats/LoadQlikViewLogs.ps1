@@ -73,6 +73,7 @@ if (($auditFileCount -gt 0) -or ($sessionFileCount -gt 0))
 {    
     $env:PGPASSWORD = $pgsqlPassword
     $env:PGSSLMODE = "require"
+    $env:PGCLIENTENCODING="utf-8"
 }
 else
 {
