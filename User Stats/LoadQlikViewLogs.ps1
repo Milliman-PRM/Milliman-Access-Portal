@@ -217,6 +217,18 @@ if ($auditFileCount -gt 0)
                 continue;
             }
 
+            # Check for a non-numeric session, which indicates a problem with the record
+            try 
+            {
+                $sessionInt = [int]$audit.session # Capturing to a variable to prevent default behavior (printing to console)
+            }
+            catch
+            {
+                $invalidLines++
+                $lineNumber++
+                continue;
+            }
+
             if ($firstValue) # This approach allows us to ensure we're working with the first overall values, regardless of which file or line number it is
             {
                 $auditValues += "`r`n`r`n " # the first set of values should stand alone
