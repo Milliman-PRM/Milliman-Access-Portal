@@ -169,7 +169,7 @@ if ($sessionFileCount -gt 0)
             
             # Load session records
             write-output "$(get-date) Loading into datbase"
-            $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`" --echo-errors"
+            $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$sessionInsertFilePath`""
             Invoke-Expression $command
 
             if ($LASTEXITCODE -ne 0)
@@ -248,7 +248,7 @@ if ($auditFileCount -gt 0)
 
             # Load audit records to database
             write-output "$(get-date) Loading to database"
-            $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`" --echo-errors"
+            $command = "$psqlExePath --dbname='$pgsqlDatabase' --username=$pgsqlUser --host=$pgsqlServer --file=`"$auditInsertFilePath`""
             Invoke-Expression $command
 
             if ($LASTEXITCODE -ne 0)
