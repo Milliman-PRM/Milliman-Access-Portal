@@ -3,7 +3,7 @@
 ## Release Notes
 
 ### v1.17.0
-- Added buttons to copy both username and password SFTP credentials for File Drop
+- Added buttons to copy both username and password SFTP credentials for a File Drop
 
 ### v1.16.0
 
