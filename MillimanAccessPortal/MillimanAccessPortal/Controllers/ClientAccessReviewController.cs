@@ -240,7 +240,7 @@ namespace MillimanAccessPortal.Controllers
                     stream.WriteLine($"Client Summary{Environment.NewLine}");
                     stream.WriteLine($"Client name: {clientSummaryModel.ClientName}");
                     stream.WriteLine($"Client code: {(!string.IsNullOrEmpty(clientSummaryModel.ClientCode) ? clientSummaryModel.ClientCode : "N/A")}");
-                    stream.WriteLine($"Review due date: {clientSummaryModel.ReviewDueDate}");
+                    stream.WriteLine($"Review due date: {(clientSummaryModel.LastReviewDate == default ? clientSummaryModel.LastReviewDate : "N/A")}");
                     stream.WriteLine($"Last review by: {(clientSummaryModel.LastReviewedBy != null && !string.IsNullOrEmpty(clientSummaryModel.LastReviewedBy.Name) ? clientSummaryModel.LastReviewedBy.UserEmail : "N/A")}");
                     stream.WriteLine($"Primary Contact: {(!string.IsNullOrEmpty(clientSummaryModel.PrimaryContactEmail) ? clientSummaryModel.PrimaryContactEmail : "N/A")}");
                     stream.WriteLine("Client Admins:");
@@ -326,7 +326,6 @@ namespace MillimanAccessPortal.Controllers
                         IsFileDropAdmin = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropAdmin, out fileDropAdminValue) ? fileDropAdminValue : false,
                         IsFileDropUser = mu.ClientUserRoles.TryGetValue(RoleEnum.FileDropUser, out fileDropUserValue) ? fileDropUserValue : false,
                         IsSuspended = mu.IsSuspended,
-                        IsDisabled = mu.IsAccountDisabled,
                     }); 
                 });
                 using (var stream = new StreamWriter(userRolesCsvPath))
