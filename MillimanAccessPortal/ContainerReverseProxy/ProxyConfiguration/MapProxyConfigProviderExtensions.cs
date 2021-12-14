@@ -1,0 +1,41 @@
+﻿using ContainerReverseProxy.ProxyConfiguration;
+using Yarp.ReverseProxy.Configuration;
+
+namespace Microsoft.Extensions.DependencyInjection
+{
+    public static class MapProxyConfigProviderExtensions
+    {
+        public static IReverseProxyBuilder Initialize(this IReverseProxyBuilder builder, bool addSampleData = false)
+        {
+            return Initialize(builder, new List<RouteConfig>(), new List<ClusterConfig>(), addSampleData);
+        }
+
+        public static IReverseProxyBuilder Initialize(this IReverseProxyBuilder builder, IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters, bool addSampleData = false)
+        {
+            if (addSampleData)
+            {
+                routes = routes.Append(new RouteConfig 
+                { 
+                    RouteId = "SampleRoute", 
+                    ClusterId = "SampleCluster", 
+                    Match = new RouteMatch
+                    {
+                        Path = "{**catch-all}"
+                    } 
+                }).ToList();
+
+                clusters = clusters.Append(new ClusterConfig 
+                    { 
+                        ClusterId = "SampleCluster" ,
+                        Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                            {
+                                { "destination1", new DestinationConfig() { Address = "https://example.com" } }
+                            }
+                    }).ToList();
+            }
+
+            builder.Services.AddSingleton<IProxyConfigProvider>(new MapProxyConfigProvider(routes, clusters));
+            return builder;
+        }
+    }
+}
