@@ -92,17 +92,19 @@ namespace DockerLib
 
         public async Task<JObject> PushImageToRegistry(string repositoryName)
         {
-            string nextLayerUploadLocation;
+            string initialUploadLocation;
+            string uploadStartEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/";
+
             try
             {
-                string uploadStartEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/";
                 var response = await uploadStartEndpoint
                         .WithHeader("Authorization", $"Bearer {_acrToken}")
                         .PostAsync();
-                response.Headers.TryGetFirst("Location", out nextLayerUploadLocation);
-                if (response.StatusCode == 202 && !string.IsNullOrEmpty(nextLayerUploadLocation))
+                response.Headers.TryGetFirst("Location", out initialUploadLocation);
+                if (response.StatusCode == 202 && !string.IsNullOrEmpty(initialUploadLocation))
                 {
                     // Begin upload of layers
+                    UploadLayer(initialUploadLocation);
                 }
                 
                 Console.WriteLine("hi");
@@ -114,6 +116,81 @@ namespace DockerLib
             }
 
             return null;
+        }
+
+        private async Task<bool> LayerDoesExist(string repositoryName, string layerDigest)
+        {
+            string checkExistenceEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/{layerDigest}";
+
+            try
+            {
+                var response = await checkExistenceEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                    .HeadAsync();
+
+                // TODO??: Add check for Content-Length and Docker-Content-Digest headers as well.
+                return response.StatusCode == 202;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception when checking existence of layer.");
+                // throw;
+            }
+
+            return false;
+        }
+
+        private async Task<string> UploadLayer(string uploadLocation)
+        {
+            string nextUploadLocation = "";
+            string uploadLocationEndpoint = $"https://{Config.RegistryUrl}{uploadLocation}";
+            int chunkSize = 65_536;
+
+            // Hardcoding.
+            string layerLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar";
+            
+            try
+            {
+                if (File.Exists(layerLocation))
+                {
+                    (int, int) range = (0, 0);
+                    MemoryStream stream = new MemoryStream() ;
+                    BinaryReader binaryReader = new BinaryReader(new FileStream(layerLocation, FileMode.Open, FileAccess.Read));
+                    BinaryWriter binaryWriter = new BinaryWriter(stream);
+
+                    while (true)
+                    {
+                        range.Item2 = range.Item1 + chunkSize;
+                        byte[] buffer = binaryReader.ReadBytes(chunkSize);
+                        if (buffer.Length > 0)
+                        {
+                            binaryWriter.Write(buffer);
+                        }
+                        else
+                        {
+                            binaryWriter.Close();
+                            break;
+                        }
+
+                        string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+                        var blobUploadResponse = await uploadLocationEndpoint
+                            .WithHeader("Authorization", $"Bearer {_acrToken}")
+                            .WithHeader("Content-Length", buffer.Length)
+                            .WithHeader("Content-Type", "application/octet-stream")
+                            .PatchJsonAsync(chunkValue);
+                        blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+
+                        range.Item1 = range.Item2;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Failed to upload layer.");
+                throw;
+            }
+
+            return nextUploadLocation;
         }
 
         public async Task Demonstrate()
