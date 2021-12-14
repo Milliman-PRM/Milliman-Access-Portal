@@ -14,13 +14,14 @@ using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using Serilog;
+using Newtonsoft.Json.Linq;
 
 namespace DockerLib
 {
     public class DockerLibApi
     {
         public DockerLibApiConfig Config { get; set; }
-        private TokenCredentials _tokenCredentials { get; set; }
+        private string _acrToken { get; set; }
 
         public DockerLibApi(DockerLibApiConfig config)
         {
@@ -59,18 +60,34 @@ namespace DockerLib
                                                                             .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
                                                                             .GetAsync()
                                                                             .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
-                _tokenCredentials = new TokenCredentials(response.AccessToken);
+                _acrToken = response.AccessToken;
                 return true;
             }
-            #region exception handling
             catch (Exception ex)
             {
                 Log.Warning(ex, "Exception attempting to get ACR access token");
                 throw;
             }
-            #endregion
+        }
 
-            return false;
+        public async Task<JObject> GetRepositoryManifest(string repositoryName, string tag = "latest")
+        {
+            string manifestEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{tag}";
+            try
+            {
+                JObject response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
+                                    await manifestEndpoint
+                                        .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                        .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                                        .GetAsync()
+                                        .ReceiveJson<JObject>(), 3, 100);
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                throw;
+            }
         }
 
         public async Task Demonstrate()
