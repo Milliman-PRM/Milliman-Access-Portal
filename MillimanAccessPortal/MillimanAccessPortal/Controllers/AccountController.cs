@@ -90,7 +90,8 @@ namespace MillimanAccessPortal.Controllers
         {
             // Container testing. Do NOT leave this in.
             DockerLibApi dockerLibApi = await new DockerLibApi(_dockerLibConfig).InitializeAsync();
-            await dockerLibApi.GetRepositoryManifest("hello-world");
+            //await dockerLibApi.GetRepositoryManifest("hello-world");
+            await dockerLibApi.PushImageToRegistry("new-repo");
             //
 
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)

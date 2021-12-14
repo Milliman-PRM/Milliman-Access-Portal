@@ -90,6 +90,32 @@ namespace DockerLib
             }
         }
 
+        public async Task<JObject> PushImageToRegistry(string repositoryName)
+        {
+            string nextLayerUploadLocation;
+            try
+            {
+                string uploadStartEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/";
+                var response = await uploadStartEndpoint
+                        .WithHeader("Authorization", $"Bearer {_acrToken}")
+                        .PostAsync();
+                response.Headers.TryGetFirst("Location", out nextLayerUploadLocation);
+                if (response.StatusCode == 202 && !string.IsNullOrEmpty(nextLayerUploadLocation))
+                {
+                    // Begin upload of layers
+                }
+                
+                Console.WriteLine("hi");
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to push an image.");
+                throw;
+            }
+
+            return null;
+        }
+
         public async Task Demonstrate()
         {
             try
