@@ -95,19 +95,35 @@ namespace DockerLib
             string initialUploadLocation;
             string uploadStartEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/";
 
+            // temp
+            string lastUploadLocation = "";
+
             try
             {
                 var response = await uploadStartEndpoint
                         .WithHeader("Authorization", $"Bearer {_acrToken}")
+                        .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json ")
                         .PostAsync();
                 response.Headers.TryGetFirst("Location", out initialUploadLocation);
                 if (response.StatusCode == 202 && !string.IsNullOrEmpty(initialUploadLocation))
                 {
                     // Begin upload of layers
-                    UploadLayer(initialUploadLocation);
+                    lastUploadLocation = await UploadLayer(initialUploadLocation);
                 }
-                
-                Console.WriteLine("hi");
+
+                // End upload.
+                string uploadUrl = $"https://{Config.RegistryUrl}{lastUploadLocation}&digest=evkleindigest";
+                var endUploadResponse = await uploadUrl
+                                                .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                                .PutAsync();
+                string uploadDigest = "";
+                response.Headers.TryGetFirst("Docker-Content-Digest", out uploadDigest);
+
+                var manifestUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{uploadDigest}";
+                var manifestUploadResponse = await manifestUploadEndpoint
+                                                .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                                .WithHeader("Content-Type", "application/octet-stream")
+                                                .PutJsonAsync("[{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}]");
             }
             catch (Exception ex)
             {
@@ -142,7 +158,7 @@ namespace DockerLib
 
         private async Task<string> UploadLayer(string uploadLocation)
         {
-            string nextUploadLocation = "";
+            string nextUploadLocation = "", dockerUploadUuid;
             string uploadLocationEndpoint = $"https://{Config.RegistryUrl}{uploadLocation}";
             int chunkSize = 65_536;
 
