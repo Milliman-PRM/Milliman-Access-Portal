@@ -35,6 +35,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using DockerLib;
+using Microsoft.Extensions.Options;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -51,6 +53,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
+        private readonly DockerLibApiConfig _dockerLibConfig;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -62,7 +65,8 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
-            IAuthenticationService authentService
+            IAuthenticationService authentService,
+            IOptions<DockerLibApiConfig> dockerLibConfig
             )
         {
             DbContext = ContextArg;
@@ -75,6 +79,7 @@ namespace MillimanAccessPortal.Controllers
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
+            _dockerLibConfig = dockerLibConfig.Value;
         }
 
         //
@@ -83,6 +88,11 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
+            // Container testing. Do NOT leave this in.
+            DockerLibApi dockerLibApi = await new DockerLibApi(_dockerLibConfig).InitializeAsync();
+            dockerLibApi.Demonstrate();
+            //
+
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
             {
                 ViewData["ReturnUrl"] = returnUrl;

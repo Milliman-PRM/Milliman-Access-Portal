@@ -53,6 +53,7 @@ using System.Web;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
+using DockerLib;
 
 namespace MillimanAccessPortal
 {
@@ -364,6 +365,7 @@ namespace MillimanAccessPortal
             services.Configure<PowerBiConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
+            services.Configure<DockerLibApiConfig>(Configuration);
 
             //services.AddMemoryCache();
             services.AddDistributedMemoryCache();

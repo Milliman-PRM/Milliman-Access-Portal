@@ -13,25 +13,68 @@ using System.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
 using System.IO;
+using Serilog;
 
 namespace DockerLib
 {
     public class DockerLibApi
     {
         public DockerLibApiConfig Config { get; set; }
+        private TokenCredentials _tokenCredentials { get; set; }
+
+        public DockerLibApi(DockerLibApiConfig config)
+        {
+            Config = config;
+        }
+
+        /// <summary>
+        /// Asynchronous initializer, chainable with the constructor
+        /// </summary>
+        /// <returns></returns>
+        public async Task<DockerLibApi> InitializeAsync()
+        {
+            try
+            {
+                await GetAccessTokenAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error obtaining DockerLibApi authentication token");
+            }
+
+            return this;
+        }
+
+        /// <summary>
+        /// Initialize a new access token
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> GetAccessTokenAsync()
+        {
+            // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
+            try
+            {
+                ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
+                                                                        await Config.ContainerRegistryTokenEndpoint
+                                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                                            .GetAsync()
+                                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+                _tokenCredentials = new TokenCredentials(response.AccessToken);
+                return true;
+            }
+            #region exception handling
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to get ACR access token");
+                throw;
+            }
+            #endregion
+
+            return false;
+        }
 
         public async Task Demonstrate()
         {
-            #region Auth
-
-            // Hardcoded.
-            Config = new DockerLibApiConfig()
-            {
-                RegistryUrl = "https://evkleincontainerregistry.azurecr.io",
-            };
-
-            #endregion
-
             try
             {
                 // Initialize.
@@ -85,40 +128,17 @@ namespace DockerLib
                     }
                     // image.Delete(); // Delete image altogether.
                 }
-
-
-
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.Message);
+                ;
             }
-
-        }
-    }
-
-    public class AuthenticationAccessResponse
-    {
-        [JsonProperty(PropertyName = "access_token")]
-        public string AccessToken;
-    }
-
-    public class RegistryTokenCredential : TokenCredential
-    {
-        public AccessToken Token { get; set; }
-        public RegistryTokenCredential(string Token)
-        {
-            this.Token = new AccessToken(Token, DateTimeOffset.MaxValue);
         }
 
-        public override AccessToken GetToken(TokenRequestContext requestContext, CancellationToken cancellationToken)
+        class ACRAuthenticationResponse
         {
-            return Token;
-        }
-
-        public override ValueTask<AccessToken> GetTokenAsync(TokenRequestContext requestContext, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            [JsonProperty(PropertyName = "access_token")]
+            public string AccessToken { set; internal get; }
         }
     }
 }
