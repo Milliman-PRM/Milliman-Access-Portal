@@ -112,14 +112,30 @@ namespace DockerLib
         {
             // temp
             string hardCodedRepoName = "new-repo";
-            string hardCodedManifest = "[{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}]";
+            string hardCodedManifest = "{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}";
             string hardCodedLayerDigest = "sha256:e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359";
             string hardCodedImageDigest = "sha256:b9935d4e8431fb1a7f0989304ec86b3329a99a25f5efdc7f09f3f8c41434ca6d";
             string hardCodedLayerLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar";
+            string hardCodedManifestLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\manifest.json";
+
+            #region Compile layers
+            List<string> layerNames;
+            FileStream fs = File.OpenRead(hardCodedManifestLocation);
+            using (StreamReader streamReader = new StreamReader(fs))
+            {
+                string fileContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
+                JObject manifestJson = JObject.Parse(fileContents);
+                layerNames = manifestJson.SelectToken("Layers").ToObject<List<string>>();
+            }
+            #endregion
 
             try
             {
-                await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, hardCodedImageDigest, hardCodedLayerLocation, JObject.Parse(hardCodedManifest));
+                foreach (string layerName in layerNames)
+                {
+                    string digest = layerName.Substring(0, layerName.Length - 5); // Strips .tar
+                    await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, digest, hardCodedLayerLocation, JObject.Parse(hardCodedManifest));
+                }
             }
             catch (Exception ex)
             {
@@ -155,12 +171,8 @@ namespace DockerLib
         private async Task UploadLayer(string repositoryName, string layerDigest, string imageDigest, string pathToLayer, JObject manifestContents)
         {
             int chunkSize = 65_536;
-            string nextUploadLocation = "";
+            string nextUploadLocation = "", nextUploadUuid = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/"
-                .WithHeader("Authorization", $"Bearer {_acrToken}");
-            IFlurlRequest blobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}"
-                .WithHeader("Authorization", $"Bearer {_acrToken}");
-            IFlurlRequest finishBlobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}&digest={layerDigest}"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
 
             try
@@ -187,24 +199,24 @@ namespace DockerLib
                         {
                             range.Item2 = range.Item1 + chunkSize;
                             byte[] buffer = binaryReader.ReadBytes(chunkSize);
-                            if (buffer.Length > 0)
-                            {
-                                binaryWriter.Write(buffer);
-                            }
-                            else
+                            if (buffer.Length == 0)
                             {
                                 binaryWriter.Close();
                                 break;
                             }
 
+                            binaryWriter.Write(buffer);
                             string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+
+                            string blobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}";
                             var blobUploadResponse = await blobUploadEndpoint
+                                .WithHeader("Authorization", $"Bearer {_acrToken}")
                                 .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
                                 .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                 .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
                                 .WithHeader("Content-Length", buffer.Length)
                                 .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchJsonAsync(chunkValue);
+                                .PatchStringAsync(chunkValue);
                             blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
 
                             range.Item1 = range.Item2;
@@ -213,7 +225,10 @@ namespace DockerLib
                     #endregion
 
                     #region Finish blob upload.
-                    var endUploadResponse = await finishBlobUploadEndpoint.PutAsync();
+                    string finishBlobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}&digest={layerDigest}";
+                    var endUploadResponse = await finishBlobUploadEndpoint
+                                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                                    .PutAsync();
                     #endregion
 
                     await PushImageManifest(repositoryName, manifestContents, imageDigest);
