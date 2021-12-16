@@ -90,6 +90,24 @@ namespace DockerLib
             }
         }
 
+        public async Task PushImageManifest(string repositoryName, JObject manifestContents, string reference)
+        {
+            var manifestUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{reference}";
+
+            try
+            {
+                var manifestUploadResponse = await manifestUploadEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                    .WithHeader("Content-Type", "application/vnd.docker.distribution.manifest.v2+json")
+                                    .PutJsonAsync(manifestContents);
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to upload a new image manifest.");
+                throw;
+            }
+        }
+
         public async Task<JObject> PushImageToRegistry(string repositoryName)
         {
             string initialUploadLocation;
@@ -97,6 +115,7 @@ namespace DockerLib
 
             // temp
             string lastUploadLocation = "";
+            string hardCodedManifest = "[{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}]";
 
             try
             {
@@ -118,12 +137,8 @@ namespace DockerLib
                                                 .PutAsync();
                 string uploadDigest = "";
                 response.Headers.TryGetFirst("Docker-Content-Digest", out uploadDigest);
+                await PushImageManifest(repositoryName, JObject.Parse(hardCodedManifest), uploadDigest);
 
-                var manifestUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{uploadDigest}";
-                var manifestUploadResponse = await manifestUploadEndpoint
-                                                .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                                .WithHeader("Content-Type", "application/octet-stream")
-                                                .PutJsonAsync("[{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}]");
             }
             catch (Exception ex)
             {
@@ -191,6 +206,9 @@ namespace DockerLib
                         string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
                         var blobUploadResponse = await uploadLocationEndpoint
                             .WithHeader("Authorization", $"Bearer {_acrToken}")
+                            .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                            .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                            .WithHeader("Accept", "Docker-Content-Digest")
                             .WithHeader("Content-Length", buffer.Length)
                             .WithHeader("Content-Type", "application/octet-stream")
                             .PatchJsonAsync(chunkValue);
