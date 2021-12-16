@@ -134,7 +134,10 @@ namespace DockerLib
                 foreach (string layerName in layerNames)
                 {
                     string digest = layerName.Substring(0, layerName.Length - 5); // Strips .tar
-                    await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, digest, hardCodedLayerLocation, JObject.Parse(hardCodedManifest));
+                    if (!(await LayerDoesExist(repositoryName, digest)))
+                    {
+                        await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, digest, hardCodedLayerLocation, JObject.Parse(hardCodedManifest));
+                    }
                 }
             }
             catch (Exception ex)
@@ -171,7 +174,7 @@ namespace DockerLib
         private async Task UploadLayer(string repositoryName, string layerDigest, string imageDigest, string pathToLayer, JObject manifestContents)
         {
             int chunkSize = 65_536;
-            string nextUploadLocation = "", nextUploadUuid = "";
+            string nextUploadLocation = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
 
