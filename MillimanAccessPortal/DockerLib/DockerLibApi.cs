@@ -110,35 +110,16 @@ namespace DockerLib
 
         public async Task<JObject> PushImageToRegistry(string repositoryName)
         {
-            string initialUploadLocation;
-            string uploadStartEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/";
-
             // temp
-            string lastUploadLocation = "";
+            string hardCodedRepoName = "new-repo";
             string hardCodedManifest = "[{\"Config\":\"feb5d9fea6a5e9606aa995e879d862b825965ba48de054caab5ef356dc6b3412.json\",\"RepoTags\":[\"prmcontainertest.azurecr.io / hello - world:latest\"],\"Layers\":[\"e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar\"]}]";
+            string hardCodedLayerDigest = "sha256:e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359";
+            string hardCodedImageDigest = "sha256:b9935d4e8431fb1a7f0989304ec86b3329a99a25f5efdc7f09f3f8c41434ca6d";
+            string hardCodedLayerLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar";
 
             try
             {
-                var response = await uploadStartEndpoint
-                        .WithHeader("Authorization", $"Bearer {_acrToken}")
-                        .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json ")
-                        .PostAsync();
-                response.Headers.TryGetFirst("Location", out initialUploadLocation);
-                if (response.StatusCode == 202 && !string.IsNullOrEmpty(initialUploadLocation))
-                {
-                    // Begin upload of layers
-                    lastUploadLocation = await UploadLayer(initialUploadLocation);
-                }
-
-                // End upload.
-                string uploadUrl = $"https://{Config.RegistryUrl}{lastUploadLocation}&digest=evkleindigest";
-                var endUploadResponse = await uploadUrl
-                                                .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                                .PutAsync();
-                string uploadDigest = "";
-                response.Headers.TryGetFirst("Docker-Content-Digest", out uploadDigest);
-                await PushImageManifest(repositoryName, JObject.Parse(hardCodedManifest), uploadDigest);
-
+                await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, hardCodedImageDigest, hardCodedLayerLocation, JObject.Parse(hardCodedManifest));
             }
             catch (Exception ex)
             {
@@ -171,51 +152,71 @@ namespace DockerLib
             return false;
         }
 
-        private async Task<string> UploadLayer(string uploadLocation)
+        private async Task UploadLayer(string repositoryName, string layerDigest, string imageDigest, string pathToLayer, JObject manifestContents)
         {
-            string nextUploadLocation = "", dockerUploadUuid;
-            string uploadLocationEndpoint = $"https://{Config.RegistryUrl}{uploadLocation}";
             int chunkSize = 65_536;
+            string nextUploadLocation = "";
+            IFlurlRequest startBlobUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/"
+                .WithHeader("Authorization", $"Bearer {_acrToken}");
+            IFlurlRequest blobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}"
+                .WithHeader("Authorization", $"Bearer {_acrToken}");
+            IFlurlRequest finishBlobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}&digest={layerDigest}"
+                .WithHeader("Authorization", $"Bearer {_acrToken}");
 
-            // Hardcoding.
-            string layerLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar";
-            
             try
             {
-                if (File.Exists(layerLocation))
+                #region Start blob upload.
+                var response = await startBlobUploadEndpoint
+                    .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
+                    .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json ")
+                    .PostAsync();
+                response.Headers.TryGetFirst("Location", out nextUploadLocation);
+                #endregion
+
+                if (response.StatusCode == 202 && !string.IsNullOrEmpty(nextUploadLocation))
                 {
-                    (int, int) range = (0, 0);
-                    MemoryStream stream = new MemoryStream() ;
-                    BinaryReader binaryReader = new BinaryReader(new FileStream(layerLocation, FileMode.Open, FileAccess.Read));
-                    BinaryWriter binaryWriter = new BinaryWriter(stream);
-
-                    while (true)
+                    #region Upload blob.
+                    if (File.Exists(pathToLayer))
                     {
-                        range.Item2 = range.Item1 + chunkSize;
-                        byte[] buffer = binaryReader.ReadBytes(chunkSize);
-                        if (buffer.Length > 0)
-                        {
-                            binaryWriter.Write(buffer);
-                        }
-                        else
-                        {
-                            binaryWriter.Close();
-                            break;
-                        }
+                        (int, int) range = (0, 0);
+                        MemoryStream stream = new MemoryStream();
+                        BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read));
+                        BinaryWriter binaryWriter = new BinaryWriter(stream);
 
-                        string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
-                        var blobUploadResponse = await uploadLocationEndpoint
-                            .WithHeader("Authorization", $"Bearer {_acrToken}")
-                            .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                            .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-                            .WithHeader("Accept", "Docker-Content-Digest")
-                            .WithHeader("Content-Length", buffer.Length)
-                            .WithHeader("Content-Type", "application/octet-stream")
-                            .PatchJsonAsync(chunkValue);
-                        blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+                        while (true)
+                        {
+                            range.Item2 = range.Item1 + chunkSize;
+                            byte[] buffer = binaryReader.ReadBytes(chunkSize);
+                            if (buffer.Length > 0)
+                            {
+                                binaryWriter.Write(buffer);
+                            }
+                            else
+                            {
+                                binaryWriter.Close();
+                                break;
+                            }
 
-                        range.Item1 = range.Item2;
+                            string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+                            var blobUploadResponse = await blobUploadEndpoint
+                                .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                                .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
+                                .WithHeader("Content-Length", buffer.Length)
+                                .WithHeader("Content-Type", "application/octet-stream")
+                                .PatchJsonAsync(chunkValue);
+                            blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+
+                            range.Item1 = range.Item2;
+                        }
                     }
+                    #endregion
+
+                    #region Finish blob upload.
+                    var endUploadResponse = await finishBlobUploadEndpoint.PutAsync();
+                    #endregion
+
+                    await PushImageManifest(repositoryName, manifestContents, imageDigest);
                 }
             }
             catch (Exception ex)
@@ -223,8 +224,6 @@ namespace DockerLib
                 Log.Warning(ex, "Failed to upload layer.");
                 throw;
             }
-
-            return nextUploadLocation;
         }
 
         public async Task Demonstrate()
