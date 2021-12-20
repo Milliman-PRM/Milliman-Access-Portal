@@ -19,18 +19,12 @@ namespace ContainerReverseProxy
             MapProxyConfigProvider = (MapProxyConfigProvider)proxyConfigProviderArg;
             AppConfiguration = configurationArg;
 
-            Task task = InitializeAsync();
-        }
+            connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(TimeSpan.FromSeconds(20)))
+                                                   .WithUrl(AppConfiguration.GetValue<string>("MapHubUrl"))  // "https://localhost:7099/abc" in Development environment
+                                                   .Build();
 
-
-        public async Task InitializeAsync()
-        {
             var url = AppConfiguration.GetValue<string>("MapHubUrl");
 
-            connection = new HubConnectionBuilder().WithAutomaticReconnect()
-                                                   //.WithUrl("https://localhost:7099/abc")
-                                                   .WithUrl(AppConfiguration.GetValue<string>("MapHubUrl"))
-                                                   .Build();
             connection.On<Uri, string>("NewSessionAuthorized", (uri, token) =>
             {
                 Debug.WriteLine($"Proxy opening new session, uri is {uri.AbsoluteUri}, token is {token}");
@@ -66,6 +60,12 @@ namespace ContainerReverseProxy
                 connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, MapProxyConfigProvider.GetConfig());
             });
 
+            Task task = InitializeAsync();
+        }
+
+
+        public async Task InitializeAsync()
+        {
             try
             {
                 await connection.StartAsync();
