@@ -32,4 +32,13 @@ namespace MapDbContextLib.Models
 
         public string LiveEmbedUrl { get; set; }
     }
+
+    public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
+    {
+        public string ImageId { get; set; }  // or whatever is required to identify/locate the image to get a container running
+
+        public uint InternalTcpPort { get; set; }
+
+        public string ContentItemToken { get; set; }
+    }
 }
