@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.IO;
 using Serilog;
 using Newtonsoft.Json.Linq;
+using System.Net.Http;
 
 namespace DockerLib
 {
@@ -137,19 +138,12 @@ namespace DockerLib
             }
         }
 
-        public async Task<JObject> PushImageToRegistry(string repositoryName)
+        public async Task<JObject> PushImageToRegistry(string repositoryName, string manifestPath, string imageDigest, string imagePath)
         {
-            // temp
-            string hardCodedRepoName = "new-repo";
-            string hardCodedLayerDigest = "sha256:e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359";
-            string hardCodedImageDigest = "sha256:b9935d4e8431fb1a7f0989304ec86b3329a99a25f5efdc7f09f3f8c41434ca6d";
-            string hardCodedLayerLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\e07ee1baac5fae6a26f30cabfe54a36d3402f96afda318fe0a96cec4ca393359.tar";
-            string hardCodedManifestLocation = @"C:\Users\Evan.Klein\source\Misc\hello-world\manifest.json";
-
             #region Compile layers
             List<string> layerNames;
             JObject manifestObj;
-            FileStream fs = File.OpenRead(hardCodedManifestLocation);
+            FileStream fs = File.OpenRead(manifestPath);
             using (StreamReader streamReader = new StreamReader(fs))
             {
                 string fileContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
@@ -162,10 +156,10 @@ namespace DockerLib
             {
                 foreach (string layerName in layerNames)
                 {
-                    string digest = Path.GetFileNameWithoutExtension(layerName);
-                    if (!(await LayerDoesExist(repositoryName, digest)))
+                    string layerDigest = $"sha256:{Path.GetFileNameWithoutExtension(layerName)}";
+                    if (!(await LayerDoesExist(repositoryName, layerDigest)))
                     {
-                        await UploadLayer(hardCodedRepoName, hardCodedLayerDigest, digest, hardCodedLayerLocation, manifestObj);
+                        await UploadLayer(repositoryName, layerDigest, imageDigest, imagePath, manifestObj);
                     }
                 }
             }
@@ -224,7 +218,7 @@ namespace DockerLib
                     {
                         (int, int) range = (0, 0);
                         MemoryStream stream = new MemoryStream();
-                        BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read));
+                        BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read)); // disp
                         BinaryWriter binaryWriter = new BinaryWriter(stream);
 
                         while (true)
@@ -233,12 +227,13 @@ namespace DockerLib
                             byte[] buffer = binaryReader.ReadBytes(chunkSize);
                             if (buffer.Length == 0)
                             {
-                                binaryWriter.Close();
                                 break;
                             }
 
                             binaryWriter.Write(buffer);
-                            string chunkValue = System.Text.Encoding.UTF8.GetString(buffer, 0, buffer.Length);
+                            string chunkValue = Convert.ToBase64String(buffer, 0, buffer.Length); // b64
+                            var content = new StreamContent(stream);
+
 
                             string blobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}";
                             var blobUploadResponse = await blobUploadEndpoint

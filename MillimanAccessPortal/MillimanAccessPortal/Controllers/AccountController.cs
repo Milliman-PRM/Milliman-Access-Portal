@@ -88,12 +88,6 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string returnUrl = null)
         {
-            // Container testing. Do NOT leave this in.
-            DockerLibApi dockerLibApi = await new DockerLibApi(_dockerLibConfig).InitializeAsync();
-            //await dockerLibApi.GetRepositoryManifest("new-repo");
-            await dockerLibApi.PushImageToRegistry("new-repo");
-            //
-
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
             {
                 ViewData["ReturnUrl"] = returnUrl;
