@@ -25,11 +25,11 @@ namespace ContainerReverseProxy
 
             var url = AppConfiguration.GetValue<string>("MapHubUrl");
 
-            connection.On<Uri, string>("NewSessionAuthorized", (uri, token) =>
+            connection.On<Uri, string, string>("NewSessionAuthorized", (uri, token, containerid) =>
             {
                 Debug.WriteLine($"Proxy opening new session, uri is {uri.AbsoluteUri}, token is {token}");
-                string newRouteId = string.Empty;    // TODO build a more meaningful route id
-                string newClusterId = string.Empty;    // TODO build a more meaningful cluster id
+                string newRouteId = token;    // TODO build a more meaningful route id?
+                string newClusterId = containerid;    // TODO build a more meaningful cluster id?
 
                 RouteConfig newRoute = new()
                 {
@@ -38,11 +38,18 @@ namespace ContainerReverseProxy
                     Match = new RouteMatch
                     {
                         // TODO: Do something more specific to the session being opened
-                        Path = "{**catch-all}",
+                        //Path = "{**catch-all}",
+                        Path = uri.AbsolutePath,
                         Hosts = default,
                         Headers = default,
                         Methods = default,
-                        QueryParameters = default,
+                        QueryParameters = new List<RouteQueryParameter> { 
+                            new RouteQueryParameter
+                            { 
+                                Name = "token", 
+                                Values = new List<string> { token },
+                            } 
+                        },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
                 };
