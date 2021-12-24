@@ -148,6 +148,8 @@ namespace MillimanAccessPortal.Services
                 string mapSupportEmail = appConfiguration.GetValue<string>("SupportEmailAddress");
                 DateTime notifyIfLastLoginWas = DateTime.UtcNow.Date.AddDays(userAccountDisableNotificationWarningDays).AddMonths(-userAccountDisableAfterMonths).Date;
 
+                Log.Information($"Processing email notifications about upcoming account disabling.  Config is {new { mapUrl, userAccountDisableNotificationWarningDays, userAccountDisableAfterMonths, notifyIfLastLoginWas }}");
+
                 List<IGrouping<ApplicationUser, Client>> usersToNotify = dbContext.UserRoleInClient
                                                                                   .Include(usr => usr.User)
                                                                                   .Include(usr => usr.Client)
@@ -176,6 +178,8 @@ namespace MillimanAccessPortal.Services
                     List<string> recipients = new List<string>{userClients.Key.Email};
 
                     clientAdminsEmails = clientAdminsEmails.Except(recipients).ToList();
+
+                    Log.Information($"Preparing email notification about upcoming disabling account to username {userClients.Key.UserName} at email [{string.Join(",", recipients)}], bcc to client admins [{string.Join(",", clientAdminsEmails)}]");
 
                     messageQueue.QueueMessage(recipients, null, clientAdminsEmails, emailSubject, emailBody, null, null);
                 }
