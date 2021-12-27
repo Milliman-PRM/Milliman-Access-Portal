@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29920.165
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31912.275
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MillimanAccessPortal", "MillimanAccessPortal\MillimanAccessPortal.csproj", "{87FBC963-6A16-4399-9B50-BEDDD17AD69B}"
 EndProject
@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBiLib", "PowerBILib\Po
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "FileDropLib\FileDropLib.csproj", "{50C60B35-7804-4208-9339-96D412F12144}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "DockerLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "ContainerizedAppLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
