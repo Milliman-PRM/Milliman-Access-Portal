@@ -365,7 +365,7 @@ namespace MillimanAccessPortal
             services.Configure<PowerBiConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
-            services.Configure<DockerLibApiConfig>(Configuration);
+            services.Configure<ContainerizedAppLibApiConfig>(Configuration);
 
             //services.AddMemoryCache();
             services.AddDistributedMemoryCache();

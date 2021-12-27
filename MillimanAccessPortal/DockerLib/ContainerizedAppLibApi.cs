@@ -19,11 +19,11 @@ using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
 
-namespace DockerLib
+namespace ContainerizedAppLib
 {
-    public class DockerLibApi : ContentTypeSpecificApiBase
+    public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
-        public DockerLibApiConfig Config { get; private set; }
+        public ContainerizedAppLibApiConfig Config { get; private set; }
         private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
         public override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
@@ -31,7 +31,7 @@ namespace DockerLib
             throw new NotImplementedException();
         }
 
-        public DockerLibApi(DockerLibApiConfig config)
+        public ContainerizedAppLibApi(ContainerizedAppLibApiConfig config)
         {
             Config = config;
         }
@@ -40,7 +40,7 @@ namespace DockerLib
         /// Asynchronous initializer, chainable with the constructor
         /// </summary>
         /// <returns></returns>
-        public async Task<DockerLibApi> InitializeAsync()
+        public async Task<ContainerizedAppLibApi> InitializeAsync()
         {
             try
             {

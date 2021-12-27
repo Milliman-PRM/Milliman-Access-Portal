@@ -26,7 +26,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBiLib", "PowerBILib\Po
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "FileDropLib\FileDropLib.csproj", "{50C60B35-7804-4208-9339-96D412F12144}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DockerLib", "DockerLib\DockerLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "DockerLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

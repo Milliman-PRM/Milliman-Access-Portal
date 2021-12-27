@@ -1,12 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DockerLib
+﻿namespace ContainerizedAppLib
 {
-    public class DockerLibApiConfig
+    public class ContainerizedAppLibApiConfig
     {
         public string RegistryUrl { get; set; }
 

@@ -35,8 +35,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
-using DockerLib;
 using Microsoft.Extensions.Options;
+using ContainerizedAppLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -53,7 +53,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
-        private readonly DockerLibApiConfig _dockerLibConfig;
+        private readonly ContainerizedAppLibApiConfig _dockerLibConfig;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -66,7 +66,7 @@ namespace MillimanAccessPortal.Controllers
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
             IAuthenticationService authentService,
-            IOptions<DockerLibApiConfig> dockerLibConfig
+            IOptions<ContainerizedAppLibApiConfig> dockerLibConfig
             )
         {
             DbContext = ContextArg;
