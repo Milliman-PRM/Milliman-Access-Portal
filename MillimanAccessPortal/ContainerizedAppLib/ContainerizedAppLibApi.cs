@@ -47,7 +47,7 @@ namespace ContainerizedAppLib
                 await GetAccessTokenAsync();
 
                 ContainerRegistryClient client = new ContainerRegistryClient(
-                    new Uri(Config.RegistryUrl),
+                    new Uri(Config.ContainerRegistryUrl),
                     new DefaultAzureCredential(), // TODO 
                     new ContainerRegistryClientOptions() { Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud }
                 );
@@ -108,7 +108,7 @@ namespace ContainerizedAppLib
 
         public async Task<JObject> GetRepositoryManifest(string repositoryName, string tag = "latest")
         {
-            string manifestEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{tag}";
+            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
             try
             {
                 JObject response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
@@ -128,7 +128,7 @@ namespace ContainerizedAppLib
 
         public async Task PushImageManifest(string repositoryName, JObject manifestContents, string reference)
         {
-            var manifestUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/manifests/{reference}";
+            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{reference}";
 
             try
             {
@@ -180,7 +180,7 @@ namespace ContainerizedAppLib
 
         private async Task<bool> LayerDoesExist(string repositoryName, string layerDigest)
         {
-            string checkExistenceEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/{layerDigest}";
+            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{layerDigest}";
 
             try
             {
@@ -204,7 +204,7 @@ namespace ContainerizedAppLib
         {
             int chunkSize = 65_536;
             string nextUploadLocation = "";
-            IFlurlRequest startBlobUploadEndpoint = $"https://{Config.RegistryUrl}/v2/{repositoryName}/blobs/uploads/"
+            IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/uploads/"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
 
             try
@@ -241,7 +241,7 @@ namespace ContainerizedAppLib
                             var content = new StreamContent(stream);
 
 
-                            string blobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}";
+                            string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
                             var blobUploadResponse = await blobUploadEndpoint
                                 .WithHeader("Authorization", $"Bearer {_acrToken}")
                                 .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
@@ -258,7 +258,7 @@ namespace ContainerizedAppLib
                     #endregion
 
                     #region Finish blob upload.
-                    string finishBlobUploadEndpoint = $"https://{Config.RegistryUrl}{nextUploadLocation}&digest={layerDigest}";
+                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest={layerDigest}";
                     var endUploadResponse = await finishBlobUploadEndpoint
                                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                                     .PutAsync();
