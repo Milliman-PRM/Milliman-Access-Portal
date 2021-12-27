@@ -53,7 +53,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
-        private readonly ContainerizedAppLibApiConfig _dockerLibConfig;
+        private readonly ContainerizedAppLibApiConfig _containerizedAppLibApiConfig;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -66,7 +66,7 @@ namespace MillimanAccessPortal.Controllers
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
             IAuthenticationService authentService,
-            IOptions<ContainerizedAppLibApiConfig> dockerLibConfig
+            IOptions<ContainerizedAppLibApiConfig> containerizedAppLibApiConfig
             )
         {
             DbContext = ContextArg;
@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.Controllers
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
-            _dockerLibConfig = dockerLibConfig.Value;
+            _containerizedAppLibApiConfig = containerizedAppLibApiConfig.Value;
         }
 
         //
