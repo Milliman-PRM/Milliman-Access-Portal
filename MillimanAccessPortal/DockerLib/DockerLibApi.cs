@@ -16,14 +16,20 @@ using System.IO;
 using Serilog;
 using Newtonsoft.Json.Linq;
 using System.Net.Http;
+using MapCommonLib.ContentTypeSpecific;
+using Microsoft.AspNetCore.Http;
 
 namespace DockerLib
 {
-    public class DockerLibApi
+    public class DockerLibApi : ContentTypeSpecificApiBase
     {
         public DockerLibApiConfig Config { get; private set; }
         private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
+        public override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
+        {
+            throw new NotImplementedException();
+        }
 
         public DockerLibApi(DockerLibApiConfig config)
         {
