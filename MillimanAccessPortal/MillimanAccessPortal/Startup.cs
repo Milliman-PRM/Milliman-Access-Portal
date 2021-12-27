@@ -53,7 +53,7 @@ using System.Web;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
-using DockerLib;
+using ContainerizedAppLib;
 
 namespace MillimanAccessPortal
 {

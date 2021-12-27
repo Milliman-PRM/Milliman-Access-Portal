@@ -90,7 +90,7 @@ namespace ContainerizedAppLib
             {
                 AsyncPageable<string> repositoryNames = _containerRegistryClient.GetRepositoryNamesAsync();
 
-                List<ContainerRepository> containerRepositories = new();
+                List<ContainerRepository> containerRepositories = new List<ContainerRepository>();
                 await foreach (string repositoryName in repositoryNames)
                 {
                     ContainerRepository repository = _containerRegistryClient.GetRepository(repositoryName);
