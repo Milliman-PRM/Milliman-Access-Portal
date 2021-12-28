@@ -31,9 +31,8 @@ namespace Microsoft.Extensions.DependencyInjection
                             {
                                 // { "destination1", new DestinationConfig() { Address = "https://example.com" } },
                                 { "destination1", new DestinationConfig() { Address = "https://localhost:44336",  } },
-                                { "destination2", new DestinationConfig() { Address = "https://uh:44336",  } },
                             }
-                    }).ToList();
+                }).ToList();
             }
 
             builder.Services.AddSingleton<IProxyConfigProvider>(new MapProxyConfigProvider(routes, clusters));

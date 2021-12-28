@@ -1,7 +1,16 @@
 using ContainerReverseProxy;
 using ContainerReverseProxy.Transforms;
+using Prm.SerilogCustomization;
+using Serilog;
+using Serilog.Settings.Configuration;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .Enrich.With<UtcTimestampEnricher>()
+    .CreateLogger();
+Log.Information("Reverse Proxy launched");
 
 builder.Services.AddReverseProxy()
                         .Initialize(true)  // TODO true here is only for development purposes

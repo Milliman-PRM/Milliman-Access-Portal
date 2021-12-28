@@ -5,7 +5,7 @@ namespace ContainerReverseProxy.Transforms
 {
     public class RedirectTransformProvider : ITransformProvider
     {
-        private List<Uri> Hosts = new();
+        private Uri? TargetUri;
 
         /// <summary>
         /// Validates any route data needed for transforms.
@@ -22,17 +22,16 @@ namespace ContainerReverseProxy.Transforms
         /// <param name="context">The context to add any generated errors to.</param>
         public void ValidateCluster(TransformClusterValidationContext context)
         {
-            List<DestinationConfig> targetDestinations = (context.Cluster.Destinations?.Select(d => d.Value) ?? new List<DestinationConfig>()).ToList();
-
-            // Add an exception to context.Errors if there is a problem with the cluster
-            if (targetDestinations.Count == 0 ||
-                targetDestinations.Any(d => string.IsNullOrEmpty(d.Address)))
+            try
             {
-                context.Errors.Add(new Exception($"Cluster {context.Cluster} is not configured with a host destination"));
+                DestinationConfig targetDestination = (context.Cluster.Destinations?.Select(d => d.Value) ?? new List<DestinationConfig>()).Single();
+                TargetUri = new Uri(targetDestination.Address);
+            }
+            catch (Exception ex)
+            {
+                context.Errors.Add(new AggregateException($"Cluster {context.Cluster.ClusterId} is null or is not configured with a single destination host", ex));
                 return;
             }
-
-            Hosts = targetDestinations.Select(d => new Uri(d.Address)).ToList();
         }
 
         /// <summary>
@@ -42,7 +41,7 @@ namespace ContainerReverseProxy.Transforms
         /// <param name="context">The context to add any generated transforms to.</param>
         public void Apply(TransformBuilderContext context)
         {
-            context.ResponseTransforms.Add(new RedirectTransform(Hosts));
+            context.ResponseTransforms.Add(new RedirectTransform(TargetUri!));
             context.RequestTransforms.Add(new TestRequestTransform());
         }
     }

@@ -1,15 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using Serilog;
 using Yarp.ReverseProxy.Transforms;
 
 namespace ContainerReverseProxy.Transforms
 {
     public class RedirectTransform : ResponseTransform
     {
-        private List<Uri> _targetUris { get; init; }
+        private Uri _targetUri { get; init; }
         
-        public RedirectTransform(List<Uri> targetUris)
+        public RedirectTransform(Uri targetUri)
         {
-            _targetUris = targetUris;
+            _targetUri = targetUri;
         }
 
         //
@@ -25,13 +25,16 @@ namespace ContainerReverseProxy.Transforms
                 //throw new ArgumentException();
             }
 
+            // Temporary
+            Log.Information("Response: ProxyResponse.StatusCode {Status}, context.HttpContext.Response.StatusCode {Status}", (int)context.ProxyResponse.StatusCode, context.HttpContext.Response.StatusCode);
+
             // Handle a response with redirect to the internal host
             if (context.HttpContext.Response.StatusCode >= 300 && context.HttpContext.Response.StatusCode < 400)
             {
                 if (context.ProxyResponse.Headers.Location is not null &&
                     context.ProxyResponse.Headers.Location.IsAbsoluteUri &&
-                    _targetUris.Any(u => u.Host == context.ProxyResponse.Headers.Location.Host &&
-                                         u.Port == context.ProxyResponse.Headers.Location.Port))
+                    context.ProxyResponse.Headers.Location.Host == _targetUri.Host &&
+                    context.ProxyResponse.Headers.Location.Port == _targetUri.Port)
                 {
                     UriBuilder newLocationUri = new UriBuilder(context.HttpContext.Response.Headers.Location);
                     newLocationUri.Host = context.HttpContext.Request.Host.Host;
