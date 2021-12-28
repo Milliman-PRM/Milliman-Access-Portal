@@ -1,10 +1,17 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
 using Yarp.ReverseProxy.Transforms;
 
 namespace ContainerReverseProxy.Transforms
 {
     public class RedirectTransform : ResponseTransform
     {
+        private List<Uri> _targetUris { get; init; }
+        
+        public RedirectTransform(List<Uri> targetUris)
+        {
+            _targetUris = targetUris;
+        }
+
         //
         // Summary:
         //     Transforms the given response. The status and headers will have (optionally)
@@ -14,18 +21,25 @@ namespace ContainerReverseProxy.Transforms
         {
             if (context.ProxyResponse is null)
             {
-                throw new ArgumentException();
+                return ValueTask.CompletedTask;
+                //throw new ArgumentException();
             }
 
+            // Handle a response with redirect to the internal host
             if (context.HttpContext.Response.StatusCode >= 300 && context.HttpContext.Response.StatusCode < 400)
-            { // This response is a redirect of some type
-                if (context.ProxyResponse.Headers.Location?.Host is not null && 
-                    context.ProxyResponse.Headers.Location.Host.Equals(context.HttpContext.Request.Host.Host, StringComparison.OrdinalIgnoreCase))
+            {
+                if (context.ProxyResponse.Headers.Location is not null &&
+                    context.ProxyResponse.Headers.Location.IsAbsoluteUri &&
+                    _targetUris.Any(u => u.Host == context.ProxyResponse.Headers.Location.Host &&
+                                         u.Port == context.ProxyResponse.Headers.Location.Port))
                 {
-                    Uri requestUri = new Uri(context.HttpContext.Request.Host.Host);
                     UriBuilder newLocationUri = new UriBuilder(context.HttpContext.Response.Headers.Location);
-                    newLocationUri.Host = requestUri.Host;
-                    
+                    newLocationUri.Host = context.HttpContext.Request.Host.Host;
+                    if (context.HttpContext.Request.Host.Port > 0)
+                    {
+                        newLocationUri.Port = context.HttpContext.Request.Host.Port ?? -1;
+                    }
+
                     context.HttpContext.Response.Headers.Location = newLocationUri.Uri.AbsoluteUri;
                 }
             }

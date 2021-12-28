@@ -77,6 +77,21 @@ namespace MillimanAccessPortal.Controllers
             _authentService = (AuthenticationService)authentService;
         }
 
+        // TODO This method is temporary
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Test()
+        {
+            UriBuilder uriBuilder = new UriBuilder { 
+                Scheme = Request.Scheme,
+                Host = Request.Host.Host,
+                Port = Request.Host.Port ?? -1,
+                Path = "/Account/Login",
+                };
+            return Redirect(uriBuilder.Uri.AbsoluteUri);
+        }
+
+
         //
         // GET: /Account/Login
         [HttpGet]

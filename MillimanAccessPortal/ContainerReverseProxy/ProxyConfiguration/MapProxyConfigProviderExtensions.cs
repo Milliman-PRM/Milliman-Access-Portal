@@ -29,7 +29,9 @@ namespace Microsoft.Extensions.DependencyInjection
                         ClusterId = "SampleCluster" ,
                         Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                             {
-                                { "destination1", new DestinationConfig() { Address = "https://example.com" } }
+                                // { "destination1", new DestinationConfig() { Address = "https://example.com" } },
+                                { "destination1", new DestinationConfig() { Address = "https://localhost:44336",  } },
+                                { "destination2", new DestinationConfig() { Address = "https://uh:44336",  } },
                             }
                     }).ToList();
             }

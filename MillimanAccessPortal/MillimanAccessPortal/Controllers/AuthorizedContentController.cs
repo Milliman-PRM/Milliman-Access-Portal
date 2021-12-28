@@ -46,6 +46,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IMessageQueue MessageQueue;
         private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig QlikviewConfig;
+        // private readonly ContainerizedAppConfig ContainerizedAppConfig;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
         private readonly AuthorizedContentQueries _authorizedContentQueries;
@@ -56,10 +57,13 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="AuditLoggerArg"></param>
         /// <param name="AuthorizationServiceArg"></param>
         /// <param name="DataContextArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="MessageQueueArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
         /// <param name="UserManagerArg"></param>
         /// <param name="AppConfigurationArg"></param>
+        /// <param name="powerBiConfigArg"></param>
+        /// <param name="ContainerizedAppConfigArg"></param>
+        /// <param name="AuthorizedContentQueriesArg"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -69,6 +73,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration AppConfigurationArg,
             IOptions<PowerBiConfig> powerBiConfigArg,
+            //IOptions<ContainerizedAppConfig> containerizedAppConfigArg,
             AuthorizedContentQueries AuthorizedContentQueriesArg)
         {
             AuditLogger = AuditLoggerArg;
@@ -77,6 +82,7 @@ namespace MillimanAccessPortal.Controllers
             MessageQueue = MessageQueueArg;
             _powerBiConfig = powerBiConfigArg.Value;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
+            // ContainerizedAppConfig = containerizedAppConfig.Value;
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
             _authorizedContentQueries = AuthorizedContentQueriesArg;
@@ -391,6 +397,20 @@ namespace MillimanAccessPortal.Controllers
                         UriBuilder pbiContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
                         Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
+
+                    case ContentTypeEnum.ContainerApp:
+                        // ContentSpecificHandler = new ContainerizedAppLibApi(_powerBiConfig);
+
+                        // TODO Use ContentSpecificHandler to run a container if needed
+
+                        UriBuilder containerizedAppContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
+
+                        // TODO Generate the URI and any tokens for this session
+
+                        // TODO Notify the reverse proxy about the new session
+
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning ContainerizedApp URI {containerizedAppContentUri.Uri.AbsoluteUri}");
+                        return Redirect(containerizedAppContentUri.Uri.AbsoluteUri);
 
                     default:
                         Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
