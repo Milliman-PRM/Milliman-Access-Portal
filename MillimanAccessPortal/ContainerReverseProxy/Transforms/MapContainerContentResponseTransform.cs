@@ -3,11 +3,11 @@ using Yarp.ReverseProxy.Transforms;
 
 namespace ContainerReverseProxy.Transforms
 {
-    public class RedirectTransform : ResponseTransform
+    public class MapContainerContentResponseTransform : ResponseTransform
     {
         private Uri _targetUri { get; init; }
         
-        public RedirectTransform(Uri targetUri)
+        public MapContainerContentResponseTransform(Uri targetUri)
         {
             _targetUri = targetUri;
         }
@@ -25,10 +25,7 @@ namespace ContainerReverseProxy.Transforms
                 //throw new ArgumentException();
             }
 
-            // Temporary
-            Log.Information("Response: ProxyResponse.StatusCode {Status}, context.HttpContext.Response.StatusCode {Status}", (int)context.ProxyResponse.StatusCode, context.HttpContext.Response.StatusCode);
-
-            // Handle a response with redirect to the internal host
+            // A redirect response with absolute location to the internal host/port updates to the external host/port
             if (context.HttpContext.Response.StatusCode >= 300 && context.HttpContext.Response.StatusCode < 400)
             {
                 if (context.ProxyResponse.Headers.Location is not null &&
@@ -36,6 +33,7 @@ namespace ContainerReverseProxy.Transforms
                     context.ProxyResponse.Headers.Location.Host == _targetUri.Host &&
                     context.ProxyResponse.Headers.Location.Port == _targetUri.Port)
                 {
+                    string beforeTransform = context.HttpContext.Response.Headers.Location;  // Temporary
                     UriBuilder newLocationUri = new UriBuilder(context.HttpContext.Response.Headers.Location);
                     newLocationUri.Host = context.HttpContext.Request.Host.Host;
                     if (context.HttpContext.Request.Host.Port > 0)
@@ -44,6 +42,7 @@ namespace ContainerReverseProxy.Transforms
                     }
 
                     context.HttpContext.Response.Headers.Location = newLocationUri.Uri.AbsoluteUri;
+                    Log.Information("Redirect response location header transformed from {Before} to {After}", beforeTransform, context.HttpContext.Response.Headers.Location);  // Temporary
                 }
             }
 

@@ -14,7 +14,7 @@ Log.Information("Reverse Proxy launched");
 
 builder.Services.AddReverseProxy()
                         .Initialize(true)  // TODO true here is only for development purposes
-                        .AddTransforms<RedirectTransformProvider>()
+                        .AddTransforms<MapContainerContentTransformProvider>()
                         ;
 //.LoadFromMapConfig(builder.Configuration.GetSection("ReverseProxy"));
 // or maybe builder.Services.AddHttpForwarder...?

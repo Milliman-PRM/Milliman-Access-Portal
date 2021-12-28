@@ -3,7 +3,7 @@ using Yarp.ReverseProxy.Transforms.Builder;
 
 namespace ContainerReverseProxy.Transforms
 {
-    public class RedirectTransformProvider : ITransformProvider
+    public class MapContainerContentTransformProvider : ITransformProvider
     {
         private Uri? TargetUri;
 
@@ -41,8 +41,8 @@ namespace ContainerReverseProxy.Transforms
         /// <param name="context">The context to add any generated transforms to.</param>
         public void Apply(TransformBuilderContext context)
         {
-            context.ResponseTransforms.Add(new RedirectTransform(TargetUri!));
-            context.RequestTransforms.Add(new TestRequestTransform());
+            context.ResponseTransforms.Add(new MapContainerContentResponseTransform(TargetUri!));
+            context.RequestTransforms.Add(new MapContainerContentRequestTransform());
         }
     }
 }
