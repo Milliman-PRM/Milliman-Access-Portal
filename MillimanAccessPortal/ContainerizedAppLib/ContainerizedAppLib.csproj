@@ -12,7 +12,6 @@
     <PackageReference Include="Flurl" Version="3.0.2" />
     <PackageReference Include="Flurl.Http" Version="3.2.0" />
     <PackageReference Include="Microsoft.Azure.Management.ContainerRegistry" Version="4.0.0" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.20.0" />
   </ItemGroup>
 
   <ItemGroup>
