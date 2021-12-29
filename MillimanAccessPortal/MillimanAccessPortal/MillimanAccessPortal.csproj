@@ -96,6 +96,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\ContainerizedAppLib\ContainerizedAppLib.csproj" />
     <ProjectReference Include="..\FileDropLib\FileDropLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />

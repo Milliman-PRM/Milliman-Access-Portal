@@ -47,6 +47,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using TestResourcesLib;
+using ContainerizedAppLib;
 
 namespace MapTests
 {
@@ -80,6 +81,7 @@ namespace MapTests
         public IAuthenticationService AuthenticationService { get; private set; } = default;
         public IOptions<PowerBiConfig> PowerBiConfig { get; private set; } = default;
         public IOptions<QlikviewConfig> QvConfig { get; private set; } = default;
+        public IOptions<ContainerizedAppLibApiConfig> ContainerizedAppConfig { get; private set; } = default;
         public IAuthenticationSchemeProvider AuthenticationSchemeProvider { get; private set; } = default;
         public StandardQueries StandardQueries { get; set; } = default;
         public ContentAccessAdminQueries ContentAccessAdminQueries { get; set; } = default;
@@ -296,6 +298,7 @@ namespace MapTests
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
             QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
             PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();
+            ContainerizedAppConfig = ScopedServiceProvider.GetService<IOptions<ContainerizedAppLibApiConfig>>();
             #endregion
 
             #region Transient registered services
