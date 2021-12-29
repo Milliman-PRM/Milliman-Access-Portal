@@ -1,7 +1,9 @@
-﻿using ContainerReverseProxy.ProxyConfiguration;
+﻿using ContainerizedAppLib.ProxySupport;
+using ContainerReverseProxy.ProxyConfiguration;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
 using System.Diagnostics;
+using System.Text.Json;
 using Yarp.ReverseProxy.Configuration;
 
 namespace ContainerReverseProxy
@@ -25,41 +27,39 @@ namespace ContainerReverseProxy
 
             var url = AppConfiguration.GetValue<string>("MapHubUrl");
 
-            connection.On<Uri, string, string>("NewSessionAuthorized", (uri, token, containerid) =>
+            connection.On<OpenSessionRequest>("NewSessionAuthorized", request =>
             {
-                Debug.WriteLine($"Proxy opening new session, uri is {uri.AbsoluteUri}, token is {token}");
-                string newRouteId = token;    // TODO build a more meaningful route id?
-                string newClusterId = containerid;    // TODO build a more meaningful cluster id?
+                Debug.WriteLine($"Proxy opening new session, argument is {JsonSerializer.Serialize(request)}");
+                UriBuilder requesterUri = new UriBuilder(request.RequestingHost);
+                UriBuilder requestedUri = new UriBuilder(request.PublicUri);
 
                 RouteConfig newRoute = new()
                 {
-                    RouteId = newRouteId,
-                    ClusterId = newClusterId,
+                    RouteId = Guid.NewGuid().ToString(),
+                    ClusterId = Guid.NewGuid().ToString(),
                     Match = new RouteMatch
                     {
                         // TODO: Do something more specific to the session being opened
                         //Path = "{**catch-all}",
-                        Path = uri.AbsolutePath,
-                        Hosts = default,
-                        Headers = default,
+                        Path = requestedUri.Path,
+                        Hosts = new List<string> { requestedUri.Host },
+                        Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { requesterUri.Host } } },
                         Methods = default,
-                        QueryParameters = new List<RouteQueryParameter> { 
-                            new RouteQueryParameter
-                            { 
-                                Name = "token", 
-                                Values = new List<string> { token },
-                            } 
+                        QueryParameters = new List<RouteQueryParameter> 
+                        { 
+                            new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.Token } }
                         },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
+                    
                 };
 
                 ClusterConfig newCluster = new()
                 {
-                    ClusterId = newClusterId,
+                    ClusterId = newRoute.ClusterId,
                     Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                     {
-                        { "destination1", new DestinationConfig() { Address = uri.AbsoluteUri } }
+                        { "destination1", new DestinationConfig() { Address = request.InternalUri } }
                     }
                 };
                 MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
