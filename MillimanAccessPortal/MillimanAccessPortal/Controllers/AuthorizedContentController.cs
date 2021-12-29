@@ -4,7 +4,6 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using MapCommonLib;
@@ -33,7 +32,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -96,7 +94,6 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Content()
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
-
             var model = await _authorizedContentQueries.GetAuthorizedContentViewModel(HttpContext);
 
             return Json(model);

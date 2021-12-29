@@ -26,6 +26,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PowerBiLib", "PowerBILib\Po
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "FileDropLib\FileDropLib.csproj", "{50C60B35-7804-4208-9339-96D412F12144}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "ContainerizedAppLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -72,6 +74,10 @@ Global
 		{50C60B35-7804-4208-9339-96D412F12144}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50C60B35-7804-4208-9339-96D412F12144}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{50C60B35-7804-4208-9339-96D412F12144}.Release|Any CPU.Build.0 = Release|Any CPU
+		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
