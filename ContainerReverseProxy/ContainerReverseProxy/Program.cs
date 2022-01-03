@@ -22,7 +22,7 @@ builder.Services.AddSingleton<MapHubClient>();
 
 var app = builder.Build();
 
-// Run the MapHubClient constructor now to make the SignalR connection
+// Run the MapHubClient constructor now to start the SignalR connection
 app.Services.GetRequiredService<MapHubClient>();  
 
 app.MapReverseProxy();

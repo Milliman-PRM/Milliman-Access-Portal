@@ -29,7 +29,7 @@ namespace ContainerReverseProxy
 
             connection.On<OpenSessionRequest>("NewSessionAuthorized", async request =>
             {
-                Log.Information($"Proxy client has received new session opening message with argument is {JsonSerializer.Serialize(request)}");
+                Log.Information($"Proxy client has received new session opening message with argument: {Environment.NewLine}{JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented=true })}");
                 UriBuilder requestedUri = new UriBuilder(request.PublicUri);
 
                 RouteConfig newRoute = new()
@@ -41,8 +41,8 @@ namespace ContainerReverseProxy
                         // TODO: Do something more specific to the session being opened
                         //Path = "{**catch-all}",
                         Path = requestedUri.Path,
-                        Hosts = new List<string> { requestedUri.Host },
-                        Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { request.RequestingHost } } },
+                        //Hosts = new List<string> { requestedUri.Host },
+                        //Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { request.RequestingHost } } },
                         Methods = default,
                         QueryParameters = new List<RouteQueryParameter> 
                         { 
@@ -65,6 +65,11 @@ namespace ContainerReverseProxy
 
                 var cfg = MapProxyConfigProvider.GetConfig();
                 await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
+            });
+
+            connection.On<OpenSessionRequest>("SessionActivity", request =>
+            {
+                Log.Information($"Proxy client has received new session opening message with argument: {Environment.NewLine}{JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented=true })}");
             });
 
             Task task = InitializeAsync();
