@@ -7,16 +7,16 @@ namespace ContainerReverseProxy.ProxyConfiguration
     {
         private readonly CancellationTokenSource _cts = new();
 
-        public MapProxyConfiguration(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
+        public MapProxyConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters)
         {
-            Routes = routes;
-            Clusters = clusters;
+            Routes = routes ?? new List<RouteConfig>();
+            Clusters = clusters ?? new List<ClusterConfig>();
             ChangeToken = new CancellationChangeToken(_cts.Token);
         }
 
-        public IReadOnlyList<RouteConfig> Routes { get; }
+        public IReadOnlyList<RouteConfig> Routes { get; private init; }
 
-        public IReadOnlyList<ClusterConfig> Clusters { get; }
+        public IReadOnlyList<ClusterConfig> Clusters { get; private init; }
 
         public IChangeToken ChangeToken { get; }
 

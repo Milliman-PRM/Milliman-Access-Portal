@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ContainerizedAppLib\ContainerizedAppLib.csproj" />
+    <ProjectReference Include="..\..\MillimanAccessPortal\ContainerizedAppLib\ContainerizedAppLib.csproj" />
   </ItemGroup>
 
 </Project>

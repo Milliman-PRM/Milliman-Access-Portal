@@ -2,6 +2,7 @@
 using ContainerReverseProxy.ProxyConfiguration;
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Configuration;
+using Serilog;
 using System.Diagnostics;
 using System.Text.Json;
 using Yarp.ReverseProxy.Configuration;
@@ -21,16 +22,14 @@ namespace ContainerReverseProxy
             MapProxyConfigProvider = (MapProxyConfigProvider)proxyConfigProviderArg;
             AppConfiguration = configurationArg;
 
-            connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(TimeSpan.FromSeconds(20)))
-                                                   .WithUrl(AppConfiguration.GetValue<string>("MapHubUrl"))  // "https://localhost:7099/abc" in Development environment
+            string hubUrl = AppConfiguration.GetValue<string>("MapHubUrl");  // "https://localhost:44336/contentsessionhub" in Development environment
+            connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(TimeSpan.FromSeconds(10)))
+                                                   .WithUrl(hubUrl)
                                                    .Build();
 
-            var url = AppConfiguration.GetValue<string>("MapHubUrl");
-
-            connection.On<OpenSessionRequest>("NewSessionAuthorized", request =>
+            connection.On<OpenSessionRequest>("NewSessionAuthorized", async request =>
             {
-                Debug.WriteLine($"Proxy opening new session, argument is {JsonSerializer.Serialize(request)}");
-                UriBuilder requesterUri = new UriBuilder(request.RequestingHost);
+                Log.Information($"Proxy client has received new session opening message with argument is {JsonSerializer.Serialize(request)}");
                 UriBuilder requestedUri = new UriBuilder(request.PublicUri);
 
                 RouteConfig newRoute = new()
@@ -43,7 +42,7 @@ namespace ContainerReverseProxy
                         //Path = "{**catch-all}",
                         Path = requestedUri.Path,
                         Hosts = new List<string> { requestedUri.Host },
-                        Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { requesterUri.Host } } },
+                        Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { request.RequestingHost } } },
                         Methods = default,
                         QueryParameters = new List<RouteQueryParameter> 
                         { 
@@ -64,23 +63,30 @@ namespace ContainerReverseProxy
                 };
                 MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
 
-                connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, MapProxyConfigProvider.GetConfig());
+                var cfg = MapProxyConfigProvider.GetConfig();
+                await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
             });
 
             Task task = InitializeAsync();
         }
 
+        ~MapHubClient()
+        {
+            connection.DisposeAsync();
+        }
 
-        public async Task InitializeAsync()
+
+        private async Task InitializeAsync()
         {
             try
             {
+                Log.Information("MapHubClient.InitializeAsync starting connection to remote hub");
                 await connection.StartAsync();
-                Debug.WriteLine("Connection started");
+                Log.Information("MapHubClient.InitializeAsync connected to remote hub");
             }
             catch (Exception ex)
             {
-                Debug.WriteLine(ex.Message);
+                Log.Error(ex, "MapHubClient.InitializeAsync failed connecting to remote hub");
             }
 
         }

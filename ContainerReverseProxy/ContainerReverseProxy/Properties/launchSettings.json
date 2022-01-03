@@ -10,7 +10,6 @@
   "profiles": {
     "ContainerReverseProxy": {
       "commandName": "Project",
-      "launchBrowser": true,
       "launchUrl": "Account/Test",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

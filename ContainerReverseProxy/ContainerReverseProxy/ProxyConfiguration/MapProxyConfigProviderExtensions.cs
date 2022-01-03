@@ -1,16 +1,17 @@
-﻿using ContainerReverseProxy.ProxyConfiguration;
+﻿using ContainerReverseProxy;
+using ContainerReverseProxy.ProxyConfiguration;
 using Yarp.ReverseProxy.Configuration;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
     public static class MapProxyConfigProviderExtensions
     {
-        public static IReverseProxyBuilder Initialize(this IReverseProxyBuilder builder, bool addSampleData = false)
+        public static IReverseProxyBuilder AddMapProxyConfigProvider(this IReverseProxyBuilder builder, bool addSampleData = false)
         {
-            return Initialize(builder, new List<RouteConfig>(), new List<ClusterConfig>(), addSampleData);
+            return AddMapProxyConfigProvider(builder, new List<RouteConfig>(), new List<ClusterConfig>(), addSampleData);
         }
 
-        public static IReverseProxyBuilder Initialize(this IReverseProxyBuilder builder, IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters, bool addSampleData = false)
+        public static IReverseProxyBuilder AddMapProxyConfigProvider(this IReverseProxyBuilder builder, IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters, bool addSampleData = false)
         {
             if (addSampleData)
             {
@@ -38,5 +39,6 @@ namespace Microsoft.Extensions.DependencyInjection
             builder.Services.AddSingleton<IProxyConfigProvider>(new MapProxyConfigProvider(routes, clusters));
             return builder;
         }
+
     }
 }

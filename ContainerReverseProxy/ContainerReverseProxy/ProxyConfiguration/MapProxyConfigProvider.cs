@@ -9,12 +9,12 @@ namespace ContainerReverseProxy.ProxyConfiguration
 
         public IProxyConfig GetConfig() => _config;
 
-        public MapProxyConfigProvider(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
+        public MapProxyConfigProvider(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters)
         {
             _config = new MapProxyConfiguration(routes, clusters);
         }
 
-        public void UpdateConfiguration(IReadOnlyList<RouteConfig> routes, IReadOnlyList<ClusterConfig> clusters)
+        public void UpdateConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters)
         {
             MapProxyConfiguration? oldConfig = _config;
             _config = new MapProxyConfiguration(routes, clusters);
