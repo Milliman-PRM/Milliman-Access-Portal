@@ -1,0 +1,20 @@
+blank_issues_enabled: false
+contact_links:
+  - name: MAP Permission Request
+    url: https://hd.milliman.com/support/catalog/items/150
+    about: Request permissions to MAP infrastructure
+  - name: New Profit Center Request
+    url: https://hd.milliman.com/support/catalog/items/148
+    about: Request that a new Profit Center be created in MAP  
+  - name: Profit Center Admin Request
+    url: https://hd.milliman.com/support/catalog/items/162
+    about: Request that a user be granted Profit Center Admin priveleges in MAP
+  - name: System Admin Request
+    url: https://hd.milliman.com/support/catalog/items/149
+    about: Request System Admin priveleges in MAP
+  - name: Data Modification Request
+    url: https://hd.milliman.com/support/catalog/items/155
+    about: Request that a query be run against the MAP database to modify data
+  - name: Software Deployment Request
+    url: https://hd.milliman.com/support/catalog/items/161
+    about: Request a deployment of the MAP codebase to production

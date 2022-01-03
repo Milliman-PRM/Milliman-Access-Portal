@@ -2,6 +2,9 @@
 
 ## Release Notes
 
+### v1.17.0
+- Added buttons to copy both username and password SFTP credentials for a File Drop
+
 ### v1.16.0
 
 - Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version
