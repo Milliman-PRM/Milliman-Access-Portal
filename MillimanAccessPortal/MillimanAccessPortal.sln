@@ -28,8 +28,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "FileDropLib\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "ContainerizedAppLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ContainerReverseProxy", "ContainerReverseProxy\ContainerReverseProxy.csproj", "{6F5D653F-BE43-4FD7-B7E4-5247D7693533}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
