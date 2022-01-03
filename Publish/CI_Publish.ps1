@@ -68,7 +68,7 @@ function create_db { # Attempt to create a database by copying another one; retr
 
     while ($attempts -lt $maxRetries -and $success -eq $false) {
         $attempts = $attempts + 1
-        invoke-expression "&$command"
+        invoke-expression "& $command"
         if ($LASTEXITCODE -eq 0) {
             $success = $true
             log_statement "$newDbName was created successfully"
@@ -117,6 +117,7 @@ $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
+$nodeVersion = "14.18.0"   # maybe this should be a script parameter
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -166,21 +167,21 @@ if ($buildType -ne "Release")
 log_statement "Restoring packages and building MAP"
 
 # Switch to the correct version of Node.js using NVM
-$url   = "http://localhost:8042/nvm_use?version=14.18.0"
+$url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
 $result = Invoke-Webrequest $url
-log_statement "Status code: $($result.StatusCode)"
-log_statement "Content: $($result.Content)"
 
-if ($LASTEXITCODE -ne 0) {
-    log_statement "ERROR: Switching to Node.js v14.18.0 failed"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
+if ($? -eq $false) {
+    log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
+    log_statement "Result of $($url): status code: $($result.StatusCode)"
+    log_statement "Result of $($url): response content: $($result.Content)"
+    exit 1
 }
+log_statement "Result of $($url): status code: $($result.StatusCode)"
+log_statement "Result of $($url): response content: $($result.Content)"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
-$command = "yarn install --immutable"
-invoke-expression "&$command"
+yarn install --immutable
 
 if ($LASTEXITCODE -ne 0) {
     log_statement "ERROR: yarn package restore failed"
@@ -189,6 +190,8 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Set-Location $rootpath\MillimanAccessPortal\
+
+log_statement "Building MAP web application"
 
 MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType
 
@@ -256,7 +259,7 @@ log_statement "Building SFTP Server"
 Get-ChildItem -Recurse "$rootpath\SftpServer\out" | remove-item
 mkdir "out"
 
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:outdir="$rootPath\SftpServer\out"
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
 
 if ($LASTEXITCODE -ne 0)
 {
@@ -288,7 +291,7 @@ if($runTests) {
     $env:JEST_JUNIT_OUTPUT = $jUnitOutputJest
 
     $command = "yarn test --ci --reporters='jest-junit'"
-    invoke-expression "&$command"
+    invoke-expression "& $command"
 
     if ($LASTEXITCODE -ne 0) {
         log_statement "ERROR: One or more Jest tests failed"

@@ -7,10 +7,9 @@
   
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Version>1.15.0</Version>
+    <Version>1.16.0</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   
   <ItemGroup>

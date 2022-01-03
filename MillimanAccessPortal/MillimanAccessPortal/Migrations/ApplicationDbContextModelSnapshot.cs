@@ -17,16 +17,16 @@ namespace MillimanAccessPortal.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("Npgsql:Enum:authentication_type", "default,ws_federation")
-                .HasAnnotation("Npgsql:Enum:content_type_enum", "unknown,qlikview,html,pdf,file_download,power_bi")
-                .HasAnnotation("Npgsql:Enum:file_drop_notification_type", "file_write,file_read,file_delete")
-                .HasAnnotation("Npgsql:Enum:publication_status", "unknown,canceled,rejected,validating,queued,processing,post_process_ready,post_processing,processed,confirming,confirmed,replaced,error")
-                .HasAnnotation("Npgsql:Enum:reduction_status_enum", "unspecified,canceled,rejected,validating,queued,reducing,reduced,live,replaced,warning,error")
-                .HasAnnotation("Npgsql:PostgresExtension:citext", ",,")
-                .HasAnnotation("Npgsql:PostgresExtension:uuid-ossp", ",,")
-                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "3.1.15")
-                .HasAnnotation("Relational:MaxIdentifierLength", 63);
+                .HasPostgresEnum(null, "authentication_type", new[] { "default", "ws_federation" })
+                .HasPostgresEnum(null, "content_type_enum", new[] { "unknown", "qlikview", "html", "pdf", "file_download", "power_bi" })
+                .HasPostgresEnum(null, "file_drop_notification_type", new[] { "file_write", "file_read", "file_delete" })
+                .HasPostgresEnum(null, "publication_status", new[] { "unknown", "canceled", "rejected", "validating", "queued", "processing", "post_process_ready", "post_processing", "processed", "confirming", "confirmed", "replaced", "error" })
+                .HasPostgresEnum(null, "reduction_status_enum", new[] { "unspecified", "canceled", "rejected", "validating", "queued", "reducing", "reduced", "live", "replaced", "warning", "error" })
+                .HasPostgresExtension("citext")
+                .HasPostgresExtension("uuid-ossp")
+                .HasAnnotation("Relational:MaxIdentifierLength", 63)
+                .HasAnnotation("ProductVersion", "5.0.10")
+                .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
             modelBuilder.Entity("MapDbContextLib.Context.AuthenticationScheme", b =>
                 {
@@ -233,9 +233,6 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ReducedContentChecksum")
                         .HasColumnType("text");
-
-                    b.Property<string>("ReducedContentHierarchy")
-                        .HasColumnType("jsonb");
 
                     b.Property<ReductionStatusEnum>("ReductionStatus")
                         .ValueGeneratedOnAdd()
@@ -563,9 +560,7 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("text");
 
                     b.Property<DateTime?>("LastQuarterlyMaintenanceNotificationUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(null);
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("MillimanOffice")
                         .HasColumnType("text");
@@ -846,12 +841,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Name")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedName")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<int>("RoleEnum")
                         .HasColumnType("integer");
@@ -860,7 +855,7 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasIndex("NormalizedName")
                         .IsUnique()
-                        .HasName("RoleNameIndex");
+                        .HasDatabaseName("RoleNameIndex");
 
                     b.ToTable("AspNetRoles");
                 });
@@ -883,8 +878,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("Email")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("boolean");
@@ -914,12 +909,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("NormalizedEmail")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("NormalizedUserName")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.Property<string>("PasswordHash")
                         .HasColumnType("text");
@@ -946,13 +941,11 @@ namespace MillimanAccessPortal.Migrations
                         .HasColumnType("boolean");
 
                     b.Property<DateTime?>("UserAgreementAcceptedUtc")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("timestamp without time zone")
-                        .HasDefaultValue(null);
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("UserName")
-                        .HasColumnType("character varying(256)")
-                        .HasMaxLength(256);
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
 
                     b.HasKey("Id");
 
@@ -960,11 +953,11 @@ namespace MillimanAccessPortal.Migrations
 
                     b.HasIndex("NormalizedEmail")
                         .IsUnique()
-                        .HasName("EmailIndex");
+                        .HasDatabaseName("EmailIndex");
 
                     b.HasIndex("NormalizedUserName")
                         .IsUnique()
-                        .HasName("UserNameIndex");
+                        .HasDatabaseName("UserNameIndex");
 
                     b.ToTable("AspNetUsers");
                 });
@@ -974,7 +967,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text");
@@ -997,7 +990,7 @@ namespace MillimanAccessPortal.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("integer")
-                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn);
+                        .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn);
 
                     b.Property<string>("ClaimType")
                         .HasColumnType("text");
@@ -1082,6 +1075,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("ProfitCenterId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ParentClient");
+
+                    b.Navigation("ProfitCenter");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentPublicationRequest", b =>
@@ -1097,6 +1094,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("RootContentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("RootContentItem");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.ContentReductionTask", b =>
@@ -1116,6 +1117,12 @@ namespace MillimanAccessPortal.Migrations
                         .WithMany()
                         .HasForeignKey("SelectionGroupId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("ContentPublicationRequest");
+
+                    b.Navigation("SelectionGroup");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
@@ -1125,6 +1132,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("ClientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Client");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
@@ -1139,6 +1148,10 @@ namespace MillimanAccessPortal.Migrations
                         .WithMany("ChildDirectories")
                         .HasForeignKey("ParentDirectoryId")
                         .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("FileDrop");
+
+                    b.Navigation("ParentDirectory");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropFile", b =>
@@ -1148,6 +1161,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("DirectoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Directory");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
@@ -1157,6 +1172,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("FileDropId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("FileDrop");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
@@ -1166,6 +1183,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("RootContentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("RootContentItem");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.HierarchyFieldValue", b =>
@@ -1175,6 +1194,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("HierarchyFieldId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("HierarchyField");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.RootContentItem", b =>
@@ -1190,6 +1211,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("ContentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("ContentType");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.SelectionGroup", b =>
@@ -1199,6 +1224,8 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("RootContentItemId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("RootContentItem");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.SftpAccount", b =>
@@ -1218,6 +1245,12 @@ namespace MillimanAccessPortal.Migrations
                         .WithMany("SftpAccounts")
                         .HasForeignKey("FileDropUserPermissionGroupId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("FileDrop");
+
+                    b.Navigation("FileDropUserPermissionGroup");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserInSelectionGroup", b =>
@@ -1233,6 +1266,10 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("SelectionGroup");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInClient", b =>
@@ -1254,6 +1291,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInProfitCenter", b =>
@@ -1275,6 +1318,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ProfitCenter");
+
+                    b.Navigation("Role");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Context.UserRoleInRootContentItem", b =>
@@ -1296,6 +1345,12 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Role");
+
+                    b.Navigation("RootContentItem");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("MapDbContextLib.Identity.ApplicationUser", b =>
@@ -1303,6 +1358,8 @@ namespace MillimanAccessPortal.Migrations
                     b.HasOne("MapDbContextLib.Context.AuthenticationScheme", "AuthenticationScheme")
                         .WithMany()
                         .HasForeignKey("AuthenticationSchemeId");
+
+                    b.Navigation("AuthenticationScheme");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<System.Guid>", b =>
@@ -1354,6 +1411,40 @@ namespace MillimanAccessPortal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.Client", b =>
+                {
+                    b.Navigation("ChildClients");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDrop", b =>
+                {
+                    b.Navigation("PermissionGroups");
+
+                    b.Navigation("SftpAccounts");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropDirectory", b =>
+                {
+                    b.Navigation("ChildDirectories");
+
+                    b.Navigation("Files");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.FileDropUserPermissionGroup", b =>
+                {
+                    b.Navigation("SftpAccounts");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Context.HierarchyField", b =>
+                {
+                    b.Navigation("HierarchyFieldValues");
+                });
+
+            modelBuilder.Entity("MapDbContextLib.Identity.ApplicationUser", b =>
+                {
+                    b.Navigation("SftpAccounts");
                 });
 #pragma warning restore 612, 618
         }

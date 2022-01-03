@@ -21,10 +21,6 @@ properties: # Properties of container group
         value: __AZURE_CLIENT_SECRET__
       - name: ASPNETCORE_ENVIRONMENT
         value: __ASPNETCORE_ENVIRONMENT__
-      - name: azCertPass
-        value: __azCertPass__
-      - name: thumbprint
-        value: __thumbprint__
       - name: AzureVaultName
         value: __AzureVaultName__
       - name: MAP_DATABASE_SERVER
@@ -38,8 +34,6 @@ properties: # Properties of container group
         mountPath: /mnt/filedropshare
       - name: filedroplogs
         mountPath: /mnt/filedroplogs
-      - name: filedroppk
-        mountPath: /mnt/filedroppk
   imageRegistryCredentials: # Credentials to pull a private image
   - server: __acr_url__
     username: __acr_user__
@@ -63,8 +57,3 @@ properties: # Properties of container group
       shareName: __filedroplogssharename__
       storageAccountName: __filedroplogsstoragename__
       storageAccountKey: __filedroplogskey__
-  - name: filedroppk
-    azureFile:
-      shareName: __filedroppksharename__
-      storageAccountName: __filedroppkstoragename__
-      storageAccountKey: __filedroppkkey__

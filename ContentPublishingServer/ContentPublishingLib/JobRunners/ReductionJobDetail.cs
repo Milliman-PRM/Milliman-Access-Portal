@@ -109,7 +109,6 @@ namespace ContentPublishingLib.JobRunners
             public string StatusMessage { get; set; } = string.Empty;
             public string ReducedContentFilePath { get; set; } = string.Empty;
             public ExtractedHierarchy MasterContentHierarchy { get; set; } = null;
-            public ExtractedHierarchy ReducedContentHierarchy { get; set; } = null;
             public string ReducedContentFileChecksum { get; set; } = string.Empty;
             public JobOutcomeReason OutcomeReason { get; set; } = JobOutcomeReason.Unspecified;
             public TimeSpan ProcessingDuration { get; set; } = new TimeSpan(0);

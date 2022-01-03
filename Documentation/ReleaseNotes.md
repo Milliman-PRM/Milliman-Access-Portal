@@ -2,6 +2,17 @@
 
 ## Release Notes
 
+### v1.17.0
+- Added buttons to copy both username and password SFTP credentials for a File Drop
+
+### v1.16.0
+
+- Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version
+- Added a configuration setting that prohibits free public email domains from being added to any client domain list
+- Fixed a bug that sometimes counted "milliman.com" against the domain count limit for a client
+- Fixed a rare bug on the Content Publishing page where the Submit button did not appear enabled when it should have been
+- Fixed a bug that caused MAP application logs to accumulate in a single file rather than separated into daily rolling files
+
 ### v1.15.0
 
 - Added the ability to publish and manage Power BI content using role based row level security

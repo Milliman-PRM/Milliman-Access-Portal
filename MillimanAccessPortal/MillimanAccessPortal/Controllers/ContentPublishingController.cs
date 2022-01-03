@@ -1203,7 +1203,6 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
             RootContentItem rootContentItem = await _dbContext.RootContentItem
                                                               .Include(rci => rci.ContentType)
                                                               .Where(rci => rci.Id == contentItemId)
@@ -1233,6 +1232,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            PowerBiLibApi powerBiApi = await new PowerBiLibApi(_powerBiConfig).InitializeAsync();
 
             string configuredTemporaryExportsDirectory = ApplicationConfig.GetValue<string>("Storage:TemporaryExports");
             var reportModel = await powerBiApi.ExportReportAsync(embedProperties.LiveWorkspaceId.Value, embedProperties.LiveReportId.Value, configuredTemporaryExportsDirectory, true);
