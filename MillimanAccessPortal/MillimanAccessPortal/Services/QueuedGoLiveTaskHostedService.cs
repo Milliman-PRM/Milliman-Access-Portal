@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -328,81 +329,112 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
                         string TargetFilePath = string.Empty;
 
-                        // special treatment for powerbi content file (no live content file persists in MAP)
-                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
-                            publicationRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
+                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase))
                         {
-                            PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-
-                            failureRecoveryActionList.Add(() => {
-                                publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
-                                dbContext.SaveChanges();
-                            });
-
-                            // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
-                            Guid? previousReportId = typeSpecificProperties.LiveReportId;
-                            if (previousReportId != null)
+                            // special treatment for content types where no live content file persists in MAP storage
+                            switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                             {
-                                successActionList.Add(async () => {
-                                    PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
-                                    PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                                    await powerBiApi.DeleteReportAsync(previousReportId.Value);
-                                });
-                            }
+                                case ContentTypeEnum.PowerBi:
+                                    PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-                            publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
-                            {
-                                LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl,
-                                LiveReportId = typeSpecificProperties.PreviewReportId,
-                                LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId,
-                                PreviewEmbedUrl = null,
-                                PreviewReportId = null,
-                                PreviewWorkspaceId = null,
-                                EditableEnabled = typeSpecificProperties.EditableEnabled,
-                                NavigationPaneEnabled = typeSpecificProperties.NavigationPaneEnabled,
-                                FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
-                                BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
-                            };
-                        }
-                        else
-                        {
-                            // This assignment defines the live file name
-                            TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                          goLiveViewModel.RootContentItemId.ToString(),
-                                                          TargetFileName);
+                                    failureRecoveryActionList.Add(() => {
+                                        publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
+                                        dbContext.SaveChanges();
+                                    });
 
-                            // Move any existing live file of this name to backed up name
-                            if (File.Exists(TargetFilePath))
-                            {
-                                string BackupFilePath = TargetFilePath + ".bak";
-                                if (File.Exists(BackupFilePath))
-                                {
-                                    File.Delete(BackupFilePath);
-                                }
-                                File.Move(TargetFilePath, BackupFilePath);
+                                    // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
+                                    Guid? previousReportId = typeSpecificProperties.LiveReportId;
+                                    if (previousReportId != null)
+                                    {
+                                        successActionList.Add(async () => {
+                                            PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+                                            PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
+                                            await powerBiApi.DeleteReportAsync(previousReportId.Value);
+                                        });
+                                    }
 
-                                successActionList.Add(new Action(() => {
-                                    File.Delete(BackupFilePath);
-                                }));
-                                failureRecoveryActionList.Add(new Action(() => {
+                                    publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
+                                    {
+                                        LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl,
+                                        LiveReportId = typeSpecificProperties.PreviewReportId,
+                                        LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId,
+                                        PreviewEmbedUrl = null,
+                                        PreviewReportId = null,
+                                        PreviewWorkspaceId = null,
+                                        EditableEnabled = typeSpecificProperties.EditableEnabled,
+                                        NavigationPaneEnabled = typeSpecificProperties.NavigationPaneEnabled,
+                                        FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
+                                        BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
+                                    };
+                                    break;
+
+                                case ContentTypeEnum.ContainerApp:
+                                    ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+                                    failureRecoveryActionList.Add(() => {
+                                        publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
+                                        dbContext.SaveChanges();
+                                    });
+
+                                    // Preserve info of the existing live content (if any) for the delegate function to use later when removing the replaced image.
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties.ImageId))  // TODO Get this conditional right
+                                    {
+                                        successActionList.Add(async () => {
+                                            ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync();
+                                            // TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
+                                        });
+                                    }
+
+                                    publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
+                                    {
+                                        // TODO Get these right
+                                        ContentItemToken = string.Empty,
+                                        ImageId = string.Empty,
+                                        InternalTcpPort = 0,
+                                    };
+                                    break;
+
+                                default:
+                                    // This assignment defines the live file name
+                                    TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                                  goLiveViewModel.RootContentItemId.ToString(),
+                                                                  TargetFileName);
+
+                                    // Move any existing live file of this name to backed up name
                                     if (File.Exists(TargetFilePath))
                                     {
-                                        File.Delete(TargetFilePath);
+                                        string BackupFilePath = TargetFilePath + ".bak";
+                                        if (File.Exists(BackupFilePath))
+                                        {
+                                            File.Delete(BackupFilePath);
+                                        }
+                                        File.Move(TargetFilePath, BackupFilePath);
+
+                                        successActionList.Add(new Action(() => {
+                                            File.Delete(BackupFilePath);
+                                        }));
+                                        failureRecoveryActionList.Add(new Action(() => {
+                                            if (File.Exists(TargetFilePath))
+                                            {
+                                                File.Delete(TargetFilePath);
+                                            }
+                                            File.Move(BackupFilePath, TargetFilePath);
+                                        }));
                                     }
-                                    File.Move(BackupFilePath, TargetFilePath);
-                                }));
+
+                                    // Can move since files are on the same volume
+                                    File.Move(Crf.FullPath, TargetFilePath);
+
+                                    failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                                        if (File.Exists(Crf.FullPath))
+                                        {
+                                            File.Delete(Crf.FullPath);
+                                        }
+                                        File.Move(TargetFilePath, Crf.FullPath);
+                                    }));
+                                    break;
                             }
-
-                            // Can move since files are on the same volume
-                            File.Move(Crf.FullPath, TargetFilePath);
-
-                            failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
-                                if (File.Exists(Crf.FullPath))
-                                {
-                                    File.Delete(Crf.FullPath);
-                                }
-                                File.Move(TargetFilePath, Crf.FullPath);
-                            }));
                         }
 
                         UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.InvariantCultureIgnoreCase));
@@ -589,6 +621,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             await new QlikviewLibApi(qvConfig).AuthorizeUserDocumentsInFolderAsync(goLiveViewModel.RootContentItemId.ToString());
                             break;
 
+                        case ContentTypeEnum.ContainerApp:
                         case ContentTypeEnum.PowerBi:
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
@@ -631,6 +664,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 publicationRequest.RequestStatus = PublicationStatus.Processed;
                 await dbContext.SaveChangesAsync();
 
+                // Invoke all the delegate actions in failureRecoveryActionList
                 foreach (var recoverAction in failureRecoveryActionList)
                 {
                     recoverAction.Invoke();
