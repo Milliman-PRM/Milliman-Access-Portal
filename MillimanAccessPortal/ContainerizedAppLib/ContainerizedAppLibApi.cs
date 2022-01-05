@@ -54,7 +54,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error obtaining DockerLibApi authentication token");
+                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication token");
             }
 
             return this;

@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Context;
@@ -54,6 +55,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IGoLiveTaskQueue _goLiveTaskQueue;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly PowerBiConfig _powerBiConfig;
+        private readonly ContainerizedAppLibApiConfig _containerizedAppLibConfig;
         private readonly QlikviewConfig _qlikviewConfig;
         private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
         private readonly ContentPublishingAdminQueries _publishingQueries;
@@ -81,6 +83,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration ApplicationConfigArg,
             IOptions<PowerBiConfig> PowerBiOptionsAccessorArg,
+            IOptions<ContainerizedAppLibApiConfig> ContainerizedAppOptionsAccessorArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             IPublicationPostProcessingTaskQueue postProcessingTaskQueue,
             ContentPublishingAdminQueries publishingQueriesArg
@@ -94,6 +97,7 @@ namespace MillimanAccessPortal.Controllers
             _userManager = UserManagerArg;
             ApplicationConfig = ApplicationConfigArg;
             _powerBiConfig = PowerBiOptionsAccessorArg.Value;
+            _containerizedAppLibConfig = ContainerizedAppOptionsAccessorArg.Value;
             _qlikviewConfig = QlikviewOptionsAccessorArg.Value;
             _PostProcessingTaskQueue = postProcessingTaskQueue;
             _publishingQueries = publishingQueriesArg;
@@ -1180,7 +1184,18 @@ namespace MillimanAccessPortal.Controllers
                                 break;
 
                             case ContentTypeEnum.ContainerApp:
-#warning TODO: Is anything needed here?
+                                ContainerizedAppContentItemProperties containerContentProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+                                ContainerizedAppLibApi containerLibApi = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync();
+#warning TODO remove the rejected image from ACR
+                                // await containerLibApi.RemoveImage(containerContentProps.PreviewImageName);
+
+                                containerContentProps.PreviewImageName = null;
+                                containerContentProps.PreviewContainerInternalPort = 0;
+                                containerContentProps.PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified;
+                                containerContentProps.PreviewContainerRamGb = ContainerRamGbEnum.Unspecified;
+
+                                rootContentItem.TypeSpecificDetailObject = containerContentProps;
                                 break;
 
                             default:

@@ -97,6 +97,9 @@ namespace MapDbContextLib.Context
                     case ContentTypeEnum.PowerBi:
                         return typeof(PowerBiContentItemProperties);
 
+                    case ContentTypeEnum.ContainerApp:
+                        return typeof(ContainerizedAppContentItemProperties);
+
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:

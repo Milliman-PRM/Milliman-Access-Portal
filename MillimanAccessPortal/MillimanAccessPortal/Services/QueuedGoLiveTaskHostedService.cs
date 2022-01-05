@@ -376,23 +376,28 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         dbContext.SaveChanges();
                                     });
 
-                                    // Preserve info of the existing live content (if any) for the delegate function to use later when removing the replaced image.
+                                    // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
                                     if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.LiveImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync();
+                                            // TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
                                             // TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
                                         });
                                     }
 
                                     publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
                                     {
-                                        // TODO Get these right
                                         LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
                                         LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+
+                                        PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
+                                        PreviewContainerInternalPort = 0,
+                                        PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
+                                        PreviewImageName = null,
                                     };
                                     break;
 
