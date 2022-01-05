@@ -377,7 +377,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     });
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the replaced image.
-                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.ImageId))  // TODO Get this conditional right
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.LiveImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;

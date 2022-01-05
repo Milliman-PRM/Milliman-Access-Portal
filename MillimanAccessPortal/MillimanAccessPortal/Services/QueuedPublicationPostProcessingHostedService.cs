@@ -372,18 +372,20 @@ namespace MillimanAccessPortal.Services
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                        ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
                         ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
                         #region 
                         ContainerizedAppLibApiConfig containerAppConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
                         // TODO Move the image to Azure and record whatever type specific detail is needed for preview!!!
-                        #endregion
 
                         containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                         containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+                        containerContentItemProperties.PreviewImageName = "TBD, assign at QueuedPublicationPostProcessingHostedService.cs:~385";
+                        #endregion
+
 
                         contentItem.TypeSpecificDetailObject = containerContentItemProperties;
                         await dbContext.SaveChangesAsync();
