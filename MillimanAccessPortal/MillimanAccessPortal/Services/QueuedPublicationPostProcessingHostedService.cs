@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -371,13 +372,18 @@ namespace MillimanAccessPortal.Services
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        // ContainerizedAppConfig containerAppConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppConfig>>().Value;
-
                         ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                        ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
-                        #region TODO Assign any necessary type specific object property values
+                        #region 
+                        ContainerizedAppLibApiConfig containerAppConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
+                        // TODO Move the image to Azure and record whatever type specific detail is needed for preview!!!
                         #endregion
+
+                        containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
+                        containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
+                        containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
                         contentItem.TypeSpecificDetailObject = containerContentItemProperties;
                         await dbContext.SaveChangesAsync();

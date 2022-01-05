@@ -35,10 +35,16 @@ namespace MapDbContextLib.Models
 
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
-        public string ImageId { get; set; }  // or whatever is required to identify/locate the image to get a container running
+        // TODO Add whatever is needed to get a container launched for preview and live
 
-        public uint InternalTcpPort { get; set; }
+        public string LiveImageName { get; set; }
+        public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; }
+        public ContainerRamGbEnum LiveContainerRamGb { get; set; }
+        public uint LiveContainerInternalPort { get; set; }
 
-        public string ContentItemToken { get; set; }
+        public string PreviewImageName { get; set; }
+        public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; }
+        public ContainerRamGbEnum PreviewContainerRamGb { get; set; }
+        public uint PreviewContainerInternalPort { get; set; }
     }
 }

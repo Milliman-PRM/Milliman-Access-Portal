@@ -377,7 +377,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     });
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the replaced image.
-                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties.ImageId))  // TODO Get this conditional right
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.ImageId))  // TODO Get this conditional right
                                     {
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
@@ -389,9 +389,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
                                     {
                                         // TODO Get these right
-                                        ContentItemToken = string.Empty,
-                                        ImageId = string.Empty,
-                                        InternalTcpPort = 0,
+                                        LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
+                                        LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
+                                        LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
+                                        LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
                                     };
                                     break;
 
