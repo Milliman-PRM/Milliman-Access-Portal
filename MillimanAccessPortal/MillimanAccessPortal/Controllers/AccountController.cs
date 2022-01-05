@@ -106,7 +106,7 @@ namespace MillimanAccessPortal.Controllers
 
             var arg = new OpenSessionRequest 
             { 
-                PublicUri = redirectUriBuilder.Uri.AbsoluteUri, 
+                PublicUri = redirectUriBuilder.Uri.AbsoluteUri, // TODO maybe the proxy should generate this, don't send from here
                 RequestingHost = HttpContext.Connection.RemoteIpAddress?.ToString(), 
                 InternalUri = proxyInternalUri.Uri.AbsoluteUri,
                 Token = contentToken,

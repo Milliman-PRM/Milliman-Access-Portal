@@ -10,6 +10,7 @@ Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.With<UtcTimestampEnricher>()
     .CreateLogger();
+builder.Host.UseSerilog();
 Log.Information("ContainerReverseProxy logger started");
 
 builder.Services.AddReverseProxy()
