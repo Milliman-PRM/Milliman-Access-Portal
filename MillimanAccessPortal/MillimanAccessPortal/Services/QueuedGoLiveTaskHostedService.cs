@@ -70,7 +70,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == kvpWithException.Key);
 
                         thisPubRequest.RequestStatus = PublicationStatus.Error;
-                        thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
+                        thisPubRequest.StatusMessage = GlobalFunctions.LoggableExceptionString(kvpWithException.Value.Exception, "Exception during go-live processing:", IncludeStackTrace: true);
                         foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
                         {
                             reduction.ReductionStatus = ReductionStatusEnum.Error;
