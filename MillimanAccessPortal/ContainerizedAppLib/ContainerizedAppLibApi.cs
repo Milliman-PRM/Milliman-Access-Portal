@@ -26,10 +26,29 @@ namespace ContainerizedAppLib
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
-        public override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
+        public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
-            throw new NotImplementedException();
+            await Task.Yield();
+
+            string[] QueryStringItems = new string[]
+            {
+                $"group={typeSpecificContentIdentifier}",
+                $"session={thisHttpRequest.Cookies[".AspNetCore.Session"]}",
+#warning Is there another way to establish session identity?
+            };
+
+            UriBuilder contentUri = new UriBuilder
+            {
+                Scheme = thisHttpRequest.Scheme,
+                Host = thisHttpRequest.Host.Host ?? "localhost",  // localhost is probably error in production but won't crash
+                Port = thisHttpRequest.Host.Port ?? -1,
+                Path = $"/AuthorizedContent/ContainerizedApp",
+                Query = string.Join("&", QueryStringItems),
+            };
+
+            return contentUri;
         }
+
 
         public ContainerizedAppLibApi(ContainerizedAppLibApiConfig config)
         {

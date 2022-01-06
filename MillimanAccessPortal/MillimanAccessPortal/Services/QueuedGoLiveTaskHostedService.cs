@@ -382,8 +382,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync();
-                                            // TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
-                                            // TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
+#warning TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
+#warning TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
                                         });
                                     }
 
