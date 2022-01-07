@@ -1531,6 +1531,7 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                     // Remove the client
+                    await DbContext.Entry(ExistingClient).ReloadAsync();
                     DbContext.Client.Remove(ExistingClient);
 
                     await DbContext.SaveChangesAsync();
