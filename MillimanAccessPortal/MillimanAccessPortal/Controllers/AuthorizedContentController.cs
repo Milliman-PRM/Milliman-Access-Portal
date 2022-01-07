@@ -397,16 +397,8 @@ namespace MillimanAccessPortal.Controllers
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
                     case ContentTypeEnum.ContainerApp:
-                        ContentSpecificHandler = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
-
-                        // TODO Use ContentSpecificHandler to run a container if needed
-
+                        ContentSpecificHandler = new ContainerizedAppLibApi(_containerizedAppConfig);
                         UriBuilder containerizedAppContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
-                        Response.Cookies.Append("test-cookie", "some value", new CookieOptions { Domain = containerizedAppContentUri.Host, MaxAge = TimeSpan.FromMinutes(5) });
-                        // TODO Generate the URI and any tokens for this session
-
-                        // TODO Notify the reverse proxy about the new session
-
                         Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning ContainerizedApp URI {containerizedAppContentUri.Uri.AbsoluteUri}");
                         return Redirect(containerizedAppContentUri.Uri.AbsoluteUri);
 
@@ -623,18 +615,54 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while building return model");
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch the Power BI report");
                 throw;
             }
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
         {
-            await Task.Yield();
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
+            if (!Result1.Succeeded)
+            {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
 
-            Log.Information("Request is {@Request}", Request);
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
 
-            return Ok();
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            try
+            {
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
+
+                // TODO Use api to run a container
+
+                // TODO Get info about a running container to serve this request
+
+                // TODO Generate any tokens or other info for this session
+
+                // TODO Notify the reverse proxy about the new session
+
+                // TODO Generate a Uri to the proxy for the browser to request the application
+
+                // This only works for redirects to the same domain
+                // Response.Cookies.Append("test-cookie", "some value", new CookieOptions { Domain = containerizedAppContentUri.Host, MaxAge = TimeSpan.FromMinutes(5) });
+
+                UriBuilder requestUri = new UriBuilder();
+                Log.Information("In AuthorizedContentController.ContainerizedApp: redirecting to {@Request}", requestUri.Uri.AbsoluteUri);
+
+                return Redirect(requestUri.Uri.AbsoluteUri);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a container");
+                throw;
+            }
         }
 
         /// <summary>

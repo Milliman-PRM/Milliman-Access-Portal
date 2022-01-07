@@ -33,8 +33,6 @@ namespace ContainerizedAppLib
             string[] QueryStringItems = new string[]
             {
                 $"group={typeSpecificContentIdentifier}",
-                $"session={thisHttpRequest.Cookies[".AspNetCore.Session"]}",
-#warning Is there another way to establish session identity?
             };
 
             UriBuilder contentUri = new UriBuilder
