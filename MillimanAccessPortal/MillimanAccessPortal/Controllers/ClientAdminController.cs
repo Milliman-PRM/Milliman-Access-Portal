@@ -1527,7 +1527,7 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (ApplicationUser user in AllClientUsers)
                     {
-                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id }, true);
+                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id, Reason = HitrustReason.ClientRemoval.NumericValue }, true);
                     }
 
                     // Remove the client
