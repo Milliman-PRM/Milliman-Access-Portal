@@ -13,6 +13,7 @@ namespace ContainerReverseProxy
     {
         private readonly MapProxyConfigProvider MapProxyConfigProvider;
         private readonly IConfiguration AppConfiguration;
+        private readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(10);
 
         private HubConnection connection;
 
@@ -23,9 +24,13 @@ namespace ContainerReverseProxy
             AppConfiguration = configurationArg;
 
             string hubUrl = AppConfiguration.GetValue<string>("MapHubUrl");  // "https://localhost:44336/contentsessionhub" in Development environment
-            connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(TimeSpan.FromSeconds(10)))
+            connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(RetryDelay))
                                                    .WithUrl(hubUrl)
                                                    .Build();
+
+            connection.Closed += Connection_Closed;
+            connection.Reconnecting += Connection_Reconnecting;
+            connection.Reconnected += Connection_Reconnected;
 
             connection.On<OpenSessionRequest>("NewSessionAuthorized", async request =>
             {
@@ -75,6 +80,26 @@ namespace ContainerReverseProxy
             Task task = InitializeAsync();
         }
 
+        #region Connection event handlers
+        private Task Connection_Reconnecting(Exception? arg)
+        {
+            Log.Information($"Reconnecting to SignalR hub: {arg?.Message}");
+            return Task.CompletedTask;
+        }
+
+        private Task Connection_Reconnected(string? arg)
+        {
+            Log.Information($"Reconnected to SignalR hub, connection ID {arg}");
+            return Task.CompletedTask;
+        }
+
+        private Task Connection_Closed(Exception? arg)
+        {
+            Log.Information($"Connection to SignalR hub was closed: {arg?.Message}");
+            return Task.CompletedTask;
+        }
+        #endregion
+
         ~MapHubClient()
         {
             connection.DisposeAsync();
@@ -83,16 +108,25 @@ namespace ContainerReverseProxy
 
         private async Task InitializeAsync()
         {
-            try
+            Log.Information("MapHubClient.InitializeAsync starting connection to remote hub");
+
+            Task startTask = Task.CompletedTask;
+            do
             {
-                Log.Information("MapHubClient.InitializeAsync starting connection to remote hub");
-                await connection.StartAsync();
-                Log.Information("MapHubClient.InitializeAsync connected to remote hub");
+                try
+                {
+                    startTask = connection.StartAsync();
+                    await startTask;
+                }
+                catch (Exception ex)
+                {
+                    Log.Error($"MapHubClient failed connecting to SignalR hub at {AppConfiguration.GetValue<string>("MapHubUrl")}:{Environment.NewLine}{ex.Message}");
+                    await Task.Delay(RetryDelay);
+                }
             }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "MapHubClient.InitializeAsync failed connecting to remote hub");
-            }
+            while (startTask.IsFaulted);
+
+            Log.Information("MapHubClient.InitializeAsync connected to remote hub");
 
         }
     }

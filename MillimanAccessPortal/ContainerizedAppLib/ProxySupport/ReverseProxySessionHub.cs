@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Serilog;
 using System;
+using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -35,12 +36,16 @@ namespace ContainerizedAppLib.ProxySupport
             }
         }
 
-        public override async Task OnConnectedAsync()
+        public override Task OnConnectedAsync()
         {
-            await Task.Yield();
-
-            Log.Information($"Client connecting to this hub: connection ID {Context.ConnectionId}");
+            Log.Information($"SignalR client connecting to this {GetType().Name} hub: connection ID {Context.ConnectionId}");
+            return Task.CompletedTask;
         }
 
+        public override Task OnDisconnectedAsync(Exception exception)
+        {
+            Log.Information($"SignalR client disconnected from this {GetType().Name} hub: connection ID {Context.ConnectionId}");
+            return Task.CompletedTask;
+        }
     }
 }
