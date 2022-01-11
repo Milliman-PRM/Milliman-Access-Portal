@@ -18,6 +18,11 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.ContainerInstance.Fluent;
+using Microsoft.Azure.Management.ContainerInstance.Fluent.Models;
 
 namespace ContainerizedAppLib
 {
@@ -71,7 +76,7 @@ namespace ContainerizedAppLib
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
                                                                         await Config.ContainerRegistryTokenEndpoint
-                                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
                                                                             .GetAsync()
                                                                             .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
                 _acrToken = response.AccessToken;
@@ -83,6 +88,8 @@ namespace ContainerizedAppLib
                 throw;
             }
         }
+
+        #region Container Registry
 
         public async Task<List<ContainerRepository>> GetRepositories()
         {
@@ -240,7 +247,7 @@ namespace ContainerizedAppLib
                             string chunkValue = Convert.ToBase64String(buffer, 0, buffer.Length); // b64
                             var content = new StreamContent(stream);
 
-
+                            // todo: try monolithic
                             string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
                             var blobUploadResponse = await blobUploadEndpoint
                                 .WithHeader("Authorization", $"Bearer {_acrToken}")
@@ -273,6 +280,101 @@ namespace ContainerizedAppLib
                 throw;
             }
         }
+        #endregion
+
+        #region Container Instances
+        public static IAzure GetAzureContextForContainerInstances()
+        {
+            IAzure azure;
+            ISubscirption subscription;
+
+            try
+            {
+                var creds = new AzureCredentialFactory().FromServicePrinciapl()
+            }
+        }
+
+        public void CreateContainerGroup(IAzure azure, string resourceGroupName, string containerGroupName, string containerImageName, string registryUrl, string registryUsername, string registryPassword)
+        {
+            try
+            {
+                IResourceGroup resourceGroup = azure.ResourceGroups.GetByName(resourceGroupName);
+                Region azureRegion = resourceGroup.Region;
+
+                var newContainerGroup = azure.ContainerGroups.Define(containerGroupName)
+                    .WithRegion(azureRegion)
+                    .WithExistingResourceGroup(resourceGroupName)
+                    .WithLinux()
+                    .WithPrivateImageRegistry(registryUrl, registryUsername, registryPassword)
+                    .WithoutVolume()
+                    .DefineContainerInstance(containerGroupName + "-test")
+                        .WithImage(containerImageName)
+                        .WithExternalTcpPort(80)
+                        .WithCpuCoreCount(1.0)
+                        .WithMemorySizeInGB(1)
+                        .Attach()
+                    .WithDnsPrefix(containerGroupName)
+                    .Create();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to create a new Container Group.");
+            }
+        }
+
+        public async Task<string> GetContainerGroupStatus(IAzure azure, string containerGroupId)
+        {
+            IContainerGroup containerGroup;
+            try
+            {
+                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                if (containerGroup != null)
+                {
+                    return containerGroup.State;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to find an Azure Container Group.");
+            }
+
+            return "Not found";
+        }
+
+        public async Task StopContainerInstance(IAzure azure, string containerGroupId)
+        {
+            IContainerGroup containerGroup;
+            try
+            {
+                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                if (containerGroup != null)
+                {
+                    await containerGroup.StopAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to stop a running Container Group.");
+            }
+        }
+
+        public async Task RestartContainerGroup(IAzure azure, string containerGroupId)
+        {
+            IContainerGroup containerGroup;
+            try
+            {
+                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                if (containerGroup != null)
+                {
+                    await containerGroup.RestartAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to stop a running Container Group.");
+            }
+        }
+        #endregion
 
         class ACRAuthenticationResponse
         {
