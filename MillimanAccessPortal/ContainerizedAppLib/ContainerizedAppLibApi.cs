@@ -24,14 +24,17 @@ using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ContainerInstance.Fluent;
 using Microsoft.Azure.Management.ContainerInstance.Fluent.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using System.Linq;
 
 namespace ContainerizedAppLib
 {
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
+        private IAzure _azureContext;
         private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
+
         public override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
             throw new NotImplementedException();
@@ -51,7 +54,7 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAccessTokenAsync();
-                //await GetAzureContextForContainerInstances();
+                GetAzureContextForContainerInstances();
 
                 ContainerRegistryClient client = new ContainerRegistryClient(
                     new Uri(Config.ContainerRegistryUrl),
@@ -285,39 +288,45 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        public IAzure GetAzureContextForContainerInstances()
+        public void GetAzureContextForContainerInstances()
         {
-            IAzure azure;
-            ISubscription subscription;
-
-            // TODO wait for service principal credential creation.
-
-            return azure;
-        }
-
-        public async Task CreateContainerGroup(string resourceGroupName, string containerGroupName, string containerImageName, string registryUrl, string registryUsername, string registryPassword)
-        {
-            var azure = GetAzureContextForContainerInstances();
             try
             {
-                IResourceGroup resourceGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName);
+                var creds = new AzureCredentialsFactory().FromServicePrincipal(Config.ACIClientId, Config.ACIClientSecret, Config.ACITenantId, AzureEnvironment.AzureGlobalCloud);
+                _azureContext = Microsoft.Azure.Management.Fluent.Azure.Authenticate(creds).WithSubscription(Config.ACISubscriptionId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to create valid Azure context.");
+            }
+        }
+
+        public async Task CreateContainerGroup(string containerGroupName, string containerImageName, double cpuCoreCount = 1.0, double memorySizeInGB = 1.0, params int[] containerPorts)
+        {
+            try
+            {
+                IResourceGroup resourceGroup = await _azureContext.ResourceGroups.GetByNameAsync(Config.ACIResourceGroupName);
                 Region azureRegion = resourceGroup.Region;
 
-                var newContainerGroup = azure.ContainerGroups.Define(containerGroupName)
+                List<int> allPorts = new List<int>();
+                int[] defaultPorts = new int[] { 80 };
+                allPorts.AddRange(defaultPorts);
+                allPorts.AddRange(containerPorts);
+
+                var newContainerGroup = _azureContext.ContainerGroups.Define(containerGroupName)
                     .WithRegion(azureRegion)
-                    .WithExistingResourceGroup(resourceGroupName)
+                    .WithExistingResourceGroup(Config.ACIResourceGroupName)
                     .WithLinux()
-                    .WithPrivateImageRegistry(registryUrl, registryUsername, registryPassword)
+                    .WithPrivateImageRegistry(Config.ContainerRegistryUrl, Config.ContainerRegistryUsername, Config.ContainerRegistryPassword)
                     .WithoutVolume()
-                    .DefineContainerInstance(containerGroupName + "-test")
+                    .DefineContainerInstance(containerGroupName)
                         .WithImage(containerImageName)
-                        .WithExternalTcpPorts(80, 3000)
-                        .WithCpuCoreCount(1.0)
-                        .WithMemorySizeInGB(1)
+                        .WithExternalTcpPorts(allPorts.ToArray())
+                        .WithCpuCoreCount(cpuCoreCount)
+                        .WithMemorySizeInGB(memorySizeInGB)
                         .Attach()
                     .WithDnsPrefix(containerGroupName)
                     .Create();
-                Console.WriteLine("help");
             }
             catch (Exception ex)
             {
