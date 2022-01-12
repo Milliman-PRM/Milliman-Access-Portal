@@ -6,11 +6,9 @@ using Azure.Containers.ContainerRegistry.Specialized;
 using Azure.Identity;
 using MapCommonLib;
 using Microsoft.Azure.Management.ContainerRegistry;
-using Microsoft.Rest;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using Serilog;
@@ -22,9 +20,7 @@ using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ContainerInstance.Fluent;
-using Microsoft.Azure.Management.ContainerInstance.Fluent.Models;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using System.Linq;
 
 namespace ContainerizedAppLib
 {
