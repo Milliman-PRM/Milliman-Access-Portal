@@ -330,12 +330,12 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<string> GetContainerGroupStatus(IAzure azure, string containerGroupId)
+        public async Task<string> GetContainerGroupStatus(string containerGroupId)
         {
             IContainerGroup containerGroup;
             try
             {
-                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
                 if (containerGroup != null)
                 {
                     return containerGroup.State;
@@ -349,12 +349,12 @@ namespace ContainerizedAppLib
             return "Not found";
         }
 
-        public async Task StopContainerInstance(IAzure azure, string containerGroupId)
+        public async Task StopContainerInstance(string containerGroupId)
         {
             IContainerGroup containerGroup;
             try
             {
-                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
                 if (containerGroup != null)
                 {
                     await containerGroup.StopAsync();
@@ -366,12 +366,12 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task RestartContainerGroup(IAzure azure, string containerGroupId)
+        public async Task RestartContainerGroup(string containerGroupId)
         {
             IContainerGroup containerGroup;
             try
             {
-                containerGroup = await azure.ContainerGroups.GetByIdAsync(containerGroupId);
+                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
                 if (containerGroup != null)
                 {
                     await containerGroup.RestartAsync();
@@ -380,6 +380,18 @@ namespace ContainerizedAppLib
             catch (Exception ex)
             {
                 Log.Error(ex, "Error trying to stop a running Container Group.");
+            }
+        }
+
+        public async Task DeleteContainerGroup(string containerGroupId)
+        {
+            try
+            {
+                await _azureContext.ContainerGroups.DeleteByIdAsync(containerGroupId);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error deleting Container Group with ID {containerGroupId}.");
             }
         }
         #endregion
