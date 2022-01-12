@@ -84,56 +84,6 @@ namespace MillimanAccessPortal.Controllers
             _containerizedAppLibApiConfig = containerizedAppLibApiConfig.Value;
         }
 
-        // TODO This method is temporary
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> Test()
-        {
-            string contentToken = "abc";
-
-            UriBuilder redirectUriBuilder = new UriBuilder { 
-                Scheme = Request.Scheme,
-                Host = "127.0.0.1",  // TODO How do I know this in a real environment
-                Port = 7016,  // TODO How do I know this in a real environment
-                Path = "/Account/test2",
-                Query = $"contentToken={contentToken}&anotherQs=something"
-                };
-
-            #region temporary
-            IHubContext<ReverseProxySessionHub> hubContext = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
-
-            var proxyInternalUri = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port.Value);
-
-            var arg = new OpenSessionRequest 
-            { 
-                PublicUri = redirectUriBuilder.Uri.AbsoluteUri, // TODO maybe the proxy should generate this, don't send from here
-                RequestingHost = HttpContext.Connection.RemoteIpAddress?.ToString(), 
-                InternalUri = proxyInternalUri.Uri.AbsoluteUri,
-                Token = contentToken,
-            };
-            await hubContext.Clients.All.SendAsync("NewSessionAuthorized", arg);
-            #endregion
-
-            return Redirect(redirectUriBuilder.Uri.AbsoluteUri);
-        }
-
-        // TODO This method is temporary
-        [HttpGet]
-        [AllowAnonymous]
-        public async Task<IActionResult> Test2()
-        {
-            #region temporary
-            IHubContext<ReverseProxySessionHub> hubContext = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
-
-            var internalUri = new UriBuilder(Request.Scheme, Request.Host.Host, Request.Host.Port.Value, Request.Path);
-
-            await hubContext.Clients.All.SendAsync("SessionActivity", internalUri);
-            #endregion
-
-            return Redirect(internalUri.Uri.AbsoluteUri);
-        }
-
-
         //
         // GET: /Account/Login
         [HttpGet]
