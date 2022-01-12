@@ -338,7 +338,7 @@ namespace ContainerizedAppLib
                 containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
                 if (containerGroup != null)
                 {
-                    return containerGroup.State;
+                    return containerGroup.Refresh().State;
                 }
             }
             catch (Exception ex)
@@ -347,6 +347,19 @@ namespace ContainerizedAppLib
             }
 
             return "Not found";
+        }
+
+        public async Task<IEnumerable<IContainerGroup>> ListContainerGroupsInResourceGroup()
+        {
+            try
+            {
+                return await _azureContext.ContainerGroups.ListAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error attempting to list all Container Groups in Resource Group.");
+                return null;
+            }
         }
 
         public async Task StopContainerInstance(string containerGroupId)
