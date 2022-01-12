@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using ContainerizedAppLib;
+using ContainerizedAppLib.ProxySupport;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -16,8 +17,10 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -49,6 +52,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
         private readonly AuthorizedContentQueries _authorizedContentQueries;
+        private readonly IServiceProvider _serviceProvider;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -63,6 +67,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="powerBiConfigArg"></param>
         /// <param name="ContainerizedAppLibApiConfig"></param>
         /// <param name="AuthorizedContentQueriesArg"></param>
+        /// <param name="ReverseProxySessionHubArg"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -73,7 +78,8 @@ namespace MillimanAccessPortal.Controllers
             IConfiguration AppConfigurationArg,
             IOptions<PowerBiConfig> powerBiConfigArg,
             IOptions<ContainerizedAppLibApiConfig> containerizedAppConfigArg,
-            AuthorizedContentQueries AuthorizedContentQueriesArg)
+            AuthorizedContentQueries AuthorizedContentQueriesArg,
+            IServiceProvider serviceProviderArg)
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -85,6 +91,7 @@ namespace MillimanAccessPortal.Controllers
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
             _authorizedContentQueries = AuthorizedContentQueriesArg;
+            _serviceProvider = serviceProviderArg;
         }
 
         /// <summary>
@@ -563,6 +570,7 @@ namespace MillimanAccessPortal.Controllers
                                                        .Where(sg => sg.Id == group)
                                                        .SingleOrDefault();
 
+            #region Validation
             if (selectionGroup == null)
             {
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
@@ -580,6 +588,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"The content could not be loaded.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
 
             PowerBiContentItemProperties embedProperties = selectionGroup.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
             List<string> roleList = null;
@@ -636,27 +645,87 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.ContentType)
+                                                       .SingleOrDefault(g => g.Id == group);
+            ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+            #region Validation
+            if (selectionGroup == null)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsInactive)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
             try
             {
+                string containerProxyPathRoot = ApplicationConfig.GetValue<string>("ContainerProxyPathRoot");
+
                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
 
+#warning TODO complete this section
                 // TODO Use api to run a container
+                // if (needed) {
+                //     api.RunSomeContainer(some arguments);
+                // }
 
-                // TODO Get info about a running container to serve this request
-
-                // TODO Generate any tokens or other info for this session
-
-                // TODO Notify the reverse proxy about the new session
+                // TODO Collect info to configure the proxy and the redirect
+                string containerFqdn = "container-fqdn";
+                containerFqdn = "localhost";  // temporary
+                int containerExposedPort = 3838;
+                containerExposedPort = 44336;  // temporary
 
                 // TODO Generate a Uri to the proxy for the browser to request the application
+                UriBuilder externalRequestUri = new UriBuilder
+                {
+                    Scheme = Request.Scheme,
+                    Host = ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
+                    Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
+                    Path = $"{containerProxyPathRoot}/{containerFqdn}",
+                    //Query = string.Join("&", QueryStringItems),
+                };
+                // Cookies apply to the current domain
+                Response.Cookies.Append("test-cookie", "some value", new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
 
-                // This only works for redirects to the same domain
-                // Response.Cookies.Append("test-cookie", "some value", new CookieOptions { Domain = containerizedAppContentUri.Host, MaxAge = TimeSpan.FromMinutes(5) });
+                // TODO Generate any tokens or other info for this session
+                var contentToken = "some-token";
 
-                UriBuilder requestUri = new UriBuilder();
-                Log.Information("In AuthorizedContentController.ContainerizedApp: redirecting to {@Request}", requestUri.Uri.AbsoluteUri);
+                // TODO Notify the reverse proxy about the new session
+                var proxyInternalUri = new UriBuilder(Request.Scheme, containerFqdn, containerExposedPort);
 
-                return Redirect(requestUri.Uri.AbsoluteUri);
+                var arg = new OpenSessionRequest
+                {
+                    PublicUri = externalRequestUri.Uri.AbsoluteUri,
+                    RequestingHost = HttpContext.Connection.RemoteIpAddress.ToString(),
+                    InternalUri = proxyInternalUri.Uri.AbsoluteUri,
+                    Token = contentToken,
+                };
+                IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
+                await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
+
+                Log.Information("In AuthorizedContentController.ContainerizedApp: redirecting to {@Request}", externalRequestUri.Uri.AbsoluteUri);
+
+                return Redirect(externalRequestUri.Uri.AbsoluteUri);
             }
             catch (Exception ex)
             {
