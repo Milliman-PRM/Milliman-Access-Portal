@@ -23,6 +23,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ContainerInstance.Fluent;
 using Microsoft.Azure.Management.ContainerInstance.Fluent.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 
 namespace ContainerizedAppLib
 {
@@ -50,6 +51,7 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAccessTokenAsync();
+                //await GetAzureContextForContainerInstances();
 
                 ContainerRegistryClient client = new ContainerRegistryClient(
                     new Uri(Config.ContainerRegistryUrl),
@@ -283,22 +285,22 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        public static IAzure GetAzureContextForContainerInstances()
+        public IAzure GetAzureContextForContainerInstances()
         {
             IAzure azure;
-            ISubscirption subscription;
+            ISubscription subscription;
 
-            try
-            {
-                var creds = new AzureCredentialFactory().FromServicePrinciapl()
-            }
+            // TODO wait for service principal credential creation.
+
+            return azure;
         }
 
-        public void CreateContainerGroup(IAzure azure, string resourceGroupName, string containerGroupName, string containerImageName, string registryUrl, string registryUsername, string registryPassword)
+        public async Task CreateContainerGroup(string resourceGroupName, string containerGroupName, string containerImageName, string registryUrl, string registryUsername, string registryPassword)
         {
+            var azure = GetAzureContextForContainerInstances();
             try
             {
-                IResourceGroup resourceGroup = azure.ResourceGroups.GetByName(resourceGroupName);
+                IResourceGroup resourceGroup = await azure.ResourceGroups.GetByNameAsync(resourceGroupName);
                 Region azureRegion = resourceGroup.Region;
 
                 var newContainerGroup = azure.ContainerGroups.Define(containerGroupName)
@@ -309,12 +311,13 @@ namespace ContainerizedAppLib
                     .WithoutVolume()
                     .DefineContainerInstance(containerGroupName + "-test")
                         .WithImage(containerImageName)
-                        .WithExternalTcpPort(80)
+                        .WithExternalTcpPorts(80, 3000)
                         .WithCpuCoreCount(1.0)
                         .WithMemorySizeInGB(1)
                         .Attach()
                     .WithDnsPrefix(containerGroupName)
                     .Create();
+                Console.WriteLine("help");
             }
             catch (Exception ex)
             {
