@@ -284,7 +284,7 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        public void GetAzureContextForContainerInstances()
+        private void GetAzureContextForContainerInstances()
         {
             try
             {
@@ -346,7 +346,7 @@ namespace ContainerizedAppLib
                 Log.Error(ex, "Error trying to find an Azure Container Group.");
             }
 
-            return "Not found";
+            return "Container Group not found";
         }
 
         public async Task<IEnumerable<IContainerGroup>> ListContainerGroupsInResourceGroup()
