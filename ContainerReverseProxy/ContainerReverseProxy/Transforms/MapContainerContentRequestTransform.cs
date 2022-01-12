@@ -5,10 +5,16 @@ namespace ContainerReverseProxy.Transforms
 {
     public class MapContainerContentRequestTransform : RequestTransform
     {
+        public string InternalPath { get; init; }
+
+        public MapContainerContentRequestTransform(IReadOnlyDictionary<string, string> metadata)
+        {
+            InternalPath = metadata["InternalPath"];
+        }
+
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
-            // Temporary
-            Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query}", 
+            Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (before request transform)", 
                                       context.HttpContext.Request.Method, 
                                       context.HttpContext.Request.Scheme, 
                                       context.HttpContext.Request.Host, 
@@ -17,8 +23,7 @@ namespace ContainerReverseProxy.Transforms
 
             context.HttpContext.Request.Query = new QueryCollection(context.HttpContext.Request.Query.Where(q => !q.Key.Equals("contentToken")).ToDictionary(kvp => kvp.Key, kvp => kvp.Value));
 
-            Log.Information($"After removing contentToken query:{Environment.NewLine}" +
-                            "Request: {@Method} {@Scheme}://{Host}{Path}{Query}",
+            Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (after request transform)",
                                       context.HttpContext.Request.Method,
                                       context.HttpContext.Request.Scheme,
                                       context.HttpContext.Request.Host,

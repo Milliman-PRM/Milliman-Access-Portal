@@ -42,7 +42,7 @@ namespace ContainerReverseProxy.Transforms
         public void Apply(TransformBuilderContext context)
         {
             context.ResponseTransforms.Add(new MapContainerContentResponseTransform(TargetUri!));
-            context.RequestTransforms.Add(new MapContainerContentRequestTransform());
+            context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster?.Metadata ?? new Dictionary<string,string>()));
         }
     }
 }

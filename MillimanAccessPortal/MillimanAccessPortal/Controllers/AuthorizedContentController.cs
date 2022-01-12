@@ -689,26 +689,32 @@ namespace MillimanAccessPortal.Controllers
                 //     api.RunSomeContainer(some arguments);
                 // }
 
-                // TODO Collect info to configure the proxy and the redirect
+                // TODO Collect correct info to configure the proxy and the redirect
                 string containerFqdn = "container-fqdn";
-                containerFqdn = "localhost";  // temporary
                 int containerExposedPort = 3838;
+
+                containerFqdn = "localhost";  // temporary
                 containerExposedPort = 44336;  // temporary
 
-                // TODO Generate a Uri to the proxy for the browser to request the application
+                // TODO Generate any tokens or other info for this session
+                var contentToken = "some-token";
+                var sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
+
+                // TODO Generate external Uri for the browser to request the container
+                string[] QueryStringItems = new string[]
+                {
+                    $"contentToken={contentToken}",
+                };
                 UriBuilder externalRequestUri = new UriBuilder
                 {
                     Scheme = Request.Scheme,
                     Host = ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
                     Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
                     Path = $"{containerProxyPathRoot}/{containerFqdn}",
-                    //Query = string.Join("&", QueryStringItems),
+                    Query = string.Join("&", QueryStringItems),
                 };
                 // Cookies apply to the current domain
-                Response.Cookies.Append("test-cookie", "some value", new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
-
-                // TODO Generate any tokens or other info for this session
-                var contentToken = "some-token";
+                Response.Cookies.Append("contentToken", contentToken, new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
 
                 // TODO Notify the reverse proxy about the new session
                 var proxyInternalUri = new UriBuilder(Request.Scheme, containerFqdn, containerExposedPort);
@@ -718,7 +724,8 @@ namespace MillimanAccessPortal.Controllers
                     PublicUri = externalRequestUri.Uri.AbsoluteUri,
                     RequestingHost = HttpContext.Connection.RemoteIpAddress.ToString(),
                     InternalUri = proxyInternalUri.Uri.AbsoluteUri,
-                    Token = contentToken,
+                    SessionToken = sessionToken,
+                    ContentToken = contentToken,
                 };
                 IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
                 await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);

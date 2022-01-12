@@ -43,32 +43,40 @@ namespace ContainerReverseProxy
                     ClusterId = Guid.NewGuid().ToString(),
                     Match = new RouteMatch
                     {
-                        // TODO: Do something more specific to the session being opened
-                        //Path = "{**catch-all}",
                         Path = requestedUri.Path,
-                        //Hosts = new List<string> { requestedUri.Host },
-                        //Headers = new List<RouteHeader> { new RouteHeader { Name = "Host", Values = new List<string> { request.RequestingHost } } },
                         Methods = default,
-                        QueryParameters = new List<RouteQueryParameter> 
-                        { 
-                            new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.Token } }
+                        QueryParameters = new List<RouteQueryParameter>
+                        {
+                            new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
                         },
+                        //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
+                        //Hosts = new List<string> { requestedUri.Host },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
-                    
+                    Metadata = new Dictionary<string, string> { { "InternalPath", new Uri(request.InternalUri).AbsolutePath } },
                 };
-
-                ClusterConfig newCluster = new()
-                {
-                    ClusterId = newRoute.ClusterId,
-                    Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
-                    {
-                        { "destination1", new DestinationConfig() { Address = request.InternalUri } }
-                    }
-                };
-                MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
 
                 var cfg = MapProxyConfigProvider.GetConfig();
+                if (!cfg.Routes.Any(r => (r.Match.Path is not null && r.Match.Path.Equals(newRoute.Match.Path, StringComparison.InvariantCultureIgnoreCase))
+                                      && (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet()))
+                                      && (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))))
+                {
+                    ClusterConfig newCluster = new ClusterConfig
+                    {
+                        ClusterId = newRoute.ClusterId,
+                        Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                        { { 
+                                "destination1", 
+                                new DestinationConfig
+                                { 
+                                    Address = request.InternalUri, 
+                                    Metadata = new Dictionary<string, string> { { "InternalPath", new Uri(request.InternalUri).AbsolutePath } }
+                                }
+                        } },
+                    };
+                    MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
+                }
+
                 await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
             });
 
