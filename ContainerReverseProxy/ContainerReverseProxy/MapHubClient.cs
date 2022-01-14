@@ -50,10 +50,10 @@ namespace ContainerReverseProxy
                             new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
                         },
                         //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
+/*temporary*/           Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Mode = HeaderMatchMode.Exists } },
                         //Hosts = new List<string> { requestedUri.Host },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
-                    Metadata = new Dictionary<string, string> { { "InternalPath", new Uri(request.InternalUri).AbsolutePath } },
                 };
 
                 var cfg = MapProxyConfigProvider.GetConfig();
@@ -70,9 +70,12 @@ namespace ContainerReverseProxy
                                 new DestinationConfig
                                 { 
                                     Address = request.InternalUri, 
-                                    Metadata = new Dictionary<string, string> { { "InternalPath", new Uri(request.InternalUri).AbsolutePath } }
                                 }
                         } },
+                       Metadata = new Dictionary<string, string> 
+                       { 
+                           { "ExternalPathRoot", requestedUri.Path },
+                       },
                     };
                     MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
                 }
