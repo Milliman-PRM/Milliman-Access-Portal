@@ -692,9 +692,11 @@ namespace MillimanAccessPortal.Controllers
                 // TODO Collect correct info to configure the proxy and the redirect
                 string containerFqdn = "container-fqdn";
                 int containerExposedPort = 3838;
+                var containerScheme = Request.Scheme;
 
-                containerFqdn = "localhost";  // temporary
-                containerExposedPort = 44336;  // temporary
+                containerScheme = "http";
+                containerFqdn = "c-sharp-test.eastus.azurecontainer.io";  // temporary
+                containerExposedPort = 3000;  // temporary
 
                 // TODO Generate any tokens or other info for this session
                 var contentToken = "some-token";
@@ -717,7 +719,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Cookies.Append("contentToken", contentToken, new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
 
                 // TODO Notify the reverse proxy about the new session
-                var proxyInternalUri = new UriBuilder(Request.Scheme, containerFqdn, containerExposedPort);
+                var proxyInternalUri = new UriBuilder(containerScheme, containerFqdn, containerExposedPort);
 
                 var arg = new OpenSessionRequest
                 {
