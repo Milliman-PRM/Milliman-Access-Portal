@@ -157,13 +157,9 @@ namespace ContainerizedAppLib
             #region Compile layers
             List<string> layerNames;
             JObject manifestObj;
-            FileStream fs = File.OpenRead(manifestPath);
-            using (StreamReader streamReader = new StreamReader(fs))
-            {
-                string fileContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
-                manifestObj = JObject.Parse(fileContents);
-                layerNames = manifestObj.SelectToken("Layers").ToObject<List<string>>();
-            }
+            string fileContents = File.ReadAllText(manifestPath).Trim(new char[] { '[', ']' });
+            manifestObj = JObject.Parse(fileContents);
+            layerNames = manifestObj.SelectToken("Layers").ToObject<List<string>>();
             #endregion
 
             try
