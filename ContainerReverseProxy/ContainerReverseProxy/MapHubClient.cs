@@ -12,7 +12,7 @@ namespace ContainerReverseProxy
     public class MapHubClient
     {
         private readonly MapProxyConfigProvider MapProxyConfigProvider;
-        private readonly IConfiguration AppConfiguration;
+        private readonly IConfiguration _appConfiguration;
         private readonly TimeSpan RetryDelay = TimeSpan.FromSeconds(10);
 
         private HubConnection connection;
@@ -21,9 +21,9 @@ namespace ContainerReverseProxy
                             IConfiguration configurationArg)
         {
             MapProxyConfigProvider = (MapProxyConfigProvider)proxyConfigProviderArg;
-            AppConfiguration = configurationArg;
+            _appConfiguration = configurationArg;
 
-            string hubUrl = AppConfiguration.GetValue<string>("MapHubUrl");  // "https://localhost:44336/contentsessionhub" in Development environment
+            string hubUrl = _appConfiguration.GetValue<string>("MapHubUrl");  // "https://localhost:44336/contentsessionhub" in Development environment
             connection = new HubConnectionBuilder().WithAutomaticReconnect(new SignalRHubRetryForeverPolicy(RetryDelay))
                                                    .WithUrl(hubUrl)
                                                    .Build();
@@ -31,6 +31,32 @@ namespace ContainerReverseProxy
             connection.Closed += Connection_Closed;
             connection.Reconnecting += Connection_Reconnecting;
             connection.Reconnected += Connection_Reconnected;
+
+            #region initialize with a wildcard path route to handle referenced resource links
+            RouteConfig unknownContainerRoute = new()
+            {
+                RouteId = "UnspecifiedPathRoute",
+                ClusterId = "UnspecifiedPathCluster",
+                Match = new RouteMatch
+                {
+                    Path = "{**catch-all}",
+                },
+                Order = int.MaxValue,
+            };
+            ClusterConfig unknownContainerCluster = new()
+            {
+                ClusterId = "UnspecifiedPathCluster",
+                Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                    { {
+                        "anonymous",
+                        new DestinationConfig
+                        {
+                            Address = _appConfiguration.GetValue<string>("ReverseProxyBaseUrl"),
+                        }
+                    } },
+            };
+            MapProxyConfigProvider.OpenNewSession(unknownContainerRoute, unknownContainerCluster);
+            #endregion
 
             connection.On<OpenSessionRequest>("NewSessionAuthorized", async request =>
             {
@@ -43,7 +69,7 @@ namespace ContainerReverseProxy
                     ClusterId = Guid.NewGuid().ToString(),
                     Match = new RouteMatch
                     {
-                        Path = requestedUri.Path,
+                        Path = requestedUri.Path + "/{**wildcard}",
                         Methods = default,
                         QueryParameters = new List<RouteQueryParameter>
                         {
@@ -54,6 +80,7 @@ namespace ContainerReverseProxy
                         //Hosts = new List<string> { requestedUri.Host },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
+                    Order = 1,
                 };
 
                 var cfg = MapProxyConfigProvider.GetConfig();
@@ -78,6 +105,8 @@ namespace ContainerReverseProxy
                        },
                     };
                     MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
+
+                    Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(MapProxyConfigProvider.GetConfig())}");
                 }
 
                 await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
@@ -131,7 +160,7 @@ namespace ContainerReverseProxy
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"MapHubClient failed connecting to SignalR hub at {AppConfiguration.GetValue<string>("MapHubUrl")}:{Environment.NewLine}{ex.Message}");
+                    Log.Error($"MapHubClient failed connecting to SignalR hub at {_appConfiguration.GetValue<string>("MapHubUrl")}:{Environment.NewLine}{ex.Message}");
                     await Task.Delay(RetryDelay);
                 }
             }

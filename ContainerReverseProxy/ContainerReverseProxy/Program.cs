@@ -34,9 +34,6 @@ app.Services.GetRequiredService<MapHubClient>();
 
 app.MapReverseProxy();
 
-Yarp.ReverseProxy.Configuration.IProxyConfigProvider? configProvider = app.Services.GetRequiredService<Yarp.ReverseProxy.Configuration.IProxyConfigProvider>();
-configProvider.GetConfig();
-
-Timer configLogTimer = new Timer(config => Log.Information(JsonSerializer.Serialize(configProvider.GetConfig())), null, dueTime: TimeSpan.Zero, period: TimeSpan.FromSeconds(10));
+//Timer configLogTimer = new Timer(config => Log.Information(JsonSerializer.Serialize(configProvider.GetConfig())), null, dueTime: TimeSpan.Zero, period: TimeSpan.FromSeconds(10));
 
 app.Run();

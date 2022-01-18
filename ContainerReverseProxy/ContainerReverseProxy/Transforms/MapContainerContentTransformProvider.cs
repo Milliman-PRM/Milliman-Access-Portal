@@ -41,8 +41,17 @@ namespace ContainerReverseProxy.Transforms
         /// <param name="context">The context to add any generated transforms to.</param>
         public void Apply(TransformBuilderContext context)
         {
-            context.ResponseTransforms.Add(new MapContainerContentResponseTransform(TargetUri!));
-            context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster?.Metadata ?? new Dictionary<string,string>()));
+            switch (context.Route.RouteId)
+            {
+                case "UnspecifiedPathRoute":
+                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform());
+                    break;
+
+                default:
+                    context.ResponseTransforms.Add(new MapContainerContentResponseTransform(TargetUri!));
+                    context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster?.Metadata ?? new Dictionary<string, string>()));
+                    break;
+            }
         }
     }
 }
