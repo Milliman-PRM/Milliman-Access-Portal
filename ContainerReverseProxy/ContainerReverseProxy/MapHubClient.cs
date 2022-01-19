@@ -76,7 +76,8 @@ namespace ContainerReverseProxy
                             new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
                         },
                         //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
-/*temporary*/           Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Mode = HeaderMatchMode.Exists } },
+                        /*temporary*/
+                        Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Mode = HeaderMatchMode.Exists } },
                         //Hosts = new List<string> { requestedUri.Host },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively

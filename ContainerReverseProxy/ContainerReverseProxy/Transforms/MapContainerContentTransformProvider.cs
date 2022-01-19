@@ -44,7 +44,8 @@ namespace ContainerReverseProxy.Transforms
             switch (context.Route.RouteId)
             {
                 case "UnspecifiedPathRoute":
-                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform());
+                    IConfiguration appConfig = context.Services.GetRequiredService<IConfiguration>();
+                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform(appConfig.GetValue<string>("ReverseProxyPathBaseSegment")));
                     break;
 
                 default:
