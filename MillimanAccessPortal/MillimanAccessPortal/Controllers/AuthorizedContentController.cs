@@ -15,6 +15,7 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
@@ -35,6 +36,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace MillimanAccessPortal.Controllers
@@ -685,7 +687,7 @@ namespace MillimanAccessPortal.Controllers
 
 #warning TODO complete this section
                 // TODO Use api to run a container
-                // if (needed) {
+                // if (necessary) {
                 //     api.RunSomeContainer(some arguments);
                 // }
 
@@ -697,26 +699,36 @@ namespace MillimanAccessPortal.Controllers
                 containerScheme = "http";
                 containerFqdn = "c-sharp-test.eastus.azurecontainer.io";  // temporary
                 containerExposedPort = 3000;  // temporary
+                containerFqdn = "cc-test-container.eastus.azurecontainer.io";  // temporary
+                containerExposedPort = 8080;  // temporary
+
+                byte[] hash;
+                using (var md5 = System.Security.Cryptography.MD5.Create())
+                {
+                    hash = md5.ComputeHash(Encoding.ASCII.GetBytes(containerFqdn));
+                }
+                string contentToken = BitConverter.ToString(hash).Replace("-", "");
 
                 // TODO Generate any tokens or other info for this session
-                var contentToken = "some-token";
-                var sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
+                string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
 
                 // TODO Generate external Uri for the browser to request the container
-                string[] QueryStringItems = new string[]
-                {
-                    $"contentToken={contentToken}",
-                };
+
                 UriBuilder externalRequestUri = new UriBuilder
                 {
                     Scheme = Request.Scheme,
                     Host = ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
                     Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
-                    Path = $"{containerProxyPathRoot}/{containerFqdn}",
-                    Query = string.Join("&", QueryStringItems),
+                    Path = containerProxyPathRoot,
                 };
+                IWebHostEnvironment webHostEnvironment = _serviceProvider.GetService<IWebHostEnvironment>();
+                if (!webHostEnvironment.EnvironmentName.Contains("Azure", StringComparison.OrdinalIgnoreCase))
+                {
+                    externalRequestUri.Query = string.Join("&", new string[] { $"contentToken={contentToken}" });
+                }
+
                 // Cookies apply to the current domain
-                Response.Cookies.Append("contentToken", contentToken, new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
+                //Response.Cookies.Append("contentToken", contentToken, new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
 
                 // TODO Notify the reverse proxy about the new session
                 var proxyInternalUri = new UriBuilder(containerScheme, containerFqdn, containerExposedPort);

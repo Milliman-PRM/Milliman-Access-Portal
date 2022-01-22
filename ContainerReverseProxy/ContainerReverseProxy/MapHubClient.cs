@@ -69,25 +69,29 @@ namespace ContainerReverseProxy
                     ClusterId = Guid.NewGuid().ToString(),
                     Match = new RouteMatch
                     {
-                        Path = requestedUri.Path + "/{**wildcard}",
-                        Methods = default,
-                        QueryParameters = new List<RouteQueryParameter>
-                        {
-                            new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
-                        },
+                        Path = "{**catch-all}",
+                        Hosts = new List<string> { request.ContentToken },
+
+                        //Methods = default,
+                        //QueryParameters = new List<RouteQueryParameter>
+                        //{
+                        //    new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
+                        //},
                         //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
-                        /*temporary*/
-                        Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Mode = HeaderMatchMode.Exists } },
-                        //Hosts = new List<string> { requestedUri.Host },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
                     Order = 1,
+                    Metadata = new Dictionary<string, string>
+                       {
+                           { "ContentToken", request.ContentToken },
+                       },
                 };
 
-                var cfg = MapProxyConfigProvider.GetConfig();
-                if (!cfg.Routes.Any(r => (r.Match.Path is not null && r.Match.Path.Equals(newRoute.Match.Path, StringComparison.InvariantCultureIgnoreCase))
-                                      && (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet()))
-                                      && (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))))
+            var cfg = MapProxyConfigProvider.GetConfig();
+                if (!cfg.Routes.Any(r => (r.Match.Hosts is not null && r.Match.Hosts.ToHashSet().SetEquals(newRoute.Match.Hosts))
+                                      //&& (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet()))
+                                      //&& (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))
+                                      ))
                 {
                     ClusterConfig newCluster = new ClusterConfig
                     {
@@ -107,10 +111,8 @@ namespace ContainerReverseProxy
                     };
                     MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);
 
-                    Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(MapProxyConfigProvider.GetConfig())}");
+                    await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
                 }
-
-                await connection.SendAsync("ProxyConfigurationReport", connection.ConnectionId, cfg);
             });
 
             connection.On<OpenSessionRequest>("SessionActivity", request =>
