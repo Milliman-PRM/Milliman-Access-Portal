@@ -1,4 +1,6 @@
-﻿using System.Diagnostics;
+﻿using Serilog;
+using System.Diagnostics;
+using System.Text.Json;
 using Yarp.ReverseProxy.Configuration;
 
 namespace ContainerReverseProxy.ProxyConfiguration
@@ -19,6 +21,8 @@ namespace ContainerReverseProxy.ProxyConfiguration
             MapProxyConfiguration? oldConfig = _config;
             _config = new MapProxyConfiguration(routes, clusters);
             oldConfig?.SignalChange();
+
+            Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_config)}");
         }
 
         public void OpenNewSession(RouteConfig route, ClusterConfig? cluster)
