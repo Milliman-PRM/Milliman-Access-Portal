@@ -22,6 +22,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
 using MillimanAccessPortal.DataQueries;
@@ -681,8 +682,7 @@ namespace MillimanAccessPortal.Controllers
 
             try
             {
-                string containerProxyPathRoot = ApplicationConfig.GetValue<string>("ContainerProxyPathRoot");
-
+                string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
 
 #warning TODO complete this section
@@ -692,43 +692,45 @@ namespace MillimanAccessPortal.Controllers
                 // }
 
                 // TODO Collect correct info to configure the proxy and the redirect
-                string containerFqdn = "container-fqdn";
-                int containerExposedPort = 3838;
-                var containerScheme = Request.Scheme;
-
+                string containerFqdn;
+                int containerExposedPort;
+                string containerScheme;
+                #region temporary
                 containerScheme = "http";
-                containerFqdn = "c-sharp-test.eastus.azurecontainer.io";  // temporary
-                containerExposedPort = 3000;  // temporary
-                containerFqdn = "cc-test-container.eastus.azurecontainer.io";  // temporary
-                containerExposedPort = 8080;  // temporary
+                containerFqdn = "c-sharp-test.eastus.azurecontainer.io";
+                containerExposedPort = 3000;
+                containerFqdn = "cc-test-container.eastus.azurecontainer.io";
+                containerExposedPort = 8080;
+                #endregion
 
-                byte[] hash;
-                using (var md5 = System.Security.Cryptography.MD5.Create())
-                {
-                    hash = md5.ComputeHash(Encoding.ASCII.GetBytes(containerFqdn));
-                }
+                // Hash the container fqdn so all requests for the same container will use the same token
+                using var md5 = System.Security.Cryptography.MD5.Create();
+                byte[] hash = md5.ComputeHash(Encoding.ASCII.GetBytes(containerFqdn));
                 string contentToken = BitConverter.ToString(hash).Replace("-", "");
 
                 // TODO Generate any tokens or other info for this session
                 string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
 
-                // TODO Generate external Uri for the browser to request the container
+                string containerProxyPathRoot = $"/{contentToken}";
+
+                string redirectHost = appEnvName switch
+                {
+                    // Azure gateway will expect host with prepended contentToken
+                    var env when env.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) => $"{contentToken}.{ApplicationConfig.GetValue<string>("ContainerProxyDomain")}",
+                    _ => ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
+                };
 
                 UriBuilder externalRequestUri = new UriBuilder
                 {
                     Scheme = Request.Scheme,
-                    Host = ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
+                    Host = redirectHost,
                     Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
                     Path = containerProxyPathRoot,
                 };
-                IWebHostEnvironment webHostEnvironment = _serviceProvider.GetService<IWebHostEnvironment>();
-                if (!webHostEnvironment.EnvironmentName.Contains("Azure", StringComparison.OrdinalIgnoreCase))
+                if (!appEnvName.Contains("azure-", StringComparison.OrdinalIgnoreCase))
                 {
-                    externalRequestUri.Query = string.Join("&", new string[] { $"contentToken={contentToken}" });
+                    externalRequestUri.Query = string.Join("&", new string[] { $"content-token={contentToken}" });
                 }
-
-                // Cookies apply to the current domain
-                //Response.Cookies.Append("contentToken", contentToken, new CookieOptions { MaxAge = TimeSpan.FromMinutes(10), Path = containerProxyPathRoot, HttpOnly = true });
 
                 // TODO Notify the reverse proxy about the new session
                 var proxyInternalUri = new UriBuilder(containerScheme, containerFqdn, containerExposedPort);

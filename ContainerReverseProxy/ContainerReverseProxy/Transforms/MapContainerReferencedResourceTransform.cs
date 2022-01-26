@@ -16,8 +16,16 @@ namespace ContainerReverseProxy.Transforms
         {
             try
             {
-                string referer = context.HttpContext.Request.Headers.Referer.Single();
-                UriBuilder newUri = new UriBuilder(referer);
+                string? referer = context.HttpContext.Request.Headers.Referer.SingleOrDefault();
+                string? origin = context.HttpContext.Request.Headers.Origin.SingleOrDefault();
+
+                if (referer is null && origin is null)
+                {
+                    Log.Information("No <referer> or <origin> header in request");
+                    //return ValueTask.CompletedTask;
+                }
+
+                UriBuilder newUri = new UriBuilder(referer ?? origin!);
 
                 //string[] pathSegments = newUri.Uri.Segments;
                 //if (pathSegments.Length != 3 ||

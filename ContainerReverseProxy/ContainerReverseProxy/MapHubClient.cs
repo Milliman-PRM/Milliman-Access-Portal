@@ -42,6 +42,7 @@ namespace ContainerReverseProxy
                     Path = "{**catch-all}",
                 },
                 Order = int.MaxValue,
+                Metadata = new Dictionary<string, string>(),
             };
             ClusterConfig unknownContainerCluster = new()
             {
@@ -62,6 +63,7 @@ namespace ContainerReverseProxy
             {
                 Log.Information($"Proxy client has received new session opening message with argument: {Environment.NewLine}{JsonSerializer.Serialize(request, new JsonSerializerOptions { WriteIndented=true })}");
                 UriBuilder requestedUri = new UriBuilder(request.PublicUri);
+                string ContentTokenName = _appConfiguration.GetValue<string>("ReverseProxyContentTokenHeaderName");
 
                 RouteConfig newRoute = new()
                 {
@@ -70,7 +72,7 @@ namespace ContainerReverseProxy
                     Match = new RouteMatch
                     {
                         Path = "{**catch-all}",
-                        Hosts = new List<string> { request.ContentToken },
+                        //Hosts = new List<string> { request.ContentToken },
 
                         //Methods = default,
                         //QueryParameters = new List<RouteQueryParameter>
@@ -78,20 +80,21 @@ namespace ContainerReverseProxy
                         //    new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
                         //},
                         //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
+                        Headers = new List<RouteHeader> { new RouteHeader { Name = ContentTokenName, Values = new List<string> { request.ContentToken } } },
                     },
                     AuthorizationPolicy = default, // TODO Look into how to use this effectively
                     Order = 1,
                     Metadata = new Dictionary<string, string>
                        {
-                           { "ContentToken", request.ContentToken },
+                           { ContentTokenName, request.ContentToken },
                        },
                 };
 
             var cfg = MapProxyConfigProvider.GetConfig();
-                if (!cfg.Routes.Any(r => (r.Match.Hosts is not null && r.Match.Hosts.ToHashSet().SetEquals(newRoute.Match.Hosts))
-                                      //&& (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet()))
-                                      //&& (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))
-                                      ))
+                if (!cfg.Routes.Any(r => //(r.Match.Hosts is not null && r.Match.Hosts.ToHashSet().SetEquals(newRoute.Match.Hosts)) &&
+                                      // (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet())) &&
+                                         (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))
+                                         ))
                 {
                     ClusterConfig newCluster = new ClusterConfig
                     {
@@ -107,6 +110,7 @@ namespace ContainerReverseProxy
                        Metadata = new Dictionary<string, string> 
                        { 
                            { "ExternalPathRoot", requestedUri.Path },
+                           { "ContentTokenName", ContentTokenName },
                        },
                     };
                     MapProxyConfigProvider.OpenNewSession(newRoute, newCluster);

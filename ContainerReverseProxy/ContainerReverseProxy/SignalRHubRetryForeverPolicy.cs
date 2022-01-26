@@ -4,16 +4,16 @@ namespace ContainerReverseProxy
 {
     public class SignalRHubRetryForeverPolicy : IRetryPolicy
     {
-        private readonly TimeSpan _delay;
+        private TimeSpan Delay { get; init; }
 
         public SignalRHubRetryForeverPolicy(TimeSpan delay)
         {
-            _delay = delay;
+            Delay = delay;
         }
 
         public TimeSpan? NextRetryDelay(RetryContext retryContext)
         {
-            return _delay;
+            return Delay;
         }
     }
 }

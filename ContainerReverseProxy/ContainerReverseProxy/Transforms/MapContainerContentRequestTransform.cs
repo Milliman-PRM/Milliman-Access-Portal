@@ -5,11 +5,13 @@ namespace ContainerReverseProxy.Transforms
 {
     public class MapContainerContentRequestTransform : RequestTransform
     {
-        public string ExternalPathRoot { get; init; }
+        private string ExternalPathRoot { get; init; }
+        private string ContentTokenName { get; init; }
 
         public MapContainerContentRequestTransform(IReadOnlyDictionary<string, string> metadata)
         {
             ExternalPathRoot = metadata["ExternalPathRoot"];
+            ContentTokenName = metadata["ContentTokenName"];
         }
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
@@ -22,7 +24,7 @@ namespace ContainerReverseProxy.Transforms
                                       context.HttpContext.Request.QueryString);
 
             context.Path = context.Path.Value?.Replace(ExternalPathRoot, "/");
-            context.Query.Collection.Remove("contentToken");
+            context.Query.Collection.Remove(ContentTokenName);
 
             return ValueTask.CompletedTask;
         }
