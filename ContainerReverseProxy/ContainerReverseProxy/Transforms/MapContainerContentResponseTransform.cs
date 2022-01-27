@@ -22,28 +22,37 @@ namespace ContainerReverseProxy.Transforms
             if (context.ProxyResponse is null)
             {
                 return ValueTask.CompletedTask;
-                //throw new ArgumentException();
             }
 
-            // A redirect response with absolute location to the internal host/port updates to the external host/port
-            if (context.HttpContext.Response.StatusCode >= 300 && context.HttpContext.Response.StatusCode < 400)
+            switch (context.HttpContext.Response.StatusCode)
             {
-                if (context.ProxyResponse.Headers.Location is not null &&
-                    context.ProxyResponse.Headers.Location.IsAbsoluteUri &&
-                    context.ProxyResponse.Headers.Location.Host == _targetUri.Host &&
-                    context.ProxyResponse.Headers.Location.Port == _targetUri.Port)
-                {
-                    string beforeTransform = context.HttpContext.Response.Headers.Location;  // Temporary
-                    UriBuilder newLocationUri = new UriBuilder(context.HttpContext.Response.Headers.Location);
-                    newLocationUri.Host = context.HttpContext.Request.Host.Host;
-                    if (context.HttpContext.Request.Host.Port > 0)
+                case (>= 100 and < 200) or 204:
+                    // Content-Length header is prohibited by spec for these statuses. R-Shiny non-complies for websocket upgrade response
+                    if (context.HttpContext.Response.Headers.ContentLength.HasValue)
                     {
-                        newLocationUri.Port = context.HttpContext.Request.Host.Port ?? -1;
+                        context.HttpContext.Response.Headers.ContentLength = null;
                     }
+                    break;
 
-                    context.HttpContext.Response.Headers.Location = newLocationUri.Uri.AbsoluteUri;
-                    Log.Information("Redirect response location header transformed from {Before} to {After}", beforeTransform, context.HttpContext.Response.Headers.Location);  // Temporary
-                }
+                case >= 300 and < 400:
+                    // A redirect response with absolute location to the internal host/port updates to the external host/port
+                    if (context.ProxyResponse.Headers.Location is not null &&
+                        context.ProxyResponse.Headers.Location.IsAbsoluteUri &&
+                        context.ProxyResponse.Headers.Location.Host == _targetUri.Host &&
+                        context.ProxyResponse.Headers.Location.Port == _targetUri.Port)
+                    {
+                        string beforeTransform = context.HttpContext.Response.Headers.Location;  // Temporary
+                        UriBuilder newLocationUri = new UriBuilder(context.HttpContext.Response.Headers.Location);
+                        newLocationUri.Host = context.HttpContext.Request.Host.Host;
+                        if (context.HttpContext.Request.Host.Port > 0)
+                        {
+                            newLocationUri.Port = context.HttpContext.Request.Host.Port ?? -1;
+                        }
+
+                        context.HttpContext.Response.Headers.Location = newLocationUri.Uri.AbsoluteUri;
+                        Log.Information("Redirect response location header transformed from {Before} to {After}", beforeTransform, context.HttpContext.Response.Headers.Location);  // Temporary
+                    }
+                    break;
             }
 
             return ValueTask.CompletedTask;

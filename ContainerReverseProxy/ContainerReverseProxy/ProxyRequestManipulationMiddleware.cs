@@ -1,5 +1,4 @@
 ﻿using ContainerReverseProxy.ProxyConfiguration;
-using Microsoft.Extensions.Primitives;
 using Serilog;
 using Yarp.ReverseProxy.Configuration;
 
