@@ -16,12 +16,12 @@ namespace ContainerReverseProxy.Transforms
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
-            Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (before request transform)", 
-                                      context.HttpContext.Request.Method, 
-                                      context.HttpContext.Request.Scheme, 
-                                      context.HttpContext.Request.Host, 
-                                      context.HttpContext.Request.Path,
-                                      context.HttpContext.Request.QueryString);
+            //Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (before request transform)", 
+            //                          context.HttpContext.Request.Method, 
+            //                          context.HttpContext.Request.Scheme, 
+            //                          context.HttpContext.Request.Host, 
+            //                          context.HttpContext.Request.Path,
+            //                          context.HttpContext.Request.QueryString);
 
             context.Path = context.Path.Value?.Replace(ExternalPathRoot, "/");
             context.Query.Collection.Remove(ContentTokenName);

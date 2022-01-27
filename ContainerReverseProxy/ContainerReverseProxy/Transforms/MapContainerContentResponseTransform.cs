@@ -28,6 +28,7 @@ namespace ContainerReverseProxy.Transforms
             {
                 case (>= 100 and < 200) or 204:
                     // Content-Length header is prohibited by spec for these statuses. R-Shiny non-complies for websocket upgrade response
+                    // https://datatracker.ietf.org/doc/html/rfc7230#section-3.3.2
                     if (context.HttpContext.Response.Headers.ContentLength.HasValue)
                     {
                         context.HttpContext.Response.Headers.ContentLength = null;

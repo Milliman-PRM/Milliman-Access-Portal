@@ -80,7 +80,7 @@ namespace ContainerReverseProxy
 
                 if (!string.IsNullOrEmpty(context.Response.ContentType) &&
                     context.Response.ContentType.Contains("text/html", StringComparison.InvariantCultureIgnoreCase) &&
-                    !newBody.Contains("<base"))
+                    !newBody.Contains("<base "))
                 {
                     string contentTokenPath = $"/{(context.Request.Headers.ContainsKey("content-token") ? context.Request.Headers["content-token"] : "")}";
                     string basePath = context.Request.Path.StartsWithSegments(contentTokenPath) ? context.Request.Path : contentTokenPath + context.Request.Path;

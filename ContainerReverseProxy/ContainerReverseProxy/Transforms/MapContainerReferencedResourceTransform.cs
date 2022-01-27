@@ -25,6 +25,7 @@ namespace ContainerReverseProxy.Transforms
                     //return ValueTask.CompletedTask;
                 }
 
+#warning need better logic here.  Referer and orginal are sometimes not included at all
                 UriBuilder newUri = new UriBuilder(referer ?? origin!);
 
                 //string[] pathSegments = newUri.Uri.Segments;
