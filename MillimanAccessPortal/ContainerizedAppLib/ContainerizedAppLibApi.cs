@@ -155,21 +155,19 @@ namespace ContainerizedAppLib
         public async Task<JObject> PushImageToRegistry(string repositoryName, string manifestPath, string imageDigest, string imagePath)
         {
             #region Compile layers
-            List<string> layerNames;
             JObject manifestObj;
             string fileContents = File.ReadAllText(manifestPath).Trim(new char[] { '[', ']' });
             manifestObj = JObject.Parse(fileContents);
-            layerNames = manifestObj.SelectToken("Layers").ToObject<List<string>>();
+            List<LayerObject> layers = manifestObj.SelectToken("layers").ToObject<List<LayerObject>>();
             #endregion
 
             try
             {
-                foreach (string layerName in layerNames)
+                foreach (var layer in layers)
                 {
-                    string layerDigest = $"sha256:{Path.GetFileNameWithoutExtension(layerName)}";
-                    if (!(await LayerDoesExist(repositoryName, layerDigest)))
+                    if (!(await LayerDoesExist(repositoryName, layer.Digest)))
                     {
-                        await UploadLayer(repositoryName, layerDigest, imageDigest, imagePath, manifestObj);
+                        await UploadLayer(repositoryName, layer.Digest, imageDigest, Path.Combine(imagePath, layer.Digest.Replace("sha256:", "")), manifestObj);
                     }
                 }
             }
@@ -227,9 +225,7 @@ namespace ContainerizedAppLib
                     if (File.Exists(pathToLayer))
                     {
                         (int, int) range = (0, 0);
-                        MemoryStream stream = new MemoryStream();
                         BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read)); // disp
-                        BinaryWriter binaryWriter = new BinaryWriter(stream);
 
                         while (true)
                         {
@@ -240,9 +236,7 @@ namespace ContainerizedAppLib
                                 break;
                             }
 
-                            binaryWriter.Write(buffer);
                             string chunkValue = Convert.ToBase64String(buffer, 0, buffer.Length); // b64
-                            var content = new StreamContent(stream);
 
                             // todo: try monolithic
                             string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
@@ -263,12 +257,17 @@ namespace ContainerizedAppLib
 
                     #region Finish blob upload.
                     string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest={layerDigest}";
-                    var endUploadResponse = await finishBlobUploadEndpoint
-                                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                                    .PutAsync();
+
+                    /*
+                    var endUploadResponse = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
+                                await finishBlobUploadEndpoint
+                            .WithHeader("Authorization", $"Bearer {_acrToken}")
+                            .PutStringAsync(String.Empty)
+                            .ReceiveJson<JObject>(), 3, 100);
+                            */
                     #endregion
 
-                    await PushImageManifest(repositoryName, manifestContents, imageDigest);
+                    // await PushImageManifest(repositoryName, manifestContents, imageDigest);
                 }
             }
             catch (Exception ex)
@@ -409,6 +408,16 @@ namespace ContainerizedAppLib
         {
             [JsonProperty(PropertyName = "access_token")]
             public string AccessToken { set; internal get; }
+        }
+        
+        class LayerObject
+        {
+            [JsonProperty(PropertyName = "mediaType")]
+            public string MediaType { get; set; }
+            [JsonProperty(PropertyName = "size")]
+            public int Size { get; set; }
+            [JsonProperty(PropertyName = "digest")]
+            public string Digest { get; set; }
         }
     }
 }
