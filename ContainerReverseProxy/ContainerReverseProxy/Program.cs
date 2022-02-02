@@ -27,6 +27,18 @@ var app = builder.Build();
 
 app.Services.GetRequiredService<MapHubClient>();  // This runs the MapHubClient constructor to open the SignalR connection
 
+// Responds directly to monitor requests
+app.Use( async (context,next) => 
+{
+    if (context.Request.Path.StartsWithSegments("/monitor", StringComparison.InvariantCultureIgnoreCase))
+    {
+        await context.Response.WriteAsync($"The request was {context.Request.Scheme}://{context.Request.Host}{context.Request.Path}{context.Request.QueryString}");
+        return;  // Do not invoke any other request handling
+    }
+
+    await next.Invoke();
+});
+
 app.UseProxyRequestManipulationMiddleware();
 app.UseRouting();
 app.UseEndpoints(endpoints =>
