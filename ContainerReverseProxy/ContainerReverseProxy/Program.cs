@@ -23,6 +23,8 @@ builder.Services.AddReverseProxy()
                 .AddTransforms<MapContainerContentTransformProvider>();
 builder.Services.AddSingleton<MapHubClient>();
 
+builder.Configuration.AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", true);
+
 var app = builder.Build();
 
 app.Services.GetRequiredService<MapHubClient>();  // This runs the MapHubClient constructor to open the SignalR connection
