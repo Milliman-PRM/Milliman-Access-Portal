@@ -190,7 +190,7 @@ namespace MillimanAccessPortal.Controllers
             }
 
             if (_dbContext.FileDrop.Any(d => d.ClientId == referencedClient.Id &&
-                                             EF.Functions.ILike(d.Name, fileDropModel.Name)))
+                                             EF.Functions.ILike(d.Name, GlobalFunctions.EscapePgWildcards(fileDropModel.Name))))
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to create FileDrop with name <{fileDropModel.Name}>, already in use for client {referencedClient.Id}");
                 Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
@@ -294,7 +294,7 @@ namespace MillimanAccessPortal.Controllers
 
             if (_dbContext.FileDrop.Any(d => d.ClientId == fileDropRecord.ClientId &&
                                              d.Id != fileDropRecord.Id && 
-                                             EF.Functions.ILike(d.Name, fileDropModel.Name)))
+                                             EF.Functions.ILike(d.Name, GlobalFunctions.EscapePgWildcards(fileDropModel.Name))))
             {
                 Log.Warning($"{ControllerContext.ActionDescriptor.DisplayName} Attempt to update FileDrop with name <{fileDropModel.Name}>, already in use for client {fileDropRecord.ClientId}");
                 Response.Headers.Add("Warning", "The requested FileDrop name is already in use for this client.");
@@ -664,8 +664,8 @@ namespace MillimanAccessPortal.Controllers
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .SingleOrDefaultAsync(a => a.FileDropId == fileDropId);
 
             #region Authorization
@@ -710,8 +710,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser currentUser = await _userManager.GetUserAsync(User);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.ApplicationUser)
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                                   .Where(a => a.FileDropUserPermissionGroupId.HasValue)
                                                   .Where(a => a.FileDropUserPermissionGroup.ReadAccess 
                                                            || a.FileDropUserPermissionGroup.WriteAccess 
@@ -785,8 +785,8 @@ namespace MillimanAccessPortal.Controllers
             ApplicationUser mapUser = await _userManager.FindByNameAsync(User.Identity.Name);
             SftpAccount account = await _dbContext.SftpAccount
                                                   .Include(a => a.FileDropUserPermissionGroup)
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                                   .SingleOrDefaultAsync(a => a.FileDropId == boundModel.FileDropId);
 
             if (account == null)
@@ -870,8 +870,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == fileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.ReadAccess 
                                                || a.FileDropUserPermissionGroup.WriteAccess 
@@ -938,8 +938,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                                   .Where(a => a.FileDropId == requestModel.FileDropId)
                                                   .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                   .SingleOrDefaultAsync();
@@ -989,8 +989,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => !a.FileDropUserPermissionGroupId.HasValue)
                                       .Where(a => !a.FileDropUserPermissionGroup.WriteAccess)
                                       .Where(a => a.FileDropId == fileDropId)
@@ -1058,8 +1058,8 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                  .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                                  .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                                   .Where(a => a.FileDropId == FileDropId)
                                                   .Where(a => a.FileDropUserPermissionGroup.ReadAccess)
                                                   .SingleOrDefaultAsync();
@@ -1149,8 +1149,8 @@ namespace MillimanAccessPortal.Controllers
             SftpAccount authorizedAccount = await _dbContext.SftpAccount
                                                             .Include(a => a.FileDropUserPermissionGroup)
                                                                 .ThenInclude(g => g.FileDrop)
-                                                            .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                                            .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                                            .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                                            .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                                             .Where(a => a.FileDropId == requestModel.FileDropId)
                                                             .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                                             .SingleOrDefaultAsync();
@@ -1261,8 +1261,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, GlobalFunctions.EscapePgWildcards($"{User.Identity.Name}-{fileDrop.ShortHash}")))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
@@ -1331,8 +1331,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, GlobalFunctions.EscapePgWildcards($"{User.Identity.Name}-{fileDrop.ShortHash}")))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
                                       .SingleOrDefaultAsync();
@@ -1403,8 +1403,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, GlobalFunctions.EscapePgWildcards($"{User.Identity.Name}-{fileDrop.ShortHash}")))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
@@ -1474,8 +1474,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, GlobalFunctions.EscapePgWildcards($"{User.Identity.Name}-{fileDrop.ShortHash}")))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
@@ -1544,8 +1544,8 @@ namespace MillimanAccessPortal.Controllers
                                       //.Include(a => a.ApplicationUser)
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
@@ -1646,8 +1646,8 @@ namespace MillimanAccessPortal.Controllers
             SftpAccount account = await _dbContext.SftpAccount
                                       .Include(a => a.FileDropUserPermissionGroup)
                                           .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-%"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{fileDrop.ShortHash}"))
+                                      .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
+                                      .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
                                       .Where(a => a.FileDropId == requestModel.FileDropId)
                                       .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .SingleOrDefaultAsync();
