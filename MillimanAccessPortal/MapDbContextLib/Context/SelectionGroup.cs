@@ -168,6 +168,10 @@ namespace MapDbContextLib.Context
                     ContentInstanceUrl = (props?.LiveReportId ?? Guid.Empty).ToString();
                     return;
 
+                case ContentTypeEnum.ContainerApp:
+                    ContentInstanceUrl = "Generated on demand";
+                    return;
+
                 default:
                     ContentInstanceUrl = null;
                     throw new ApplicationException($"SelectionGroup.SetContentUrl called with unsupported ContentType {RootContentItem.ContentType.TypeEnum.ToString()}");

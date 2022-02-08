@@ -47,7 +47,10 @@ namespace MapTests
                 testResources.UserManager,
                 testResources.Configuration,
                 testResources.PowerBiConfig,
-                testResources.AuthorizedContentQueries);
+                testResources.ContainerizedAppConfig,
+                testResources.AuthorizedContentQueries,
+                testResources.ServiceProvider
+                );
 
             testController.ControllerContext = testResources.GenerateControllerContext((await testResources.UserManager.FindByNameAsync(UserName)).UserName, requestUriBuilder, requestHeaders);
             testController.HttpContext.Session = new MockSession();

@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -326,10 +327,11 @@ namespace MillimanAccessPortal.Services
                         QlikviewConfig qvConfig = scope.ServiceProvider.GetRequiredService<IOptions<QlikviewConfig>>().Value;
                         await new QlikviewLibApi(qvConfig).AuthorizeUserDocumentsInFolderAsync(thisPubRequest.RootContentItemId.ToString());
                         break;
+
                     case ContentTypeEnum.PowerBi:
                         PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
 
-                        PowerBiContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                        PowerBiContentItemProperties pbiContentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                         var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                         if (newMasterFile != null)
@@ -354,18 +356,36 @@ namespace MillimanAccessPortal.Services
                                 throw;
                             }
 
-                            contentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
-                            contentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
-                            contentItemProperties.PreviewReportId = embedProperties.ReportId;
+                            pbiContentItemProperties.PreviewWorkspaceId = embedProperties.WorkspaceId;
+                            pbiContentItemProperties.PreviewEmbedUrl = embedProperties.EmbedUrl;
+                            pbiContentItemProperties.PreviewReportId = embedProperties.ReportId;
                         }
                         else
                         {
-                            contentItemProperties.PreviewWorkspaceId = contentItemProperties.LiveWorkspaceId;
-                            contentItemProperties.PreviewEmbedUrl = contentItemProperties.LiveEmbedUrl;
-                            contentItemProperties.PreviewReportId = contentItemProperties.LiveReportId;
+                            pbiContentItemProperties.PreviewWorkspaceId = pbiContentItemProperties.LiveWorkspaceId;
+                            pbiContentItemProperties.PreviewEmbedUrl = pbiContentItemProperties.LiveEmbedUrl;
+                            pbiContentItemProperties.PreviewReportId = pbiContentItemProperties.LiveReportId;
                         }
 
-                        contentItem.TypeSpecificDetailObject = contentItemProperties;
+                        contentItem.TypeSpecificDetailObject = pbiContentItemProperties;
+                        await dbContext.SaveChangesAsync();
+                        break;
+
+                    case ContentTypeEnum.ContainerApp:
+                        ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
+                        ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
+
+                        #region 
+                        ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                        // TODO Move image to Azure Registry and record whatever type specific detail is needed for preview!!!
+
+                        containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
+                        containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
+                        containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+                        containerContentItemProperties.PreviewImageName = "TBD, assign at QueuedPublicationPostProcessingHostedService.cs:~386";
+                        #endregion
+
+                        contentItem.TypeSpecificDetailObject = containerContentItemProperties;
                         await dbContext.SaveChangesAsync();
                         break;
 
