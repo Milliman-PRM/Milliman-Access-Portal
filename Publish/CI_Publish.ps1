@@ -457,13 +457,13 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-log_statement "User status loader nuget package pushed to Octopus"
+log_statement "Nuget packages pushed to Octopus"
 
 #endregion
 
 #region Create releases in Octopus
 
-log_statement "Creating releases in Octopus"
+log_statement "Determining Octopus release channel"
 # Determine appropriate release channel (applies only at the time the release is created)
 if ($BranchName.ToLower() -eq "master")
 {
@@ -475,11 +475,8 @@ else
 }
 log_statement "Release channel is $channelName"
 
-
 log_statement "Creating Octopus release for web app"
-
 octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "Web application release created successfully"
 }
@@ -489,12 +486,9 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-log_statement "Completed creating Octopus release for web app"
 
 log_statement "Creating Octopus release for Content Publishing Service"
-
 octo create-release --project "Content Publishing Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "Publishing service application release created successfully"
 }
@@ -505,12 +499,8 @@ else {
     exit $error_code
 }
 
-log_statement "Completed creating Octopus release for content publishing service"
-
 log_statement "Creating Octopus release for MAP Query Admin"
-
 octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"
 }
@@ -521,12 +511,8 @@ else {
     exit $error_code
 }
 
-log_statement "Completed creating Octopus release for MAP Query Admin"
-
 log_statement "Creating Octopus release for Database Migrations"
-
 octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "Database Migrations release created successfully"
 }
@@ -537,12 +523,8 @@ else {
     exit $error_code
 }
 
-log_statement "Completed creating Octopus release for Database Migrations"
-
 log_statement "Creating Octopus release for SFTP Server"
-
 octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "SFTP Server release created successfully"
 }
@@ -553,12 +535,8 @@ else {
     exit $error_code
 }
 
-log_statement "Completed creating Octopus release for SFTP Server"
-
 log_statement "Creating Octopus release for Full Stack"
-
 octo create-release --project "Full Stack" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
 if ($LASTEXITCODE -eq 0) {
     log_statement "Full Stack release created successfully"
 }
@@ -568,6 +546,5 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-log_statement "Completed creating Octopus release for Full Stack"
 
 #endregion
