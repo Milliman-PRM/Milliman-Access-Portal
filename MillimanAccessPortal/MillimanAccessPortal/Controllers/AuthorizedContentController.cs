@@ -722,7 +722,7 @@ namespace MillimanAccessPortal.Controllers
 
                 UriBuilder externalRequestUri = new UriBuilder
                 {
-                    Scheme = Request.Scheme,
+                    Scheme = ApplicationConfig.GetValue<string>("ContainerProxyScheme"),
                     Host = redirectHost,
                     Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
                     Path = containerProxyPathRoot,
