@@ -104,6 +104,7 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
 $net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
+$net6="C:\Program Files\dotnet\sdk\6.0.102\Sdks"
 $env:MSBuildSDKsPath=$net5
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
@@ -270,6 +271,26 @@ if ($LASTEXITCODE -ne 0)
 
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $sFTPVersion = "$sFTPVersion-$TrimmedBranch"
+
+$env:MSBuildSDKsPath=$net6
+Set-Location "$rootPath\ContainerReverseProxy"
+
+log_statement "Building Container Reverse Proxy"
+
+Get-ChildItem -Recurse "$rootpath\ContainerReverseProxy\out" | remove-item
+mkdir "out"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for Container Reverse Proxy project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$reverseProxyVersion = get-childitem "$rootpath\ContainerReverseProxy\out\ContainerReverseProxy.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
+$reverseProxyVersion = "$reverseProxyVersion-$TrimmedBranch"
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
@@ -531,6 +552,18 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+
+log_statement "Creating Octopus release for Reverse Proxy"
+octo create-release --project "Reverse Proxy" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Reverse Proxy release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the Reverse Proxy project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
