@@ -6,6 +6,7 @@
 
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using MapDbContextLib.Models;
 
 namespace AuditLogLib.Models
@@ -25,5 +26,6 @@ namespace AuditLogLib.Models
         public string ClientName;
         public string ClientCode;
         public JArray SelectionGroupSummary;
+        public Dictionary<string, string> TypeSpecificMetadata;
     }
 }

@@ -32,4 +32,19 @@ namespace MapDbContextLib.Models
 
         public string LiveEmbedUrl { get; set; }
     }
+
+    public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
+    {
+        // TODO Add whatever is needed to get a container launched for preview and live
+
+        public string LiveImageName { get; set; } = null;
+        public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
+        public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
+        public uint LiveContainerInternalPort { get; set; } = 0;
+
+        public string PreviewImageName { get; set; } = null;
+        public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
+        public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
+        public uint PreviewContainerInternalPort { get; set; } = 0;
+    }
 }

@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib.ProxySupport;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -448,6 +449,7 @@ namespace MillimanAccessPortal
             services.AddHostedService<FileDropUploadProcessingHostedService>();
             services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
             services.AddScoped<FileSystemTasks>();
+            services.AddSignalR(); //.AddJsonProtocol();
 
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
@@ -632,6 +634,7 @@ namespace MillimanAccessPortal
             {
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
+                endpoints.MapHub<ReverseProxySessionHub>("/contentsessionhub");
                 //endpoints.MapRazorPages();
             });
         }

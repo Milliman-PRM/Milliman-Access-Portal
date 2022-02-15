@@ -47,6 +47,7 @@ namespace MapTests
                 TestResources.UserManager,
                 TestResources.Configuration,
                 TestResources.PowerBiConfig,
+                TestResources.ContainerizedAppConfig,
                 TestResources.QvConfig,
                 TestResources.PublicationPostProcessingTaskQueue,
                 TestResources.ContentPublishingAdminQueries
@@ -496,9 +497,9 @@ namespace MapTests
                     RootContentItemId = TestUtil.MakeTestGuid(7),
                     TypeSpecificPublishingDetail = JObject.FromObject(new ContainerizedContentPublicationProperties 
                     {
-                        ContainerCpuCores = ContainerizedContentPublicationProperties.ContainerCpuCoresEnum.Three, 
+                        ContainerCpuCores = ContainerCpuCoresEnum.Three, 
                         ContainerInternalPort = 3838, 
-                        ContainerRamGb = ContainerizedContentPublicationProperties.ContainerRamGbEnum.Seven 
+                        ContainerRamGb = ContainerRamGbEnum.Seven 
                     }),
                     NewRelatedFiles = new List<UploadedRelatedFile>
                     {
@@ -524,9 +525,9 @@ namespace MapTests
                 Assert.NotEmpty(publishRequestObject.TypeSpecificDetail);
                 ContainerizedContentPublicationProperties typeSpecificDetail = Assert.IsType<ContainerizedContentPublicationProperties>(JsonConvert.DeserializeObject<ContainerizedContentPublicationProperties>(publishRequestObject.TypeSpecificDetail));
                 Assert.NotNull(typeSpecificDetail);
-                Assert.Equal(ContainerizedContentPublicationProperties.ContainerCpuCoresEnum.Three, typeSpecificDetail.ContainerCpuCores);
+                Assert.Equal(ContainerCpuCoresEnum.Three, typeSpecificDetail.ContainerCpuCores);
                 Assert.Equal(3838u, typeSpecificDetail.ContainerInternalPort);
-                Assert.Equal(ContainerizedContentPublicationProperties.ContainerRamGbEnum.Seven, typeSpecificDetail.ContainerRamGb);
+                Assert.Equal(ContainerRamGbEnum.Seven, typeSpecificDetail.ContainerRamGb);
                 #endregion
             }
         }

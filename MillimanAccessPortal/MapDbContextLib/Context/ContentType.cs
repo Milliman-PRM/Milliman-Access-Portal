@@ -37,7 +37,8 @@ namespace MapDbContextLib.Context
     {
         public static bool LiveContentFileStoredInMap(this ContentTypeEnum type)
         {
-            return type != ContentTypeEnum.PowerBi;
+            return type != ContentTypeEnum.PowerBi
+                && type != ContentTypeEnum.ContainerApp;
         }
     }
 
