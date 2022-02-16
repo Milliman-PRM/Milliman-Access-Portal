@@ -170,6 +170,8 @@ log_statement "Restoring packages and building MAP"
 $url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
 $result = Invoke-Webrequest $url
 
+Start-Sleep -s 2
+
 if ($? -eq $false) {
     log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
     log_statement "Result of $($url): status code: $($result.StatusCode)"
