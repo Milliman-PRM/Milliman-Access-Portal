@@ -16,20 +16,18 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
-/**
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ContainerInstance.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-**/
 
 namespace ContainerizedAppLib
 {
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
-        //private IAzure _azureContext;
+        private IAzure _azureContext;
         private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
 
@@ -296,7 +294,7 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
-/**
+
         #region Container Instances
         private void GetAzureContextForContainerInstances()
         {
@@ -422,7 +420,7 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
-        **/
+        
         class ACRAuthenticationResponse
         {
             [JsonProperty(PropertyName = "access_token")]
