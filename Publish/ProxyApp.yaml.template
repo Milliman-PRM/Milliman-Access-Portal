@@ -1,0 +1,50 @@
+name: __container_name__  # Name of the container group
+apiVersion: '2021-07-01'
+location: __location__
+tags: {}
+properties: # Properties of container group
+  containers: # Array of container instances in the group
+  - name: appcontaineryaml # Name of an instance
+    properties: # Properties of an instance
+      image: __Image__ # Container image used to create the instance
+      ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
+      - protocol: TCP
+        port: 80
+      environmentVariables:
+      - name: AZURE_TENANT_ID
+        value: __AZURE_TENANT_ID__
+      - name: AZURE_CLIENT_ID
+        value: __AZURE_CLIENT_ID__
+      - name: AZURE_CLIENT_SECRET
+        value: __AZURE_CLIENT_SECRET__
+      - name: ASPNETCORE_ENVIRONMENT
+        value: __ASPNETCORE_ENVIRONMENT__
+      - name: AzureVaultName
+        value: __AzureVaultName__
+      - name: MAP_DATABASE_SERVER
+        value: __MAP_DATABASE_SERVER__
+      resources: # Resource requirements of the instance
+        requests:
+          memoryInGB: 1.5
+          cpu: 1
+      volumeMounts: # Array of volume mounts for the instance
+      - name: Proxylogs
+        mountPath: /mnt/Proxylogs
+  imageRegistryCredentials: # Credentials to pull a private image
+  - server: __acr_url__
+    username: __acr_user__
+    password: __acr_password__
+  restartPolicy: Always
+  ipAddress: # IP address configuration of container group
+    ports:
+    - protocol: TCP
+      port: 80
+    type: Private
+    ip: "172.16.3.148"
+  osType: Linux
+  volumes: # Array of volumes available to the instances
+  - name: Proxylogs
+    azureFile:
+      shareName: __proxylogssharename__
+      storageAccountName: __proxylogsstoragename__
+      storageAccountKey: __proxylogskey__
