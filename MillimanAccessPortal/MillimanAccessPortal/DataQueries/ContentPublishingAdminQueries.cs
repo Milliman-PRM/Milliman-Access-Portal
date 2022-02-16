@@ -179,9 +179,16 @@ namespace MillimanAccessPortal.DataQueries
             {
                 case ContentTypeEnum.PowerBi:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
-                    if (publicationRequest != null && !String.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
+                    if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
                     {
                         model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<PowerBiPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                    }
+                    break;
+                case ContentTypeEnum.ContainerApp:
+                    model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                    if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
+                    {
+                        model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
                     }
                     break;
                 case ContentTypeEnum.Qlikview:
