@@ -18,6 +18,9 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace ContainerizedAppLib
 {
@@ -25,7 +28,8 @@ namespace ContainerizedAppLib
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private ContainerRegistryClient _containerRegistryClient;
-        private string _acrToken;
+        private string _acrToken, _repositoryName;
+        
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
             await Task.Yield();
@@ -57,12 +61,13 @@ namespace ContainerizedAppLib
         /// Asynchronous initializer, chainable with the constructor
         /// </summary>
         /// <returns></returns>
-        public async Task<ContainerizedAppLibApi> InitializeAsync()
+        public async Task<ContainerizedAppLibApi> InitializeAsync(string repositoryName)
         {
+            _repositoryName = repositoryName;
+
             try
             {
-                await GetAccessTokenAsync();
-
+                await GetAccessTokenAsync(repositoryName);
                 ContainerRegistryClient client = new ContainerRegistryClient(
                     new Uri(Config.ContainerRegistryUrl),
                     new DefaultAzureCredential(), // TODO 
@@ -81,16 +86,16 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> GetAccessTokenAsync()
+        private async Task<bool> GetAccessTokenAsync(string repositoryName)
         {
-            // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
+            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push"; // TODO get different permission tokens
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
-                                                                        await Config.ContainerRegistryTokenEndpoint
-                                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
-                                                                            .GetAsync()
-                                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+                                                        await tokenEndpointWithScope
+                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                            .GetAsync()
+                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
                 _acrToken = response.AccessToken;
                 return true;
             }
@@ -143,7 +148,7 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task PushImageManifest(string repositoryName, JObject manifestContents, string reference)
+        public async Task PushImageManifest(string repositoryName, string manifestContents, string reference)
         {
             var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{reference}";
 
@@ -152,7 +157,7 @@ namespace ContainerizedAppLib
                 var manifestUploadResponse = await manifestUploadEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .WithHeader("Content-Type", "application/vnd.docker.distribution.manifest.v2+json")
-                                    .PutJsonAsync(manifestContents);
+                                    .PutStringAsync(manifestContents);
             }
             catch (Exception ex)
             {
@@ -161,30 +166,45 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<JObject> PushImageToRegistry(string repositoryName, string manifestPath, string imageDigest, string imagePath)
+        public async Task<JObject> PushImageToRegistry(string repositoryName, string imageDigest, string imagePath)
         {
             #region Compile layers
-            List<string> layerNames;
+            List<string> layerDigests = new List<string>();
             JObject manifestObj;
+
+            var manifestPath = Path.Combine(imagePath, "manifest.json");
+            if (!Directory.Exists(imagePath))
+            {
+                throw new Exception($"Image path cannot be found at {imagePath}");
+            }
+            if (!File.Exists(manifestPath))
+            {
+                throw new Exception($"Invalid image format: Manifest cannot be found for image located at {imagePath}.");
+            }
+
             FileStream fs = File.OpenRead(manifestPath);
+            string manifestContents = "";
             using (StreamReader streamReader = new StreamReader(fs))
             {
-                string fileContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
-                manifestObj = JObject.Parse(fileContents);
-                layerNames = manifestObj.SelectToken("Layers").ToObject<List<string>>();
+                manifestContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
+                manifestObj = JObject.Parse(manifestContents);
+                var layers = manifestObj.SelectToken("layers").ToObject<List<Layer>>();
+                layerDigests = layers.Select(layer => layer.Digest.Replace("sha256:", "")).ToList();
             }
             #endregion
 
             try
             {
-                foreach (string layerName in layerNames)
+                foreach (string layerDigest in layerDigests)
                 {
-                    string layerDigest = $"sha256:{Path.GetFileNameWithoutExtension(layerName)}";
                     if (!(await LayerDoesExist(repositoryName, layerDigest)))
                     {
-                        await UploadLayer(repositoryName, layerDigest, imageDigest, imagePath, manifestObj);
+                        var layerPath = Path.Combine(imagePath, layerDigest);
+                        await UploadLayer(repositoryName, layerDigest, layerPath);
                     }
                 }
+
+                await PushImageManifest(repositoryName, manifestContents, imageDigest);
             }
             catch (Exception ex)
             {
@@ -217,9 +237,8 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        private async Task UploadLayer(string repositoryName, string layerDigest, string imageDigest, string pathToLayer, JObject manifestContents)
+        private async Task UploadLayer(string repositoryName, string layerDigest, string pathToLayer)
         {
-            int chunkSize = 65_536;
             string nextUploadLocation = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/uploads/"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
@@ -238,50 +257,56 @@ namespace ContainerizedAppLib
                 {
                     #region Upload blob.
                     if (File.Exists(pathToLayer))
-                    {
-                        (int, int) range = (0, 0);
-                        MemoryStream stream = new MemoryStream();
-                        BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read)); // disp
-                        BinaryWriter binaryWriter = new BinaryWriter(stream);
+                    {                        
+                        byte[] rawFileBytes = File.ReadAllBytes(pathToLayer); // TODO adjust this to handle a stream.
+
+                        using (var hasher = SHA256.Create())
+                        {
+                            StringBuilder builder = new StringBuilder();
+                            byte[] result = hasher.ComputeHash(rawFileBytes);
+                            foreach (byte b in result)
+                            {
+                                builder.Append(b.ToString("x2"));
+                            }
+                            if (!builder.ToString().Equals(layerDigest))
+                            {
+                                throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
+                            }
+                        }
 
                         while (true)
                         {
-                            range.Item2 = range.Item1 + chunkSize;
+                            /** TODO: implement chunking
                             byte[] buffer = binaryReader.ReadBytes(chunkSize);
                             if (buffer.Length == 0)
                             {
                                 break;
                             }
-
-                            binaryWriter.Write(buffer);
-                            string chunkValue = Convert.ToBase64String(buffer, 0, buffer.Length); // b64
-                            var content = new StreamContent(stream);
-
+                            **/
 
                             string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
+                            string base64String = Convert.ToBase64String(rawFileBytes);
                             var blobUploadResponse = await blobUploadEndpoint
                                 .WithHeader("Authorization", $"Bearer {_acrToken}")
                                 .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
                                 .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                 .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                .WithHeader("Content-Length", buffer.Length)
+                                .WithHeader("Content-Length", rawFileBytes.Length)
                                 .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchStringAsync(chunkValue);
+                                .PatchAsync(new ByteArrayContent(rawFileBytes));
                             blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
 
-                            range.Item1 = range.Item2;
+                            break;
                         }
                     }
                     #endregion
 
                     #region Finish blob upload.
-                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest={layerDigest}";
+                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest=sha256:{layerDigest}";
                     var endUploadResponse = await finishBlobUploadEndpoint
                                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                                     .PutAsync();
                     #endregion
-
-                    await PushImageManifest(repositoryName, manifestContents, imageDigest);
                 }
             }
             catch (Exception ex)
@@ -295,6 +320,16 @@ namespace ContainerizedAppLib
         {
             [JsonProperty(PropertyName = "access_token")]
             public string AccessToken { set; internal get; }
+        }
+
+        class Layer
+        {
+            [JsonProperty(PropertyName = "mediaType")]
+            public string MediaType { set; internal get; }
+            [JsonProperty(PropertyName = "size")]
+            public int Size { set; internal get; }
+            [JsonProperty(PropertyName = "digest")]
+            public string Digest { set; internal get; }
         }
     }
 }

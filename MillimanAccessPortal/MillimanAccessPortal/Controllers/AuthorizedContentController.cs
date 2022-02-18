@@ -683,7 +683,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync("");
 
 #warning TODO complete this section
                 // TODO Use api to run a container
