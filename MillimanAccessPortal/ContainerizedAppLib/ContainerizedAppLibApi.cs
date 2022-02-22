@@ -169,7 +169,7 @@ namespace ContainerizedAppLib
         public async Task<JObject> PushImageToRegistry(string repositoryName, string imageDigest, string imagePath)
         {
             #region Compile layers
-            List<string> layerDigests = new List<string>();
+            List<string> blobDigests = new List<string>();
             JObject manifestObj;
 
             var manifestPath = Path.Combine(imagePath, "manifest.json");
@@ -188,19 +188,22 @@ namespace ContainerizedAppLib
             {
                 manifestContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
                 manifestObj = JObject.Parse(manifestContents);
-                var layers = manifestObj.SelectToken("layers").ToObject<List<Layer>>();
-                layerDigests = layers.Select(layer => layer.Digest.Replace("sha256:", "")).ToList();
+                List<BlobData> allBlobData = manifestObj.SelectToken("layers").ToObject<List<BlobData>>();
+                BlobData configObject = manifestObj.SelectToken("config").ToObject<BlobData>();
+                blobDigests = allBlobData
+                                .Select(layerData => layerData.Digest.Replace("sha256:", "")).ToList()
+                                .Append(configObject.Digest.Replace("sha256:", "")).ToList(); // Include config BLOB to create a new repository.
             }
             #endregion
 
             try
             {
-                foreach (string layerDigest in layerDigests)
+                foreach (string blobDigest in blobDigests)
                 {
-                    if (!(await LayerDoesExist(repositoryName, layerDigest)))
+                    if (!(await BlobDoesExist(repositoryName, blobDigest)))
                     {
-                        var layerPath = Path.Combine(imagePath, layerDigest);
-                        await UploadLayer(repositoryName, layerDigest, layerPath);
+                        var blobPath = Path.Combine(imagePath, blobDigest);
+                        await UploadBlob(repositoryName, blobDigest, blobPath);
                     }
                 }
 
@@ -215,9 +218,9 @@ namespace ContainerizedAppLib
             return null;
         }
 
-        private async Task<bool> LayerDoesExist(string repositoryName, string layerDigest)
+        private async Task<bool> BlobDoesExist(string repositoryName, string blobDigest)
         {
-            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{layerDigest}";
+            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{blobDigest}";
 
             try
             {
@@ -237,7 +240,7 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        private async Task UploadLayer(string repositoryName, string layerDigest, string pathToLayer)
+        private async Task UploadBlob(string repositoryName, string layerDigest, string pathToLayer)
         {
             string nextUploadLocation = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/uploads/"
@@ -322,7 +325,7 @@ namespace ContainerizedAppLib
             public string AccessToken { set; internal get; }
         }
 
-        class Layer
+        class BlobData
         {
             [JsonProperty(PropertyName = "mediaType")]
             public string MediaType { set; internal get; }
