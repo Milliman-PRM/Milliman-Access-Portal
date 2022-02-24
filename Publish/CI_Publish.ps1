@@ -120,6 +120,9 @@ $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 $nodeVersion = "14.18.0"   # maybe this should be a script parameter
 
+log_statement "Listing installed .NET SDKs"
+dotnet --list-sdks
+
 mkdir -p ${rootPath}\_test_results
 #endregion
 
