@@ -263,6 +263,7 @@ namespace ContainerizedAppLib
                     {                        
                         byte[] rawFileBytes = File.ReadAllBytes(pathToLayer); // TODO adjust this to handle a stream.
 
+                        // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
                         using (var hasher = SHA256.Create())
                         {
                             StringBuilder builder = new StringBuilder();
@@ -277,15 +278,17 @@ namespace ContainerizedAppLib
                             }
                         }
 
+                        int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
+                        int rangeStart = 0;
+                        int sizeOfRemainingBytes = rawFileBytes.Length;
+
                         while (true)
                         {
-                            /** TODO: implement chunking
-                            byte[] buffer = binaryReader.ReadBytes(chunkSize);
-                            if (buffer.Length == 0)
-                            {
-                                break;
-                            }
-                            **/
+                            if (sizeOfRemainingBytes == 0) break;
+
+                            int chunkSize = Math.Min(defaultChunkSize, sizeOfRemainingBytes);
+                            byte[] chunk = new byte[chunkSize];
+                            Array.Copy(rawFileBytes, rangeStart, chunk, 0, chunkSize);
 
                             string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
                             string base64String = Convert.ToBase64String(rawFileBytes);
@@ -294,12 +297,14 @@ namespace ContainerizedAppLib
                                 .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
                                 .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                 .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                .WithHeader("Content-Length", rawFileBytes.Length)
+                                .WithHeader("Content-Length", chunkSize)
+                                .WithHeader("Content-Range", $"{rangeStart}-{rangeStart + chunkSize - 1}")
                                 .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchAsync(new ByteArrayContent(rawFileBytes));
+                                .PatchAsync(new ByteArrayContent(chunk));
                             blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
 
-                            break;
+                            rangeStart += chunkSize;
+                            sizeOfRemainingBytes -= chunkSize;
                         }
                     }
                     #endregion
