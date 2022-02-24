@@ -180,6 +180,8 @@ if ($? -eq $false) {
 log_statement "Result of $($url): status code: $($result.StatusCode)"
 log_statement "Result of $($url): response content: $($result.Content)"
 
+start-sleep 4  # Wait for the environment to update with the result of the Node.js version change
+
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
 yarn install --immutable
