@@ -393,11 +393,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+                                        LiveImageTag = containerizedAppTypeSpecificProperties.PreviewImageTag,
 
                                         PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                         PreviewContainerInternalPort = 0,
                                         PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
                                         PreviewImageName = null,
+                                        PreviewImageTag = null,
                                     };
                                     break;
 
