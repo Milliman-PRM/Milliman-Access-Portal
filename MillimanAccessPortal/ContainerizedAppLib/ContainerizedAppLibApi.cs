@@ -260,51 +260,53 @@ namespace ContainerizedAppLib
                 {
                     #region Upload blob.
                     if (File.Exists(pathToLayer))
-                    {                        
-                        byte[] rawFileBytes = File.ReadAllBytes(pathToLayer); // TODO adjust this to handle a stream.
-
-                        // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
-                        using (var hasher = SHA256.Create())
+                    {
+                        using (FileStream fileStream = new FileStream(pathToLayer, FileMode.Open, FileAccess.Read))
                         {
-                            StringBuilder builder = new StringBuilder();
-                            byte[] result = hasher.ComputeHash(rawFileBytes);
-                            foreach (byte b in result)
+                            // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
+                            using (var hasher = SHA256.Create())
                             {
-                                builder.Append(b.ToString("x2"));
+                                StringBuilder builder = new StringBuilder();
+                                byte[] result = hasher.ComputeHash(fileStream);
+                                foreach (byte b in result)
+                                {
+                                    builder.Append(b.ToString("x2"));
+                                }
+                                if (!builder.ToString().Equals(layerDigest))
+                                {
+                                    throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
+                                }
                             }
-                            if (!builder.ToString().Equals(layerDigest))
+
+                            fileStream.Seek(0, SeekOrigin.Begin); // Reset stream position since position gets moved when hash is calculated.
+
+                            long totalNumberOfBytesToRead = fileStream.Length;
+                            int totalNumberOfBytesRead = 0;
+                            int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
+                            byte[] rawFileBytes = new byte[totalNumberOfBytesToRead];
+                            while (totalNumberOfBytesToRead > 0)
                             {
-                                throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
+                                int chunkSize = Math.Min(defaultChunkSize, (int)(totalNumberOfBytesToRead));
+                                int numberOfBytesRead = fileStream.Read(rawFileBytes, totalNumberOfBytesRead, chunkSize);
+                                byte[] chunkBytes = new byte[chunkSize];
+                                Array.Copy(rawFileBytes, totalNumberOfBytesRead, chunkBytes, 0, chunkSize);
+
+                                string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
+                                string base64String = Convert.ToBase64String(rawFileBytes);
+                                var blobUploadResponse = await blobUploadEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                    .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                                    .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                    .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
+                                    .WithHeader("Content-Length", chunkSize)
+                                    .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + chunkSize - 1}")
+                                    .WithHeader("Content-Type", "application/octet-stream")
+                                    .PatchAsync(new ByteArrayContent(chunkBytes));
+                                blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+
+                                totalNumberOfBytesRead += chunkSize;
+                                totalNumberOfBytesToRead -= chunkSize;
                             }
-                        }
-
-                        int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
-                        int rangeStart = 0;
-                        int sizeOfRemainingBytes = rawFileBytes.Length;
-
-                        while (true)
-                        {
-                            if (sizeOfRemainingBytes == 0) break;
-
-                            int chunkSize = Math.Min(defaultChunkSize, sizeOfRemainingBytes);
-                            byte[] chunk = new byte[chunkSize];
-                            Array.Copy(rawFileBytes, rangeStart, chunk, 0, chunkSize);
-
-                            string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
-                            string base64String = Convert.ToBase64String(rawFileBytes);
-                            var blobUploadResponse = await blobUploadEndpoint
-                                .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                                .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-                                .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                .WithHeader("Content-Length", chunkSize)
-                                .WithHeader("Content-Range", $"{rangeStart}-{rangeStart + chunkSize - 1}")
-                                .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchAsync(new ByteArrayContent(chunk));
-                            blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
-
-                            rangeStart += chunkSize;
-                            sizeOfRemainingBytes -= chunkSize;
                         }
                     }
                     #endregion
