@@ -25,6 +25,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -380,13 +381,13 @@ namespace MillimanAccessPortal.Services
                             #region 
                             ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
-                            string repositoryName = "someRepository";  // TODO generate something useful
+                            string repositoryName = GlobalFunctions.HexMd5String(contentItem.Id);
 
                             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
                             await api.PushImageToRegistry(repositoryName, "imageDigest", "pathToImage");  // TODO get these string arguments right
 
-                            containerContentItemProperties.PreviewImageName = "TBD, assign at QueuedPublicationPostProcessingHostedService.cs:~383";
-                            containerContentItemProperties.PreviewImageTag = "TBD, assign at QueuedPublicationPostProcessingHostedService.cs:~384";
+                            containerContentItemProperties.PreviewImageName = repositoryName;
+                            containerContentItemProperties.PreviewImageTag = "preview"; // TODO If an image cannot be retagged during go-live use a numeric tag and increment from the current live image
                             containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                             containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                             containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
