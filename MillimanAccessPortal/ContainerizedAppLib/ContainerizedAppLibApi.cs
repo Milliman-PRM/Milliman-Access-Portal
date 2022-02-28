@@ -128,17 +128,15 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<JObject> GetRepositoryManifest(string repositoryName, string tag = "latest")
+        public async Task<object> GetRepositoryManifest(string repositoryName, string tag = "latest")
         {
             string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
             try
             {
-                JObject response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
-                                    await manifestEndpoint
+                var response = await manifestEndpoint
                                         .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                        .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                                        .GetAsync()
-                                        .ReceiveJson<JObject>(), 3, 100);
+                                        .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                        .GetJsonAsync();
                 return response;
             }
             catch (Exception ex)
@@ -320,6 +318,22 @@ namespace ContainerizedAppLib
             {
                 Log.Warning(ex, "Failed to upload layer.");
                 throw;
+            }
+        }
+
+        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool keepPreviousTag = false)
+        {
+            // Get existing manifest.
+            var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
+            string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
+
+            // Push same manifest with new tag.
+            await PushImageManifest(repositoryName, parsedManifestString, newTag);
+
+            // Remove previously tagged image.
+            if (!keepPreviousTag)
+            {
+                
             }
         }
 
