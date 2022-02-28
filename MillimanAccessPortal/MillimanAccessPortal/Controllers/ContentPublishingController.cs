@@ -1191,6 +1191,7 @@ namespace MillimanAccessPortal.Controllers
                                 // await containerLibApi.RemoveImage(containerContentProps.PreviewImageName);
 
                                 containerContentProps.PreviewImageName = null;
+                                containerContentProps.PreviewImageTag = null;
                                 containerContentProps.PreviewContainerInternalPort = 0;
                                 containerContentProps.PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified;
                                 containerContentProps.PreviewContainerRamGb = ContainerRamGbEnum.Unspecified;

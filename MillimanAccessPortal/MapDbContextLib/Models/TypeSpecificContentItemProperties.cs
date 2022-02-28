@@ -35,14 +35,17 @@ namespace MapDbContextLib.Models
 
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
-        // TODO Add whatever is needed to get a container launched for preview and live
+        public string RegistryUrl { get; set; } = null;  // TODO where do the credentials come from, especially considering this URL is stored per content item?
+        // TODO Does ResourceGroupName need to be here? How is that used?
 
         public string LiveImageName { get; set; } = null;
+        public string LiveImageTag { get; set; } = null;
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public uint LiveContainerInternalPort { get; set; } = 0;
 
         public string PreviewImageName { get; set; } = null;
+        public string PreviewImageTag { get; set; } = null;
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public uint PreviewContainerInternalPort { get; set; } = 0;
