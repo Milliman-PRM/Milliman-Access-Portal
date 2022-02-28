@@ -70,7 +70,7 @@ namespace ContainerizedAppLib
                 await GetAccessTokenAsync(repositoryName);
                 ContainerRegistryClient client = new ContainerRegistryClient(
                     new Uri(Config.ContainerRegistryUrl),
-                    new DefaultAzureCredential(), // TODO 
+                    new DefaultAzureCredential(),
                     new ContainerRegistryClientOptions() { Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud }
                 );
             }
@@ -88,7 +88,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         private async Task<bool> GetAccessTokenAsync(string repositoryName)
         {
-            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push"; // TODO get different permission tokens
+            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push";
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
@@ -148,9 +148,9 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task PushImageManifest(string repositoryName, string manifestContents, string reference)
+        public async Task PushImageManifest(string repositoryName, string manifestContents, string tag)
         {
-            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{reference}";
+            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
 
             try
             {
@@ -166,7 +166,7 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<JObject> PushImageToRegistry(string repositoryName, string imageDigest, string imagePath)
+        public async Task PushImageToRegistry(string repositoryName, string imagePath, string tag = "latest")
         {
             #region Compile layers
             List<string> blobDigests = new List<string>();
@@ -200,22 +200,20 @@ namespace ContainerizedAppLib
             {
                 foreach (string blobDigest in blobDigests)
                 {
-                    if (!(await BlobDoesExist(repositoryName, blobDigest)))
+                    if (!await BlobDoesExist(repositoryName, $"sha256:{blobDigest}"))
                     {
                         var blobPath = Path.Combine(imagePath, blobDigest);
                         await UploadBlob(repositoryName, blobDigest, blobPath);
                     }
                 }
 
-                await PushImageManifest(repositoryName, manifestContents, imageDigest);
+                await PushImageManifest(repositoryName, manifestContents, tag);
             }
             catch (Exception ex)
             {
                 Log.Warning(ex, "Exception attempting to push an image.");
                 throw;
             }
-
-            return null;
         }
 
         private async Task<bool> BlobDoesExist(string repositoryName, string blobDigest)
@@ -228,13 +226,12 @@ namespace ContainerizedAppLib
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .HeadAsync();
 
-                // TODO??: Add check for Content-Length and Docker-Content-Digest headers as well.
-                return response.StatusCode == 202;
+                response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
+                return response.StatusCode == 202 && responseDigest.Equals(blobDigest);
             }
             catch (Exception ex)
             {
                 Log.Warning(ex, "Exception when checking existence of layer.");
-                // throw;
             }
 
             return false;
