@@ -88,7 +88,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         private async Task<bool> GetAccessTokenAsync(string repositoryName)
         {
-            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push";
+            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
@@ -143,6 +143,36 @@ namespace ContainerizedAppLib
             {
                 Log.Warning(ex, "Exception attempting to fetch repository manifest.");
                 throw;
+            }
+        }
+
+        private async Task DeleteRepositoryManifest(string repositoryName, string digest)
+        {
+            string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{digest}";
+            try
+            {
+                await deleteImageManifestEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete image manifest for {repositoryName}:{digest}");
+            }
+        }
+
+        private async Task DeleteTag(string repositoryName, string tag)
+        {
+            string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}/_tags/{tag}";
+            try
+            {
+                await deleteTagEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete image tag for {repositoryName}:{tag}");
             }
         }
 
@@ -321,7 +351,7 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool keepPreviousTag = false)
+        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool deleteOldTag = true)
         {
             // Get existing manifest.
             var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
@@ -331,9 +361,9 @@ namespace ContainerizedAppLib
             await PushImageManifest(repositoryName, parsedManifestString, newTag);
 
             // Remove previously tagged image.
-            if (!keepPreviousTag)
+            if (deleteOldTag)
             {
-                
+                await DeleteTag(repositoryName, oldTag);
             }
         }
 
