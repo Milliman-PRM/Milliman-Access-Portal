@@ -62,15 +62,10 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAccessTokenAsync(repositoryName);
-                ContainerRegistryClient client = new ContainerRegistryClient(
-                    new Uri(Config.ContainerRegistryUrl),
-                    new DefaultAzureCredential(),
-                    new ContainerRegistryClientOptions() { Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud }
-                );
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication token");
+                Log.Error(ex, "Error obtaining Azure Container Registry authentication token");
             }
 
             return this;
