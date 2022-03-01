@@ -29,7 +29,7 @@ properties: # Properties of container group
           cpu: 1
       volumeMounts: # Array of volume mounts for the instance
       - name: Proxylogs
-        mountPath: /mnt/Proxylogs
+        mountPath: /mnt/proxylogs
   imageRegistryCredentials: # Credentials to pull a private image
   - server: __acr_url__
     username: __acr_user__
