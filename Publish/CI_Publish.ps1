@@ -561,14 +561,14 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Octopus release for Reverse Proxy"
-octo create-release --project "Reverse Proxy" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+log_statement "Creating Octopus release for ProxyApp"
+octo create-release --project "ProxyApp" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 if ($LASTEXITCODE -eq 0) {
-    log_statement "Reverse Proxy release created successfully"
+    log_statement "ProxyApp release created successfully"
 }
 else {
     $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for the Reverse Proxy project"
+    log_statement "ERROR: Failed to create Octopus release for the ProxyApp project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
