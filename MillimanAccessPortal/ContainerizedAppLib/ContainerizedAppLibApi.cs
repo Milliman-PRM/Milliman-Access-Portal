@@ -161,6 +161,21 @@ namespace ContainerizedAppLib
             }
         }
 
+        public async Task DeleteRepository(string repositoryName)
+        {
+            string deleteRepositoryEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}";
+            try
+            {
+                await deleteRepositoryEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete repository {repositoryName}");
+            }
+        }
+
         private async Task DeleteTag(string repositoryName, string tag)
         {
             string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}/_tags/{tag}";
