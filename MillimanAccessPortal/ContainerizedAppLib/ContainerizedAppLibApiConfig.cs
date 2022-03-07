@@ -9,7 +9,7 @@
 
         public string ContainerRegistryTokenEndpoint
         {
-            get => $"https://{ContainerRegistryUrl}/oauth2/token?service={ContainerRegistryUrl}&scope={ContainerRegistryScope}";
+            get => $"https://{ContainerRegistryUrl}/oauth2/token?service={ContainerRegistryUrl}";
         }
     }
 }

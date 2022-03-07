@@ -381,7 +381,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     {
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync();
+                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync("");
 #warning TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
 #warning TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
                                         });
@@ -393,11 +393,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+                                        LiveImageTag = containerizedAppTypeSpecificProperties.PreviewImageTag,
 
                                         PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                         PreviewContainerInternalPort = 0,
                                         PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
                                         PreviewImageName = null,
+                                        PreviewImageTag = null,
                                     };
                                     break;
 

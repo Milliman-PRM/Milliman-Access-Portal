@@ -25,6 +25,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -321,6 +322,7 @@ namespace MillimanAccessPortal.Services
                     await dbContext.SaveChangesAsync();
                 }
 
+                ContentRelatedFile newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                 switch (contentItem.ContentType.TypeEnum)
                 {
                     case ContentTypeEnum.Qlikview:
@@ -333,7 +335,6 @@ namespace MillimanAccessPortal.Services
 
                         PowerBiContentItemProperties pbiContentItemProperties = contentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
-                        var newMasterFile = thisPubRequest.LiveReadyFilesObj.SingleOrDefault(f => f.FilePurpose.Equals("MasterContent", StringComparison.OrdinalIgnoreCase));
                         if (newMasterFile != null)
                         {
                             PowerBiLibApi api = await new PowerBiLibApi(pbiConfig).InitializeAsync();
@@ -372,21 +373,29 @@ namespace MillimanAccessPortal.Services
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
-                        ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
+                        if (newMasterFile != null)
+                        {
+                            ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
+                            ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
-                        #region 
-                        ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                        // TODO Move image to Azure Registry and record whatever type specific detail is needed for preview!!!
+                            #region 
+                            ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
-                        containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
-                        containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
-                        containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
-                        containerContentItemProperties.PreviewImageName = "TBD, assign at QueuedPublicationPostProcessingHostedService.cs:~386";
-                        #endregion
+                            string repositoryName = GlobalFunctions.HexMd5String(contentItem.Id);
 
-                        contentItem.TypeSpecificDetailObject = containerContentItemProperties;
-                        await dbContext.SaveChangesAsync();
+                            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
+                            await api.PushImageToRegistry(repositoryName, "imageDigest", "pathToImage");  // TODO get these string arguments right
+
+                            containerContentItemProperties.PreviewImageName = repositoryName;
+                            containerContentItemProperties.PreviewImageTag = "preview"; // TODO If an image cannot be retagged during go-live use a numeric tag and increment from the current live image
+                            containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
+                            containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
+                            containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+                            #endregion
+
+                            contentItem.TypeSpecificDetailObject = containerContentItemProperties;
+                            await dbContext.SaveChangesAsync();
+                        }
                         break;
 
                     case ContentTypeEnum.Pdf:
