@@ -41,6 +41,9 @@ properties: # Properties of container group
       port: 80
     type: Private
     ip: "172.16.3.148"
+  subnetIds:
+    - id: __proxysubnetid__
+      name: default
   osType: Linux
   volumes: # Array of volumes available to the instances
   - name: proxylogs
