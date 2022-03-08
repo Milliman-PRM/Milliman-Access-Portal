@@ -39,6 +39,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -683,7 +684,7 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync();
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync("");
 
 #warning TODO complete this section
                 // TODO Use api to run a container
@@ -704,9 +705,7 @@ namespace MillimanAccessPortal.Controllers
                 #endregion
 
                 // Hash the container fqdn so all requests for the same container will use the same token
-                using var md5 = System.Security.Cryptography.MD5.Create();
-                byte[] hash = md5.ComputeHash(Encoding.ASCII.GetBytes(containerFqdn));
-                string contentToken = BitConverter.ToString(hash).Replace("-", "");
+                string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerFqdn));
 
                 // TODO Generate any tokens or other info for this session
                 string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;

@@ -202,6 +202,24 @@ namespace MapCommonLib
 
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
         }
+
+        public static string HexMd5String(byte[] source)
+        {
+#if NETSTANDARD
+            byte[] hashBytes = MD5.Create().ComputeHash(source);
+            string returnVal = BitConverter.ToString(hashBytes).Replace("-", "");
+#else
+            // These lines are better but the methods are not supported in NETSTANDARD.  Eventually all our libraries should target .net 5+
+            byte[] hashBytes = MD5.HashData(source);
+            string returnVal = Convert.ToHexString(hashBytes);
+#endif
+            return returnVal;
+        }
+
+        public static string HexMd5String(Guid guid)
+        {
+            return HexMd5String(guid.ToByteArray());    
+        }
     }
 
     /// <summary>
