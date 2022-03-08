@@ -35,9 +35,6 @@ namespace MapDbContextLib.Models
 
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
-        public string RegistryUrl { get; set; } = null;  // TODO where do the credentials come from, especially considering this URL is stored per content item?
-        // TODO Does ResourceGroupName need to be here? How is that used?
-
         public string LiveImageName { get; set; } = null;
         public string LiveImageTag { get; set; } = null;
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;

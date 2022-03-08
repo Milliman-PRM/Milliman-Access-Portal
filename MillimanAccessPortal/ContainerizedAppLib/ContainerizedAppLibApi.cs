@@ -27,7 +27,6 @@ namespace ContainerizedAppLib
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
-        private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken, _repositoryName;
         
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
@@ -68,11 +67,6 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAccessTokenAsync(repositoryName);
-                ContainerRegistryClient client = new ContainerRegistryClient(
-                    new Uri(Config.ContainerRegistryUrl),
-                    new DefaultAzureCredential(),
-                    new ContainerRegistryClientOptions() { Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud }
-                );
             }
             catch (Exception ex)
             {
@@ -102,28 +96,6 @@ namespace ContainerizedAppLib
             catch (Exception ex)
             {
                 Log.Warning(ex, "Exception attempting to get ACR access token");
-                throw;
-            }
-        }
-
-        public async Task<List<ContainerRepository>> GetRepositories()
-        {
-            try
-            {
-                AsyncPageable<string> repositoryNames = _containerRegistryClient.GetRepositoryNamesAsync();
-
-                List<ContainerRepository> containerRepositories = new List<ContainerRepository>();
-                await foreach (string repositoryName in repositoryNames)
-                {
-                    ContainerRepository repository = _containerRegistryClient.GetRepository(repositoryName);
-                    containerRepositories.Add(repository);
-                }
-
-                return containerRepositories;
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Exception attempting to fetch repositories.");
                 throw;
             }
         }
