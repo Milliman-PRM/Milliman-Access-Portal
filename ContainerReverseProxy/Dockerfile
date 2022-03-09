@@ -4,6 +4,6 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY . .
+COPY ./out .
 ENV ASPNETCORE_ENVIRONMENT="azure-UAT"
 ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
