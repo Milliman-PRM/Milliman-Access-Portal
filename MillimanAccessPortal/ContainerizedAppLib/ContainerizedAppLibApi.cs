@@ -18,6 +18,8 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
+using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
@@ -181,43 +183,68 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task PushImageToRegistry(string repositoryName, string imagePath, string tag = "latest")
+        public async Task<bool> PushImageToRegistry(string imageFileFullPath, string repositoryName, string tag = "latest")
         {
-            #region Compile layers
-            List<string> blobDigests = new List<string>();
-            JObject manifestObj;
+#warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
 
-            var manifestPath = Path.Combine(imagePath, "manifest.json");
-            if (!Directory.Exists(imagePath))
-            {
-                throw new Exception($"Image path cannot be found at {imagePath}");
-            }
-            if (!File.Exists(manifestPath))
-            {
-                throw new Exception($"Invalid image format: Manifest cannot be found for image located at {imagePath}.");
-            }
-
-            FileStream fs = File.OpenRead(manifestPath);
-            string manifestContents = "";
-            using (StreamReader streamReader = new StreamReader(fs))
-            {
-                manifestContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
-                manifestObj = JObject.Parse(manifestContents);
-                List<BlobData> allBlobData = manifestObj.SelectToken("layers").ToObject<List<BlobData>>();
-                BlobData configObject = manifestObj.SelectToken("config").ToObject<BlobData>();
-                blobDigests = allBlobData
-                                .Select(layerData => layerData.Digest.Replace("sha256:", "")).ToList()
-                                .Append(configObject.Digest.Replace("sha256:", "")).ToList(); // Include config BLOB to create a new repository.
-            }
-            #endregion
+            string workingFolderName = Path.GetDirectoryName(imageFileFullPath);
 
             try
             {
+                using (Stream rawFileStream = File.OpenRead(imageFileFullPath))
+                {
+                    switch (imageFileFullPath)
+                    {
+                        case string name when name.EndsWith(".tar"):
+                            using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(rawFileStream, null))
+                            {
+                                tarArchive.ExtractContents(workingFolderName);
+                            }
+                            break;
+
+                        case string name when name.EndsWith(".tar.gz"):
+                            using (Stream gzipStream = new GZipInputStream(rawFileStream))
+                            {
+                                using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream, null))
+                                {
+                                    tarArchive.ExtractContents(workingFolderName);
+                                }
+                            }
+                            break;
+
+                        default:
+                            throw new ApplicationException($"Image file name {imageFileFullPath} does not have a supported extension, must be .tar or .tar.gz");
+                    }
+                }
+
+                #region Compile layers
+                List<string> blobDigests = new List<string>();
+                JObject manifestObj;
+
+                var manifestPath = Path.Combine(workingFolderName, "manifest.json");
+                if (!File.Exists(manifestPath))
+                {
+                    throw new ApplicationException($"Invalid image file: Manifest {manifestPath} cannot be found.");
+                }
+
+                string manifestContents = "";
+                using (StreamReader streamReader = new StreamReader(manifestPath))
+                {
+                    manifestContents = streamReader.ReadToEnd().Trim(new char[] { '[', ']' });
+                    manifestObj = JObject.Parse(manifestContents);
+                    List<BlobData> allBlobData = manifestObj.SelectToken("layers").ToObject<List<BlobData>>();
+                    BlobData configObject = manifestObj.SelectToken("config").ToObject<BlobData>();
+                    blobDigests = allBlobData
+                                    .Select(layerData => layerData.Digest.Replace("sha256:", "")).ToList()
+                                    .Append(configObject.Digest.Replace("sha256:", "")).ToList(); // Include config BLOB to create a new repository.
+                }
+                #endregion
+
                 foreach (string blobDigest in blobDigests)
                 {
                     if (!await BlobDoesExist(repositoryName, $"sha256:{blobDigest}"))
                     {
-                        var blobPath = Path.Combine(imagePath, blobDigest);
+                        var blobPath = Path.Combine(workingFolderName, blobDigest);
                         await UploadBlob(repositoryName, blobDigest, blobPath);
                     }
                 }
@@ -226,9 +253,13 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to push an image.");
-                throw;
+                Log.Error(ex, $"Failed to push image file {imageFileFullPath} to Azure registry");
+                return false;
             }
+
+            File.Delete(imageFileFullPath);
+
+            return true;
         }
 
         private async Task<bool> BlobDoesExist(string repositoryName, string blobDigest)
