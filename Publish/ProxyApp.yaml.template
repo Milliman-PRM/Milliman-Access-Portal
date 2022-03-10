@@ -9,7 +9,7 @@ properties: # Properties of container group
       image: __Image__ # Container image used to create the instance
       ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
       - protocol: TCP
-        port: 80
+        port: 443
       environmentVariables:
       - name: AZURE_TENANT_ID
         value: __AZURE_TENANT_ID__
