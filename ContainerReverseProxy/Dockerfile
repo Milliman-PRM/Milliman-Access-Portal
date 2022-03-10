@@ -3,8 +3,8 @@
 # podman build -f Dockerfile -t reverse-proxy out
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
+apt-get update
+apt-get install iputils-ping curl
 WORKDIR /app
 COPY ./out .
-ENV ASPNETCORE_ENVIRONMENT="azure-UAT"
-#ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
-ENTRYPOINT ["tail", "-f", "/dev/null"]
+ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
