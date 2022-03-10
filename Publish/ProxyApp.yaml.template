@@ -10,6 +10,8 @@ properties: # Properties of container group
       ports: # External-facing ports exposed on the instance, must also be set in group ipAddress property
       - protocol: TCP
         port: 443
+      - protocol: TCP
+        port: 80
       environmentVariables:
       - name: AZURE_TENANT_ID
         value: __AZURE_TENANT_ID__
@@ -37,6 +39,8 @@ properties: # Properties of container group
   restartPolicy: Always
   ipAddress: # IP address configuration of container group
     ports:
+    - protocol: TCP
+      port: 80
     - protocol: TCP
       port: 443
     type: Private
