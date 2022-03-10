@@ -38,7 +38,7 @@ properties: # Properties of container group
   ipAddress: # IP address configuration of container group
     ports:
     - protocol: TCP
-      port: 80
+      port: 443
     type: Private
     ip: "172.16.3.148"
   subnetIds:
