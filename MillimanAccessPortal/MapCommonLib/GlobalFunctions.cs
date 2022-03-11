@@ -1,4 +1,6 @@
-﻿using Serilog;
+﻿using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
@@ -219,6 +221,56 @@ namespace MapCommonLib
         public static string HexMd5String(Guid guid)
         {
             return HexMd5String(guid.ToByteArray());    
+        }
+
+        /// <summary>
+        /// Extracts all contents of a tar file to a folder.  The file may be gzip compressed.  The archive file is not deleted. 
+        /// The tar file should use only ASCII encoding in the name fields.
+        /// </summary>
+        /// <param name="fileFullPath">Filename extension must be .tar or .gz</param>
+        /// <param name="targetFolder">If not provided, the contents will be extracted to the folder containing the tar file</param>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public static void ExtractFromTar(string fileFullPath, string targetFolder = null)
+        {
+            if (!File.Exists(fileFullPath))
+            {
+                throw new FileNotFoundException("Unable to extract archive, not found", fileFullPath);
+            }
+
+            targetFolder = targetFolder ?? Path.GetDirectoryName(fileFullPath);
+
+            if (!Directory.Exists(targetFolder))
+            {
+                throw new DirectoryNotFoundException($"Unable to extract archive to folder, target folder <{targetFolder}> not found");
+            }
+
+            using (Stream rawFileStream = File.OpenRead(fileFullPath))
+            {
+                switch (fileFullPath)
+                {
+                    case string name when name.EndsWith(".tar", StringComparison.InvariantCultureIgnoreCase):
+                        using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(rawFileStream, null)) // If name encoding changes, note this in the method comment
+                        {
+                            tarArchive.ExtractContents(targetFolder);
+                        }
+                        break;
+
+                    case string name when name.EndsWith(".tar.gz", StringComparison.InvariantCultureIgnoreCase):
+                        using (Stream gzipStream = new GZipInputStream(rawFileStream))
+                        {
+                            using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream, null)) // If name encoding changes, note this in the method comment
+                            {
+                                tarArchive.ExtractContents(targetFolder);
+                            }
+                        }
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Archive file name {Path.GetFileName(fileFullPath)} does not have a supported extension, must be .tar or .gz", nameof(fileFullPath));
+                }
+            }
         }
     }
 

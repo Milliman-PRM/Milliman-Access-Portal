@@ -304,7 +304,7 @@ namespace MillimanAccessPortal.Services
                 await dbContext.SaveChangesAsync();
 
                 // PostProcess the output of successful reduction tasks
-                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())  // Tanslation: not for Power BI
+                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())  // Tanslation: not for Power BI or containerized content
                 {
                     foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
                     {
@@ -384,7 +384,16 @@ namespace MillimanAccessPortal.Services
                             string repositoryName = GlobalFunctions.HexMd5String(contentItem.Id);
 
                             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
-                            await api.PushImageToRegistry(repositoryName, "imageDigest", "pathToImage");  // TODO get these string arguments right
+                            try
+                            {
+                                await api.PushImageToRegistry(newMasterFile.FullPath, repositoryName, "tag");  // TODO get the tag right
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"Exception in api.PushImageToRegistry");
+                                File.Delete(newMasterFile.FullPath);
+                                throw;
+                            }
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
                             containerContentItemProperties.PreviewImageTag = "preview"; // TODO If an image cannot be retagged during go-live use a numeric tag and increment from the current live image
