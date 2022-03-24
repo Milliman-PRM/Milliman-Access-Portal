@@ -6,4 +6,5 @@ FROM mcr.microsoft.com/dotnet/aspnet:6.0
 RUN apt-get update && apt-get install -y iputils-ping curl lsof vim
 WORKDIR /app
 COPY ./out .
+RUN echo "172.16.3.132 map-uat-app.trafficmanager.net" >> /etc/hosts
 ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
