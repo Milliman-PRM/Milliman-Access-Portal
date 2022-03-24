@@ -93,10 +93,6 @@ namespace MillimanAccessPortal.Controllers
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)
             {
                 ViewData["ReturnUrl"] = returnUrl;
-                // temp
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync();
-                //var response = await api.PushImageToRegistry("hello-world", @"C:\Users\Evan.Klein\source\Misc\hello-world\manifest.json", "b9935d4e8431fb1a7f0989304ec86b3329a99a25f5efdc7f09f3f8c41434ca6d", @"C:\Users\Evan.Klein\source\Misc\hello-world");
-                await api.PushImageToRegistry("hello-world", @"C:\Users\Evan.Klein\source\Misc\thisisit\manifest.json", null, @"C:\Users\Evan.Klein\source\Misc\thisisit\");
                 return View();
             }
             else
