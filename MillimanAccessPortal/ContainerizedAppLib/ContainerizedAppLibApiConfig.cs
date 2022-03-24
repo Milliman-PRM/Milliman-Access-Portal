@@ -12,7 +12,7 @@
         public string ContainerRegistryScope { get; set; }
         public string ContainerRegistryTokenEndpoint
         {
-            get => $"https://{ContainerRegistryUrl}/oauth2/token?service={ContainerRegistryUrl}&scope={ContainerRegistryScope}";
+            get => $"https://{ContainerRegistryUrl}/oauth2/token?service={ContainerRegistryUrl}";
         }
         public string ACIResourceGroupName { get; set; }
         public string ACIClientId { get; set; }

@@ -252,9 +252,9 @@ namespace MillimanAccessPortal
                 }
                 #endregion
 
-                string RootContentFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
+                string RootContentItemFolder = Path.Combine(contentItemRootPath, ContentItem.Id.ToString());
 
-                // Copy uploaded file to root content folder
+                #region Copy uploaded file to root content folder
                 string DestinationFileName = ContentTypeSpecificApiBase.GeneratePreliveRelatedFileName(RelatedFile.FilePurpose, PubRequestId, ContentItem.Id, Path.GetExtension(FileUploadRecord.StoragePath));
                 switch (ContentItem.ContentType.TypeEnum)
                 {  // This is where any dependence on ContentType would be incorporated to override base behavior
@@ -268,11 +268,13 @@ namespace MillimanAccessPortal
                     default:
                         break;
                 }
-                string DestinationFullPath = Path.Combine(RootContentFolder, DestinationFileName);
 
                 // Create the root content folder if it does not already exist
-                Directory.CreateDirectory(RootContentFolder);
+                Directory.CreateDirectory(RootContentItemFolder);
+
+                string DestinationFullPath = Path.Combine(RootContentItemFolder, DestinationFileName);
                 File.Copy(FileUploadRecord.StoragePath, DestinationFullPath, true);
+                #endregion
 
                 ReturnObj = new ContentRelatedFile
                 {
@@ -282,12 +284,13 @@ namespace MillimanAccessPortal
                     Checksum = FileUploadRecord.Checksum,
                 };
 
-                // Remove FileUpload record(s) for this file path
+                #region Remove FileUpload record(s) for this file path, and the file
                 List<FileUpload> Uploads = await Db.FileUpload.Where(f => f.StoragePath == FileUploadRecord.StoragePath).ToListAsync();
                 File.Delete(FileUploadRecord.StoragePath);  // delete the file
                 Db.FileUpload.RemoveRange(Uploads);  // remove the record
-
                 await Db.SaveChangesAsync();
+                #endregion
+
                 await Txn.CommitAsync();
             }
 

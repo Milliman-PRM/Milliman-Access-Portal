@@ -16,6 +16,9 @@ using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
@@ -27,8 +30,8 @@ namespace ContainerizedAppLib
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
+        private string _acrToken, _repositoryName;
         private IAzure _azureContext;
-        private ContainerRegistryClient _containerRegistryClient;
         private string _acrToken;
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
@@ -62,18 +65,13 @@ namespace ContainerizedAppLib
         /// Asynchronous initializer, chainable with the constructor
         /// </summary>
         /// <returns></returns>
-        public async Task<ContainerizedAppLibApi> InitializeAsync()
+        public async Task<ContainerizedAppLibApi> InitializeAsync(string repositoryName)
         {
+            _repositoryName = repositoryName;
+
             try
             {
-                await GetAccessTokenAsync();
-                //GetAzureContextForContainerInstances();
-
-                ContainerRegistryClient client = new ContainerRegistryClient(
-                    new Uri(Config.ContainerRegistryUrl),
-                    new DefaultAzureCredential(), // TODO 
-                    new ContainerRegistryClientOptions() { Audience = ContainerRegistryAudience.AzureResourceManagerPublicCloud }
-                );
+                await GetAccessTokenAsync(repositoryName);
             }
             catch (Exception ex)
             {
@@ -87,16 +85,17 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        public async Task<bool> GetAccessTokenAsync()
+        private async Task<bool> GetAccessTokenAsync(string repositoryName)
         {
-            // It may be possible to replace this with something that uses package:  Microsoft.IdentityModel.Clients.ActiveDirectory
+            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
-                                                                        await Config.ContainerRegistryTokenEndpoint
-                                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
-                                                                            .GetAsync()
-                                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+                                                        await tokenEndpointWithScope
+                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                            .GetAsync()
+                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+
                 _acrToken = response.AccessToken;
                 return true;
             }
@@ -109,39 +108,15 @@ namespace ContainerizedAppLib
 
         #region Container Registry
 
-        public async Task<List<ContainerRepository>> GetRepositories()
-        {
-            try
-            {
-                AsyncPageable<string> repositoryNames = _containerRegistryClient.GetRepositoryNamesAsync();
-
-                List<ContainerRepository> containerRepositories = new List<ContainerRepository>();
-                await foreach (string repositoryName in repositoryNames)
-                {
-                    ContainerRepository repository = _containerRegistryClient.GetRepository(repositoryName);
-                    containerRepositories.Add(repository);
-                }
-
-                return containerRepositories;
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Exception attempting to fetch repositories.");
-                throw;
-            }
-        }
-
-        public async Task<JObject> GetRepositoryManifest(string repositoryName, string tag = "latest")
+        public async Task<object> GetRepositoryManifest(string repositoryName, string tag = "latest")
         {
             string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
             try
             {
-                JObject response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
-                                    await manifestEndpoint
+                var response = await manifestEndpoint
                                         .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                        .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                                        .GetAsync()
-                                        .ReceiveJson<JObject>(), 3, 100);
+                                        .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                        .GetJsonAsync();
                 return response;
             }
             catch (Exception ex)
@@ -151,16 +126,61 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task PushImageManifest(string repositoryName, JObject manifestContents, string reference)
+        private async Task DeleteRepositoryManifest(string repositoryName, string digest)
         {
-            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{reference}";
+            string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{digest}";
+            try
+            {
+                await deleteImageManifestEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete image manifest for {repositoryName}:{digest}");
+            }
+        }
+
+        public async Task DeleteRepository(string repositoryName)
+        {
+            string deleteRepositoryEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}";
+            try
+            {
+                await deleteRepositoryEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete repository {repositoryName}");
+            }
+        }
+
+        private async Task DeleteTag(string repositoryName, string tag)
+        {
+            string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}/_tags/{tag}";
+            try
+            {
+                await deleteTagEndpoint
+                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                    .DeleteAsync();
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, $"Failed to delete image tag for {repositoryName}:{tag}");
+            }
+        }
+
+        public async Task PushImageManifest(string repositoryName, string manifestContents, string tag)
+        {
+            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
 
             try
             {
                 var manifestUploadResponse = await manifestUploadEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .WithHeader("Content-Type", "application/vnd.docker.distribution.manifest.v2+json")
-                                    .PutJsonAsync(manifestContents);
+                                    .PutStringAsync(manifestContents);
             }
             catch (Exception ex)
             {
@@ -169,37 +189,53 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<JObject> PushImageToRegistry(string repositoryName, string manifestPath, string imageDigest, string imagePath)
+        public async Task PushImageToRegistry(string imageFileFullPath, string repositoryName, string tag = "latest")
         {
-            #region Compile layers
-            JObject manifestObj;
-            string fileContents = File.ReadAllText(manifestPath).Trim(new char[] { '[', ']' });
-            manifestObj = JObject.Parse(fileContents);
-            List<LayerObject> layers = manifestObj.SelectToken("layers").ToObject<List<LayerObject>>();
-            #endregion
+#warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
+
+            string workingFolderName = Path.GetDirectoryName(imageFileFullPath);
+            GlobalFunctions.ExtractFromTar(imageFileFullPath);
 
             try
             {
-                foreach (var layer in layers)
+                #region Compile layers
+                string manifestPath = Path.Combine(workingFolderName, "manifest.json");
+                if (!File.Exists(manifestPath))
                 {
-                    if (!(await LayerDoesExist(repositoryName, layer.Digest)))
+                    throw new ApplicationException($"Invalid image file: Manifest {manifestPath} cannot be found.");
+                }
+
+                string manifestContents = File.ReadAllText(manifestPath).Trim('[', ']');
+                JObject manifestObj = JObject.Parse(manifestContents);
+
+                List<BlobData> layerData = manifestObj.SelectToken("layers").ToObject<List<BlobData>>();
+                BlobData configObject = manifestObj.SelectToken("config").ToObject<BlobData>();
+                List<string> blobDigests = layerData.Select(layerData => layerData.Digest.Replace("sha256:", ""))
+                                                    .Append(configObject.Digest.Replace("sha256:", ""))  // Include config BLOB to create a new repository.
+                                                    .ToList();
+                #endregion
+
+                foreach (string blobDigest in blobDigests)
+                {
+                    if (!await BlobDoesExist(repositoryName, $"sha256:{blobDigest}"))
                     {
-                        await UploadLayer(repositoryName, layer.Digest, imageDigest, Path.Combine(imagePath, layer.Digest.Replace("sha256:", "")), manifestObj);
+                        var blobPath = Path.Combine(workingFolderName, blobDigest);
+                        await UploadBlob(repositoryName, blobDigest, blobPath);
                     }
                 }
+
+                await PushImageManifest(repositoryName, manifestContents, tag);
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to push an image.");
+                Log.Error(ex, $"Failed to push image file {imageFileFullPath} to Azure registry");
                 throw;
             }
-
-            return null;
         }
 
-        private async Task<bool> LayerDoesExist(string repositoryName, string layerDigest)
+        private async Task<bool> BlobDoesExist(string repositoryName, string blobDigest)
         {
-            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{layerDigest}";
+            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{blobDigest}";
 
             try
             {
@@ -207,21 +243,18 @@ namespace ContainerizedAppLib
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .HeadAsync();
 
-                // TODO??: Add check for Content-Length and Docker-Content-Digest headers as well.
-                return response.StatusCode == 202;
+                response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
+                return response.StatusCode == 202 && responseDigest.Equals(blobDigest, StringComparison.InvariantCultureIgnoreCase);
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception when checking existence of layer.");
-                // throw;
+                Log.Error(ex, "Exception when checking existence of layer.");
+                return false;
             }
-
-            return false;
         }
 
-        private async Task UploadLayer(string repositoryName, string layerDigest, string imageDigest, string pathToLayer, JObject manifestContents)
+        private async Task UploadBlob(string repositoryName, string layerDigest, string pathToLayer)
         {
-            int chunkSize = 65_536;
             string nextUploadLocation = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/uploads/"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
@@ -241,50 +274,62 @@ namespace ContainerizedAppLib
                     #region Upload blob.
                     if (File.Exists(pathToLayer))
                     {
-                        (int, int) range = (0, 0);
-                        BinaryReader binaryReader = new BinaryReader(new FileStream(pathToLayer, FileMode.Open, FileAccess.Read)); // disp
-
-                        while (true)
+                        using (FileStream fileStream = new FileStream(pathToLayer, FileMode.Open, FileAccess.Read))
                         {
-                            range.Item2 = range.Item1 + chunkSize;
-                            byte[] buffer = binaryReader.ReadBytes(chunkSize);
-                            if (buffer.Length == 0)
+                            // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
+                            using (var hasher = SHA256.Create())
                             {
-                                break;
+                                StringBuilder builder = new StringBuilder();
+                                byte[] result = hasher.ComputeHash(fileStream);
+                                foreach (byte b in result)
+                                {
+                                    builder.Append(b.ToString("x2"));
+                                }
+                                if (!builder.ToString().Equals(layerDigest))
+                                {
+                                    throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
+                                }
                             }
 
-                            string chunkValue = Convert.ToBase64String(buffer, 0, buffer.Length); // b64
+                            fileStream.Seek(0, SeekOrigin.Begin); // Reset stream position since position gets moved when hash is calculated.
 
-                            // todo: try monolithic
-                            string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
-                            var blobUploadResponse = await blobUploadEndpoint
-                                .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                                .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-                                .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                .WithHeader("Content-Length", buffer.Length)
-                                .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchStringAsync(chunkValue);
-                            blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+                            long totalNumberOfBytesToRead = fileStream.Length;
+                            int totalNumberOfBytesRead = 0;
+                            int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
+                            byte[] rawFileBytes = new byte[totalNumberOfBytesToRead];
+                            while (totalNumberOfBytesToRead > 0)
+                            {
+                                int chunkSize = Math.Min(defaultChunkSize, (int)(totalNumberOfBytesToRead));
+                                int numberOfBytesRead = fileStream.Read(rawFileBytes, totalNumberOfBytesRead, chunkSize);
+                                byte[] chunkBytes = new byte[chunkSize];
+                                Array.Copy(rawFileBytes, totalNumberOfBytesRead, chunkBytes, 0, chunkSize);
 
-                            range.Item1 = range.Item2;
+                                string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
+                                string base64String = Convert.ToBase64String(rawFileBytes);
+                                var blobUploadResponse = await blobUploadEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                    .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                                    .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                    .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
+                                    .WithHeader("Content-Length", chunkSize)
+                                    .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + chunkSize - 1}")
+                                    .WithHeader("Content-Type", "application/octet-stream")
+                                    .PatchAsync(new ByteArrayContent(chunkBytes));
+                                blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+
+                                totalNumberOfBytesRead += chunkSize;
+                                totalNumberOfBytesToRead -= chunkSize;
+                            }
                         }
                     }
                     #endregion
 
                     #region Finish blob upload.
-                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest={layerDigest}";
-
-                    /*
-                    var endUploadResponse = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, JObject>(async () =>
-                                await finishBlobUploadEndpoint
-                            .WithHeader("Authorization", $"Bearer {_acrToken}")
-                            .PutStringAsync(String.Empty)
-                            .ReceiveJson<JObject>(), 3, 100);
-                            */
+                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest=sha256:{layerDigest}";
+                    var endUploadResponse = await finishBlobUploadEndpoint
+                                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                                    .PutAsync();
                     #endregion
-
-                    // await PushImageManifest(repositoryName, manifestContents, imageDigest);
                 }
             }
             catch (Exception ex)
@@ -408,6 +453,22 @@ namespace ContainerizedAppLib
             }
         }
 
+        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool deleteOldTag = true)
+        {
+            // Get existing manifest.
+            var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
+            string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
+
+            // Push same manifest with new tag.
+            await PushImageManifest(repositoryName, parsedManifestString, newTag);
+
+            // Remove previously tagged image.
+            if (deleteOldTag)
+            {
+                await DeleteTag(repositoryName, oldTag);
+            }
+        }
+
         public async Task DeleteContainerGroup(string containerGroupId)
         {
             try
@@ -426,15 +487,15 @@ namespace ContainerizedAppLib
             [JsonProperty(PropertyName = "access_token")]
             public string AccessToken { set; internal get; }
         }
-        
-        class LayerObject
+
+        class BlobData
         {
             [JsonProperty(PropertyName = "mediaType")]
-            public string MediaType { get; set; }
+            public string MediaType { set; internal get; }
             [JsonProperty(PropertyName = "size")]
-            public int Size { get; set; }
+            public int Size { set; internal get; }
             [JsonProperty(PropertyName = "digest")]
-            public string Digest { get; set; }
+            public string Digest { set; internal get; }
         }
     }
 }
