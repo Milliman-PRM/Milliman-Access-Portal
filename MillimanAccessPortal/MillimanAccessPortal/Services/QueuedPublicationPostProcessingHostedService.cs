@@ -381,12 +381,12 @@ namespace MillimanAccessPortal.Services
                             #region 
                             ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
-                            string repositoryName = GlobalFunctions.HexMd5String(contentItem.Id);
+                            string repositoryName = contentItem.AcrRepoositoryName;
 
-                            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
                             try
                             {
-                                await api.PushImageToRegistry(newMasterFile.FullPath, repositoryName, "tag");  // TODO get the tag right
+                                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
+                                await api.PushImageToRegistry(newMasterFile.FullPath, repositoryName, "preview");
                             }
                             catch (Exception ex)
                             {

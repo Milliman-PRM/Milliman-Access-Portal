@@ -118,6 +118,25 @@ namespace ContainerizedAppLib
             }
         }
 
+        public async Task<List<string>> GetRepositoryTags(string repositoryName)
+        {
+            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v1/{repositoryName}/_tags";
+            
+            try
+            {
+                var response = await manifestEndpoint
+                                        .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                        .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                        .GetJsonAsync();
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                throw;
+            }
+        }
+
         private async Task DeleteRepositoryManifest(string repositoryName, string digest)
         {
             string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{digest}";

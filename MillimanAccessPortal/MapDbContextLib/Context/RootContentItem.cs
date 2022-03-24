@@ -159,6 +159,9 @@ namespace MapDbContextLib.Context
                     : JsonConvert.SerializeObject(value);
             }
         }
+
+        [NotMapped]
+        public string AcrRepoositoryName => Id.ToString("D").ToLower();
     }
 
     /// <summary>
