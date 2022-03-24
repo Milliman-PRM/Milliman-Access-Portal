@@ -32,7 +32,6 @@ namespace ContainerizedAppLib
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _repositoryName;
         private IAzure _azureContext;
-        private string _acrToken;
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
@@ -92,7 +91,7 @@ namespace ContainerizedAppLib
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
                                                         await tokenEndpointWithScope
-                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
                                                             .GetAsync()
                                                             .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
 
@@ -338,6 +337,22 @@ namespace ContainerizedAppLib
                 throw;
             }
         }
+
+        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool deleteOldTag = true)
+        {
+            // Get existing manifest.
+            var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
+            string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
+
+            // Push same manifest with new tag.
+            await PushImageManifest(repositoryName, parsedManifestString, newTag);
+
+            // Remove previously tagged image.
+            if (deleteOldTag)
+            {
+                await DeleteTag(repositoryName, oldTag);
+            }
+        }
         #endregion
 
         #region Container Instances
@@ -450,22 +465,6 @@ namespace ContainerizedAppLib
             catch (Exception ex)
             {
                 Log.Error(ex, "Error trying to stop a running Container Group.");
-            }
-        }
-
-        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool deleteOldTag = true)
-        {
-            // Get existing manifest.
-            var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
-            string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
-
-            // Push same manifest with new tag.
-            await PushImageManifest(repositoryName, parsedManifestString, newTag);
-
-            // Remove previously tagged image.
-            if (deleteOldTag)
-            {
-                await DeleteTag(repositoryName, oldTag);
             }
         }
 
