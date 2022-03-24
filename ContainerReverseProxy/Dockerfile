@@ -5,4 +5,4 @@
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
 COPY ./out .
-ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
+ENTRYPOINT ["/bin/sh", "-c", "echo 172.16.3.132    map-uat-app.trafficmanager.net >> /etc/hosts && dotnet ContainerReverseProxy.dll"]
