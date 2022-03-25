@@ -93,6 +93,7 @@ namespace MillimanAccessPortal.Controllers
             // Do not commit.
             var api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync("repository");
             await api.GetACIAccessTokenAsync();
+            await api.StopContainerInstance("ev");
             // Do not commit.
 
             if (string.IsNullOrWhiteSpace(User.Identity.Name) && !User.Identity.IsAuthenticated)

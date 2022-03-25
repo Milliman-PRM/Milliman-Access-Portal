@@ -31,8 +31,7 @@ namespace ContainerizedAppLib
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
-        private string _acrToken, _repositoryName;
-        private TokenCredentials _aciTokenCredential;
+        private string _acrToken, _aciToken, _repositoryName;
         private IAzure _azureContext; // todo remove
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
@@ -374,7 +373,7 @@ namespace ContainerizedAppLib
 
                 if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
                 {
-                    _aciTokenCredential = new TokenCredentials(response.AccessToken, response.TokenType);
+                    _aciToken = response.AccessToken;
                     return true;
                 }
                 else
@@ -457,20 +456,22 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task StopContainerInstance(string containerGroupId)
+        public async Task<bool> StopContainerInstance(string containerGroupId)
         {
-            IContainerGroup containerGroup;
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupId}/stop?api-version=2021-09-01";
+
             try
             {
-                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
-                if (containerGroup != null)
-                {
-                    await containerGroup.StopAsync();
-                }
+                var response = await stopContainerInstanceEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .PostAsync();
+
+                return response.StatusCode == 202;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error trying to stop a running Container Group.");
+                Log.Error(ex, "Exception when checking existence of layer.");
+                return false;
             }
         }
 
