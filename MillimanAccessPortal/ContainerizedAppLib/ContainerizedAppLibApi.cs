@@ -443,22 +443,28 @@ namespace ContainerizedAppLib
             return "Container Group not found";
         }
 
-        public async Task<IEnumerable<IContainerGroup>> ListContainerGroupsInResourceGroup()
+        public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
+
             try
             {
-                return await _azureContext.ContainerGroups.ListAsync();
+                var response = await listContainerGroupsInResourceGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .GetAsync();
+
+                return await response.GetJsonAsync().Result;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error attempting to list all Container Groups in Resource Group.");
+                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
                 return null;
             }
         }
 
-        public async Task<bool> StopContainerInstance(string containerGroupId)
+        public async Task<bool> StopContainerInstance(string containerGroupName)
         {
-            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupId}/stop?api-version=2021-09-01";
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
 
             try
             {
@@ -470,37 +476,46 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Exception when checking existence of layer.");
+                Log.Error(ex, $"Exception when attempting to stop running ACI Container Group {containerGroupName}.");
                 return false;
             }
         }
 
-        public async Task RestartContainerGroup(string containerGroupId)
+        public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
-            IContainerGroup containerGroup;
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
+
             try
             {
-                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
-                if (containerGroup != null)
-                {
-                    await containerGroup.RestartAsync();
-                }
+                var response = await restartContainerGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .PostAsync();
+
+                return response.StatusCode == 202;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error trying to stop a running Container Group.");
+                Log.Error(ex, $"Exception when attempting to restart ACI Container Group {containerGroupName}.");
+                return false;
             }
         }
 
-        public async Task DeleteContainerGroup(string containerGroupId)
+        public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+
             try
             {
-                await _azureContext.ContainerGroups.DeleteByIdAsync(containerGroupId);
+                var response = await restartContainerGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .DeleteAsync();
+
+                return response.StatusCode == 202;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error deleting Container Group with ID {containerGroupId}.");
+                Log.Error(ex, $"Exception when attempting to delete ACI Container Group {containerGroupName}.");
+                return false;
             }
         }
         #endregion
