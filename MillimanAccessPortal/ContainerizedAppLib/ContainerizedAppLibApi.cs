@@ -19,11 +19,11 @@ using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-//using Microsoft.Azure.Management.Fluent;
-//using Microsoft.Azure.Management.ResourceManager.Fluent;
-//using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-//using Microsoft.Azure.Management.ContainerInstance.Fluent;
-//using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Azure.Management.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Azure.Management.ContainerInstance.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
 
 namespace ContainerizedAppLib
 {
@@ -31,7 +31,7 @@ namespace ContainerizedAppLib
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _repositoryName;
-        //private IAzure _azureContext;
+        private IAzure _azureContext;
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
@@ -354,7 +354,7 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
-/*
+
         #region Container Instances
         private void GetAzureContextForContainerInstances()
         {
@@ -480,8 +480,7 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
-  */
-
+        
         class ACRAuthenticationResponse
         {
             [JsonProperty(PropertyName = "access_token")]
