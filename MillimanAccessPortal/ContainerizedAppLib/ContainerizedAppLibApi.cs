@@ -24,6 +24,7 @@ using Microsoft.Azure.Management.ResourceManager.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Azure.Management.ContainerInstance.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
+using Microsoft.Rest;
 
 namespace ContainerizedAppLib
 {
@@ -31,7 +32,8 @@ namespace ContainerizedAppLib
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _repositoryName;
-        private IAzure _azureContext;
+        private TokenCredentials _aciTokenCredential;
+        private IAzure _azureContext; // todo remove
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
@@ -70,7 +72,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                await GetAccessTokenAsync(repositoryName);
+                await GetACRAccessTokenAsync(repositoryName);
             }
             catch (Exception ex)
             {
@@ -84,7 +86,7 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> GetAccessTokenAsync(string repositoryName)
+        private async Task<bool> GetACRAccessTokenAsync(string repositoryName)
         {
             string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
             try
@@ -356,17 +358,38 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        private void GetAzureContextForContainerInstances()
+        public async Task<bool> GetACIAccessTokenAsync()
         {
             try
             {
-                var creds = new AzureCredentialsFactory().FromServicePrincipal(Config.ACIClientId, Config.ACIClientSecret, Config.ACITenantId, AzureEnvironment.AzureGlobalCloud);
-                _azureContext = Microsoft.Azure.Management.Fluent.Azure.Authenticate(creds).WithSubscription(Config.ACISubscriptionId);
+                MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
+                                                                        await Config.ContainerInstanceTokenEndpoint
+                                                                        .PostMultipartAsync(mp => mp
+                                                                            .AddString("grant_type", Config.ACIGrantType)
+                                                                            .AddString("scope", Config.ACIScope)
+                                                                            .AddString("client_id", Config.ACIClientId)
+                                                                            .AddString("client_secret", Config.ACIClientSecret)
+                                                                        )
+                                                                        .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
+
+                if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
+                {
+                    _aciTokenCredential = new TokenCredentials(response.AccessToken, response.TokenType);
+                    return true;
+                }
+                else
+                {
+                    Log.Warning("Invalid response when authenticating to Azure Container Instances, response object is {@response}", response);
+                    response = null;
+                }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error trying to create valid Azure context.");
+                Log.Warning(ex, "Exception attempting to get Azure Container Instances access token");
+                throw;
             }
+
+            return false;
         }
 
         public async Task CreateContainerGroup(string containerGroupName, string containerImageName, double cpuCoreCount = 1.0, double memorySizeInGB = 1.0, params int[] containerPorts)

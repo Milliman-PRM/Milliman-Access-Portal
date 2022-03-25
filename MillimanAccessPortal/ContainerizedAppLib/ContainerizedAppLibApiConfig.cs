@@ -14,10 +14,16 @@
         {
             get => $"https://{ContainerRegistryUrl}/oauth2/token?service={ContainerRegistryUrl}";
         }
+        public string ContainerInstanceTokenEndpoint
+        {
+            get => $"https://login.microsoftonline.com/{ACITenantId}/oauth2/v2.0/token";
+        }
         public string ACIResourceGroupName { get; set; }
         public string ACIClientId { get; set; }
         public string ACIClientSecret { get; set; }
         public string ACITenantId { get; set; }
         public string ACISubscriptionId { get; set; }
+        public string ACIScope { get; set; }
+        public string ACIGrantType { get; set; }
     }
 }

@@ -434,24 +434,6 @@ namespace PowerBiLib
 
             return false;
         }
-
-        class MicrosoftAuthenticationResponse
-        {
-            [JsonProperty(PropertyName = "token_type")]
-            public string TokenType { set; internal get; }
-
-            [JsonProperty(PropertyName = "scope")]
-            public string Scope { set; internal get; }
-
-            [JsonProperty(PropertyName = "expires_in")]
-            public int ExpiresIn { set; internal get; }
-
-            [JsonProperty(PropertyName = "ext_expires_in")]
-            public int ExtExpiresIn { set; internal get; }
-
-            [JsonProperty(PropertyName = "access_token")]
-            public string AccessToken { set; internal get; }
-        }
     }
 
     public class ReportModel
