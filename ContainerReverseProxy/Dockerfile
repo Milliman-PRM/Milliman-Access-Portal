@@ -4,6 +4,5 @@
 
 FROM mcr.microsoft.com/dotnet/aspnet:6.0
 WORKDIR /app
-COPY . .
-ENV ASPNETCORE_ENVIRONMENT="azure-UAT"
-ENTRYPOINT ["dotnet", "ContainerReverseProxy.dll"]
+COPY ./out .
+ENTRYPOINT ["/bin/sh", "-c", "echo 172.16.3.132    map-uat-app.trafficmanager.net >> /etc/hosts && dotnet ContainerReverseProxy.dll"]
