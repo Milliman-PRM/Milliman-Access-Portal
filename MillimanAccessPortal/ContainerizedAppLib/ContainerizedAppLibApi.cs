@@ -391,8 +391,9 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task CreateContainerGroup(string containerGroupName, string containerImageName, double cpuCoreCount = 1.0, double memorySizeInGB = 1.0, params int[] containerPorts)
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params int[] containerPorts)
         {
+            /*
             try
             {
                 IResourceGroup resourceGroup = await _azureContext.ResourceGroups.GetByNameAsync(Config.ACIResourceGroupName);
@@ -421,6 +422,74 @@ namespace ContainerizedAppLib
             catch (Exception ex)
             {
                 Log.Error(ex, "Error trying to create a new Container Group.");
+            }
+            */
+
+            // REST functionality (remove this comment after implementation)
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+
+            try
+            {
+                List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = containerPorts[p] }).ToList();
+                AzureContainerGroupRequestModel requestModel = new AzureContainerGroupRequestModel()
+                {
+                    Location = "eastus", // TODO: figure out a way to change this dynamically
+                    Properties = new ContainerGroupProperties()
+                    {
+                        OsType = OsTypeEnum.Linux,
+                        ContainerInstances = new List<ContainerInstance>()
+                        {
+                            new ContainerInstance()
+                            {
+                                Name = containerGroupName,
+                                Properties = new ContainerProperties()
+                                {
+                                    Commands = new List<string>(),
+                                    Image = containerImageName,
+                                    Ports = containerPortObjects,
+                                    Resources = new ResourceRequirements()
+                                    {
+                                        ResourceRequests = new ResourceData()
+                                        {
+                                            CpuLimit = cpuCoreCount,
+                                            MemoryInGB = memorySizeInGB,
+                                            GpuResource = new GpuResource()
+                                            {
+                                                Count = 1,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        ImageRegistryCredentials = new List<ImageRegistryCredential>()
+                        {
+                            new ImageRegistryCredential()
+                            {
+                                Username = Config.ContainerRegistryUsername,
+                                Password = Config.ContainerRegistryPassword,
+                                Server = Config.ContainerRegistryUrl,
+                            }
+                        },
+                        IpAdress = new IpAddress()
+                        {
+                            Ports = containerPortObjects
+                        }
+                    }
+                };
+
+                string serializedRequestModel = JsonConvert.SerializeObject(requestModel);
+                var response = await createContainerGroupEndpoint
+                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                .WithHeader("Content-Type", "application/json")
+                                .PutJsonAsync(serializedRequestModel);
+
+                return response.StatusCode == 201;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to create a new Container Group.");
+                return false;
             }
         }
 
