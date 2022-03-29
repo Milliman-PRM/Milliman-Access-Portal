@@ -669,12 +669,12 @@ namespace MillimanAccessPortal.Controllers
             // TODO Use api to run a container based on the preview image
             // api.RunSomeContainer(some arguments);
 
-            UriBuilder contentUri = new UriBuilder("whatever");
+            UriBuilder contentUri = new UriBuilder("https://www.google.com");
 
             // TODO Notify the reverse proxy about the incoming session
             #endregion
 
-            return Redirect(contentUri.Uri.AbsolutePath);
+            return Redirect(contentUri.Uri.AbsoluteUri);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
