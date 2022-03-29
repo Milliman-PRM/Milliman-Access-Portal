@@ -664,7 +664,10 @@ namespace MillimanAccessPortal.Controllers
             string imageName = contentItemProperties.PreviewImageName;
             string tag = contentItemProperties.PreviewImageTag;
 
-            // TODO Spin up a container using the preview image
+            ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.PreviewImageName);
+            // TODO Use api to run a container based on the preview image
+            // api.RunSomeContainer(some arguments);
 
             UriBuilder contentUri = new UriBuilder("whatever");
 
@@ -725,13 +728,11 @@ namespace MillimanAccessPortal.Controllers
             try
             {
                 string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync("");
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
 
 #warning TODO complete this section
-                // TODO Use api to run a container
-                // if (necessary) {
-                //     api.RunSomeContainer(some arguments);
-                // }
+                // TODO Use api to run a container based on the live image
+                // api.RunSomeContainer(some arguments);
 
                 // TODO Collect correct info to configure the proxy and the redirect
                 string containerFqdn;
