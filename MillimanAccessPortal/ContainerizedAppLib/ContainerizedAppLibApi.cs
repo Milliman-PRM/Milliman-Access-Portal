@@ -350,19 +350,19 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task RetagImage(string repositoryName, string oldTag, string newTag, bool deleteOldTag = true)
+        public async Task RetagImage(string oldTag, string newTag, bool deleteOldTag = true)
         {
             // Get existing manifest.
-            var manifestObj = await GetRepositoryManifest(repositoryName, oldTag);
+            var manifestObj = await GetRepositoryManifest(_repositoryName, oldTag);
             string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
 
             // Push same manifest with new tag.
-            await PushImageManifest(repositoryName, parsedManifestString, newTag);
+            await PushImageManifest(_repositoryName, parsedManifestString, newTag);
 
             // Remove previously tagged image.
             if (deleteOldTag)
             {
-                await DeleteTag(repositoryName, oldTag);
+                await DeleteTag(_repositoryName, oldTag);
             }
         }
 
