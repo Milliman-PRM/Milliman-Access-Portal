@@ -430,16 +430,16 @@ namespace ContainerizedAppLib
 
             try
             {
-                List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = containerPorts[p] }).ToList();
+                List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
                 AzureContainerGroupRequestModel requestModel = new AzureContainerGroupRequestModel()
                 {
                     Location = "eastus", // TODO: figure out a way to change this dynamically
                     Properties = new ContainerGroupProperties()
                     {
                         OsType = OsTypeEnum.Linux,
-                        ContainerInstances = new List<ContainerInstance>()
+                        Containers = new List<Container>()
                         {
-                            new ContainerInstance()
+                            new Container()
                             {
                                 Name = containerGroupName,
                                 Properties = new ContainerProperties()
@@ -453,10 +453,10 @@ namespace ContainerizedAppLib
                                         {
                                             CpuLimit = cpuCoreCount,
                                             MemoryInGB = memorySizeInGB,
-                                            GpuResource = new GpuResource()
+                                            /*GpuResource = new GpuResource()
                                             {
                                                 Count = 1,
-                                            }
+                                            }*/
                                         }
                                     }
                                 }
@@ -482,13 +482,15 @@ namespace ContainerizedAppLib
                 var response = await createContainerGroupEndpoint
                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
                                 .WithHeader("Content-Type", "application/json")
-                                .PutJsonAsync(serializedRequestModel);
+                                .PutJsonAsync(requestModel);
+
 
                 return response.StatusCode == 201;
             }
-            catch (Exception ex)
+            catch (FlurlHttpException ex)
             {
-                Log.Error(ex, "Error trying to create a new Container Group.");
+                var result = await ex.GetResponseJsonAsync();
+                // Log.Error(ex, "Error trying to create a new Container Group.");
                 return false;
             }
         }

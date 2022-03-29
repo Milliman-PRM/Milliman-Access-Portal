@@ -6,6 +6,7 @@ using System.Text;
 
 namespace ContainerizedAppLib
 {
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#request-body
     internal class AzureContainerGroupRequestModel
     {
         [JsonProperty(PropertyName = "properties")]
@@ -29,13 +30,14 @@ namespace ContainerizedAppLib
         public OsTypeEnum OsType { get; set; } // Required.
 
         [JsonProperty(PropertyName = "containers")]
-        public List<ContainerInstance> ContainerInstances { get; set; } // Required.
+        public List<Container> Containers { get; set; } // Required.
 
         [JsonProperty(PropertyName = "imageRegistryCredentials")]
         public List<ImageRegistryCredential> ImageRegistryCredentials { get; set; }
 
         [JsonProperty(PropertyName = "ipAddress")]
         public IpAddress IpAdress { get; set; }
+        
         // TODO diagnostics
         // TODO dnsConfig
         // TODO encryptionProperties
@@ -46,7 +48,8 @@ namespace ContainerizedAppLib
         // TODO volumes
     }
 
-    internal class ContainerInstance
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#container
+    internal class Container
     {
         [JsonProperty(PropertyName = "name")]
         public string Name { get; set; }
@@ -60,22 +63,26 @@ namespace ContainerizedAppLib
         [JsonProperty(PropertyName = "command")]
         public List<string> Commands { get; set; }
 
-        // TODO environmentVariables
-
         [JsonProperty(PropertyName = "image")]
         public string Image { get; set; }
 
         [JsonProperty(PropertyName = "instanceView")]
         public InstanceView InstanceView { get; set; }
-        // TODO livenessProbe
+        
         [JsonProperty(PropertyName = "ports")]
         public List<ContainerPort> Ports { get; set; }
-        // TODO readinessProbe
+        
         [JsonProperty(PropertyName = "resources")]
         public ResourceRequirements Resources { get; set; }
+
+        // TODO environmentVariables
         // TODO volumeMounts
+        // TODO readinessProbe
+        // TODO livenessProbe
+
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerport
     internal class ContainerPort
     {
         [JsonProperty(PropertyName = "port")]
@@ -85,6 +92,7 @@ namespace ContainerizedAppLib
         public ProtocolEnum Protocol { get; set; } = ProtocolEnum.TCP;
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#imageregistrycredential
     internal class ImageRegistryCredential
     {   
         [JsonProperty(PropertyName = "username")]
@@ -95,8 +103,19 @@ namespace ContainerizedAppLib
 
         [JsonProperty(PropertyName = "server")]
         public string Server { get; set; }
+
+        /*
+         * For managed Identity
+         * 
+         * [JsonProperty(PropertyName = "identity")]
+         * public string Identity { get; set; }
+
+         * [JsonProperty(PropertyName = "identityUrl")]
+         * public string IdentityUrl { get; set; }
+        */
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#resourcerequirements
     internal class ResourceRequirements
     {
         [JsonProperty(PropertyName = "limits")]
@@ -106,18 +125,21 @@ namespace ContainerizedAppLib
         public ResourceData ResourceRequests { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#resourcelimits
     internal class ResourceData
     {
         [JsonProperty(PropertyName = "cpu")]
         public int CpuLimit { get; set; }
 
-        [JsonProperty(PropertyName = "gpu")]
-        public GpuResource GpuResource { get; set; }
-
         [JsonProperty(PropertyName = "memoryInGB")]
         public double MemoryInGB { get; set; }
+
+        // Including this defaults to SKU K80, which will cost quite a bit in performance.
+        // [JsonProperty(PropertyName = "gpu")]
+        // public GpuResource GpuResource { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#gpuresource
     internal class GpuResource
     {
         [JsonProperty(PropertyName = "count")]
@@ -127,6 +149,7 @@ namespace ContainerizedAppLib
         public GpuSkuEnum GpuSku { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerproperties.instanceview
     internal class InstanceView
     {
         [JsonProperty(PropertyName = "currentState")]
@@ -142,6 +165,7 @@ namespace ContainerizedAppLib
         public List<ContainerInstanceEvent> Events { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerstate
     internal class ContainerState
     {
         [JsonProperty(PropertyName = "detailStatus")]
@@ -160,6 +184,7 @@ namespace ContainerizedAppLib
         public string State { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#event
     internal class ContainerInstanceEvent
     {
         [JsonProperty(PropertyName = "count")]
@@ -181,6 +206,7 @@ namespace ContainerizedAppLib
         public string Type { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerprobe
     internal class ContainerProbe
     {
         [JsonProperty(PropertyName = "exec")]
@@ -189,15 +215,21 @@ namespace ContainerizedAppLib
         [JsonProperty(PropertyName = "failureThreshold")]
         public int FailureThreshold { get; set; }
 
-        // TODO this is not complete.
+        // TODO httpGet
+        // TODO initialDelaySeconds
+        // TODO periodSeconds
+        // TODO successThreshold
+        // TODO timeoutSeconds
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerexec
     internal class ContainerExec
     {
         [JsonProperty(PropertyName = "command")]
         public List<string> Command { get; set; }
     }
 
+    // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#ipaddress
     internal class IpAddress
     {
         [JsonProperty(PropertyName = "dnsNameLabel")]
@@ -213,7 +245,7 @@ namespace ContainerizedAppLib
         public List<ContainerPort> Ports { get; set; }
 
         [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; } = "Public"; // TODO: private
+        public string Type { get; set; } = "Public"; // Can also be set to "Private"
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
