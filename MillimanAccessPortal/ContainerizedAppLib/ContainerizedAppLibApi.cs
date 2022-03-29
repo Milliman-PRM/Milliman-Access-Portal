@@ -1,11 +1,5 @@
 ﻿using Flurl.Http;
-using Azure;
-using Azure.Core;
-using Azure.Containers.ContainerRegistry;
-using Azure.Containers.ContainerRegistry.Specialized;
-using Azure.Identity;
 using MapCommonLib;
-using Microsoft.Azure.Management.ContainerRegistry;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
@@ -19,12 +13,6 @@ using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using Microsoft.Azure.Management.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Azure.Management.ContainerInstance.Fluent;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Authentication;
-using Microsoft.Rest;
 
 namespace ContainerizedAppLib
 {
@@ -32,7 +20,6 @@ namespace ContainerizedAppLib
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _aciToken, _repositoryName;
-        private IAzure _azureContext; // todo remove
 
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
@@ -477,6 +464,7 @@ namespace ContainerizedAppLib
             }
         }
 
+        /* TODO: reimplement with REST.
         public async Task<string> GetContainerGroupStatus(string containerGroupId)
         {
             IContainerGroup containerGroup;
@@ -495,6 +483,7 @@ namespace ContainerizedAppLib
 
             return "Container Group not found";
         }
+        */
 
         public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
