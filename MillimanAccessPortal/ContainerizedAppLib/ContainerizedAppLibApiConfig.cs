@@ -25,5 +25,7 @@
         public string ACISubscriptionId { get; set; }
         public string ACIScope { get; set; }
         public string ACIGrantType { get; set; }
+
+        public string ACIApiVersion { get; set; } = "2021-09-01";
     }
 }

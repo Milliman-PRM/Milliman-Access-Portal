@@ -393,40 +393,7 @@ namespace ContainerizedAppLib
 
         public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params int[] containerPorts)
         {
-            /*
-            try
-            {
-                IResourceGroup resourceGroup = await _azureContext.ResourceGroups.GetByNameAsync(Config.ACIResourceGroupName);
-                Region azureRegion = resourceGroup.Region;
-
-                List<int> allPorts = new List<int>();
-                int[] defaultPorts = new int[] { 80 };
-                allPorts.AddRange(defaultPorts);
-                allPorts.AddRange(containerPorts);
-
-                var newContainerGroup = _azureContext.ContainerGroups.Define(containerGroupName)
-                    .WithRegion(azureRegion)
-                    .WithExistingResourceGroup(Config.ACIResourceGroupName)
-                    .WithLinux()
-                    .WithPrivateImageRegistry(Config.ContainerRegistryUrl, Config.ContainerRegistryUsername, Config.ContainerRegistryPassword)
-                    .WithoutVolume()
-                    .DefineContainerInstance(containerGroupName)
-                        .WithImage(containerImageName)
-                        .WithExternalTcpPorts(allPorts.ToArray())
-                        .WithCpuCoreCount(cpuCoreCount)
-                        .WithMemorySizeInGB(memorySizeInGB)
-                        .Attach()
-                    .WithDnsPrefix(containerGroupName)
-                    .Create();
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Error trying to create a new Container Group.");
-            }
-            */
-
-            // REST functionality (remove this comment after implementation)
-            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.ACIApiVersion}";
 
             try
             {
@@ -453,10 +420,6 @@ namespace ContainerizedAppLib
                                         {
                                             CpuLimit = cpuCoreCount,
                                             MemoryInGB = memorySizeInGB,
-                                            /*GpuResource = new GpuResource()
-                                            {
-                                                Count = 1,
-                                            }*/
                                         }
                                     }
                                 }
@@ -484,13 +447,13 @@ namespace ContainerizedAppLib
                                 .WithHeader("Content-Type", "application/json")
                                 .PutJsonAsync(requestModel);
 
-
+                // TODO Utilize response body for polling.
                 return response.StatusCode == 201;
             }
             catch (FlurlHttpException ex)
             {
                 var result = await ex.GetResponseJsonAsync();
-                // Log.Error(ex, "Error trying to create a new Container Group.");
+                Log.Error(result, "Error trying to create a new Container Group.");
                 return false;
             }
         }
