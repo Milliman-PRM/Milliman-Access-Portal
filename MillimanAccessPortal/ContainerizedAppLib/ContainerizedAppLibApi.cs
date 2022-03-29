@@ -58,7 +58,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                await GetACRAccessTokenAsync(repositoryName);
+                await GetAcrAccessTokenAsync(repositoryName);
             }
             catch (Exception ex)
             {
@@ -72,7 +72,7 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> GetACRAccessTokenAsync(string repositoryName)
+        private async Task<bool> GetAcrAccessTokenAsync(string repositoryName)
         {
             string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
             try
@@ -363,17 +363,17 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        public async Task<bool> GetACIAccessTokenAsync()
+        public async Task<bool> GetAciAccessTokenAsync()
         {
             try
             {
                 MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
                                                                         await Config.ContainerInstanceTokenEndpoint
                                                                         .PostMultipartAsync(mp => mp
-                                                                            .AddString("grant_type", Config.ACIGrantType)
-                                                                            .AddString("scope", Config.ACIScope)
-                                                                            .AddString("client_id", Config.ACIClientId)
-                                                                            .AddString("client_secret", Config.ACIClientSecret)
+                                                                            .AddString("grant_type", Config.AciGrantType)
+                                                                            .AddString("scope", Config.AciScope)
+                                                                            .AddString("client_id", Config.AciClientId)
+                                                                            .AddString("client_secret", Config.AciClientSecret)
                                                                         )
                                                                         .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
@@ -399,7 +399,7 @@ namespace ContainerizedAppLib
 
         public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params int[] containerPorts)
         {
-            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.ACIApiVersion}";
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -487,7 +487,7 @@ namespace ContainerizedAppLib
 
         public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
-            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
 
             try
             {
@@ -506,7 +506,7 @@ namespace ContainerizedAppLib
 
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
-            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
 
             try
             {
@@ -525,7 +525,7 @@ namespace ContainerizedAppLib
 
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
 
             try
             {
@@ -544,7 +544,7 @@ namespace ContainerizedAppLib
 
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.ACISubscriptionId}/resourceGroups/{Config.ACIResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
             try
             {
