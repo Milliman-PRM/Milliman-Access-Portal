@@ -633,6 +633,47 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        public async Task<IActionResult> ContainerizedAppPreview(Guid publicationRequestId)
+        {
+            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
+            #region Authorization
+            var PubRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == publicationRequestId);
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem contentItem = await DataContext.ContentPublicationRequest
+                                                           .Include(r => r.RootContentItem)
+                                                              .ThenInclude(c => c.ContentType)
+                                                           .Where(r => r.Id == publicationRequestId)
+                                                           .Select(r => r.RootContentItem)
+                                                           .SingleOrDefaultAsync();
+
+            ContainerizedAppContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+            #region Prepare the preview content
+            string imageName = contentItemProperties.PreviewImageName;
+            string tag = contentItemProperties.PreviewImageTag;
+
+            // TODO Spin up a container using the preview image
+
+            UriBuilder contentUri = new UriBuilder("whatever");
+
+            // TODO Notify the reverse proxy about the incoming session
+            #endregion
+
+            return Redirect(contentUri.Uri.AbsolutePath);
+        }
+
         public async Task<IActionResult> ContainerizedApp(Guid group)
         {
             #region Authorization
