@@ -1,16 +1,8 @@
 ﻿using Flurl.Http;
-using Azure;
-using Azure.Core;
-using Azure.Containers.ContainerRegistry;
-using Azure.Containers.ContainerRegistry.Specialized;
-using Azure.Identity;
 using MapCommonLib;
-using Microsoft.Azure.Management.ContainerRegistry;
-using Microsoft.Rest;
 using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Generic;
 using System.IO;
 using Serilog;
@@ -27,8 +19,8 @@ namespace ContainerizedAppLib
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
-        private string _acrToken, _repositoryName;
-        
+        private string _acrToken, _aciToken, _repositoryName;
+
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
             await Task.Yield();
@@ -66,7 +58,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                await GetAccessTokenAsync(repositoryName);
+                await GetAcrAccessTokenAsync(repositoryName);
             }
             catch (Exception ex)
             {
@@ -80,16 +72,17 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> GetAccessTokenAsync(string repositoryName)
+        private async Task<bool> GetAcrAccessTokenAsync(string repositoryName)
         {
             string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
                                                         await tokenEndpointWithScope
-                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredential}")
+                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
                                                             .GetAsync()
                                                             .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+
                 _acrToken = response.AccessToken;
                 return true;
             }
@@ -99,6 +92,8 @@ namespace ContainerizedAppLib
                 throw;
             }
         }
+
+        #region Container Registry
 
         public async Task<object> GetRepositoryManifest(string repositoryName, string tag = "latest")
         {
@@ -365,7 +360,208 @@ namespace ContainerizedAppLib
                 await DeleteTag(_repositoryName, oldTag);
             }
         }
+        #endregion
 
+        #region Container Instances
+        public async Task<bool> GetAciAccessTokenAsync()
+        {
+            try
+            {
+                MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
+                                                                        await Config.ContainerInstanceTokenEndpoint
+                                                                        .PostMultipartAsync(mp => mp
+                                                                            .AddString("grant_type", Config.AciGrantType)
+                                                                            .AddString("scope", Config.AciScope)
+                                                                            .AddString("client_id", Config.AciClientId)
+                                                                            .AddString("client_secret", Config.AciClientSecret)
+                                                                        )
+                                                                        .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
+
+                if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
+                {
+                    _aciToken = response.AccessToken;
+                    return true;
+                }
+                else
+                {
+                    Log.Warning("Invalid response when authenticating to Azure Container Instances, response object is {@response}", response);
+                    response = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Warning(ex, "Exception attempting to get Azure Container Instances access token");
+                throw;
+            }
+
+            return false;
+        }
+
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params int[] containerPorts)
+        {
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+
+            try
+            {
+                List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
+                AzureContainerGroupRequestModel requestModel = new AzureContainerGroupRequestModel()
+                {
+                    Location = "eastus", // TODO: figure out a way to change this dynamically
+                    Properties = new ContainerGroupProperties()
+                    {
+                        OsType = OsTypeEnum.Linux,
+                        Containers = new List<Container>()
+                        {
+                            new Container()
+                            {
+                                Name = containerGroupName,
+                                Properties = new ContainerProperties()
+                                {
+                                    Commands = new List<string>(),
+                                    Image = containerImageName,
+                                    Ports = containerPortObjects,
+                                    Resources = new ResourceRequirements()
+                                    {
+                                        ResourceRequests = new ResourceData()
+                                        {
+                                            CpuLimit = cpuCoreCount,
+                                            MemoryInGB = memorySizeInGB,
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        ImageRegistryCredentials = new List<ImageRegistryCredential>()
+                        {
+                            new ImageRegistryCredential()
+                            {
+                                Username = Config.ContainerRegistryUsername,
+                                Password = Config.ContainerRegistryPassword,
+                                Server = Config.ContainerRegistryUrl,
+                            }
+                        },
+                        IpAdress = new IpAddress()
+                        {
+                            Ports = containerPortObjects
+                        }
+                    }
+                };
+
+                string serializedRequestModel = JsonConvert.SerializeObject(requestModel);
+                var response = await createContainerGroupEndpoint
+                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                .WithHeader("Content-Type", "application/json")
+                                .PutJsonAsync(requestModel);
+
+                // TODO Utilize response body for polling.
+                return response.StatusCode == 201;
+            }
+            catch (FlurlHttpException ex)
+            {
+                var result = await ex.GetResponseJsonAsync();
+                Log.Error(result, "Error trying to create a new Container Group.");
+                return false;
+            }
+        }
+
+        /* TODO: reimplement with REST.
+        public async Task<string> GetContainerGroupStatus(string containerGroupId)
+        {
+            IContainerGroup containerGroup;
+            try
+            {
+                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
+                if (containerGroup != null)
+                {
+                    return containerGroup.Refresh().State;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error trying to find an Azure Container Group.");
+            }
+
+            return "Container Group not found";
+        }
+        */
+
+        public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
+        {
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
+
+            try
+            {
+                var response = await listContainerGroupsInResourceGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .GetAsync();
+
+                return await response.GetJsonAsync().Result;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
+                return null;
+            }
+        }
+
+        public async Task<bool> StopContainerInstance(string containerGroupName)
+        {
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
+
+            try
+            {
+                var response = await stopContainerInstanceEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .PostAsync();
+
+                return response.StatusCode == 202;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception when attempting to stop running ACI Container Group {containerGroupName}.");
+                return false;
+            }
+        }
+
+        public async Task<bool> RestartContainerGroup(string containerGroupName)
+        {
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
+
+            try
+            {
+                var response = await restartContainerGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .PostAsync();
+
+                return response.StatusCode == 202;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception when attempting to restart ACI Container Group {containerGroupName}.");
+                return false;
+            }
+        }
+
+        public async Task<bool> DeleteContainerGroup(string containerGroupName)
+        {
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+
+            try
+            {
+                var response = await restartContainerGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .DeleteAsync();
+
+                return response.StatusCode == 202;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception when attempting to delete ACI Container Group {containerGroupName}.");
+                return false;
+            }
+        }
+        #endregion
+        
         class ACRAuthenticationResponse
         {
             [JsonProperty(PropertyName = "access_token")]
