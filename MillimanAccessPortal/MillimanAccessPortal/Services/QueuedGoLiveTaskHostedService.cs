@@ -379,9 +379,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
-                                            await containerizedAppApi.RetagImage("preview", "live");
 
-#warning TODO Is this needed?               await containerizedAppApi.StopAllRunningContainers(theLiveImage);
+#warning TODO Is this needed?               await containerizedAppApi.StopAllRunningContainers(theOutgoingLiveImage);
+
+                                            await containerizedAppApi.RetagImage("preview", "live");
                                         });
                                     }
 

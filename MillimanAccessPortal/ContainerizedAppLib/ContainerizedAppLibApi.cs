@@ -100,7 +100,7 @@ namespace ContainerizedAppLib
             string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
             try
             {
-                var response = await manifestEndpoint
+                dynamic response = await manifestEndpoint
                                         .WithHeader("Authorization", $"Bearer {_acrToken}")
                                         .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                         .GetJsonAsync();
@@ -119,7 +119,7 @@ namespace ContainerizedAppLib
             
             try
             {
-                var response = await manifestEndpoint
+                dynamic response = await manifestEndpoint
                                         .WithHeader("Authorization", $"Bearer {_acrToken}")
                                         .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                         .GetJsonAsync();
@@ -179,11 +179,11 @@ namespace ContainerizedAppLib
 
         public async Task PushImageManifest(string repositoryName, string manifestContents, string tag)
         {
-            var manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
+            string manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
 
             try
             {
-                var manifestUploadResponse = await manifestUploadEndpoint
+                IFlurlResponse manifestUploadResponse = await manifestUploadEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .WithHeader("Content-Type", "application/vnd.docker.distribution.manifest.v2+json")
                                     .PutStringAsync(manifestContents);
@@ -225,7 +225,7 @@ namespace ContainerizedAppLib
                 {
                     if (!await BlobDoesExist(repositoryName, $"sha256:{blobDigest}"))
                     {
-                        var blobPath = Path.Combine(workingFolderName, blobDigest);
+                        string blobPath = Path.Combine(workingFolderName, blobDigest);
                         await UploadBlob(repositoryName, blobDigest, blobPath);
                     }
                 }
@@ -245,7 +245,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await checkExistenceEndpoint
+                IFlurlResponse response = await checkExistenceEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .HeadAsync();
 
@@ -268,7 +268,7 @@ namespace ContainerizedAppLib
             try
             {
                 #region Start blob upload.
-                var response = await startBlobUploadEndpoint
+                IFlurlResponse response = await startBlobUploadEndpoint
                     .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
                     .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json ")
                     .PostAsync();
@@ -283,7 +283,7 @@ namespace ContainerizedAppLib
                         using (FileStream fileStream = new FileStream(pathToLayer, FileMode.Open, FileAccess.Read))
                         {
                             // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
-                            using (var hasher = SHA256.Create())
+                            using (SHA256 hasher = SHA256.Create())
                             {
                                 StringBuilder builder = new StringBuilder();
                                 byte[] result = hasher.ComputeHash(fileStream);
@@ -312,7 +312,7 @@ namespace ContainerizedAppLib
 
                                 string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
                                 string base64String = Convert.ToBase64String(rawFileBytes);
-                                var blobUploadResponse = await blobUploadEndpoint
+                                IFlurlResponse blobUploadResponse = await blobUploadEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                     .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
                                     .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
@@ -332,7 +332,7 @@ namespace ContainerizedAppLib
 
                     #region Finish blob upload.
                     string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest=sha256:{layerDigest}";
-                    var endUploadResponse = await finishBlobUploadEndpoint
+                    IFlurlResponse endUploadResponse = await finishBlobUploadEndpoint
                                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                                     .PutAsync();
                     #endregion
@@ -348,7 +348,7 @@ namespace ContainerizedAppLib
         public async Task RetagImage(string oldTag, string newTag, bool deleteOldTag = true)
         {
             // Get existing manifest.
-            var manifestObj = await GetRepositoryManifest(_repositoryName, oldTag);
+            object manifestObj = await GetRepositoryManifest(_repositoryName, oldTag);
             string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
 
             // Push same manifest with new tag.
@@ -397,7 +397,7 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params int[] containerPorts)
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params uint[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -448,7 +448,7 @@ namespace ContainerizedAppLib
                 };
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel);
-                var response = await createContainerGroupEndpoint
+                IFlurlResponse response = await createContainerGroupEndpoint
                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
                                 .WithHeader("Content-Type", "application/json")
                                 .PutJsonAsync(requestModel);
@@ -458,7 +458,7 @@ namespace ContainerizedAppLib
             }
             catch (FlurlHttpException ex)
             {
-                var result = await ex.GetResponseJsonAsync();
+                dynamic result = await ex.GetResponseJsonAsync();
                 Log.Error(result, "Error trying to create a new Container Group.");
                 return false;
             }
@@ -491,7 +491,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await listContainerGroupsInResourceGroupEndpoint
+                IFlurlResponse response = await listContainerGroupsInResourceGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
                                     .GetAsync();
 
@@ -510,7 +510,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await stopContainerInstanceEndpoint
+                IFlurlResponse response = await stopContainerInstanceEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
                                     .PostAsync();
 
@@ -529,7 +529,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await restartContainerGroupEndpoint
+                IFlurlResponse response = await restartContainerGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
                                     .PostAsync();
 
@@ -548,7 +548,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await restartContainerGroupEndpoint
+                IFlurlResponse response = await restartContainerGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
                                     .DeleteAsync();
 

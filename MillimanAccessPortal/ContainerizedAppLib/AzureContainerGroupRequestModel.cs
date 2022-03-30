@@ -86,7 +86,7 @@ namespace ContainerizedAppLib
     internal class ContainerPort
     {
         [JsonProperty(PropertyName = "port")]
-        public int Port { get; set; }
+        public uint Port { get; set; }
 
         [JsonProperty(PropertyName = "protocol")]
         public ProtocolEnum Protocol { get; set; } = ProtocolEnum.TCP;
