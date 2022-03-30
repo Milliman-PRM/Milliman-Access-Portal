@@ -1295,6 +1295,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           <ContentContainer
             contentType={contentTypeMap[goLiveSummary.contentTypeName]}
             contentURL={goLiveSummary.masterContentLink}
+            needsAdditionalLoadTime={goLiveSummary.needsAdditionalLoadTime}
           >
             <a
               href={goLiveSummary.masterContentLink}
@@ -1334,6 +1335,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <ContentContainer
           contentType={ContentTypeEnum.Pdf}
           contentURL={goLiveSummary.userGuideLink}
+          needsAdditionalLoadTime={false}
         >
           <a
             href={goLiveSummary.userGuideLink}
@@ -1359,6 +1361,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <ContentContainer
           contentType={ContentTypeEnum.Pdf}
           contentURL={goLiveSummary.releaseNotesLink}
+          needsAdditionalLoadTime={false}
         >
           <a
             href={goLiveSummary.releaseNotesLink}

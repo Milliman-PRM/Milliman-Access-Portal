@@ -215,6 +215,7 @@ export interface PreLiveContentValidationSummary {
   reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
+  needsAdditionalLoadTime: boolean;
 }
 export interface SelectionGroupSummary {
   id: Guid;
