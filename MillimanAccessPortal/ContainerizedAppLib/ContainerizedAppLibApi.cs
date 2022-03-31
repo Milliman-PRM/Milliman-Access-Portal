@@ -13,6 +13,8 @@ using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using ContainerizedAppLib.AzureRestApiModels;
 
 namespace ContainerizedAppLib
 {
@@ -397,7 +399,12 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params uint[] containerPorts)
+        public async Task<bool> RunContainer(string containerGroupName)
+        {
+            return true;
+        }
+
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -422,7 +429,7 @@ namespace ContainerizedAppLib
                                     Ports = containerPortObjects,
                                     Resources = new ResourceRequirements()
                                     {
-                                        ResourceRequests = new ResourceData()
+                                        ResourceRequests = new ResourceDescriptor()
                                         {
                                             CpuLimit = cpuCoreCount,
                                             MemoryInGB = memorySizeInGB,
@@ -464,26 +471,25 @@ namespace ContainerizedAppLib
             }
         }
 
-        /* TODO: reimplement with REST.
-        public async Task<string> GetContainerGroupStatus(string containerGroupId)
+        private async Task<object> GetContainerGroupStatus(string containerGroupName, CancellationToken cancellationToken)
         {
-            IContainerGroup containerGroup;
+            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+
             try
             {
-                containerGroup = await _azureContext.ContainerGroups.GetByIdAsync(containerGroupId);
-                if (containerGroup != null)
-                {
-                    return containerGroup.Refresh().State;
-                }
+                var response = await getContainerGroupEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .GetJsonAsync<object>();
+                                    //.GetJsonAsync<ContainerGroupResponseModel>();
+
+                return response;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error trying to find an Azure Container Group.");
+                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
+                return null;
             }
-
-            return "Container Group not found";
         }
-        */
 
         public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
