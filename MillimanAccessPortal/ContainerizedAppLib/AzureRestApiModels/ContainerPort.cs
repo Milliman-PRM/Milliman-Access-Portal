@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerport
-    internal class ContainerPort
+    public class ContainerPort
     {
         [JsonProperty(PropertyName = "port")]
         public ushort Port { get; set; }
@@ -14,7 +14,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    internal enum ProtocolEnum
+    public enum ProtocolEnum
     {
         TCP,
         UDP

@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#event
-    internal class Event
+    public class Event
     {
         [JsonProperty(PropertyName = "count")]
         public int Count { get; set; }

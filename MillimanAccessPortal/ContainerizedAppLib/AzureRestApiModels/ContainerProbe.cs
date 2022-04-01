@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerprobe
-    internal class ContainerProbe
+    public class ContainerProbe
     {
         [JsonProperty(PropertyName = "exec")]
         public ContainerExec ContainerExec { get; set; }

@@ -6,11 +6,8 @@ using System.Text;
 
 namespace ContainerizedAppLib.AzureRestApiModels
 {
-    internal class ContainerGroupProperties
+    public class ContainerGroupProperties
     {
-        [JsonProperty(PropertyName = "osType")]
-        public OsTypeEnum OsType { get; set; } // Required.
-
         [JsonProperty(PropertyName = "containers")]
         public List<Container> Containers { get; set; } // Required.
 
@@ -20,20 +17,32 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "ipAddress")]
         public IpAddress IpAdress { get; set; }
 
-        // TODO diagnostics
-        // TODO dnsConfig
+        [JsonProperty(PropertyName = "diagnostics")]
+        public ContainerGroupDiagnostics Diagnostics { get; set; }
+
+        [JsonProperty(PropertyName = "dnsConfig")]
+        public DnsConfiguration dnsConfig { get; set; }
+
         // TODO encryptionProperties
+        // TODO imageRegistryCredentials
         // TODO initContainers
+        // TODO instanceView
+        // TODO ipAddress
+
+        [JsonProperty(PropertyName = "osType")]
+        public OsTypeEnum OsType { get; set; } // Required.
+
+        [JsonProperty(PropertyName = "provisioningState")]
+        public string ProvisioningState { get; set; }
+
         // TODO restartPolicy
         // TODO sku
         // TODO subnetIds
         // TODO volumes
-
-        // TODO ProvisioningState
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    internal enum OsTypeEnum
+    public enum OsTypeEnum
     {
         Linux,
         Windows

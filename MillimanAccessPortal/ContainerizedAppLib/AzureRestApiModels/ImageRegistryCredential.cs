@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#imageregistrycredential
-    internal class ImageRegistryCredential
+    public class ImageRegistryCredential
     {
         [JsonProperty(PropertyName = "username")]
         public string Username { get; set; }

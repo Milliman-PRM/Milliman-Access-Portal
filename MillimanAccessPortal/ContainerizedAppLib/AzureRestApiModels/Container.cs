@@ -2,7 +2,7 @@
 
 namespace ContainerizedAppLib.AzureRestApiModels
 {
-    internal class Container
+    public class Container
     {
         // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#container
 

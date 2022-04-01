@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#resourcelimits
-    internal class ResourceDescriptor
+    public class ResourceDescriptor
     {
         [JsonProperty(PropertyName = "cpu")]
         public int CpuLimit { get; set; }

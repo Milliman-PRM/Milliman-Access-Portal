@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#resourcerequirements
-    internal class ResourceRequirements
+    public class ResourceRequirements
     {
         [JsonProperty(PropertyName = "limits")]
         public ResourceDescriptor ResourceLimits { get; set; }

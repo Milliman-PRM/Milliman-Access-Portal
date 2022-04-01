@@ -4,7 +4,7 @@ using Newtonsoft.Json.Converters;
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#gpuresource
-    internal class GpuResource
+    public class GpuResource
     {
         [JsonProperty(PropertyName = "count")]
         public int Count { get; set; }
@@ -14,7 +14,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
     }
 
     [JsonConverter(typeof(StringEnumConverter))]
-    internal enum GpuSkuEnum
+    public enum GpuSkuEnum
     {
         K80,
         P100,

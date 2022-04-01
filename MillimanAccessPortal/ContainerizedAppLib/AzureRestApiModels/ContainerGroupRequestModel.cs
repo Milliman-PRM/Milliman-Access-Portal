@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#request-body
-    internal class AzureContainerGroupRequestModel
+    public class ContainerGroupRequestModel
     {
         [JsonProperty(PropertyName = "properties")]
         public ContainerGroupProperties Properties { get; set; }
@@ -20,6 +20,5 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         // TODO identity
     }
-
 
 }

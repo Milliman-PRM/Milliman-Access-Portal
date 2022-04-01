@@ -3,7 +3,7 @@
 namespace ContainerizedAppLib.AzureRestApiModels
 {
     // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/create-or-update#containerstate
-    internal class ContainerState
+    public class ContainerState
     {
         [JsonProperty(PropertyName = "detailStatus")]
         public string DetailStatus { get; set; }
