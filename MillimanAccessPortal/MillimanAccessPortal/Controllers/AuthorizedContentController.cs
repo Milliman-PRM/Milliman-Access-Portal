@@ -667,7 +667,7 @@ namespace MillimanAccessPortal.Controllers
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.PreviewImageName);
             // TODO Use api to run a container based on the preview image
-            // api.RunSomeContainer(some arguments);
+            await api.RunContainer(Guid.NewGuid().ToString(), typeSpecificInfo.PreviewImageName, 3, 4, 3838);
 
             UriBuilder contentUri = new UriBuilder("https://www.google.com");
 

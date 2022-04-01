@@ -61,6 +61,7 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAcrAccessTokenAsync(repositoryName);
+                await GetAciAccessTokenAsync();
             }
             catch (Exception ex)
             {
@@ -399,8 +400,18 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<bool> RunContainer(string containerGroupName)
+        public async Task<bool> RunContainer(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
         {
+            bool createResult = await CreateContainerGroup(containerGroupName, containerImageName, cpuCoreCount, memorySizeInGB, containerPorts);
+
+            if (createResult)
+            {
+                CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+                Task<object> getStatusTask = GetContainerGroupStatus(containerGroupName, tokenSource.Token);
+                object getStatusReturnObj = await getStatusTask;
+
+                Log.Information($"Get container group finished with task status {getStatusTask.Status}, return object is {{@getStatusReturnObj}}", getStatusReturnObj);
+            }
             return true;
         }
 
@@ -411,9 +422,9 @@ namespace ContainerizedAppLib
             try
             {
                 List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
-                AzureContainerGroupRequestModel requestModel = new AzureContainerGroupRequestModel()
+                ContainerGroupRequestModel requestModel = new ContainerGroupRequestModel()
                 {
-                    Location = "eastus", // TODO: figure out a way to change this dynamically
+                    Location = "eastus", // TODO: query the location from the ResourceGroup being used to create this group
                     Properties = new ContainerGroupProperties()
                     {
                         OsType = OsTypeEnum.Linux,
@@ -465,8 +476,12 @@ namespace ContainerizedAppLib
             }
             catch (FlurlHttpException ex)
             {
-                dynamic result = await ex.GetResponseJsonAsync();
-                Log.Error(result, "Error trying to create a new Container Group.");
+                var result = await ex.GetResponseJsonAsync();
+
+                var error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
+                Log.Error(ex, $"Error trying to create a new Container Group.  Error details:{Environment.NewLine}\t{{@error}}", 
+                                string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
                 return false;
             }
         }
@@ -479,8 +494,8 @@ namespace ContainerizedAppLib
             {
                 var response = await getContainerGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                    .GetJsonAsync<object>();
-                                    //.GetJsonAsync<ContainerGroupResponseModel>();
+                                    //.GetJsonAsync<object>();
+                                    .GetJsonAsync<ContainerGroup_GetResponseModel>();
 
                 return response;
             }
