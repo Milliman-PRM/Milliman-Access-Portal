@@ -1297,16 +1297,18 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             contentURL={goLiveSummary.masterContentLink}
             needsAdditionalLoadTime={goLiveSummary.needsAdditionalLoadTime}
           >
-            <a
-              href={goLiveSummary.masterContentLink}
-              className="new-tab-icon"
-              target="_blank"
-              title="Open in new tab"
-            >
-              <svg className="action-icon-expand-frame action-icon tooltip">
-                <use xlinkHref="#expand-frame" />
-              </svg>
-            </a>
+            {!goLiveSummary.needsAdditionalLoadTime &&
+              <a
+                href={goLiveSummary.masterContentLink}
+                className="new-tab-icon"
+                target="_blank"
+                title="Open in new tab"
+              >
+                <svg className="action-icon-expand-frame action-icon tooltip">
+                  <use xlinkHref="#expand-frame" />
+                </svg>
+              </a>
+            }
           </ContentContainer>
         )}
       </GoLiveSection>

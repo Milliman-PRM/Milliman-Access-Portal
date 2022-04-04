@@ -88,21 +88,23 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
         type="application/pdf"
         onLoad={() => this.setState({ isLoading: false })}
       />
-    ) : (!this.props.needsAdditionalLoadTime ? (
-          <iframe
-            src={this.props.contentURL}
-            sandbox={sandboxValues}
-            onLoad={() => this.setState({ isLoading: false })}
-          />
-        ) : null
+    ) : (
+      <iframe
+        src={this.props.contentURL}
+        sandbox={sandboxValues}
+        onLoad={() => this.setState({ isLoading: false })}
+        style={{ visibility: this.props.needsAdditionalLoadTime ? 'hidden' : 'visible' }}
+      />
     );
 
     return (
       <div className="iframe-container">
         {(this.state.isLoading || this.props.needsAdditionalLoadTime) && <ColumnSpinner />}
-        {this.props.needsAdditionalLoadTime && <p>Container applications may take a moment to display preview.</p>}
         {this.props.children}
         {frame}
+        {this.props.needsAdditionalLoadTime &&
+          <p style={{ textAlign: 'left' }}>Note: Container applications may take a moment to display preview.</p>
+        }
       </div>
     );
   }
