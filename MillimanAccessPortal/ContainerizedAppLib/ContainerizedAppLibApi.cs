@@ -400,19 +400,51 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<bool> RunContainer(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
+        public async Task<string> RunContainer(string containerGroupName, string containerImageName, string containerImageTag, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
         {
-            bool createResult = await CreateContainerGroup(containerGroupName, containerImageName, cpuCoreCount, memorySizeInGB, containerPorts);
+            string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
+           
+            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, cpuCoreCount, memorySizeInGB, containerPorts);
 
             if (createResult)
             {
-                CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-                Task<object> getStatusTask = GetContainerGroupStatus(containerGroupName, tokenSource.Token);
-                object getStatusReturnObj = await getStatusTask;
+                DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(3);
+                string containerGroupProvisioningState = null;
+                string containerGroupIpAddress = null;
+                ushort applicationPort = 0;
+                string containerGroupInstanceViewState = null;
 
-                Log.Information($"Get container group finished with task status {getStatusTask.Status}, return object is {{@getStatusReturnObj}}", getStatusReturnObj);
+                while (DateTime.UtcNow < timeLimit && new[] { null, "Pending", "Creating" }.Contains(containerGroupProvisioningState))
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+
+                    ContainerGroup_GetResponseModel containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+                    containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
+                    containerGroupIpAddress = containerGroupModel.Properties.IpAdress.Ip;
+                    containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
+
+                    try
+                    {
+                        applicationPort = containerGroupModel.Properties.IpAdress.Ports.Single().Port;
+                    }
+                    catch { }
+
+                    Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
+                                    $"instanceView state {containerGroupModel.Properties?.InstanceView?.State}, " +
+                                    $"IP {containerGroupModel.Properties.IpAdress.Ip}, " +
+                                    $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
+                }
+
+                Log.Information($"Get container group finished with provisioning state {containerGroupProvisioningState}, container group IP address is {containerGroupIpAddress}");
+
+                return $"http://{containerGroupIpAddress}:{applicationPort}";
             }
-            return true;
+            else
+            {
+                // TODO deal with failure of create/update container group rest api
+            }
+
+            return "";
         }
 
         public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
@@ -486,22 +518,21 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task<object> GetContainerGroupStatus(string containerGroupName, CancellationToken cancellationToken)
+        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupStatus(string containerGroupName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
             try
             {
-                var response = await getContainerGroupEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                    //.GetJsonAsync<object>();
-                                    .GetJsonAsync<ContainerGroup_GetResponseModel>();
+                ContainerGroup_GetResponseModel response = await getContainerGroupEndpoint
+                                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                                .GetJsonAsync<ContainerGroup_GetResponseModel>();
 
                 return response;
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
+                Log.Error(ex, $"Exception while attempting to get status of container group.");
                 return null;
             }
         }
