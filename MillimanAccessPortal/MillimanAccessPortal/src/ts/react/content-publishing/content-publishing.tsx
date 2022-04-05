@@ -1436,6 +1436,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         )}
       </GoLiveSection>
     );
+    const containerizedAppConfigurations = goLiveSummary && goLiveSummary.typeSpecificMetadata &&
+      goLiveSummary.contentTypeName === 'ContainerApp' && (
+      <GoLiveSection
+        title="Container Configurations"
+        checkboxLabel="All container configurations are as expected"
+        checkboxTarget="containerConfigurations"
+        checkboxSelectedValue={elementsToConfirm.containerConfigs}
+        checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
+      >
+        <div><b>CPU Cores:</b> {goLiveSummary.typeSpecificMetadata.cpuCores}</div>
+        <div><b>Application Port:</b> {goLiveSummary.typeSpecificMetadata.applicationPort}</div>
+        <div><b>Allocated RAM:</b> {goLiveSummary.typeSpecificMetadata.ram} GB</div>
+        <br />
+      </GoLiveSection>
+    );
     const attestationLanguage = goLiveSummary && goLiveSummary.attestationLanguage && (
       <>
         <h3>Attestation</h3>
@@ -1462,6 +1477,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           {releaseNotesPreview}
           {hierarchyValues}
           {selectionGroups}
+          {containerizedAppConfigurations}
           {attestationLanguage}
         </ContentPanelSectionContent>
         <div className="go-live-button-container">

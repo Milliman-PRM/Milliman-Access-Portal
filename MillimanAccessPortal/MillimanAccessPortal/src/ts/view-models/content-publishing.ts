@@ -216,6 +216,12 @@ export interface PreLiveContentValidationSummary {
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
   needsAdditionalLoadTime: boolean;
+  typeSpecificMetadata?: ContainerizedAppTypeSpecificMetadata;
+}
+export interface ContainerizedAppTypeSpecificMetadata {
+  applicationPort: string;
+  cpuCores: string;
+  ram: string;
 }
 export interface SelectionGroupSummary {
   id: Guid;
