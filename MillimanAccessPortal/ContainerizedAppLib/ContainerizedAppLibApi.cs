@@ -400,11 +400,11 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<string> RunContainer(string containerGroupName, string containerImageName, string containerImageTag, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
+        public async Task<string> RunContainer(string containerGroupName, string containerImageName, string containerImageTag, string ipType, int cpuCoreCount, double memorySizeInGB, params ushort[] containerPorts)
         {
             string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, cpuCoreCount, memorySizeInGB, containerPorts);
+            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, containerPorts);
 
             if (createResult)
             {
@@ -447,7 +447,7 @@ namespace ContainerizedAppLib
             return "";
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, int cpuCoreCount = 1, double memorySizeInGB = 1.0, params ushort[] containerPorts)
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -492,7 +492,8 @@ namespace ContainerizedAppLib
                         },
                         IpAdress = new IpAddress()
                         {
-                            Ports = containerPortObjects
+                            Ports = containerPortObjects,
+                            Type = ipType,
                         }
                     }
                 };

@@ -663,28 +663,29 @@ namespace MillimanAccessPortal.Controllers
             #region Prepare the preview content
             string imageName = contentItemProperties.PreviewImageName;
             string tag = contentItemProperties.PreviewImageTag;
+            string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
+            string ipAddressType = appEnvName.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) 
+                    ? "Private"
+                    : "Public";
+            string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
 
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.PreviewImageName);
-
+            
             // Run a container based on the preview image
             string redirectUrl = await api.RunContainer(Guid.NewGuid().ToString(), 
-                                   typeSpecificInfo.PreviewImageName,
-                                   typeSpecificInfo.PreviewImageTag, 
-                                   (int)typeSpecificInfo.PreviewContainerCpuCores, 
-                                   (int)typeSpecificInfo.PreviewContainerRamGb, 
-                                   typeSpecificInfo.PreviewContainerInternalPort);
-
-            // UriBuilder contentUri = new UriBuilder(redirectUrl);
+                                           typeSpecificInfo.PreviewImageName,
+                                           typeSpecificInfo.PreviewImageTag, 
+                                           ipAddressType,
+                                           (int)typeSpecificInfo.PreviewContainerCpuCores, 
+                                           (int)typeSpecificInfo.PreviewContainerRamGb, 
+                                           typeSpecificInfo.PreviewContainerInternalPort);
 
             IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
-            string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
 
             // TODO ensure an adequate token value
             string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(redirectUrl));
-
             string containerProxyPathRoot = $"/{contentToken}";
-            string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
 
             string redirectHost = appEnvName switch
             {
