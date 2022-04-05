@@ -6,7 +6,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
     public class ResourceDescriptor
     {
         [JsonProperty(PropertyName = "cpu")]
-        public int CpuLimit { get; set; }
+        public double CpuLimit { get; set; }
 
         [JsonProperty(PropertyName = "memoryInGB")]
         public double MemoryInGB { get; set; }

@@ -16,7 +16,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
         public string Location { get; set; }
 
         [JsonProperty(PropertyName = "name")]
-        public List<string> Name { get; set; }
+        public string Name { get; set; }
 
         [JsonProperty(PropertyName = "properties")]
         public ContainerGroupProperties Properties { get; set; }

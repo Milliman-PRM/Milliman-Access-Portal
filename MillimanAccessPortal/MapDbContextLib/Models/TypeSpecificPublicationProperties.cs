@@ -76,6 +76,6 @@ namespace MapDbContextLib.Models
 
         public ContainerRamGbEnum ContainerRamGb { get; set; }
 
-        public uint ContainerInternalPort { get; set; }
+        public ushort ContainerInternalPort { get; set; }
     }
 }

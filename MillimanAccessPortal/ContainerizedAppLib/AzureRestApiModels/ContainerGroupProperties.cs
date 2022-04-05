@@ -8,6 +8,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
 {
     public class ContainerGroupProperties
     {
+        // https://docs.microsoft.com/en-us/rest/api/container-instances/container-groups/get#containergroup
         [JsonProperty(PropertyName = "containers")]
         public List<Container> Containers { get; set; } // Required.
 
@@ -26,7 +27,10 @@ namespace ContainerizedAppLib.AzureRestApiModels
         // TODO encryptionProperties
         // TODO imageRegistryCredentials
         // TODO initContainers
-        // TODO instanceView
+
+        [JsonProperty(PropertyName = "instanceView")]
+        public InstanceView InstanceView { get; set; }
+
         // TODO ipAddress
 
         [JsonProperty(PropertyName = "osType")]
