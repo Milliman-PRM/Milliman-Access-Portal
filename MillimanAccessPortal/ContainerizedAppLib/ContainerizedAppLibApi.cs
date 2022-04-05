@@ -408,7 +408,7 @@ namespace ContainerizedAppLib
 
             if (createResult)
             {
-                DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(3);
+                DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
                 string containerGroupProvisioningState = null;
                 string containerGroupIpAddress = null;
                 ushort applicationPort = 0;

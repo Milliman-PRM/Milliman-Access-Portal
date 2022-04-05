@@ -69,9 +69,9 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="UserManagerArg"></param>
         /// <param name="AppConfigurationArg"></param>
         /// <param name="powerBiConfigArg"></param>
-        /// <param name="ContainerizedAppLibApiConfig"></param>
+        /// <param name="containerizedAppConfigArg"></param>
         /// <param name="AuthorizedContentQueriesArg"></param>
-        /// <param name="ReverseProxySessionHubArg"></param>
+        /// <param name="serviceProviderArg"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -675,12 +675,50 @@ namespace MillimanAccessPortal.Controllers
                                    (int)typeSpecificInfo.PreviewContainerRamGb, 
                                    typeSpecificInfo.PreviewContainerInternalPort);
 
-            UriBuilder contentUri = new UriBuilder(redirectUrl);
+            // UriBuilder contentUri = new UriBuilder(redirectUrl);
 
-            // TODO Notify the reverse proxy about the incoming session
+            IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
+            string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
+
+            // TODO ensure an adequate token value
+            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(redirectUrl));
+
+            string containerProxyPathRoot = $"/{contentToken}";
+            string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
+
+            string redirectHost = appEnvName switch
+            {
+                // Azure gateway will expect host with prepended contentToken
+                var env when env.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) => $"{contentToken}.{ApplicationConfig.GetValue<string>("ContainerProxyDomain")}",
+                _ => ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
+            };
+
+            UriBuilder externalRequestUri = new UriBuilder
+            {
+                Scheme = ApplicationConfig.GetValue<string>("ContainerProxyScheme"),
+                Host = redirectHost,
+                Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
+                Path = containerProxyPathRoot,
+            };
+            if (!appEnvName.Contains("azure-", StringComparison.OrdinalIgnoreCase))
+            {
+                externalRequestUri.Query = string.Join("&", new string[] { $"content-token={contentToken}" });
+            }
+
+            var arg = new OpenSessionRequest
+            {
+                PublicUri = externalRequestUri.Uri.AbsoluteUri,
+                RequestingHost = HttpContext.Connection.RemoteIpAddress.ToString(),
+                InternalUri = redirectUrl,
+                SessionToken = sessionToken,
+                ContentToken = contentToken,
+            };
+            // Notify the reverse proxy about the incoming session
+            await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
+
             #endregion
 
-            return Redirect(contentUri.Uri.AbsoluteUri);
+            return Redirect(arg.PublicUri);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -744,6 +782,7 @@ namespace MillimanAccessPortal.Controllers
                 string containerFqdn;
                 int containerExposedPort;
                 string containerScheme;
+
                 #region temporary
                 containerScheme = "http";
                 containerFqdn = "c-sharp-test.eastus.azurecontainer.io";

@@ -167,7 +167,7 @@ namespace ContainerReverseProxy
                 }
                 catch (Exception ex)
                 {
-                    Log.Error($"MapHubClient failed connecting to SignalR hub at {_appConfiguration.GetValue<string>("MapHubUrl")}:{Environment.NewLine}{ex.Message}");
+                    Log.Error($"MapHubClient failed connecting to SignalR hub at {_appConfiguration.GetValue<string>("MapHubUrl")}: reason => {ex.Message}");
                     await Task.Delay(RetryDelay);
                 }
             }
