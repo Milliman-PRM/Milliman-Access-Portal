@@ -39,12 +39,12 @@ namespace MapDbContextLib.Models
         public string LiveImageTag { get; set; } = null;
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
-        public uint LiveContainerInternalPort { get; set; } = 0;
+        public ushort LiveContainerInternalPort { get; set; } = 0;
 
         public string PreviewImageName { get; set; } = null;
         public string PreviewImageTag { get; set; } = null;
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
-        public uint PreviewContainerInternalPort { get; set; } = 0;
+        public ushort PreviewContainerInternalPort { get; set; } = 0;
     }
 }

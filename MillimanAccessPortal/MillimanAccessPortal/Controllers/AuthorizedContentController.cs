@@ -666,10 +666,16 @@ namespace MillimanAccessPortal.Controllers
 
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.PreviewImageName);
-            // TODO Use api to run a container based on the preview image
-            // api.RunSomeContainer(some arguments);
 
-            UriBuilder contentUri = new UriBuilder("https://www.google.com");
+            // Run a container based on the preview image
+            string redirectUrl = await api.RunContainer(Guid.NewGuid().ToString(), 
+                                   typeSpecificInfo.PreviewImageName,
+                                   typeSpecificInfo.PreviewImageTag, 
+                                   (int)typeSpecificInfo.PreviewContainerCpuCores, 
+                                   (int)typeSpecificInfo.PreviewContainerRamGb, 
+                                   typeSpecificInfo.PreviewContainerInternalPort);
+
+            UriBuilder contentUri = new UriBuilder(redirectUrl);
 
             // TODO Notify the reverse proxy about the incoming session
             #endregion
