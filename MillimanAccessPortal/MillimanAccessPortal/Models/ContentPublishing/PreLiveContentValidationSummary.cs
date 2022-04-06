@@ -43,7 +43,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
         public Dictionary<string,string> TypeSpecificMetadata { get; set; } = new Dictionary<string,string>();
-        public bool NeedsAdditionalLoadTime { get; set; } = false;
 
         public static async Task<PreLiveContentValidationSummary> BuildAsync(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -120,7 +119,6 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                                 contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ContainerizedAppPreview)}";
                                 contentUri.Query = $"publicationRequestId={PubRequest.Id}";
                                 ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
-                                ReturnObj.NeedsAdditionalLoadTime = true; // Container Instance needs additional time to spin up and serve preview.
                                 break;
 
                             case ContentTypeEnum.Qlikview:

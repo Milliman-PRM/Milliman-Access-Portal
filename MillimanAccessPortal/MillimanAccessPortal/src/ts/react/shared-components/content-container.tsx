@@ -93,17 +93,16 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
         src={this.props.contentURL}
         sandbox={sandboxValues}
         onLoad={() => this.setState({ isLoading: false })}
-        style={{ visibility: this.props.needsAdditionalLoadTime ? 'hidden' : 'visible' }}
       />
     );
 
     return (
       <div className="iframe-container">
-        {(this.state.isLoading || this.props.needsAdditionalLoadTime) && <ColumnSpinner />}
+        {(this.state.isLoading) && <ColumnSpinner />}
         {this.props.children}
         {frame}
-        {this.props.needsAdditionalLoadTime &&
-          <p style={{ textAlign: 'left' }}>Note: Container applications may take a moment to display preview.</p>
+        {this.props.contentType === ContentTypeEnum.ContainerApp &&
+          <p className="container-note">Note: Container applications may take a moment to display preview.</p>
         }
       </div>
     );

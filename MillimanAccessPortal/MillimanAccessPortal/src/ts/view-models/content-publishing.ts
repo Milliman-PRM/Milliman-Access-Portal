@@ -215,7 +215,6 @@ export interface PreLiveContentValidationSummary {
   reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
-  needsAdditionalLoadTime: boolean;
   typeSpecificMetadata?: ContainerizedAppTypeSpecificMetadata;
 }
 export interface ContainerizedAppTypeSpecificMetadata {

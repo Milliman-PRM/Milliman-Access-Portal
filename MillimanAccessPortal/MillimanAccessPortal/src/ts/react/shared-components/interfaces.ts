@@ -42,7 +42,6 @@ export interface NavBarElement {
 export interface ContentContainerProps {
   contentURL: string;
   contentType: ContentTypeEnum;
-  needsAdditionalLoadTime: boolean;
 }
 
 export type Guid = string;

@@ -1295,9 +1295,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           <ContentContainer
             contentType={contentTypeMap[goLiveSummary.contentTypeName]}
             contentURL={goLiveSummary.masterContentLink}
-            needsAdditionalLoadTime={goLiveSummary.needsAdditionalLoadTime}
           >
-            {!goLiveSummary.needsAdditionalLoadTime &&
+            {contentTypeMap[goLiveSummary.contentTypeName] !== ContentTypeEnum.ContainerApp &&
               <a
                 href={goLiveSummary.masterContentLink}
                 className="new-tab-icon"
