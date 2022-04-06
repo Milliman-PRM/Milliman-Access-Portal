@@ -420,18 +420,18 @@ namespace ContainerizedAppLib
 
                     ContainerGroup_GetResponseModel containerGroupModel = await GetContainerGroupStatus(containerGroupName);
                     containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
-                    containerGroupIpAddress = containerGroupModel.Properties.IpAdress.Ip;
+                    containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
                     containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
 
                     try
                     {
-                        applicationPort = containerGroupModel.Properties.IpAdress.Ports.Single().Port;
+                        applicationPort = containerGroupModel.Properties.IpAddress.Ports.Single().Port;
                     }
                     catch { }
 
                     Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
                                     $"instanceView state {containerGroupModel.Properties?.InstanceView?.State}, " +
-                                    $"IP {containerGroupModel.Properties.IpAdress.Ip}, " +
+                                    $"IP {containerGroupModel.Properties.IpAddress.Ip}, " +
                                     $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                 }
 
@@ -490,7 +490,7 @@ namespace ContainerizedAppLib
                                 Server = Config.ContainerRegistryUrl,
                             }
                         },
-                        IpAdress = new IpAddress()
+                        IpAddress = new IpAddress()
                         {
                             Ports = containerPortObjects,
                             Type = ipType,

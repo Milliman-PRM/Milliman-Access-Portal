@@ -16,7 +16,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
         public List<ImageRegistryCredential> ImageRegistryCredentials { get; set; }
 
         [JsonProperty(PropertyName = "ipAddress")]
-        public IpAddress IpAdress { get; set; }
+        public IpAddress IpAddress { get; set; }
 
         [JsonProperty(PropertyName = "diagnostics")]
         public ContainerGroupDiagnostics Diagnostics { get; set; }
