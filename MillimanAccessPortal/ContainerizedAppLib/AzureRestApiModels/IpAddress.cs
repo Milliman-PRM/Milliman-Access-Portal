@@ -20,6 +20,6 @@ namespace ContainerizedAppLib.AzureRestApiModels
         public List<ContainerPort> Ports { get; set; }
 
         [JsonProperty(PropertyName = "type")]
-        public string Type { get; set; } = "Private"; // Can also be set to "Public"
+        public string Type { get; set; }   // "Public" or "Private"
     }
 }
