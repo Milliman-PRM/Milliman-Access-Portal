@@ -635,13 +635,13 @@ namespace MillimanAccessPortal.Controllers
 
         public async Task<IActionResult> ContainerizedAppPreview(Guid publicationRequestId)
         {
-            ApplicationUser currentUser = await UserManager.GetUserAsync(User);
-
             #region Authorization
             var PubRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == publicationRequestId);
             AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
             if (!Result1.Succeeded)
             {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
                 Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failed for user {User.Identity.Name}, "
                     + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
                 AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
@@ -658,28 +658,122 @@ namespace MillimanAccessPortal.Controllers
                                                            .Select(r => r.RootContentItem)
                                                            .SingleOrDefaultAsync();
 
-            ContainerizedAppContentItemProperties contentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+            #region Validation
+            if (contentItem == null)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested publication request with ID {publicationRequestId} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (contentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {contentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (contentItem.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested publication request with ID {publicationRequestId} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
 
-            #region Prepare the preview content
-            string imageName = contentItemProperties.PreviewImageName;
-            string tag = contentItemProperties.PreviewImageTag;
+            try
+            {
+                ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, false);
+
+                return Redirect(redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a preview container");
+                throw;
+            }
+        }
+
+        public async Task<IActionResult> ContainerizedApp(Guid group)
+        {
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
+            if (!Result1.Succeeded)
+            {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.ContentType)
+                                                       .SingleOrDefault(g => g.Id == group);
+
+            #region Validation
+            if (selectionGroup == null)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsInactive)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            try
+            {
+                ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, true);
+
+                return Redirect(redirectUrl);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a container");
+                throw;
+            }
+        }
+
+        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, bool liveContent)
+        {
             string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-            string ipAddressType = appEnvName.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) 
-                    ? "Private"
-                    : "Public";
             string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
+            // string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.???").Value;
+            string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
+            (string vnetId, string vnetName) = ipAddressType == "Public"
+                                               ? (null, null)
+                                               : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
-            ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.PreviewImageName);
-            
-            // Run a container based on the preview image
-            string redirectUrl = await api.RunContainer(Guid.NewGuid().ToString(), 
-                                           typeSpecificInfo.PreviewImageName,
-                                           typeSpecificInfo.PreviewImageTag, 
+            // Use api to run a container based on the live image
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
+            string redirectUrl = await api.RunContainer(Guid.NewGuid().ToString(),
+                                           liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                           liveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
                                            ipAddressType,
-                                           (int)typeSpecificInfo.PreviewContainerCpuCores, 
-                                           (int)typeSpecificInfo.PreviewContainerRamGb, 
-                                           typeSpecificInfo.PreviewContainerInternalPort);
+                                           liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                           liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                           vnetId,
+                                           vnetName,
+                                           liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
             IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
 
@@ -717,131 +811,7 @@ namespace MillimanAccessPortal.Controllers
             // Notify the reverse proxy about the incoming session
             await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
 
-            #endregion
-
-            return Redirect(arg.PublicUri);
-        }
-
-        public async Task<IActionResult> ContainerizedApp(Guid group)
-        {
-            #region Authorization
-            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
-            if (!Result1.Succeeded)
-            {
-                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
-
-                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
-                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
-
-                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
-                return Unauthorized();
-            }
-            #endregion
-
-            SelectionGroup selectionGroup = DataContext.SelectionGroup
-                                                       .Include(g => g.RootContentItem)
-                                                           .ThenInclude(c => c.ContentType)
-                                                       .SingleOrDefault(g => g.Id == group);
-            ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-
-            #region Validation
-            if (selectionGroup == null)
-            {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
-            {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
-                Response.Headers.Add("Warning", $"The content could not be loaded.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            if (selectionGroup.IsInactive)
-            {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
-                Response.Headers.Add("Warning", $"The content could not be loaded.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            if (selectionGroup.IsSuspended)
-            {
-                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
-                Response.Headers.Add("Warning", $"The content could not be loaded.");
-                return StatusCode(StatusCodes.Status422UnprocessableEntity);
-            }
-            #endregion
-
-            try
-            {
-                string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
-
-#warning TODO complete this section
-                // TODO Use api to run a container based on the live image
-                // api.RunSomeContainer(some arguments);
-
-                // TODO Collect correct info to configure the proxy and the redirect
-                string containerFqdn;
-                int containerExposedPort;
-                string containerScheme;
-
-                #region temporary
-                containerScheme = "http";
-                containerFqdn = "c-sharp-test.eastus.azurecontainer.io";
-                containerExposedPort = 3000;
-                containerFqdn = "cc-test-container.eastus.azurecontainer.io";
-                containerExposedPort = 8080;
-                #endregion
-
-                // Hash the container fqdn so all requests for the same container will use the same token
-                string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerFqdn));
-
-                // TODO Generate any tokens or other info for this session
-                string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
-
-                string containerProxyPathRoot = $"/{contentToken}";
-
-                string redirectHost = appEnvName switch
-                {
-                    // Azure gateway will expect host with prepended contentToken
-                    var env when env.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) => $"{contentToken}.{ApplicationConfig.GetValue<string>("ContainerProxyDomain")}",
-                    _ => ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
-                };
-
-                UriBuilder externalRequestUri = new UriBuilder
-                {
-                    Scheme = ApplicationConfig.GetValue<string>("ContainerProxyScheme"),
-                    Host = redirectHost,
-                    Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
-                    Path = containerProxyPathRoot,
-                };
-                if (!appEnvName.Contains("azure-", StringComparison.OrdinalIgnoreCase))
-                {
-                    externalRequestUri.Query = string.Join("&", new string[] { $"content-token={contentToken}" });
-                }
-
-                // TODO Notify the reverse proxy about the new session
-                var proxyInternalUri = new UriBuilder(containerScheme, containerFqdn, containerExposedPort);
-
-                var arg = new OpenSessionRequest
-                {
-                    PublicUri = externalRequestUri.Uri.AbsoluteUri,
-                    RequestingHost = HttpContext.Connection.RemoteIpAddress.ToString(),
-                    InternalUri = proxyInternalUri.Uri.AbsoluteUri,
-                    SessionToken = sessionToken,
-                    ContentToken = contentToken,
-                };
-                IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
-                await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
-
-                Log.Information("In AuthorizedContentController.ContainerizedApp: redirecting to {@Request}", externalRequestUri.Uri.AbsoluteUri);
-
-                return Redirect(externalRequestUri.Uri.AbsoluteUri);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a container");
-                throw;
-            }
+            return externalRequestUri.Uri.AbsoluteUri;
         }
 
         /// <summary>

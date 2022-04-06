@@ -25,13 +25,10 @@ namespace ContainerizedAppLib.AzureRestApiModels
         public DnsConfiguration dnsConfig { get; set; }
 
         // TODO encryptionProperties
-        // TODO imageRegistryCredentials
         // TODO initContainers
 
         [JsonProperty(PropertyName = "instanceView")]
         public InstanceView InstanceView { get; set; }
-
-        // TODO ipAddress
 
         [JsonProperty(PropertyName = "osType")]
         public OsTypeEnum OsType { get; set; } // Required.
@@ -41,7 +38,10 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         // TODO restartPolicy
         // TODO sku
-        // TODO subnetIds
+
+        [JsonProperty(PropertyName = "subnetIds")]
+        public List<ContainerGroupSubnetId> SubnetIds { get; set; }
+
         // TODO volumes
     }
 
@@ -50,6 +50,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
     {
         Linux,
         Windows
+
     }
 
 }

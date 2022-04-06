@@ -400,11 +400,19 @@ namespace ContainerizedAppLib
             return false;
         }
 
-        public async Task<string> RunContainer(string containerGroupName, string containerImageName, string containerImageTag, string ipType, int cpuCoreCount, double memorySizeInGB, params ushort[] containerPorts)
+        public async Task<string> RunContainer(string containerGroupName, 
+                                               string containerImageName, 
+                                               string containerImageTag, 
+                                               string ipType, 
+                                               int cpuCoreCount, 
+                                               double memorySizeInGB, 
+                                               string vnetId, 
+                                               string vnetName, 
+                                               params ushort[] containerPorts)
         {
             string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, containerPorts);
+            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, vnetId, vnetName, containerPorts);
 
             if (createResult)
             {
@@ -447,7 +455,7 @@ namespace ContainerizedAppLib
             return "";
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, params ushort[] containerPorts)
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -494,6 +502,16 @@ namespace ContainerizedAppLib
                         {
                             Ports = containerPortObjects,
                             Type = ipType,
+                        },
+                        SubnetIds = string.IsNullOrEmpty(vnetId) || string.IsNullOrEmpty(vnetName)
+                        ? null
+                        : new List<ContainerGroupSubnetId>
+                        {
+                            new ContainerGroupSubnetId
+                            {
+                                Id = vnetId,
+                                Name = vnetName,
+                            }
                         }
                     }
                 };
@@ -504,7 +522,8 @@ namespace ContainerizedAppLib
                                 .WithHeader("Content-Type", "application/json")
                                 .PutJsonAsync(requestModel);
 
-                // TODO Utilize response body for polling.
+                var x = response.GetStringAsync();
+
                 return response.StatusCode == 201;
             }
             catch (FlurlHttpException ex)
