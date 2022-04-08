@@ -215,6 +215,12 @@ export interface PreLiveContentValidationSummary {
   reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
+  typeSpecificMetadata?: ContainerizedAppTypeSpecificMetadata;
+}
+export interface ContainerizedAppTypeSpecificMetadata {
+  applicationPort: string;
+  cpuCores: string;
+  ram: string;
 }
 export interface SelectionGroupSummary {
   id: Guid;
