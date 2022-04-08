@@ -124,6 +124,7 @@ export interface ElementsToConfirm {
   releaseNotes?: boolean;
   reductionHierarchy?: boolean;
   selectionGroups?: boolean;
+  containerConfigs?: boolean;
 }
 
 /**

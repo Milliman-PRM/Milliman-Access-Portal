@@ -372,9 +372,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     ContainerizedAppContentItemProperties typeSpecificProps = PubRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
                     ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
                     {
-                        { "CPU Cores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
-                        { "Application Port", typeSpecificProps.PreviewContainerInternalPort.ToString() },
-                        { "RAM", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
+                        { "cpuCores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
+                        { "applicationPort", typeSpecificProps.PreviewContainerInternalPort.ToString() },
+                        { "ram", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
                     };
                     break;
             }
