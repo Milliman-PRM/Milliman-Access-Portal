@@ -421,12 +421,14 @@ namespace ContainerizedAppLib
                 string containerGroupIpAddress = null;
                 ushort applicationPort = 0;
                 string containerGroupInstanceViewState = null;
+                ContainerGroup_GetResponseModel containerGroupModel = default;
 
                 while (DateTime.UtcNow < timeLimit && new[] { null, "Pending", "Creating" }.Contains(containerGroupProvisioningState))
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5));
 
-                    ContainerGroup_GetResponseModel containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+                    containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+
                     containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
                     containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
                     containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
@@ -443,7 +445,23 @@ namespace ContainerizedAppLib
                                     $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                 }
 
-                Log.Information($"Get container group finished with provisioning state {containerGroupProvisioningState}, container group IP address is {containerGroupIpAddress}");
+                Log.Information($"Container group full response: {{@model}}", containerGroupModel);
+
+#warning This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
+
+                string containerLogMatchString = "Listening on http";
+
+                if (!string.IsNullOrEmpty(containerLogMatchString))
+                {
+                    string log = string.Empty;
+                    for (System.Diagnostics.Stopwatch logTimer = new System.Diagnostics.Stopwatch(); 
+                         logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase) ; 
+                         log = await GetContainerLogs(containerGroupName, containerGroupName))
+                    {
+                        Log.Information($"Container logs: {log}");
+                        await Task.Delay(TimeSpan.FromSeconds(0.5));
+                    }
+                }
 
                 return $"http://{containerGroupIpAddress}:{applicationPort}";
             }
@@ -529,7 +547,6 @@ namespace ContainerizedAppLib
             catch (FlurlHttpException ex)
             {
                 var result = await ex.GetResponseJsonAsync();
-
                 var error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
 
                 Log.Error(ex, $"Error trying to create a new Container Group.  Error details:{Environment.NewLine}\t{{@error}}", 
@@ -544,11 +561,14 @@ namespace ContainerizedAppLib
 
             try
             {
-                ContainerGroup_GetResponseModel response = await getContainerGroupEndpoint
+                IFlurlResponse response = await getContainerGroupEndpoint
                                                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                                                .GetJsonAsync<ContainerGroup_GetResponseModel>();
+                                                                .GetAsync();
 
-                return response;
+                ContainerGroup_GetResponseModel responseJson = await response.GetJsonAsync<ContainerGroup_GetResponseModel>();
+                string responseString = await response.GetStringAsync();
+
+                return responseJson;
             }
             catch (Exception ex)
             {
@@ -557,6 +577,34 @@ namespace ContainerizedAppLib
             }
         }
 
+        public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
+        {
+            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
+
+            try
+            {
+                IFlurlResponse response = await getContainerGroupEndpoint
+                                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                                .GetAsync();
+
+                if (response.StatusCode == 200)
+                {
+                    Logs responseJson = await response.GetJsonAsync<Logs>();
+                    return responseJson.Content;
+                }
+                else
+                {
+                    CloudError responseJson = await response.GetJsonAsync<CloudError>();
+                    Log.Error($"Error obtaining container logs: {responseJson.Error.Message}");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception while attempting to get container logs.");
+                return null;
+            }
+        }
         public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
             string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";

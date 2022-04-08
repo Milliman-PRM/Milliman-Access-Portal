@@ -753,6 +753,7 @@ namespace MillimanAccessPortal.Controllers
             }
         }
 
+        [NonAction]
         private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, bool liveContent)
         {
             string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
@@ -808,6 +809,8 @@ namespace MillimanAccessPortal.Controllers
                 SessionToken = sessionToken,
                 ContentToken = contentToken,
             };
+
+            Log.Information("Sending NewSessionAuthorized message to proxy with argument {@arg}", arg);
             // Notify the reverse proxy about the incoming session
             await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
 
