@@ -40,6 +40,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using ContainerizedAppLib.AzureRestApiModels;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -653,7 +654,10 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem contentItem = await DataContext.ContentPublicationRequest
                                                            .Include(r => r.RootContentItem)
-                                                              .ThenInclude(c => c.ContentType)
+                                                               .ThenInclude(c => c.ContentType)
+                                                           .Include(r => r.RootContentItem)
+                                                               .ThenInclude(rc => rc.Client)
+                                                                   .ThenInclude(cl => cl.ProfitCenter)
                                                            .Where(r => r.Id == publicationRequestId)
                                                            .Select(r => r.RootContentItem)
                                                            .SingleOrDefaultAsync();
@@ -678,10 +682,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                ClientId = contentItem.ClientId,
+                ClientName = contentItem.Client.Name,
+                ContentItemId = contentItem.Id,
+                ContentItemName = contentItem.ContentName,
+                SelectionGroupId = null,
+                SelectionGroupName = null,
+            };
+
             try
             {
                 ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, false);
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, false);
 
                 return Redirect(redirectUrl);
             }
