@@ -406,13 +406,14 @@ namespace ContainerizedAppLib
                                                string ipType, 
                                                int cpuCoreCount, 
                                                double memorySizeInGB, 
+                                               ContainerGroupResourceTags resourceTags,
                                                string vnetId, 
-                                               string vnetName, 
+                                               string vnetName,
                                                params ushort[] containerPorts)
         {
             string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, vnetId, vnetName, containerPorts);
+            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, resourceTags, vnetId, vnetName, containerPorts);
 
             if (createResult)
             {
