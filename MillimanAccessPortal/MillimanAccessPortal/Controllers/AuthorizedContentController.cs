@@ -727,6 +727,9 @@ namespace MillimanAccessPortal.Controllers
             SelectionGroup selectionGroup = DataContext.SelectionGroup
                                                        .Include(g => g.RootContentItem)
                                                            .ThenInclude(c => c.ContentType)
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.Client)
+                                                               .ThenInclude(cl => cl.ProfitCenter)
                                                        .SingleOrDefault(g => g.Id == group);
 
             #region Validation
@@ -755,10 +758,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
+                ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
+                ClientId = selectionGroup.RootContentItem.ClientId,
+                ClientName = selectionGroup.RootContentItem.Client.Name,
+                ContentItemId = selectionGroup.RootContentItem.Id,
+                ContentItemName = selectionGroup.RootContentItem.ContentName,
+                SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
+            };
+
             try
             {
                 ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, true);
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, true);
 
                 return Redirect(redirectUrl);
             }
