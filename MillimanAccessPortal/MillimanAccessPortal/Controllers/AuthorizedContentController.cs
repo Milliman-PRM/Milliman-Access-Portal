@@ -754,7 +754,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, bool liveContent)
+        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, ContainerGroupResourceTags resourceTags, bool liveContent)
         {
             string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
             string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
@@ -772,6 +772,7 @@ namespace MillimanAccessPortal.Controllers
                                            ipAddressType,
                                            liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
                                            liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                           resourceTags,
                                            vnetId,
                                            vnetName,
                                            liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
