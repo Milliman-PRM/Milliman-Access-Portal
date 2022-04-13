@@ -28,5 +28,17 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         [JsonProperty(PropertyName = "selectionGroupName")]
         public string SelectionGroupName { get; set; }
+
+        [JsonProperty(PropertyName = "risk_level")]
+        public string RiskLevel { get; set; } = "4";
+
+        [JsonProperty(PropertyName = "managed_by")]
+        public string ManagedBy { get; set; } = "PRM Analytics";
+
+        [JsonProperty(PropertyName = "environment")]
+        public string Environment => System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+
+        [JsonProperty(PropertyName = "asset_owner")]
+        public string AssetOwner => ProfitCenterName;
     }
 }
