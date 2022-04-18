@@ -656,6 +656,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
           typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
         },
+        formErrors: _initialFormData.formErrors,
       };
     } else if (action.inputName === 'containerCpuCores'
       || action.inputName === 'containerRamGb') {
