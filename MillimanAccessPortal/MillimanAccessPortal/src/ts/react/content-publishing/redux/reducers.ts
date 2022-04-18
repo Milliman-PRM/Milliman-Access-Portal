@@ -889,6 +889,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...state.uploads,
         [action.uploadId]: {
           ...state.uploads[action.uploadId],
+          checksumProgress: ProgressSummary.empty(),
+          uploadProgress: ProgressSummary.empty(),
           errorMsg: '',
           cancelable: true,
         },
