@@ -5,6 +5,7 @@
 ### v1.17.0
 
 - Introduced support for Containerized Apps as a new content type
+- General improvements to file upload status indicators
 
 ### v1.16.0
 
