@@ -607,17 +607,16 @@ namespace ContainerizedAppLib
                 return null;
             }
         }
-        public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
+        public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
             string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
 
             try
             {
-                IFlurlResponse response = await listContainerGroupsInResourceGroupEndpoint
+                var response = await listContainerGroupsInResourceGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                    .GetAsync();
-
-                return await response.GetJsonAsync().Result;
+                                    .GetJsonAsync<ListContainerGroup_GetResponseModel>();
+                return response.ContainerGroups;
             }
             catch (Exception ex)
             {

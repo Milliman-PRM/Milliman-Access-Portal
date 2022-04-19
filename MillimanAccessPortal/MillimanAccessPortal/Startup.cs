@@ -450,6 +450,7 @@ namespace MillimanAccessPortal
             services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
             services.AddScoped<FileSystemTasks>();
             services.AddSignalR(); //.AddJsonProtocol();
+            services.AddHostedService<ContainerInstanceMonitorHostedService>();
 
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 

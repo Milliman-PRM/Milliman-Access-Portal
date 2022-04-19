@@ -23,10 +23,13 @@ namespace MillimanAccessPortal.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-
+                
             }
+        }
 
-            throw new System.NotImplementedException();
+        private async Task StopLongRunningPreviewInstances()
+        {
+            
         }
     }
 }
