@@ -1,20 +1,20 @@
 ﻿using Flurl.Http;
 using MapCommonLib;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using Serilog;
-using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using ContainerizedAppLib.AzureRestApiModels;
+using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerizedAppLib
 {
@@ -615,8 +615,10 @@ namespace ContainerizedAppLib
             {
                 var response = await listContainerGroupsInResourceGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                    .GetJsonAsync<ListContainerGroup_GetResponseModel>();
-                return response.ContainerGroups;
+                                    .GetStringAsync();
+
+                var parsedResponse = JsonConvert.DeserializeObject<ListContainerGroup_GetResponseModel>(response);
+                return parsedResponse.ContainerGroups;
             }
             catch (Exception ex)
             {

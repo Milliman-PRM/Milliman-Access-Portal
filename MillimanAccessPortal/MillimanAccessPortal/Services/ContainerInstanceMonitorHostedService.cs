@@ -1,10 +1,12 @@
 ﻿using AuditLogLib.Services;
 using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapDbContextLib.Context;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,7 +32,7 @@ namespace MillimanAccessPortal.Services
 
             while (!stoppingToken.IsCancellationRequested)
             {
-                
+                await FindRunningContainerInstances();
             }
         }
 
@@ -42,7 +44,18 @@ namespace MillimanAccessPortal.Services
                 var auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
                 var containerizedAppLibApi = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(null);
 
-                var containerGroups = containerizedAppLibApi.ListContainerGroupsInResourceGroup();
+                var containerGroups = await containerizedAppLibApi.ListContainerGroupsInResourceGroup();
+                Console.WriteLine("test");
+
+                foreach (var containerGroup in containerGroups)
+                {
+                    string rawTags = JsonConvert.SerializeObject(containerGroup.Tags);
+                    ContainerGroupResourceTags tags = JsonConvert.DeserializeObject<ContainerGroupResourceTags>(rawTags, new ContainerGroupResourceTagJsonConverter());
+
+                    SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);
+                    containerGroupSelectionGroup.TypeSpecificDetailObject;
+                }
             }
+        }
     }
 }
