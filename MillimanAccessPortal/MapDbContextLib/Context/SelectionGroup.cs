@@ -62,7 +62,8 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return JsonConvert.DeserializeObject<PowerBiSelectionGroupProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
-
+                    case ContentTypeEnum.ContainerApp:
+                        return JsonConvert.DeserializeObject<ContainerAppSelectionGroupProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
@@ -100,7 +101,8 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return typeof(PowerBiSelectionGroupProperties);
-
+                    case ContentTypeEnum.ContainerApp:
+                        return typeof(ContainerAppSelectionGroupProperties);
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:

@@ -53,7 +53,6 @@ namespace MillimanAccessPortal.Services
                     ContainerGroupResourceTags tags = JsonConvert.DeserializeObject<ContainerGroupResourceTags>(rawTags, new ContainerGroupResourceTagJsonConverter());
 
                     SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);
-                    containerGroupSelectionGroup.TypeSpecificDetailObject;
                 }
             }
         }
