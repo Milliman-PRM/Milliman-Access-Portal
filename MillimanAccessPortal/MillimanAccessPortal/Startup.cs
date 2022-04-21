@@ -7,7 +7,6 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
-using ContainerizedAppLib.ProxySupport;
 using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
@@ -33,6 +32,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.ContentProxy;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
@@ -399,6 +399,11 @@ namespace MillimanAccessPortal
             })
             .AddControllersAsServices();
 
+            // Add YARP proxy component for container content
+            services.AddReverseProxy()
+                    .AddMapProxyConfigProvider()
+                    .AddTransforms<MapContainerContentTransformProvider>();
+
             services.AddApplicationInsightsTelemetry(Configuration);
 
             services.AddDatabaseDeveloperPageExceptionFilter();
@@ -583,6 +588,8 @@ namespace MillimanAccessPortal
                 await next();
             });
 
+            app.UseProxyRequestManipulationMiddleware();
+
             app.UseRouting();
 
             app.UseAuthentication();
@@ -632,9 +639,10 @@ namespace MillimanAccessPortal
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapReverseProxy(builder => { }) ;
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
-                endpoints.MapHub<ReverseProxySessionHub>("/contentsessionhub");
+                //endpoints.MapHub<ReverseProxySessionHub>("/contentsessionhub");
                 //endpoints.MapRazorPages();
             });
         }

@@ -410,64 +410,67 @@ namespace ContainerizedAppLib
                                                string vnetName, 
                                                params ushort[] containerPorts)
         {
-            string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
-           
-            bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, vnetId, vnetName, containerPorts);
-
-            if (createResult)
+            try
             {
-                DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
-                string containerGroupProvisioningState = null;
-                string containerGroupIpAddress = null;
-                ushort applicationPort = 0;
-                string containerGroupInstanceViewState = null;
-                ContainerGroup_GetResponseModel containerGroupModel = default;
+                string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
 
-                while (DateTime.UtcNow < timeLimit && new[] { null, "Pending", "Creating" }.Contains(containerGroupProvisioningState))
+                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, vnetId, vnetName, containerPorts);
+
+                if (createResult)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
+                    string containerGroupProvisioningState = null;
+                    string containerGroupIpAddress = null;
+                    ushort applicationPort = 0;
+                    string containerGroupInstanceViewState = null;
+                    ContainerGroup_GetResponseModel containerGroupModel = default;
 
-                    containerGroupModel = await GetContainerGroupStatus(containerGroupName);
-
-                    containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
-                    containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
-                    containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
-
-                    try
+                    while (DateTime.UtcNow < timeLimit && new[] { null, "Pending", "Creating" }.Contains(containerGroupProvisioningState))
                     {
-                        applicationPort = containerGroupModel.Properties.IpAddress.Ports.Single().Port;
+                        await Task.Delay(TimeSpan.FromSeconds(5));
+
+                        containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+
+                        containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
+                        containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
+                        containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
+
+                        try
+                        {
+                            applicationPort = containerGroupModel.Properties.IpAddress.Ports.Single().Port;
+                        }
+                        catch { }
+
+                        Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
+                                        $"instanceView state {containerGroupModel.Properties?.InstanceView?.State}, " +
+                                        $"IP {containerGroupModel.Properties.IpAddress.Ip}, " +
+                                        $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                     }
-                    catch { }
 
-                    Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
-                                    $"instanceView state {containerGroupModel.Properties?.InstanceView?.State}, " +
-                                    $"IP {containerGroupModel.Properties.IpAddress.Ip}, " +
-                                    $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
-                }
-
-                Log.Information($"Container group full response: {{@model}}", containerGroupModel);
+                    Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
 #warning This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
 
-                string containerLogMatchString = "Listening on http";
+                    string containerLogMatchString = "Listening on http";
 
-                if (!string.IsNullOrEmpty(containerLogMatchString))
-                {
-                    string log = string.Empty;
-                    for (System.Diagnostics.Stopwatch logTimer = new System.Diagnostics.Stopwatch(); 
-                         logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase) ; 
-                         log = await GetContainerLogs(containerGroupName, containerGroupName))
+                    if (!string.IsNullOrEmpty(containerLogMatchString))
                     {
-                        Log.Information($"Container logs: {log}");
-                        await Task.Delay(TimeSpan.FromSeconds(0.5));
+                        string log = string.Empty;
+                        for (System.Diagnostics.Stopwatch logTimer = new System.Diagnostics.Stopwatch();
+                             logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase);
+                             log = await GetContainerLogs(containerGroupName, containerGroupName))
+                        {
+                            Log.Information($"Container logs: {log}");
+                            await Task.Delay(TimeSpan.FromSeconds(0.5));
+                        }
                     }
-                }
 
-                return $"http://{containerGroupIpAddress}:{applicationPort}";
+                    return $"http://{containerGroupIpAddress}:{applicationPort}";
+                }
             }
-            else
+            catch (Exception ex)
             {
-                // TODO deal with failure of create/update container group rest api
+                //Log.Error(ex, "");
             }
 
             return "";
@@ -546,12 +549,13 @@ namespace ContainerizedAppLib
             }
             catch (FlurlHttpException ex)
             {
-                var result = await ex.GetResponseJsonAsync();
-                var error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                dynamic result = await ex.GetResponseJsonAsync();
+                Dictionary<string, object> error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                string errorMessage = $"Error launching a new Container Group.  Error(s):{Environment.NewLine}\t" +
+                                      string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}"));
 
-                Log.Error(ex, $"Error trying to create a new Container Group.  Error details:{Environment.NewLine}\t{{@error}}", 
-                                string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
-                return false;
+                Log.Error(ex, errorMessage);
+                throw new ApplicationException(errorMessage);
             }
         }
 

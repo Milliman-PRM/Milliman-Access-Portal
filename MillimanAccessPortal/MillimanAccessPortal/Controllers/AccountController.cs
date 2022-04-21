@@ -8,7 +8,6 @@ using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using AuditLogLib.Models;
-using ContainerizedAppLib.ProxySupport;
 using MapCommonLib;
 using MapCommonLib.ActionFilters;
 using MapDbContextLib.Identity;
