@@ -61,9 +61,45 @@ namespace MillimanAccessPortal.Services
                     };
                     ContainerGroupResourceTags tags = JsonConvert.DeserializeObject<ContainerGroupResourceTags>(rawTags, tagSerializerSettings);
 
+                    // TODO: Implement Container Instance lifetime management on different types of instances.
+                    #region Lifetime management for Preview Container Instances
+                    /*
+                     * Check if SelectionGroup tags indicate preview
+                     * if Selection Group tags indicate this is a preview Container Instance:
+                     *   Find active User sessions on Container
+                     *     boolean $userHasEngagedWithSessionInTimeoutWindow = true
+                     *     number $timeout = amount of time we'll allow preview images to live after last session activity
+                     *     foreach active User session on Container
+                     *       if user has not engaged with session in $timeout:
+                     *         userHasEngagedWithSessionInTimeoutWindow = false
+                     *     if !userHasEngagedWithSessionInTimeoutWindow:
+                     *       kill preview image
+                     */
+
+                    #endregion
+
+                    #region Lifetime management for Non-Preview Container Instances
                     SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);
+                    /*
+                     * boolean $isWithinHotServiceWindow = GetContainerIsWithinHotServiceWindow(containerGroupSelectionGroup.typeSpecificDetails)
+                     * if $isWithinHotServiceWindow:
+                         if container is not running:
+                           startInstance();
+                     * else
+                     *   boolean $userHasEngagedWithSessionInTimeoutWindow = true
+                     *   number $timeout = amount of time we'll allow preview images to live after last session activity
+                     *   foreach active user session on Container
+                     *      if user has not engaged with session in $timeout:
+                     *          userHasEngagedWithSessionInTimeoutWindow = false
+                     *   if !userHasEngagedWithSesionInTimeoutWindow:
+                     *     killContainerInstance();
+                     * 
+                     */
+                    #endregion
                 }
             }
+
+            await Task.Delay(10_000); // Every 10 seconds? How do we want to go about this.
         }
     }
 }
