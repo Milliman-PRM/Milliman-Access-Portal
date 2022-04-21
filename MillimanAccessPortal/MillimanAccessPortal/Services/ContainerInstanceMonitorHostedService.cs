@@ -46,7 +46,6 @@ namespace MillimanAccessPortal.Services
                 var containerizedAppLibApi = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(null);
 
                 var containerGroups = await containerizedAppLibApi.ListContainerGroupsInResourceGroup();
-                Console.WriteLine("test");
 
                 foreach (var containerGroup in containerGroups)
                 {

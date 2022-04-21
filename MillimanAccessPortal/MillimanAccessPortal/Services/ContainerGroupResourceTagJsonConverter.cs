@@ -17,14 +17,16 @@ namespace ContainerizedAppLib
                 JObject jsonObject = JObject.Load(reader);
                 ContainerGroupResourceTags tags = new ContainerGroupResourceTags()
                 {
-                    ProfitCenterId = new Guid((string) jsonObject["profitCenterId"]),
-                    ProfitCenterName = (string) jsonObject["profitCenterName"],
-                    ContentItemId = new Guid((string) jsonObject["contentItemId"]),
-                    ContentItemName = (string) jsonObject["contentItemName"],
-                    SelectionGroupId = new Guid((string) jsonObject["selectionGroupId"]),
-                    SelectionGroupName = (string) jsonObject["selectionGroupName"],
-                    ClientId = new Guid((string) jsonObject["clientId"]),
-                    ClientName = (string) jsonObject["clientName"],
+                    ProfitCenterId = new Guid(jsonObject.SelectToken("profitCenterId").Value<string>()),
+                    ProfitCenterName = jsonObject.SelectToken("profitCenterName").Value<string>(),
+                    ContentItemId = new Guid(jsonObject.SelectToken("contentItemId").Value<string>()),
+                    ContentItemName = jsonObject.SelectToken("contentItemName").Value<string>(),
+                    SelectionGroupId = jsonObject.SelectToken("selectionGroupId") != null ?
+                        new Guid(jsonObject.SelectToken("selectionGroupId").Value<string>())
+                        : null,
+                    SelectionGroupName = jsonObject.SelectToken("selectionGroupName").Value<string>(),
+                    ClientId = new Guid(jsonObject.SelectToken("clientId").Value<string>()),
+                    ClientName = jsonObject.SelectToken("clientName").Value<string>(),
                 };
                 return tags;
             }
