@@ -8,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -50,7 +51,15 @@ namespace MillimanAccessPortal.Services
                 foreach (var containerGroup in containerGroups)
                 {
                     string rawTags = JsonConvert.SerializeObject(containerGroup.Tags);
-                    ContainerGroupResourceTags tags = JsonConvert.DeserializeObject<ContainerGroupResourceTags>(rawTags, new ContainerGroupResourceTagJsonConverter());
+                    JsonSerializerSettings tagSerializerSettings = new JsonSerializerSettings()
+                    {
+                        NullValueHandling = NullValueHandling.Ignore,
+                        Converters = new List<JsonConverter>()
+                        {
+                            new ContainerGroupResourceTagJsonConverter(),
+                        },
+                    };
+                    ContainerGroupResourceTags tags = JsonConvert.DeserializeObject<ContainerGroupResourceTags>(rawTags, tagSerializerSettings);
 
                     SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);
                 }

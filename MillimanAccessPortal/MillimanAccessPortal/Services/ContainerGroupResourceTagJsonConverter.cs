@@ -21,17 +21,16 @@ namespace ContainerizedAppLib
                     ProfitCenterName = (string) jsonObject["profitCenterName"],
                     ContentItemId = new Guid((string) jsonObject["contentItemId"]),
                     ContentItemName = (string) jsonObject["contentItemName"],
-                    // SelectionGroupId = new Guid((string) jsonObject["selectionGroupId"]),
+                    SelectionGroupId = new Guid((string) jsonObject["selectionGroupId"]),
                     SelectionGroupName = (string) jsonObject["selectionGroupName"],
                     ClientId = new Guid((string) jsonObject["clientId"]),
                     ClientName = (string) jsonObject["clientName"],
-                    RiskLevel = (string) jsonObject["json_level"],
                 };
                 return tags;
             }
             catch (Exception ex)
             {
-                throw ex;
+                throw new JsonSerializationException($"Could not deserialize Container Resource Tags.", ex);
             }
         }
 
