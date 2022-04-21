@@ -80,7 +80,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     roleList: [],
     containerCpuCores: ContainerCpuCoresEnum.Two,
     containerRamGb: ContainerRamGbEnum.Eight,
-    containerInternalPort: 3838,
+    containerInternalPort: '3838',
   },
 };
 
@@ -656,15 +656,12 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
           typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
         },
+        formErrors: _initialFormData.formErrors,
       };
     } else if (action.inputName === 'containerCpuCores'
-      || action.inputName === 'containerRamGb'
-      || action.inputName === 'containerInternalPort') {
+      || action.inputName === 'containerRamGb') {
       const value = parseInt(action.value, 10);
-      if (action.inputName === 'containerInternalPort' &&
-        (value < 0 || value > 65535 || isNaN(value))) {
-        return state;
-      }
+
       return {
         ...state,
         pendingFormData: {
@@ -672,6 +669,27 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           typeSpecificPublicationProperties: {
             ...state.pendingFormData.typeSpecificPublicationProperties,
             [action.inputName]: value,
+          },
+        },
+      };
+    } else if (action.inputName === 'containerInternalPort') {
+      const portNumber = Number(action.value);
+
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            containerInternalPort: action.value,
+          },
+        },
+        formErrors: {
+          ...state.formErrors,
+          typeSpecificPublicationProperties: {
+            ...state.formErrors.typeSpecificPublicationProperties,
+            containerInternalPort: (isNaN(portNumber) || portNumber <= 0 || portNumber > 65536) ?
+              'Please choose a valid port number.' : null,
           },
         },
       };
@@ -889,6 +907,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...state.uploads,
         [action.uploadId]: {
           ...state.uploads[action.uploadId],
+          checksumProgress: ProgressSummary.empty(),
+          uploadProgress: ProgressSummary.empty(),
           errorMsg: '',
           cancelable: true,
         },

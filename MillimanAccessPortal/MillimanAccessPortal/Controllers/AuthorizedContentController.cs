@@ -40,6 +40,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
+using ContainerizedAppLib.AzureRestApiModels;
 using Yarp.ReverseProxy.Configuration;
 
 namespace MillimanAccessPortal.Controllers
@@ -659,7 +660,10 @@ namespace MillimanAccessPortal.Controllers
 
             RootContentItem contentItem = await DataContext.ContentPublicationRequest
                                                            .Include(r => r.RootContentItem)
-                                                              .ThenInclude(c => c.ContentType)
+                                                               .ThenInclude(c => c.ContentType)
+                                                           .Include(r => r.RootContentItem)
+                                                               .ThenInclude(rc => rc.Client)
+                                                                   .ThenInclude(cl => cl.ProfitCenter)
                                                            .Where(r => r.Id == publicationRequestId)
                                                            .Select(r => r.RootContentItem)
                                                            .SingleOrDefaultAsync();
@@ -684,10 +688,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                ClientId = contentItem.ClientId,
+                ClientName = contentItem.Client.Name,
+                ContentItemId = contentItem.Id,
+                ContentItemName = contentItem.ContentName,
+                SelectionGroupId = null,
+                SelectionGroupName = null,
+            };
+
             try
             {
                 ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, false);
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, false);
 
                 return Redirect(redirectUrl);
             }
@@ -717,6 +733,9 @@ namespace MillimanAccessPortal.Controllers
             SelectionGroup selectionGroup = DataContext.SelectionGroup
                                                        .Include(g => g.RootContentItem)
                                                            .ThenInclude(c => c.ContentType)
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.Client)
+                                                               .ThenInclude(cl => cl.ProfitCenter)
                                                        .SingleOrDefault(g => g.Id == group);
 
             #region Validation
@@ -745,10 +764,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
+                ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
+                ClientId = selectionGroup.RootContentItem.ClientId,
+                ClientName = selectionGroup.RootContentItem.Client.Name,
+                ContentItemId = selectionGroup.RootContentItem.Id,
+                ContentItemName = selectionGroup.RootContentItem.ContentName,
+                SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
+            };
+
             try
             {
                 ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, true);
+                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, true);
 
                 return Redirect(redirectUrl);
             }
@@ -760,7 +791,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [NonAction]
-        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, bool liveContent)
+        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, ContainerGroupResourceTags resourceTags, bool liveContent)
         {
             string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
             string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
@@ -778,6 +809,7 @@ namespace MillimanAccessPortal.Controllers
                                            ipAddressType,
                                            liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
                                            liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                           resourceTags,
                                            vnetId,
                                            vnetName,
                                            liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);

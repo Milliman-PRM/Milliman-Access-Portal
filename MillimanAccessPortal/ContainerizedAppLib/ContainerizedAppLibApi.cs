@@ -406,15 +406,16 @@ namespace ContainerizedAppLib
                                                string ipType, 
                                                int cpuCoreCount, 
                                                double memorySizeInGB, 
+                                               ContainerGroupResourceTags resourceTags,
                                                string vnetId, 
-                                               string vnetName, 
+                                               string vnetName,
                                                params ushort[] containerPorts)
         {
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
-
-                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, vnetId, vnetName, containerPorts);
+           
+                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, resourceTags, vnetId, vnetName, containerPorts);
 
                 if (createResult)
                 {
@@ -476,7 +477,7 @@ namespace ContainerizedAppLib
             return "";
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -534,14 +535,15 @@ namespace ContainerizedAppLib
                                 Name = vnetName,
                             }
                         }
-                    }
+                    },
+                    Tags = resourceTags
                 };
 
-                string serializedRequestModel = JsonConvert.SerializeObject(requestModel);
+                string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 IFlurlResponse response = await createContainerGroupEndpoint
                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
                                 .WithHeader("Content-Type", "application/json")
-                                .PutJsonAsync(requestModel);
+                                .PutStringAsync(serializedRequestModel);
 
                 var x = response.GetStringAsync();
 
