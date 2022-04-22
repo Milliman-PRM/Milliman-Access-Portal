@@ -46,5 +46,13 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
+
+        #region Lifetime management
+        public bool AlwaysCold { get; set; } = true;
+        public ContainerInstanceCooldownTimeEnum CooldownTime = ContainerInstanceCooldownTimeEnum.OneHour;
+        public TimeSpan DailyStartTime { get; set; }
+        public TimeSpan DailyStopTime { get; set; }
+        public TimeZoneInfo ServiceTimeZone { get; set; }
+        #endregion
     }
 }

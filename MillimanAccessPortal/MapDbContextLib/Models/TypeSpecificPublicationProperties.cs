@@ -70,6 +70,18 @@ namespace MapDbContextLib.Models
         Sixteen = 16,
     }
 
+    public enum ContainerInstanceCooldownTimeEnum
+    {
+        [Display(Name = "30 Minutes")]
+        ThirtyMinutes = 0,
+        [Display(Name = "1 Hour")]
+        OneHour = 1,
+        [Display(Name = "90 Minutes")]
+        NinetyMinutes = 2,
+        [Display(Name = "120 Minutes")]
+        TwoHours = 3,
+    }
+
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
     {
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
