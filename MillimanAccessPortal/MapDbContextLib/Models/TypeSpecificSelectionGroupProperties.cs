@@ -13,9 +13,4 @@ namespace MapDbContextLib.Models
     {
         public bool Editable { get; set; }
     }
-
-    public class ContainerAppSelectionGroupProperties : TypeSpecificSelectionGroupProperties
-    {
-        
-    }
 }
