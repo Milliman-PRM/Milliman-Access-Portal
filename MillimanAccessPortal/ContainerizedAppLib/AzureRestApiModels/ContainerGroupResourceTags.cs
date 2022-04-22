@@ -35,6 +35,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "managed_by")]
         public string ManagedBy { get; set; } = "PRM Analytics";
 
+        // Get the environment name from the application host object. TODO
         [JsonProperty(PropertyName = "environment")]
         public string Environment => System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
