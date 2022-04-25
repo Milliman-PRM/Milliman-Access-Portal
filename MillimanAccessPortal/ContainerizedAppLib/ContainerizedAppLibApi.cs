@@ -613,7 +613,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                var response = await listContainerGroupsInResourceGroupEndpoint
+                string response = await listContainerGroupsInResourceGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
                                     .GetStringAsync();
 
