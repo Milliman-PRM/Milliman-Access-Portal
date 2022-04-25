@@ -60,7 +60,7 @@ namespace ContainerizedAppLib
 
             try
             {
-                await GetAcrAccessTokenAsync(repositoryName);
+                await GetAcrAccessTokenAsync();
                 await GetAciAccessTokenAsync();
             }
             catch (Exception ex)
@@ -75,9 +75,9 @@ namespace ContainerizedAppLib
         /// Initialize a new access token
         /// </summary>
         /// <returns></returns>
-        private async Task<bool> GetAcrAccessTokenAsync(string repositoryName)
+        private async Task<bool> GetAcrAccessTokenAsync()
         {
-            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{repositoryName}:pull,push,delete";
+            string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{_repositoryName}:pull,push,delete";
             try
             {
                 ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
@@ -98,9 +98,9 @@ namespace ContainerizedAppLib
 
         #region Container Registry
 
-        public async Task<object> GetRepositoryManifest(string repositoryName, string tag = "latest")
+        public async Task<object> GetRepositoryManifest(string tag = "latest")
         {
-            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
+            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{tag}";
             try
             {
                 dynamic response = await manifestEndpoint
@@ -116,9 +116,9 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task<List<string>> GetRepositoryTags(string repositoryName)
+        public async Task<List<string>> GetRepositoryTags()
         {
-            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v1/{repositoryName}/_tags";
+            string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v1/{_repositoryName}/_tags";
             
             try
             {
@@ -135,9 +135,9 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task DeleteRepositoryManifest(string repositoryName, string digest)
+        private async Task DeleteRepositoryManifest(string digest)
         {
-            string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{digest}";
+            string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{digest}";
             try
             {
                 await deleteImageManifestEndpoint
@@ -146,13 +146,13 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image manifest for {repositoryName}:{digest}");
+                Log.Warning(ex, $"Failed to delete image manifest for {_repositoryName}:{digest}");
             }
         }
 
-        public async Task DeleteRepository(string repositoryName)
+        public async Task DeleteRepository()
         {
-            string deleteRepositoryEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}";
+            string deleteRepositoryEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{_repositoryName}";
             try
             {
                 await deleteRepositoryEndpoint
@@ -161,13 +161,13 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete repository {repositoryName}");
+                Log.Warning(ex, $"Failed to delete repository {_repositoryName}");
             }
         }
 
-        private async Task DeleteTag(string repositoryName, string tag)
+        public async Task DeleteTag(string tag)
         {
-            string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{repositoryName}/_tags/{tag}";
+            string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{_repositoryName}/_tags/{tag}";
             try
             {
                 await deleteTagEndpoint
@@ -176,13 +176,13 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image tag for {repositoryName}:{tag}");
+                Log.Warning(ex, $"Failed to delete image tag for {_repositoryName}:{tag}");
             }
         }
 
-        public async Task PushImageManifest(string repositoryName, string manifestContents, string tag)
+        public async Task PushImageManifest(string manifestContents, string tag)
         {
-            string manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/manifests/{tag}";
+            string manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{tag}";
 
             try
             {
@@ -198,7 +198,7 @@ namespace ContainerizedAppLib
             }
         }
 
-        public async Task PushImageToRegistry(string imageFileFullPath, string repositoryName, string tag = "latest")
+        public async Task PushImageToRegistry(string imageFileFullPath, string tag = "latest")
         {
 #warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
 
@@ -226,14 +226,14 @@ namespace ContainerizedAppLib
 
                 foreach (string blobDigest in blobDigests)
                 {
-                    if (!await BlobDoesExist(repositoryName, $"sha256:{blobDigest}"))
+                    if (!await BlobDoesExist($"sha256:{blobDigest}"))
                     {
                         string blobPath = Path.Combine(workingFolderName, blobDigest);
-                        await UploadBlob(repositoryName, blobDigest, blobPath);
+                        await UploadBlob(blobDigest, blobPath);
                     }
                 }
 
-                await PushImageManifest(repositoryName, manifestContents, tag);
+                await PushImageManifest(manifestContents, tag);
             }
             catch (Exception ex)
             {
@@ -242,9 +242,9 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task<bool> BlobDoesExist(string repositoryName, string blobDigest)
+        private async Task<bool> BlobDoesExist(string blobDigest)
         {
-            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/{blobDigest}";
+            string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/blobs/{blobDigest}";
 
             try
             {
@@ -262,10 +262,10 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task UploadBlob(string repositoryName, string layerDigest, string pathToLayer)
+        private async Task UploadBlob(string layerDigest, string pathToLayer)
         {
             string nextUploadLocation = "";
-            IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{repositoryName}/blobs/uploads/"
+            IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/blobs/uploads/"
                 .WithHeader("Authorization", $"Bearer {_acrToken}");
 
             try
@@ -351,16 +351,16 @@ namespace ContainerizedAppLib
         public async Task RetagImage(string oldTag, string newTag, bool deleteOldTag = true)
         {
             // Get existing manifest.
-            object manifestObj = await GetRepositoryManifest(_repositoryName, oldTag);
+            object manifestObj = await GetRepositoryManifest(oldTag);
             string parsedManifestString = JsonConvert.SerializeObject(manifestObj, Formatting.None);
 
             // Push same manifest with new tag.
-            await PushImageManifest(_repositoryName, parsedManifestString, newTag);
+            await PushImageManifest(parsedManifestString, newTag);
 
             // Remove previously tagged image.
             if (deleteOldTag)
             {
-                await DeleteTag(_repositoryName, oldTag);
+                await DeleteTag(oldTag);
             }
         }
         #endregion

@@ -1186,9 +1186,14 @@ namespace MillimanAccessPortal.Controllers
                             case ContentTypeEnum.ContainerApp:
                                 ContainerizedAppContentItemProperties containerContentProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
-                                ContainerizedAppLibApi containerLibApi = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(""); // todo
-#warning TODO remove the rejected image from ACR
-                                // await containerLibApi.RemoveImage(containerContentProps.PreviewImageName);
+                                ContainerizedAppLibApi containerLibApi = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerContentProps.PreviewImageName);
+                                if (containerContentProps.LiveImageName is null)
+                                {
+                                    await containerLibApi.DeleteRepository();
+                                } else
+                                {
+                                    await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
+                                }
 
                                 containerContentProps.PreviewImageName = null;
                                 containerContentProps.PreviewImageTag = null;
