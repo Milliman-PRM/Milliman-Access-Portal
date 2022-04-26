@@ -386,7 +386,7 @@ namespace MillimanAccessPortal.Services
                             try
                             {
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
-                                await api.PushImageToRegistry(newMasterFile.FullPath, repositoryName, "preview");
+                                await api.PushImageToRegistry(newMasterFile.FullPath, "preview");
                             }
                             catch (Exception ex)
                             {

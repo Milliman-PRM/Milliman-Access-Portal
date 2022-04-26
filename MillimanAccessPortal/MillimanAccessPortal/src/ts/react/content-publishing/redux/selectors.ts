@@ -257,7 +257,8 @@ export function submitButtonIsActive(state: PublishingState) {
   const formValid = pendingFormData.clientId
     && pendingFormData.contentName.trim()
     && pendingFormData.contentTypeId
-    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0;
+    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
+    && !formErrorsExist(state);
   return formChanged && noActiveUpload && formValid;
 }
 
@@ -287,6 +288,13 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
     || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
   return changesPending;
+}
+
+export function formErrorsExist(state: PublishingState) {
+  const { formErrors } = state.formData;
+  return formErrors &&
+    (formErrors.typeSpecificPublicationProperties &&
+      formErrors.typeSpecificPublicationProperties.containerInternalPort);
 }
 
 /**

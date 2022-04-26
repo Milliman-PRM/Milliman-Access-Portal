@@ -979,7 +979,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12}>
                         <Input
-                          error={null}
+                          error={formErrors.typeSpecificPublicationProperties ?
+                            formErrors.typeSpecificPublicationProperties.containerInternalPort : null
+                          }
                           label="Internal Port"
                           placeholderText="Internal Port *"
                           name="containerInternalPort"
