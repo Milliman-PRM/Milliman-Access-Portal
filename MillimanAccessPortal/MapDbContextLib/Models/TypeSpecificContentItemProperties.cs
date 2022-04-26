@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
+using System.Collections.Generic;
 
 namespace MapDbContextLib.Models
 {
@@ -53,6 +54,7 @@ namespace MapDbContextLib.Models
         public TimeSpan DailyStartTime { get; set; }
         public TimeSpan DailyStopTime { get; set; }
         public TimeZoneInfo ServiceTimeZone { get; set; }
+        public List<DayOfWeek> ActiveServiceDaysOfWeek {get; set;}
         #endregion
     }
 }
