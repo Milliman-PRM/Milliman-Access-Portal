@@ -7,7 +7,6 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using ContainerizedAppLib;
-using ContainerizedAppLib.ProxySupport;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -25,6 +24,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.ContentProxy;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MillimanAccessPortal.Models.SharedModels;
@@ -41,6 +41,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using ContainerizedAppLib.AzureRestApiModels;
+using Yarp.ReverseProxy.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -58,6 +59,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration ApplicationConfig;
         private readonly AuthorizedContentQueries _authorizedContentQueries;
         private readonly IServiceProvider _serviceProvider;
+        private readonly MapProxyConfigProvider _mapProxyConfigProvider;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -73,6 +75,7 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="containerizedAppConfigArg"></param>
         /// <param name="AuthorizedContentQueriesArg"></param>
         /// <param name="serviceProviderArg"></param>
+        /// <param name="mapProxyConfigProvider"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -84,7 +87,9 @@ namespace MillimanAccessPortal.Controllers
             IOptions<PowerBiConfig> powerBiConfigArg,
             IOptions<ContainerizedAppLibApiConfig> containerizedAppConfigArg,
             AuthorizedContentQueries AuthorizedContentQueriesArg,
-            IServiceProvider serviceProviderArg)
+            IServiceProvider serviceProviderArg,
+            IProxyConfigProvider mapProxyConfigProvider
+            )
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -97,6 +102,7 @@ namespace MillimanAccessPortal.Controllers
             ApplicationConfig = AppConfigurationArg;
             _authorizedContentQueries = AuthorizedContentQueriesArg;
             _serviceProvider = serviceProviderArg;
+            _mapProxyConfigProvider = (MapProxyConfigProvider)mapProxyConfigProvider;
         }
 
         /// <summary>
@@ -808,43 +814,28 @@ namespace MillimanAccessPortal.Controllers
                                            vnetName,
                                            liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
-            IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
+            Log.Information($"Container launched, redirectUrl is <{redirectUrl}>");
+            //IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
 
             // TODO ensure an adequate token value
             string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(redirectUrl));
-            string containerProxyPathRoot = $"/{contentToken}";
+            QueryString query = new QueryString($"?{ApplicationConfig.GetValue<string>("ReverseProxyContentTokenHeaderName")}={contentToken}");
 
-            string redirectHost = appEnvName switch
-            {
-                // Azure gateway will expect host with prepended contentToken
-                var env when env.StartsWith("azure-", StringComparison.OrdinalIgnoreCase) => $"{contentToken}.{ApplicationConfig.GetValue<string>("ContainerProxyDomain")}",
-                _ => ApplicationConfig.GetValue<string>("ContainerProxyDomain"),
-            };
+            string redirectHost = Request.Host.Value;
 
             UriBuilder externalRequestUri = new UriBuilder
             {
-                Scheme = ApplicationConfig.GetValue<string>("ContainerProxyScheme"),
-                Host = redirectHost,
-                Port = ApplicationConfig.GetValue("ContainerProxyPort", -1),
-                Path = containerProxyPathRoot,
-            };
-            if (!appEnvName.Contains("azure-", StringComparison.OrdinalIgnoreCase))
-            {
-                externalRequestUri.Query = string.Join("&", new string[] { $"content-token={contentToken}" });
-            }
-
-            var arg = new OpenSessionRequest
-            {
-                PublicUri = externalRequestUri.Uri.AbsoluteUri,
-                RequestingHost = HttpContext.Connection.RemoteIpAddress.ToString(),
-                InternalUri = redirectUrl,
-                SessionToken = sessionToken,
-                ContentToken = contentToken,
+                Scheme = Request.Scheme,
+                Host = Request.Host.Host,
+                Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1, 
+                Path = "/",
+                Query = query.Value,
             };
 
-            Log.Information("Sending NewSessionAuthorized message to proxy with argument {@arg}", arg);
-            // Notify the reverse proxy about the incoming session
-            await _reverseProxySessionHub.Clients.All.SendAsync("NewSessionAuthorized", arg);
+            // Add a new YARP route/cluster config
+            _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, sessionToken, externalRequestUri.Uri.AbsoluteUri, redirectUrl);
+
+            //Log.Information("Sending NewSessionAuthorized message to proxy with argument {@arg}", arg);
 
             return externalRequestUri.Uri.AbsoluteUri;
         }
