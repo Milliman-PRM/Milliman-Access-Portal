@@ -51,8 +51,8 @@ namespace MapDbContextLib.Models
         #region Lifetime management
         public bool AlwaysCold { get; set; } = true;
         public ContainerInstanceCooldownTimeEnum CooldownTime = ContainerInstanceCooldownTimeEnum.OneHour;
-        public TimeSpan DailyStartTime { get; set; }
-        public TimeSpan DailyStopTime { get; set; }
+        public TimeSpan DailyStartTimeUtc { get; set; }
+        public TimeSpan DailyStopTimeUtc { get; set; }
         public TimeZoneInfo ServiceTimeZone { get; set; }
         public List<DayOfWeek> ActiveServiceDaysOfWeek {get; set;}
         #endregion
