@@ -34,6 +34,7 @@ namespace MillimanAccessPortal.Services
             while (!stoppingToken.IsCancellationRequested)
             {
                 await FindRunningContainerInstances();
+                await Task.Delay(60_000);
             }
         }
 
@@ -97,8 +98,6 @@ namespace MillimanAccessPortal.Services
                     #endregion
                 }
             }
-
-            await Task.Delay(10_000); // Every 10 seconds? How do we want to go about this.
         }
     }
 }
