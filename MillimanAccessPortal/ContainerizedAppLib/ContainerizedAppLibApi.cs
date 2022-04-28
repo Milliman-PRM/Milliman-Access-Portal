@@ -479,7 +479,9 @@ namespace ContainerizedAppLib
         }
 
         /// <summary>
-        /// Creates a new Container Group and starts the container inside of it.
+        /// Creates a new Container Group, and then polls the Container Group creation process
+        /// for progress and delivers the accessible IP address and port once the Container
+        /// Group is successfully running.
         /// </summary>
         /// <param name="containerGroupName">Name to assign to Container Group.</param>
         /// <param name="containerImageName">The image to use in the Container.</param>
@@ -522,7 +524,7 @@ namespace ContainerizedAppLib
                     {
                         await Task.Delay(TimeSpan.FromSeconds(5));
 
-                        containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+                        containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
                         containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
                         containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
@@ -570,18 +572,18 @@ namespace ContainerizedAppLib
         }
 
         /// <summary>
-        /// 
+        /// Creates a new Container Group and starts it.
         /// </summary>
-        /// <param name="containerGroupName"></param>
-        /// <param name="containerImageName"></param>
-        /// <param name="ipType"></param>
-        /// <param name="cpuCoreCount"></param>
-        /// <param name="memorySizeInGB"></param>
-        /// <param name="resourceTags"></param>
-        /// <param name="vnetId"></param>
-        /// <param name="vnetName"></param>
-        /// <param name="containerPorts"></param>
-        /// <returns></returns>
+        /// <param name="containerGroupName">The name of the Container Group.</param>
+        /// <param name="containerImageName">The name of the ACR image to be used in the Container Group.</param>
+        /// <param name="ipType">The type of IP Address used (public or private).</param>
+        /// <param name="cpuCoreCount">The number of CPU cores for the Container Group.</param>
+        /// <param name="memorySizeInGB">The amount of RAM in GB for the Container Group.</param>
+        /// <param name="resourceTags">The Container Group resource tags.</param>
+        /// <param name="vnetId">The ID of the virtual network being used.</param>
+        /// <param name="vnetName">The name of the virtual network being used.</param>
+        /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
+        /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
         public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
@@ -667,7 +669,12 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupStatus(string containerGroupName)
+        /// <summary>
+        /// Gets information pertaining to a previously-created Container Group.
+        /// </summary>
+        /// <param name="containerGroupName"></param>
+        /// <returns>A response model containing details of the current Container Group.</returns>
+        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
@@ -689,6 +696,12 @@ namespace ContainerizedAppLib
             }
         }
 
+        /// <summary>
+        /// Gets logs from a running Container inside of a running Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">Name of running Container Group.</param>
+        /// <param name="containerName">Name of running Container inside Container Group.</param>
+        /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
@@ -717,6 +730,11 @@ namespace ContainerizedAppLib
                 return null;
             }
         }
+        
+        /// <summary>
+        /// Lists all Container Groups belonging to the currently configured Resource Group.
+        /// </summary>
+        /// <returns>List of Container Groups as objects. TODO</returns>
         public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
         {
             string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
@@ -736,6 +754,11 @@ namespace ContainerizedAppLib
             }
         }
 
+        /// <summary>
+        /// Stop a currently running Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to be stopped.</param>
+        /// <returns></returns>
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
             string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
@@ -755,6 +778,11 @@ namespace ContainerizedAppLib
             }
         }
 
+        /// <summary>
+        /// Restart a previously existing Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to be restarted.</param>
+        /// <returns></returns>
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
             string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
