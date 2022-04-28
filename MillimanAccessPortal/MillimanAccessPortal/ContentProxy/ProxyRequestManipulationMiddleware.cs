@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Primitives;
 using Serilog;
 using System.Collections.Generic;
 using System;
@@ -11,61 +12,66 @@ using Yarp.ReverseProxy.Configuration;
 
 namespace MillimanAccessPortal.ContentProxy
 {
+    /// <summary>
+    /// This middleware identifies and manipulates requests that should be routed to the reverse proxy functionality of the YARP library instead of a MAP controller
+    /// </summary>
     public class ProxyRequestManipulationMiddleware
     {
         private RequestDelegate _next { get; init; }
         private MapProxyConfigProvider _proxyConfigProvider { get; init; }
-        private IConfiguration _appConfig { get; init; }
+        private string _contentTokenName { get; init; }
+        private string _reverseProxyBaseUrl { get; init; }
 
-        public ProxyRequestManipulationMiddleware(RequestDelegate next, IProxyConfigProvider configProviderArg, IConfiguration appConfig)
+
+        public ProxyRequestManipulationMiddleware(RequestDelegate next, IProxyConfigProvider proxyConfigProviderArg, IConfiguration appConfig)
         {
             _next = next;
-            _proxyConfigProvider = (MapProxyConfigProvider)configProviderArg;
-            _appConfig = appConfig;
+            _proxyConfigProvider = (MapProxyConfigProvider)proxyConfigProviderArg;
+            _contentTokenName = appConfig.GetValue<string>("ReverseProxyContentTokenHeaderName");
+            _reverseProxyBaseUrl = appConfig.GetValue<string>("ReverseProxyBaseUrl");
         }
 
         public async Task InvokeAsync(HttpContext context)
         {
-            string contentTokenName = _appConfig.GetValue<string>("ReverseProxyContentTokenHeaderName");
+            // This middleware ensures that each container content request will match the appropriate configured RouteConfig object
 
-            // if (this request is NOT for a content container)
-            if (!context.Request.Query.ContainsKey(contentTokenName)) // TODO a better check may be required (e.g. for Shiny websocket request)
+            // if (request is the original redirect to the container)
+            if (context.Request.Query.TryGetValue(_contentTokenName, out StringValues contentToken))
             {
+                Log.Information($"Proxy middleware detected request with content token query element {context.Request.Path.Value}{context.Request.QueryString}");
+
+                FormatRequestForRouteMatching(context.Request, contentToken[0]);
+                // _next is called below
+            }
+            // if (request is for linked from the original container page as indicated by the "referrer" header)
+            else if (context.Request.Headers.TryGetValue("Referer", out StringValues refererValues) && 
+                     refererValues.Any(s => s.Contains($"{_contentTokenName}=", StringComparison.InvariantCultureIgnoreCase)))
+            {
+                string referer = refererValues.Single(s => s.Contains($"{_contentTokenName}=", StringComparison.InvariantCultureIgnoreCase));
+                string refererQuery = new Uri(referer).Query;
+                string tokenQueryParam = refererQuery.Split('?', '&').SingleOrDefault(q => q.StartsWith($"{_contentTokenName}="));
+                contentToken = tokenQueryParam.Split('=')[1];
+
+                FormatRequestForRouteMatching(context.Request, contentToken);
+                // _next is called below
+            }
+            else if (context.Request.Path.StartsWithSegments($"/{_contentTokenName}", out PathString remainingPath))
+            {
+                var x = remainingPath.StartsWithSegments("/", out PathString matchedSegment, out PathString remainPath);
+                Log.Information($"Proxy middleware detected request with container path elements, remaining path is {remainingPath}");
+                // FormatRequestForRouteMatching(context.Request);
                 await _next(context);
                 return;
             }
-
-            if (!context.Request.Headers.ContainsKey(contentTokenName))
+            else if (context.WebSockets.IsWebSocketRequest ||
+                    (context.Request.Path.HasValue && context.Request.Path.Value.Contains("/websocket")))
             {
-                IProxyConfig? proxyCfg = _proxyConfigProvider.GetConfig();
-                List<string> allConfiguredTokens = proxyCfg.Routes.Aggregate(new List<string>(),
-                                                                             (list, val) =>
-                                                                             {
-                                                                                 if (val.Metadata!.TryGetValue(contentTokenName, out string? token))
-                                                                                 {
-                                                                                     list.Add(token);
-                                                                                 }
-                                                                                 return list;
-                                                                             });
-
-                string reverseProxyBaseUrl = _appConfig.GetValue<string>("ReverseProxyBaseUrl");
-                string? foundToken = HttpRequestUtils.GetContentTokenForRequest(context.Request, reverseProxyBaseUrl, contentTokenName, allConfiguredTokens);
-
-                // If there is a route that is likely to match:
-                if (foundToken is not null && proxyCfg.Routes.Any(r => r.Match.Headers?.Any(h => h.Name == contentTokenName) ?? false))
-                {
-                    context.Request.Headers.Add(contentTokenName, foundToken);
-                    string removeFromPath = $"/{foundToken}";
-                    if (context.Request.Path.StartsWithSegments(removeFromPath, out PathString remaining))
-                    {
-                        context.Request.Path = remaining;
-                    }
-                }
+                // Detect/handle Shiny websocket (if needed)
+                ;
             }
-
-            if (context.WebSockets.IsWebSocketRequest ||
-                (context.Request.Path.HasValue && context.Request.Path.Value.Contains("/websocket")))
+            else
             {
+                // This is a MAP request, not intended for the container proxy. Do nothing.
                 await _next(context);
                 return;
             }
@@ -94,10 +100,10 @@ namespace MillimanAccessPortal.ContentProxy
 
                 if (!string.IsNullOrEmpty(context.Response.ContentType) &&
                     context.Response.ContentType.Contains("text/html", StringComparison.InvariantCultureIgnoreCase) &&
+                    // context.Request.Path.StartsWithSegments($"/{_contentTokenName}/{contentToken}") &&
                     !newBody.Contains("<base "))
                 {
-                    string contentTokenPath = $"/{(context.Request.Headers.ContainsKey("content-token") ? context.Request.Headers["content-token"] : "")}";
-                    string basePath = context.Request.Path.StartsWithSegments(contentTokenPath) ? context.Request.Path : contentTokenPath + context.Request.Path;
+                    string basePath = $"/{_contentTokenName}/{contentToken}/"; ;
 
                     // Write modified content to the response body.
                     UriBuilder baseUri = new UriBuilder(context.Request.Scheme, context.Request.Host.Host, context.Request.Host.Port.HasValue ? context.Request.Host.Port.Value : -1, basePath);
@@ -105,6 +111,28 @@ namespace MillimanAccessPortal.ContentProxy
                 }
 
                 await context.Response.WriteAsync(newBody);
+            }
+        }
+
+        private void FormatRequestForRouteMatching(HttpRequest request, string contentToken)
+        {
+            bool tokenExistsInQuery = request.Query.TryGetValue(_contentTokenName, out _);
+
+            if (tokenExistsInQuery)
+            {
+                Dictionary<string, StringValues> queryWithoutContentToken = request.Query.Where(q => q.Key != _contentTokenName).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+                request.Query = new QueryCollection(queryWithoutContentToken);
+            }
+
+            if (!request.Path.StartsWithSegments($"/{_contentTokenName}"))
+            {
+                PathString newPathString = $"/{_contentTokenName}/{contentToken}";
+                request.Path = newPathString;
+            }
+
+            if (!request.Path.StartsWithSegments($"/{_contentTokenName}"))
+            {
+                throw new ApplicationException("Failed to format the request path for container proxy route matching");
             }
         }
     }

@@ -34,7 +34,7 @@ namespace MillimanAccessPortal.ContentProxy
         public void OpenNewSession(string requestingHost, string contentToken, string sessionToken, string publicUri, string internalUri)
         {
             UriBuilder requestedUri = new UriBuilder(publicUri);
-            string ContentTokenName = _appConfiguration.GetValue<string>("ReverseProxyContentTokenHeaderName");
+            string contentTokenName = _appConfiguration.GetValue<string>("ReverseProxyContentTokenHeaderName");
 
             RouteConfig newRoute = new()
             {
@@ -42,7 +42,8 @@ namespace MillimanAccessPortal.ContentProxy
                 ClusterId = Guid.NewGuid().ToString(),
                 Match = new RouteMatch
                 {
-                    Path = "{**catch-all}",
+                    Path = $"/{contentTokenName}/{{**content-token}}",
+                    //Path = $"/{contentTokenName}/{{**catch-all}}",
                     //Hosts = new List<string> { request.ContentToken },
 
                     //Methods = default,
@@ -50,14 +51,14 @@ namespace MillimanAccessPortal.ContentProxy
                     //{
                     //    new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
                     //},
-                    //Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $".AspNetCore.Session={request.SessionToken}" }, Mode = HeaderMatchMode.Contains } },
-                    Headers = new List<RouteHeader> { new RouteHeader { Name = ContentTokenName, Values = new List<string> { contentToken } } },
+                    // Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $"{contentTokenName}={contentToken}" }, Mode = HeaderMatchMode.Contains } },
+                    //Headers = new List<RouteHeader> { new RouteHeader { Name = ContentTokenName, Values = new List<string> { contentToken } } },
                 },
                 AuthorizationPolicy = default, // TODO Look into how to use this effectively
                 Order = 1,
                 Metadata = new Dictionary<string, string>
                        {
-                           { ContentTokenName, contentToken },
+                           { contentTokenName, contentToken },
                        },
             };
 
@@ -80,7 +81,7 @@ namespace MillimanAccessPortal.ContentProxy
                     Metadata = new Dictionary<string, string>
                        {
                            { "ExternalPathRoot", requestedUri.Path },
-                           { "ContentTokenName", ContentTokenName },
+                           { "ContentTokenName", contentTokenName },
                        },
                 };
                 OpenNewSession(newRoute, newCluster);
