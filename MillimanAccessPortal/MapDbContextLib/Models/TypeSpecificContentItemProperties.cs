@@ -49,7 +49,7 @@ namespace MapDbContextLib.Models
         public ushort PreviewContainerInternalPort { get; set; } = 0;
 
         #region Lifetime management
-        public bool AlwaysCold { get; set; } = true;
+        public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
         public ContainerInstanceCooldownTimeEnum CooldownTime = ContainerInstanceCooldownTimeEnum.OneHour;
         public TimeSpan DailyStartTimeUtc { get; set; }
         public TimeSpan DailyStopTimeUtc { get; set; }
