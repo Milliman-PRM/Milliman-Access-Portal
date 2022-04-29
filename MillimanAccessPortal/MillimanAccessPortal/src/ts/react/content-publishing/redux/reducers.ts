@@ -556,6 +556,18 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         roleList: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.roleList ?
           action.response.typeSpecificPublicationProperties.roleList : [],
+        containerCpuCores: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerCpuCores ?
+          action.response.typeSpecificPublicationProperties.containerCpuCores :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerCpuCores,
+        containerRamGb: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerRamGb ?
+          action.response.typeSpecificPublicationProperties.containerRamGb :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerRamGb,
+        containerInternalPort: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerInternalPort ?
+          action.response.typeSpecificPublicationProperties.containerInternalPort :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerInternalPort,
       },
       relatedFiles: {
         MasterContent: {
