@@ -22,6 +22,13 @@ namespace ContainerizedAppLib
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _aciToken, _repositoryName;
 
+        /// <summary>
+        /// Gets the URI for a Container Content item.
+        /// </summary>
+        /// <param name="typeSpecificContentIdentifier">The identifier for the Content Item.</param>
+        /// <param name="UserName">The user accessing the Content Uri.</param>
+        /// <param name="thisHttpRequest">The request being made.</param>
+        /// <returns>The Content URI as a UriBuilder object.</returns>
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
             await Task.Yield();
@@ -802,6 +809,11 @@ namespace ContainerizedAppLib
             }
         }
 
+        /// <summary>
+        /// Deletes a Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to delete.</param>
+        /// <returns></returns>
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
             string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
