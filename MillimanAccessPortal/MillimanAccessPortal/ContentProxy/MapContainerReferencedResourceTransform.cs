@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Serilog;
 using Yarp.ReverseProxy.Transforms;
@@ -8,16 +9,31 @@ namespace MillimanAccessPortal.ContentProxy
     public class MapContainerReferencedResourceTransform : RequestTransform
     {
         private string _reverseProxyPathBaseSegment { get; init; }
+        private string _tokenName { get; init; }
 
-        public MapContainerReferencedResourceTransform(string reverseProxyPathBaseSegment)
+        public MapContainerReferencedResourceTransform(string reverseProxyPathBaseSegment, string tokenName)
         {
             _reverseProxyPathBaseSegment = reverseProxyPathBaseSegment;
+            _tokenName = tokenName;
         }
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
+            Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (entering MapContainerReferencedResourceTransform)",
+                                      context.HttpContext.Request.Method,
+                                      context.HttpContext.Request.Scheme,
+                                      context.HttpContext.Request.Host,
+                                      context.HttpContext.Request.Path,
+                                      context.HttpContext.Request.QueryString);
+
             try
             {
+                if (context.HttpContext.Request.Path.StartsWithSegments($"/{_tokenName}"))
+                {
+                    string[] pathElements = context.HttpContext.Request.Path.Value.Split('/');
+                    string newPath = string.Join('/', pathElements.Skip(2));
+                    context.HttpContext.Request.Path = new Microsoft.AspNetCore.Http.PathString();
+                }
                 /*
                 string? referer = context.HttpContext.Request.Headers.Referer.SingleOrDefault();
                 string? origin = context.HttpContext.Request.Headers.Origin.SingleOrDefault();

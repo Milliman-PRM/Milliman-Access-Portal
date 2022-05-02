@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.ContentProxy
             {
                 case "UnspecifiedPathRoute":
                     IConfiguration appConfig = context.Services.GetRequiredService<IConfiguration>();
-                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform(appConfig.GetValue<string>("ReverseProxyPathBaseSegment")));
+                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform(appConfig.GetValue<string>("ReverseProxyPathBaseSegment"), appConfig.GetValue<string>("ReverseProxyContentTokenHeaderName")));
                     break;
 
                 default:
