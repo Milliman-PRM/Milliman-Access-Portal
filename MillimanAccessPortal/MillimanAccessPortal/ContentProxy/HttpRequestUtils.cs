@@ -8,23 +8,25 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class HttpRequestUtils
     {
-        internal static string? GetContentTokenForRequest(HttpRequest request, string baseUrl, string contentTokenName, List<string> configuredTokens)
+        // internal static string? GetContentTokenForRequest(HttpRequest request, string baseUrl, string contentTokenName, List<string> configuredTokens)
+        internal static string? GetContentTokenForRequest(HttpRequest request, string contentTokenName, List<string> configuredTokens)
         {
-            string requestHostToken = ContentTokenFromHostString(new HostString(request.Host.Value).Host, baseUrl);  // Only for an environment where there is no application gateway??
+            // string requestHostToken = ContentTokenFromHostString(new HostString(request.Host.Value).Host, baseUrl);  // Only for an environment where there is no application gateway??
             string pathRootToken = configuredTokens.SingleOrDefault(t => request.Path.StartsWithSegments($"/{t}"));
             string queryStringToken = request.Query.ContainsKey(contentTokenName) ? request.Query.Single(q => q.Key.Equals(contentTokenName)).Value.ToString() : null;
-            string originHeaderToken = request.Headers.ContainsKey("Origin") ? ContentTokenFromHostString(new Uri(request.Headers["Origin"]).Host, baseUrl) : null;
-            string refererHeaderToken = request.Headers.ContainsKey("Referer") ? ContentTokenFromHostString(new Uri(request.Headers["Referer"]).Host, baseUrl) : null;
+            // string originHeaderToken = request.Headers.ContainsKey("Origin") ? ContentTokenFromHostString(new Uri(request.Headers["Origin"]).Host, baseUrl) : null;
+            // string refererHeaderToken = request.Headers.ContainsKey("Referer") ? ContentTokenFromHostString(new Uri(request.Headers["Referer"]).Host, baseUrl) : null;
             string originQueryToken = request.Headers.ContainsKey("Origin") ? ContentTokenFromUriQuery(new Uri(request.Headers["Origin"]), contentTokenName) : null;
             string refererQueryToken = request.Headers.ContainsKey("Referer") ? ContentTokenFromUriQuery(new Uri(request.Headers["Referer"]), contentTokenName) : null;
 
-            string foundToken = requestHostToken ??
-                                pathRootToken ??
-                                queryStringToken ??
-                                originHeaderToken ??
-                                refererHeaderToken ??
-                                originQueryToken ??
-                                refererQueryToken;
+            string foundToken = 
+                //requestHostToken ??
+                pathRootToken ??
+                queryStringToken ??
+                //originHeaderToken ??
+                //refererHeaderToken ??
+                originQueryToken ??
+                refererQueryToken;
 
             return foundToken;
         }
