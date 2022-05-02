@@ -588,8 +588,6 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            app.UseProxyRequestManipulationMiddleware();
-
             app.UseRouting();
 
             app.UseAuthentication();
