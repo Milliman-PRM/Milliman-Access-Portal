@@ -73,7 +73,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication token");
+                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication tokens.");
+                throw;
             }
 
             return this;
@@ -97,8 +98,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to get ACR access token");
-                throw;
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAcrAccessTokenException: Azure Container Registry access token could not be fetched.");
             }
         }
 
@@ -127,7 +127,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetRepositoryManifest: Could not fetch repository manifest.");
                 throw;
             }
         }
@@ -150,7 +150,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetRepositoryTags: Could not fetch repository tags.");
                 throw;
             }
         }
@@ -171,7 +171,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image manifest for {_repositoryName}:{digest}");
+                Log.Warning(ex, $"Exception from ContainerizedAppLibApi.DeleteRepositoryManifest: Failed to delete image manifest for {_repositoryName} with digest {digest}.");
+                throw;
             }
         }
 
@@ -193,7 +194,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete repository {_repositoryName}");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteRepositoryManifest: Failed to delete repository {_repositoryName}.");
+                throw;
             }
         }
 
@@ -213,7 +215,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image tag for {_repositoryName}:{tag}");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteTag: Failed to delete image tag for {_repositoryName}:{tag}");
+                throw;
             }
         }
 
@@ -237,7 +240,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to upload a new image manifest.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.PushImageManifest: Failed to push manifest to {_repositoryName}:{tag}.");
                 throw;
             }
         }
@@ -296,7 +299,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Failed to push image file {imageFileFullPath} to Azure registry");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.PushImageToRegistry: Failed to push image to {_repositoryName}:{tag}");
                 throw;
             }
         }
@@ -321,8 +324,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Exception when checking existence of layer.");
-                return false;
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.BlobDoesExist: Error when checking existince of blob with digest {blobDigest}.");
+                throw;
             }
         }
 
@@ -418,7 +421,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to upload layer.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.UploadBlob: Error attempting to upload blob with digest {blobDigest} to repository {_repositoryName}.");
                 throw;
             }
         }
@@ -480,8 +483,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to get Azure Container Instances access token");
-                throw;
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAciAccessTokenAsync: Azure Container Instances access token could not be fetched");
             }
         }
 
@@ -572,7 +574,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                //Log.Error(ex, "");
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.RunContainer: Error trying to run Container Group {containerGroupName} with image {containerImageName}:{containerImageTag}.");
+                throw;
             }
 
             return "";
@@ -592,7 +595,7 @@ namespace ContainerizedAppLib
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -668,7 +671,7 @@ namespace ContainerizedAppLib
             {
                 dynamic result = await ex.GetResponseJsonAsync();
                 Dictionary<string, object> error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                string errorMessage = $"Error launching a new Container Group.  Error(s):{Environment.NewLine}\t" +
+                string errorMessage = $"Exception from ContainerizedAppLibApi.CreateContainerGroup: Error launching a new Container Group. Error(s):{Environment.NewLine}\t" +
                                       string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}"));
 
                 Log.Error(ex, errorMessage);
@@ -698,7 +701,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception while attempting to get status of container group.");
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.GetContainerGroupDetails: Error while attempting to get Container Group details.");
                 return null;
             }
         }
@@ -728,16 +731,17 @@ namespace ContainerizedAppLib
                 {
                     CloudError responseJson = await response.GetJsonAsync<CloudError>();
                     Log.Error($"Error obtaining container logs: {responseJson.Error.Message}");
-                    return null;
                 }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception while attempting to get container logs.");
-                return null;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetContainerLogs: Error while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.");
+                throw;
             }
+
+            return null;
         }
-        
+
         /// <summary>
         /// Lists all Container Groups belonging to the currently configured Resource Group.
         /// </summary>
@@ -756,8 +760,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
-                return null;
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.ListContainerGroupsInResourceGroup: Error fetching ACI Container Groups for resource group.");
+                throw;
             }
         }
 
@@ -780,8 +784,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to stop running ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.StopContainerInstance: Error when attempting to stop running ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
 
@@ -804,8 +808,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to restart ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.RestartContainerGroup: Error when attempting to restart ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
 
@@ -828,8 +832,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to delete ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteContainerGroup: Error when attempting to delete ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
         #endregion
