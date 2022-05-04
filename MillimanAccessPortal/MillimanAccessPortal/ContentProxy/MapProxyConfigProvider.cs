@@ -11,16 +11,16 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class MapProxyConfigProvider : IProxyConfigProvider
     {
-        private readonly IConfiguration _appConfiguration;
+        // private readonly IConfiguration _appConfiguration;
         private volatile MapProxyConfiguration _proxyConfig = new MapProxyConfiguration();
 
         // Implementation of the base interface signature
         public IProxyConfig GetConfig() => _proxyConfig;
 
-        public MapProxyConfigProvider(IConfiguration appConfiguration)
-        {
-            _appConfiguration = appConfiguration;
-        }
+        // public MapProxyConfigProvider(IConfiguration appConfiguration)
+        // {
+        //     _appConfiguration = appConfiguration;
+        // }
 
         public void UpdateConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters)
         {
@@ -31,34 +31,25 @@ namespace MillimanAccessPortal.ContentProxy
             Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_proxyConfig)}");
         }
 
-        public void OpenNewSession(string requestingHost, string contentToken, string sessionToken, string publicUri, string internalUri)
+        public void OpenNewSession(string requestingHost, string contentToken, string publicUri, string internalUri, string userIdentityToken)
         {
             UriBuilder requestedUri = new UriBuilder(publicUri);
-            string contentTokenName = _appConfiguration.GetValue<string>("ReverseProxyContentTokenHeaderName");
 
             RouteConfig newRoute = new()
             {
-                RouteId = Guid.NewGuid().ToString(),
-                ClusterId = Guid.NewGuid().ToString(),
+                RouteId = contentToken,
+                ClusterId = contentToken,
                 Match = new RouteMatch
                 {
-                    Path = $"/{contentTokenName}/{{**content-token}}",
-                    //Path = $"/{contentTokenName}/{{**catch-all}}",
-                    //Hosts = new List<string> { request.ContentToken },
-
-                    //Methods = default,
-                    //QueryParameters = new List<RouteQueryParameter>
-                    //{
-                    //    new RouteQueryParameter { Name = "contentToken", Values = new List<string> { request.ContentToken }, Mode = QueryParameterMatchMode.Exact }
-                    //},
-                    // Headers = new List<RouteHeader> { new RouteHeader { Name = "cookie", Values = new List<string> { $"{contentTokenName}={contentToken}" }, Mode = HeaderMatchMode.Contains } },
-                    //Headers = new List<RouteHeader> { new RouteHeader { Name = ContentTokenName, Values = new List<string> { contentToken } } },
+                    Path = $"/{contentToken}/{{**actual-path}}",
                 },
                 AuthorizationPolicy = default, // TODO Look into how to use this effectively
                 Order = 1,
                 Metadata = new Dictionary<string, string>
                        {
-                           { contentTokenName, contentToken },
+                           { "ContentToken", contentToken },
+                           { "RequestingHost", requestingHost },
+                           { "UserIdentityToken", userIdentityToken },
                        },
             };
 
@@ -80,8 +71,9 @@ namespace MillimanAccessPortal.ContentProxy
                         } },
                     Metadata = new Dictionary<string, string>
                        {
-                           { "ExternalPathRoot", requestedUri.Path },
-                           { "ContentTokenName", contentTokenName },
+                           { "ContentToken", contentToken },
+                           { "RequestingHost", requestingHost },
+                           { "UserIdentityToken", userIdentityToken },
                        },
                 };
                 OpenNewSession(newRoute, newCluster);
