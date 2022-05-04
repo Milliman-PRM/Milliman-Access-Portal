@@ -58,10 +58,7 @@ namespace MillimanAccessPortal.ContentProxy
             newRoute = newRoute.WithTransformPathRemovePrefix($"/{contentToken}");
 
             // TODO this if statement needs some attention
-            if (!_proxyConfig.Routes.Any(r => //(r.Match.Hosts is not null && r.Match.Hosts.ToHashSet().SetEquals(newRoute.Match.Hosts)) &&
-                                              // (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet())) &&
-                                              (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))
-                                              ))
+            if (!_proxyConfig.Routes.Any(r => r.Match.Path.Equals(newRoute.Match.Path)))
             {
                 ClusterConfig newCluster = new ClusterConfig
                 {
