@@ -255,9 +255,8 @@ namespace ContainerizedAppLib
                 response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
                 return response.StatusCode == 202 && responseDigest.Equals(blobDigest, StringComparison.InvariantCultureIgnoreCase);
             }
-            catch (Exception ex)
+            catch
             {
-                Log.Error(ex, "Exception when checking existence of layer.");
                 return false;
             }
         }
@@ -450,9 +449,9 @@ namespace ContainerizedAppLib
 
                     Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
-#warning This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
-
-                    string containerLogMatchString = "Listening on http";
+                    #region This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
+                    string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
+                    // containerLogMatchString = "Listening on http";  // works for for Shiny
 
                     if (!string.IsNullOrEmpty(containerLogMatchString))
                     {
@@ -461,10 +460,11 @@ namespace ContainerizedAppLib
                              logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase);
                              log = await GetContainerLogs(containerGroupName, containerGroupName))
                         {
-                            Log.Information($"Container logs: {log}");
+                            Log.Debug($"Container logs: {log}");
                             await Task.Delay(TimeSpan.FromSeconds(0.5));
                         }
                     }
+                    #endregion
 
                     return $"http://{containerGroupIpAddress}:{applicationPort}";
                 }
