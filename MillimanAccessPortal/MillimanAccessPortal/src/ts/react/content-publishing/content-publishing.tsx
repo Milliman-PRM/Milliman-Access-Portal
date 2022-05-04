@@ -62,6 +62,7 @@ import {
   PublishingStateFilters, PublishingStateModals, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 import { SelectionGroupDetails } from './selection-group-detail';
+import { RadioButton } from '../shared-components/form/radio';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
@@ -996,6 +997,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           readOnly={formState === 'read'}
                         />
                       </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
+                        <div>
+                          <RadioButton id=""
+                        </div>
+                      </ FormFlexContainer>
+
                     </FormSectionRow>
                   </>
                 }
