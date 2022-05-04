@@ -811,6 +811,11 @@ namespace MillimanAccessPortal.Controllers
                                                          vnetName,
                                                          liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
+            if (string.IsNullOrEmpty(containerUrl))
+            {
+                throw new ApplicationException("Container URL is not available");
+            }
+
             Log.Information($"Container URL is <{containerUrl}>");
 
             // TODO ensure an adequate token value

@@ -373,7 +373,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     });
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
-                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.LiveImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
                                         string repositoryName = publicationRequest.RootContentItem.AcrRepoositoryName;
                                         successActionList.Add(async () => {
