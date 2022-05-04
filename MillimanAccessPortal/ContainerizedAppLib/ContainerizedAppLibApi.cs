@@ -1,20 +1,20 @@
 ﻿using Flurl.Http;
 using MapCommonLib;
-using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.IO;
 using Serilog;
-using Newtonsoft.Json.Linq;
 using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading;
 using ContainerizedAppLib.AzureRestApiModels;
+using System.Text.Json;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace ContainerizedAppLib
 {
@@ -611,17 +611,18 @@ namespace ContainerizedAppLib
                 return null;
             }
         }
-        public async Task<object> ListContainerGroupsInResourceGroup() // todo redefine return type
+        public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
             string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
 
             try
             {
-                IFlurlResponse response = await listContainerGroupsInResourceGroupEndpoint
+                string response = await listContainerGroupsInResourceGroupEndpoint
                                     .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                    .GetAsync();
+                                    .GetStringAsync();
 
-                return await response.GetJsonAsync().Result;
+                var parsedResponse = JsonConvert.DeserializeObject<ListContainerGroup_GetResponseModel>(response);
+                return parsedResponse.ContainerGroups;
             }
             catch (Exception ex)
             {
