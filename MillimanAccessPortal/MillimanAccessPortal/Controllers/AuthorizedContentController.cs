@@ -793,49 +793,41 @@ namespace MillimanAccessPortal.Controllers
         [NonAction]
         private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, ContainerGroupResourceTags resourceTags, bool liveContent)
         {
-            string appEnvName = _serviceProvider.GetService<IWebHostEnvironment>().EnvironmentName;
-            string sessionToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Session").Value;
-            // string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.???").Value;
             string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
             (string vnetId, string vnetName) = ipAddressType == "Public"
                                                ? (null, null)
                                                : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
-            // Use api to run a container based on the live image
+            // Run a container based on the appropriate image
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
-            string redirectUrl = await api.RunContainer(Guid.NewGuid().ToString(),
-                                           liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
-                                           liveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
-                                           ipAddressType,
-                                           liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
-                                           liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
-                                           resourceTags,
-                                           vnetId,
-                                           vnetName,
-                                           liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+            string containerUrl = await api.RunContainer(Guid.NewGuid().ToString(),
+                                                         liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                         liveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                         ipAddressType,
+                                                         liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                         liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                         resourceTags,
+                                                         vnetId,
+                                                         vnetName,
+                                                         liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
-            Log.Information($"Container launched, redirectUrl is <{redirectUrl}>");
-            //IHubContext<ReverseProxySessionHub> _reverseProxySessionHub = _serviceProvider.GetRequiredService<IHubContext<ReverseProxySessionHub>>();
+            Log.Information($"Container URL is <{containerUrl}>");
 
             // TODO ensure an adequate token value
-            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(redirectUrl));
-            QueryString query = new QueryString($"?{ApplicationConfig.GetValue<string>("ReverseProxyContentTokenHeaderName")}={contentToken}");
-
-            string redirectHost = Request.Host.Value;
+            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerUrl));
 
             UriBuilder externalRequestUri = new UriBuilder
             {
                 Scheme = Request.Scheme,
                 Host = Request.Host.Host,
                 Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1, 
-                Path = "/",
-                Query = query.Value,
+                Path = $"/{contentToken}/",  // must include trailing '/' character
             };
 
-            // Add a new YARP route/cluster config
-            _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, sessionToken, externalRequestUri.Uri.AbsoluteUri, redirectUrl);
+            string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Identity.Application").Value;
 
-            //Log.Information("Sending NewSessionAuthorized message to proxy with argument {@arg}", arg);
+            // Add a new YARP route/cluster config
+            _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, externalRequestUri.Uri.AbsoluteUri, containerUrl, identityToken);
 
             return externalRequestUri.Uri.AbsoluteUri;
         }

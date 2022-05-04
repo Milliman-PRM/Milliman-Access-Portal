@@ -1,5 +1,8 @@
-﻿using Serilog;
+﻿using Microsoft.AspNetCore.Http;
+using Serilog;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 
@@ -7,26 +10,40 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class MapContainerContentRequestTransform : RequestTransform
     {
-        private string ExternalPathRoot { get; init; }
-        private string ContentTokenName { get; init; }
+        private string _contentToken { get; init; }
+        private string _requestingHost { get; init; }
+        private string _userIdentityToken { get; init; }
 
         public MapContainerContentRequestTransform(IReadOnlyDictionary<string, string> metadata)
         {
-            ExternalPathRoot = metadata["ExternalPathRoot"];
-            ContentTokenName = metadata["ContentTokenName"];
+            _contentToken = metadata["ContentToken"];
+            _requestingHost = metadata["RequestingHost"];
+            _userIdentityToken = metadata["UserIdentityToken"];
         }
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
-            //Log.Information("Request: {@Method} {@Scheme}://{Host}{Path}{Query} (before request transform)", 
-            //                          context.HttpContext.Request.Method, 
-            //                          context.HttpContext.Request.Scheme, 
-            //                          context.HttpContext.Request.Host, 
-            //                          context.HttpContext.Request.Path,
-            //                          context.HttpContext.Request.QueryString);
+            if (!context.HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Identity.Application") ||
+                context.HttpContext.Request.Cookies[".AspNetCore.Identity.Application"] != _userIdentityToken ||
+                context.HttpContext.Connection.RemoteIpAddress.ToString() != _requestingHost)
+            {
+                string shortMsg = $"Failed to authorize the container request."
+                    + $"{Environment.NewLine}  received IP: {context.HttpContext.Connection.RemoteIpAddress}"
+                    + $"{Environment.NewLine}  expected IP: {_requestingHost}";
+                string longMsg = shortMsg
+                    + $"{Environment.NewLine}  received identity: {context.HttpContext.Request.Cookies[".AspNetCore.Identity.Application"]}"
+                    + $"{Environment.NewLine}  expected identity: {_userIdentityToken}";
 
-            context.Path = context.Path.Value?.Replace(ExternalPathRoot, "/");
-            context.Query.Collection.Remove(ContentTokenName);
+                Log.Information(longMsg);
+                throw new ApplicationException(shortMsg);
+            }
+
+            // Remove the leading path element containing the content token so the container doesn't receive that part
+            if (context.HttpContext.Request.Path.StartsWithSegments($"/{_contentToken}"))
+            {
+                string[] allPathElements = context.HttpContext.Request.Path.Value.Split('/');
+                context.Path = new PathString($"/{string.Join('/', allPathElements.Skip(2))}");
+            }
 
             return ValueTask.CompletedTask;
         }

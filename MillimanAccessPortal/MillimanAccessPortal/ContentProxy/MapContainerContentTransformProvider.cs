@@ -1,6 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using Yarp.ReverseProxy.Configuration;
@@ -10,7 +8,7 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class MapContainerContentTransformProvider : ITransformProvider
     {
-        private Uri? TargetUri;
+        private Uri? _targetUri;
 
         /// <summary>
         /// Validates any route data needed for transforms.
@@ -30,10 +28,11 @@ namespace MillimanAccessPortal.ContentProxy
             try
             {
                 DestinationConfig targetDestination = (context.Cluster.Destinations?.Select(d => d.Value) ?? new List<DestinationConfig>()).Single();
-                TargetUri = new Uri(targetDestination.Address);
+                _targetUri = new Uri(targetDestination.Address);
             }
             catch (Exception ex)
             {
+                // Adding to context.Errors prevents the call to Apply() below
                 context.Errors.Add(new AggregateException($"Cluster {context.Cluster.ClusterId} is null or is not configured with a single destination host", ex));
                 return;
             }
@@ -46,18 +45,8 @@ namespace MillimanAccessPortal.ContentProxy
         /// <param name="context">The context to add any generated transforms to.</param>
         public void Apply(TransformBuilderContext context)
         {
-            switch (context.Route.RouteId)
-            {
-                case "UnspecifiedPathRoute":
-                    IConfiguration appConfig = context.Services.GetRequiredService<IConfiguration>();
-                    context.RequestTransforms.Add(new MapContainerReferencedResourceTransform(appConfig.GetValue<string>("ReverseProxyPathBaseSegment")));
-                    break;
-
-                default:
-                    context.ResponseTransforms.Add(new MapContainerContentResponseTransform(TargetUri!));
-                    context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster?.Metadata ?? new Dictionary<string, string>()));
-                    break;
-            }
+            context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster?.Metadata ?? new Dictionary<string, string>()));
+            context.ResponseTransforms.Add(new MapContainerContentResponseTransform(_targetUri!));
         }
     }
 }
