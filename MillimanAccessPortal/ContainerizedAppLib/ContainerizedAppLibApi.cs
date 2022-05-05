@@ -318,6 +318,7 @@ namespace ContainerizedAppLib
             {
                 IFlurlResponse response = await checkExistenceEndpoint
                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                    .AllowHttpStatus(System.Net.HttpStatusCode.NotFound) // 404 if layer is simply not found, do not throw.
                                     .HeadAsync();
 
                 response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
