@@ -1,20 +1,22 @@
-﻿using Flurl.Http;
+﻿using ContainerizedAppLib.AzureRestApiModels;
+using Flurl.Http;
 using MapCommonLib;
-using System;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using System.IO;
-using Serilog;
-using System.Net.Http;
 using MapCommonLib.ContentTypeSpecific;
 using Microsoft.AspNetCore.Http;
-using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
-using ContainerizedAppLib.AzureRestApiModels;
-using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Serilog;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Net.Http;
+using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace ContainerizedAppLib
 {
@@ -467,7 +469,7 @@ namespace ContainerizedAppLib
                                                                         await Config.ContainerInstanceTokenEndpoint
                                                                         .PostMultipartAsync(mp => mp
                                                                             .AddString("grant_type", Config.AciGrantType)
-                                                                            .AddString("scope", Config.AciScope)
+                                                                            .AddString("scope", "https://management.azure.com/.default")
                                                                             .AddString("client_id", Config.AciClientId)
                                                                             .AddString("client_secret", Config.AciClientSecret)
                                                                         )
@@ -560,6 +562,22 @@ namespace ContainerizedAppLib
                 Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
                 #region This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
+                //for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(500))
+                //{
+                //    try
+                //    {
+                //        TcpClient tcpClient = new TcpClient(containerGroupIpAddress, applicationPort);
+                //        Log.Information($"socket connected state is {tcpClient.Connected}");
+                //        tcpClient.Close();
+                //    }
+                //    catch (Exception ex)
+                //    {
+                //        Log.Information(ex, $"socket connection exception");
+                //        continue;
+                //    }
+                //    break;
+                //}
+
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 // containerLogMatchString = "Listening on http";  // works for for Shiny
 
@@ -571,7 +589,7 @@ namespace ContainerizedAppLib
                             log = await GetContainerLogs(containerGroupName, containerGroupName))
                     {
                         Log.Debug($"Container logs: {log}");
-                        await Task.Delay(TimeSpan.FromSeconds(0.5));
+                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                 }
                 #endregion
@@ -603,7 +621,7 @@ namespace ContainerizedAppLib
         /// <exception cref="ApplicationException"></exception>
         private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
-            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
+            string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.okAciApiVersion}";
 
             try
             {
@@ -720,11 +738,11 @@ namespace ContainerizedAppLib
         /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
-            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
+            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
 
             try
             {
-                IFlurlResponse response = await getContainerGroupEndpoint
+                IFlurlResponse response = await getContainerLogEndpoint
                                                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
                                                                 .GetAsync();
 
