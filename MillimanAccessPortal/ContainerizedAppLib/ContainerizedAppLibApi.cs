@@ -23,6 +23,13 @@ namespace ContainerizedAppLib
         public ContainerizedAppLibApiConfig Config { get; private set; }
         private string _acrToken, _aciToken, _repositoryName;
 
+        /// <summary>
+        /// Gets the URI for a Container Content item.
+        /// </summary>
+        /// <param name="typeSpecificContentIdentifier">The identifier for the Content Item.</param>
+        /// <param name="UserName">The user accessing the Content Uri.</param>
+        /// <param name="thisHttpRequest">The request being made.</param>
+        /// <returns>The Content URI as a UriBuilder object.</returns>
         public async override Task<UriBuilder> GetContentUri(string typeSpecificContentIdentifier, string UserName, HttpRequest thisHttpRequest)
         {
             await Task.Yield();
@@ -51,9 +58,11 @@ namespace ContainerizedAppLib
         }
 
         /// <summary>
-        /// Asynchronous initializer, chainable with the constructor
+        /// Asynchronous initializer, chainable with the constructor.
+        /// Generates secure tokens for communicating both with Azure Container Registry
+        /// and Azure Container Instances.
         /// </summary>
-        /// <returns></returns>
+        /// <returns>this</returns>
         public async Task<ContainerizedAppLibApi> InitializeAsync(string repositoryName)
         {
             _repositoryName = repositoryName;
@@ -65,17 +74,17 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication token");
+                Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication tokens.");
+                throw;
             }
 
             return this;
         }
 
         /// <summary>
-        /// Initialize a new access token
+        /// Initialize a new access token for communicating with the Azure Container Registry.
         /// </summary>
-        /// <returns></returns>
-        private async Task<bool> GetAcrAccessTokenAsync()
+        private async Task GetAcrAccessTokenAsync()
         {
             string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{_repositoryName}:pull,push,delete";
             try
@@ -87,17 +96,25 @@ namespace ContainerizedAppLib
                                                             .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
 
                 _acrToken = response.AccessToken;
-                return true;
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to get ACR access token");
-                throw;
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAcrAccessTokenException: Azure Container Registry access token could not be fetched.");
             }
         }
 
         #region Container Registry
 
+        /// <summary>
+        /// Communicates with the Azure Container Registry to fetch the manifest for
+        /// the current repository.
+        /// </summary>
+        /// <param name="tag">
+        /// Specifies the tag of the manifest trying to be retrieved. Since repositories
+        /// can have multiple manifests, each with their own tags, this parameter ensures
+        /// that only the manifest that owns the parameter tag will be retrieved.
+        /// </param>
+        /// <returns>dynamic response object of manifest</returns>
         public async Task<object> GetRepositoryManifest(string tag = "latest")
         {
             string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{tag}";
@@ -111,11 +128,15 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetRepositoryManifest: Could not fetch repository manifest.");
                 throw;
             }
         }
-
+        
+        /// <summary>
+        /// Retrieves a list of all tags for the current repository.
+        /// </summary>
+        /// <returns>A collection of all tags for the current repositories, represented as a list of strings</returns>
         public async Task<List<string>> GetRepositoryTags()
         {
             string manifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v1/{_repositoryName}/_tags";
@@ -130,11 +151,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to fetch repository manifest.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetRepositoryTags: Could not fetch repository tags.");
                 throw;
             }
         }
 
+        /// <summary>
+        /// Removes a manifest belonging to the current repository.
+        /// </summary>
+        /// <param name="digest">The identifying digest for the manifest to be removed.</param>
+        /// <returns></returns>
         private async Task DeleteRepositoryManifest(string digest)
         {
             string deleteImageManifestEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{digest}";
@@ -146,10 +172,18 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image manifest for {_repositoryName}:{digest}");
+                Log.Warning(ex, $"Exception from ContainerizedAppLibApi.DeleteRepositoryManifest: Failed to delete image manifest for {_repositoryName} with digest {digest}.");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Deletes the current repository.
+        /// This is different from removal of an individual manifest or tag, as it will
+        /// remove all resources belonging to the current repository, including all tagged
+        /// images and their corresponding manifests.
+        /// </summary>
+        /// <returns></returns>
         public async Task DeleteRepository()
         {
             string deleteRepositoryEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{_repositoryName}";
@@ -161,10 +195,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete repository {_repositoryName}");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteRepositoryManifest: Failed to delete repository {_repositoryName}.");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Removes an individual tag from the current repository.
+        /// </summary>
+        /// <param name="tag">The tag to be removed.</param>
+        /// <returns></returns>
         public async Task DeleteTag(string tag)
         {
             string deleteTagEndpoint = $"https://{Config.ContainerRegistryUrl}/acr/v1/{_repositoryName}/_tags/{tag}";
@@ -176,10 +216,18 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Failed to delete image tag for {_repositoryName}:{tag}");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteTag: Failed to delete image tag for {_repositoryName}:{tag}");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Pushes an image manifest to the current repository, and assigns it a tag in the
+        /// repository.
+        /// </summary>
+        /// <param name="manifestContents">The manifest of the image, stringified.</param>
+        /// <param name="tag">The tag to assign the manifest to.</param>
+        /// <returns></returns>
         public async Task PushImageManifest(string manifestContents, string tag)
         {
             string manifestUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/manifests/{tag}";
@@ -193,11 +241,26 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to upload a new image manifest.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.PushImageManifest: Failed to push manifest to {_repositoryName}:{tag}.");
                 throw;
             }
         }
-
+        
+        /// <summary>
+        /// Pushes an image to the Azure Container Registry.
+        /// 
+        /// There are 3 steps to this process in totally.
+        /// 1. Compile a list of all layers needed for the image to be assembled in ACR.
+        /// 2. For each image layer, check to see if it already exists in the current repository.
+        ///     a. If the image layer (blob) exists in the repository, do not re-upload.
+        ///     b. If the image layer (blob) does exist in the repository, continue.
+        /// 3. For each image layer (blob), upload the layer to ACR.
+        ///     - See ContainerizedAppLibApi.UploadBlob(digest, path)
+        /// 4. Upload image manifest, with specified tag.
+        /// </summary>
+        /// <param name="imageFileFullPath">The full path location of the image layers and manifest.</param>
+        /// <param name="tag">The tag to assign to this image in the current repository.</param>
+        /// <returns></returns>
         public async Task PushImageToRegistry(string imageFileFullPath, string tag = "latest")
         {
 #warning TODO note in publishing user guide that the tar file should use only ASCII encoding in the name fields
@@ -237,11 +300,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Failed to push image file {imageFileFullPath} to Azure registry");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.PushImageToRegistry: Failed to push image to {_repositoryName}:{tag}");
                 throw;
             }
         }
 
+        /// <summary>
+        /// Determines if the specified image layer (blob) exists in the current repository.
+        /// </summary>
+        /// <param name="blobDigest">The digest of the blob.</param>
+        /// <returns></returns>
         private async Task<bool> BlobDoesExist(string blobDigest)
         {
             string checkExistenceEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/blobs/{blobDigest}";
@@ -255,13 +323,25 @@ namespace ContainerizedAppLib
                 response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
                 return response.StatusCode == 202 && responseDigest.Equals(blobDigest, StringComparison.InvariantCultureIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
-                return false;
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.BlobDoesExist: Error when checking existince of blob with digest {blobDigest}.");
+                throw;
             }
         }
 
-        private async Task UploadBlob(string layerDigest, string pathToLayer)
+        /// <summary>
+        /// Uploads an image layer (blob) to the current repository.
+        /// 
+        /// This occurs in 3 steps.
+        /// 1. Start blob upload process.
+        /// 2. Upload blob in chunks, until full blob has been uploaded.
+        /// 3. End blob upload process.
+        /// </summary>
+        /// <param name="blobDigest">The digest of the layer image (blob).</param>
+        /// <param name="pathToLayer">The full path to the layer image (blob).</param>
+        /// <returns></returns>
+        private async Task UploadBlob(string blobDigest, string pathToLayer)
         {
             string nextUploadLocation = "";
             IFlurlRequest startBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}/v2/{_repositoryName}/blobs/uploads/"
@@ -293,7 +373,7 @@ namespace ContainerizedAppLib
                                 {
                                     builder.Append(b.ToString("x2"));
                                 }
-                                if (!builder.ToString().Equals(layerDigest))
+                                if (!builder.ToString().Equals(blobDigest))
                                 {
                                     throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
                                 }
@@ -333,7 +413,7 @@ namespace ContainerizedAppLib
                     #endregion
 
                     #region Finish blob upload.
-                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest=sha256:{layerDigest}";
+                    string finishBlobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}&digest=sha256:{blobDigest}";
                     IFlurlResponse endUploadResponse = await finishBlobUploadEndpoint
                                                     .WithHeader("Authorization", $"Bearer {_acrToken}")
                                                     .PutAsync();
@@ -342,11 +422,19 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Failed to upload layer.");
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.UploadBlob: Error attempting to upload blob with digest {blobDigest} to repository {_repositoryName}.");
                 throw;
             }
         }
 
+        /// <summary>
+        /// Finds the image in the repository with a given tag and creates a copy with
+        /// a new tag.
+        /// </summary>
+        /// <param name="oldTag">Tagged image to copy and re-tag</param>
+        /// <param name="newTag">Tag to use and add to new image</param>
+        /// <param name="deleteOldTag">Optional: determines if old image is to be removed from current repository</param>
+        /// <returns></returns>
         public async Task RetagImage(string oldTag, string newTag, bool deleteOldTag = true)
         {
             // Get existing manifest.
@@ -365,7 +453,12 @@ namespace ContainerizedAppLib
         #endregion
 
         #region Container Instances
-        public async Task<bool> GetAciAccessTokenAsync()
+
+        /// <summary>
+        /// Initialize a new access token for communicating with the Azure Container Instances API.
+        /// </summary>
+        /// <returns></returns>
+        public async Task GetAciAccessTokenAsync()
         {
             try
             {
@@ -382,7 +475,6 @@ namespace ContainerizedAppLib
                 if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
                 {
                     _aciToken = response.AccessToken;
-                    return true;
                 }
                 else
                 {
@@ -392,13 +484,26 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, "Exception attempting to get Azure Container Instances access token");
-                throw;
+                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAciAccessTokenAsync: Azure Container Instances access token could not be fetched");
             }
-
-            return false;
         }
 
+        /// <summary>
+        /// Creates a new Container Group, and then polls the Container Group creation process
+        /// for progress and delivers the accessible IP address and port once the Container
+        /// Group is successfully running.
+        /// </summary>
+        /// <param name="containerGroupName">Name to assign to Container Group.</param>
+        /// <param name="containerImageName">The image to use in the Container.</param>
+        /// <param name="containerImageTag">The image tag to use in the Container.</param>
+        /// <param name="ipType">The type of IP Address (public or private).</param>
+        /// <param name="cpuCoreCount">The number of CPU cores for the Container Group.</param>
+        /// <param name="memorySizeInGB">The amount of RAM in GB for the Container Group.</param>
+        /// <param name="resourceTags">The Container Group resource tags.</param>
+        /// <param name="vnetId">The virtual network ID.</param>
+        /// <param name="vnetName">The name of the virtual network.</param>
+        /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
+        /// <returns></returns>
         public async Task<string> RunContainer(string containerGroupName, 
                                                string containerImageName, 
                                                string containerImageTag, 
@@ -433,7 +538,7 @@ namespace ContainerizedAppLib
                 {
                     await Task.Delay(TimeSpan.FromSeconds(5));
 
-                    containerGroupModel = await GetContainerGroupStatus(containerGroupName);
+                    containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
                     containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
                     containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
@@ -474,13 +579,28 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                //Log.Error(ex, "");
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.RunContainer: Error trying to run Container Group {containerGroupName} with image {containerImageName}:{containerImageTag}.");
+                throw;
             }
 
             return "";
         }
 
-        public async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        /// <summary>
+        /// Creates a new Container Group and starts it.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group.</param>
+        /// <param name="containerImageName">The name of the ACR image to be used in the Container Group.</param>
+        /// <param name="ipType">The type of IP Address used (public or private).</param>
+        /// <param name="cpuCoreCount">The number of CPU cores for the Container Group.</param>
+        /// <param name="memorySizeInGB">The amount of RAM in GB for the Container Group.</param>
+        /// <param name="resourceTags">The Container Group resource tags.</param>
+        /// <param name="vnetId">The ID of the virtual network being used.</param>
+        /// <param name="vnetName">The name of the virtual network being used.</param>
+        /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
+        /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
+        /// <exception cref="ApplicationException"></exception>
+        private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -556,7 +676,7 @@ namespace ContainerizedAppLib
             {
                 dynamic result = await ex.GetResponseJsonAsync();
                 Dictionary<string, object> error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
-                string errorMessage = $"Error launching a new Container Group.  Error(s):{Environment.NewLine}\t" +
+                string errorMessage = $"Exception from ContainerizedAppLibApi.CreateContainerGroup: Error launching a new Container Group. Error(s):{Environment.NewLine}\t" +
                                       string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}"));
 
                 Log.Error(ex, errorMessage);
@@ -564,7 +684,12 @@ namespace ContainerizedAppLib
             }
         }
 
-        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupStatus(string containerGroupName)
+        /// <summary>
+        /// Gets information pertaining to a previously-created Container Group.
+        /// </summary>
+        /// <param name="containerGroupName"></param>
+        /// <returns>A response model containing details of the current Container Group.</returns>
+        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
@@ -581,11 +706,17 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception while attempting to get status of container group.");
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.GetContainerGroupDetails: Error while attempting to get Container Group details.");
                 return null;
             }
         }
 
+        /// <summary>
+        /// Gets logs from a running Container inside of a running Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">Name of running Container Group.</param>
+        /// <param name="containerName">Name of running Container inside Container Group.</param>
+        /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
@@ -605,15 +736,21 @@ namespace ContainerizedAppLib
                 {
                     CloudError responseJson = await response.GetJsonAsync<CloudError>();
                     Log.Error($"Error obtaining container logs: {responseJson.Error.Message}");
-                    return null;
                 }
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception while attempting to get container logs.");
-                return null;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetContainerLogs: Error while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.");
+                throw;
             }
+
+            return null;
         }
+
+        /// <summary>
+        /// Lists all Container Groups belonging to the currently configured Resource Group.
+        /// </summary>
+        /// <returns>List of Container Groups.</returns>
         public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
             string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
@@ -629,11 +766,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to list all ACI Container Groups in Resource Group.");
-                return null;
+                Log.Error(ex, $"Exception in ContainerizedAppLibApi.ListContainerGroupsInResourceGroup: Error fetching ACI Container Groups for resource group.");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Stop a currently running Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to be stopped.</param>
+        /// <returns></returns>
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
             string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
@@ -648,11 +790,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to stop running ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.StopContainerInstance: Error when attempting to stop running ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Restart a previously existing Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to be restarted.</param>
+        /// <returns></returns>
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
             string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
@@ -667,11 +814,16 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to restart ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.RestartContainerGroup: Error when attempting to restart ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
 
+        /// <summary>
+        /// Deletes a Container Group.
+        /// </summary>
+        /// <param name="containerGroupName">The name of the Container Group to delete.</param>
+        /// <returns></returns>
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
             string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
@@ -686,8 +838,8 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception when attempting to delete ACI Container Group {containerGroupName}.");
-                return false;
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.DeleteContainerGroup: Error when attempting to delete ACI Container Group {containerGroupName}.");
+                throw;
             }
         }
         #endregion
