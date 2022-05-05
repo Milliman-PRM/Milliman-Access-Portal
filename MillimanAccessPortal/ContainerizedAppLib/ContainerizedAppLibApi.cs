@@ -323,7 +323,7 @@ namespace ContainerizedAppLib
                 response.Headers.TryGetFirst("Docker-Content-Digest", out string responseDigest);
                 return response.StatusCode == 202 && responseDigest.Equals(blobDigest, StringComparison.InvariantCultureIgnoreCase);
             }
-            catch
+            catch (Exception ex)
             {
                 Log.Error(ex, $"Exception in ContainerizedAppLibApi.BlobDoesExist: Error when checking existince of blob with digest {blobDigest}.");
                 throw;
