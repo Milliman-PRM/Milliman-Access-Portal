@@ -38,13 +38,6 @@ namespace MillimanAccessPortal.ContentProxy
                 throw new ApplicationException(shortMsg);
             }
 
-            // Remove the leading path element containing the content token so the container doesn't receive that part
-            if (context.HttpContext.Request.Path.StartsWithSegments($"/{_contentToken}"))
-            {
-                string[] allPathElements = context.HttpContext.Request.Path.Value.Split('/');
-                context.Path = new PathString($"/{string.Join('/', allPathElements.Skip(2))}");
-            }
-
             return ValueTask.CompletedTask;
         }
     }
