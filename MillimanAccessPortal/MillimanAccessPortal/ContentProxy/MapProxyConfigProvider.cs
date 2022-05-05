@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using Yarp.ReverseProxy.Configuration;
+using Yarp.ReverseProxy.Transforms;
 
 namespace MillimanAccessPortal.ContentProxy
 {
@@ -53,10 +54,11 @@ namespace MillimanAccessPortal.ContentProxy
                        },
             };
 
-            if (!_proxyConfig.Routes.Any(r => //(r.Match.Hosts is not null && r.Match.Hosts.ToHashSet().SetEquals(newRoute.Match.Hosts)) &&
-                                              // (r.Match.QueryParameters is not null && r.Match.QueryParameters.ToHashSet().SetEquals(newRoute.Match.QueryParameters.ToHashSet())) &&
-                                              (r.Match.Headers is not null && newRoute.Match.Headers is not null && r.Match.Headers.ToHashSet().SetEquals(newRoute.Match.Headers.ToHashSet()))
-                                              ))
+            // Add a built in transform to strip out the path prefix indicating the container token
+            newRoute = newRoute.WithTransformPathRemovePrefix($"/{contentToken}");
+
+            // TODO this if statement needs some attention
+            if (!_proxyConfig.Routes.Any(r => r.Match.Path.Equals(newRoute.Match.Path)))
             {
                 ClusterConfig newCluster = new ClusterConfig
                 {
