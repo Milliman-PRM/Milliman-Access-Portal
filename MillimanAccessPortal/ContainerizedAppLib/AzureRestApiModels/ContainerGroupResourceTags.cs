@@ -35,6 +35,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "managed_by")]
         public string ManagedBy { get; set; } = "PRM Analytics";
 
+        // Consider the environment property of the IHost service.
         [JsonProperty(PropertyName = "environment")]
         public string Environment => System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
