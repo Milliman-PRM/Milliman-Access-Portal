@@ -1,5 +1,4 @@
 import toastr = require('toastr');
-const initialAppSettings = require('../../appsettings.json');
 
 // Configure toastr options
 toastr.options = {
@@ -27,7 +26,7 @@ export const resumableOptions = {
   fileNameParameterName: 'fileName',
   identifierParameterName: 'uid',
   maxChunkRetries: 3,
-  maxFileSize: initialAppSettings.Global.MaxFileUploadSize,
+  maxFileSize: 5368709120,
   maxFiles: 1,
   permanentErrors: [400, 401, 404, 409, 415, 500, 501],
   relativePathParameterName: '',
