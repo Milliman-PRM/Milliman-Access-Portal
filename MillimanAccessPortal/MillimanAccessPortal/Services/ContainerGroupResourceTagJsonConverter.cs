@@ -24,7 +24,7 @@ namespace ContainerizedAppLib
                     SelectionGroupId = jsonObject.SelectToken("selectionGroupId") != null ?
                         new Guid(jsonObject.SelectToken("selectionGroupId").Value<string>())
                         : null,
-                    SelectionGroupName = jsonObject.SelectToken("selectionGroupName").Value<string>(),
+                    SelectionGroupName = jsonObject.SelectToken("selectionGroupName")?.Value<string>(),
                     ClientId = new Guid(jsonObject.SelectToken("clientId").Value<string>()),
                     ClientName = jsonObject.SelectToken("clientName").Value<string>(),
                 };
