@@ -531,19 +531,19 @@ namespace ContainerizedAppLib
 
                     containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
-                    containerGroupProvisioningState = containerGroupModel.Properties.ProvisioningState;
-                    containerGroupIpAddress = containerGroupModel.Properties.IpAddress.Ip;
-                    containerGroupInstanceViewState = containerGroupModel.Properties.InstanceView.State;
+                    containerGroupProvisioningState = containerGroupModel?.Properties.ProvisioningState;
+                    containerGroupIpAddress = containerGroupModel?.Properties?.IpAddress?.Ip;
+                    containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State;
 
                     try
                     {
-                        applicationPort = containerGroupModel.Properties.IpAddress.Ports.Single().Port;
+                        applicationPort = containerGroupModel?.Properties?.IpAddress?.Ports?.Single().Port ?? 0;
                     }
                     catch { }
 
                     Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
-                                    $"instanceView state {containerGroupModel.Properties?.InstanceView?.State}, " +
-                                    $"IP {containerGroupModel.Properties.IpAddress.Ip}, " +
+                                    $"instanceView state {containerGroupInstanceViewState}, " +
+                                    $"IP {containerGroupIpAddress}, " +
                                     $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                 }
 
@@ -706,22 +706,14 @@ namespace ContainerizedAppLib
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
-            try
-            {
-                IFlurlResponse response = await getContainerGroupEndpoint
-                                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
-                                                                .GetAsync();
+            IFlurlResponse response = await getContainerGroupEndpoint
+                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                .GetAsync();
 
-                ContainerGroup_GetResponseModel responseJson = await response.GetJsonAsync<ContainerGroup_GetResponseModel>();
-                string responseString = await response.GetStringAsync();
+            ContainerGroup_GetResponseModel responseJson = await response.GetJsonAsync<ContainerGroup_GetResponseModel>();
+            string responseString = await response.GetStringAsync();
 
-                return responseJson;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"Exception in ContainerizedAppLibApi.GetContainerGroupDetails: Error while attempting to get Container Group details.");
-                return null;
-            }
+            return responseJson;
         }
 
         /// <summary>
