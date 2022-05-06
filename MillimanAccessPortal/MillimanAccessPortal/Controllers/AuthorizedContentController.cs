@@ -799,7 +799,9 @@ namespace MillimanAccessPortal.Controllers
                                                : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
             // Run a container based on the appropriate image
-            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
+            string repositoryName = liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName;
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(repositoryName);
+
             string containerUrl = await api.RunContainer(Guid.NewGuid().ToString(),
                                                          liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                          liveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
