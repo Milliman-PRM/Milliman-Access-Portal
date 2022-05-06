@@ -67,7 +67,9 @@ namespace ContainerizedAppLib
         /// <returns>this</returns>
         public async Task<ContainerizedAppLibApi> InitializeAsync(string repositoryName)
         {
-            _repositoryName = repositoryName;
+            _repositoryName = !string.IsNullOrEmpty(repositoryName)
+                ? repositoryName
+                : throw new ArgumentNullException(nameof(repositoryName));
 
             try
             {
@@ -83,29 +85,23 @@ namespace ContainerizedAppLib
             return this;
         }
 
+        #region Container Registry
+
         /// <summary>
         /// Initialize a new access token for communicating with the Azure Container Registry.
         /// </summary>
         private async Task GetAcrAccessTokenAsync()
         {
             string tokenEndpointWithScope = $"{Config.ContainerRegistryTokenEndpoint}&scope=repository:{_repositoryName}:pull,push,delete";
-            try
-            {
-                ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
-                                                        await tokenEndpointWithScope
-                                                            .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
-                                                            .GetAsync()
-                                                            .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
 
-                _acrToken = response.AccessToken;
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAcrAccessTokenException: Azure Container Registry access token could not be fetched.");
-            }
+            ACRAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, ACRAuthenticationResponse>(async () =>
+                                                    await tokenEndpointWithScope
+                                                        .WithHeader("Authorization", $"Basic {Config.ContainerRegistryCredentialBase64}")
+                                                        .GetAsync()
+                                                        .ReceiveJson<ACRAuthenticationResponse>(), 3, 100);
+
+            _acrToken = response.AccessToken;
         }
-
-        #region Container Registry
 
         /// <summary>
         /// Communicates with the Azure Container Registry to fetch the manifest for
@@ -463,31 +459,23 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task GetAciAccessTokenAsync()
         {
-            try
-            {
-                MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
-                                                                        await Config.ContainerInstanceTokenEndpoint
-                                                                        .PostMultipartAsync(mp => mp
-                                                                            .AddString("grant_type", Config.AciGrantType)
-                                                                            .AddString("scope", "https://management.azure.com/.default")
-                                                                            .AddString("client_id", Config.AciClientId)
-                                                                            .AddString("client_secret", Config.AciClientSecret)
-                                                                        )
-                                                                        .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
+            MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
+                                                                    await Config.ContainerInstanceTokenEndpoint
+                                                                    .PostMultipartAsync(mp => mp
+                                                                        .AddString("grant_type", Config.AciGrantType)
+                                                                        .AddString("scope", "https://management.azure.com/.default")
+                                                                        .AddString("client_id", Config.AciClientId)
+                                                                        .AddString("client_secret", Config.AciClientSecret)
+                                                                    )
+                                                                    .ReceiveJson<MicrosoftAuthenticationResponse>(), 3, 100);
 
-                if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
-                {
-                    _aciToken = response.AccessToken;
-                }
-                else
-                {
-                    Log.Warning("Invalid response when authenticating to Azure Container Instances, response object is {@response}", response);
-                    response = null;
-                }
-            }
-            catch (Exception ex)
+            if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
             {
-                Log.Error(ex, "Exception from ContainerizedAppLibApi.GetAciAccessTokenAsync: Azure Container Instances access token could not be fetched");
+                _aciToken = response.AccessToken;
+            }
+            else
+            {
+                throw new ApplicationException($"Invalid response when authenticating to Azure Container Instances, response object: {JsonConvert.SerializeObject(response)}");
             }
         }
 
@@ -580,8 +568,7 @@ namespace ContainerizedAppLib
                 //    break;
                 //}
 
-                // This block waits until a search of the container log finds predetermined text, which should be obtained from a type specific info property of the content
-                string containerLogMatchString = string.Empty;
+                string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 containerLogMatchString = "Listening on http";  // works for for Shiny
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
