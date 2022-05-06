@@ -16,7 +16,7 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentAssociatedFileType,
+  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum, ContentAssociatedFileType,
   ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -121,6 +121,33 @@ const containerRamGbDropdownValues: Array<{ selectionValue: ContainerRamGbEnum, 
   { selectionValue: ContainerRamGbEnum.Fourteen, selectionLabel: '14GB' },
   { selectionValue: ContainerRamGbEnum.Fifteen, selectionLabel: '15GB' },
   { selectionValue: ContainerRamGbEnum.Sixteen, selectionLabel: '16GB' },
+];
+
+const containerHotHoursDropdownValues: Array<{ selectionValue: ContainerHourEnum, selectionLabel: string }> = [
+  { selectionValue: ContainerHourEnum.TwelveAM, selectionLabel: '12 AM' },
+  { selectionValue: ContainerHourEnum.OneAM, selectionLabel: '1 AM' },
+  { selectionValue: ContainerHourEnum.TwoAM, selectionLabel: '2 AM' },
+  { selectionValue: ContainerHourEnum.ThreeAM, selectionLabel: '3 AM' },
+  { selectionValue: ContainerHourEnum.FourAM, selectionLabel: '4 AM' },
+  { selectionValue: ContainerHourEnum.FiveAM, selectionLabel: '5 AM' },
+  { selectionValue: ContainerHourEnum.SixAM, selectionLabel: '6 AM' },
+  { selectionValue: ContainerHourEnum.SevenAM, selectionLabel: '7 AM' },
+  { selectionValue: ContainerHourEnum.EightAM, selectionLabel: '8 AM' },
+  { selectionValue: ContainerHourEnum.NineAM, selectionLabel: '9 AM' },
+  { selectionValue: ContainerHourEnum.TenAM, selectionLabel: '10 AM' },
+  { selectionValue: ContainerHourEnum.ElevenAM, selectionLabel: '11 AM' },
+  { selectionValue: ContainerHourEnum.TwelvePM, selectionLabel: '12 PM' },
+  { selectionValue: ContainerHourEnum.OnePM, selectionLabel: '1 PM' },
+  { selectionValue: ContainerHourEnum.TwoPM, selectionLabel: '2 PM' },
+  { selectionValue: ContainerHourEnum.ThreePM, selectionLabel: '3 PM' },
+  { selectionValue: ContainerHourEnum.FourPM, selectionLabel: '4 PM' },
+  { selectionValue: ContainerHourEnum.FivePM, selectionLabel: '5 PM' },
+  { selectionValue: ContainerHourEnum.SixPM, selectionLabel: '6 PM' },
+  { selectionValue: ContainerHourEnum.SevenPM, selectionLabel: '7 PM' },
+  { selectionValue: ContainerHourEnum.EightPM, selectionLabel: '8 PM' },
+  { selectionValue: ContainerHourEnum.NinePM, selectionLabel: '9 PM' },
+  { selectionValue: ContainerHourEnum.TenPM, selectionLabel: '10 PM' },
+  { selectionValue: ContainerHourEnum.ElevenPM, selectionLabel: '11 PM' },
 ];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -1000,7 +1027,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <p>Pre-scheduled hot times</p>
+                          <h4>Pre-scheduled hot times</h4>
                           <Toggle
                             label="On"
                             checked={false}
@@ -1010,7 +1037,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </ FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <p>Custom hot day(s)</p>
+                          <h4>Custom hot day(s)</h4>
                           <Checkbox
                             name="All"
                             selected={null}
@@ -1070,62 +1097,68 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             />
                           </div>
                         </div>
-                      </ FormFlexContainer>
-                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
-                        <FormSectionRow>
-                          <p>Custom hot hours</p>
-                          <DropDown
-                            error={null}
-                            label="Timezone"
-                            name="timezone"
-                            onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                              this.props.setPublishingFormTextInputValue({
-                                inputName: 'contentTypeId',
-                                value: target.value,
-                              });
-                            }}
-                            placeholderText="Timezone"
-                            value={null}
-                            values={cpuCoresDropdownValues}
-                            readOnly={formState === 'read'}
-                          />
-                        </FormSectionRow>
-                        <FormSectionRow>
-                          <FormFlexContainer flexPhone={12} flexDesktop={6}>
-                            <DropDown
-                              error={null}
-                              label="Start Time"
-                              name="startTime"
-                              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                                this.props.setPublishingFormTextInputValue({
-                                  inputName: 'contentTypeId',
-                                  value: target.value,
-                                });
-                              }}
-                              placeholderText="Start Time"
-                              value={null}
-                              values={cpuCoresDropdownValues}
-                              readOnly={formState === 'read'}
-                            />
-                          </FormFlexContainer>
-                          <FormFlexContainer flexPhone={12} flexDesktop={6}>
-                            <DropDown
-                              error={null}
-                              label="End Time"
-                              name="endTime"
-                              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                                this.props.setPublishingFormTextInputValue({
-                                  inputName: 'contentTypeId',
-                                  value: target.value,
-                                });
-                              }}
-                              placeholderText="End Time"
-                              value={null}
-                              values={cpuCoresDropdownValues}
-                              readOnly={formState === 'read'}
-                            />
-                          </FormFlexContainer>
-                        </FormSectionRow>
+                      </FormFlexContainer>
+                      <FormFlexContainer flexPhone={12} flexDesktop={4} block={true}>
+                        <FormSection>
+                          <FormSectionRow>
+                            <h4>Custom hot hours</h4>
+                          </FormSectionRow>
+                          <FormSectionRow>
+                            <FormFlexContainer flexPhone={12} flexDesktop={12}>
+                              <DropDown
+                                error={null}
+                                label="Timezone"
+                                name="timezone"
+                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                  this.props.setPublishingFormTextInputValue({
+                                    inputName: 'contentTypeId',
+                                    value: target.value,
+                                  });
+                                }}
+                                placeholderText="Timezone"
+                                value={null}
+                                values={cpuCoresDropdownValues}
+                                readOnly={formState === 'read'}
+                              />
+                            </FormFlexContainer>
+                          </FormSectionRow>
+                          <FormSectionRow>
+                            <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                              <DropDown
+                                error={null}
+                                label="Start Time"
+                                name="startTime"
+                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                  this.props.setPublishingFormTextInputValue({
+                                    inputName: 'contentTypeId',
+                                    value: target.value,
+                                  });
+                                }}
+                                placeholderText="Start Time"
+                                value={null}
+                                values={containerHotHoursDropdownValues}
+                                readOnly={formState === 'read'}
+                              />
+                            </FormFlexContainer>
+                            <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                              <DropDown
+                                error={null}
+                                label="End Time"
+                                name="endTime"
+                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                  this.props.setPublishingFormTextInputValue({
+                                    inputName: 'contentTypeId',
+                                    value: target.value,
+                                  });
+                                }}
+                                placeholderText="End Time"
+                                value={null}
+                                values={containerHotHoursDropdownValues}
+                                readOnly={formState === 'read'}
+                              />
+                            </FormFlexContainer>
+                          </FormSectionRow>
+                        </FormSection>
                       </FormFlexContainer>
                     </FormSectionRow>
                   </>
