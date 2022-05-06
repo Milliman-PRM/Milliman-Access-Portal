@@ -62,7 +62,6 @@ import {
   PublishingStateFilters, PublishingStateModals, PublishingStatePending, PublishingStateSelected,
 } from './redux/store';
 import { SelectionGroupDetails } from './selection-group-detail';
-import { RadioButton } from '../shared-components/form/radio';
 
 type ClientEntity = (ClientWithStats & { indent: 1 | 2 }) | 'divider';
 interface RootContentItemEntity extends RootContentItemWithPublication {
@@ -1001,10 +1000,133 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <RadioButton id=""
+                          <p>Pre-scheduled hot times</p>
+                          <Toggle
+                            label="On"
+                            checked={false}
+                            onClick={() => null}
+                          />
                         </div>
                       </ FormFlexContainer>
-
+                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
+                        <div>
+                          <p>Custom hot day(s)</p>
+                          <Checkbox
+                            name="All"
+                            selected={null}
+                            onChange={(_value) => null}
+                            readOnly={formState === 'read'}
+                            description={''}
+                          />
+                          <div className="checkbox-indent-section">
+                            <Checkbox
+                              name="Monday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Tuesday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Wednesday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Thursday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Friday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Saturday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                            <Checkbox
+                              name="Sunday"
+                              selected={null}
+                              onChange={(_value) => null}
+                              readOnly={formState === 'read'}
+                              description={''}
+                            />
+                          </div>
+                        </div>
+                      </ FormFlexContainer>
+                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
+                        <FormSectionRow>
+                          <p>Custom hot hours</p>
+                          <DropDown
+                            error={null}
+                            label="Timezone"
+                            name="timezone"
+                            onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                              this.props.setPublishingFormTextInputValue({
+                                inputName: 'contentTypeId',
+                                value: target.value,
+                              });
+                            }}
+                            placeholderText="Timezone"
+                            value={null}
+                            values={cpuCoresDropdownValues}
+                            readOnly={formState === 'read'}
+                          />
+                        </FormSectionRow>
+                        <FormSectionRow>
+                          <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                            <DropDown
+                              error={null}
+                              label="Start Time"
+                              name="startTime"
+                              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                this.props.setPublishingFormTextInputValue({
+                                  inputName: 'contentTypeId',
+                                  value: target.value,
+                                });
+                              }}
+                              placeholderText="Start Time"
+                              value={null}
+                              values={cpuCoresDropdownValues}
+                              readOnly={formState === 'read'}
+                            />
+                          </FormFlexContainer>
+                          <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                            <DropDown
+                              error={null}
+                              label="End Time"
+                              name="endTime"
+                              onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                this.props.setPublishingFormTextInputValue({
+                                  inputName: 'contentTypeId',
+                                  value: target.value,
+                                });
+                              }}
+                              placeholderText="End Time"
+                              value={null}
+                              values={cpuCoresDropdownValues}
+                              readOnly={formState === 'read'}
+                            />
+                          </FormFlexContainer>
+                        </FormSectionRow>
+                      </FormFlexContainer>
                     </FormSectionRow>
                   </>
                 }
