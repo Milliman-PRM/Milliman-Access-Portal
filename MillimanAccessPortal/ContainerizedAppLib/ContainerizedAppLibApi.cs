@@ -561,8 +561,10 @@ namespace ContainerizedAppLib
 
                 Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
-                #region This waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
-                //for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(500))
+                #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
+
+                // This loop waits until the IP:port is listening for TCP connection
+                // for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(1))
                 //{
                 //    try
                 //    {
@@ -578,18 +580,23 @@ namespace ContainerizedAppLib
                 //    break;
                 //}
 
-                string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
-                // containerLogMatchString = "Listening on http";  // works for for Shiny
-
+                // This block waits until a search of the container log finds predetermined text, which should be obtained from a type specific info property of the content
+                string containerLogMatchString = string.Empty;
+                containerLogMatchString = "Listening on http";  // works for for Shiny
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
-                    for (System.Diagnostics.Stopwatch logTimer = new System.Diagnostics.Stopwatch();
-                            logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase);
-                            log = await GetContainerLogs(containerGroupName, containerGroupName))
+                    for (Stopwatch logTimer = new Stopwatch(); 
+                         logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
+                         await Task.Delay(TimeSpan.FromSeconds(1)))
                     {
+                        try
+                        {
+                            log = await GetContainerLogs(containerGroupName, containerGroupName);
+                        }
+                        catch { }
+
                         Log.Debug($"Container logs: {log}");
-                        await Task.Delay(TimeSpan.FromSeconds(1));
                     }
                 }
                 #endregion
