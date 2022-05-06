@@ -23,6 +23,7 @@ namespace MillimanAccessPortal.ContentProxy
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
         {
+#warning how is this request authorized? 
             //if (!context.HttpContext.Request.Cookies.ContainsKey(".AspNetCore.Identity.Application") ||
             //    context.HttpContext.Request.Cookies[".AspNetCore.Identity.Application"] != _userIdentityToken ||
             //    context.HttpContext.Connection.RemoteIpAddress.ToString() != _requestingHost)
