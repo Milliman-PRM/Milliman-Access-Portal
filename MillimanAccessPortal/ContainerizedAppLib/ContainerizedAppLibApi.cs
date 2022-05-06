@@ -622,7 +622,7 @@ namespace ContainerizedAppLib
                 List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
                 ContainerGroupRequestModel requestModel = new ContainerGroupRequestModel()
                 {
-                    Location = "eastus", // TODO: query the location from the ResourceGroup being used to create this group
+                    Location = "centralus", // TODO: query the location from the ResourceGroup being used to create this group
                     Properties = new ContainerGroupProperties()
                     {
                         OsType = OsTypeEnum.Linux,
