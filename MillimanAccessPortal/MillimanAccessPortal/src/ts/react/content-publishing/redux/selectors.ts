@@ -446,3 +446,7 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
     && state.formData.formState === 'read'
     && !formChangesPending(state);
 }
+
+export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
+  return state.formData.pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement;
+}

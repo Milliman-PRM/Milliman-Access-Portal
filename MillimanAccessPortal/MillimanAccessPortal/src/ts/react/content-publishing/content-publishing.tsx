@@ -53,9 +53,9 @@ import { HierarchyDiffs } from './hierarchy-diffs';
 import * as PublishingActionCreators from './redux/action-creators';
 import {
   activeSelectedClient, activeSelectedItem, availableAssociatedContentTypes,
-  availableContentTypes, canDownloadCurrentContentItem, clientEntities, contentItemForPublication,
-  contentItemToBeCanceled, contentItemToBeDeleted, filesForPublishing, formChangesPending, goLiveApproveButtonIsActive,
-  itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
+  availableContentTypes, canDownloadCurrentContentItem, canModifyCustomContainerLifecycleOptions, clientEntities,
+  contentItemForPublication, contentItemToBeCanceled, contentItemToBeDeleted, filesForPublishing, formChangesPending,
+  goLiveApproveButtonIsActive, itemEntities, selectedItem, submitButtonIsActive, uploadChangesPending,
 } from './redux/selectors';
 import {
   GoLiveSummaryData, PublishingFormData, PublishingState, PublishingStateCardAttributes,
@@ -95,6 +95,7 @@ interface ContentPublishingProps {
   uploadChangesPending: boolean;
   canDownloadCurrentContentItem: boolean;
   contentItemForPublication: ContentItemPublicationDetail;
+  canModifyCustomContainerLifecycleOptions: boolean;
 }
 
 const cpuCoresDropdownValues: Array<{ selectionValue: ContainerCpuCoresEnum, selectionLabel: string }> = [
@@ -1045,7 +1046,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             name="All"
                             selected={null}
                             onChange={(_value) => null}
-                            readOnly={formState === 'read'}
+                            readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                             description={''}
                           />
                           <div className="checkbox-indent-section">
@@ -1053,49 +1054,49 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               name="Monday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Tuesday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Wednesday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Thursday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Friday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Saturday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <Checkbox
                               name="Sunday"
                               selected={null}
                               onChange={(_value) => null}
-                              readOnly={formState === 'read'}
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                           </div>
@@ -1121,7 +1122,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 placeholderText="Timezone"
                                 value={null}
                                 values={cpuCoresDropdownValues}
-                                readOnly={formState === 'read'}
+                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
                           </FormSectionRow>
@@ -1140,7 +1141,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 placeholderText="Start Time"
                                 value={null}
                                 values={containerHotHoursDropdownValues}
-                                readOnly={formState === 'read'}
+                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
                             <FormFlexContainer flexPhone={12} flexDesktop={6}>
@@ -1157,7 +1158,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 placeholderText="End Time"
                                 value={null}
                                 values={containerHotHoursDropdownValues}
-                                readOnly={formState === 'read'}
+                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
                           </FormSectionRow>
@@ -1714,6 +1715,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
     uploadChangesPending: uploadChangesPending(state),
     contentItemForPublication: contentItemForPublication(state),
     canDownloadCurrentContentItem: canDownloadCurrentContentItem(state),
+    canModifyCustomContainerLifecycleOptions: canModifyCustomContainerLifecycleOptions(state),
   };
 }
 
