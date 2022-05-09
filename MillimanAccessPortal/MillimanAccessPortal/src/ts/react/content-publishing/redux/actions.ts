@@ -365,7 +365,8 @@ export interface SetPublishingFormBooleanInputValue {
   | 'editableEnabled'
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
-  | 'bookmarksPaneEnabled';
+  | 'bookmarksPaneEnabled'
+  | 'usesCustomLifecycleManagement';
   value: boolean;
 }
 

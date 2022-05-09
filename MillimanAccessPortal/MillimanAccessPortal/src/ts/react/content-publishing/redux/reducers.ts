@@ -81,6 +81,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     containerCpuCores: ContainerCpuCoresEnum.Two,
     containerRamGb: ContainerRamGbEnum.Eight,
     containerInternalPort: '3838',
+    usesCustomLifecycleManagement: false,
   },
 };
 
@@ -727,6 +728,17 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         pendingFormData: {
           ...state.pendingFormData,
           [action.inputName]: action.value,
+        },
+      };
+    } else if (action.inputName === 'usesCustomLifecycleManagement') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
+          },
         },
       };
     } else {

@@ -1029,9 +1029,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         <div>
                           <h4>Pre-scheduled hot times</h4>
                           <Toggle
-                            label="On"
-                            checked={false}
-                            onClick={() => null}
+                            label="Customize container lifecycle"
+                            checked={pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement}
+                            onClick={() => this.props.setPublishingFormBooleanInputValue({
+                              inputName: 'usesCustomLifecycleManagement',
+                              value: !pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+                            })}
                           />
                         </div>
                       </ FormFlexContainer>

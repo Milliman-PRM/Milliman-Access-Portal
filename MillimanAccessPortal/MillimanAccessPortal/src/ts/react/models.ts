@@ -159,6 +159,7 @@ export interface TypeSpecificPublicationProperties {
   containerCpuCores?: ContainerCpuCoresEnum;
   containerRamGb?: ContainerRamGbEnum;
   containerInternalPort?: string;
+  usesCustomLifecycleManagement?: boolean;
 }
 
 export interface GoLiveViewModel {
