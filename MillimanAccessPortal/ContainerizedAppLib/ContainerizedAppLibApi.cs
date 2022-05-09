@@ -295,6 +295,8 @@ namespace ContainerizedAppLib
                 }
 
                 await PushImageManifest(manifestContents, tag);
+
+                Log.Information($"Image pushed to ACR: {_repositoryName}{tag}");
             }
             catch (Exception ex)
             {

@@ -41,5 +41,8 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         [JsonProperty(PropertyName = "asset_owner")]
         public string AssetOwner => ProfitCenterName;
+
+        [JsonProperty(PropertyName = "content_status")]
+        public string ContentStatus { get; set; }
     }
 }

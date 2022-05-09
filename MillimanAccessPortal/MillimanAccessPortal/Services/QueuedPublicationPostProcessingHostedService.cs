@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -131,6 +132,7 @@ namespace MillimanAccessPortal.Services
                                                                               .ThenInclude(c => c.ContentType)
                                                                           .Include(r => r.RootContentItem)
                                                                               .ThenInclude(c => c.Client)
+                                                                                  .ThenInclude(c => c.ProfitCenter)
                                                                           .SingleOrDefaultAsync(r => r.Id == publicationRequestId);
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
@@ -378,15 +380,17 @@ namespace MillimanAccessPortal.Services
                             ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
                             ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
-                            #region 
+                            #region Send image to Azure registry
                             ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
 
                             string repositoryName = contentItem.AcrRepoositoryName;
 
                             try
                             {
+                                // Run a container based on the appropriate image
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
                                 await api.PushImageToRegistry(newMasterFile.FullPath, "preview");
+                                Log.Information($"Image for content item ID {contentItem.Id} pushed to Azure container registry");
                             }
                             catch (Exception ex)
                             {
@@ -394,12 +398,55 @@ namespace MillimanAccessPortal.Services
                                 File.Delete(newMasterFile.FullPath);
                                 throw;
                             }
+                            #endregion
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
-                            containerContentItemProperties.PreviewImageTag = "preview"; // TODO If an image cannot be retagged during go-live use a numeric tag and increment from the current live image
+                            containerContentItemProperties.PreviewImageTag = "preview";
                             containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                             containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                             containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+
+                            #region Run a container instance
+                            ContainerGroupResourceTags resourceTags = new()
+                            {
+                                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                                ClientId = contentItem.ClientId,
+                                ClientName = contentItem.Client.Name,
+                                ContentItemId = contentItem.Id,
+                                ContentItemName = contentItem.ContentName,
+                                SelectionGroupId = null,
+                                SelectionGroupName = null,
+                                ContentStatus = containerContentItemProperties.PreviewImageTag,
+                            };
+                            string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
+                            // use a tuple so that both succeed or both fail
+                            (string vnetId, string vnetName) = ipAddressType == "Public" 
+                                ? (null,null) 
+                                : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
+
+                            try
+                            {
+                                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
+                                string containerUrl = await api.RunContainer(Guid.NewGuid().ToString(),
+                                                                             containerContentItemProperties.PreviewImageName,
+                                                                             containerContentItemProperties.PreviewImageTag,
+                                                                             ipAddressType,
+                                                                             (int)containerContentItemProperties.PreviewContainerCpuCores,
+                                                                             (int)containerContentItemProperties.PreviewContainerRamGb,
+                                                                             resourceTags,
+                                                                             vnetId,
+                                                                             vnetName,
+                                                                             containerContentItemProperties.PreviewContainerInternalPort);
+
+                                Log.Information($"Container instance started with URL: {containerUrl}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"Exception in api.RunContainer");
+                                File.Delete(newMasterFile.FullPath);
+                                throw;
+                            }
                             #endregion
 
                             contentItem.TypeSpecificDetailObject = containerContentItemProperties;
