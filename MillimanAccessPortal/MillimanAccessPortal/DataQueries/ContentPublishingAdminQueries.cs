@@ -62,6 +62,7 @@ namespace MillimanAccessPortal.DataQueries
                 ContentTypes = await _dbContext.ContentType
                                                .Select(t => new BasicContentType(t))
                                                .ToDictionaryAsync(t => t.Id),
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones(),
             };
         }
 

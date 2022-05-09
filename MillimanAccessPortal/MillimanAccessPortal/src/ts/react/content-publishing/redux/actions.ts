@@ -7,6 +7,7 @@ import {
   ContentItemPublicationDetail, ContentPublicationRequest, ContentType,
   GoLiveViewModel, Guid, PublicationQueueDetails, RootContentItem,
   RootContentItemWithStats,
+  TimeZoneInfo,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -117,8 +118,10 @@ export interface FetchGlobalDataSucceeded {
   response: {
     contentTypes: Dict<ContentType>;
     contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
+    timeZoneSelections: TimeZoneInfo[];
   };
 }
+
 export interface FetchGlobalDataFailed {
   type: 'FETCH_GLOBAL_DATA_FAILED';
   error: TSError;

@@ -7,7 +7,7 @@ import { UploadState } from '../../../upload/Redux/store';
 import { PreLiveContentValidationSummary } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentItemFormErrors,
-  ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
+  ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats, TimeZoneInfo,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';
@@ -41,6 +41,7 @@ export interface PublishingStateData {
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
+  timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
 }
 
 /**

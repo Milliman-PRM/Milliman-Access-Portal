@@ -33,6 +33,7 @@ const _initialData: PublishingStateData = {
   contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
+  timeZones: [],
 };
 
 const emptyContentItemDetail: ContentItemDetail = {
@@ -406,6 +407,8 @@ const data = createReducer<PublishingStateData>(_initialData, {
     contentAssociatedFileTypes: {
       ...action.response.contentAssociatedFileTypes,
     },
+    timeZones: _.map(action.response.timeZoneSelections,
+      (tzi) => ({ selectionValue: tzi.Id, selectionLabel: tzi.DisplayName })),
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({
     ...state,

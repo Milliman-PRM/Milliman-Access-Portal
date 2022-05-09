@@ -69,6 +69,7 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 }
 
 interface ContentPublishingProps {
+  timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
   clients: ClientEntity[];
   items: RootContentItemEntity[];
   contentTypes: Dict<ContentType>;
@@ -698,7 +699,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData, items, pending } = this.props;
+    const { contentTypes, formData, items, pending, timeZones } = this.props;
     const { formErrors, pendingFormData, originalFormData, formState, uploads } = formData;
     const editFormButton = (
       <>
@@ -1121,7 +1122,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 }}
                                 placeholderText="Timezone"
                                 value={null}
-                                values={cpuCoresDropdownValues}
+                                values={timeZones}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
@@ -1690,6 +1691,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
   } = state;
   const { id: rootContentItemId } = formData.pendingFormData;
   return {
+    timeZones: data.timeZones,
     clients: clientEntities(state),
     items: itemEntities(state),
     contentTypes: data.contentTypes,
