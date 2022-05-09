@@ -733,7 +733,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           [action.inputName]: action.value,
         },
       };
-    } else if (action.inputName === 'usesCustomLifecycleManagement') {
+    } else if (action.inputName === 'usesCustomLifecycleManagement' ||
+               action.inputName === 'allDaysChecked' ||
+               action.inputName === 'mondayChecked' ||
+               action.inputName === 'tuesdayChecked' ||
+               action.inputName === 'wednesdayChecked' ||
+               action.inputName === 'thursdayChecked' ||
+               action.inputName === 'fridayChecked' ||
+               action.inputName === 'saturdayChecked' ||
+               action.inputName === 'sundayChecked') {
       return {
         ...state,
         pendingFormData: {

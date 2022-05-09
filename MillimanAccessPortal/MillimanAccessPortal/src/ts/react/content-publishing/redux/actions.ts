@@ -369,7 +369,15 @@ export interface SetPublishingFormBooleanInputValue {
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
   | 'bookmarksPaneEnabled'
-  | 'usesCustomLifecycleManagement';
+  | 'usesCustomLifecycleManagement'
+  | 'allDaysChecked'
+  | 'mondayChecked'
+  | 'tuesdayChecked'
+  | 'wednesdayChecked'
+  | 'thursdayChecked'
+  | 'fridayChecked'
+  | 'saturdayChecked'
+  | 'sundayChecked';
   value: boolean;
 }
 

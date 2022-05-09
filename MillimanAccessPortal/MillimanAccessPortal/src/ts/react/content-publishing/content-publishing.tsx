@@ -1045,59 +1045,118 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <h4>Custom hot day(s)</h4>
                           <Checkbox
                             name="All"
-                            selected={null}
-                            onChange={(_value) => null}
+                            selected={pendingFormData.typeSpecificPublicationProperties.allDaysChecked}
+                            onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                              inputName: 'allDaysChecked',
+                              value: val,
+                            })}
                             readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                             description={''}
                           />
                           <div className="checkbox-indent-section">
                             <Checkbox
                               name="Monday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.mondayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'mondayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Tuesday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.tuesdayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'tuesdayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Wednesday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.wednesdayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'wednesdayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Thursday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.thursdayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'thursdayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Friday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.fridayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'fridayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Saturday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.saturdayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'saturdayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                             <Checkbox
                               name="Sunday"
-                              selected={null}
-                              onChange={(_value) => null}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              selected={
+                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                pendingFormData.typeSpecificPublicationProperties.sundayChecked
+                              }
+                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                inputName: 'sundayChecked',
+                                value: val,
+                              })}
+                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                              }
                               description={''}
                             />
                           </div>

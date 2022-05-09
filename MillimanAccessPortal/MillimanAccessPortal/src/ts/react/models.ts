@@ -160,6 +160,14 @@ export interface TypeSpecificPublicationProperties {
   containerRamGb?: ContainerRamGbEnum;
   containerInternalPort?: string;
   usesCustomLifecycleManagement?: boolean;
+  allDaysChecked?: boolean;
+  mondayChecked?: boolean;
+  tuesdayChecked?: boolean;
+  wednesdayChecked?: boolean;
+  thursdayChecked?: boolean;
+  fridayChecked?: boolean;
+  saturdayChecked?: boolean;
+  sundayChecked?: boolean;
 }
 
 export interface GoLiveViewModel {
