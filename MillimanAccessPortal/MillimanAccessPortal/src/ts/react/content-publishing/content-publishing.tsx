@@ -1194,12 +1194,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 name="startTime"
                                 onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                                   this.props.setPublishingFormTextInputValue({
-                                    inputName: 'contentTypeId',
+                                    inputName: 'startTime',
                                     value: target.value,
                                   });
                                 }}
                                 placeholderText="Start Time"
-                                value={null}
+                                value={pendingFormData.typeSpecificPublicationProperties.startTime}
                                 values={containerHotHoursDropdownValues}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
@@ -1211,12 +1211,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 name="endTime"
                                 onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                                   this.props.setPublishingFormTextInputValue({
-                                    inputName: 'contentTypeId',
+                                    inputName: 'endTime',
                                     value: target.value,
                                   });
                                 }}
                                 placeholderText="End Time"
-                                value={null}
+                                value={pendingFormData.typeSpecificPublicationProperties.endTime}
                                 values={containerHotHoursDropdownValues}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />

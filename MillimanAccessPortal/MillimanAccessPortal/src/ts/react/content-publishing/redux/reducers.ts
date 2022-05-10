@@ -9,7 +9,7 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentItemDetail,
+  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum, ContentItemDetail,
   ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
@@ -83,6 +83,16 @@ const emptyContentItemDetail: ContentItemDetail = {
     containerRamGb: ContainerRamGbEnum.Eight,
     containerInternalPort: '3838',
     usesCustomLifecycleManagement: false,
+    allDaysChecked: false,
+    mondayChecked: false,
+    tuesdayChecked: false,
+    wednesdayChecked: false,
+    thursdayChecked: false,
+    fridayChecked: false,
+    saturdayChecked: false,
+    sundayChecked: false,
+    startTime: ContainerHourEnum.EightAM,
+    endTime: ContainerHourEnum.FivePM,
   },
 };
 
@@ -677,7 +687,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     } else if (action.inputName === 'containerCpuCores'
       || action.inputName === 'containerRamGb') {
       const value = parseInt(action.value, 10);
-
       return {
         ...state,
         pendingFormData: {
@@ -706,6 +715,17 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
             ...state.formErrors.typeSpecificPublicationProperties,
             containerInternalPort: (isNaN(portNumber) || portNumber <= 0 || portNumber > 65536) ?
               'Please choose a valid port number.' : null,
+          },
+        },
+      };
+    } else if (action.inputName === 'startTime' || action.inputName === 'endTime') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
           },
         },
       };

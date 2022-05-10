@@ -356,7 +356,9 @@ export interface SetPublishingFormTextInputValue {
   | 'contentNotes'
   | 'containerCpuCores'
   | 'containerRamGb'
-  | 'containerInternalPort';
+  | 'containerInternalPort'
+  | 'startTime'
+  | 'endTime';
   value: string;
 }
 
