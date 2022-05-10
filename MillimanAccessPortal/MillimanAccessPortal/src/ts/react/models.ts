@@ -158,8 +158,8 @@ export interface TypeSpecificPublicationProperties {
   // Container App specific:
   containerCpuCores?: ContainerCpuCoresEnum;
   containerRamGb?: ContainerRamGbEnum;
-  containerCoolDown?: ContainerCooldownEnum;
   containerInternalPort?: string;
+  containerCoolDown?: ContainerCooldownEnum;
   usesCustomLifecycleManagement?: boolean;
   allDaysChecked?: boolean;
   mondayChecked?: boolean;

@@ -9,8 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum, ContentItemDetail,
-  ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum,
+  ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -91,6 +91,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     fridayChecked: false,
     saturdayChecked: false,
     sundayChecked: false,
+    containerCoolDown: ContainerCooldownEnum.OneHour,
     startTime: ContainerHourEnum.EightAM,
     endTime: ContainerHourEnum.FivePM,
     timeZoneId: '',
@@ -719,7 +720,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
-    } else if (action.inputName === 'startTime' ||
+    } else if (action.inputName === 'containerCoolDown' ||
+               action.inputName === 'startTime' ||
                action.inputName === 'endTime' ||
                action.inputName === 'timeZoneId') {
       return {

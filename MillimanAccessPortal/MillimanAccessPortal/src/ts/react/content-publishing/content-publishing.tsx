@@ -1035,12 +1035,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       <FormFlexContainer flexPhone={12} flexDesktop={12}>
                         <RadioButton
                           id={'thirty-minutes'}
-                          selected={false}
+                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                            ContainerCooldownEnum.ThirtyMinutes}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.ThirtyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCooldownTime',
+                              inputName: 'containerCoolDown',
                               value: val,
                             });
                           }}
@@ -1049,12 +1050,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'one-hour'}
-                          selected={true}
+                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                            ContainerCooldownEnum.OneHour}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.OneHour}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCooldownTime',
+                              inputName: 'containerCoolDown',
                               value: val,
                             });
                           }}
@@ -1063,12 +1065,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'ninety-minutes'}
-                          selected={false}
+                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                            ContainerCooldownEnum.NinetyMinutes}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.NinetyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCooldownTime',
+                              inputName: 'containerCoolDown',
                               value: val,
                             });
                           }}
@@ -1077,12 +1080,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'two-hours'}
-                          selected={false}
+                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                            ContainerCooldownEnum.TwoHours}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.TwoHours}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCooldownTime',
+                              inputName: 'containerCoolDown',
                               value: val,
                             });
                           }}

@@ -357,7 +357,7 @@ export interface SetPublishingFormTextInputValue {
   | 'containerCpuCores'
   | 'containerRamGb'
   | 'containerInternalPort'
-  | 'containerCooldownTime'
+  | 'containerCoolDown'
   | 'startTime'
   | 'endTime'
   | 'timeZoneId';

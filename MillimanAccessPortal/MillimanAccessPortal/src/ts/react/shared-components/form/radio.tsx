@@ -31,7 +31,7 @@ export class RadioButton extends React.Component<RadioButtonProps> {
           onClick={(_event) => this.onSelect()}
           id={id}
           name={group}
-          onChange={null}
+          onChange={() => null}
         />
       </label>
     );
