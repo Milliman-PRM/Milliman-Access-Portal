@@ -386,7 +386,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
   const isContainerApp = pendingFormData.contentTypeId
-    && contentTypes[pendingFormData.contentTypeId].displayName === 'Container App';
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   const contentItemInformation: ContentItemPublicationDetail = {
     ClientId: pendingFormData.clientId,
     ContentName: pendingFormData.contentName,
@@ -426,7 +426,38 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+        usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
       };
+
+      if (pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement) {
+        contentItemInformation.typeSpecificPublicationProperties.timeZoneId =
+          pendingFormData.typeSpecificPublicationProperties.timeZoneId;
+        contentItemInformation.typeSpecificPublicationProperties.startTime =
+          pendingFormData.typeSpecificPublicationProperties.startTime;
+        contentItemInformation.typeSpecificPublicationProperties.endTime =
+          pendingFormData.typeSpecificPublicationProperties.endTime;
+        contentItemInformation.typeSpecificPublicationProperties.mondayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.mondayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.tuesdayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.wednesdayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.thursdayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.fridayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.fridayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.saturdayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
+        contentItemInformation.typeSpecificPublicationProperties.sundayChecked =
+          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
+            true : pendingFormData.typeSpecificPublicationProperties.sundayChecked;
+      }
     }
   }
 
