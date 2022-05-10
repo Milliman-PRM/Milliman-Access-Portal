@@ -93,6 +93,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     sundayChecked: false,
     startTime: ContainerHourEnum.EightAM,
     endTime: ContainerHourEnum.FivePM,
+    timeZoneId: '',
   },
 };
 
@@ -718,7 +719,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
-    } else if (action.inputName === 'startTime' || action.inputName === 'endTime') {
+    } else if (action.inputName === 'startTime' ||
+               action.inputName === 'endTime' ||
+               action.inputName === 'timeZoneId') {
       return {
         ...state,
         pendingFormData: {

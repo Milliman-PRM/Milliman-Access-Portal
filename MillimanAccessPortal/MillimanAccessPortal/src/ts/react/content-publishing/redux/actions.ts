@@ -358,7 +358,8 @@ export interface SetPublishingFormTextInputValue {
   | 'containerRamGb'
   | 'containerInternalPort'
   | 'startTime'
-  | 'endTime';
+  | 'endTime'
+  | 'timeZoneId';
   value: string;
 }
 

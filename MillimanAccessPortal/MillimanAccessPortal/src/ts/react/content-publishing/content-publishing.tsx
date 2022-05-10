@@ -1175,12 +1175,12 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 name="timezone"
                                 onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                                   this.props.setPublishingFormTextInputValue({
-                                    inputName: 'contentTypeId',
+                                    inputName: 'timeZoneId',
                                     value: target.value,
                                   });
                                 }}
                                 placeholderText="Timezone"
-                                value={null}
+                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                 values={timeZones}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />

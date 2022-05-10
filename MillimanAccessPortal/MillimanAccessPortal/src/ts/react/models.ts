@@ -168,8 +168,9 @@ export interface TypeSpecificPublicationProperties {
   fridayChecked?: boolean;
   saturdayChecked?: boolean;
   sundayChecked?: boolean;
-  startTime: ContainerHourEnum;
-  endTime: ContainerHourEnum;
+  startTime?: ContainerHourEnum;
+  endTime?: ContainerHourEnum;
+  timeZoneId?: string;
 }
 
 export interface GoLiveViewModel {
