@@ -1037,6 +1037,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               inputName: 'usesCustomLifecycleManagement',
                               value: !pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
                             })}
+                            readOnly={formState === 'read'}
                           />
                         </div>
                       </ FormFlexContainer>
