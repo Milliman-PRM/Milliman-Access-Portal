@@ -291,6 +291,8 @@ namespace ContainerizedAppLib
                     {
                         string blobPath = Path.Combine(workingFolderName, blobDigest);
                         await UploadBlob(blobDigest, blobPath);
+
+                        Log.Debug($"Blob pushed to ACR, digest {blobDigest}, size {new FileInfo(blobPath).Length}");
                     }
                 }
 
@@ -361,54 +363,51 @@ namespace ContainerizedAppLib
                 if (response.StatusCode == 202 && !string.IsNullOrEmpty(nextUploadLocation))
                 {
                     #region Upload blob.
-                    if (File.Exists(pathToLayer))
+                    using (FileStream fileStream = new FileStream(pathToLayer, FileMode.Open, FileAccess.Read))
                     {
-                        using (FileStream fileStream = new FileStream(pathToLayer, FileMode.Open, FileAccess.Read))
+                        // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
+                        using (SHA256 hasher = SHA256.Create())
                         {
-                            // Do a hash check on the BLOB to ensure that upload of layer data occurs in an OCI compliant way.
-                            using (SHA256 hasher = SHA256.Create())
+                            StringBuilder builder = new StringBuilder();
+                            byte[] result = hasher.ComputeHash(fileStream);
+                            foreach (byte b in result)
                             {
-                                StringBuilder builder = new StringBuilder();
-                                byte[] result = hasher.ComputeHash(fileStream);
-                                foreach (byte b in result)
-                                {
-                                    builder.Append(b.ToString("x2"));
-                                }
-                                if (!builder.ToString().Equals(blobDigest))
-                                {
-                                    throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
-                                }
+                                builder.Append(b.ToString("x2"));
                             }
-
-                            fileStream.Seek(0, SeekOrigin.Begin); // Reset stream position since position gets moved when hash is calculated.
-
-                            long totalNumberOfBytesToRead = fileStream.Length;
-                            int totalNumberOfBytesRead = 0;
-                            int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
-                            byte[] rawFileBytes = new byte[totalNumberOfBytesToRead];
-                            while (totalNumberOfBytesToRead > 0)
+                            if (!builder.ToString().Equals(blobDigest))
                             {
-                                int chunkSize = Math.Min(defaultChunkSize, (int)(totalNumberOfBytesToRead));
-                                int numberOfBytesRead = fileStream.Read(rawFileBytes, totalNumberOfBytesRead, chunkSize);
-                                byte[] chunkBytes = new byte[chunkSize];
-                                Array.Copy(rawFileBytes, totalNumberOfBytesRead, chunkBytes, 0, chunkSize);
-
-                                string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
-                                string base64String = Convert.ToBase64String(rawFileBytes);
-                                IFlurlResponse blobUploadResponse = await blobUploadEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_acrToken}")
-                                    .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
-                                    .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
-                                    .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                    .WithHeader("Content-Length", chunkSize)
-                                    .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + chunkSize - 1}")
-                                    .WithHeader("Content-Type", "application/octet-stream")
-                                    .PatchAsync(new ByteArrayContent(chunkBytes));
-                                blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
-
-                                totalNumberOfBytesRead += chunkSize;
-                                totalNumberOfBytesToRead -= chunkSize;
+                                throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
                             }
+                        }
+
+                        fileStream.Seek(0, SeekOrigin.Begin); // Reset stream position since position gets moved when hash is calculated.
+
+                        long totalNumberOfBytesToRead = fileStream.Length;
+                        int totalNumberOfBytesRead = 0;
+                        int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
+                        byte[] rawFileBytes = new byte[totalNumberOfBytesToRead];
+                        while (totalNumberOfBytesToRead > 0)
+                        {
+                            int chunkSize = Math.Min(defaultChunkSize, (int)(totalNumberOfBytesToRead));
+                            int numberOfBytesRead = fileStream.Read(rawFileBytes, totalNumberOfBytesRead, chunkSize);
+                            byte[] chunkBytes = new byte[chunkSize];
+                            Array.Copy(rawFileBytes, totalNumberOfBytesRead, chunkBytes, 0, chunkSize);
+
+                            string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
+                            string base64String = Convert.ToBase64String(rawFileBytes);
+                            IFlurlResponse blobUploadResponse = await blobUploadEndpoint
+                                .WithHeader("Authorization", $"Bearer {_acrToken}")
+                                .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
+                                .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
+                                .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
+                                .WithHeader("Content-Length", chunkSize)
+                                .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + chunkSize - 1}")
+                                .WithHeader("Content-Type", "application/octet-stream")
+                                .PatchAsync(new ByteArrayContent(chunkBytes));
+                            blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
+
+                            totalNumberOfBytesRead += chunkSize;
+                            totalNumberOfBytesToRead -= chunkSize;
                         }
                     }
                     #endregion
@@ -506,6 +505,7 @@ namespace ContainerizedAppLib
                                                ContainerGroupResourceTags resourceTags,
                                                string vnetId, 
                                                string vnetName,
+                                               bool blockUntilStarted,
                                                params ushort[] containerPorts)
         {
             try
@@ -517,13 +517,18 @@ namespace ContainerizedAppLib
                 if (!createResult)
                 {
                     Log.Error("Failed to create container group");
+                    throw new ApplicationException($"");
+                }
+
+                if (!blockUntilStarted)
+                {
                     return null;
                 }
 
                 DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
                 string containerGroupProvisioningState = null;
-                string containerGroupIpAddress = null;
                 ushort applicationPort = 0;
+                Uri containerUri = default;
                 string containerGroupInstanceViewState = null;
                 ContainerGroup_GetResponseModel containerGroupModel = default;
 
@@ -534,8 +539,8 @@ namespace ContainerizedAppLib
                     containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
                     containerGroupProvisioningState = containerGroupModel?.Properties.ProvisioningState;
-                    containerGroupIpAddress = containerGroupModel?.Properties?.IpAddress?.Ip;
                     containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State;
+                    containerUri = containerGroupModel?.Uri;
 
                     try
                     {
@@ -545,7 +550,7 @@ namespace ContainerizedAppLib
 
                     Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
                                     $"instanceView state {containerGroupInstanceViewState}, " +
-                                    $"IP {containerGroupIpAddress}, " +
+                                    $"URL {containerGroupModel.Uri.AbsoluteUri}, " +
                                     $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                 }
 
@@ -553,25 +558,8 @@ namespace ContainerizedAppLib
 
                 #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
 
-                // This loop waits until the IP:port is listening for TCP connection
-                // for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(1))
-                //{
-                //    try
-                //    {
-                //        TcpClient tcpClient = new TcpClient(containerGroupIpAddress, applicationPort);
-                //        Log.Information($"socket connected state is {tcpClient.Connected}");
-                //        tcpClient.Close();
-                //    }
-                //    catch (Exception ex)
-                //    {
-                //        Log.Information(ex, $"socket connection exception");
-                //        continue;
-                //    }
-                //    break;
-                //}
-
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
-                containerLogMatchString = "Listening on http";  // works for for Shiny
+                containerLogMatchString = "Listening on http";  // works for Shiny
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
@@ -588,17 +576,32 @@ namespace ContainerizedAppLib
                         Log.Debug($"Container logs: {log}");
                     }
                 }
+
+                // This loop waits until the IP:port is listening for TCP connection
+                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(2)))
+                {
+                    try
+                    {
+                        TcpClient tcpClient = new TcpClient(containerUri.Host, containerUri.Port);
+                        Log.Information($"socket connected state is {tcpClient.Connected}");
+                        tcpClient.Close();
+                    }
+                    catch (Exception ex)
+                    {
+                        Log.Information(ex, $"socket connection exception");
+                        continue;
+                    }
+                    break;
+                }
                 #endregion
 
-                return $"http://{containerGroupIpAddress}:{applicationPort}";
+                return containerGroupModel.Uri.AbsoluteUri;
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"Exception in ContainerizedAppLibApi.RunContainer: Error trying to run Container Group {containerGroupName} with image {containerImageName}:{containerImageTag}.");
                 throw;
             }
-
-            return "";
         }
 
         /// <summary>
@@ -704,16 +707,22 @@ namespace ContainerizedAppLib
         /// </summary>
         /// <param name="containerGroupName"></param>
         /// <returns>A response model containing details of the current Container Group.</returns>
-        private async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
+        public async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
 
             IFlurlResponse response = await getContainerGroupEndpoint
                                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                .AllowHttpStatus(System.Net.HttpStatusCode.NotFound) // 404 if layer is simply not found, do not throw.
                                                 .GetAsync();
 
+            if (response.StatusCode == 404)
+            {
+                return null;
+            }
+
             ContainerGroup_GetResponseModel responseJson = await response.GetJsonAsync<ContainerGroup_GetResponseModel>();
-            string responseString = await response.GetStringAsync();
+            // string responseString = await response.GetStringAsync();
 
             return responseJson;
         }

@@ -428,7 +428,7 @@ namespace MillimanAccessPortal.Services
                             try
                             {
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
-                                string containerUrl = await api.RunContainer(Guid.NewGuid().ToString(),
+                                string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                              containerContentItemProperties.PreviewImageName,
                                                                              containerContentItemProperties.PreviewImageTag,
                                                                              ipAddressType,
@@ -437,6 +437,7 @@ namespace MillimanAccessPortal.Services
                                                                              resourceTags,
                                                                              vnetId,
                                                                              vnetName,
+                                                                             true,
                                                                              containerContentItemProperties.PreviewContainerInternalPort);
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");

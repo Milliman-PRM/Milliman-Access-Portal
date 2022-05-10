@@ -1,5 +1,7 @@
 ﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace ContainerizedAppLib.AzureRestApiModels
 {
@@ -29,5 +31,29 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         [JsonProperty(PropertyName = "zones")]
         public List<string> Zones { get; set; }
+
+        [JsonIgnore]
+        public Uri Uri
+        {
+            get
+            {
+                try
+                {
+                    string containerGroupIpAddress = Properties.IpAddress.Ip;
+                    ushort applicationPort = Properties.IpAddress.Ports.SingleOrDefault().Port;
+                    UriBuilder uriBuilder = new UriBuilder
+                    {
+                        Scheme = "http",
+                        Host = Properties.IpAddress.Ip,
+                        Port = Properties.IpAddress.Ports.SingleOrDefault().Port,
+                    };
+                    return uriBuilder.Uri;
+                }
+                catch
+                {
+                    return null;
+                }
+            }
+        }
     }
 }
