@@ -16,7 +16,8 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum, ContentAssociatedFileType,
+  Client, ClientWithStats, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerHourEnum,
+  ContainerRamGbEnum, ContentAssociatedFileType,
   ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
 import { ActionIcon } from '../shared-components/action-icon';
@@ -43,6 +44,7 @@ import {
   ContentPanelForm, FormFlexContainer, FormSection, FormSectionRow,
 } from '../shared-components/form/form-elements';
 import { Input, MultiAddInput, TextAreaInput } from '../shared-components/form/input';
+import { RadioButton } from '../shared-components/form/radio';
 import { DropDown } from '../shared-components/form/select';
 import { Toggle } from '../shared-components/form/toggle';
 import { NavBar } from '../shared-components/navbar';
@@ -1027,6 +1029,69 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
+                      <h4>Container cooldown times</h4>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={12}>
+                        <RadioButton
+                          id={'thirty-minutes'}
+                          selected={false}
+                          group={'container-cooldown'}
+                          value={ContainerCooldownEnum.ThirtyMinutes}
+                          onSelect={(val) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCooldownTime',
+                              value: val,
+                            });
+                          }}
+                          readOnly={formState === 'read'}
+                          labelText="30 Minutes"
+                        />
+                        <RadioButton
+                          id={'one-hour'}
+                          selected={true}
+                          group={'container-cooldown'}
+                          value={ContainerCooldownEnum.OneHour}
+                          onSelect={(val) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCooldownTime',
+                              value: val,
+                            });
+                          }}
+                          readOnly={formState === 'read'}
+                          labelText="1 Hour (default)"
+                        />
+                        <RadioButton
+                          id={'ninety-minutes'}
+                          selected={false}
+                          group={'container-cooldown'}
+                          value={ContainerCooldownEnum.NinetyMinutes}
+                          onSelect={(val) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCooldownTime',
+                              value: val,
+                            });
+                          }}
+                          readOnly={formState === 'read'}
+                          labelText="90 Minutes"
+                        />
+                        <RadioButton
+                          id={'two-hours'}
+                          selected={false}
+                          group={'container-cooldown'}
+                          value={ContainerCooldownEnum.TwoHours}
+                          onSelect={(val) => {
+                            this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerCooldownTime',
+                              value: val,
+                            });
+                          }}
+                          readOnly={formState === 'read'}
+                          labelText="2 Hours"
+                        />
+                      </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
                           <h4>Pre-scheduled hot times</h4>
@@ -1172,7 +1237,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             <FormFlexContainer flexPhone={12} flexDesktop={12}>
                               <DropDown
                                 error={null}
-                                label="Timezone"
+                                label="timezone"
                                 name="timezone"
                                 onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                                   this.props.setPublishingFormTextInputValue({
@@ -1180,7 +1245,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                     value: target.value,
                                   });
                                 }}
-                                placeholderText="Timezone"
+                                placeholderText={''}
                                 value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                 values={timeZones}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}

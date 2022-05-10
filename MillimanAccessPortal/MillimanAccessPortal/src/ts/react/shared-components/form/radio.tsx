@@ -5,12 +5,13 @@ import * as React from 'react';
 
 export interface RadioButtonData {
   id: string;
-  name?: string;
+  group: string;
   selected: boolean;
-  onChange: (selected: boolean) => void;
+  value: any;
+  onSelect: (value: any) => void;
   hoverText?: string;
   description?: string;
-
+  labelText?: string;
 }
 export interface RadioButtonProps extends RadioButtonData {
   readOnly: boolean;
@@ -18,26 +19,28 @@ export interface RadioButtonProps extends RadioButtonData {
 
 export class RadioButton extends React.Component<RadioButtonProps> {
   public render() {
-    const { id, name, selected, readOnly, description } = this.props;
+    const { id, group, labelText, selected, readOnly, description } = this.props;
     return (
-      <label className={`selection-option-label${readOnly ? ' readonly' : ''}`} htmlFor={id}>
-        {name ? name : null}
+      <label className={`selection-option-label-radio${readOnly ? ' readonly' : ''}`} htmlFor={id}>
+        {labelText ? labelText : null}
         {description ? <span className="description-text">{description}</span> : null}
         <input
           type="radio"
-          className="selection-option-value"
+          className="selection-option-radio"
           checked={selected}
-          onChange={this.onChange}
+          onClick={(_event) => this.onSelect()}
           id={id}
+          name={group}
+          onChange={null}
         />
       </label>
     );
   }
 
-  private onChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const { onChange, readOnly } = this.props;
+  private onSelect = () => {
+    const { onSelect, readOnly, value } = this.props;
     if (!readOnly) {
-      onChange(event.target.checked);
+      onSelect(value);
     }
   }
 }

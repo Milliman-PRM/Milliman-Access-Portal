@@ -158,6 +158,7 @@ export interface TypeSpecificPublicationProperties {
   // Container App specific:
   containerCpuCores?: ContainerCpuCoresEnum;
   containerRamGb?: ContainerRamGbEnum;
+  containerCoolDown?: ContainerCooldownEnum;
   containerInternalPort?: string;
   usesCustomLifecycleManagement?: boolean;
   allDaysChecked?: boolean;
@@ -744,6 +745,14 @@ export enum ContainerCpuCoresEnum {
   Two = 2,
   Three = 3,
   Four = 4,
+}
+
+export enum ContainerCooldownEnum {
+  Unspecified = 0,
+  ThirtyMinutes = 1,
+  OneHour = 2,
+  NinetyMinutes = 3,
+  TwoHours = 4,
 }
 
 export enum ContainerRamGbEnum {
