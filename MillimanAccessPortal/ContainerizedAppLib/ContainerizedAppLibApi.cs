@@ -550,7 +550,7 @@ namespace ContainerizedAppLib
 
                     Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
                                     $"instanceView state {containerGroupInstanceViewState}, " +
-                                    $"URL {containerGroupModel.Uri.AbsoluteUri}, " +
+                                    $"URL {containerGroupModel.Uri?.AbsoluteUri ?? ""}, " +
                                     $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
                 }
 
