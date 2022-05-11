@@ -709,7 +709,7 @@ namespace ContainerizedAppLib
         /// <returns>A response model containing details of the current Container Group.</returns>
         public async Task<ContainerGroup_GetResponseModel> GetContainerGroupDetails(string containerGroupName)
         {
-            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+            string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             IFlurlResponse response = await getContainerGroupEndpoint
                                                 .WithHeader("Authorization", $"Bearer {_aciToken}")
@@ -735,7 +735,7 @@ namespace ContainerizedAppLib
         /// <returns>Container logs in string format.</returns>
         public async Task<string> GetContainerLogs(string containerGroupName, string containerName)
         {
-            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version=2021-09-01";
+            string getContainerLogEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/containers/{containerName}/logs?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -769,7 +769,7 @@ namespace ContainerizedAppLib
         /// <returns>List of Container Groups.</returns>
         public async Task<List<ContainerGroup_GetResponseModel>> ListContainerGroupsInResourceGroup()
         {
-            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version=2021-09-01";
+            string listContainerGroupsInResourceGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -794,7 +794,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> StopContainerInstance(string containerGroupName)
         {
-            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version=2021-09-01";
+            string stopContainerInstanceEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/stop?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -818,7 +818,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> RestartContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version=2021-09-01";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}/restart?api-version={Config.AciApiVersion}";
 
             try
             {
@@ -842,7 +842,7 @@ namespace ContainerizedAppLib
         /// <returns></returns>
         public async Task<bool> DeleteContainerGroup(string containerGroupName)
         {
-            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version=2021-09-01";
+            string restartContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
