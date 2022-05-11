@@ -11,14 +11,14 @@ namespace MillimanAccessPortal.ContentProxy
     public class MapContainerContentRequestTransform : RequestTransform
     {
         private string _contentToken { get; init; }
-        private string _requestingHost { get; init; }
-        private string _userIdentityToken { get; init; }
+        // private string _requestingHost { get; init; }
+        // private string _userIdentityToken { get; init; }
 
         public MapContainerContentRequestTransform(IReadOnlyDictionary<string, string> metadata)
         {
             _contentToken = metadata["ContentToken"];
-            _requestingHost = metadata["RequestingHost"];
-            _userIdentityToken = metadata["UserIdentityToken"];
+            // _requestingHost = metadata["RequestingHost"];
+            // _userIdentityToken = metadata["UserIdentityToken"];
         }
 
         public override ValueTask ApplyAsync(RequestTransformContext context)

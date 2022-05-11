@@ -32,7 +32,7 @@ namespace MillimanAccessPortal.ContentProxy
             Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_proxyConfig)}");
         }
 
-        public void OpenNewSession(string requestingHost, string contentToken, string publicUri, string internalUri, string userIdentityToken)
+        public void OpenNewSession(string contentToken, string publicUri, string internalUri)
         {
             UriBuilder requestedUri = new UriBuilder(publicUri);
 
@@ -49,8 +49,6 @@ namespace MillimanAccessPortal.ContentProxy
                 Metadata = new Dictionary<string, string>
                        {
                            { "ContentToken", contentToken },
-                           { "RequestingHost", requestingHost },
-                           { "UserIdentityToken", userIdentityToken },
                        },
             };
 
@@ -74,8 +72,6 @@ namespace MillimanAccessPortal.ContentProxy
                     Metadata = new Dictionary<string, string>
                        {
                            { "ContentToken", contentToken },
-                           { "RequestingHost", requestingHost },
-                           { "UserIdentityToken", userIdentityToken },
                        },
                 };
                 OpenNewSession(newRoute, newCluster);

@@ -781,15 +781,14 @@ namespace MillimanAccessPortal.Controllers
                         Path = $"/{contentToken}/",  // must include trailing '/' character
                     };
 
-                    string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Identity.Application").Value;
-
                     // Add a new YARP route/cluster config
-                    _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri, identityToken);
+                    _mapProxyConfigProvider.OpenNewSession(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
 
                     return Redirect(externalRequestUri.Uri.AbsoluteUri);
 
                 // starting
-                case ContainerGroup_GetResponseModel model1 when model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
+                case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
+                                                                 model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
                     return View("WaitForContainer");
 
                 // stopped
@@ -827,31 +826,6 @@ namespace MillimanAccessPortal.Controllers
                     throw new ApplicationException("Check application log, Unsupported result returned from api.GetContainerGroupDetails");
             }
             #endregion
-
-            /*
-            if (string.IsNullOrEmpty(containerUrl))
-            {
-                throw new ApplicationException("Container URL is not available");
-            }
-
-            // TODO ensure an adequate token value
-            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerUrl));
-
-            UriBuilder externalRequestUri = new UriBuilder
-            {
-                Scheme = Request.Scheme,
-                Host = Request.Host.Host,
-                Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1, 
-                Path = $"/{contentToken}/",  // must include trailing '/' character
-            };
-
-            string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Identity.Application").Value;
-
-            // Add a new YARP route/cluster config
-            _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, externalRequestUri.Uri.AbsoluteUri, containerUrl, identityToken);
-
-            return externalRequestUri.Uri.AbsoluteUri;
-            */
         }
 
         /// <summary>
