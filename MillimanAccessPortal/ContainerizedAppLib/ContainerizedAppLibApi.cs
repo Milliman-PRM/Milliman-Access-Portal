@@ -298,7 +298,7 @@ namespace ContainerizedAppLib
 
                 await PushImageManifest(manifestContents, tag);
 
-                Log.Information($"Image pushed to ACR: {_repositoryName}{tag}");
+                Log.Information($"Image pushed to ACR: {_repositoryName}:{tag}");
             }
             catch (Exception ex)
             {
@@ -560,12 +560,13 @@ namespace ContainerizedAppLib
 
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 containerLogMatchString = "Listening on http";  // works for Shiny
+                Log.Information($"Waiting for container log to contain search string \"{containerLogMatchString}\"");
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
                     for (Stopwatch logTimer = new Stopwatch(); 
                          logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
-                         await Task.Delay(TimeSpan.FromSeconds(1)))
+                         await Task.Delay(TimeSpan.FromSeconds(2)))
                     {
                         try
                         {
@@ -577,7 +578,8 @@ namespace ContainerizedAppLib
                     }
                 }
 
-                // This loop waits until the IP:port is listening for TCP connection
+                // Wait until the IP:port accepts a TCP connection
+                Log.Information("Waiting for container to accept a TCP connection");
                 for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(2)))
                 {
                     try
@@ -745,8 +747,8 @@ namespace ContainerizedAppLib
 
                 if (response.StatusCode == 200)
                 {
-                    Logs responseJson = await response.GetJsonAsync<Logs>();
-                    return responseJson.Content;
+                    Logs responseObject = await response.GetJsonAsync<Logs>();
+                    return responseObject.Content;
                 }
                 else
                 {
@@ -756,7 +758,7 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetContainerLogs: Error while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.");
+                Log.Error(ex, $"Exception while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.");
                 throw;
             }
 
