@@ -337,6 +337,36 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
       containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement) {
+      typeSpecificPublishingDetail.timeZoneId =
+        pendingFormData.typeSpecificPublicationProperties.timeZoneId;
+      typeSpecificPublishingDetail.startTime =
+        pendingFormData.typeSpecificPublicationProperties.startTime;
+      typeSpecificPublishingDetail.endTime =
+        pendingFormData.typeSpecificPublicationProperties.endTime;
+      typeSpecificPublishingDetail.mondayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.mondayChecked;
+      typeSpecificPublishingDetail.tuesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
+      typeSpecificPublishingDetail.wednesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
+      typeSpecificPublishingDetail.thursdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
+      typeSpecificPublishingDetail.fridayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.fridayChecked;
+      typeSpecificPublishingDetail.saturdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
+      typeSpecificPublishingDetail.sundayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.sundayChecked;
+    }
   }
 
   return {
@@ -427,37 +457,8 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
         usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+        containerCoolDown: pendingFormData.typeSpecificPublicationProperties.containerCoolDown,
       };
-
-      if (pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement) {
-        contentItemInformation.typeSpecificPublicationProperties.timeZoneId =
-          pendingFormData.typeSpecificPublicationProperties.timeZoneId;
-        contentItemInformation.typeSpecificPublicationProperties.startTime =
-          pendingFormData.typeSpecificPublicationProperties.startTime;
-        contentItemInformation.typeSpecificPublicationProperties.endTime =
-          pendingFormData.typeSpecificPublicationProperties.endTime;
-        contentItemInformation.typeSpecificPublicationProperties.mondayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.mondayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.tuesdayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.wednesdayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.thursdayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.fridayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.fridayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.saturdayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
-        contentItemInformation.typeSpecificPublicationProperties.sundayChecked =
-          pendingFormData.typeSpecificPublicationProperties.allDaysChecked ?
-            true : pendingFormData.typeSpecificPublicationProperties.sundayChecked;
-      }
     }
   }
 

@@ -70,6 +70,20 @@ namespace MapDbContextLib.Models
         Sixteen = 16,
     }
 
+    public enum ContainerCooldownPeriodEnum
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "30 minutes")]
+        ThirtyMinutes = 1,
+        [Display(Name = "1 hour")]
+        OneHour = 2,
+        [Display(Name = "90 minutes")]
+        NinetyMinutes = 3,
+        [Display(Name = "2 hours")]
+        TwoHours = 4,
+    }
+
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
     {
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
@@ -77,5 +91,19 @@ namespace MapDbContextLib.Models
         public ContainerRamGbEnum ContainerRamGb { get; set; }
 
         public ushort ContainerInternalPort { get; set; }
+
+        public ContainerCooldownPeriodEnum ContainerCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
+        
+        public bool UsesCustomLifecyleManagement { get; set; }
+        public bool? MondayChecked { get; set; }
+        public bool? TuesdayChecked { get; set; }
+        public bool? WednesdayChecked { get; set; }
+        public bool? ThursdayChecked { get; set; }
+        public bool? FridayChecked { get; set; }
+        public bool? SaturdayChecked { get; set; }
+        public bool? SundayChecked { get; set; }
+        public TimeSpan? StartTime { get; set; }
+        public TimeSpan? EndTime { get; set; }
+        public string? TimeZoneId { get; set; }
     }
 }
