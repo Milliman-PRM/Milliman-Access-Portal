@@ -720,7 +720,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
-    } else if (action.inputName === 'containerCoolDown' ||
+    } else if (action.inputName === 'customCooldownPeriod' ||
                action.inputName === 'startTime' ||
                action.inputName === 'endTime' ||
                action.inputName === 'timeZoneId') {

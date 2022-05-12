@@ -95,7 +95,7 @@ namespace MapDbContextLib.Models
         [JsonConverter(typeof(InternalPortJsonConverter))]
         public ushort ContainerInternalPort { get; set; }
 
-        public ContainerCooldownPeriodEnum ContainerCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
+        public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
         
         public bool UsesCustomLifecycleManagement { get; set; }
         public bool? MondayChecked { get; set; }
