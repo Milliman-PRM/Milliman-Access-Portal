@@ -712,8 +712,7 @@ namespace MillimanAccessPortal.Controllers
                         if (request.TypeSpecificPublishingDetail != null)
                         {
                             try {
-                                var str = request.TypeSpecificPublishingDetail.ToString();
-                                var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(str, new JsonSerializerOptions {
+                                var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions {
                                     PropertyNameCaseInsensitive = true,
                                 });
                                 NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(publicationDetails);

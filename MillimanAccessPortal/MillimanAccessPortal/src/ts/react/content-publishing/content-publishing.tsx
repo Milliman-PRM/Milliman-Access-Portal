@@ -72,7 +72,6 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 
 interface ContentPublishingProps {
   timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
-  userTimeZoneId: string;
   clients: ClientEntity[];
   items: RootContentItemEntity[];
   contentTypes: Dict<ContentType>;
@@ -128,31 +127,31 @@ const containerRamGbDropdownValues: Array<{ selectionValue: ContainerRamGbEnum, 
   { selectionValue: ContainerRamGbEnum.Sixteen, selectionLabel: '16GB' },
 ];
 
-const containerHotHoursDropdownValues: Array<{ selectionValue: number, selectionLabel: string }> = [
-  { selectionValue: 0, selectionLabel: '12 AM' },
-  { selectionValue: 1, selectionLabel: '1 AM' },
-  { selectionValue: 2, selectionLabel: '2 AM' },
-  { selectionValue: 3, selectionLabel: '3 AM' },
-  { selectionValue: 4, selectionLabel: '4 AM' },
-  { selectionValue: 5, selectionLabel: '5 AM' },
-  { selectionValue: 6, selectionLabel: '6 AM' },
-  { selectionValue: 7, selectionLabel: '7 AM' },
-  { selectionValue: 8, selectionLabel: '8 AM' },
-  { selectionValue: 9, selectionLabel: '9 AM' },
-  { selectionValue: 10, selectionLabel: '10 AM' },
-  { selectionValue: 11, selectionLabel: '11 AM' },
-  { selectionValue: 12, selectionLabel: '12 PM' },
-  { selectionValue: 13, selectionLabel: '1 PM' },
-  { selectionValue: 14, selectionLabel: '2 PM' },
-  { selectionValue: 15, selectionLabel: '3 PM' },
-  { selectionValue: 16, selectionLabel: '4 PM' },
-  { selectionValue: 17, selectionLabel: '5 PM' },
-  { selectionValue: 18, selectionLabel: '6 PM' },
-  { selectionValue: 19, selectionLabel: '7 PM' },
-  { selectionValue: 20, selectionLabel: '8 PM' },
-  { selectionValue: 21, selectionLabel: '9 PM' },
-  { selectionValue: 22, selectionLabel: '10 PM' },
-  { selectionValue: 23, selectionLabel: '11 PM' },
+const containerHotHoursDropdownValues: Array<{ selectionValue: string, selectionLabel: string }> = [
+  { selectionValue: '0', selectionLabel: '12 AM' },
+  { selectionValue: '1', selectionLabel: '1 AM' },
+  { selectionValue: '2', selectionLabel: '2 AM' },
+  { selectionValue: '3', selectionLabel: '3 AM' },
+  { selectionValue: '4', selectionLabel: '4 AM' },
+  { selectionValue: '5', selectionLabel: '5 AM' },
+  { selectionValue: '6', selectionLabel: '6 AM' },
+  { selectionValue: '7', selectionLabel: '7 AM' },
+  { selectionValue: '8', selectionLabel: '8 AM' },
+  { selectionValue: '9', selectionLabel: '9 AM' },
+  { selectionValue: '10', selectionLabel: '10 AM' },
+  { selectionValue: '11', selectionLabel: '11 AM' },
+  { selectionValue: '12', selectionLabel: '12 PM' },
+  { selectionValue: '13', selectionLabel: '1 PM' },
+  { selectionValue: '14', selectionLabel: '2 PM' },
+  { selectionValue: '15', selectionLabel: '3 PM' },
+  { selectionValue: '16', selectionLabel: '4 PM' },
+  { selectionValue: '17', selectionLabel: '5 PM' },
+  { selectionValue: '18', selectionLabel: '6 PM' },
+  { selectionValue: '19', selectionLabel: '7 PM' },
+  { selectionValue: '20', selectionLabel: '8 PM' },
+  { selectionValue: '21', selectionLabel: '9 PM' },
+  { selectionValue: '22', selectionLabel: '10 PM' },
+  { selectionValue: '23', selectionLabel: '11 PM' },
 ];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -702,7 +701,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData, items, pending, timeZones, userTimeZoneId } = this.props;
+    const { contentTypes, formData, items, pending, timeZones } = this.props;
     const { formErrors, pendingFormData, originalFormData, formState, uploads } = formData;
     const editFormButton = (
       <>
@@ -1251,9 +1250,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   });
                                 }}
                                 placeholderText={''}
-                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId ?
-                                  pendingFormData.typeSpecificPublicationProperties.timeZoneId : userTimeZoneId
-                                }
+                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                 values={timeZones}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
@@ -1824,7 +1821,6 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
   const { id: rootContentItemId } = formData.pendingFormData;
   return {
     timeZones: data.timeZones,
-    userTimeZoneId: data.userTimeZoneId,
     clients: clientEntities(state),
     items: itemEntities(state),
     contentTypes: data.contentTypes,

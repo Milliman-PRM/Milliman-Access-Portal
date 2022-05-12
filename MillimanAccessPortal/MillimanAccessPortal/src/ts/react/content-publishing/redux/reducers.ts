@@ -34,7 +34,6 @@ const _initialData: PublishingStateData = {
   publications: {},
   publicationQueue: {},
   timeZones: [],
-  userTimeZoneId: '',
 };
 
 const emptyContentItemDetail: ContentItemDetail = {
@@ -93,8 +92,8 @@ const emptyContentItemDetail: ContentItemDetail = {
     saturdayChecked: false,
     sundayChecked: false,
     customCooldownPeriod: ContainerCooldownEnum.OneHour,
-    startTime: 8,
-    endTime: 17,
+    startTime: '8',
+    endTime: '17',
     timeZoneId: '',
   },
 };
@@ -132,6 +131,7 @@ const _initialFormData: PublishingFormData = {
   uploads: {},
   formState: 'read',
   disclaimerInputState: 'edit',
+  defaultUserTimeZoneId: '',
 };
 
 const _initialGoLiveData: GoLiveSummaryData = {
@@ -640,9 +640,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: state.formState,
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: '',
     };
   },
-  SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
+  SET_FORM_FOR_NEW_CONTENT_ITEM: (state, action: PublishingActions.SetFormForNewContentItem) => {
     const contentItemDetail: ContentItemDetail = emptyContentItemDetail;
 
     contentItemDetail.clientId = action.clientId;
@@ -664,6 +665,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       pendingFormData: {
         ...contentItemDetail,
+        typeSpecificPublicationProperties: {
+          timeZoneId: state.defaultUserTimeZoneId,
+        },
       },
       formErrors: {},
       uploads: {
@@ -671,10 +675,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: 'write',
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: state.defaultUserTimeZoneId,
     };
 
     return emptyContentItemFormData;
   },
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: PublishingActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    defaultUserTimeZoneId: action.response.userTimeZoneId,
+  }),
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => {
     if (action.inputName === 'contentTypeId') {
       return {
@@ -684,7 +693,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           doesReduce: false,
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
-          typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
+          typeSpecificPublicationProperties: {
+            ...emptyContentItemDetail.typeSpecificPublicationProperties,
+            timeZoneId: state.defaultUserTimeZoneId,
+          },
         },
         formErrors: _initialFormData.formErrors,
       };

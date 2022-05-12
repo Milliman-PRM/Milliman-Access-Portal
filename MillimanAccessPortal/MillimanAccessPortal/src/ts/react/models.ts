@@ -169,8 +169,8 @@ export interface TypeSpecificPublicationProperties {
   fridayChecked?: boolean;
   saturdayChecked?: boolean;
   sundayChecked?: boolean;
-  startTime?: number;
-  endTime?: number;
+  startTime?: string;
+  endTime?: string;
   timeZoneId?: string;
 }
 
