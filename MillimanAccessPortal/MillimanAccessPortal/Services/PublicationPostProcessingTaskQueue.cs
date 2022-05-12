@@ -28,9 +28,6 @@ namespace MillimanAccessPortal.Services
         {
             _publicationRequestIdQueue.Enqueue(publicationRequestId);
 
-            GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Publication request Id {publicationRequestId} enqueued for detection by postprocessing hosted service");
-
-            int initialCount = _signal.CurrentCount;
             _signal.Release();
         }
 
@@ -42,8 +39,6 @@ namespace MillimanAccessPortal.Services
         /// <returns>A Guid from the queue, or Guid.Empty if none was found</returns>
         public async Task<Guid> DequeueAsync(CancellationToken cancellationToken, int timeoutMs = -1)
         {
-            int initialCount = _signal.CurrentCount;
-
             if (! await _signal.WaitAsync(timeoutMs, cancellationToken))
             {
                 return Guid.Empty;
