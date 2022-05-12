@@ -9,7 +9,7 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerHourEnum, ContainerRamGbEnum,
+  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerRamGbEnum,
   ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
@@ -91,9 +91,9 @@ const emptyContentItemDetail: ContentItemDetail = {
     fridayChecked: false,
     saturdayChecked: false,
     sundayChecked: false,
-    containerCoolDown: ContainerCooldownEnum.OneHour,
-    startTime: ContainerHourEnum.EightAM,
-    endTime: ContainerHourEnum.FivePM,
+    customCooldownPeriod: ContainerCooldownEnum.OneHour,
+    startTime: 8,
+    endTime: 17,
     timeZoneId: '',
   },
 };

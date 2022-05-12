@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
 {
@@ -90,11 +92,12 @@ namespace MapDbContextLib.Models
 
         public ContainerRamGbEnum ContainerRamGb { get; set; }
 
+        [JsonConverter(typeof(InternalPortJsonConverter))]
         public ushort ContainerInternalPort { get; set; }
 
         public ContainerCooldownPeriodEnum ContainerCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
         
-        public bool UsesCustomLifecyleManagement { get; set; }
+        public bool UsesCustomLifecycleManagement { get; set; }
         public bool? MondayChecked { get; set; }
         public bool? TuesdayChecked { get; set; }
         public bool? WednesdayChecked { get; set; }
@@ -102,8 +105,37 @@ namespace MapDbContextLib.Models
         public bool? FridayChecked { get; set; }
         public bool? SaturdayChecked { get; set; }
         public bool? SundayChecked { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
         public TimeSpan? StartTime { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
         public TimeSpan? EndTime { get; set; }
         public string? TimeZoneId { get; set; }
+    }
+
+    internal class InternalPortJsonConverter : JsonConverter<ushort>
+    {
+        public override ushort Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            return UInt16.Parse(reader.GetString());
+        }
+
+        public override void Write(Utf8JsonWriter writer, ushort value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value);
+        }
+    }
+
+    internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>
+    {
+        public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            int selectedHour = Int32.Parse(reader.GetString());
+            return new TimeSpan(selectedHour, 0, 0);
+        }
+
+        public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value.Hours);
+        }
     }
 }

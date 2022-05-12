@@ -159,7 +159,7 @@ export interface TypeSpecificPublicationProperties {
   containerCpuCores?: ContainerCpuCoresEnum;
   containerRamGb?: ContainerRamGbEnum;
   containerInternalPort?: string;
-  containerCoolDown?: ContainerCooldownEnum;
+  customCooldownPeriod?: ContainerCooldownEnum;
   usesCustomLifecycleManagement?: boolean;
   allDaysChecked?: boolean;
   mondayChecked?: boolean;
@@ -169,8 +169,8 @@ export interface TypeSpecificPublicationProperties {
   fridayChecked?: boolean;
   saturdayChecked?: boolean;
   sundayChecked?: boolean;
-  startTime?: ContainerHourEnum;
-  endTime?: ContainerHourEnum;
+  startTime?: number;
+  endTime?: number;
   timeZoneId?: string;
 }
 
@@ -773,32 +773,4 @@ export enum ContainerRamGbEnum {
   Fourteen = 14,
   Fifteen = 15,
   Sixteen = 16,
-}
-
-export enum ContainerHourEnum {
-  Unspecified = 0,
-  TwelveAM = 1,
-  OneAM = 2,
-  TwoAM = 3,
-  ThreeAM = 4,
-  FourAM = 5,
-  FiveAM = 6,
-  SixAM = 7,
-  SevenAM = 8,
-  EightAM = 9,
-  NineAM = 10,
-  TenAM = 11,
-  ElevenAM = 12,
-  TwelvePM = 13,
-  OnePM = 14,
-  TwoPM = 15,
-  ThreePM = 16,
-  FourPM = 17,
-  FivePM = 18,
-  SixPM = 19,
-  SevenPM = 20,
-  EightPM = 21,
-  NinePM = 22,
-  TenPM = 23,
-  ElevenPM = 24,
 }

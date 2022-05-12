@@ -16,7 +16,7 @@ import {
 } from '../../view-models/content-publishing';
 import { ContentCard } from '../authorized-content/content-card';
 import {
-  Client, ClientWithStats, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerHourEnum,
+  Client, ClientWithStats, ContainerCooldownEnum, ContainerCpuCoresEnum,
   ContainerRamGbEnum, ContentAssociatedFileType,
   ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
@@ -127,31 +127,31 @@ const containerRamGbDropdownValues: Array<{ selectionValue: ContainerRamGbEnum, 
   { selectionValue: ContainerRamGbEnum.Sixteen, selectionLabel: '16GB' },
 ];
 
-const containerHotHoursDropdownValues: Array<{ selectionValue: ContainerHourEnum, selectionLabel: string }> = [
-  { selectionValue: ContainerHourEnum.TwelveAM, selectionLabel: '12 AM' },
-  { selectionValue: ContainerHourEnum.OneAM, selectionLabel: '1 AM' },
-  { selectionValue: ContainerHourEnum.TwoAM, selectionLabel: '2 AM' },
-  { selectionValue: ContainerHourEnum.ThreeAM, selectionLabel: '3 AM' },
-  { selectionValue: ContainerHourEnum.FourAM, selectionLabel: '4 AM' },
-  { selectionValue: ContainerHourEnum.FiveAM, selectionLabel: '5 AM' },
-  { selectionValue: ContainerHourEnum.SixAM, selectionLabel: '6 AM' },
-  { selectionValue: ContainerHourEnum.SevenAM, selectionLabel: '7 AM' },
-  { selectionValue: ContainerHourEnum.EightAM, selectionLabel: '8 AM' },
-  { selectionValue: ContainerHourEnum.NineAM, selectionLabel: '9 AM' },
-  { selectionValue: ContainerHourEnum.TenAM, selectionLabel: '10 AM' },
-  { selectionValue: ContainerHourEnum.ElevenAM, selectionLabel: '11 AM' },
-  { selectionValue: ContainerHourEnum.TwelvePM, selectionLabel: '12 PM' },
-  { selectionValue: ContainerHourEnum.OnePM, selectionLabel: '1 PM' },
-  { selectionValue: ContainerHourEnum.TwoPM, selectionLabel: '2 PM' },
-  { selectionValue: ContainerHourEnum.ThreePM, selectionLabel: '3 PM' },
-  { selectionValue: ContainerHourEnum.FourPM, selectionLabel: '4 PM' },
-  { selectionValue: ContainerHourEnum.FivePM, selectionLabel: '5 PM' },
-  { selectionValue: ContainerHourEnum.SixPM, selectionLabel: '6 PM' },
-  { selectionValue: ContainerHourEnum.SevenPM, selectionLabel: '7 PM' },
-  { selectionValue: ContainerHourEnum.EightPM, selectionLabel: '8 PM' },
-  { selectionValue: ContainerHourEnum.NinePM, selectionLabel: '9 PM' },
-  { selectionValue: ContainerHourEnum.TenPM, selectionLabel: '10 PM' },
-  { selectionValue: ContainerHourEnum.ElevenPM, selectionLabel: '11 PM' },
+const containerHotHoursDropdownValues: Array<{ selectionValue: number, selectionLabel: string }> = [
+  { selectionValue: 0, selectionLabel: '12 AM' },
+  { selectionValue: 1, selectionLabel: '1 AM' },
+  { selectionValue: 2, selectionLabel: '2 AM' },
+  { selectionValue: 3, selectionLabel: '3 AM' },
+  { selectionValue: 4, selectionLabel: '4 AM' },
+  { selectionValue: 5, selectionLabel: '5 AM' },
+  { selectionValue: 6, selectionLabel: '6 AM' },
+  { selectionValue: 7, selectionLabel: '7 AM' },
+  { selectionValue: 8, selectionLabel: '8 AM' },
+  { selectionValue: 9, selectionLabel: '9 AM' },
+  { selectionValue: 10, selectionLabel: '10 AM' },
+  { selectionValue: 11, selectionLabel: '11 AM' },
+  { selectionValue: 12, selectionLabel: '12 PM' },
+  { selectionValue: 13, selectionLabel: '1 PM' },
+  { selectionValue: 14, selectionLabel: '2 PM' },
+  { selectionValue: 15, selectionLabel: '3 PM' },
+  { selectionValue: 16, selectionLabel: '4 PM' },
+  { selectionValue: 17, selectionLabel: '5 PM' },
+  { selectionValue: 18, selectionLabel: '6 PM' },
+  { selectionValue: 19, selectionLabel: '7 PM' },
+  { selectionValue: 20, selectionLabel: '8 PM' },
+  { selectionValue: 21, selectionLabel: '9 PM' },
+  { selectionValue: 22, selectionLabel: '10 PM' },
+  { selectionValue: 23, selectionLabel: '11 PM' },
 ];
 
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
@@ -1035,13 +1035,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       <FormFlexContainer flexPhone={12} flexDesktop={12}>
                         <RadioButton
                           id={'thirty-minutes'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
                             ContainerCooldownEnum.ThirtyMinutes}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.ThirtyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCoolDown',
+                              inputName: 'customCooldownPeriod',
                               value: val,
                             });
                           }}
@@ -1050,13 +1050,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'one-hour'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
                             ContainerCooldownEnum.OneHour}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.OneHour}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCoolDown',
+                              inputName: 'customCooldownPeriod',
                               value: val,
                             });
                           }}
@@ -1065,13 +1065,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'ninety-minutes'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
                             ContainerCooldownEnum.NinetyMinutes}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.NinetyMinutes}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCoolDown',
+                              inputName: 'customCooldownPeriod',
                               value: val,
                             });
                           }}
@@ -1080,13 +1080,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'two-hours'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.containerCoolDown ===
+                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
                             ContainerCooldownEnum.TwoHours}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.TwoHours}
                           onSelect={(val) => {
                             this.props.setPublishingFormTextInputValue({
-                              inputName: 'containerCoolDown',
+                              inputName: 'customCooldownPeriod',
                               value: val,
                             });
                           }}

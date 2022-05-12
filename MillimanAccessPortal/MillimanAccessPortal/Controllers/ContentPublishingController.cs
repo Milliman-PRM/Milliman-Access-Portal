@@ -711,7 +711,17 @@ namespace MillimanAccessPortal.Controllers
                     case ContentTypeEnum.ContainerApp:
                         if (request.TypeSpecificPublishingDetail != null)
                         {
-                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(request.TypeSpecificPublishingDetail.ToObject<ContainerizedContentPublicationProperties>());
+                            try {
+                                var str = request.TypeSpecificPublishingDetail.ToString();
+                                var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(str, new JsonSerializerOptions {
+                                    PropertyNameCaseInsensitive = true,
+                                });
+                                NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(publicationDetails);
+                            } catch (Exception ex) {
+                                var x = ex;
+                                throw;
+                            }
+
                         }
                         break;
 

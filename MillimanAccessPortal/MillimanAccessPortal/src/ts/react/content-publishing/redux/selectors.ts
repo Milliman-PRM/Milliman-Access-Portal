@@ -336,6 +336,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
       containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+      usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+      customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
     };
 
     if (pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement) {
@@ -457,7 +459,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
         usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
-        containerCoolDown: pendingFormData.typeSpecificPublicationProperties.containerCoolDown,
+        customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
       };
     }
   }
