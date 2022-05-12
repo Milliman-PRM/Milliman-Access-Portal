@@ -38,6 +38,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
 using System.Security.Cryptography;
 using ContainerizedAppLib.AzureRestApiModels;
@@ -688,6 +689,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
             ContainerGroupResourceTags resourceTags = new()
             {
                 ProfitCenterId = contentItem.Client.ProfitCenterId,
@@ -698,20 +700,11 @@ namespace MillimanAccessPortal.Controllers
                 ContentItemName = contentItem.ContentName,
                 SelectionGroupId = null,
                 SelectionGroupName = null,
+                PublicationRequestId = publicationRequestId,
+                ContentStatus = containerContentItemProperties.PreviewImageTag,
             };
 
-            try
-            {
-                ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, false);
-
-                return Redirect(redirectUrl);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a preview container");
-                throw;
-            }
+            return await RequestStartContainer(publicationRequestId.ToString(), contentItem, false, resourceTags);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -774,62 +767,78 @@ namespace MillimanAccessPortal.Controllers
                 ContentItemName = selectionGroup.RootContentItem.ContentName,
                 SelectionGroupId = selectionGroup.Id,
                 SelectionGroupName = selectionGroup.GroupName,
+                PublicationRequestId = null,
+                ContentStatus = "live",
             };
 
-            try
-            {
-                ContainerizedAppContentItemProperties typeSpecificInfo = selectionGroup.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                string redirectUrl = await LaunchContainer(typeSpecificInfo, resourceTags, true);
-
-                return Redirect(redirectUrl);
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch or access a container");
-                throw;
-            }
+            return await RequestStartContainer(group.ToString(), selectionGroup.RootContentItem, true, resourceTags);
         }
 
         [NonAction]
-        private async Task<string> LaunchContainer(ContainerizedAppContentItemProperties typeSpecificInfo, ContainerGroupResourceTags resourceTags, bool liveContent)
+        private async Task<IActionResult> RequestStartContainer(string containerGroupName, RootContentItem contentItem, bool isLiveContent, ContainerGroupResourceTags resourceTags = null)
         {
-            string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
-            (string vnetId, string vnetName) = ipAddressType == "Public"
-                                               ? (null, null)
-                                               : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
+            ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
-            // Run a container based on the appropriate image
-            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(typeSpecificInfo.LiveImageName);
-            string containerUrl = await api.RunContainer(Guid.NewGuid().ToString(),
-                                                         liveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
-                                                         liveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
-                                                         ipAddressType,
-                                                         liveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
-                                                         liveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
-                                                         resourceTags,
-                                                         vnetId,
-                                                         vnetName,
-                                                         liveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
+            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupName);
 
-            Log.Information($"Container URL is <{containerUrl}>");
-
-            // TODO ensure an adequate token value
-            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerUrl));
-
-            UriBuilder externalRequestUri = new UriBuilder
+            switch (containerGroupModel)
             {
-                Scheme = Request.Scheme,
-                Host = Request.Host.Host,
-                Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1, 
-                Path = $"/{contentToken}/",  // must include trailing '/' character
-            };
+                // running
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
+                    // TODO ensure an adequate token value
+                    string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupModel.Uri.AbsoluteUri));
 
-            string identityToken = Request.Cookies.Single(c => c.Key == ".AspNetCore.Identity.Application").Value;
+                    UriBuilder externalRequestUri = new UriBuilder
+                    {
+                        Scheme = Request.Scheme,
+                        Host = Request.Host.Host,
+                        Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1,
+                        Path = $"/{contentToken}/",  // must include trailing '/' character
+                    };
 
-            // Add a new YARP route/cluster config
-            _mapProxyConfigProvider.OpenNewSession(HttpContext.Connection.RemoteIpAddress.ToString(), contentToken, externalRequestUri.Uri.AbsoluteUri, containerUrl, identityToken);
+                    // Add a new YARP route/cluster config
+                    _mapProxyConfigProvider.OpenNewSession(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
 
-            return externalRequestUri.Uri.AbsoluteUri;
+                    return Redirect(externalRequestUri.Uri.AbsoluteUri);
+
+                // starting
+                case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
+                                                                 model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
+                    return View("WaitForContainer");
+
+                // stopped
+                case ContainerGroup_GetResponseModel model2 when model2.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Terminated"):
+                    await api.RestartContainerGroup(containerGroupModel.Name);
+
+                    return View("WaitForContainer");
+
+                // not found
+                case null:
+                    string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
+                    (string vnetId, string vnetName) = ipAddressType == "Public"
+                                                       ? (null, null)
+                                                       : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
+
+                    // Run a container based on the appropriate image
+                    string containerUrl = await api.RunContainer(containerGroupName,
+                                                                 isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                                 isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                                 ipAddressType,
+                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                                 resourceTags,
+                                                                 vnetId,
+                                                                 vnetName,
+                                                                 false,
+                                                                 isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+
+                    return View("WaitForContainer");
+
+                default:
+                    Log.Error($"**** Unsupported result returned from api.GetContainerGroupDetails: {JsonSerializer.Serialize(containerGroupModel)}");
+                    throw new ApplicationException("Check application log, Unsupported result returned from api.GetContainerGroupDetails");
+            }
         }
 
         /// <summary>

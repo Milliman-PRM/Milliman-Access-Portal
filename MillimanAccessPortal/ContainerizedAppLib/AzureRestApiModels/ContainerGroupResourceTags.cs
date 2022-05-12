@@ -23,6 +23,9 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "contentItemName")]
         public string ContentItemName { get; set; }
 
+        [JsonProperty(PropertyName = "publicationRequestId")]
+        public Guid? PublicationRequestId { get; set; }
+
         [JsonProperty(PropertyName = "selectionGroupId")]
         public Guid? SelectionGroupId { get; set; }
 
@@ -35,10 +38,14 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "managed_by")]
         public string ManagedBy { get; set; } = "PRM Analytics";
 
+        // Consider the environment property of the IHost service.
         [JsonProperty(PropertyName = "environment")]
         public string Environment => System.Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
 
         [JsonProperty(PropertyName = "asset_owner")]
         public string AssetOwner => ProfitCenterName;
+
+        [JsonProperty(PropertyName = "content_status")]
+        public string ContentStatus { get; set; }
     }
 }

@@ -205,7 +205,6 @@ namespace MillimanAccessPortal
                 }
                 catch (DbUpdateConcurrencyException ex)
                 {
-                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, ex, $"DbUpdateConcurrencyException encountered for publication request {publicationRequestId} while attempting to set request status to Queued");
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;
                 }

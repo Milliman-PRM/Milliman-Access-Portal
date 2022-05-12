@@ -1742,7 +1742,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         title="Container Configurations"
         checkboxLabel="All container configurations are as expected"
         checkboxTarget="containerConfigurations"
-        checkboxSelectedValue={elementsToConfirm.containerConfigs}
+        checkboxSelectedValue={elementsToConfirm.containerConfigurations}
         checkboxFunction={this.props.toggleGoLiveConfirmationCheckbox}
       >
         <div><b>CPU Cores:</b> {goLiveSummary.typeSpecificMetadata.cpuCores}</div>

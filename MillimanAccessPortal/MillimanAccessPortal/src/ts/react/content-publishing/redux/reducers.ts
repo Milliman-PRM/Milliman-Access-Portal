@@ -1319,6 +1319,9 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     if (action.response.selectionGroups) {
       elementsToConfirm.selectionGroups = false;
     }
+    if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata) {
+      elementsToConfirm.containerConfigurations = false;
+    }
 
     return {
       ...state,

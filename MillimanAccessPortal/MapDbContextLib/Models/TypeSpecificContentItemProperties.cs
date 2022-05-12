@@ -4,6 +4,7 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 using System;
+using System.Collections.Generic;
 
 namespace MapDbContextLib.Models
 {
@@ -46,5 +47,14 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
+
+        #region Lifetime management
+        public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
+        public ContainerInstanceCooldownTimeEnum CooldownTime = ContainerInstanceCooldownTimeEnum.OneHour;
+        public TimeSpan DailyStartTimeUtc { get; set; }
+        public TimeSpan DailyStopTimeUtc { get; set; }
+        public TimeZoneInfo ServiceTimeZone { get; set; }
+        public List<DayOfWeek> ActiveServiceDaysOfWeek {get; set;}
+        #endregion
     }
 }
