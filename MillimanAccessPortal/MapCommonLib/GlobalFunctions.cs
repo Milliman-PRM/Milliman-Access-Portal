@@ -303,7 +303,7 @@ namespace MapCommonLib
     {
         LongRunningSelectionGroupProcessing,
         TrackQlikviewApiTiming,
-        PublishingStuck
+        TrackingContainerPublishing
     }
 
 }
