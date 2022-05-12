@@ -42,6 +42,7 @@ export interface PublishingStateData {
   publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
   timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
+  userTimeZoneId: string;
 }
 
 /**

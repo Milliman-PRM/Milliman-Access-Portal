@@ -129,7 +129,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync();
+            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync(await _userManager.GetUserAsync(User));
 
             return Json(model);
         }

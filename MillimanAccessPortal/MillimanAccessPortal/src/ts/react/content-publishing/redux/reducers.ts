@@ -34,6 +34,7 @@ const _initialData: PublishingStateData = {
   publications: {},
   publicationQueue: {},
   timeZones: [],
+  userTimeZoneId: '',
 };
 
 const emptyContentItemDetail: ContentItemDetail = {
@@ -421,6 +422,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
     },
     timeZones: _.map(action.response.timeZoneSelections,
       (tzi) => ({ selectionValue: tzi.Id, selectionLabel: tzi.DisplayName })),
+    userTimeZoneId: action.response.userTimeZoneId,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({
     ...state,

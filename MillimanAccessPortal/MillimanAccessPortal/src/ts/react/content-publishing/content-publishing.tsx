@@ -72,6 +72,7 @@ interface RootContentItemEntity extends RootContentItemWithPublication {
 
 interface ContentPublishingProps {
   timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
+  userTimeZoneId: string;
   clients: ClientEntity[];
   items: RootContentItemEntity[];
   contentTypes: Dict<ContentType>;
@@ -701,7 +702,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   }
 
   private renderContentItemForm() {
-    const { contentTypes, formData, items, pending, timeZones } = this.props;
+    const { contentTypes, formData, items, pending, timeZones, userTimeZoneId } = this.props;
     const { formErrors, pendingFormData, originalFormData, formState, uploads } = formData;
     const editFormButton = (
       <>
@@ -1241,7 +1242,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             <FormFlexContainer flexPhone={12} flexDesktop={12}>
                               <DropDown
                                 error={null}
-                                label="timezone"
+                                label="Timezone"
                                 name="timezone"
                                 onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
                                   this.props.setPublishingFormTextInputValue({
@@ -1250,7 +1251,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   });
                                 }}
                                 placeholderText={''}
-                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
+                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId ?
+                                  pendingFormData.typeSpecificPublicationProperties.timeZoneId : userTimeZoneId
+                                }
                                 values={timeZones}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
@@ -1821,6 +1824,7 @@ function mapStateToProps(state: PublishingState): ContentPublishingProps {
   const { id: rootContentItemId } = formData.pendingFormData;
   return {
     timeZones: data.timeZones,
+    userTimeZoneId: data.userTimeZoneId,
     clients: clientEntities(state),
     items: itemEntities(state),
     contentTypes: data.contentTypes,

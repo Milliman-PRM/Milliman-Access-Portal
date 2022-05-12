@@ -19,6 +19,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public Dictionary<Guid,BasicContentType> ContentTypes { get; set; }
         public Dictionary<int,AssociatedFileTypeModel> ContentAssociatedFileTypes { get; set; }
         public IEnumerable<TimeZoneInfo> TimeZoneSelections { get; set; }
+        public string UserTimeZoneId { get; set; }
     }
 
     public class AssociatedFileTypeModel

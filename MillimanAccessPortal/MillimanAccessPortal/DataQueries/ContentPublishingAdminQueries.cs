@@ -50,7 +50,7 @@ namespace MillimanAccessPortal.DataQueries
             _publicationQueries = publicationQueriesArg;
         }
 
-        internal async Task<PublishingPageGlobalModel> BuildPublishingPageGlobalModelAsync()
+        internal async Task<PublishingPageGlobalModel> BuildPublishingPageGlobalModelAsync(ApplicationUser user)
         {
             var typeValues = Enum.GetValues(typeof(ContentAssociatedFileType)).Cast<ContentAssociatedFileType>();
             return new PublishingPageGlobalModel
@@ -63,6 +63,7 @@ namespace MillimanAccessPortal.DataQueries
                                                .Select(t => new BasicContentType(t))
                                                .ToDictionaryAsync(t => t.Id),
                 TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones(),
+                UserTimeZoneId = user.TimeZoneId,
             };
         }
 

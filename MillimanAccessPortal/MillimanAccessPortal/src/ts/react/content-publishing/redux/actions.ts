@@ -119,6 +119,7 @@ export interface FetchGlobalDataSucceeded {
     contentTypes: Dict<ContentType>;
     contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
     timeZoneSelections: TimeZoneInfo[];
+    userTimeZoneId: string;
   };
 }
 
