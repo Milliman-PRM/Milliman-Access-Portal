@@ -23,6 +23,9 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "contentItemName")]
         public string ContentItemName { get; set; }
 
+        [JsonProperty(PropertyName = "publicationRequestId")]
+        public Guid? PublicationRequestId { get; set; }
+
         [JsonProperty(PropertyName = "selectionGroupId")]
         public Guid? SelectionGroupId { get; set; }
 

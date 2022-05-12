@@ -407,6 +407,7 @@ namespace MillimanAccessPortal.Services
                                 ContentItemName = contentItem.ContentName,
                                 SelectionGroupId = null,
                                 SelectionGroupName = null,
+                                PublicationRequestId = publicationRequestId,
                                 ContentStatus = containerContentItemProperties.PreviewImageTag,
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");

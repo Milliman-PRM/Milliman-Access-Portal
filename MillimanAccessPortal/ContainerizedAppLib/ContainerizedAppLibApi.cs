@@ -697,7 +697,7 @@ namespace ContainerizedAppLib
                 dynamic result = await ex.GetResponseJsonAsync();
                 Dictionary<string, object> error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
                 string errorMessage = $"Exception from ContainerizedAppLibApi.CreateContainerGroup: Error launching a new Container Group. Error(s):{Environment.NewLine}\t" +
-                                      string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}:{kvp.Value}"));
+                                      string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
 
                 Log.Error(ex, errorMessage);
                 throw new ApplicationException(errorMessage);

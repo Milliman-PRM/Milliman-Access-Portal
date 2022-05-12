@@ -689,7 +689,22 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            return await RequestStartContainer(publicationRequestId.ToString(), contentItem, false);
+            ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                ClientId = contentItem.ClientId,
+                ClientName = contentItem.Client.Name,
+                ContentItemId = contentItem.Id,
+                ContentItemName = contentItem.ContentName,
+                SelectionGroupId = null,
+                SelectionGroupName = null,
+                PublicationRequestId = publicationRequestId,
+                ContentStatus = containerContentItemProperties.PreviewImageTag,
+            };
+
+            return await RequestStartContainer(publicationRequestId.ToString(), contentItem, false, resourceTags);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -752,6 +767,8 @@ namespace MillimanAccessPortal.Controllers
                 ContentItemName = selectionGroup.RootContentItem.ContentName,
                 SelectionGroupId = selectionGroup.Id,
                 SelectionGroupName = selectionGroup.GroupName,
+                PublicationRequestId = null,
+                ContentStatus = "live",
             };
 
             return await RequestStartContainer(group.ToString(), selectionGroup.RootContentItem, true, resourceTags);
@@ -765,7 +782,6 @@ namespace MillimanAccessPortal.Controllers
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupName);
 
-            #region paste
             switch (containerGroupModel)
             {
                 // running
@@ -823,7 +839,6 @@ namespace MillimanAccessPortal.Controllers
                     Log.Error($"**** Unsupported result returned from api.GetContainerGroupDetails: {JsonSerializer.Serialize(containerGroupModel)}");
                     throw new ApplicationException("Check application log, Unsupported result returned from api.GetContainerGroupDetails");
             }
-            #endregion
         }
 
         /// <summary>

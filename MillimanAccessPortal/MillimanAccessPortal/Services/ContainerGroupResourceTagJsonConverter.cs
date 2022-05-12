@@ -21,10 +21,13 @@ namespace ContainerizedAppLib
                     ProfitCenterName = jsonObject.SelectToken("profitCenterName").Value<string>(),
                     ContentItemId = new Guid(jsonObject.SelectToken("contentItemId").Value<string>()),
                     ContentItemName = jsonObject.SelectToken("contentItemName").Value<string>(),
-                    SelectionGroupId = jsonObject.SelectToken("selectionGroupId") != null ?
-                        new Guid(jsonObject.SelectToken("selectionGroupId").Value<string>())
+                    SelectionGroupId = jsonObject.SelectToken("selectionGroupId") != null
+                        ? new Guid(jsonObject.SelectToken("selectionGroupId").Value<string>())
                         : null,
                     SelectionGroupName = jsonObject.SelectToken("selectionGroupName")?.Value<string>(),
+                    PublicationRequestId = jsonObject.SelectToken("publicationRequestId") != null 
+                        ? new Guid(jsonObject.SelectToken("publicationRequestId").Value<string>())
+                        : null,
                     ClientId = new Guid(jsonObject.SelectToken("clientId").Value<string>()),
                     ClientName = jsonObject.SelectToken("clientName").Value<string>(),
                 };
