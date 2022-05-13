@@ -798,7 +798,7 @@ namespace MillimanAccessPortal.Controllers
                     };
 
                     // Add a new YARP route/cluster config
-                    _mapProxyConfigProvider.OpenNewSession(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
+                    _mapProxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
 
                     return Redirect(externalRequestUri.Uri.AbsoluteUri);
 

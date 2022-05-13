@@ -32,7 +32,20 @@ namespace MillimanAccessPortal.ContentProxy
             Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_proxyConfig)}");
         }
 
-        public void OpenNewSession(string contentToken, string publicUri, string internalUri)
+        public void RemoveExistingRoute(string contentToken)
+        {
+            List<RouteConfig> routesToRemove = _proxyConfig.Routes
+                                                           .Where(r => r.RouteId.Equals(contentToken, StringComparison.InvariantCultureIgnoreCase))
+                                                           .ToList();
+            List<string> clusterIds = routesToRemove.Select(r => r.ClusterId).ToList();
+            List<ClusterConfig> clustersToRemove = _proxyConfig.Clusters
+                                                               .Where(c => clusterIds.Contains(c.ClusterId, StringComparer.InvariantCultureIgnoreCase))
+                                                               .ToList();
+
+            UpdateConfiguration(_proxyConfig.Routes.Except(routesToRemove).ToList(), _proxyConfig.Clusters.Except(clustersToRemove).ToList());
+        }
+
+        public void AddNewRoute(string contentToken, string publicUri, string internalUri)
         {
             UriBuilder requestedUri = new UriBuilder(publicUri);
 
@@ -74,7 +87,7 @@ namespace MillimanAccessPortal.ContentProxy
                            { "ContentToken", contentToken },
                        },
                 };
-                OpenNewSession(newRoute, newCluster);
+                AddNewRoute(newRoute, newCluster);
 
                 try
                 {
@@ -88,7 +101,7 @@ namespace MillimanAccessPortal.ContentProxy
             }
         }
 
-        public void OpenNewSession(RouteConfig route, ClusterConfig? cluster)
+        public void AddNewRoute(RouteConfig route, ClusterConfig? cluster)
         {
             List<RouteConfig> newRoutes = _proxyConfig.Routes.ToList();
 
