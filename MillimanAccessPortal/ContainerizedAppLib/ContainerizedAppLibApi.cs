@@ -558,15 +558,16 @@ namespace ContainerizedAppLib
 
                 #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
 
+                int waitTimeSeconds = 60;
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 containerLogMatchString = "Listening on http";  // works for Shiny
-                Log.Information($"Waiting for container log to contain search string \"{containerLogMatchString}\"");
+                Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
                     for (Stopwatch logTimer = Stopwatch.StartNew();
-                         logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
-                         await Task.Delay(TimeSpan.FromSeconds(2)))
+                         logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
+                         await Task.Delay(TimeSpan.FromSeconds(3)))
                     {
                         try
                         {
@@ -579,13 +580,13 @@ namespace ContainerizedAppLib
                 }
 
                 // Wait until the IP:port accepts a TCP connection
-                Log.Information("Waiting for container to accept a TCP connection");
-                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(2)))
+                Log.Information("Waiting up to {waitTimeSeconds} seconds for container to accept a TCP connection");
+                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(3)))
                 {
                     try
                     {
                         TcpClient tcpClient = new TcpClient(containerUri.Host, containerUri.Port);
-                        Log.Information($"socket connected state is {tcpClient.Connected}");
+                        Log.Debug($"socket connected state is {tcpClient.Connected}");
                         tcpClient.Close();
                     }
                     catch (Exception ex)
