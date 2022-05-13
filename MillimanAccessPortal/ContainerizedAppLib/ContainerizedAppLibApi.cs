@@ -564,7 +564,7 @@ namespace ContainerizedAppLib
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
-                    for (Stopwatch logTimer = new Stopwatch(); 
+                    for (Stopwatch logTimer = Stopwatch.StartNew();
                          logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
                          await Task.Delay(TimeSpan.FromSeconds(2)))
                     {
