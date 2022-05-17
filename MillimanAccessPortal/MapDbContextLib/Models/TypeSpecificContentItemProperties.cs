@@ -3,6 +3,7 @@
  * OBJECTIVE: A family of model classes representing root content item properties that are particular to the associated content type
  * DEVELOPER NOTES: <What future developers need to know.>
  */
+using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
 
@@ -49,8 +50,8 @@ namespace MapDbContextLib.Models
         public ushort PreviewContainerInternalPort { get; set; } = 0;
 
         #region Lifetime management
-        public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
-        public ContainerInstanceCooldownTimeEnum CooldownTime = ContainerInstanceCooldownTimeEnum.OneHour;
+        public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; }
+        public ContainerCooldownPeriodEnum CooldownTime = ContainerCooldownPeriodEnum.OneHour;
         public TimeSpan DailyStartTimeUtc { get; set; }
         public TimeSpan DailyStopTimeUtc { get; set; }
         public TimeZoneInfo ServiceTimeZone { get; set; }
