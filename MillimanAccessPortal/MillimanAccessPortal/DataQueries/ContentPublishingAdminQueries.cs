@@ -21,6 +21,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using MillimanAccessPortal.Models.AccountViewModels;
 
 namespace MillimanAccessPortal.DataQueries
 {
@@ -62,7 +63,7 @@ namespace MillimanAccessPortal.DataQueries
                 ContentTypes = await _dbContext.ContentType
                                                .Select(t => new BasicContentType(t))
                                                .ToDictionaryAsync(t => t.Id),
-                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones(),
+                TimeZoneSelections = TimeZoneInfo.GetSystemTimeZones().Select(zi => new TimeZoneSelection { Id = zi.Id, DisplayName = zi.DisplayName }).ToList(),
                 UserTimeZoneId = user.TimeZoneId,
             };
         }
