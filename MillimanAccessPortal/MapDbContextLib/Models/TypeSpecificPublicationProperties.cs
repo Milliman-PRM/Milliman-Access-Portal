@@ -126,7 +126,15 @@ namespace MapDbContextLib.Models
     {
         public override ushort Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            return UInt16.Parse(reader.GetString());
+            try
+            {
+                bool valueIsUShort = reader.TryGetUInt16(out ushort value);
+                return value;
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ushort.Parse(reader.GetString());
+            }
         }
 
         public override void Write(Utf8JsonWriter writer, ushort value, JsonSerializerOptions options)
@@ -139,7 +147,15 @@ namespace MapDbContextLib.Models
     {
         public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            int selectedHour = Int32.Parse(reader.GetString());
+            int selectedHour;
+            try
+            {
+                reader.TryGetInt32(out selectedHour);
+            }
+            catch (InvalidOperationException ex)
+            {
+                selectedHour = Int32.Parse(reader.GetString());
+            }
             return new TimeSpan(selectedHour, 0, 0);
         }
 
