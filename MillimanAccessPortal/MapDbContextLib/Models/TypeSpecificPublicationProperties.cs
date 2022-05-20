@@ -86,6 +86,11 @@ namespace MapDbContextLib.Models
         TwoHours = 4,
     }
 
+    public enum ContainerInstanceLifetimeSchemeEnum
+    {
+
+    }
+
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
     {
         public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
