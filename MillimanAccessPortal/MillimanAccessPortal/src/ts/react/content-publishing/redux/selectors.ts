@@ -5,7 +5,7 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
   ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
@@ -336,11 +336,13 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
       containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
-      usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+      containerInstanceLifetimeScheme:
+        pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
     };
 
-    if (pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement) {
+    if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+      === ContainerInstanceLifetimeSchemeEnum.Custom) {
       typeSpecificPublishingDetail.timeZoneId =
         pendingFormData.typeSpecificPublicationProperties.timeZoneId;
       typeSpecificPublishingDetail.startTime =
@@ -458,7 +460,8 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
-        usesCustomLifecycleManagement: pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+        containerInstanceLifetimeScheme:
+          pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
         customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
       };
     }
@@ -482,5 +485,6 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
 }
 
 export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
-  return state.formData.pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement;
+  return state.formData.pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    === ContainerInstanceLifetimeSchemeEnum.Custom;
 }

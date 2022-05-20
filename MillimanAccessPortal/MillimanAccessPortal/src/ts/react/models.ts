@@ -160,7 +160,7 @@ export interface TypeSpecificPublicationProperties {
   containerRamGb?: ContainerRamGbEnum;
   containerInternalPort?: string;
   customCooldownPeriod?: ContainerCooldownEnum;
-  usesCustomLifecycleManagement?: boolean;
+  containerInstanceLifetimeScheme?: ContainerInstanceLifetimeSchemeEnum;
   allDaysChecked?: boolean;
   mondayChecked?: boolean;
   tuesdayChecked?: boolean;
@@ -773,4 +773,10 @@ export enum ContainerRamGbEnum {
   Fourteen = 14,
   Fifteen = 15,
   Sixteen = 16,
+}
+
+export enum ContainerInstanceLifetimeSchemeEnum {
+  Unspecified = 0,
+  AlwaysCold = 1,
+  Custom = 2,
 }

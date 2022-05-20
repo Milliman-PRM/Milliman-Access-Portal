@@ -359,6 +359,7 @@ export interface SetPublishingFormTextInputValue {
   | 'containerRamGb'
   | 'containerInternalPort'
   | 'customCooldownPeriod'
+  | 'containerInstanceLifetimeScheme'
   | 'startTime'
   | 'endTime'
   | 'timeZoneId';
@@ -374,7 +375,6 @@ export interface SetPublishingFormBooleanInputValue {
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
   | 'bookmarksPaneEnabled'
-  | 'usesCustomLifecycleManagement'
   | 'allDaysChecked'
   | 'mondayChecked'
   | 'tuesdayChecked'

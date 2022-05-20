@@ -17,6 +17,7 @@ import {
 import { ContentCard } from '../authorized-content/content-card';
 import {
   Client, ClientWithStats, ContainerCooldownEnum, ContainerCpuCoresEnum,
+  ContainerInstanceLifetimeSchemeEnum,
   ContainerRamGbEnum, ContentAssociatedFileType,
   ContentItemPublicationDetail, ContentType, RootContentItem, RootContentItemWithPublication,
 } from '../models';
@@ -1101,10 +1102,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           <h4>Pre-scheduled hot times</h4>
                           <Toggle
                             label="Customize container lifecycle"
-                            checked={pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement}
-                            onClick={() => this.props.setPublishingFormBooleanInputValue({
-                              inputName: 'usesCustomLifecycleManagement',
-                              value: !pendingFormData.typeSpecificPublicationProperties.usesCustomLifecycleManagement,
+                            checked={pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+                              === ContainerInstanceLifetimeSchemeEnum.Custom}
+                            onClick={() => this.props.setPublishingFormTextInputValue({
+                              inputName: 'containerInstanceLifetimeScheme',
+                              value: pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+                                === ContainerInstanceLifetimeSchemeEnum.AlwaysCold ?
+                                ContainerInstanceLifetimeSchemeEnum.Custom.toString() :
+                                ContainerInstanceLifetimeSchemeEnum.AlwaysCold.toString(),
                             })}
                             readOnly={formState === 'read'}
                           />

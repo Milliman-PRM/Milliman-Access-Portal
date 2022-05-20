@@ -9,8 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerRamGbEnum,
-  ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerInstanceLifetimeSchemeEnum,
+  ContainerRamGbEnum, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -82,7 +82,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     containerCpuCores: ContainerCpuCoresEnum.Two,
     containerRamGb: ContainerRamGbEnum.Eight,
     containerInternalPort: '3838',
-    usesCustomLifecycleManagement: false,
+    containerInstanceLifetimeScheme: ContainerInstanceLifetimeSchemeEnum.AlwaysCold,
     allDaysChecked: false,
     mondayChecked: false,
     tuesdayChecked: false,
@@ -701,7 +701,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         formErrors: _initialFormData.formErrors,
       };
     } else if (action.inputName === 'containerCpuCores'
-      || action.inputName === 'containerRamGb') {
+      || action.inputName === 'containerRamGb'
+      || action.inputName === 'containerInstanceLifetimeScheme') {
       const value = parseInt(action.value, 10);
       return {
         ...state,
@@ -772,8 +773,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           [action.inputName]: action.value,
         },
       };
-    } else if (action.inputName === 'usesCustomLifecycleManagement' ||
-               action.inputName === 'allDaysChecked' ||
+    } else if (action.inputName === 'allDaysChecked' ||
                action.inputName === 'mondayChecked' ||
                action.inputName === 'tuesdayChecked' ||
                action.inputName === 'wednesdayChecked' ||

@@ -88,7 +88,12 @@ namespace MapDbContextLib.Models
 
     public enum ContainerInstanceLifetimeSchemeEnum
     {
-
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "Always Cold")]
+        AlwaysCold = 1,
+        [Display(Name = "Custom")]
+        Custom = 2,
     }
 
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
@@ -101,8 +106,8 @@ namespace MapDbContextLib.Models
         public ushort ContainerInternalPort { get; set; }
 
         public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
-        
-        public bool UsesCustomLifecycleManagement { get; set; }
+
+        public ContainerInstanceLifetimeSchemeEnum ContainerInstanceLifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
         public bool? MondayChecked { get; set; }
         public bool? TuesdayChecked { get; set; }
         public bool? WednesdayChecked { get; set; }
