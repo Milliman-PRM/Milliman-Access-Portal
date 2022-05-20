@@ -7,7 +7,7 @@ import { UploadState } from '../../../upload/Redux/store';
 import { PreLiveContentValidationSummary } from '../../../view-models/content-publishing';
 import {
   ClientWithStats, ContentAssociatedFileType, ContentItemDetail, ContentItemFormErrors,
-  ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats, TimeZoneInfo,
+  ContentPublicationRequest, ContentType, Guid, PublicationQueueDetails, RootContentItemWithStats,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { Dict, FilterState, ModalState } from '../../shared-components/redux/store';

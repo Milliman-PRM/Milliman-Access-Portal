@@ -7,7 +7,6 @@ import {
   ContentItemPublicationDetail, ContentPublicationRequest, ContentType,
   GoLiveViewModel, Guid, PublicationQueueDetails, RootContentItem,
   RootContentItemWithStats,
-  TimeZoneInfo,
 } from '../../models';
 import { TSError } from '../../shared-components/redux/actions';
 import { Dict } from '../../shared-components/redux/store';
@@ -118,7 +117,7 @@ export interface FetchGlobalDataSucceeded {
   response: {
     contentTypes: Dict<ContentType>;
     contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
-    timeZoneSelections: TimeZoneInfo[];
+    timeZoneSelections: Array<{ id: string, displayName: string }>;
     userTimeZoneId: string;
   };
 }

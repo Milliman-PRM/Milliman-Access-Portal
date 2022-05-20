@@ -421,7 +421,7 @@ const data = createReducer<PublishingStateData>(_initialData, {
       ...action.response.contentAssociatedFileTypes,
     },
     timeZones: _.map(action.response.timeZoneSelections,
-      (tzi) => ({ selectionValue: tzi.Id, selectionLabel: tzi.DisplayName })),
+      (tzi) => ({ selectionValue: tzi.id, selectionLabel: tzi.displayName })),
     userTimeZoneId: action.response.userTimeZoneId,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({

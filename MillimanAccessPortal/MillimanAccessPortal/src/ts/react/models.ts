@@ -734,11 +734,6 @@ export interface FileDropFileUpload {
   fileName: string;
 }
 
-export interface TimeZoneInfo {
-  DisplayName: string;
-  Id: string;
-}
-
 export enum ContainerCpuCoresEnum {
   Unspecified = 0,
   One = 1,
