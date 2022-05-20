@@ -112,7 +112,6 @@ $env:PATH = $env:PATH+";C:\Program Files (x86)\OctopusCLI\;$env:appdata\npm\"
 $rootPath = (get-location).Path
 $webBuildTarget = "$rootPath\WebDeploy"
 $serviceBuildTarget = "$rootPath\ContentPublishingServer\ContentPublishingService\bin\$buildType"
-$queryAppBuildTarget = "$rootPath\MillimanAccessPortal\MapQueryAdminWeb\bin\$buildType\netcoreapp2.1"
 $nugetDestination = "$rootPath\nugetPackages"
 $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
@@ -393,48 +392,13 @@ if ($LASTEXITCODE -ne 0) {
 }
 #endregion
 
-#region Publish MAP Query Admin to a folder
-log_statement "Publishing MAP Query Admin to a folder"
-
-Set-Location $rootpath\MillimanAccessPortal\MapQueryAdminWeb
-
-msbuild /t:publish /p:PublishDir=$queryAppBuildTarget /verbosity:quiet /p:Configuration=$buildType
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to publish query admin app application"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-#endregion
-
-#region Package MAP Query Admin for nuget
-log_statement "Packaging MAP Query Admin"
-
-Set-Location $queryAppBuildTarget
-
-$queryVersion = get-childitem "MapQueryAdminWeb.dll" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
-$queryVersion = "$queryVersion-$TrimmedBranch"
-
-octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
-
-if ($LASTEXITCODE -ne 0) {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to package MAP Query Admin for nuget"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-#endregion
-
 #region Configure releases in Octopus
 
 log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -476,20 +440,6 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for the publishing service application"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-log_statement "Creating MAP Query Admin release"
-
-octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-if ($LASTEXITCODE -eq 0) {
-    log_statement "MAP Query Admin release created successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
