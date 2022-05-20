@@ -3,7 +3,7 @@ import '../../../../images/icons/remove-circle.svg';
 
 import * as React from 'react';
 
-export interface RadioButtonData {
+export interface RadioButtonProps {
   id: string;
   group: string;
   selected: boolean;
@@ -12,9 +12,7 @@ export interface RadioButtonData {
   hoverText?: string;
   description?: string;
   labelText?: string;
-}
-export interface RadioButtonProps extends RadioButtonData {
-  readOnly: boolean;
+  readOnly?: boolean;
 }
 
 export class RadioButton extends React.Component<RadioButtonProps> {
