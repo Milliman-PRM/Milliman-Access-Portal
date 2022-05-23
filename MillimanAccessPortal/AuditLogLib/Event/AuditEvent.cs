@@ -31,7 +31,7 @@ namespace AuditLogLib.Event
         public object EventDataObject
         {
             get => JsonConvert.DeserializeObject(EventData);
-            set => EventData = JsonConvert.SerializeObject(value);
+            set => EventData = JsonConvert.SerializeObject(value, new JsonSerializerSettings { ReferenceLoopHandling = ReferenceLoopHandling.Ignore });
         }
     }
 }

@@ -10,6 +10,7 @@ import '../../../images/icons/check-circle.svg';
 import '../../../images/icons/checkmark.svg';
 import '../../../images/icons/collapse-card.svg';
 import '../../../images/icons/collapse-cards.svg';
+import '../../../images/icons/copy.svg';
 import '../../../images/icons/delete.svg';
 import '../../../images/icons/download.svg';
 import '../../../images/icons/edit.svg';
@@ -37,10 +38,10 @@ import * as React from 'react';
 export interface ActionIconProps {
   label: string;
   icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'cancel-circle' |
-  'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'delete' | 'download' | 'edit' | 'email' |
-  'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' |
-  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' |
-  'userguide';
+  'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'copy' | 'delete' | 'download' | 'edit' |
+  'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' |
+  'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' |
+  'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;

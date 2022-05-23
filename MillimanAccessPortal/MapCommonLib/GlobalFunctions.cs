@@ -203,6 +203,17 @@ namespace MapCommonLib
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
         }
 
+        public static string EscapePgWildcards(string original)
+        {
+            return EscapePgWildcards(original, '\\');
+        }
+
+        public static string EscapePgWildcards(string original, char escapeChar = '\\')
+        {
+            return original.Replace("_", escapeChar + "_")
+                           .Replace("%", escapeChar + "%");
+        }
+
         public static string HexMd5String(byte[] source)
         {
 #if NETSTANDARD

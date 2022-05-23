@@ -3,8 +3,10 @@
 ## Release Notes
 
 ### v1.17.0
-
 - Introduced support for Containerized Apps as a new content type
+- Added buttons to copy both username and password SFTP credentials for a File Drop
+- Fixed a bug that could prevent the deletion of a Client in some situations
+- Fixed a bug that could cause system errors if a username contains certain special characters
 
 ### v1.16.0
 
