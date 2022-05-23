@@ -6,6 +6,7 @@
 
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
+using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.EntityModels.ContentItemModels;
 using System;
 using System.Collections.Generic;
@@ -18,7 +19,8 @@ namespace MillimanAccessPortal.Models.ContentPublishing
     {
         public Dictionary<Guid,BasicContentType> ContentTypes { get; set; }
         public Dictionary<int,AssociatedFileTypeModel> ContentAssociatedFileTypes { get; set; }
-
+        public IEnumerable<TimeZoneSelection> TimeZoneSelections { get; set; }
+        public string UserTimeZoneId { get; set; }
     }
 
     public class AssociatedFileTypeModel

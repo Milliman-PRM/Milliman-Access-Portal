@@ -49,7 +49,8 @@ namespace MapTests
                 testResources.PowerBiConfig,
                 testResources.ContainerizedAppConfig,
                 testResources.AuthorizedContentQueries,
-                testResources.ServiceProvider
+                testResources.ServiceProvider,
+                null
                 );
 
             testController.ControllerContext = testResources.GenerateControllerContext((await testResources.UserManager.FindByNameAsync(UserName)).UserName, requestUriBuilder, requestHeaders);

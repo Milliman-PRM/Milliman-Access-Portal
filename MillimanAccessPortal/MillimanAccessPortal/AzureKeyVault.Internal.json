@@ -1,6 +1,0 @@
-﻿{
-  "AzureVaultName": "https://map-internal-keyvault.vault.azure.net/",
-  "AzureClientID": "ecec9e96-be88-4b43-aa99-e37484ca0c19",
-  "AzureCertificateThumbprint": "A24705D23EFA09EE60D4FD09F35DDCB8BB044C49",
-  "DataProtectionKeyId": "https://map-internal-keyvault.vault.azure.net:443/keys/DataProtection"
-}

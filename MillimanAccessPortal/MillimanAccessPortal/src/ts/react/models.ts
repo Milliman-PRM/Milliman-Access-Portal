@@ -158,7 +158,20 @@ export interface TypeSpecificPublicationProperties {
   // Container App specific:
   containerCpuCores?: ContainerCpuCoresEnum;
   containerRamGb?: ContainerRamGbEnum;
-  containerInternalPort?: number;
+  containerInternalPort?: string;
+  customCooldownPeriod?: ContainerCooldownEnum;
+  containerInstanceLifetimeScheme?: ContainerInstanceLifetimeSchemeEnum;
+  allDaysChecked?: boolean;
+  mondayChecked?: boolean;
+  tuesdayChecked?: boolean;
+  wednesdayChecked?: boolean;
+  thursdayChecked?: boolean;
+  fridayChecked?: boolean;
+  saturdayChecked?: boolean;
+  sundayChecked?: boolean;
+  startTime?: string;
+  endTime?: string;
+  timeZoneId?: string;
 }
 
 export interface GoLiveViewModel {
@@ -729,6 +742,14 @@ export enum ContainerCpuCoresEnum {
   Four = 4,
 }
 
+export enum ContainerCooldownEnum {
+  Unspecified = 0,
+  ThirtyMinutes = 1,
+  OneHour = 2,
+  NinetyMinutes = 3,
+  TwoHours = 4,
+}
+
 export enum ContainerRamGbEnum {
   Unspecified = 0,
   One = 1,
@@ -747,4 +768,10 @@ export enum ContainerRamGbEnum {
   Fourteen = 14,
   Fifteen = 15,
   Sixteen = 16,
+}
+
+export enum ContainerInstanceLifetimeSchemeEnum {
+  Unspecified = 0,
+  AlwaysCold = 1,
+  Custom = 2,
 }

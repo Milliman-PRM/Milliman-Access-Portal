@@ -1,0 +1,44 @@
+﻿@{
+	Layout = null;
+}
+
+<html>
+    <head>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="userMessage">
+            <hr />
+            <p>Your content is loading. This may take several minutes.</p>
+            <hr />
+        </div>
+        <script>
+            const currentUrl = window.location.href;
+            
+            // Set up a loop to poll for a redirect
+            const checkContainerStatus = () => {
+                setTimeout(() => {
+                    fetch(currentUrl, { method: 'GET' })
+                    .then(response => {
+                        if (response.redirected) {
+                            location.reload();
+                        }
+                        checkContainerStatus();
+                    })
+                    .catch((error) => {
+                        console.log(error);
+                    });
+                }, 5000);
+            }
+
+            // Initialize the polling
+            checkContainerStatus();
+        </script>
+    </body>
+</html>

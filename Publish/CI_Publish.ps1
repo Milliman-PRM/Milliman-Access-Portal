@@ -104,6 +104,7 @@ $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
 $core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
 $net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
+$net6="C:\Program Files\dotnet\sdk\6.0.200\Sdks"
 $env:MSBuildSDKsPath=$net5
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
@@ -118,6 +119,9 @@ $octopusURL = "https://indy-prmdeploy.milliman.com"
 $octopusAPIKey = $env:octopus_api_key
 $runTests = $env:RunTests -ne "False"
 $nodeVersion = "14.18.0"   # maybe this should be a script parameter
+
+log_statement "Listing installed .NET SDKs"
+dotnet --list-sdks
 
 mkdir -p ${rootPath}\_test_results
 #endregion
@@ -170,6 +174,8 @@ log_statement "Restoring packages and building MAP"
 $url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
 $result = Invoke-Webrequest $url
 
+Start-Sleep -s 2
+
 if ($? -eq $false) {
     log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
     log_statement "Result of $($url): status code: $($result.StatusCode)"
@@ -178,6 +184,8 @@ if ($? -eq $false) {
 }
 log_statement "Result of $($url): status code: $($result.StatusCode)"
 log_statement "Result of $($url): response content: $($result.Content)"
+
+start-sleep 4  # Wait for the environment to update with the result of the Node.js version change
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
@@ -271,6 +279,26 @@ if ($LASTEXITCODE -ne 0)
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
+$env:MSBuildSDKsPath=$net6
+Set-Location "$rootPath\ContainerReverseProxy"
+
+log_statement "Building Container Reverse Proxy"
+
+Get-ChildItem -Recurse "$rootpath\ContainerReverseProxy\out" | remove-item
+mkdir "out"
+
+MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
+
+if ($LASTEXITCODE -ne 0)
+{
+    log_statement "ERROR: Build failed for Container Reverse Proxy project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $LASTEXITCODE
+}
+
+$reverseProxyVersion = get-childitem "$rootpath\ContainerReverseProxy\out\ContainerReverseProxy.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
+$reverseProxyVersion = "$reverseProxyVersion-$TrimmedBranch"
+
 if($runTests) {
     log_statement "Performing MAP unit tests"
 
@@ -299,11 +327,11 @@ if($runTests) {
         exit $LASTEXITCODE
     }
 
-    log_statement "Performing content publishing unit tests"
-
     Set-Location $rootPath\ContentPublishingServer\ContentPublishingServiceTests
 
     if ($buildType -eq "Release") {
+        log_statement "Performing content publishing unit tests"
+
         dotnet test --no-build --configuration $buildType "--logger:trx;LogFileName=${rootPath}\_test_results\CPS-tests.trx"
 
         if ($LASTEXITCODE -ne 0) {
@@ -312,12 +340,16 @@ if($runTests) {
             exit $LASTEXITCODE
         }
     }
+	else
+	{
+        log_statement "Content publishing unit tests skipped due to non-release release type"
+	}
 }
 #endregion
 
-log_statement "Publishing and packaging web application"
-
 #region Publish web application to a folder
+
+log_statement "Publishing web application"
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
@@ -330,67 +362,76 @@ if ($LASTEXITCODE -ne 0) {
     exit $error_code
 }
 
-log_statement "Copying Deployment scripts to target folder"
+#endregion
+
+#region Copy deployment scripts to target folder
+
+log_statement "Copying Deployment scripts to target folder $webBuildTarget"
 
 Get-ChildItem -path "$rootPath\Publish\*" -include *.ps1 | Copy-Item -Destination "$webBuildTarget"
+log_statement "Coppied ps1 scripts"
 Get-ChildItem -path "$rootPath\Publish\*" -include *.template | Copy-Item -Destination "$webBuildTarget"
-
+log_statement "Coppied template files"
 
 #endregion
 
 #region package the web application for nuget
 
-Set-Location $webBuildTarget
+log_statement "Packaging web application"
 
+Set-Location $webBuildTarget
 
 $webVersion = get-childitem "MillimanAccessPortal.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $webVersion = "$webVersion-$TrimmedBranch"
 
-# octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
+octo pack --id MillimanAccessPortal --version $webVersion --basepath $webBuildTarget --outfolder $nugetDestination\web
 
-# if ($LASTEXITCODE -ne 0) {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to package web application for nuget"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package web application for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+log_statement "Web application Packaging completed"
 
 #endregion
 
 #region Package publication server for nuget
 
-# log_statement "Packaging publication server"
+log_statement "Packaging publication server"
 
 Set-Location $serviceBuildTarget
 
-# $serviceVersion = get-childitem "ContentPublishingService.exe" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
-# $serviceVersion = "$serviceVersion-$TrimmedBranch"
+$serviceVersion = get-childitem "ContentPublishingService.exe" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
+$serviceVersion = "$serviceVersion-$TrimmedBranch"
 
-# octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
+octo pack --id ContentPublishingServer --version $serviceVersion --outfolder $nugetDestination\service
 
-# if ($LASTEXITCODE -ne 0) {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to package publication server for nuget"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package publication server for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+log_statement "Publication server packaging completed"
 
 #endregion
 
 #region Package MAP User Stats Loader for nuget
-# log_statement "Packaging MAP User Stats Loader"
+log_statement "Packaging MAP User Stats Loader"
 
 Set-Location "$rootPath\User Stats\MAPStatsLoader\"
 Set-Location (Get-ChildItem -Directory "publish" -Recurse | Select-Object -First 1)
 
-# octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
+octo pack --id UserStatsLoader --version $webVersion --outfolder $nugetDestination\UserStatsLoader
 
-# if ($LASTEXITCODE -ne 0) {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to package user stats loader for nuget"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package user stats loader for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+log_statement "User stats loader packaging completed"
 #endregion
 
 #region Publish MAP Query Admin to a folder
@@ -406,134 +447,132 @@ if ($LASTEXITCODE -ne 0) {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
+log_statement "Query Admin publishing completed"
 
 #endregion
 
 #region Package MAP Query Admin for nuget
-# log_statement "Packaging MAP Query Admin"
+log_statement "Packaging MAP Query Admin"
 
 Set-Location $queryAppBuildTarget
 
 $queryVersion = get-childitem "MapQueryAdminWeb.dll" -Recurse | Select-Object -expandproperty VersionInfo -first 1 | Select-Object -expandproperty ProductVersion
 $queryVersion = "$queryVersion-$TrimmedBranch"
 
-# octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
+octo pack --id MapQueryAdmin --version $queryVersion --outfolder $nugetDestination\QueryApp
 
-# if ($LASTEXITCODE -ne 0) {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to package MAP Query Admin for nuget"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to package MAP Query Admin for nuget"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+log_statement "Query admin packaging completed"
 
 #endregion
 
-#region Configure releases in Octopus
+#region Push package(s) to Octopus
 
-# log_statement "Pushing nuget packages to Octopus"
+log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-# octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
-# if ($LASTEXITCODE -ne 0) {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to push packages to Octopus"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+if ($LASTEXITCODE -ne 0) {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to push packages to Octopus"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
+log_statement "Nuget packages pushed to Octopus"
 
-# log_statement "Creating releases in Octopus"
+#endregion
+
+#region Create releases in Octopus
+
+log_statement "Determining Octopus release channel"
 # Determine appropriate release channel (applies only at the time the release is created)
-# if ($BranchName.ToLower() -eq "master")
-# {
-    # $channelName = "Release"
-# }
-# else
-# {
-    # $channelName = "Pre-Release"
-# }
+if ($BranchName.ToLower() -eq "master")
+{
+    $channelName = "Release"
+}
+else
+{
+    $channelName = "Pre-Release"
+}
+log_statement "Release channel is $channelName"
 
-# octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+log_statement "Creating Octopus release for web app"
+octo create-release --project "Web App" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Web application release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the web application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "Web application release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for the web application"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+log_statement "Creating Octopus release for Content Publishing Service"
+octo create-release --project "Content Publishing Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Publishing service application release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the publishing service application"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
-# log_statement "Creating Content Publishing Service release"
+log_statement "Creating Octopus release for MAP Query Admin"
+octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "MAP Query Admin release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
-# octo create-release --project "Content Publishing Service" --space "Spaces-2" --version $serviceVersion --packageVersion $serviceVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+log_statement "Creating Octopus release for Database Migrations"
+octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Database Migrations release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the Database Migrations project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "Publishing service application release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for the publishing service application"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+log_statement "Creating Octopus release for SFTP Server"
+octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "SFTP Server release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
-# log_statement "Creating MAP Query Admin release"
-
-# octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "MAP Query Admin release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for MAP Query Admin"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
-
-# log_statement "Creating Database Migrations project release"
-
-# octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "Database Migrations release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for the Database Migrations project"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
-
-# log_statement "Creating SFTP Server project release"
-
-# octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "SFTP Server release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
-
-# log_statement "Creating Full Stack project release"
-
-# octo create-release --project "Full Stack" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-
-# if ($LASTEXITCODE -eq 0) {
-    # log_statement "Full Stack release created successfully"
-# }
-# else {
-    # $error_code = $LASTEXITCODE
-    # log_statement "ERROR: Failed to create Octopus release for the Full Stack project"
-    # log_statement "errorlevel was $LASTEXITCODE"
-    # exit $error_code
-# }
+log_statement "Creating Octopus release for Full Stack"
+octo create-release --project "Full Stack" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+if ($LASTEXITCODE -eq 0) {
+    log_statement "Full Stack release created successfully"
+}
+else {
+    $error_code = $LASTEXITCODE
+    log_statement "ERROR: Failed to create Octopus release for the Full Stack project"
+    log_statement "errorlevel was $LASTEXITCODE"
+    exit $error_code
+}
 
 #endregion
