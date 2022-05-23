@@ -137,11 +137,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            bool ReductionIsInvolved = publicationRequest.RootContentItem.ContentType.TypeEnum switch
-            {
-                ContentTypeEnum.PowerBi => publicationRequest.RootContentItem.DoesReduce,
-                _ => MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce,
-            };
+            bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce;
 
             var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
@@ -377,13 +373,16 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     });
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
-                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.LiveImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
+                                        string repositoryName = publicationRequest.RootContentItem.AcrRepoositoryName;
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync("");
-#warning TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
-#warning TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
+                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
+
+#warning TODO Is this needed?               await containerizedAppApi.StopAllRunningContainers(theOutgoingLiveImage);
+
+                                            await containerizedAppApi.RetagImage("preview", "live");
                                         });
                                     }
 
@@ -393,7 +392,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
-                                        LiveImageTag = containerizedAppTypeSpecificProperties.PreviewImageTag,
+                                        LiveImageTag = "live",
 
                                         PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                         PreviewContainerInternalPort = 0,

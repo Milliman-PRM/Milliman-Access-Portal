@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Services;
 using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -68,7 +69,6 @@ namespace MillimanAccessPortal.Services
 
                 if (publicationRequestId != Guid.Empty)
                 {
-                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} has been dequeued");
                     _runningTasks.TryAdd(publicationRequestId, PostProcessAsync(publicationRequestId));
                 }
 
@@ -109,7 +109,6 @@ namespace MillimanAccessPortal.Services
                 // Stop tracking completed items
                 foreach (var completedKvp in _runningTasks.Where(t => t.Value.IsCompleted))
                 {
-                    GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing thread completed for request ID {completedKvp.Key}");
                     _runningTasks.Remove(completedKvp.Key, out _);
                 }
             }
@@ -131,24 +130,18 @@ namespace MillimanAccessPortal.Services
                                                                               .ThenInclude(c => c.ContentType)
                                                                           .Include(r => r.RootContentItem)
                                                                               .ThenInclude(c => c.Client)
+                                                                                  .ThenInclude(c => c.ProfitCenter)
                                                                           .SingleOrDefaultAsync(r => r.Id == publicationRequestId);
 
                 RootContentItem contentItem = thisPubRequest.RootContentItem;
 
-                int loopCounter = 0;
                 // While the request is processing, wait and requery
                 while (WaitStatusList.Contains(thisPubRequest.RequestStatus))
                 {
-                    if (loopCounter++ % 100 == 0)
-                    {
-                        GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId} is polling for status in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
-                    }
-
                     Thread.Sleep(2_000);
                     dbContext.Entry(thisPubRequest).State = EntityState.Detached;  // force update from db
                     thisPubRequest = await dbContext.ContentPublicationRequest.FindAsync(thisPubRequest.Id);
                 }
-                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"At loopCounter {loopCounter}, postprocessing publication request {publicationRequestId}, status no longer in WaitStatusList, found status {thisPubRequest.RequestStatus.GetDisplayNameString()}");
 
                 // Ensure that the request is ready for post-processing
                 if (thisPubRequest.RequestStatus != PublicationStatus.PostProcessReady)
@@ -235,7 +228,6 @@ namespace MillimanAccessPortal.Services
                 thisPubRequest.OutcomeMetadataObj = newOutcome;
 
                 await dbContext.SaveChangesAsync();
-                GlobalFunctions.IssueLog(IssueLogEnum.PublishingStuck, $"Postprocessing task for publication request {publicationRequestId} updated to status PostProcessing");
 
                 string tempContentDestinationFolder = Path.Combine(configuration.GetValue<string>("Storage:ContentItemRootPath"),
                                                                    thisPubRequest.RootContentItemId.ToString(),
@@ -304,7 +296,7 @@ namespace MillimanAccessPortal.Services
                 await dbContext.SaveChangesAsync();
 
                 // PostProcess the output of successful reduction tasks
-                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())  // Tanslation: not for Power BI
+                if (contentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())  // Tanslation: not for Power BI or containerized content
                 {
                     foreach (ContentReductionTask relatedTask in SuccessfulReductionTasks)
                     {
@@ -378,19 +370,76 @@ namespace MillimanAccessPortal.Services
                             ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
                             ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
-                            #region 
+                            #region Send image to Azure registry
                             ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                            string repositoryName = contentItem.AcrRepoositoryName;
 
-                            string repositoryName = GlobalFunctions.HexMd5String(contentItem.Id);
+                            try
+                            {
+                                // Run a container based on the appropriate image
+                                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
-                            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
-                            await api.PushImageToRegistry(repositoryName, "imageDigest", "pathToImage");  // TODO get these string arguments right
+                                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting to push image for content item ID {contentItem.Id} to Azure container registry");
+                                await api.PushImageToRegistry(newMasterFile.FullPath, "preview");
+                            }
+                            catch (Exception ex)
+                            {
+                                Log.Error(ex, $"Failed to push container image to ACR");
+                                File.Delete(newMasterFile.FullPath);
+                                throw;
+                            }
+                            #endregion
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
-                            containerContentItemProperties.PreviewImageTag = "preview"; // TODO If an image cannot be retagged during go-live use a numeric tag and increment from the current live image
+                            containerContentItemProperties.PreviewImageTag = "preview";
                             containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                             containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                             containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+
+                            #region Run a container instance
+                            ContainerGroupResourceTags resourceTags = new()
+                            {
+                                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                                ClientId = contentItem.ClientId,
+                                ClientName = contentItem.Client.Name,
+                                ContentItemId = contentItem.Id,
+                                ContentItemName = contentItem.ContentName,
+                                SelectionGroupId = null,
+                                SelectionGroupName = null,
+                                PublicationRequestId = publicationRequestId,
+                                ContentStatus = containerContentItemProperties.PreviewImageTag,
+                            };
+                            string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
+                            // use a tuple so that both succeed or both fail
+                            (string vnetId, string vnetName) = ipAddressType == "Public" 
+                                ? (null,null) 
+                                : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
+
+                            try
+                            {
+                                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
+
+                                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+                                string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
+                                                                             containerContentItemProperties.PreviewImageName,
+                                                                             containerContentItemProperties.PreviewImageTag,
+                                                                             ipAddressType,
+                                                                             (int)containerContentItemProperties.PreviewContainerCpuCores,
+                                                                             (int)containerContentItemProperties.PreviewContainerRamGb,
+                                                                             resourceTags,
+                                                                             vnetId,
+                                                                             vnetName,
+                                                                             true,
+                                                                             containerContentItemProperties.PreviewContainerInternalPort);
+
+                                Log.Information($"Container instance started with URL: {containerUrl}");
+                            }
+                            catch
+                            {
+                                File.Delete(newMasterFile.FullPath);
+                                throw;
+                            }
                             #endregion
 
                             contentItem.TypeSpecificDetailObject = containerContentItemProperties;

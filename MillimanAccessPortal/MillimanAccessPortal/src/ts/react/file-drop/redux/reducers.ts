@@ -645,6 +645,8 @@ const pendingUploads = createReducer<Dict<State.FileDropUploadState>>({}, {
       [uniqueId]: {
         ..._initialUpload,
         uploadId: uniqueId,
+        checksumProgress: ProgressSummary.empty(),
+        uploadProgress: ProgressSummary.empty(),
       },
     };
   },

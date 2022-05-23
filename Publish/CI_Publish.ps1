@@ -174,6 +174,8 @@ log_statement "Restoring packages and building MAP"
 $url   = "http://localhost:8042/nvm_use?version=$nodeVersion"
 $result = Invoke-Webrequest $url
 
+Start-Sleep -s 2
+
 if ($? -eq $false) {
     log_statement "ERROR: Switching to Node.js v$nodeVersion failed"
     log_statement "Result of $($url): status code: $($result.StatusCode)"
@@ -557,18 +559,6 @@ if ($LASTEXITCODE -eq 0) {
 else {
     $error_code = $LASTEXITCODE
     log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $error_code
-}
-
-log_statement "Creating Octopus release for ProxyApp"
-octo create-release --project "ProxyApp" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
-if ($LASTEXITCODE -eq 0) {
-    log_statement "ProxyApp release created successfully"
-}
-else {
-    $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for the ProxyApp project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }

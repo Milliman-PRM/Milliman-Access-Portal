@@ -98,9 +98,14 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
 
     return (
       <div className="iframe-container">
-        {this.state.isLoading && <ColumnSpinner />}
+        {(this.state.isLoading) && <ColumnSpinner />}
         {this.props.children}
         {frame}
+        {this.props.contentType === ContentTypeEnum.ContainerApp &&
+          <p className="container-note">
+            Note: Container applications may take up to several minutes to display the preview.
+          </p>
+        }
       </div>
     );
   }
