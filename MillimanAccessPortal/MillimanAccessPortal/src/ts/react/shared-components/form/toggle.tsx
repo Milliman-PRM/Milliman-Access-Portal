@@ -14,7 +14,7 @@ export class Toggle extends React.Component<ToggleProps> {
     const labelClass = 'toggle-switch-label' + (this.props.checked ? ' checked' : '');
     return (
       <div className={`switch-container-react${this.props.readOnly ? ' disabled' : ''}`}>
-        <div className="toggle-switch" onClick={this.props.onClick}>
+        <div className="toggle-switch" onClick={this.onClick}>
           <label className={labelClass}>
             <span className="toggle-switch-inner" />
             <span className="toggle-switch-switch" />
@@ -23,5 +23,12 @@ export class Toggle extends React.Component<ToggleProps> {
         <label className="switch-label">{this.props.label}</label>
       </div>
     );
+  }
+
+  private onClick = (event: React.MouseEvent<HTMLInputElement>) => {
+    const { onClick, readOnly } = this.props;
+    if (!readOnly) {
+      onClick(event);
+    }
   }
 }

@@ -5,7 +5,7 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
   ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
@@ -336,7 +336,41 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
       containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+      containerInstanceLifetimeScheme:
+        pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+      customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+      === ContainerInstanceLifetimeSchemeEnum.Custom) {
+      typeSpecificPublishingDetail.timeZoneId =
+        pendingFormData.typeSpecificPublicationProperties.timeZoneId;
+      typeSpecificPublishingDetail.startTime =
+        pendingFormData.typeSpecificPublicationProperties.startTime;
+      typeSpecificPublishingDetail.endTime =
+        pendingFormData.typeSpecificPublicationProperties.endTime;
+      typeSpecificPublishingDetail.mondayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.mondayChecked;
+      typeSpecificPublishingDetail.tuesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
+      typeSpecificPublishingDetail.wednesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
+      typeSpecificPublishingDetail.thursdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
+      typeSpecificPublishingDetail.fridayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.fridayChecked;
+      typeSpecificPublishingDetail.saturdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
+      typeSpecificPublishingDetail.sundayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.sundayChecked;
+    }
   }
 
   return {
@@ -386,7 +420,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
   const isContainerApp = pendingFormData.contentTypeId
-    && contentTypes[pendingFormData.contentTypeId].displayName === 'Container App';
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   const contentItemInformation: ContentItemPublicationDetail = {
     ClientId: pendingFormData.clientId,
     ContentName: pendingFormData.contentName,
@@ -426,6 +460,9 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+        containerInstanceLifetimeScheme:
+          pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+        customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
       };
     }
   }
@@ -445,4 +482,9 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
     && state.formData.originalFormData.isEditable
     && state.formData.formState === 'read'
     && !formChangesPending(state);
+}
+
+export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
+  return state.formData.pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    === ContainerInstanceLifetimeSchemeEnum.Custom;
 }

@@ -41,6 +41,7 @@ export interface PublishingStateData {
   contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
   publications: Dict<ContentPublicationRequest>;
   publicationQueue: Dict<PublicationQueueDetails>;
+  timeZones: Array<{ selectionValue: string, selectionLabel: string }>;
 }
 
 /**
@@ -101,6 +102,7 @@ export interface PublishingFormData {
   uploads: Dict<UploadState>;
   formState: 'read' | 'write';
   disclaimerInputState: 'edit' | 'preview';
+  defaultUserTimeZoneId: string;
 }
 
 /**

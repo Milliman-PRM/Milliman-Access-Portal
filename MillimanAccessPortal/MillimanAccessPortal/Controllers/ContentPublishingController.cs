@@ -132,7 +132,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync();
+            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync(await _userManager.GetUserAsync(User));
 
             return Json(model);
         }
@@ -712,9 +712,24 @@ namespace MillimanAccessPortal.Controllers
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        if (request.TypeSpecificPublishingDetail != null)
+                        if (request.TypeSpecificPublishingDetail is null)
                         {
-                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(request.TypeSpecificPublishingDetail.ToObject<ContainerizedContentPublicationProperties>());
+                            Log.Error($"In ContentPublishingController.Publish action: request did not contain valid TypeSpecificPublishingDetail object.");
+                            throw new Exception();
+                        }
+
+                        try
+                        {
+                            var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true,
+                            });
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(publicationDetails);
+                        }
+                        catch (Exception ex)
+                        {
+                            var x = ex;
+                            throw;
                         }
                         break;
 

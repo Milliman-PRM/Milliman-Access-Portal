@@ -9,8 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContainerCpuCoresEnum, ContainerRamGbEnum, ContentItemDetail,
-  ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerInstanceLifetimeSchemeEnum,
+  ContainerRamGbEnum, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -33,6 +33,7 @@ const _initialData: PublishingStateData = {
   contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
+  timeZones: [],
 };
 
 const emptyContentItemDetail: ContentItemDetail = {
@@ -81,6 +82,19 @@ const emptyContentItemDetail: ContentItemDetail = {
     containerCpuCores: ContainerCpuCoresEnum.Two,
     containerRamGb: ContainerRamGbEnum.Eight,
     containerInternalPort: '3838',
+    containerInstanceLifetimeScheme: ContainerInstanceLifetimeSchemeEnum.AlwaysCold,
+    allDaysChecked: false,
+    mondayChecked: false,
+    tuesdayChecked: false,
+    wednesdayChecked: false,
+    thursdayChecked: false,
+    fridayChecked: false,
+    saturdayChecked: false,
+    sundayChecked: false,
+    customCooldownPeriod: ContainerCooldownEnum.OneHour,
+    startTime: '8',
+    endTime: '17',
+    timeZoneId: '',
   },
 };
 
@@ -117,6 +131,7 @@ const _initialFormData: PublishingFormData = {
   uploads: {},
   formState: 'read',
   disclaimerInputState: 'edit',
+  defaultUserTimeZoneId: '',
 };
 
 const _initialGoLiveData: GoLiveSummaryData = {
@@ -405,6 +420,9 @@ const data = createReducer<PublishingStateData>(_initialData, {
     contentAssociatedFileTypes: {
       ...action.response.contentAssociatedFileTypes,
     },
+    timeZones: _.map(action.response.timeZoneSelections,
+      (tzi) => ({ selectionValue: tzi.id, selectionLabel: tzi.displayName })),
+    userTimeZoneId: action.response.userTimeZoneId,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({
     ...state,
@@ -622,9 +640,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: state.formState,
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: '',
     };
   },
-  SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
+  SET_FORM_FOR_NEW_CONTENT_ITEM: (state, action: PublishingActions.SetFormForNewContentItem) => {
     const contentItemDetail: ContentItemDetail = emptyContentItemDetail;
 
     contentItemDetail.clientId = action.clientId;
@@ -646,6 +665,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       pendingFormData: {
         ...contentItemDetail,
+        typeSpecificPublicationProperties: {
+          timeZoneId: state.defaultUserTimeZoneId,
+        },
       },
       formErrors: {},
       uploads: {
@@ -653,10 +675,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: 'write',
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: state.defaultUserTimeZoneId,
     };
 
     return emptyContentItemFormData;
   },
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: PublishingActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    defaultUserTimeZoneId: action.response.userTimeZoneId,
+  }),
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => {
     if (action.inputName === 'contentTypeId') {
       return {
@@ -666,14 +693,17 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           doesReduce: false,
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
-          typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
+          typeSpecificPublicationProperties: {
+            ...emptyContentItemDetail.typeSpecificPublicationProperties,
+            timeZoneId: state.defaultUserTimeZoneId,
+          },
         },
         formErrors: _initialFormData.formErrors,
       };
     } else if (action.inputName === 'containerCpuCores'
-      || action.inputName === 'containerRamGb') {
+      || action.inputName === 'containerRamGb'
+      || action.inputName === 'containerInstanceLifetimeScheme') {
       const value = parseInt(action.value, 10);
-
       return {
         ...state,
         pendingFormData: {
@@ -705,6 +735,20 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           },
         },
       };
+    } else if (action.inputName === 'customCooldownPeriod' ||
+               action.inputName === 'startTime' ||
+               action.inputName === 'endTime' ||
+               action.inputName === 'timeZoneId') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
+          },
+        },
+      };
     } else {
       return {
         ...state,
@@ -727,6 +771,24 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         pendingFormData: {
           ...state.pendingFormData,
           [action.inputName]: action.value,
+        },
+      };
+    } else if (action.inputName === 'allDaysChecked' ||
+               action.inputName === 'mondayChecked' ||
+               action.inputName === 'tuesdayChecked' ||
+               action.inputName === 'wednesdayChecked' ||
+               action.inputName === 'thursdayChecked' ||
+               action.inputName === 'fridayChecked' ||
+               action.inputName === 'saturdayChecked' ||
+               action.inputName === 'sundayChecked') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
+          },
         },
       };
     } else {

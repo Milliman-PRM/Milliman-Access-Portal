@@ -7,6 +7,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
 {
@@ -70,16 +72,18 @@ namespace MapDbContextLib.Models
         Sixteen = 16,
     }
 
-    public enum ContainerInstanceCooldownTimeEnum
+    public enum ContainerCooldownPeriodEnum
     {
-        [Display(Name = "30 Minutes")]
-        ThirtyMinutes = 0,
-        [Display(Name = "1 Hour")]
-        OneHour = 1,
-        [Display(Name = "90 Minutes")]
-        NinetyMinutes = 2,
-        [Display(Name = "120 Minutes")]
-        TwoHours = 3,
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "30 minutes")]
+        ThirtyMinutes = 1,
+        [Display(Name = "1 hour")]
+        OneHour = 2,
+        [Display(Name = "90 minutes")]
+        NinetyMinutes = 3,
+        [Display(Name = "2 hours")]
+        TwoHours = 4,
     }
 
     public enum ContainerInstanceLifetimeSchemeEnum
@@ -88,6 +92,8 @@ namespace MapDbContextLib.Models
         Unspecified = 0,
         [Display(Name = "Always Cold")]
         AlwaysCold = 1,
+        [Display(Name = "Custom")]
+        Custom = 2,
     }
 
     public class ContainerizedContentPublicationProperties : TypeSpecificPublicationPropertiesBase
@@ -96,6 +102,65 @@ namespace MapDbContextLib.Models
 
         public ContainerRamGbEnum ContainerRamGb { get; set; }
 
+        [JsonConverter(typeof(InternalPortJsonConverter))]
         public ushort ContainerInternalPort { get; set; }
+
+        public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
+
+        public ContainerInstanceLifetimeSchemeEnum ContainerInstanceLifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
+        public bool? MondayChecked { get; set; }
+        public bool? TuesdayChecked { get; set; }
+        public bool? WednesdayChecked { get; set; }
+        public bool? ThursdayChecked { get; set; }
+        public bool? FridayChecked { get; set; }
+        public bool? SaturdayChecked { get; set; }
+        public bool? SundayChecked { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
+        public TimeSpan? StartTime { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
+        public TimeSpan? EndTime { get; set; }
+        public string? TimeZoneId { get; set; }
+    }
+
+    internal class InternalPortJsonConverter : JsonConverter<ushort>
+    {
+        public override ushort Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            try
+            {
+                return reader.GetUInt16();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ushort.Parse(reader.GetString());
+            }
+        }
+
+        public override void Write(Utf8JsonWriter writer, ushort value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value);
+        }
+    }
+
+    internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>
+    {
+        public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            int selectedHour;
+            try
+            {
+                reader.TryGetInt32(out selectedHour);
+            }
+            catch (InvalidOperationException ex)
+            {
+                selectedHour = Int32.Parse(reader.GetString());
+            }
+            return new TimeSpan(selectedHour, 0, 0);
+        }
+
+        public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value.Hours);
+        }
     }
 }
