@@ -128,8 +128,7 @@ namespace MapDbContextLib.Models
         {
             try
             {
-                bool valueIsUShort = reader.TryGetUInt16(out ushort value);
-                return value;
+                return reader.GetUInt16();
             }
             catch (InvalidOperationException ex)
             {
