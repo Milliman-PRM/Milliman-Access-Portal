@@ -216,7 +216,6 @@ namespace MapCommonLib
                            .Replace("%", escapeChar + "%");
         }
 
-        public static string HexMd5String(byte[] source)
         /// <summary>
         /// Returns an MD5 hash of the input source byte array
         /// </summary>
