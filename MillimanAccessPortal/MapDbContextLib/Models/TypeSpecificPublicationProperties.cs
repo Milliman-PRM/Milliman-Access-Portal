@@ -102,7 +102,6 @@ namespace MapDbContextLib.Models
 
         public ContainerRamGbEnum ContainerRamGb { get; set; }
 
-        [JsonConverter(typeof(InternalPortJsonConverter))]
         public ushort ContainerInternalPort { get; set; }
 
         public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
@@ -120,26 +119,6 @@ namespace MapDbContextLib.Models
         [JsonConverter(typeof(TimeSpanJsonConverter))]
         public TimeSpan? EndTime { get; set; }
         public string? TimeZoneId { get; set; }
-    }
-
-    internal class InternalPortJsonConverter : JsonConverter<ushort>
-    {
-        public override ushort Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
-        {
-            try
-            {
-                return reader.GetUInt16();
-            }
-            catch (InvalidOperationException ex)
-            {
-                return ushort.Parse(reader.GetString());
-            }
-        }
-
-        public override void Write(Utf8JsonWriter writer, ushort value, JsonSerializerOptions options)
-        {
-            writer.WriteNumberValue(value);
-        }
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>

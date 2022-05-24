@@ -339,7 +339,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     typeSpecificPublishingDetail = {
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
-      containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+      containerInternalPort: Number(pendingFormData.typeSpecificPublicationProperties.containerInternalPort),
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
