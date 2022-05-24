@@ -1,0 +1,37 @@
+﻿@{
+    ViewData["Title"] = "";
+    Layout = "_Layout";
+}
+
+@section CSS {
+    <% for (var css in htmlWebpackPlugin.files.css) { %>
+    <link href="<%= htmlWebpackPlugin.files.css[css] %>" rel="stylesheet">
+    <% } %>
+    <style>
+        body {
+            min-height: 100vh;
+        }
+    </style>
+}
+
+@section Scripts {
+    <% for (var chunk in htmlWebpackPlugin.files.js) { %>
+    <script src="<%= htmlWebpackPlugin.files.js[chunk] %>"></script>
+    <% } %>
+}
+
+<div id="message-container" style="margin-bottom: 8rem">
+    <div class="primary-message" style="z-index: 99">
+        <p>Your content is loading. This may take several minutes.</p>
+    </div>
+    <br />
+    <div class="loading-wrapper">
+        <ul class="loading-indicator">
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+            <li></li>
+        </ul>
+    </div>
+</div>
