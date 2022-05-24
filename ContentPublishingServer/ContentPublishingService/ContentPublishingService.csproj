@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <Content Remove="appsettings.azure-dev.json" />
+    <Content Remove="appsettings.azure-devtest.json" />
     <Content Remove="appsettings.azure-isdev.json" />
     <Content Remove="appsettings.azure-prod.json" />
     <Content Remove="appsettings.azure-uat.json" />
@@ -25,6 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Include="appsettings.azure-devtest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="appsettings.azure-prod.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
