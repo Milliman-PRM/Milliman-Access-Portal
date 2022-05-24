@@ -238,7 +238,7 @@ namespace MillimanAccessPortal.Services
                         string lastReviewerName = lastReview?.UserName ?? "N/A";
                         if (!string.IsNullOrWhiteSpace(lastReview?.UserName))
                         {
-                            ApplicationUser reviewerRecord = dbContext.ApplicationUser.SingleOrDefault(u => EF.Functions.ILike(u.UserName, lastReview.UserName ?? "N/A"));
+                            ApplicationUser reviewerRecord = dbContext.ApplicationUser.SingleOrDefault(u => EF.Functions.ILike(u.UserName, GlobalFunctions.EscapePgWildcards(lastReview.UserName ?? "N/A")));
                             if (reviewerRecord != null) lastReviewerName = $"{reviewerRecord.FirstName} {reviewerRecord.LastName}"; 
                         }
 

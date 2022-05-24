@@ -32,13 +32,26 @@ namespace MillimanAccessPortal.ContentProxy
             Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_proxyConfig)}");
         }
 
-        public void OpenNewSession(string contentToken, string publicUri, string internalUri)
+        public void RemoveExistingRoute(string contentToken)
+        {
+            List<RouteConfig> routesToRemove = _proxyConfig.Routes
+                                                           .Where(r => r.RouteId.StartsWith(contentToken, StringComparison.InvariantCultureIgnoreCase))
+                                                           .ToList();
+            List<string> clusterIds = routesToRemove.Select(r => r.ClusterId).ToList();
+            List<ClusterConfig> clustersToRemove = _proxyConfig.Clusters
+                                                               .Where(c => clusterIds.Contains(c.ClusterId, StringComparer.InvariantCultureIgnoreCase))
+                                                               .ToList();
+
+            UpdateConfiguration(_proxyConfig.Routes.Except(routesToRemove).ToList(), _proxyConfig.Clusters.Except(clustersToRemove).ToList());
+        }
+
+        public void AddNewRoute(string contentToken, string publicUri, string internalUri)
         {
             UriBuilder requestedUri = new UriBuilder(publicUri);
 
-            RouteConfig newRoute = new()
+            RouteConfig newPathRoute = new()
             {
-                RouteId = contentToken,
+                RouteId = contentToken + "-Path",
                 ClusterId = contentToken,
                 Match = new RouteMatch
                 {
@@ -53,14 +66,39 @@ namespace MillimanAccessPortal.ContentProxy
             };
 
             // Add a built in transform to strip out the path prefix indicating the container token
-            newRoute = newRoute.WithTransformPathRemovePrefix($"/{contentToken}");
+            newPathRoute = newPathRoute.WithTransformPathRemovePrefix($"/{contentToken}");
+
+            RouteConfig newRefererRoute = new()
+            {
+                RouteId = contentToken + "-Referer",
+                ClusterId = contentToken,
+                Match = new RouteMatch
+                {
+                    Path = $"/{{**actual-path}}",
+                    Headers = new[]
+                    {
+                        new RouteHeader()
+                        {
+                            Name = "referer",
+                            Values = new[] { contentToken },
+                            Mode = HeaderMatchMode.Contains
+                        }
+                    }
+                },
+                AuthorizationPolicy = default, // TODO Look into how to use this effectively
+                Order = 2,
+                Metadata = new Dictionary<string, string>
+                       {
+                           { "ContentToken", contentToken },
+                       },
+            };
 
             // TODO this if statement needs some attention
-            if (!_proxyConfig.Routes.Any(r => r.Match.Path.Equals(newRoute.Match.Path)))
+            if (!_proxyConfig.Routes.Any(r => r.Match.Path?.Equals(newPathRoute.Match.Path) ?? false))
             {
                 ClusterConfig newCluster = new ClusterConfig
                 {
-                    ClusterId = newRoute.ClusterId,
+                    ClusterId = newPathRoute.ClusterId,
                     Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                         { {
                                 "destination1",
@@ -74,7 +112,7 @@ namespace MillimanAccessPortal.ContentProxy
                            { "ContentToken", contentToken },
                        },
                 };
-                OpenNewSession(newRoute, newCluster);
+                AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
 
                 try
                 {
@@ -88,26 +126,24 @@ namespace MillimanAccessPortal.ContentProxy
             }
         }
 
-        public void OpenNewSession(RouteConfig route, ClusterConfig? cluster)
+        private void AddNewConfigs(IEnumerable<RouteConfig> routes, ClusterConfig? cluster)
         {
             List<RouteConfig> newRoutes = _proxyConfig.Routes.ToList();
 
-            if (!newRoutes.Any(r => r.RouteId.Equals(route.RouteId, StringComparison.OrdinalIgnoreCase)))
+            foreach (var route in routes)
             {
-                newRoutes.Add(route);
-            }
-            else
-            {
-                Debug.WriteLine($"From ProxyConfigProvider.OpenSession, trying to open a session with already existing route id {route.RouteId}");
+                if (!newRoutes.Any(r => r.RouteId.Equals(route.RouteId, StringComparison.OrdinalIgnoreCase)))
+                {
+                    newRoutes.Add(route);
+                }
+                else
+                {
+                    Log.Information($"From ProxyConfigProvider.OpenSession, add a RouteConfig with ID that already exists: {route.RouteId}");
+                }
             }
 
             List<ClusterConfig> newClusters = _proxyConfig.Clusters.ToList();
 
-            if (cluster is null &&
-                !_proxyConfig.Clusters.Any(c => c.ClusterId.Equals(route.ClusterId, StringComparison.OrdinalIgnoreCase)))
-            { // error
-                ;
-            }
             if (cluster is not null)
             {
                 newClusters.Add(cluster);
@@ -116,16 +152,10 @@ namespace MillimanAccessPortal.ContentProxy
             UpdateConfiguration(newRoutes, newClusters);
         }
 
-        public void CloseSession(RouteConfig route, ClusterConfig? cluster)
+        public void RemoveAllConfigForContentToken(string contentToken)
         {
-            // TODO Maybe route and cluster are not the right arguments.  Somehow the caller needs to identify the session to be closed
-            List<RouteConfig> newRoutes = _proxyConfig.Routes.Except(new[] { route }).ToList();
-            List<ClusterConfig> newClusters = cluster is null
-                ? _proxyConfig.Clusters.ToList()
-                : _proxyConfig.Clusters.Except(new[] { cluster }).ToList();
-
-            IEnumerable<ClusterConfig> unreferencedClusters = newClusters.Where(c => c.ClusterId == route.ClusterId);
-            newClusters = newClusters.Except(unreferencedClusters).ToList();
+            List<RouteConfig> newRoutes = _proxyConfig.Routes.Where(rc => !rc.RouteId.Contains(contentToken)).ToList();
+            List<ClusterConfig> newClusters = _proxyConfig.Clusters.Where(cc => !cc.ClusterId.Contains(contentToken)).ToList();
 
             UpdateConfiguration(newRoutes, newClusters);
         }

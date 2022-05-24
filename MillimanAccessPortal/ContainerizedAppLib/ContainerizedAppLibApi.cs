@@ -376,38 +376,32 @@ namespace ContainerizedAppLib
                             }
                             if (!builder.ToString().Equals(blobDigest))
                             {
-                                throw new Exception($"Error on pushing image: Calculated SHA256 hash does not match given layer digest.");
+                                throw new ApplicationException($"Error pushing blob: Calculated SHA256 hash does not match given layer digest.");
                             }
                         }
 
                         fileStream.Seek(0, SeekOrigin.Begin); // Reset stream position since position gets moved when hash is calculated.
 
-                        long totalNumberOfBytesToRead = fileStream.Length;
                         int totalNumberOfBytesRead = 0;
-                        int defaultChunkSize = 10_485_760; // Maximum 10 MB chunk uploads.
-                        byte[] rawFileBytes = new byte[totalNumberOfBytesToRead];
-                        while (totalNumberOfBytesToRead > 0)
-                        {
-                            int chunkSize = Math.Min(defaultChunkSize, (int)(totalNumberOfBytesToRead));
-                            int numberOfBytesRead = fileStream.Read(rawFileBytes, totalNumberOfBytesRead, chunkSize);
-                            byte[] chunkBytes = new byte[chunkSize];
-                            Array.Copy(rawFileBytes, totalNumberOfBytesRead, chunkBytes, 0, chunkSize);
+                        int chunkSize = 10_485_760; // Maximum size of each upload chunk.
+                        byte[] chunkBytes = new byte[chunkSize];
+                        int numberOfBytesRead = 0;
 
+                        while ((numberOfBytesRead = fileStream.Read(chunkBytes, 0, chunkSize)) > 0)
+                        {
                             string blobUploadEndpoint = $"https://{Config.ContainerRegistryUrl}{nextUploadLocation}";
-                            string base64String = Convert.ToBase64String(rawFileBytes);
                             IFlurlResponse blobUploadResponse = await blobUploadEndpoint
                                 .WithHeader("Authorization", $"Bearer {_acrToken}")
                                 .WithHeader("Accept", "application/vnd.oci.image.manifest.v2+json")
                                 .WithHeader("Accept", "application/vnd.docker.distribution.manifest.v2+json")
                                 .WithHeader("Access-Control-Expose-Headers", "Docker-Content-Digest")
-                                .WithHeader("Content-Length", chunkSize)
-                                .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + chunkSize - 1}")
+                                .WithHeader("Content-Length", numberOfBytesRead)
+                                .WithHeader("Content-Range", $"{totalNumberOfBytesRead}-{totalNumberOfBytesRead + numberOfBytesRead - 1}")
                                 .WithHeader("Content-Type", "application/octet-stream")
-                                .PatchAsync(new ByteArrayContent(chunkBytes));
+                                .PatchAsync(new ByteArrayContent(chunkBytes, 0, numberOfBytesRead));
                             blobUploadResponse.Headers.TryGetFirst("Location", out nextUploadLocation);
 
-                            totalNumberOfBytesRead += chunkSize;
-                            totalNumberOfBytesToRead -= chunkSize;
+                            totalNumberOfBytesRead += numberOfBytesRead;
                         }
                     }
                     #endregion
@@ -558,15 +552,16 @@ namespace ContainerizedAppLib
 
                 #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
 
+                int waitTimeSeconds = 60;
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 containerLogMatchString = "Listening on http";  // works for Shiny
-                Log.Information($"Waiting for container log to contain search string \"{containerLogMatchString}\"");
+                Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
                     string log = string.Empty;
-                    for (Stopwatch logTimer = new Stopwatch(); 
-                         logTimer.Elapsed < TimeSpan.FromSeconds(60) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
-                         await Task.Delay(TimeSpan.FromSeconds(2)))
+                    for (Stopwatch logTimer = Stopwatch.StartNew();
+                         logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
+                         await Task.Delay(TimeSpan.FromSeconds(3)))
                     {
                         try
                         {
@@ -579,13 +574,13 @@ namespace ContainerizedAppLib
                 }
 
                 // Wait until the IP:port accepts a TCP connection
-                Log.Information("Waiting for container to accept a TCP connection");
-                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(60); await Task.Delay(TimeSpan.FromSeconds(2)))
+                Log.Information("Waiting up to {waitTimeSeconds} seconds for container to accept a TCP connection");
+                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(3)))
                 {
                     try
                     {
                         TcpClient tcpClient = new TcpClient(containerUri.Host, containerUri.Port);
-                        Log.Information($"socket connected state is {tcpClient.Connected}");
+                        Log.Debug($"socket connected state is {tcpClient.Connected}");
                         tcpClient.Close();
                     }
                     catch (Exception ex)

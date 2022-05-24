@@ -589,6 +589,8 @@ namespace MillimanAccessPortal
                 await next();
             });
 
+            app.UseProxyResponseBodyRewriteMiddleware();
+
             app.UseRouting();
 
             app.UseAuthentication();

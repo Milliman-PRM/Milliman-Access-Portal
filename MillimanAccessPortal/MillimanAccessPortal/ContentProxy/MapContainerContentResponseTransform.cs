@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Primitives;
+using Microsoft.AspNetCore.Http;
 using Serilog;
 using System;
-using Microsoft.AspNetCore.Http;
+using System.IO;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 
@@ -21,11 +22,11 @@ namespace MillimanAccessPortal.ContentProxy
         //     Transforms the given response. The status and headers will have (optionally)
         //     already been copied to the Microsoft.AspNetCore.Http.HttpResponse and any changes
         //     should be made there.
-        public override ValueTask ApplyAsync(ResponseTransformContext context)
+        public override async ValueTask ApplyAsync(ResponseTransformContext context)
         {
             if (context.ProxyResponse is null)
             {
-                return ValueTask.CompletedTask;
+                return;
             }
 
             switch (context.HttpContext.Response.StatusCode)
@@ -60,8 +61,6 @@ namespace MillimanAccessPortal.ContentProxy
                     }
                     break;
             }
-
-            return ValueTask.CompletedTask;
         }
     }
 }

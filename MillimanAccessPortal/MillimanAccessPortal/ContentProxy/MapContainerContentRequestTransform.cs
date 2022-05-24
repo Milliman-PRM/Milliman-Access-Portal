@@ -2,7 +2,7 @@
 using Serilog;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Transforms;
 
@@ -38,6 +38,10 @@ namespace MillimanAccessPortal.ContentProxy
             //    Log.Information(longMsg);
             //    throw new ApplicationException(shortMsg);
             //}
+
+            context.HttpContext.Items.Add("ContentToken", _contentToken);
+            context.HttpContext.Items.Add("ResponseBodyStream", context.HttpContext.Response.Body);
+            context.HttpContext.Response.Body = new MemoryStream();
 
             return ValueTask.CompletedTask;
         }

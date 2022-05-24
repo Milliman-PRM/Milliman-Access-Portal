@@ -50,7 +50,8 @@ namespace MapTests
                 TestResources.ContainerizedAppConfig,
                 TestResources.QvConfig,
                 TestResources.PublicationPostProcessingTaskQueue,
-                TestResources.ContentPublishingAdminQueries
+                TestResources.ContentPublishingAdminQueries,
+                null  // TODO might need to add an instance of MapProxyConfigProvider in setup
                 );
 
             try
