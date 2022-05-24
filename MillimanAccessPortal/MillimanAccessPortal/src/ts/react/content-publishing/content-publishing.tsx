@@ -971,7 +971,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 {
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
                   <>
-                    <h4>Container Settings</h4>
+                    <h4>
+                      Container Settings
+                      <ActionIcon
+                        icon="information"
+                        label={'The following settings pertain to the resources allocated to your '
+                          + 'Containerized App. \n\n'
+                          + 'vCPU Cores: Number of CPU cores available for the Containerized App. Higher numbers '
+                          + 'of cores will increase processing power, but will incur more cost to the user.\n\n'
+                          + 'RAM: Amount of RAM available for the Containerized App. Higher amounts of RAM will '
+                          + 'increase available memory, but will incur more cost to the user.\n\n'
+                          + 'Internal Port: The port number to expose for your Containerized App. Assign this field '
+                          + 'with the port that your Containerized App will run on.'
+                        }
+                        small={true}
+                      />
+                    </h4>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
@@ -1038,6 +1053,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             + 'before shutting down. Note that Containerized Apps which utilize "pre-scheduled hot '
                             + 'times" will remain running within their time window regardless of user activity.'
                           }
+                          small={true}
                         />
                       </h4>
                     </FormSectionRow>
@@ -1120,6 +1136,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 + 'that Containers using "pre-scheduled hot times" will incur cost while they are '
                                 + 'running, regardless of user activity.'
                               }
+                              small={true}
                             />
                           </h4>
                           <Toggle
@@ -1146,6 +1163,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               label={'The days of the week for which Containerized Apps utilizing "pre-scheduled '
                                 + 'hot times" will be running within their start and end time windows.'
                               }
+                              small={true}
                             />
                           </h4>
                           <Checkbox
@@ -1277,6 +1295,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 label={'The start and end time, along with associated time zone, to keep the '
                                   + 'Containerized App running and available during hot days.'
                                 }
+                                small={true}
                               />
                             </h4>
                           </FormSectionRow>

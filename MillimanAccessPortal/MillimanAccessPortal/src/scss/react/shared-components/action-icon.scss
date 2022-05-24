@@ -11,6 +11,11 @@
         height: 1.5em;
         width: 1.5em;
 
+        &.small {
+            height: 1.5em;
+            width: 1.5em;
+        }
+
         &:hover {
             color: darken($charcoal, 15%);
         }
