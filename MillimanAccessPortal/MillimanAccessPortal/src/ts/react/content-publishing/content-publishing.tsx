@@ -982,7 +982,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           + 'RAM: Amount of RAM available for the Containerized App. Higher amounts of RAM will '
                           + 'increase available memory, but will incur more cost to the user.\n\n'
                           + 'Internal Port: The port number to expose for your Containerized App. Assign this field '
-                          + 'with the port that your Containerized App will run on.'
+                          + 'with the port that your Containerized App will run on. This field is required.'
                         }
                         small={true}
                       />
