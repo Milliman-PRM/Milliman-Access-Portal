@@ -60,10 +60,11 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
   };
   public render() {
     const { inline, disabled, label, icon, action, cursor, small } = this.props;
+    const cursorClass = icon === 'information' ? ' info-cursor' : (!cursor ? ' no-cursor' : '');
     return action && (
       <div
         className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''}
-                    tooltip ${!cursor ? ' no-cursor' : ''}`}
+                    tooltip${cursorClass}`}
         title={label}
         onClick={this.action}
       >
