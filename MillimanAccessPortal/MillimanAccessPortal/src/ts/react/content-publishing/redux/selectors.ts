@@ -251,15 +251,19 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  * @param state Redux store
  */
 export function submitButtonIsActive(state: PublishingState) {
+  const { contentTypes } = state.data;
   const { pendingFormData } = state.formData;
   const formChanged = !_.isEqual(state.formData.pendingFormData, state.formData.originalFormData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
+  const formIsValidIfContainer = state.formData.pendingFormData.contentTypeId &&
+    contentTypes[state.formData.pendingFormData.contentTypeId].displayName !== 'Containerized App' ||
+    state.formData.pendingFormData.typeSpecificPublicationProperties.containerInternalPort;
   const formValid = pendingFormData.clientId
     && pendingFormData.contentName.trim()
     && pendingFormData.contentTypeId
     && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
     && !formErrorsExist(state);
-  return formChanged && noActiveUpload && formValid;
+  return formChanged && formIsValidIfContainer && noActiveUpload && formValid;
 }
 
 /**
@@ -335,7 +339,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     typeSpecificPublishingDetail = {
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
-      containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+      containerInternalPort: Number(pendingFormData.typeSpecificPublicationProperties.containerInternalPort),
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
