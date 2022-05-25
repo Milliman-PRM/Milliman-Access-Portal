@@ -54,7 +54,8 @@ namespace MapDbContextLib.Models
         #region Lifetime management
         public abstract class LifetimeSchemeBase
         {
-            public ContainerInstanceLifetimeSchemeEnum Scheme;
+            public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; }
+            public TimeSpan ContainerLingerTimeAfterActivity { get; set; }
         }
 
         public class AlwaysColdLifetimeScheme : LifetimeSchemeBase
@@ -63,6 +64,48 @@ namespace MapDbContextLib.Models
 
         public class CustomScheduleLifetimeScheme : LifetimeSchemeBase
         {
+            public static explicit operator CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
+            {
+                CustomScheduleLifetimeScheme returnObject = new CustomScheduleLifetimeScheme
+                {
+                    Scheme = ContainerInstanceLifetimeSchemeEnum.Custom,
+                    ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
+                    {
+                        ContainerCooldownPeriodEnum.ThirtyMinutes => TimeSpan.FromMinutes(30),
+                        ContainerCooldownPeriodEnum.OneHour => TimeSpan.FromMinutes(60),
+                        ContainerCooldownPeriodEnum.NinetyMinutes => TimeSpan.FromMinutes(90),
+                        ContainerCooldownPeriodEnum.TwoHours => TimeSpan.FromMinutes(120),
+                        _ => throw new NotImplementedException(),
+                    },
+                };
+
+                Action<bool?, DayOfWeek, string> AssignScheduledEventsForDay = (selected, dayOfWeek, timeZoneId) =>
+                {
+                    if (selected.HasValue && selected.Value)
+                    {
+                        DateTime dateTimeOfWeekday = DateTime.Today + TimeSpan.FromDays((int)DateTime.Today.DayOfWeek % (int)dayOfWeek);
+                        if (source.StartTime.HasValue)
+                        {
+                            returnObject.AddScheduledStateInstruction(dateTimeOfWeekday + source.StartTime.Value, true, timeZoneId);
+                        }
+                        if (source.EndTime.HasValue)
+                        {
+                            returnObject.AddScheduledStateInstruction(dateTimeOfWeekday + source.EndTime.Value, false, timeZoneId);
+                        }
+                    }
+                };
+
+                AssignScheduledEventsForDay.Invoke(source.SundayChecked, DayOfWeek.Sunday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.MondayChecked, DayOfWeek.Monday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.TuesdayChecked, DayOfWeek.Tuesday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.WednesdayChecked, DayOfWeek.Wednesday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.ThursdayChecked, DayOfWeek.Thursday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.FridayChecked, DayOfWeek.Friday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.SaturdayChecked, DayOfWeek.Saturday, source.TimeZoneId);
+
+                return returnObject;
+            }
+
             public bool IsScheduledOnNow()
             {
                 TimeSpan utcNowTimeOfWeek = GetUtcTimeOfWeekForAnyDateTime(DateTime.UtcNow);
@@ -85,9 +128,9 @@ namespace MapDbContextLib.Models
                 }
             }
 
-            public void AddScheduledStateInstruction(DateTime dateTime, bool turnOn)
+            public void AddScheduledStateInstruction(DateTime dateTime, bool turnOn, string timeZoneId = null)
             {
-                RunStateInstructions.Add(GetUtcTimeOfWeekForAnyDateTime(dateTime), turnOn);
+                RunStateInstructions.Add(GetUtcTimeOfWeekForAnyDateTime(dateTime, timeZoneId), turnOn);
             }
 
             /// <summary>
@@ -100,21 +143,23 @@ namespace MapDbContextLib.Models
             [JsonIgnore]
             private List<KeyValuePair<TimeSpan, bool>> OrderedStateInstructionList => RunStateInstructions.OrderBy(i => i.Key).ToList();
 
-            private TimeSpan GetUtcTimeOfWeekForAnyDateTime(DateTime dateTime)
+            private TimeSpan GetUtcTimeOfWeekForAnyDateTime(DateTime dateTime, string timeZoneId = null)
             {
+                if (timeZoneId != null)
+                {
+                    try
+                    {
+                        TimeZoneInfo tzInfo = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+                        dateTime = TimeZoneInfo.ConvertTimeToUtc(dateTime, tzInfo);
+                    }
+                    catch { }
+                }
+
                 dateTime = dateTime.ToUniversalTime();
                 DateTime weekStart = dateTime.Date.AddDays(-(int)dateTime.DayOfWeek);
                 return dateTime - weekStart;
             }
         }
-
-
-        public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; }
-        public ContainerCooldownPeriodEnum CooldownTime = ContainerCooldownPeriodEnum.OneHour;
-        public TimeSpan DailyStartTimeUtc { get; set; }
-        public TimeSpan DailyStopTimeUtc { get; set; }
-        public TimeZoneInfo ServiceTimeZone { get; set; }
-        public List<DayOfWeek> ActiveServiceDaysOfWeek {get; set;}
         #endregion
     }
 }
