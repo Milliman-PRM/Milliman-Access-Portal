@@ -6,6 +6,8 @@
 using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
 {
@@ -50,6 +52,63 @@ namespace MapDbContextLib.Models
         public ushort PreviewContainerInternalPort { get; set; } = 0;
 
         #region Lifetime management
+        public abstract class LifetimeSchemeBase
+        {
+            public ContainerInstanceLifetimeSchemeEnum Scheme;
+        }
+
+        public class AlwaysColdLifetimeScheme : LifetimeSchemeBase
+        {
+        }
+
+        public class CustomScheduleLifetimeScheme : LifetimeSchemeBase
+        {
+            public bool IsScheduledOnNow()
+            {
+                TimeSpan utcNowTimeOfWeek = GetUtcTimeOfWeekForAnyDateTime(DateTime.UtcNow);
+
+                switch (OrderedStateInstructionList)
+                {
+                    case var x when !x.Any():
+                        return false;
+
+                    case var x when utcNowTimeOfWeek < x.First().Key:
+                        return x.Last().Value;
+
+                    default:
+                        return OrderedStateInstructionList.Aggregate(false, (accum, element) =>
+                        {
+                            return element.Key < utcNowTimeOfWeek
+                                ? element.Value
+                                : accum;
+                        });
+                }
+            }
+
+            public void AddScheduledStateInstruction(DateTime dateTime, bool turnOn)
+            {
+                RunStateInstructions.Add(GetUtcTimeOfWeekForAnyDateTime(dateTime), turnOn);
+            }
+
+            /// <summary>
+            /// The key must be relative to the start of the week (Saturday night midnight) in UTC, zero offset.
+            /// Sequential ordering is not required
+            /// </summary>
+            private Dictionary<TimeSpan, bool> RunStateInstructions { get; } = new Dictionary<TimeSpan, bool>();
+
+            // A convenience property to guarantee the consumer a collection that is ordered by increasing time. 
+            [JsonIgnore]
+            private List<KeyValuePair<TimeSpan, bool>> OrderedStateInstructionList => RunStateInstructions.OrderBy(i => i.Key).ToList();
+
+            private TimeSpan GetUtcTimeOfWeekForAnyDateTime(DateTime dateTime)
+            {
+                dateTime = dateTime.ToUniversalTime();
+                DateTime weekStart = dateTime.Date.AddDays(-(int)dateTime.DayOfWeek);
+                return dateTime - weekStart;
+            }
+        }
+
+
         public ContainerInstanceLifetimeSchemeEnum LifetimeScheme { get; set; }
         public ContainerCooldownPeriodEnum CooldownTime = ContainerCooldownPeriodEnum.OneHour;
         public TimeSpan DailyStartTimeUtc { get; set; }
