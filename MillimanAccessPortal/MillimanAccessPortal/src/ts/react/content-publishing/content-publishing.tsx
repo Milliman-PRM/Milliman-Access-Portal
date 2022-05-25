@@ -971,7 +971,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 {
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
                   <>
-                    <h4>Container Settings</h4>
+                    <h4>
+                      Container Settings
+                      <ActionIcon
+                        icon="information"
+                        label={'The following settings pertain to the resources allocated to your '
+                          + 'Containerized App. \n\n'
+                          + 'vCPU Cores: Number of CPU cores available for the Containerized App. Higher numbers '
+                          + 'of cores will increase processing power, but will incur more cost to the user.\n\n'
+                          + 'RAM: Amount of RAM available for the Containerized App. Higher amounts of RAM will '
+                          + 'increase available memory, but will incur more cost to the user.\n\n'
+                          + 'Internal Port: The port number to expose for your Containerized App. Assign this field '
+                          + 'with the port that your Containerized App will run on. This field is required.'
+                        }
+                        small={true}
+                      />
+                    </h4>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
@@ -989,7 +1004,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           values={cpuCoresDropdownValues}
                           readOnly={formState === 'read'}
                         />
-                      </ FormFlexContainer>
+                      </FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
                           error={null}
@@ -1006,7 +1021,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           values={containerRamGbDropdownValues}
                           readOnly={formState === 'read'}
                         />
-                      </ FormFlexContainer>
+                      </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12}>
@@ -1030,7 +1045,17 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
-                      <h4>Container cooldown times</h4>
+                      <h4>
+                        Container cooldown times
+                        <ActionIcon
+                          icon="information"
+                          label={'Refers to the amount of time the Container will wait after the last user activity '
+                            + 'before shutting down. Note that Containerized Apps which utilize "pre-scheduled hot '
+                            + 'times" will remain running within their time window regardless of user activity.'
+                          }
+                          small={true}
+                        />
+                      </h4>
                     </FormSectionRow>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={12}>
@@ -1099,7 +1124,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <h4>Pre-scheduled hot times</h4>
+                          <h4>
+                            Pre-scheduled hot times
+                            <ActionIcon
+                              icon="information"
+                              label={'Container availability can be customized based on the needs of the user. "Off"'
+                                + 'indicates that Containers will be started on an "on-demand" basis. Users '
+                                + 'accessing the Container may need to wait several minutes for the Container to '
+                                + 'launch. "On" indicates that Containers will have a set period of "hot" hours '
+                                + 'where the Container will run and be available regardless of user activity. Note '
+                                + 'that Containers using "pre-scheduled hot times" will incur cost while they are '
+                                + 'running, regardless of user activity.'
+                              }
+                              small={true}
+                            />
+                          </h4>
                           <Toggle
                             label="Customize container lifecycle"
                             checked={pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
@@ -1117,7 +1156,16 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </ FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <h4>Custom hot day(s)</h4>
+                          <h4>
+                            Custom hot day(s)
+                            <ActionIcon
+                              icon="information"
+                              label={'The days of the week for which Containerized Apps utilizing "pre-scheduled '
+                                + 'hot times" will be running within their start and end time windows.'
+                              }
+                              small={true}
+                            />
+                          </h4>
                           <Checkbox
                             name="All"
                             selected={pendingFormData.typeSpecificPublicationProperties.allDaysChecked}
@@ -1240,7 +1288,16 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       <FormFlexContainer flexPhone={12} flexDesktop={4} block={true}>
                         <FormSection>
                           <FormSectionRow>
-                            <h4>Custom hot hours</h4>
+                            <h4>
+                              Custom hot hours
+                              <ActionIcon
+                                icon="information"
+                                label={'The start and end time, along with associated time zone, to keep the '
+                                  + 'Containerized App running and available during hot days.'
+                                }
+                                small={true}
+                              />
+                            </h4>
                           </FormSectionRow>
                           <FormSectionRow>
                             <FormFlexContainer flexPhone={12} flexDesktop={12}>
