@@ -560,12 +560,12 @@ namespace ContainerizedAppLib
                 {
                     string log = string.Empty;
                     for (Stopwatch logTimer = Stopwatch.StartNew();
-                         logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
+                        logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
                          await Task.Delay(TimeSpan.FromSeconds(3)))
                     {
                         try
                         {
-                            log = await GetContainerLogs(containerGroupName, containerGroupName);
+                            log = (await GetContainerLogs(containerGroupName, containerGroupName)) ?? string.Empty;
                         }
                         catch { }
 

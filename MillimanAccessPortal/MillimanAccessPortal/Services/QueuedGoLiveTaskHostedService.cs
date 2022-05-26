@@ -325,7 +325,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
                         string TargetFilePath = string.Empty;
 
-                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase))
+                        List<ContentTypeEnum> specialTreatmentContentTypeEnums = new List<ContentTypeEnum> {
+                            ContentTypeEnum.PowerBi,
+                            ContentTypeEnum.ContainerApp,
+                        };
+
+                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase)&& specialTreatmentContentTypeEnums.Contains(publicationRequest.RootContentItem.ContentType.TypeEnum))
                         {
                             // special treatment for content types where no live content file persists in MAP storage
                             switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
@@ -401,47 +406,47 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         PreviewImageTag = null,
                                     };
                                     break;
+                            }
+                        }
+                        else
+                        {
+                            // This assignment defines the live file name
+                            TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                          goLiveViewModel.RootContentItemId.ToString(),
+                                                          TargetFileName);
 
-                                default:
-                                    // This assignment defines the live file name
-                                    TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                                  goLiveViewModel.RootContentItemId.ToString(),
-                                                                  TargetFileName);
+                            // Move any existing live file of this name to backed up name
+                            if (File.Exists(TargetFilePath))
+                            {
+                                string BackupFilePath = TargetFilePath + ".bak";
+                                if (File.Exists(BackupFilePath))
+                                {
+                                    File.Delete(BackupFilePath);
+                                }
+                                File.Move(TargetFilePath, BackupFilePath);
 
-                                    // Move any existing live file of this name to backed up name
+                                successActionList.Add(new Action(() => {
+                                    File.Delete(BackupFilePath);
+                                }));
+                                failureRecoveryActionList.Add(new Action(() => {
                                     if (File.Exists(TargetFilePath))
                                     {
-                                        string BackupFilePath = TargetFilePath + ".bak";
-                                        if (File.Exists(BackupFilePath))
-                                        {
-                                            File.Delete(BackupFilePath);
-                                        }
-                                        File.Move(TargetFilePath, BackupFilePath);
-
-                                        successActionList.Add(new Action(() => {
-                                            File.Delete(BackupFilePath);
-                                        }));
-                                        failureRecoveryActionList.Add(new Action(() => {
-                                            if (File.Exists(TargetFilePath))
-                                            {
-                                                File.Delete(TargetFilePath);
-                                            }
-                                            File.Move(BackupFilePath, TargetFilePath);
-                                        }));
+                                        File.Delete(TargetFilePath);
                                     }
-
-                                    // Can move since files are on the same volume
-                                    File.Move(Crf.FullPath, TargetFilePath);
-
-                                    failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
-                                        if (File.Exists(Crf.FullPath))
-                                        {
-                                            File.Delete(Crf.FullPath);
-                                        }
-                                        File.Move(TargetFilePath, Crf.FullPath);
-                                    }));
-                                    break;
+                                    File.Move(BackupFilePath, TargetFilePath);
+                                }));
                             }
+
+                            // Can move since files are on the same volume
+                            File.Move(Crf.FullPath, TargetFilePath);
+
+                            failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                                if (File.Exists(Crf.FullPath))
+                                {
+                                    File.Delete(Crf.FullPath);
+                                }
+                                File.Move(TargetFilePath, Crf.FullPath);
+                            }));
                         }
 
                         UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.InvariantCultureIgnoreCase));
