@@ -142,3 +142,12 @@ export function enableButtonOnScrollBottom(scrollElement: HTMLElement, button: H
     button.disabled = false;
   }
 }
+
+export function convertTimeStringToIndex(timeString: string): string {
+  if (!timeString || timeString.length !== 8) {
+    return '';
+  }
+
+  const hourOnly = timeString.substr(0, 2);
+  return timeString[0] === '0' ? hourOnly.substr(1, 1) : hourOnly;
+}
