@@ -44,6 +44,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
+        public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
 
         public string PreviewImageName { get; set; } = null;
         public string PreviewImageTag { get; set; } = null;
@@ -52,45 +53,56 @@ namespace MapDbContextLib.Models
         public ushort PreviewContainerInternalPort { get; set; } = 0;
 
         #region Lifetime management
-        public abstract class LifetimeSchemeBase
+        public class LifetimeSchemeBase
         {
-            public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; }
+            public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.Unspecified;
             public TimeSpan ContainerLingerTimeAfterActivity { get; set; }
+
+            public LifetimeSchemeBase(ContainerizedContentPublicationProperties source)
+            {
+                Scheme = source.ContainerInstanceLifetimeScheme;
+                ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
+                {
+                    ContainerCooldownPeriodEnum.ThirtyMinutes => TimeSpan.FromMinutes(30),
+                    ContainerCooldownPeriodEnum.OneHour => TimeSpan.FromMinutes(60),
+                    ContainerCooldownPeriodEnum.NinetyMinutes => TimeSpan.FromMinutes(90),
+                    ContainerCooldownPeriodEnum.TwoHours => TimeSpan.FromMinutes(120),
+                    _ => throw new NotImplementedException(),
+                };
+            }
+
         }
 
         public class AlwaysColdLifetimeScheme : LifetimeSchemeBase
         {
+            public AlwaysColdLifetimeScheme(ContainerizedContentPublicationProperties source) 
+                : base(source)
+            {}
         }
 
         public class CustomScheduleLifetimeScheme : LifetimeSchemeBase
         {
-            public static explicit operator CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
-            {
-                CustomScheduleLifetimeScheme returnObject = new CustomScheduleLifetimeScheme
-                {
-                    Scheme = ContainerInstanceLifetimeSchemeEnum.Custom,
-                    ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
-                    {
-                        ContainerCooldownPeriodEnum.ThirtyMinutes => TimeSpan.FromMinutes(30),
-                        ContainerCooldownPeriodEnum.OneHour => TimeSpan.FromMinutes(60),
-                        ContainerCooldownPeriodEnum.NinetyMinutes => TimeSpan.FromMinutes(90),
-                        ContainerCooldownPeriodEnum.TwoHours => TimeSpan.FromMinutes(120),
-                        _ => throw new NotImplementedException(),
-                    },
-                };
+            /// <summary>
+            /// The key must be relative to the start of the week (Saturday night midnight) in UTC, zero offset.
+            /// Sequential ordering is not required
+            /// </summary>
+            public Dictionary<TimeSpan, bool> RunStateInstructions { get; } = new Dictionary<TimeSpan, bool>();
 
+            public CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
+                : base(source)
+            {
                 Action<bool?, DayOfWeek, string> AssignScheduledEventsForDay = (selected, dayOfWeek, timeZoneId) =>
                 {
                     if (selected.HasValue && selected.Value)
                     {
-                        DateTime dateTimeOfWeekday = DateTime.Today + TimeSpan.FromDays((int)DateTime.Today.DayOfWeek % (int)dayOfWeek);
+                        DateTime dateTimeOfWeekday = DateTime.Today + TimeSpan.FromDays(((int)dayOfWeek - (int)DateTime.Today.DayOfWeek) % 7);
                         if (source.StartTime.HasValue)
                         {
-                            returnObject.AddScheduledStateInstruction(dateTimeOfWeekday + source.StartTime.Value, true, timeZoneId);
+                            AddScheduledStateInstruction(dateTimeOfWeekday + source.StartTime.Value, true, timeZoneId);
                         }
                         if (source.EndTime.HasValue)
                         {
-                            returnObject.AddScheduledStateInstruction(dateTimeOfWeekday + source.EndTime.Value, false, timeZoneId);
+                            AddScheduledStateInstruction(dateTimeOfWeekday + source.EndTime.Value, false, timeZoneId);
                         }
                     }
                 };
@@ -102,8 +114,6 @@ namespace MapDbContextLib.Models
                 AssignScheduledEventsForDay.Invoke(source.ThursdayChecked, DayOfWeek.Thursday, source.TimeZoneId);
                 AssignScheduledEventsForDay.Invoke(source.FridayChecked, DayOfWeek.Friday, source.TimeZoneId);
                 AssignScheduledEventsForDay.Invoke(source.SaturdayChecked, DayOfWeek.Saturday, source.TimeZoneId);
-
-                return returnObject;
             }
 
             public bool IsScheduledOnNow()
@@ -132,12 +142,6 @@ namespace MapDbContextLib.Models
             {
                 RunStateInstructions.Add(GetUtcTimeOfWeekForAnyDateTime(dateTime, timeZoneId), turnOn);
             }
-
-            /// <summary>
-            /// The key must be relative to the start of the week (Saturday night midnight) in UTC, zero offset.
-            /// Sequential ordering is not required
-            /// </summary>
-            private Dictionary<TimeSpan, bool> RunStateInstructions { get; } = new Dictionary<TimeSpan, bool>();
 
             // A convenience property to guarantee the consumer a collection that is ordered by increasing time. 
             [JsonIgnore]
