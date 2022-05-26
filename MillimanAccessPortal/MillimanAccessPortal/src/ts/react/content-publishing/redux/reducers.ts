@@ -3,6 +3,7 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { generateUniqueId } from '../../../generate-unique-identifier';
+import { convertTimeStringToIndex } from '../../../shared';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
@@ -586,6 +587,58 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.containerInternalPort ?
           action.response.typeSpecificPublicationProperties.containerInternalPort :
           emptyContentItemDetail.typeSpecificPublicationProperties.containerInternalPort,
+        customCooldownPeriod: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.customCooldownPeriod ?
+          action.response.typeSpecificPublicationProperties.customCooldownPeriod :
+          emptyContentItemDetail.typeSpecificPublicationProperties.customCooldownPeriod,
+        containerInstanceLifetimeScheme: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme ?
+          action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+        allDaysChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.allDaysChecked ?
+          action.response.typeSpecificPublicationProperties.allDaysChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
+        mondayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.mondayChecked ?
+          action.response.typeSpecificPublicationProperties.mondayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.mondayChecked,
+        tuesdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.tuesdayChecked ?
+          action.response.typeSpecificPublicationProperties.tuesdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.tuesdayChecked,
+        wednesdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.wednesdayChecked ?
+          action.response.typeSpecificPublicationProperties.wednesdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.wednesdayChecked,
+        thursdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.thursdayChecked ?
+          action.response.typeSpecificPublicationProperties.thursdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.thursdayChecked,
+        fridayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.fridayChecked ?
+          action.response.typeSpecificPublicationProperties.fridayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.fridayChecked,
+        saturdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.saturdayChecked ?
+          action.response.typeSpecificPublicationProperties.saturdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.saturdayChecked,
+        sundayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.sundayChecked ?
+          action.response.typeSpecificPublicationProperties.sundayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.sundayChecked,
+        startTime: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.startTime ?
+          convertTimeStringToIndex(action.response.typeSpecificPublicationProperties.startTime) :
+          emptyContentItemDetail.typeSpecificPublicationProperties.startTime,
+        endTime: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.endTime ?
+          convertTimeStringToIndex(action.response.typeSpecificPublicationProperties.endTime) :
+          emptyContentItemDetail.typeSpecificPublicationProperties.endTime,
+        timeZoneId: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.timeZoneId ?
+          action.response.typeSpecificPublicationProperties.timeZoneId :
+          emptyContentItemDetail.typeSpecificPublicationProperties.timeZoneId,
       },
       relatedFiles: {
         MasterContent: {
