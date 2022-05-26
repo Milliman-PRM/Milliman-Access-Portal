@@ -130,7 +130,7 @@ namespace MapDbContextLib.Models
             {
                 return reader.GetUInt16();
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 return ushort.Parse(reader.GetString());
             }
@@ -151,7 +151,7 @@ namespace MapDbContextLib.Models
             {
                 reader.TryGetInt32(out selectedHour);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 selectedHour = Int32.Parse(reader.GetString());
             }
