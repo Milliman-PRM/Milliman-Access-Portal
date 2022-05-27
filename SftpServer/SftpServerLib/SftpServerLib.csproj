@@ -31,6 +31,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="appSettings.AZURE-DEVTEST.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="appSettings.AZURE-DEV.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
