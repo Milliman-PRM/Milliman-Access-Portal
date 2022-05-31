@@ -27,6 +27,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -366,6 +367,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                                 case ContentTypeEnum.ContainerApp:
                                     ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                                    ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
 
                                     failureRecoveryActionList.Add(() => {
                                         publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
@@ -393,6 +395,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
                                         LiveImageTag = "live",
+                                        LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
+                                        {
+                                            ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppPubProperties),
+                                            ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
+                                            _ => null,
+                                        },
 
                                         PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                         PreviewContainerInternalPort = 0,
