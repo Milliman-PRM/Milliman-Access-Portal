@@ -661,8 +661,12 @@ namespace ContainerizedAppLib
                                         _ => EnvironmentVariables.Select(ev => new ContainerProperties.EnvironmentVariable
                                         {
                                             Name = ev.Key,
-                                            Value = ev.Value,
-                                            SecureValue = ev.Value,
+                                            Value = ipType.Equals("Public", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
+                                            SecureValue = ipType.Equals("Private", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
                                         }).ToList(),
                                     }
 ,

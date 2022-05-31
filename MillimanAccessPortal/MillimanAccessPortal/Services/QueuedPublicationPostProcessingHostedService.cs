@@ -413,7 +413,7 @@ namespace MillimanAccessPortal.Services
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
                             // use a tuple so that both succeed or both fail
-                            (string vnetId, string vnetName) = ipAddressType == "Public" 
+                            (string vnetId, string vnetName) = ipAddressType.Equals("Public", StringComparison.InvariantCultureIgnoreCase) 
                                 ? (null,null) 
                                 : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
 
