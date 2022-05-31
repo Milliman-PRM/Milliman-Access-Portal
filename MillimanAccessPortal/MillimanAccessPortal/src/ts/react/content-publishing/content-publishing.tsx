@@ -1658,18 +1658,16 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             contentType={contentTypeMap[goLiveSummary.contentTypeName]}
             contentURL={goLiveSummary.masterContentLink}
           >
-            {contentTypeMap[goLiveSummary.contentTypeName] !== ContentTypeEnum.ContainerApp &&
-              <a
-                href={goLiveSummary.masterContentLink}
-                className="new-tab-icon"
-                target="_blank"
-                title="Open in new tab"
-              >
-                <svg className="action-icon-expand-frame action-icon tooltip">
-                  <use xlinkHref="#expand-frame" />
-                </svg>
-              </a>
-            }
+            <a
+              href={goLiveSummary.masterContentLink}
+              className="new-tab-icon"
+              target="_blank"
+              title="Open in new tab"
+            >
+              <svg className="action-icon-expand-frame action-icon tooltip">
+                <use xlinkHref="#expand-frame" />
+              </svg>
+            </a>
           </ContentContainer>
         )}
       </GoLiveSection>
