@@ -53,7 +53,7 @@ namespace MapDbContextLib.Models
         public ushort PreviewContainerInternalPort { get; set; } = 0;
 
         #region Lifetime management
-        public class LifetimeSchemeBase
+        public abstract class LifetimeSchemeBase
         {
             public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.Unspecified;
             public TimeSpan ContainerLingerTimeAfterActivity { get; set; }
@@ -91,29 +91,29 @@ namespace MapDbContextLib.Models
             public CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
                 : base(source)
             {
-                Action<bool?, DayOfWeek, string> AssignScheduledEventsForDay = (selected, dayOfWeek, timeZoneId) =>
+                Action<bool?, DayOfWeek> AssignScheduledEventsForDay = (selected, dayOfWeek) =>
                 {
                     if (selected.HasValue && selected.Value)
                     {
                         DateTime dateTimeOfWeekday = DateTime.Today + TimeSpan.FromDays(((int)dayOfWeek - (int)DateTime.Today.DayOfWeek) % 7);
                         if (source.StartTime.HasValue)
                         {
-                            AddScheduledStateInstruction(dateTimeOfWeekday + source.StartTime.Value, true, timeZoneId);
+                            AddScheduledStateInstruction(dateTimeOfWeekday + source.StartTime.Value, true, source.TimeZoneId);
                         }
                         if (source.EndTime.HasValue)
                         {
-                            AddScheduledStateInstruction(dateTimeOfWeekday + source.EndTime.Value, false, timeZoneId);
+                            AddScheduledStateInstruction(dateTimeOfWeekday + source.EndTime.Value, false, source.TimeZoneId);
                         }
                     }
                 };
 
-                AssignScheduledEventsForDay.Invoke(source.SundayChecked, DayOfWeek.Sunday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.MondayChecked, DayOfWeek.Monday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.TuesdayChecked, DayOfWeek.Tuesday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.WednesdayChecked, DayOfWeek.Wednesday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.ThursdayChecked, DayOfWeek.Thursday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.FridayChecked, DayOfWeek.Friday, source.TimeZoneId);
-                AssignScheduledEventsForDay.Invoke(source.SaturdayChecked, DayOfWeek.Saturday, source.TimeZoneId);
+                AssignScheduledEventsForDay.Invoke(source.SundayChecked, DayOfWeek.Sunday);
+                AssignScheduledEventsForDay.Invoke(source.MondayChecked, DayOfWeek.Monday);
+                AssignScheduledEventsForDay.Invoke(source.TuesdayChecked, DayOfWeek.Tuesday);
+                AssignScheduledEventsForDay.Invoke(source.WednesdayChecked, DayOfWeek.Wednesday);
+                AssignScheduledEventsForDay.Invoke(source.ThursdayChecked, DayOfWeek.Thursday);
+                AssignScheduledEventsForDay.Invoke(source.FridayChecked, DayOfWeek.Friday);
+                AssignScheduledEventsForDay.Invoke(source.SaturdayChecked, DayOfWeek.Saturday);
             }
 
             public bool IsScheduledOnNow()
