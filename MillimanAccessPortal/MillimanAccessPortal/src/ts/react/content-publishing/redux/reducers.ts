@@ -81,7 +81,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     roleList: [],
     containerCpuCores: ContainerCpuCoresEnum.Two,
     containerRamGb: ContainerRamGbEnum.Eight,
-    containerInternalPort: '3838',
+    containerInternalPort: '',
     containerInstanceLifetimeScheme: ContainerInstanceLifetimeSchemeEnum.AlwaysCold,
     allDaysChecked: false,
     mondayChecked: false,

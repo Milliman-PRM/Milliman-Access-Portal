@@ -489,6 +489,7 @@ namespace MillimanAccessPortal
                 case "AZURE-DEV":
                 case "AZURE-UAT":
                 case "AZURE-PROD":
+                case "AZURE-DEVTEST":
                     Log.Debug("Configuring Data Protection");
 
                     DirectoryInfo azKeyDirectory = new DirectoryInfo(@"C:\temp-keys");

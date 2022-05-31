@@ -113,6 +113,9 @@
     <None Include="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="appsettings.azure-devtest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="appsettings.AzureCI.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
