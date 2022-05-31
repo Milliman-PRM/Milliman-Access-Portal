@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -421,6 +422,7 @@ namespace MillimanAccessPortal.Services
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
                                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+                                string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(publicationRequestId.ToString()));
                                 string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                              containerContentItemProperties.PreviewImageName,
                                                                              containerContentItemProperties.PreviewImageTag,
@@ -431,6 +433,7 @@ namespace MillimanAccessPortal.Services
                                                                              vnetId,
                                                                              vnetName,
                                                                              true,
+                                                                             new Dictionary<string, string> { { "ContentToken", contentToken } },
                                                                              containerContentItemProperties.PreviewContainerInternalPort);
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");

@@ -8,6 +8,9 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "command")]
         public List<string> Commands { get; set; }
 
+        [JsonProperty(PropertyName = "environmentVariables")]
+        public List<EnvironmentVariable> EnvironmentVariables { get; set; }
+
         [JsonProperty(PropertyName = "image")]
         public string Image { get; set; }
 
@@ -20,7 +23,19 @@ namespace ContainerizedAppLib.AzureRestApiModels
         [JsonProperty(PropertyName = "resources")]
         public ResourceRequirements Resources { get; set; }
 
-        // TODO environmentVariables
+        public class EnvironmentVariable
+        {
+            [JsonProperty(PropertyName = "name")]
+            public string Name { get; set; }
+
+            [JsonProperty(PropertyName = "secureValue")]
+            public string SecureValue { get; set; }
+
+            [JsonProperty(PropertyName = "value")]
+            public string Value { get; set; }
+
+        }
+
         // TODO volumeMounts
         // TODO readinessProbe
         // TODO livenessProbe

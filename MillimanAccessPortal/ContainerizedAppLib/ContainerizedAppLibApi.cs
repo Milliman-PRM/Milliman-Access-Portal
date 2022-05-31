@@ -500,13 +500,23 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
+                                               Dictionary<string, string> EnvironmentVariables = null,
                                                params ushort[] containerPorts)
         {
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, resourceTags, vnetId, vnetName, containerPorts);
+                bool createResult = await CreateContainerGroup(containerGroupName, 
+                                                               imagePath, 
+                                                               ipType, 
+                                                               cpuCoreCount, 
+                                                               memorySizeInGB, 
+                                                               resourceTags, 
+                                                               vnetId, 
+                                                               vnetName, 
+                                                               EnvironmentVariables,
+                                                               containerPorts);
 
                 if (!createResult)
                 {
@@ -615,7 +625,16 @@ namespace ContainerizedAppLib
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
-        private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        private async Task<bool> CreateContainerGroup(string containerGroupName, 
+                                                      string containerImageName, 
+                                                      string ipType, 
+                                                      int cpuCoreCount, 
+                                                      double memorySizeInGB, 
+                                                      ContainerGroupResourceTags resourceTags, 
+                                                      string vnetId = null, 
+                                                      string vnetName = null, 
+                                                      Dictionary<string, string> EnvironmentVariables = null, 
+                                                      params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -636,6 +655,17 @@ namespace ContainerizedAppLib
                                 Properties = new ContainerProperties()
                                 {
                                     Commands = new List<string>(),
+                                    EnvironmentVariables = EnvironmentVariables switch
+                                    {
+                                        null => null,
+                                        _ => EnvironmentVariables.Select(ev => new ContainerProperties.EnvironmentVariable
+                                        {
+                                            Name = ev.Key,
+                                            Value = ev.Value,
+                                            SecureValue = ev.Value,
+                                        }).ToList(),
+                                    }
+,
                                     Image = containerImageName,
                                     Ports = containerPortObjects,
                                     Resources = new ResourceRequirements()
