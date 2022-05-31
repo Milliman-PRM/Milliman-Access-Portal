@@ -18,6 +18,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MillimanAccessPortal.Utilities;
 using PowerBiLib;
 using QlikviewLib;
 using Serilog;
@@ -40,16 +41,19 @@ namespace MillimanAccessPortal.Services
         public QueuedPublicationPostProcessingHostedService(
             IServiceProvider services,
             IPublicationPostProcessingTaskQueue taskQueue,
+            IMessageQueue messageQueue,
             IConfiguration config)
         {
             _services = services;
             _taskQueue = taskQueue;
+            _messageQueue = messageQueue;
             _appConfig = config;
         }
 
         public IServiceProvider _services { get; }
         public IPublicationPostProcessingTaskQueue _taskQueue { get; }
         public IConfiguration _appConfig { get; }
+        public IMessageQueue _messageQueue { get; }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -421,6 +425,7 @@ namespace MillimanAccessPortal.Services
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
                                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+
                                 string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                              containerContentItemProperties.PreviewImageName,
                                                                              containerContentItemProperties.PreviewImageTag,
@@ -435,8 +440,27 @@ namespace MillimanAccessPortal.Services
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                if (ex.GetType() == typeof(ApplicationException))
+                                {
+                                    switch (ex.Message)
+                                    {
+                                        case "ContainerGroupQuotaReached":
+                                            var notifier = new NotifySupport(_messageQueue, _appConfig);
+                                            string supportEmail = $"The virtual CPU core limit has been reached for Azure Container Instance " +
+                                                             $"Container Groups.{Environment.NewLine}{Environment.NewLine}" +
+                                                             $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                                                             $"Content Item: {contentItem.ContentName}{Environment.NewLine}" +
+                                                             $"Container Group: {publicationRequestId.ToString()}{Environment.NewLine}" +
+                                                             $"Client: {contentItem.Client.Name}{Environment.NewLine}" +
+                                                             $"Requested # of Cores: {containerContentItemProperties.PreviewContainerCpuCores.GetDisplayDescriptionString()}{Environment.NewLine}" +
+                                                             $"Check for more details in the MAP application log file";
+                                            notifier.sendSupportMail(supportEmail, "Azure Core Limit Reached");
+                                            break;
+                                    }
+                                }
+
                                 File.Delete(newMasterFile.FullPath);
                                 throw;
                             }

@@ -847,6 +847,7 @@ namespace MillimanAccessPortal.Controllers
                                                  $"Content Item: {contentItem.ContentName}{Environment.NewLine}" +
                                                  $"Container Group: {containerGroupName}{Environment.NewLine}" +
                                                  $"Client: {contentItem.Client.Name}{Environment.NewLine}" +
+                                                 $"Requested # of Cores: {typeSpecificInfo.PreviewContainerCpuCores.GetDisplayDescriptionString()}{Environment.NewLine}" +
                                                  $"Check for more details in the MAP application log file";
                                 notifier.sendSupportMail(supportEmail, "Azure Core Limit Reached");
                                 break;
