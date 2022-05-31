@@ -6,22 +6,23 @@
     ],
     "jsRules": {},
     "rules": {
-        "forin": false,
-        "interface-name": [true, "never-prefix"],
-        "max-classes-per-file": [true, 3],
-        "no-namespace": false,
-        "jsx-no-lambda": false,
-        "jsx-no-multiline-js": false,
-        "no-var-requires": false,
-        "object-literal-sort-keys": false,
-        "quotemark": [true, "single", "avoid-template", "jsx-double"],
-        "variable-name": [
-            true,
-            "ban-keywords",
-            "check-format",
-            "allow-leading-underscore",
-            "allow-pascal-case"
-        ]
+      "no-console":  false,
+      "forin": false,
+      "interface-name": [ true, "never-prefix" ],
+      "max-classes-per-file": [ true, 3 ],
+      "no-namespace": false,
+      "jsx-no-lambda": false,
+      "jsx-no-multiline-js": false,
+      "no-var-requires": false,
+      "object-literal-sort-keys": false,
+      "quotemark": [ true, "single", "avoid-template", "jsx-double" ],
+      "variable-name": [
+        true,
+        "ban-keywords",
+        "check-format",
+        "allow-leading-underscore",
+        "allow-pascal-case"
+      ]
     },
-    "rulesDirectory": []
+      "rulesDirectory": []
 }

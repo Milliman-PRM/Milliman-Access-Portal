@@ -851,6 +851,17 @@ namespace MillimanAccessPortal.Controllers
                                 notifier.sendSupportMail(supportEmail, "Azure Core Limit Reached");
                                 break;
                         }
+
+                        UserMessageModel model = new UserMessageModel
+                        {
+                            PrimaryMessages =
+                            {
+                                "Something went wrong. Please contact your MAP Administrator",
+                                "Please click your browser's \"Back\" button or use a navigation button at the left.",
+                            },
+                            Buttons = new List<ConfiguredButton>(),
+                        };
+                        return View("UserMessage", model);
                     }
 
 
