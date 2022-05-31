@@ -820,18 +820,39 @@ namespace MillimanAccessPortal.Controllers
                                                        ? (null, null)
                                                        : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
-                    // Run a container based on the appropriate image
-                    string containerUrl = await api.RunContainer(containerGroupName,
-                                                                 isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
-                                                                 isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
-                                                                 ipAddressType,
-                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
-                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
-                                                                 resourceTags,
-                                                                 vnetId,
-                                                                 vnetName,
-                                                                 false,
-                                                                 isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+                    try
+                    {
+                        // Run a container based on the appropriate image
+                        string containerUrl = await api.RunContainer(containerGroupName,
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                                     ipAddressType,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                                     resourceTags,
+                                                                     vnetId,
+                                                                     vnetName,
+                                                                     false,
+                                                                     isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+                    }
+                    catch (ApplicationException ex)
+                    {
+                        switch (ex.Message)
+                        {
+                            case "ContainerGroupQuotaReached":
+                                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                                string supportEmail = $"The virtual CPU core limit has been reached for Azure Container Instance " +
+                                                 $"Container Groups.{Environment.NewLine}{Environment.NewLine}" +
+                                                 $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                                                 $"Content Item: {contentItem.ContentName}{Environment.NewLine}" +
+                                                 $"Container Group: {containerGroupName}{Environment.NewLine}" +
+                                                 $"Client: {contentItem.Client.Name}{Environment.NewLine}" +
+                                                 $"Check for more details in the MAP application log file";
+                                notifier.sendSupportMail(supportEmail, "Azure Core Limit Reached");
+                                break;
+                        }
+                    }
+
 
                     return View("WaitForContainer");
 

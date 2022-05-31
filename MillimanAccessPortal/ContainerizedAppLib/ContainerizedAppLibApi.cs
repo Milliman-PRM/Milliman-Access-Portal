@@ -565,7 +565,7 @@ namespace ContainerizedAppLib
                     {
                         try
                         {
-                            log = await GetContainerLogs(containerGroupName, containerGroupName);
+                            log = await GetContainerLogs(containerGroupName, containerGroupName) ?? String.Empty;
                         }
                         catch { }
 
@@ -691,11 +691,14 @@ namespace ContainerizedAppLib
             {
                 dynamic result = await ex.GetResponseJsonAsync();
                 Dictionary<string, object> error = ((IDictionary<string, object>)result.error).ToDictionary(kvp => kvp.Key, kvp => kvp.Value);
+
                 string errorMessage = $"Exception from ContainerizedAppLibApi.CreateContainerGroup: Error launching a new Container Group. Error(s):{Environment.NewLine}\t" +
                                       string.Join($"{Environment.NewLine}\t", error.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
 
                 Log.Error(ex, errorMessage);
-                throw new ApplicationException(errorMessage);
+
+                error.TryGetValue("code", out object code);
+                throw new ApplicationException(code?.ToString(), ex);
             }
         }
 
@@ -856,7 +859,7 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
-        
+
         class ACRAuthenticationResponse
         {
             [JsonProperty(PropertyName = "access_token")]
