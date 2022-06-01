@@ -849,7 +849,7 @@ namespace MillimanAccessPortal.Controllers
                                                  $"Client: {contentItem.Client.Name}{Environment.NewLine}" +
                                                  $"Requested # of Cores: {typeSpecificInfo.PreviewContainerCpuCores.GetDisplayDescriptionString()}{Environment.NewLine}" +
                                                  $"Check for more details in the MAP application log file";
-                                notifier.sendSupportMail(supportEmail, "Azure Core Limit Reached");
+                                notifier.sendSecurityMail(supportEmail, "Azure Core Limit Reached");
                                 break;
                         }
 

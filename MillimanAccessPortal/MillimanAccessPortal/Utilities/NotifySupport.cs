@@ -30,5 +30,18 @@ namespace MillimanAccessPortal.Utilities
             string sender = _configuration.GetValue("SmtpFromAddress", "map.support@milliman.com");
             return _messageSender.QueueEmail(supportEmail, $"Automated support notification - {reason}", messageArg, sender);
         }
+
+        /// <summary>
+        /// Send a messaged to the configured Infrastructure & Security team address
+        /// </summary>
+        /// <param name="messageArg"></param>
+        /// <param name="reason"></param>
+        /// <returns></returns>
+        public bool sendSecurityMail(string messageArg, string reason)
+        {
+            string securityEmailAddress = _configuration.GetValue("SecurityEmailAlias", "prm.security@milliman.com");
+            string sender = _configuration.GetValue("SmtpFromAddress", "prm.security@milliman.com");
+            return _messageSender.QueueEmail(securityEmailAddress, $"Automated support notification - {reason}", messageArg, sender);
+        }
     }
 }
