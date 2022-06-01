@@ -651,7 +651,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         timeZoneId: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.timeZoneId ?
           action.response.typeSpecificPublicationProperties.timeZoneId :
-          emptyContentItemDetail.typeSpecificPublicationProperties.timeZoneId,
+          state.defaultUserTimeZoneId,
       },
       relatedFiles: {
         MasterContent: {
@@ -706,7 +706,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: state.formState,
       disclaimerInputState: 'edit',
-      defaultUserTimeZoneId: '',
+      defaultUserTimeZoneId: state.defaultUserTimeZoneId,
     };
   },
   SET_FORM_FOR_NEW_CONTENT_ITEM: (state, action: PublishingActions.SetFormForNewContentItem) => {
