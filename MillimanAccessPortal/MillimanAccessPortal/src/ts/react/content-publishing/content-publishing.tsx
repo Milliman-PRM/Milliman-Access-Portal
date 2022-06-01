@@ -155,6 +155,26 @@ const containerHotHoursDropdownValues: Array<{ selectionValue: string, selection
   { selectionValue: '23', selectionLabel: '11 PM' },
 ];
 
+function onlyHoursBefore(selectedHour: string): Array<{ selectionValue: string, selectionLabel: string }> {
+  if (!selectedHour) {
+    return containerHotHoursDropdownValues;
+  }
+  const availableHours = containerHotHoursDropdownValues.filter((i) => {
+    return parseInt(i.selectionValue, 10) <= parseInt(selectedHour, 10);
+  });
+  return availableHours;
+}
+
+function onlyHoursAfter(selectedHour: string): Array<{ selectionValue: string, selectionLabel: string }> {
+  if (!selectedHour) {
+    return containerHotHoursDropdownValues;
+  }
+  const availableHours = containerHotHoursDropdownValues.filter((i) => {
+    return parseInt(i.selectionValue, 10) > parseInt(selectedHour, 10);
+  });
+  return availableHours;
+}
+
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -1332,7 +1352,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 }}
                                 placeholderText="Start Time"
                                 value={pendingFormData.typeSpecificPublicationProperties.startTime}
-                                values={containerHotHoursDropdownValues}
+                                values={onlyHoursBefore(pendingFormData.typeSpecificPublicationProperties.endTime)}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
@@ -1349,7 +1369,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 }}
                                 placeholderText="End Time"
                                 value={pendingFormData.typeSpecificPublicationProperties.endTime}
-                                values={containerHotHoursDropdownValues}
+                                values={onlyHoursAfter(pendingFormData.typeSpecificPublicationProperties.startTime)}
                                 readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               />
                             </FormFlexContainer>
