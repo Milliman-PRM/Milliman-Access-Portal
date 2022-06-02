@@ -54,14 +54,14 @@ namespace MillimanAccessPortal.Utilities
                 exceptionInfoMessageBuilder.AppendLine($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
             }
 
-            string emailBody = $"An Azure Container Quota was reached.{Environment.NewLine}{Environment.NewLine}" + 
+            string emailBody = $"An Azure Container Quota was reached.{Environment.NewLine}{Environment.NewLine}" +
                  $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
                  $"Content Item: {contentItemName}{Environment.NewLine}" +
                  $"Container Group: {containerGroupName}{Environment.NewLine}" +
-                 $"Client: {clientName}{Environment.NewLine}{Environment.NewLine}" +
+                 $"Client: {clientName}{Environment.NewLine}" +
+                 $"Check for more details in the MAP application log file{Environment.NewLine}{Environment.NewLine}" +
                  $"Exception Data: {Environment.NewLine}" +
-                 $"{exceptionInfoMessageBuilder.ToString()}" +
-                 $"Check for more details in the MAP application log file";
+                 $"{exceptionInfoMessageBuilder.ToString()}";
             return _messageSender.QueueEmail(securityEmailAddress, "Automated support notification - Azure Container Quota Reached", emailBody, sender);
         }
     }
