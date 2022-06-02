@@ -215,6 +215,19 @@ export interface ContentItemFormErrors {
     containerCpuCores?: string;
     containerRamGb?: string;
     containerInternalPort?: string;
+    containerInstanceLifetimeScheme?: string;
+    customCooldownPeriod?: string;
+    allDaysChecked?: string;
+    mondayChecked?: string;
+    tuesdayChecked?: string;
+    wednesdayChecked?: string;
+    thursdayChecked?: string;
+    fridayChecked?: string;
+    saturdayChecked?: string;
+    sundayChecked?: string;
+    startTime?: string;
+    endTime?: string;
+    timeZoneId?: string;
   };
 }
 
