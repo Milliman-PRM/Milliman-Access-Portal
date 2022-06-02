@@ -841,7 +841,7 @@ namespace MillimanAccessPortal.Controllers
                         {
                             case "ContainerGroupQuotaReached":
                                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
-                                notifier.sendAzureQuotaExceededEmail("Azure Core Limit Reached", contentItem.ContentName, containerGroupName, contentItem.Client.Name);
+                                notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupName, contentItem.Client.Name, ex.Data);
                                 break;
                         }
 
