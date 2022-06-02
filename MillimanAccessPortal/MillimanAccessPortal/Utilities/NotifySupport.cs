@@ -5,6 +5,7 @@
  */
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Services;
+using System;
 
 namespace MillimanAccessPortal.Utilities
 {
@@ -32,16 +33,25 @@ namespace MillimanAccessPortal.Utilities
         }
 
         /// <summary>
-        /// Send a messaged to the configured Infrastructure & Security team address
+        /// Send a messaged to the configured Infrastructure & Security team address notifying about an Azure
+        /// resource quota being exceeded.
         /// </summary>
-        /// <param name="messageArg"></param>
         /// <param name="reason"></param>
+        /// <param name="contentItemName"></param>
+        /// <param name="containerGroupName"></param>
+        /// <param name="clientName"></param>
         /// <returns></returns>
-        public bool sendSecurityMail(string messageArg, string reason)
+        public bool sendAzureQuotaExceededEmail(string reason, string contentItemName, string containerGroupName, string clientName)
         {
             string securityEmailAddress = _configuration.GetValue("SecurityEmailAlias", "prm.security@milliman.com");
             string sender = _configuration.GetValue("SmtpFromAddress", "prm.security@milliman.com");
-            return _messageSender.QueueEmail(securityEmailAddress, $"Automated support notification - {reason}", messageArg, sender);
+            string emailBody = $"An Azure Container Quota was reached.{Environment.NewLine}{Environment.NewLine}" +
+                 $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                 $"Content Item: {contentItemName}{Environment.NewLine}" +
+                 $"Container Group: {containerGroupName}{Environment.NewLine}" +
+                 $"Client: {clientName}{Environment.NewLine}" +
+                 $"Check for more details in the MAP application log file";
+            return _messageSender.QueueEmail(securityEmailAddress, $"Automated support notification - {reason}", emailBody, sender);
         }
     }
 }
