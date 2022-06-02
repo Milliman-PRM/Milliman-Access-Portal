@@ -30,6 +30,7 @@ export class RadioButton extends React.Component<RadioButtonProps> {
           id={id}
           name={group}
           onChange={() => null}
+          disabled={readOnly}
         />
       </label>
     );

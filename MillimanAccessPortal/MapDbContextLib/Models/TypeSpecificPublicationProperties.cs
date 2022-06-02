@@ -130,7 +130,7 @@ namespace MapDbContextLib.Models
             {
                 reader.TryGetInt32(out selectedHour);
             }
-            catch (InvalidOperationException ex)
+            catch (InvalidOperationException)
             {
                 selectedHour = Int32.Parse(reader.GetString());
             }

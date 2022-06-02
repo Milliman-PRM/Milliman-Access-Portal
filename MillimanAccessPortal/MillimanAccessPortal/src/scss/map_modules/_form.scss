@@ -200,8 +200,8 @@ select {
         /*outline-color: $red !important;*/
     }
 
-    &[disabled],
-    &[readonly] {
+    &[disabled]:not([type="radio"]),
+    &[readonly]:not([type="radio"]) {
         border-bottom: solid 1px $grey;
         color: $grey;
         box-shadow: none;

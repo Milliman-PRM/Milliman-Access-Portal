@@ -155,6 +155,26 @@ const containerHotHoursDropdownValues: Array<{ selectionValue: string, selection
   { selectionValue: '23', selectionLabel: '11 PM' },
 ];
 
+function onlyHoursBefore(selectedHour: string): Array<{ selectionValue: string, selectionLabel: string }> {
+  if (!selectedHour) {
+    return containerHotHoursDropdownValues;
+  }
+  const availableHours = containerHotHoursDropdownValues.filter((i) => {
+    return parseInt(i.selectionValue, 10) <= parseInt(selectedHour, 10);
+  });
+  return availableHours;
+}
+
+function onlyHoursAfter(selectedHour: string): Array<{ selectionValue: string, selectionLabel: string }> {
+  if (!selectedHour) {
+    return containerHotHoursDropdownValues;
+  }
+  const availableHours = containerHotHoursDropdownValues.filter((i) => {
+    return parseInt(i.selectionValue, 10) > parseInt(selectedHour, 10);
+  });
+  return availableHours;
+}
+
 class ContentPublishing extends React.Component<ContentPublishingProps & typeof PublishingActionCreators> {
   private readonly currentView: string = document
     .getElementsByTagName('body')[0].getAttribute('data-nav-location');
@@ -971,7 +991,22 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 {
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
                   <>
-                    <h4>Container Settings</h4>
+                    <h4>
+                      Container Settings
+                      <ActionIcon
+                        icon="information"
+                        label={'The following settings pertain to the resources allocated to your '
+                          + 'Containerized App. \n\n'
+                          + 'vCPU Cores: Number of CPU cores available for the Containerized App. Higher numbers '
+                          + 'of cores will increase processing power, but will incur more cost to the user.\n\n'
+                          + 'RAM: Amount of RAM available for the Containerized App. Higher amounts of RAM will '
+                          + 'increase available memory, but will incur more cost to the user.\n\n'
+                          + 'Internal Port: The port number to expose for your Containerized App. Assign this field '
+                          + 'with the port that your Containerized App will run on. This field is required.'
+                        }
+                        small={true}
+                      />
+                    </h4>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
@@ -989,7 +1024,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           values={cpuCoresDropdownValues}
                           readOnly={formState === 'read'}
                         />
-                      </ FormFlexContainer>
+                      </FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
                           error={null}
@@ -1006,7 +1041,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           values={containerRamGbDropdownValues}
                           readOnly={formState === 'read'}
                         />
-                      </ FormFlexContainer>
+                      </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12}>
@@ -1030,7 +1065,17 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
-                      <h4>Container cooldown times</h4>
+                      <h4>
+                        Container cooldown times
+                        <ActionIcon
+                          icon="information"
+                          label={'Refers to the amount of time the Container will wait after the last user activity '
+                            + 'before shutting down. Note that Containerized Apps which utilize "pre-scheduled hot '
+                            + 'times" will remain running within their time window regardless of user activity.'
+                          }
+                          small={true}
+                        />
+                      </h4>
                     </FormSectionRow>
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={12}>
@@ -1099,7 +1144,21 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={4}>
                         <div>
-                          <h4>Pre-scheduled hot times</h4>
+                          <h4>
+                            Pre-scheduled hot times
+                            <ActionIcon
+                              icon="information"
+                              label={'Container availability can be customized based on the needs of the user. "Off"'
+                                + 'indicates that Containers will be started on an "on-demand" basis. Users '
+                                + 'accessing the Container may need to wait several minutes for the Container to '
+                                + 'launch. "On" indicates that Containers will have a set period of "hot" hours '
+                                + 'where the Container will run and be available regardless of user activity. Note '
+                                + 'that Containers using "pre-scheduled hot times" will incur cost while they are '
+                                + 'running, regardless of user activity.'
+                              }
+                              small={true}
+                            />
+                          </h4>
                           <Toggle
                             label="Customize container lifecycle"
                             checked={pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
@@ -1115,190 +1174,219 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           />
                         </div>
                       </ FormFlexContainer>
-                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
-                        <div>
-                          <h4>Custom hot day(s)</h4>
-                          <Checkbox
-                            name="All"
-                            selected={pendingFormData.typeSpecificPublicationProperties.allDaysChecked}
-                            onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                              inputName: 'allDaysChecked',
-                              value: val,
-                            })}
-                            readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
-                            description={''}
-                          />
-                          <div className="checkbox-indent-section">
+                      {pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+                        === ContainerInstanceLifetimeSchemeEnum.Custom &&
+                      <>
+                        <FormFlexContainer flexPhone={12} flexDesktop={4}>
+                          <div>
+                            <h4>
+                              Custom hot day(s)
+                              <ActionIcon
+                                icon="information"
+                                label={'The days of the week for which Containerized Apps utilizing "pre-scheduled '
+                                  + 'hot times" will be running within their start and end time windows.'
+                                }
+                                small={true}
+                              />
+                            </h4>
                             <Checkbox
-                              name="Monday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.mondayChecked
-                              }
+                              name="All"
+                              selected={pendingFormData.typeSpecificPublicationProperties.allDaysChecked}
                               onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'mondayChecked',
+                                inputName: 'allDaysChecked',
                                 value: val,
                               })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
+                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
-                            <Checkbox
-                              name="Tuesday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.tuesdayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'tuesdayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
-                            <Checkbox
-                              name="Wednesday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.wednesdayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'wednesdayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
-                            <Checkbox
-                              name="Thursday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.thursdayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'thursdayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
-                            <Checkbox
-                              name="Friday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.fridayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'fridayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
-                            <Checkbox
-                              name="Saturday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.saturdayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'saturdayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
-                            <Checkbox
-                              name="Sunday"
-                              selected={
-                                pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                pendingFormData.typeSpecificPublicationProperties.sundayChecked
-                              }
-                              onChange={(val) => this.props.setPublishingFormBooleanInputValue({
-                                inputName: 'sundayChecked',
-                                value: val,
-                              })}
-                              readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
-                              }
-                              description={''}
-                            />
+                            <div className="checkbox-indent-section">
+                              <Checkbox
+                                name="Monday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.mondayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'mondayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Tuesday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.tuesdayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'tuesdayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Wednesday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.wednesdayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'wednesdayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Thursday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.thursdayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'thursdayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Friday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.fridayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'fridayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Saturday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.saturdayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'saturdayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                              <Checkbox
+                                name="Sunday"
+                                selected={
+                                  pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  pendingFormData.typeSpecificPublicationProperties.sundayChecked
+                                }
+                                onChange={(val) => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'sundayChecked',
+                                  value: val,
+                                })}
+                                readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                }
+                                description={''}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </FormFlexContainer>
-                      <FormFlexContainer flexPhone={12} flexDesktop={4} block={true}>
-                        <FormSection>
-                          <FormSectionRow>
-                            <h4>Custom hot hours</h4>
-                          </FormSectionRow>
-                          <FormSectionRow>
-                            <FormFlexContainer flexPhone={12} flexDesktop={12}>
-                              <DropDown
-                                error={null}
-                                label="Timezone"
-                                name="timezone"
-                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                                  this.props.setPublishingFormTextInputValue({
-                                    inputName: 'timeZoneId',
-                                    value: target.value,
-                                  });
-                                }}
-                                placeholderText={''}
-                                value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
-                                values={timeZones}
-                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
-                              />
-                            </FormFlexContainer>
-                          </FormSectionRow>
-                          <FormSectionRow>
-                            <FormFlexContainer flexPhone={12} flexDesktop={6}>
-                              <DropDown
-                                error={null}
-                                label="Start Time"
-                                name="startTime"
-                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                                  this.props.setPublishingFormTextInputValue({
-                                    inputName: 'startTime',
-                                    value: target.value,
-                                  });
-                                }}
-                                placeholderText="Start Time"
-                                value={pendingFormData.typeSpecificPublicationProperties.startTime}
-                                values={containerHotHoursDropdownValues}
-                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
-                              />
-                            </FormFlexContainer>
-                            <FormFlexContainer flexPhone={12} flexDesktop={6}>
-                              <DropDown
-                                error={null}
-                                label="End Time"
-                                name="endTime"
-                                onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
-                                  this.props.setPublishingFormTextInputValue({
-                                    inputName: 'endTime',
-                                    value: target.value,
-                                  });
-                                }}
-                                placeholderText="End Time"
-                                value={pendingFormData.typeSpecificPublicationProperties.endTime}
-                                values={containerHotHoursDropdownValues}
-                                readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
-                              />
-                            </FormFlexContainer>
-                          </FormSectionRow>
-                        </FormSection>
-                      </FormFlexContainer>
+                        </FormFlexContainer>
+                        <FormFlexContainer flexPhone={12} flexDesktop={4} block={true}>
+                          <FormSection>
+                            <FormSectionRow>
+                              <h4>
+                                Custom hot hours
+                                <ActionIcon
+                                  icon="information"
+                                  label={'The start and end time, along with associated time zone, to keep the '
+                                    + 'Containerized App running and available during hot days.'
+                                  }
+                                  small={true}
+                                />
+                              </h4>
+                            </FormSectionRow>
+                            <FormSectionRow>
+                              <FormFlexContainer flexPhone={12} flexDesktop={12}>
+                                <DropDown
+                                  error={null}
+                                  label="Timezone"
+                                  name="timezone"
+                                  onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                    this.props.setPublishingFormTextInputValue({
+                                      inputName: 'timeZoneId',
+                                      value: target.value,
+                                    });
+                                  }}
+                                  placeholderText={''}
+                                  value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
+                                  values={timeZones}
+                                  readOnly={
+                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  }
+                                />
+                              </FormFlexContainer>
+                            </FormSectionRow>
+                            <FormSectionRow>
+                              <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                                <DropDown
+                                  error={null}
+                                  label="Start Time"
+                                  name="startTime"
+                                  onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                    this.props.setPublishingFormTextInputValue({
+                                      inputName: 'startTime',
+                                      value: target.value,
+                                    });
+                                  }}
+                                  placeholderText="Start Time"
+                                  value={pendingFormData.typeSpecificPublicationProperties.startTime}
+                                  values={onlyHoursBefore(pendingFormData.typeSpecificPublicationProperties.endTime)}
+                                  readOnly={
+                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  }
+                                />
+                              </FormFlexContainer>
+                              <FormFlexContainer flexPhone={12} flexDesktop={6}>
+                                <DropDown
+                                  error={null}
+                                  label="End Time"
+                                  name="endTime"
+                                  onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
+                                    this.props.setPublishingFormTextInputValue({
+                                      inputName: 'endTime',
+                                      value: target.value,
+                                    });
+                                  }}
+                                  placeholderText="End Time"
+                                  value={pendingFormData.typeSpecificPublicationProperties.endTime}
+                                  values={onlyHoursAfter(pendingFormData.typeSpecificPublicationProperties.startTime)}
+                                  readOnly={
+                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  }
+                                />
+                              </FormFlexContainer>
+                            </FormSectionRow>
+                          </FormSection>
+                        </FormFlexContainer>
+                      </>
+                      }
                     </FormSectionRow>
                   </>
                 }
@@ -1601,18 +1689,16 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
             contentType={contentTypeMap[goLiveSummary.contentTypeName]}
             contentURL={goLiveSummary.masterContentLink}
           >
-            {contentTypeMap[goLiveSummary.contentTypeName] !== ContentTypeEnum.ContainerApp &&
-              <a
-                href={goLiveSummary.masterContentLink}
-                className="new-tab-icon"
-                target="_blank"
-                title="Open in new tab"
-              >
-                <svg className="action-icon-expand-frame action-icon tooltip">
-                  <use xlinkHref="#expand-frame" />
-                </svg>
-              </a>
-            }
+            <a
+              href={goLiveSummary.masterContentLink}
+              className="new-tab-icon"
+              target="_blank"
+              title="Open in new tab"
+            >
+              <svg className="action-icon-expand-frame action-icon tooltip">
+                <use xlinkHref="#expand-frame" />
+              </svg>
+            </a>
           </ContentContainer>
         )}
       </GoLiveSection>
