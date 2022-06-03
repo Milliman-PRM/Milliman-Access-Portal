@@ -830,7 +830,7 @@ namespace MillimanAccessPortal.Controllers
                                                                  vnetId,
                                                                  vnetName,
                                                                  false,
-                                                                 new Dictionary<string, string> { {"ContentToken", contentToken } },
+                                                                 new Dictionary<string, string> { {"PathBase", contentToken } },
                                                                  isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
                     return View("WaitForContainer");

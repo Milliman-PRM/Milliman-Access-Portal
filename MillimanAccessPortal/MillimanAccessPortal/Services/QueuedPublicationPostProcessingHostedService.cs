@@ -433,7 +433,7 @@ namespace MillimanAccessPortal.Services
                                                                              vnetId,
                                                                              vnetName,
                                                                              true,
-                                                                             new Dictionary<string, string> { { "ContentToken", contentToken } },
+                                                                             new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                              containerContentItemProperties.PreviewContainerInternalPort);
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");
