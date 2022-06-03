@@ -991,8 +991,8 @@ namespace MillimanAccessPortal.Controllers
                                           .ThenInclude(g => g.FileDrop)
                                       .Where(a => EF.Functions.ILike(a.UserName, $"{GlobalFunctions.EscapePgWildcards(User.Identity.Name)}-%"))
                                       .Where(a => EF.Functions.Like(a.UserName, $"%-{GlobalFunctions.EscapePgWildcards(fileDrop.ShortHash)}"))
-                                      .Where(a => !a.FileDropUserPermissionGroupId.HasValue)
-                                      .Where(a => !a.FileDropUserPermissionGroup.WriteAccess)
+                                      .Where(a => a.FileDropUserPermissionGroupId.HasValue)
+                                      .Where(a => a.FileDropUserPermissionGroup.WriteAccess)
                                       .Where(a => a.FileDropId == fileDropId)
                                       .SingleOrDefaultAsync();
 
