@@ -435,7 +435,8 @@ log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+#octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
