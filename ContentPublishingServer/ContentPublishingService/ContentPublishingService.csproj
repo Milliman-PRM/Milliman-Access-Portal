@@ -15,11 +15,6 @@
     <Content Remove="appsettings.azure-uat.json" />
     <Content Remove="appsettings.CI.json" />
     <Content Remove="appsettings.Development.json" />
-    <Content Remove="appsettings.Production.json" />
-    <Content Remove="appsettings.Staging.json" />
-    <Content Remove="AzureKeyVault.AzureCI.json" />
-    <Content Remove="AzureKeyVault.Production.json" />
-    <Content Remove="AzureKeyVault.Staging.json" />
     <Content Remove="contentPublicationLibSettings.Production.json" />
     <Content Remove="contentPublicationLibSettings.Staging.json" />
   </ItemGroup>
@@ -41,27 +36,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appsettings.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appsettings.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appSettings.Internal.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.AzureCI.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Internal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

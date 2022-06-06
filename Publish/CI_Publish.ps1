@@ -393,7 +393,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 #endregion
 
-#region Publish MAP Query Admin to a folder
+<# #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
 Set-Location $rootpath\MillimanAccessPortal\MapQueryAdminWeb
@@ -427,6 +427,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 #endregion
+ #>
 
 #region Configure releases in Octopus
 
@@ -434,7 +435,8 @@ log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+#octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -480,7 +482,7 @@ else {
     exit $error_code
 }
 
-log_statement "Creating MAP Query Admin release"
+<# log_statement "Creating MAP Query Admin release"
 
 octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 
@@ -493,7 +495,8 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-
+ #>
+ 
 log_statement "Creating Database Migrations project release"
 
 octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL

@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.16.1
+
+- Fixed a bug that caused the page to unexpectedly refresh when uploading files to File Drop for some users
+
 ### v1.16.0
 
 - Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version

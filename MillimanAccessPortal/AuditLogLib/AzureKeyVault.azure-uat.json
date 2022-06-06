@@ -1,4 +1,0 @@
-﻿{
-  "AzureVaultName": "https://map-uat-keyvault.vault.azure.net/",
-  "DataProtectionKeyId": "https://map-uat-keyvault.vault.azure.net:443/keys/DataProtection"
-}
