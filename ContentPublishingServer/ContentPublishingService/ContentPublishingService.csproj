@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <UserSecretsId>dotnet-ContentPublishingService-D0ED2994-81A3-4B83-9B61-1FD6DE3C321D</UserSecretsId>
-    <Version>1.16.0</Version>
+    <Version>1.16.1</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
   </PropertyGroup>
@@ -15,11 +15,6 @@
     <Content Remove="appsettings.azure-uat.json" />
     <Content Remove="appsettings.CI.json" />
     <Content Remove="appsettings.Development.json" />
-    <Content Remove="appsettings.Production.json" />
-    <Content Remove="appsettings.Staging.json" />
-    <Content Remove="AzureKeyVault.AzureCI.json" />
-    <Content Remove="AzureKeyVault.Production.json" />
-    <Content Remove="AzureKeyVault.Staging.json" />
     <Content Remove="contentPublicationLibSettings.Production.json" />
     <Content Remove="contentPublicationLibSettings.Staging.json" />
   </ItemGroup>
@@ -41,27 +36,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="appsettings.Development.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appsettings.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appsettings.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="appSettings.Internal.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.AzureCI.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Production.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Staging.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="AzureKeyVault.Internal.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

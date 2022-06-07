@@ -6,7 +6,7 @@
 
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Version>1.16.0</Version>
+    <Version>1.16.1</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
   </PropertyGroup>
@@ -21,10 +21,6 @@
 
   <ItemGroup>
     <Content Include="appsettings.CI.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
