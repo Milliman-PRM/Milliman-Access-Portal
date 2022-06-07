@@ -185,6 +185,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -233,6 +234,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -271,6 +273,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));

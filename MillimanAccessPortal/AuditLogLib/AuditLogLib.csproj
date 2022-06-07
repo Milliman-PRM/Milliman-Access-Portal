@@ -6,50 +6,15 @@
 
   <PropertyGroup>
     <UserSecretsId>aspnet-MillimanAccessPortal-965822be-7d5a-4042-843a-d230c25706a3</UserSecretsId>
-    <Version>1.16.0</Version>
+    <Version>1.16.1</Version>
     <Authors>Milliman PRM Analytics Team</Authors>
     <Company>Milliman Inc.</Company>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="AzureKeyVault.azure-dev.json" />
-    <None Remove="AzureKeyVault.azure-isdev.json" />
-    <None Remove="AzureKeyVault.azure-prod.json" />
-    <None Remove="AzureKeyVault.azure-uat.json" />
-    <None Remove="AzureKeyVault.AzureCI.json" />
-    <None Remove="AzureKeyVault.Internal.json" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="AzureKeyVault.azure-dev.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.azure-prod.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.azure-uat.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.azure-isdev.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.Internal.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.AzureCI.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
-    </Content>
     <Content Include="ConnectionStrings.CI.json">
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="AzureKeyVault.CI.json">
-      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </Content>
   </ItemGroup>
 
