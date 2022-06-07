@@ -1397,8 +1397,9 @@ namespace MillimanAccessPortal.Controllers
                             IActionResult result = await RemoveUserFromClient(new ClientUserAssociationViewModel { UserId = ClientMemberUser.Id, ClientId = Model.Id });
 
                             if (result.GetType() != typeof(JsonResult))
-                            {
-                                Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified email whitelist");
+                            {  
+                                Log.Information("In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
+                                Response.Headers.Add("Warning", "This change could not be processed because one or more users are currently associated with this client that must be removed before this change can be made.");
                                 await Tx.RollbackAsync();
                                 return result;
                             }
@@ -1526,10 +1527,11 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (ApplicationUser user in AllClientUsers)
                     {
-                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id }, true);
+                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id, Reason = HitrustReason.ClientRemoval.NumericValue }, true);
                     }
 
                     // Remove the client
+                    await DbContext.Entry(ExistingClient).ReloadAsync();
                     DbContext.Client.Remove(ExistingClient);
 
                     await DbContext.SaveChangesAsync();
