@@ -257,6 +257,7 @@ export function submitButtonIsActive(state: PublishingState) {
   const noActiveUpload = _.size(state.pending.uploads) === 0;
   const formIsValidIfContainer = state.formData.pendingFormData.contentTypeId &&
     contentTypes[state.formData.pendingFormData.contentTypeId].displayName !== 'Containerized App' ||
+    state.formData.pendingFormData.typeSpecificPublicationProperties &&
     state.formData.pendingFormData.typeSpecificPublicationProperties.containerInternalPort;
   const formValid = pendingFormData.clientId
     && pendingFormData.contentName.trim()
@@ -335,7 +336,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     };
   }
 
-  if (isContainerApp) {
+  if (isContainerApp && pendingFormData.typeSpecificPublicationProperties) {
     typeSpecificPublishingDetail = {
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
@@ -489,6 +490,9 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
 }
 
 export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
-  return state.formData.pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+  const { typeSpecificPublicationProperties } = state.formData.pendingFormData;
+  return typeSpecificPublicationProperties
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
     === ContainerInstanceLifetimeSchemeEnum.Custom;
 }
