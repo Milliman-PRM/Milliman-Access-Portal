@@ -24,7 +24,7 @@ namespace ContainerizedAppLib.AzureRestApiModels
         public ContainerGroupProperties Properties { get; set; }
 
         [JsonProperty(PropertyName = "tags")]
-        public object Tags { get; set; }
+        public Dictionary<string,string> Tags { get; set; }
 
         [JsonProperty(PropertyName = "type")]
         public string Type { get; set; }

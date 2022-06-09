@@ -69,7 +69,7 @@ namespace ContainerizedAppLib
         {
             _repositoryName = !string.IsNullOrEmpty(repositoryName)
                 ? repositoryName
-                : throw new ArgumentNullException(nameof(repositoryName));
+                : null;
 
             try
             {

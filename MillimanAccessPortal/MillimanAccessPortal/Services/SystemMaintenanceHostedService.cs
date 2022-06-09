@@ -66,8 +66,7 @@ namespace MillimanAccessPortal.Services
         {
             while (!cancellationToken.IsCancellationRequested)
             {
-                await Task.Yield();
-                Thread.Sleep(TimeSpan.FromSeconds(15));
+                await Task.Delay(10);
             }
         }
 
