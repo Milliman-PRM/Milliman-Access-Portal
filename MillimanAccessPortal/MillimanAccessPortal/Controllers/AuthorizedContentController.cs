@@ -704,7 +704,7 @@ namespace MillimanAccessPortal.Controllers
                 ContentStatus = containerContentItemProperties.PreviewImageTag,
             };
 
-            return await RequestStartContainer(publicationRequestId.ToString(), contentItem, false, resourceTags);
+            return await RequestStartContainer(publicationRequestId, contentItem, false, resourceTags);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -771,23 +771,23 @@ namespace MillimanAccessPortal.Controllers
                 ContentStatus = "live",
             };
 
-            return await RequestStartContainer(group.ToString(), selectionGroup.RootContentItem, true, resourceTags);
+            return await RequestStartContainer(group, selectionGroup.RootContentItem, true, resourceTags);
         }
 
         [NonAction]
-        private async Task<IActionResult> RequestStartContainer(string containerGroupName, RootContentItem contentItem, bool isLiveContent, ContainerGroupResourceTags resourceTags = null)
+        private async Task<IActionResult> RequestStartContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, ContainerGroupResourceTags resourceTags = null)
         {
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
-            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupName);
+            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
             switch (containerGroupModel)
             {
                 // running
                 case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
                     // TODO ensure an adequate token value
-                    string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupModel.Uri.AbsoluteUri));
+                    string contentToken = GlobalFunctions.HexMd5String(containerGroupNameGuid);
 
                     UriBuilder externalRequestUri = new UriBuilder
                     {
@@ -821,7 +821,7 @@ namespace MillimanAccessPortal.Controllers
                                                        : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
                     // Run a container based on the appropriate image
-                    string containerUrl = await api.RunContainer(containerGroupName,
+                    string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                                  isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                                  isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
                                                                  ipAddressType,

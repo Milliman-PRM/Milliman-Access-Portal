@@ -1,37 +1,48 @@
 ﻿using AuditLogLib.Services;
 using ContainerizedAppLib;
 using ContainerizedAppLib.AzureRestApiModels;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using MillimanAccessPortal.ContentProxy;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Yarp.ReverseProxy.Configuration;
 
 namespace MillimanAccessPortal.Services
 {
     public class ContainerInstanceMonitorHostedService : BackgroundService
     {
+        private readonly TimeSpan _previewContainerLingerTime = TimeSpan.FromMinutes(30);
+
+        // singleton services
         private readonly IServiceProvider _services;
         private readonly IConfiguration _appConfig;
         private readonly ContainerizedAppLibApiConfig _containerizedAppLibApiConfig;
+        private readonly MapProxyConfigProvider _proxyConfigProvider;
 
-        private ApplicationDbContext _dbContext;
+        // scoped services
         private IAuditLogger _auditLogger;
+        private ApplicationDbContext _dbContext;
         private ContainerizedAppLibApi _containerizedAppLibApi;
 
-        public ContainerInstanceMonitorHostedService(IServiceProvider servicesArg, IConfiguration appConfigArg, IOptions<ContainerizedAppLibApiConfig> containerizedAppLibApiConfigArg)
+        public ContainerInstanceMonitorHostedService(IServiceProvider servicesArg, 
+                                                     IConfiguration appConfigArg, 
+                                                     IOptions<ContainerizedAppLibApiConfig> containerizedAppLibApiConfigArg,
+                                                     IProxyConfigProvider proxyConfigProvider)
         {
             _services = servicesArg;
             _appConfig = appConfigArg;
             _containerizedAppLibApiConfig = containerizedAppLibApiConfigArg.Value;
+            _proxyConfigProvider = proxyConfigProvider as MapProxyConfigProvider;
         }
 
         protected async override Task ExecuteAsync(CancellationToken stoppingToken)
@@ -42,15 +53,16 @@ namespace MillimanAccessPortal.Services
                 {
                     using (var scope = _services.CreateScope())
                     {
-                        _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         _auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
+                        _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         _containerizedAppLibApi = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(null);
 
                         List<ContainerGroup_GetResponseModel> allContainerGroups = await _containerizedAppLibApi.ListContainerGroupsInResourceGroup();
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
-                        Log.Information($"Found {allContainerGroups.Count} container groups, {previewContainerGroups.Count} are preview, {liveContainerGroups.Count} are live");
+                        Log.Information($"Last activity collection is{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", GlobalFunctions.ContainerLastActivity.Select(a => a.Key + ": " + a.Value.ToString()))}");
+                        Log.Information($"Found {allContainerGroups.Count} container groups, {previewContainerGroups.Count} preview, {liveContainerGroups.Count} live");
 
                         List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
                                                                                               .Include(p => p.RootContentItem)
@@ -69,26 +81,33 @@ namespace MillimanAccessPortal.Services
                                                                                    .ToListAsync();
 
                         Log.Debug($"Content items with live selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:{g.GroupName}, content:{g.RootContentItem.ContentName}"))}");
+
+                        #region Manage preview container instances
+                        foreach (ContentPublicationRequest publication in pendingPublications)
+                        {
+                            List<ContainerGroup_GetResponseModel> runningContainers = previewContainerGroups.Where(c => c.Name == publication.Id.ToString())
+                                                                                                            .ToList();
+
+                            //if ()
+                        }
+                        /*
+                         * Check if SelectionGroup tags indicate preview
+                         * if Selection Group tags indicate this is a preview Container Instance:
+                         *   Find active User sessions on Container
+                         *     boolean $userHasEngagedWithSessionInTimeoutWindow = true
+                         *     number $timeout = amount of time we'll allow preview images to live after last session activity
+                         *     foreach active User session on Container
+                         *       if user has not engaged with session in $timeout:
+                         *         userHasEngagedWithSessionInTimeoutWindow = false
+                         *     if !userHasEngagedWithSessionInTimeoutWindow:
+                         *       kill preview image
+                         */
+
+                        #endregion
                     }
                 }
                 catch { }
 
-                // TODO: Implement Container Instance lifetime management on different types of instances.
-                #region Lifetime management for Preview Container Instances
-                /*
-                 * Check if SelectionGroup tags indicate preview
-                 * if Selection Group tags indicate this is a preview Container Instance:
-                 *   Find active User sessions on Container
-                 *     boolean $userHasEngagedWithSessionInTimeoutWindow = true
-                 *     number $timeout = amount of time we'll allow preview images to live after last session activity
-                 *     foreach active User session on Container
-                 *       if user has not engaged with session in $timeout:
-                 *         userHasEngagedWithSessionInTimeoutWindow = false
-                 *     if !userHasEngagedWithSessionInTimeoutWindow:
-                 *       kill preview image
-                 */
-
-                #endregion
 
                 #region Lifetime management for Non-Preview Container Instances
                 //SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);

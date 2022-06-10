@@ -1,24 +1,22 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using MapCommonLib;
+using Microsoft.AspNetCore.Http;
 using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
+using Yarp.ReverseProxy.Configuration;
 using Yarp.ReverseProxy.Transforms;
 
 namespace MillimanAccessPortal.ContentProxy
 {
     public class MapContainerContentRequestTransform : RequestTransform
     {
-        private string _contentToken { get; init; }
-        // private string _requestingHost { get; init; }
-        // private string _userIdentityToken { get; init; }
+        private ClusterConfig _cluster { get; init; }
 
-        public MapContainerContentRequestTransform(IReadOnlyDictionary<string, string> metadata)
+        public MapContainerContentRequestTransform(ClusterConfig cluster)
         {
-            _contentToken = metadata["ContentToken"];
-            // _requestingHost = metadata["RequestingHost"];
-            // _userIdentityToken = metadata["UserIdentityToken"];
+            _cluster = cluster;
         }
 
         public override ValueTask ApplyAsync(RequestTransformContext context)
@@ -39,9 +37,7 @@ namespace MillimanAccessPortal.ContentProxy
             //    throw new ApplicationException(shortMsg);
             //}
 
-            context.HttpContext.Items.Add("ContentToken", _contentToken);
-            context.HttpContext.Items.Add("ResponseBodyStream", context.HttpContext.Response.Body);
-            context.HttpContext.Response.Body = new MemoryStream();
+            GlobalFunctions.ContainerLastActivity[_cluster.ClusterId] = DateTime.UtcNow;
 
             return ValueTask.CompletedTask;
         }

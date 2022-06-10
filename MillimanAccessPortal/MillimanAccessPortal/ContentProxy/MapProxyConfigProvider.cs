@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using MapCommonLib;
 using Serilog;
 using System;
 using System.Collections.Generic;
@@ -98,7 +98,7 @@ namespace MillimanAccessPortal.ContentProxy
             {
                 ClusterConfig newCluster = new ClusterConfig
                 {
-                    ClusterId = newPathRoute.ClusterId,
+                    ClusterId = contentToken,
                     Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                         { {
                                 "destination1",
@@ -112,7 +112,9 @@ namespace MillimanAccessPortal.ContentProxy
                            { "ContentToken", contentToken },
                        },
                 };
+
                 AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
+                GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
 
                 try
                 {
@@ -158,6 +160,8 @@ namespace MillimanAccessPortal.ContentProxy
             List<ClusterConfig> newClusters = _proxyConfig.Clusters.Where(cc => !cc.ClusterId.Contains(contentToken)).ToList();
 
             UpdateConfiguration(newRoutes, newClusters);
+
+            GlobalFunctions.ContainerLastActivity.Remove(contentToken);
         }
     }
 }
