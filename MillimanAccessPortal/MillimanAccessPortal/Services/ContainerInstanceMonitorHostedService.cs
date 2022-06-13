@@ -54,6 +54,8 @@ namespace MillimanAccessPortal.Services
                 {
                     using (var scope = _services.CreateScope())
                     {
+                        List<Task> AllParallelTasks = new List<Task>();
+
                         _auditLogger = scope.ServiceProvider.GetRequiredService<IAuditLogger>();
                         _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         _containerizedAppLibApi = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(null);
@@ -67,6 +69,8 @@ namespace MillimanAccessPortal.Services
 
                         List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
                                                                                               .Include(p => p.RootContentItem)
+                                                                                                  .ThenInclude(rc => rc.Client)
+                                                                                                      .ThenInclude(c => c.ProfitCenter)
                                                                                               .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
                                                                                               .Where(p => p.RequestStatus == PublicationStatus.Processed)
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
@@ -75,7 +79,7 @@ namespace MillimanAccessPortal.Services
                         Log.Debug($"Publications ready for approval: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", pendingPublications.Select(p => $"initiated:{p.CreateDateTimeUtc}, content:{p.RootContentItem.ContentName}"))}");
 
                         #region Manage preview container instances
-                        TimeSpan lingerTime = TimeSpan.FromMinutes(30);
+                        TimeSpan previewLingerTime = TimeSpan.FromMinutes(30);
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
                             ContainerGroup_GetResponseModel runningContainer = previewContainerGroups.SingleOrDefault(c => c.Name == publication.Id.ToString());
@@ -88,26 +92,42 @@ namespace MillimanAccessPortal.Services
 
                             // 1) If a preview container should be running and it is not then launch one
                             if ((DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) ||
-                                 DateTime.UtcNow < lastActivity + lingerTime) &&
+                                 DateTime.UtcNow < lastActivity + previewLingerTime) &&
                                 runningContainer == null
                                )
                             {
-                                RequestContainer(contentToken);
+                                ContainerGroupResourceTags tags = new()
+                                {
+                                    ProfitCenterId = publication.RootContentItem.Client.ProfitCenterId,
+                                    ProfitCenterName = publication.RootContentItem.Client.ProfitCenter.Name,
+                                    ClientId = publication.RootContentItem.ClientId,
+                                    ClientName = publication.RootContentItem.Client.Name,
+                                    ContentItemId = publication.RootContentItem.Id,
+                                    ContentItemName = publication.RootContentItem.ContentName,
+                                    SelectionGroupId = null,
+                                    SelectionGroupName = null,
+                                    PublicationRequestId = publication.Id,
+                                    ContentToken = contentToken,
+                                };
+
+                                AllParallelTasks.Add(RequestContainer(publication.Id, publication.RootContentItem, true, contentToken, tags));
                             }
 
                             // 2) If a preview container should NOT be running and it is then delete it
                             if (DateTime.UtcNow > publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) &&
-                                DateTime.UtcNow > lastActivity + lingerTime &&
+                                DateTime.UtcNow > lastActivity + previewLingerTime &&
                                 runningContainer != null
                                )
                             {
-                                Task fireAndForgetTask = TerminateContainer(publication.Id.ToString(), contentToken);
+                                AllParallelTasks.Add(TerminateContainerAsync(publication.Id.ToString(), contentToken));
                             }
-
                         }
+                        #endregion
 
                         List<SelectionGroup> liveSelectionGroups = await _dbContext.SelectionGroup
                                                                                    .Include(p => p.RootContentItem)
+                                                                                       .ThenInclude(rc => rc.Client)
+                                                                                           .ThenInclude(c => c.ProfitCenter)
                                                                                    .Where(sg => sg.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
                                                                                    .Where(sg => _dbContext.ContentPublicationRequest.Any(p => p.RootContentItemId == sg.RootContentItemId
                                                                                                                                            && p.RequestStatus == PublicationStatus.Confirmed))
@@ -134,66 +154,101 @@ namespace MillimanAccessPortal.Services
                                 ? GlobalFunctions.ContainerLastActivity[contentToken]
                                 : DateTime.MinValue;
 
-                            // 1) If a live container should be running and it is not then launch one
+                            // 3) If a live container should be running and it is not then launch one
                             if ((containerIsScheduledToRunNow ||
                                 DateTime.UtcNow < lastActivity + lingerTime) &&
                                 runningContainer == null
                                )
                             {
-                                RequestContainer(contentToken);
+                                ContainerGroupResourceTags tags = new()
+                                {
+                                    ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
+                                    ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
+                                    ClientId = selectionGroup.RootContentItem.ClientId,
+                                    ClientName = selectionGroup.RootContentItem.Client.Name,
+                                    ContentItemId = selectionGroup.RootContentItem.Id,
+                                    ContentItemName = selectionGroup.RootContentItem.ContentName,
+                                    SelectionGroupId = selectionGroup.Id,
+                                    SelectionGroupName = selectionGroup.GroupName,
+                                    PublicationRequestId = null,
+                                    ContentToken = contentToken,
+                                };
+
+                                AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
                             }
 
-                            // 2) If a live container should NOT be running and it is then delete it
+                            // 4) If a live container should NOT be running and it is then delete it
                             if (!containerIsScheduledToRunNow &&
                                 DateTime.UtcNow > lastActivity + lingerTime &&
                                 runningContainer != null
                                )
                             {
-                                Task fireAndForgetTask = TerminateContainer(selectionGroup.Id.ToString(), contentToken);
+                                AllParallelTasks.Add(TerminateContainerAsync(selectionGroup.Id.ToString(), contentToken));
                             }
 
                         }
                         #endregion
 
-                        // 3) Remove all Container Instances NOT associated with something in the database
-                        var all 
+                        // 5) Remove all Container Instances NOT associated with a preview-ready publication request
+                        List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
+                        IEnumerable<(string Name, string Token)> orphanPreviewContainers = previewContainerGroups.Where(g => !legitimatePreviewContainerNames.Contains(g.Name))
+                                                                                                           .Select(g => (g.Name, g.Tags["content_token"]));
+                        // 6) Remove all Container Instances NOT associated with a live selection group
+                        List<string> legitimateLiveContainerNames = liveSelectionGroups.Select(p => p.Id.ToString()).ToList();
+                        IEnumerable<(string Name, string Token)> orphanLiveContainers = liveContainerGroups.Where(g => !legitimateLiveContainerNames.Contains(g.Name))
+                                                                                                     .Select(g => (g.Name, g.Tags["content_token"]));
+
+                        foreach (var orphan in orphanPreviewContainers.Concat(orphanLiveContainers))
+                        {
+                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
+                        }
+
+                        await Task.WhenAll(AllParallelTasks);
                     }
                 }
                 catch { }
-
-
-                #region Lifetime management for Non-Preview Container Instances
-                //SelectionGroup containerGroupSelectionGroup = await dbContext.SelectionGroup.FindAsync(tags.SelectionGroupId);
-                /*
-                 * boolean $isWithinHotServiceWindow = GetContainerIsWithinHotServiceWindow(containerGroupSelectionGroup.typeSpecificDetails)
-                 * if $isWithinHotServiceWindow:
-                     if container is not running:
-                       startInstance();
-                 * else
-                 *   boolean $userHasEngagedWithSessionInTimeoutWindow = true
-                 *   number $timeout = amount of time we'll allow preview images to live after last session activity
-                 *   foreach active user session on Container
-                 *      if user has not engaged with session in $timeout:
-                 *          userHasEngagedWithSessionInTimeoutWindow = false
-                 *   if !userHasEngagedWithSesionInTimeoutWindow:
-                 *     killContainerInstance();
-                 * 
-                 */
-                #endregion
 
                 await Task.Delay(30_000, stoppingToken);
             }
         }
 
-        private bool RequestContainer(string contentToken)
+        private async Task RequestContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, string contentToken, ContainerGroupResourceTags resourceTags = null)
         {
+            ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+            string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
+            // use a tuple so that both succeed or both fail
+            (string vnetId, string vnetName) = ipAddressType == "Public"
+                ? (null, null)
+                : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
+
+            try
+            {
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepoositoryName);
+
+                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {containerGroupNameGuid.ToString()}");
+                string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
+                                                             isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                             isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                             ipAddressType,
+                                                             isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                             isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                             resourceTags,
+                                                             vnetId,
+                                                             vnetName,
+                                                             false,
+                                                             isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+
+                Log.Information($"Container instance started with URL: {containerUrl}");
+            }
+            catch { }
+
             GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
-            return true;
         }
 
-        private async Task TerminateContainer(string containerGroupName, string contentToken)
+        private async Task TerminateContainerAsync(string containerGroupName, string contentToken)
         {
-            // Any subsequent HTTP request will instantly start returning 502
+            // Any subsequent HTTP request will return 502 after this
             _proxyConfigProvider.RemoveExistingRoute(contentToken);
 
             // Websockets probably function until the container dies

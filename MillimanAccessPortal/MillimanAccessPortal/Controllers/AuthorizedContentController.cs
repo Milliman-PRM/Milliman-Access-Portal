@@ -689,6 +689,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
             ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
             ContainerGroupResourceTags resourceTags = new()
             {
@@ -701,10 +703,10 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupId = null,
                 SelectionGroupName = null,
                 PublicationRequestId = publicationRequestId,
-                ContentStatus = containerContentItemProperties.PreviewImageTag,
+                ContentToken = contentToken,
             };
 
-            return await RequestStartContainer(publicationRequestId, contentItem, false, resourceTags);
+            return await RequestStartContainer(publicationRequestId, contentItem, false, contentToken, resourceTags);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -757,6 +759,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            string contentToken = GlobalFunctions.HexMd5String(group);
+
             ContainerGroupResourceTags resourceTags = new()
             {
                 ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
@@ -768,14 +772,14 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupId = selectionGroup.Id,
                 SelectionGroupName = selectionGroup.GroupName,
                 PublicationRequestId = null,
-                ContentStatus = "live",
+                ContentToken = contentToken,
             };
 
-            return await RequestStartContainer(group, selectionGroup.RootContentItem, true, resourceTags);
+            return await RequestStartContainer(group, selectionGroup.RootContentItem, true, contentToken, resourceTags);
         }
 
         [NonAction]
-        private async Task<IActionResult> RequestStartContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, ContainerGroupResourceTags resourceTags = null)
+        private async Task<IActionResult> RequestStartContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, string contentToken, ContainerGroupResourceTags resourceTags = null)
         {
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
@@ -786,9 +790,6 @@ namespace MillimanAccessPortal.Controllers
             {
                 // running
                 case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
-                    // TODO ensure an adequate token value
-                    string contentToken = GlobalFunctions.HexMd5String(containerGroupNameGuid);
-
                     UriBuilder externalRequestUri = new UriBuilder
                     {
                         Scheme = Request.Scheme,

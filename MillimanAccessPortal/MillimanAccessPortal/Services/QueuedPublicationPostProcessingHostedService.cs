@@ -396,6 +396,8 @@ namespace MillimanAccessPortal.Services
                             containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                             containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
+                            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
                             #region Run a container instance
                             ContainerGroupResourceTags resourceTags = new()
                             {
@@ -408,7 +410,7 @@ namespace MillimanAccessPortal.Services
                                 SelectionGroupId = null,
                                 SelectionGroupName = null,
                                 PublicationRequestId = publicationRequestId,
-                                ContentStatus = containerContentItemProperties.PreviewImageTag,
+                                ContentToken = contentToken,
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
                             // use a tuple so that both succeed or both fail
