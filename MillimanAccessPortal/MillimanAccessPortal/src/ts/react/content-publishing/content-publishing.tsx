@@ -990,6 +990,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 }
                 {
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
+                  pendingFormData.typeSpecificPublicationProperties &&
                   <>
                     <h4>
                       Container Settings
