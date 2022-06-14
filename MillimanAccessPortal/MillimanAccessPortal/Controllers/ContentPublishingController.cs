@@ -718,6 +718,7 @@ namespace MillimanAccessPortal.Controllers
                             throw new Exception();
                         }
 
+                        /*
                         try
                         {
                             var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions
@@ -731,6 +732,7 @@ namespace MillimanAccessPortal.Controllers
                             var x = ex;
                             throw;
                         }
+                        */
                         break;
 
                     default:

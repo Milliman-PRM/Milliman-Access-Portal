@@ -368,7 +368,6 @@ namespace MillimanAccessPortal.Services
                         if (newMasterFile != null)
                         {
                             ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
-                            ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
 
                             #region Send image to Azure registry
                             ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
@@ -392,9 +391,9 @@ namespace MillimanAccessPortal.Services
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
                             containerContentItemProperties.PreviewImageTag = "preview";
-                            containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
-                            containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
-                            containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+                            containerContentItemProperties.PreviewContainerCpuCores = containerContentItemProperties.PreviewContainerCpuCores;
+                            containerContentItemProperties.PreviewContainerInternalPort = containerContentItemProperties.PreviewContainerInternalPort;
+                            containerContentItemProperties.PreviewContainerRamGb = containerContentItemProperties.PreviewContainerRamGb;
 
                             #region Run a container instance
                             ContainerGroupResourceTags resourceTags = new()

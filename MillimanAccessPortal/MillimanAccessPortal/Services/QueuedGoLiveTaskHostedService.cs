@@ -366,8 +366,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     break;
 
                                 case ContentTypeEnum.ContainerApp:
+                                    /*
                                     ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                                    ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
+                                    var containerizedAppRequestProperties = JsonSerializer.Deserialize<ContainerizedAppRequestProperties>(publicationRequest.TypeSpecificDetail);
 
                                     failureRecoveryActionList.Add(() => {
                                         publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
@@ -395,10 +396,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
                                         LiveImageTag = "live",
-                                        LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
+                                        LiveContainerLifetimeScheme = containerizedAppRequestProperties.ContainerInstanceLifetimeScheme switch
                                         {
-                                            ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppPubProperties),
-                                            ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
+                                            ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppRequestProperties),
+                                            ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppRequestProperties),
                                             _ => null,
                                         },
 
@@ -408,6 +409,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         PreviewImageName = null,
                                         PreviewImageTag = null,
                                     };
+                                    */
                                     break;
 
                                 default:

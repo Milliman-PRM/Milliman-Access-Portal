@@ -189,10 +189,6 @@ namespace MillimanAccessPortal.DataQueries
                     break;
                 case ContentTypeEnum.ContainerApp:
                     model.TypeSpecificDetailObject = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
-                    if (publicationRequest != null && !string.IsNullOrEmpty(publicationRequest.TypeSpecificDetail))
-                    {
-                        model.TypeSpecificPublicationProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
-                    }
                     break;
                 case ContentTypeEnum.Qlikview:
                 case ContentTypeEnum.Pdf:
