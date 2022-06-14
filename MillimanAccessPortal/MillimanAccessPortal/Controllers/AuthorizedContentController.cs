@@ -43,6 +43,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using ContainerizedAppLib.AzureRestApiModels;
 using Yarp.ReverseProxy.Configuration;
+using System.Collections;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -842,6 +843,14 @@ namespace MillimanAccessPortal.Controllers
                             case "ContainerGroupQuotaReached":
                                 var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
                                 notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupName, contentItem.Client.Name, ex.Data);
+                                break;
+                            default:
+                                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupName}. Inner Exception: {Environment.NewLine}{ex.InnerException.Message}");
+                                Log.Error($"Exception Data Entries:");
+                                foreach (DictionaryEntry kvp in ex.Data)
+                                {
+                                    Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                }
                                 break;
                         }
 

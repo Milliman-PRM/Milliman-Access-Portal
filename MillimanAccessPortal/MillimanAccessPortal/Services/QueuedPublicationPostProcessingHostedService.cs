@@ -23,6 +23,7 @@ using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -449,6 +450,14 @@ namespace MillimanAccessPortal.Services
                                         case "ContainerGroupQuotaReached":
                                             var notifier = new NotifySupport(_messageQueue, _appConfig);
                                             notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
+                                            break;
+                                        default:
+                                            Log.Error($"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}{ex.InnerException.Message}");
+                                            Log.Error($"Exception Data Entries:");
+                                            foreach (DictionaryEntry kvp in ex.Data)
+                                            {
+                                                Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                            }
                                             break;
                                     }
                                 }
