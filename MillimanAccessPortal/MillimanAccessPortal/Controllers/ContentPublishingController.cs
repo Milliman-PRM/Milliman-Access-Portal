@@ -1327,7 +1327,17 @@ namespace MillimanAccessPortal.Controllers
             // Handle type specific properties, if any
             if (jObject.TryGetValue("TypeSpecificDetailObject", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificDetailObjectToken))
             {
-                model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
+                model.TypeSpecificDetailObject = model.ContentType.TypeEnum switch
+                {
+                    ContentTypeEnum.ContainerApp => JsonSerializer.Deserialize<ContainerizedAppContentItemProperties>(
+                        typeSpecificDetailObjectToken.ToString(),
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                        }
+                    ),
+                    _ => (TypeSpecificContentItemProperties) typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType),
+                };
             }
 
             return model;
