@@ -6,7 +6,9 @@
 using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
@@ -37,6 +39,129 @@ namespace MapDbContextLib.Models
         public string LiveEmbedUrl { get; set; }
     }
 
+    public enum ContainerCpuCoresEnum
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "1")]
+        One = 1,
+        [Display(Name = "2")]
+        Two = 2,
+        [Display(Name = "3")]
+        Three = 3,
+        [Display(Name = "4")]
+        Four = 4,
+    }
+
+    public enum ContainerRamGbEnum
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "1")]
+        One = 1,
+        [Display(Name = "2")]
+        Two = 2,
+        [Display(Name = "3")]
+        Three = 3,
+        [Display(Name = "4")]
+        Four = 4,
+        [Display(Name = "5")]
+        Five = 5,
+        [Display(Name = "6")]
+        Six = 6,
+        [Display(Name = "7")]
+        Seven = 7,
+        [Display(Name = "8")]
+        Eight = 8,
+        [Display(Name = "9")]
+        Nine = 9,
+        [Display(Name = "10")]
+        Ten = 10,
+        [Display(Name = "11")]
+        Eleven = 11,
+        [Display(Name = "12")]
+        Twelve = 12,
+        [Display(Name = "13")]
+        Thirteen = 13,
+        [Display(Name = "14")]
+        Fourteen = 14,
+        [Display(Name = "15")]
+        Fifteen = 15,
+        [Display(Name = "16")]
+        Sixteen = 16,
+    }
+
+    public enum ContainerCooldownPeriodEnum
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "30 minutes")]
+        ThirtyMinutes = 1,
+        [Display(Name = "1 hour")]
+        OneHour = 2,
+        [Display(Name = "90 minutes")]
+        NinetyMinutes = 3,
+        [Display(Name = "2 hours")]
+        TwoHours = 4,
+    }
+
+    public enum ContainerInstanceLifetimeSchemeEnum
+    {
+        [Display(Name = "Unspecified")]
+        Unspecified = 0,
+        [Display(Name = "Always Cold")]
+        AlwaysCold = 1,
+        [Display(Name = "Custom")]
+        Custom = 2,
+    }
+
+    public class ContainerizedAppRequestProperties
+    {
+        public ContainerCpuCoresEnum ContainerCpuCores { get; set; }
+
+        public ContainerRamGbEnum ContainerRamGb { get; set; }
+
+        public ushort ContainerInternalPort { get; set; }
+
+        public ContainerCooldownPeriodEnum CustomCooldownPeriod { get; set; } = ContainerCooldownPeriodEnum.OneHour;
+
+        public ContainerInstanceLifetimeSchemeEnum ContainerInstanceLifetimeScheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.AlwaysCold;
+        public bool? MondayChecked { get; set; }
+        public bool? TuesdayChecked { get; set; }
+        public bool? WednesdayChecked { get; set; }
+        public bool? ThursdayChecked { get; set; }
+        public bool? FridayChecked { get; set; }
+        public bool? SaturdayChecked { get; set; }
+        public bool? SundayChecked { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
+        public TimeSpan? StartTime { get; set; }
+        [JsonConverter(typeof(TimeSpanJsonConverter))]
+        public TimeSpan? EndTime { get; set; }
+        public string? TimeZoneId { get; set; }
+    }
+
+    internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>
+    {
+        public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+        {
+            int selectedHour;
+            try
+            {
+                reader.TryGetInt32(out selectedHour);
+            }
+            catch (InvalidOperationException)
+            {
+                selectedHour = Int32.Parse(reader.GetString());
+            }
+            return new TimeSpan(selectedHour, 0, 0);
+        }
+
+        public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
+        {
+            writer.WriteNumberValue(value.Hours);
+        }
+    }
+
     public class ContainerizedAppContentItemProperties : TypeSpecificContentItemProperties
     {
         public string LiveImageName { get; set; } = null;
@@ -58,7 +183,7 @@ namespace MapDbContextLib.Models
             public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.Unspecified;
             public TimeSpan ContainerLingerTimeAfterActivity { get; set; }
 
-            public LifetimeSchemeBase(ContainerizedContentPublicationProperties source)
+            public LifetimeSchemeBase(ContainerizedAppRequestProperties source)
             {
                 Scheme = source.ContainerInstanceLifetimeScheme;
                 ContainerLingerTimeAfterActivity = source.CustomCooldownPeriod switch
@@ -75,7 +200,7 @@ namespace MapDbContextLib.Models
 
         public class AlwaysColdLifetimeScheme : LifetimeSchemeBase
         {
-            public AlwaysColdLifetimeScheme(ContainerizedContentPublicationProperties source) 
+            public AlwaysColdLifetimeScheme(ContainerizedAppRequestProperties source) 
                 : base(source)
             {}
         }
@@ -88,7 +213,7 @@ namespace MapDbContextLib.Models
             /// </summary>
             public Dictionary<TimeSpan, bool> RunStateInstructions { get; } = new Dictionary<TimeSpan, bool>();
 
-            public CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
+            public CustomScheduleLifetimeScheme(ContainerizedAppRequestProperties source)
                 : base(source)
             {
                 Action<bool?, DayOfWeek> AssignScheduledEventsForDay = (selected, dayOfWeek) =>
