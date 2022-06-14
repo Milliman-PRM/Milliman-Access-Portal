@@ -2,7 +2,7 @@
 
 namespace ContainerizedAppLib.AzureRestApiModels
 {
-    public class ResourceGroup
+    public class ResourceGroup_GetResponseModel
     {
         [JsonProperty(PropertyName = "id")]
         public string Id { get; set; }

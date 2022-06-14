@@ -622,7 +622,7 @@ namespace ContainerizedAppLib
             try
             {
                 // Query for Resource Group data
-                ResourceGroup resourceGroup = await GetResourceGroupDetails();
+                ResourceGroup_GetResponseModel resourceGroup = await GetResourceGroupDetails();
 
                 List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
                 ContainerGroupRequestModel requestModel = new ContainerGroupRequestModel()
@@ -860,7 +860,7 @@ namespace ContainerizedAppLib
         }
         #endregion
 
-        private async Task<ResourceGroup> GetResourceGroupDetails()
+        private async Task<ResourceGroup_GetResponseModel> GetResourceGroupDetails()
         {
             string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourcegroups/{Config.AciResourceGroupName}?api-version=2021-04-01";
 
@@ -869,7 +869,7 @@ namespace ContainerizedAppLib
                 string response = await queryResourceGroupDetailsEndpoint
                                     .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                     .GetStringAsync();
-                var resourceGroup = JsonConvert.DeserializeObject<ResourceGroup>(response);
+                var resourceGroup = JsonConvert.DeserializeObject<ResourceGroup_GetResponseModel>(response);
                 return resourceGroup;
 
             }
