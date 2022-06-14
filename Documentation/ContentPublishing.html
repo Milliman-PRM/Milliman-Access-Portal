@@ -43,6 +43,44 @@
         </ol>
     </div>
     <div class="accordion">
+        <p>Publishing Containerized Apps</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <p>
+            Publishing Containerized Apps follows the same general content publication workflow as any of the other content types available in MAP, but with some additional options and considerations unique to this content type.
+            These can be broken down into two categories: <b>Container Settings</b> and <b>Container Lifetime</b>.
+        </p>
+        <h3 class="subheading">Container Settings</h3>
+        <p>
+            Container settings are where you have the ability to set options like number of vCPU's, amount of allocated RAM, and the port number exposed by the container that is being published.
+            <p>
+                <b>vCPU</b>: This is the numbre of cores allocated to the container. Increasing this number will increase the amount of processing power available, but will also increase the cost to run the container.
+                This should be set based on the amount of processing done in the application as well as how many simultaneous users are expected.
+            </p>
+            <p>
+                <b>RAM</b>: This indicates the amount of RAM allocated to the running container.  Increasing this number also increases the cost to run the container.
+                This number should be set based on the specific memory needs of the container, along with expected utilization.
+            </p>
+            <p>
+                <b>Internal Port</b>: This field indicates the port that is exposed on the container for accessing the application within. This values is set in the Dockerfile that is used to define the container image.
+                This number can be found in the Dockerfile by looking for the keyword <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
+            </p>
+        </p>
+        <h3 class="subheading">Container Lifetime</h3>
+        <p>
+            Container Lifetime pertains to the management of the active status of the container. These settings allow you to fine tune when a container is kept active while also allowing for the container to be kept in a "cold" or standby state.
+            Since containers are only incurring cost while running, this allows you to better manage the associated cost of the container. If a user does attempt to access a container app while it is in a cold state, they will need to wait several minutes for the container to start up.
+            <p>
+                <b>Container Cooldown Times</b>: This setting allows you to decide how long a container should remain active after the last interaction has happened outside of any custom scheduled active hours.
+                This will allow users to come back within the set amount of time without the need to wait for a new container to start up.
+            <p>
+                <b>Customize Container Lifecycle</b>: This indicates whether the container should follow a custom "hot" schedule. Providing a custom schedule allows the container to be kept ready during business hours, while being kept in a standby state outside of those pre-defined hours.
+                Turning this option on will expose the controls for setting the custom hot hours.
+            </p>
+        </p>
+    </div>
+    <div class="accordion">
         <p>Updating Existing Content</p>
         <span class="material-icons icon">expand_more</span>
     </div>
