@@ -379,7 +379,7 @@ namespace MillimanAccessPortal.Services
                                 // Run a container based on the appropriate image
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
-                                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting to push image for content item ID {contentItem.Id} to Azure container registry");
+                                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting to push image file {newMasterFile.FullPath} for content item ID {contentItem.Id} to Azure container registry");
                                 await api.PushImageToRegistry(newMasterFile.FullPath, "preview");
                             }
                             catch (Exception ex)
