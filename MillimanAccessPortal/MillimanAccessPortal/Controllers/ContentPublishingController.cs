@@ -1329,17 +1329,35 @@ namespace MillimanAccessPortal.Controllers
             // Handle type specific properties, if any
             if (jObject.TryGetValue("TypeSpecificDetailObject", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificDetailObjectToken))
             {
-                model.TypeSpecificDetailObject = model.ContentType.TypeEnum switch
+                switch (model.ContentType.TypeEnum)
                 {
-                    ContentTypeEnum.ContainerApp => JsonSerializer.Deserialize<ContainerizedAppContentItemProperties>(
-                        typeSpecificDetailObjectToken.ToString(),
-                        new JsonSerializerOptions
+                    case ContentTypeEnum.ContainerApp:
+                        var requestProperties = JsonSerializer.Deserialize<ContainerizedAppRequestProperties>(
+                            typeSpecificDetailObjectToken.ToString(),
+                            new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true,
+                            }
+                        );
+                        ContainerizedAppContentItemProperties properties = new ContainerizedAppContentItemProperties()
                         {
-                            PropertyNameCaseInsensitive = true,
-                        }
-                    ),
-                    _ => (TypeSpecificContentItemProperties) typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType),
-                };
+                            PreviewContainerCpuCores = requestProperties.ContainerCpuCores,
+                            PreviewContainerRamGb = requestProperties.ContainerRamGb,
+                            PreviewContainerInternalPort = requestProperties.ContainerInternalPort,
+                            // preview image name
+                            // previwe image tag
+                            LiveContainerLifetimeScheme = requestProperties.ContainerInstanceLifetimeScheme switch
+                            {
+                                ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(requestProperties),
+                                ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(requestProperties),
+                                _ => null,
+                            },
+                        };
+                        break;
+                    default:
+                        model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
+                        break;
+                }
             }
 
             return model;
