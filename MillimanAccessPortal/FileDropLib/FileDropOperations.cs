@@ -231,7 +231,7 @@ namespace FileDropLib
                                 FileSystemUtil.DeleteDirectoryWithRetry(requestedAbsolutePath, true);
                             }
 
-                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, canonicalPath + "%")).ToList();
+                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => d.CanonicalFileDropPath.StartsWith(canonicalPath)).ToList();
 
                             var deleteInventory = new FileDropDirectoryInventoryModel
                             {
