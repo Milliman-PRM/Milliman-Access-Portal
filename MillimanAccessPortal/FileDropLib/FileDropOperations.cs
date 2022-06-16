@@ -122,9 +122,9 @@ namespace FileDropLib
             {
                 FileDropFile fileRecord = db.FileDropFile
                                             .Include(f => f.Directory)
-                                            .Where(f => EF.Functions.ILike(requestedDirectoryCanonicalPath, f.Directory.CanonicalFileDropPath))
+                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, requestedDirectoryCanonicalPath))
                                             .Where(f => f.Directory.FileDropId == fileDropId)
-                                            .SingleOrDefault(f => EF.Functions.ILike(requestedFileName, f.FileName));
+                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, requestedFileName));
 
                 switch (BeforeExec)
                 {
