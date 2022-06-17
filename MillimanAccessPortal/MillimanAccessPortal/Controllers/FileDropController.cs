@@ -1238,6 +1238,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpDelete]
+        [TypeFilter(typeof(LogAnyUnhandledExceptionFilter))]
         public async Task<IActionResult> DeleteFileDropFile([FromBody] RemoveFileDropFileRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
