@@ -78,6 +78,11 @@
                 <b>Customize Container Lifecycle</b>: This indicates whether the container should follow a custom "hot" schedule. Providing a custom schedule allows the container to be kept ready during business hours, while being kept in a standby state outside of those pre-defined hours.
                 Turning this option on will expose the controls for setting the custom hot hours.
             </p>
+            <p>
+                <b>Custom Container Lifetime Schedule</b>: These settings are used to set days and times for containers to remain in an active state what will remove the need for users to wait for containers to start up before viewing and interacting with the container content.
+                This schedule is configured by setting the start and end times, the time zone of the scheduled hours, and the days that the schedule should be applied to.
+                Outside of these scheduled active hours, the container will be in a cold standby state that will require the user to wait for several minutes while the container is started.
+            </p>
         </p>
     </div>
     <div class="accordion">
