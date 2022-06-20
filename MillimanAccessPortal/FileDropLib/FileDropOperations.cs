@@ -122,9 +122,9 @@ namespace FileDropLib
             {
                 FileDropFile fileRecord = db.FileDropFile
                                             .Include(f => f.Directory)
-                                            .Where(f => EF.Functions.ILike(requestedDirectoryCanonicalPath, f.Directory.CanonicalFileDropPath))
+                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, requestedDirectoryCanonicalPath))
                                             .Where(f => f.Directory.FileDropId == fileDropId)
-                                            .SingleOrDefault(f => EF.Functions.ILike(requestedFileName, f.FileName));
+                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, requestedFileName));
 
                 switch (BeforeExec)
                 {
@@ -231,7 +231,7 @@ namespace FileDropLib
                                 FileSystemUtil.DeleteDirectoryWithRetry(requestedAbsolutePath, true);
                             }
 
-                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, canonicalPath + "%")).ToList();
+                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => d.CanonicalFileDropPath.StartsWith(canonicalPath)).ToList();
 
                             var deleteInventory = new FileDropDirectoryInventoryModel
                             {

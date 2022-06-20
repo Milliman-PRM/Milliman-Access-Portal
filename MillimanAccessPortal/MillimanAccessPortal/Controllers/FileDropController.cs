@@ -1238,6 +1238,7 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpDelete]
+        [TypeFilter(typeof(LogAnyUnhandledExceptionFilter))]
         public async Task<IActionResult> DeleteFileDropFile([FromBody] RemoveFileDropFileRequestModel requestModel)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);
@@ -1258,14 +1259,14 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             SftpAccount account = await _dbContext.SftpAccount
-                                      //.Include(a => a.ApplicationUser)
-                                      .Include(a => a.FileDropUserPermissionGroup)
-                                          .ThenInclude(g => g.FileDrop)
-                                      .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
-                                      .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
-                                      .Where(a => a.FileDropId == requestModel.FileDropId)
-                                      .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
-                                      .SingleOrDefaultAsync();
+                                        //.Include(a => a.ApplicationUser)
+                                        .Include(a => a.FileDropUserPermissionGroup)
+                                            .ThenInclude(g => g.FileDrop)
+                                        .Where(a => EF.Functions.ILike(a.UserName, $"{User.Identity.Name}-{fileDrop.ShortHash}"))
+                                        .Where(a => EF.Functions.Like(a.UserName, $"%{fileDrop.ShortHash}"))
+                                        .Where(a => a.FileDropId == requestModel.FileDropId)
+                                        .Where(a => a.FileDropUserPermissionGroup.DeleteAccess)
+                                        .SingleOrDefaultAsync();
 
             #region Authorization
             var userRoleResult = await _authorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser, fileDrop.ClientId));
@@ -1279,8 +1280,8 @@ namespace MillimanAccessPortal.Controllers
 
             #region Perform the delete of the file
             var fileRecord = await _dbContext.FileDropFile
-                                             .Include(f => f.Directory)
-                                             .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
+                                                .Include(f => f.Directory)
+                                                .SingleOrDefaultAsync(f => f.Id == requestModel.FileId);
             string fileDropGlobalRoot = _applicationConfig.GetValue<string>("Storage:FileDropRoot");
 
             var fileDropRootPath = Path.Combine(fileDropGlobalRoot, fileDrop.RootPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
