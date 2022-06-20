@@ -228,7 +228,11 @@ namespace FileDropLib
                         try
                         {
                             if (beforeExec == null) {
-                                FileSystemUtil.DeleteDirectoryWithRetry(requestedAbsolutePath, true);
+                                try
+                                {
+                                    FileSystemUtil.DeleteDirectoryWithRetry(requestedAbsolutePath, true);
+                                }
+                                catch (DirectoryNotFoundException) { }
                             }
 
                             List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => d.CanonicalFileDropPath.StartsWith(canonicalPath)).ToList();
