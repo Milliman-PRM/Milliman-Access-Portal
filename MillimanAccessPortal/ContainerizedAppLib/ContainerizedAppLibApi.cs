@@ -488,6 +488,8 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The virtual network ID.</param>
         /// <param name="vnetName">The name of the virtual network.</param>
+        /// <param name="blockUntilStarted">Specifies whether this method should block until the container has started (or failed to start)</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns></returns>
         public async Task<string> RunContainer(string containerGroupName, 
@@ -622,6 +624,7 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The ID of the virtual network being used.</param>
         /// <param name="vnetName">The name of the virtual network being used.</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
