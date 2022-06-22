@@ -76,7 +76,7 @@ namespace MillimanAccessPortal.Services
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
 
-                        Log.Debug($"Publications ready for approval: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", pendingPublications.Select(p => $"initiated:{p.CreateDateTimeUtc}, content:{p.RootContentItem.ContentName}"))}");
+                        Log.Debug($"Preview publications: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", pendingPublications.Select(p => $"initiated:{p.CreateDateTimeUtc}, content:{p.RootContentItem.ContentName}"))}");
 
                         #region Manage preview container instances
                         TimeSpan previewLingerTime = TimeSpan.FromMinutes(30);
@@ -126,6 +126,8 @@ namespace MillimanAccessPortal.Services
 
                         List<SelectionGroup> liveSelectionGroups = await _dbContext.SelectionGroup
                                                                                    .Include(p => p.RootContentItem)
+                                                                                       .ThenInclude(rc => rc.ContentType)
+                                                                                   .Include(p => p.RootContentItem)
                                                                                        .ThenInclude(rc => rc.Client)
                                                                                            .ThenInclude(c => c.ProfitCenter)
                                                                                    .Where(sg => sg.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
@@ -133,7 +135,7 @@ namespace MillimanAccessPortal.Services
                                                                                                                                            && p.RequestStatus == PublicationStatus.Confirmed))
                                                                                    .ToListAsync();
 
-                        Log.Debug($"Content items with live selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:{g.GroupName}, content:{g.RootContentItem.ContentName}"))}");
+                        Log.Debug($"Live selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:{g.GroupName}, content:{g.RootContentItem.ContentName}"))}");
 
                         #region Manage live selection group container instances
                         foreach (SelectionGroup selectionGroup in liveSelectionGroups)
@@ -154,12 +156,15 @@ namespace MillimanAccessPortal.Services
                                 ? GlobalFunctions.ContainerLastActivity[contentToken]
                                 : DateTime.MinValue;
 
+                            Log.Debug($"\tFor selection group {selectionGroup.GroupName}: lastActivity={lastActivity}, containerIsScheduledToRunNow={containerIsScheduledToRunNow}, lingerTime={lingerTime}, running container={runningContainer?.Name ?? "<none>"}");
+
                             // 3) If a live container should be running and it is not then launch one
                             if ((containerIsScheduledToRunNow ||
                                 DateTime.UtcNow < lastActivity + lingerTime) &&
                                 runningContainer == null
                                )
                             {
+                                Log.Debug($"\tPreparing to launch missing container");
                                 ContainerGroupResourceTags tags = new()
                                 {
                                     ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
@@ -176,6 +181,10 @@ namespace MillimanAccessPortal.Services
 
                                 AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
                             }
+                            else
+                            {
+                                Log.Debug($"\tA container {(runningContainer == null ? "will not be launched" : "is already running")}");
+                            }
 
                             // 4) If a live container should NOT be running and it is then delete it
                             if (!containerIsScheduledToRunNow &&
@@ -183,26 +192,42 @@ namespace MillimanAccessPortal.Services
                                 runningContainer != null
                                )
                             {
+                                Log.Debug($"Deleting running container {runningContainer.Name} for Selection Group {selectionGroup.GroupName}");
                                 AllParallelTasks.Add(TerminateContainerAsync(selectionGroup.Id.ToString(), contentToken));
+                            }
+                            else
+                            {
+                                Log.Debug($"\tNo running container needs to be deleted for Selection Group {selectionGroup.GroupName}");
                             }
 
                         }
                         #endregion
 
-                        // 5) Remove all Container Instances NOT associated with a preview-ready publication request
+                        // 5) Find all "preview" Container Instances NOT associated with a preview-ready publication request
                         List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
-                        IEnumerable<(string Name, string Token)> orphanPreviewContainers = previewContainerGroups.Where(g => !legitimatePreviewContainerNames.Contains(g.Name))
-                                                                                                           .Select(g => (g.Name, g.Tags["content_token"]));
-                        // 6) Remove all Container Instances NOT associated with a live selection group
+                        IEnumerable<(string Name, string Token)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
+                                                                                                                 .Select(cg => (cg.Name, cg.Tags["content_token"]));
+                        foreach ((string Name, string Token) orphan in orphanPreviewContainers)
+                        {
+                            Log.Debug($"Deleting orphaned preview container group {orphan.Name}");
+                        }
+
+                        // 6) Find all "live" Container Instances NOT associated with a live selection group
                         List<string> legitimateLiveContainerNames = liveSelectionGroups.Select(p => p.Id.ToString()).ToList();
                         IEnumerable<(string Name, string Token)> orphanLiveContainers = liveContainerGroups.Where(g => !legitimateLiveContainerNames.Contains(g.Name))
                                                                                                      .Select(g => (g.Name, g.Tags["content_token"]));
+                        foreach ((string Name, string Token) orphan in orphanLiveContainers)
+                        {
+                            Log.Debug($"Deleting orphaned live container group {orphan.Name}");
+                        }
 
-                        foreach (var orphan in orphanPreviewContainers.Concat(orphanLiveContainers))
+                        // Delete all orphan containers
+                        foreach ((string Name, string Token) orphan in orphanPreviewContainers.Concat(orphanLiveContainers))
                         {
                             AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
                         }
 
+                        // Wait for all the async things to be done
                         await Task.WhenAll(AllParallelTasks);
                     }
                 }
