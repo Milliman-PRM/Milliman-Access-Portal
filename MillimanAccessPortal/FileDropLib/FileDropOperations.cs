@@ -235,7 +235,7 @@ namespace FileDropLib
                                 catch (DirectoryNotFoundException) { }
                             }
 
-                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => EF.Functions.Like(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(canonicalPath) + "%")).ToList();
+                            List<FileDropDirectory> directoriesToDelete = allDirectoryRecordsForFileDrop.Where(d => d.CanonicalFileDropPath.StartsWith(canonicalPath)).ToList();
 
                             var deleteInventory = new FileDropDirectoryInventoryModel
                             {
