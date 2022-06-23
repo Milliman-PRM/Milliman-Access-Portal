@@ -7,6 +7,10 @@
 - Added buttons to copy both username and password SFTP credentials for a File Drop
 - Fixed a bug that could prevent the deletion of a Client in some situations
 
+#### v1.16.2
+
+- Fixed a bug that caused a File Drop to incorrectly display deleted directories as if they still exist
+
 #### v1.16.1
 
 - Fixed a bug that caused the page to unexpectedly refresh when uploading files to File Drop for some users
