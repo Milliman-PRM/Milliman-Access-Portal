@@ -37,8 +37,18 @@ namespace MapDbContextLib.Context
     {
         public static bool LiveContentFileStoredInMap(this ContentTypeEnum type)
         {
-            return type != ContentTypeEnum.PowerBi
-                && type != ContentTypeEnum.ContainerApp;
+            return type switch
+            {
+                ContentTypeEnum.PowerBi => false,
+                ContentTypeEnum.ContainerApp => false,
+
+                ContentTypeEnum.FileDownload => true,
+                ContentTypeEnum.Html => true,
+                ContentTypeEnum.Pdf => true,
+                ContentTypeEnum.Qlikview => true,
+
+                _ => throw new NotImplementedException($"The supplied content type enum {type.GetDisplayNameString()} has not yet been implemented here")
+            };
         }
     }
 
