@@ -786,6 +786,8 @@ namespace MillimanAccessPortal.Controllers
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
+            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupName));
+
             switch (containerGroupModel)
             {
                 // running
@@ -832,6 +834,7 @@ namespace MillimanAccessPortal.Controllers
                                                                  vnetId,
                                                                  vnetName,
                                                                  false,
+                                                                 new Dictionary<string, string> { {"PathBase", contentToken } },
                                                                  isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
                     return View("WaitForContainer");

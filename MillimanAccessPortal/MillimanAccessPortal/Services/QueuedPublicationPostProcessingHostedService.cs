@@ -27,6 +27,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -414,7 +415,7 @@ namespace MillimanAccessPortal.Services
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
                             // use a tuple so that both succeed or both fail
-                            (string vnetId, string vnetName) = ipAddressType == "Public" 
+                            (string vnetId, string vnetName) = ipAddressType.Equals("Public", StringComparison.InvariantCultureIgnoreCase) 
                                 ? (null,null) 
                                 : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
 
@@ -423,6 +424,7 @@ namespace MillimanAccessPortal.Services
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
                                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+                                string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(publicationRequestId.ToString()));
                                 string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                              containerContentItemProperties.PreviewImageName,
                                                                              containerContentItemProperties.PreviewImageTag,
@@ -433,6 +435,7 @@ namespace MillimanAccessPortal.Services
                                                                              vnetId,
                                                                              vnetName,
                                                                              true,
+                                                                             new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                              containerContentItemProperties.PreviewContainerInternalPort);
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");

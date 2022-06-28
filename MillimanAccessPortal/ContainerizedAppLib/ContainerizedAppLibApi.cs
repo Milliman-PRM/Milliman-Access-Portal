@@ -23,7 +23,7 @@ namespace ContainerizedAppLib
     public class ContainerizedAppLibApi : ContentTypeSpecificApiBase
     {
         public ContainerizedAppLibApiConfig Config { get; private set; }
-        private string _acrToken, _aciToken, _repositoryName;
+        private string _acrToken, _azureResourcesToken, _repositoryName;
 
         /// <summary>
         /// Gets the URI for a Container Content item.
@@ -74,7 +74,7 @@ namespace ContainerizedAppLib
             try
             {
                 await GetAcrAccessTokenAsync();
-                await GetAciAccessTokenAsync();
+                await GetAzureResourcesAccessToken();
             }
             catch (Exception ex)
             {
@@ -452,7 +452,7 @@ namespace ContainerizedAppLib
         /// Initialize a new access token for communicating with the Azure Container Instances API.
         /// </summary>
         /// <returns></returns>
-        public async Task GetAciAccessTokenAsync()
+        public async Task GetAzureResourcesAccessToken()
         {
             MicrosoftAuthenticationResponse response = await StaticUtil.DoRetryAsyncOperationWithReturn<Exception, MicrosoftAuthenticationResponse>(async () =>
                                                                     await Config.ContainerInstanceTokenEndpoint
@@ -466,7 +466,7 @@ namespace ContainerizedAppLib
 
             if (response.ExpiresIn > 0 && response.ExtExpiresIn > 0)
             {
-                _aciToken = response.AccessToken;
+                _azureResourcesToken = response.AccessToken;
             }
             else
             {
@@ -488,6 +488,8 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The virtual network ID.</param>
         /// <param name="vnetName">The name of the virtual network.</param>
+        /// <param name="blockUntilStarted">Specifies whether this method should block until the container has started (or failed to start)</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns></returns>
         public async Task<string> RunContainer(string containerGroupName, 
@@ -500,13 +502,23 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
+                                               Dictionary<string, string> EnvironmentVariables = null,
                                                params ushort[] containerPorts)
         {
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, resourceTags, vnetId, vnetName, containerPorts);
+                bool createResult = await CreateContainerGroup(containerGroupName, 
+                                                               imagePath, 
+                                                               ipType, 
+                                                               cpuCoreCount, 
+                                                               memorySizeInGB, 
+                                                               resourceTags, 
+                                                               vnetId, 
+                                                               vnetName, 
+                                                               EnvironmentVariables,
+                                                               containerPorts);
 
                 if (!createResult)
                 {
@@ -612,19 +624,32 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The ID of the virtual network being used.</param>
         /// <param name="vnetName">The name of the virtual network being used.</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
-        private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        private async Task<bool> CreateContainerGroup(string containerGroupName, 
+                                                      string containerImageName, 
+                                                      string ipType, 
+                                                      int cpuCoreCount, 
+                                                      double memorySizeInGB, 
+                                                      ContainerGroupResourceTags resourceTags, 
+                                                      string vnetId = null, 
+                                                      string vnetName = null, 
+                                                      Dictionary<string, string> EnvironmentVariables = null, 
+                                                      params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             try
             {
+                // Query for Resource Group data
+                ResourceGroup_GetResponseModel resourceGroup = await GetResourceGroupDetails();
+
                 List<ContainerPort> containerPortObjects = containerPorts.Select(p => new ContainerPort() { Port = p }).ToList();
                 ContainerGroupRequestModel requestModel = new ContainerGroupRequestModel()
                 {
-                    Location = "centralus", // TODO: query the location from the ResourceGroup being used to create this group
+                    Location = resourceGroup.Location,
                     Properties = new ContainerGroupProperties()
                     {
                         OsType = OsTypeEnum.Linux,
@@ -636,6 +661,21 @@ namespace ContainerizedAppLib
                                 Properties = new ContainerProperties()
                                 {
                                     Commands = new List<string>(),
+                                    EnvironmentVariables = EnvironmentVariables switch
+                                    {
+                                        null => null,
+                                        _ => EnvironmentVariables.Select(ev => new ContainerProperties.EnvironmentVariable
+                                        {
+                                            Name = ev.Key,
+                                            Value = ipType.Equals("Public", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
+                                            SecureValue = ipType.Equals("Private", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
+                                        }).ToList(),
+                                    }
+,
                                     Image = containerImageName,
                                     Ports = containerPortObjects,
                                     Resources = new ResourceRequirements()
@@ -679,7 +719,7 @@ namespace ContainerizedAppLib
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 IFlurlResponse response = await createContainerGroupEndpoint
-                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                 .WithHeader("Content-Type", "application/json")
                                 .PutStringAsync(serializedRequestModel);
 
@@ -709,7 +749,7 @@ namespace ContainerizedAppLib
             string getContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
             IFlurlResponse response = await getContainerGroupEndpoint
-                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                                 .AllowHttpStatus(System.Net.HttpStatusCode.NotFound) // 404 if layer is simply not found, do not throw.
                                                 .GetAsync();
 
@@ -737,7 +777,7 @@ namespace ContainerizedAppLib
             try
             {
                 IFlurlResponse response = await getContainerLogEndpoint
-                                                                .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                                                .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                                                 .GetAsync();
 
                 if (response.StatusCode == 200)
@@ -771,7 +811,7 @@ namespace ContainerizedAppLib
             try
             {
                 string response = await listContainerGroupsInResourceGroupEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                     .GetStringAsync();
 
                 var parsedResponse = JsonConvert.DeserializeObject<ListContainerGroup_GetResponseModel>(response);
@@ -796,7 +836,7 @@ namespace ContainerizedAppLib
             try
             {
                 IFlurlResponse response = await stopContainerInstanceEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                     .PostAsync();
 
                 return response.StatusCode == 202;
@@ -820,7 +860,7 @@ namespace ContainerizedAppLib
             try
             {
                 IFlurlResponse response = await restartContainerGroupEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                     .PostAsync();
 
                 return response.StatusCode == 202;
@@ -844,7 +884,7 @@ namespace ContainerizedAppLib
             try
             {
                 IFlurlResponse response = await restartContainerGroupEndpoint
-                                    .WithHeader("Authorization", $"Bearer {_aciToken}")
+                                    .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
                                     .DeleteAsync();
 
                 return response.StatusCode == 202;
@@ -856,6 +896,26 @@ namespace ContainerizedAppLib
             }
         }
         #endregion
+
+        private async Task<ResourceGroup_GetResponseModel> GetResourceGroupDetails()
+        {
+            string queryResourceGroupDetailsEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourcegroups/{Config.AciResourceGroupName}?api-version=2021-04-01";
+
+            try
+            {
+                string response = await queryResourceGroupDetailsEndpoint
+                                    .WithHeader("Authorization", $"Bearer {_azureResourcesToken}")
+                                    .GetStringAsync();
+                var resourceGroup = JsonConvert.DeserializeObject<ResourceGroup_GetResponseModel>(response);
+                return resourceGroup;
+
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Exception from ContainerizedAppLibApi.GetResourceGroupDetails: Error when attempting ");
+                throw;
+            }
+        }
         
         class ACRAuthenticationResponse
         {
