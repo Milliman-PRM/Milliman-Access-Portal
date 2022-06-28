@@ -325,7 +325,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
                         string TargetFilePath = string.Empty;
 
-                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
+                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
                         {
                             // special treatment for content types where no live content file persists in MAP storage
                             switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
