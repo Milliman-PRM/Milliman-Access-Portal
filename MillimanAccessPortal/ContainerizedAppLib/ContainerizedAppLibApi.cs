@@ -488,6 +488,8 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The virtual network ID.</param>
         /// <param name="vnetName">The name of the virtual network.</param>
+        /// <param name="blockUntilStarted">Specifies whether this method should block until the container has started (or failed to start)</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns></returns>
         public async Task<string> RunContainer(string containerGroupName, 
@@ -500,13 +502,23 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
+                                               Dictionary<string, string> EnvironmentVariables = null,
                                                params ushort[] containerPorts)
         {
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
            
-                bool createResult = await CreateContainerGroup(containerGroupName, imagePath, ipType, cpuCoreCount, memorySizeInGB, resourceTags, vnetId, vnetName, containerPorts);
+                bool createResult = await CreateContainerGroup(containerGroupName, 
+                                                               imagePath, 
+                                                               ipType, 
+                                                               cpuCoreCount, 
+                                                               memorySizeInGB, 
+                                                               resourceTags, 
+                                                               vnetId, 
+                                                               vnetName, 
+                                                               EnvironmentVariables,
+                                                               containerPorts);
 
                 if (!createResult)
                 {
@@ -612,10 +624,20 @@ namespace ContainerizedAppLib
         /// <param name="resourceTags">The Container Group resource tags.</param>
         /// <param name="vnetId">The ID of the virtual network being used.</param>
         /// <param name="vnetName">The name of the virtual network being used.</param>
+        /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
         /// <param name="containerPorts">A list of ports to be exposed on the Container Group.</param>
         /// <returns>A bool representing whether or not creation responded with a 201 success code.</returns>
         /// <exception cref="ApplicationException"></exception>
-        private async Task<bool> CreateContainerGroup(string containerGroupName, string containerImageName, string ipType, int cpuCoreCount, double memorySizeInGB, ContainerGroupResourceTags resourceTags, string vnetId = null, string vnetName = null, params ushort[] containerPorts)
+        private async Task<bool> CreateContainerGroup(string containerGroupName, 
+                                                      string containerImageName, 
+                                                      string ipType, 
+                                                      int cpuCoreCount, 
+                                                      double memorySizeInGB, 
+                                                      ContainerGroupResourceTags resourceTags, 
+                                                      string vnetId = null, 
+                                                      string vnetName = null, 
+                                                      Dictionary<string, string> EnvironmentVariables = null, 
+                                                      params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
@@ -639,6 +661,21 @@ namespace ContainerizedAppLib
                                 Properties = new ContainerProperties()
                                 {
                                     Commands = new List<string>(),
+                                    EnvironmentVariables = EnvironmentVariables switch
+                                    {
+                                        null => null,
+                                        _ => EnvironmentVariables.Select(ev => new ContainerProperties.EnvironmentVariable
+                                        {
+                                            Name = ev.Key,
+                                            Value = ipType.Equals("Public", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
+                                            SecureValue = ipType.Equals("Private", StringComparison.InvariantCultureIgnoreCase)
+                                                ? ev.Value
+                                                : null,
+                                        }).ToList(),
+                                    }
+,
                                     Image = containerImageName,
                                     Ports = containerPortObjects,
                                     Resources = new ResourceRequirements()
