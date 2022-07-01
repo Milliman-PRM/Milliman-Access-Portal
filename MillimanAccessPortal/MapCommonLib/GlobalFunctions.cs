@@ -4,6 +4,7 @@ using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
@@ -27,7 +28,7 @@ namespace MapCommonLib
         public static string MillimanSupportEmailAlias { get; set; } = "";
         public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
         public static List<string> ProhibitedDomains { get; set; } = new List<string> { "hotmail.com" };
-        public static Dictionary<string,DateTime> ContainerLastActivity { get; set; } = new Dictionary<string,DateTime>();
+        public static ConcurrentDictionary<string,DateTime> ContainerLastActivity { get; set; } = new ConcurrentDictionary<string,DateTime>();
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;
