@@ -786,12 +786,11 @@ namespace MillimanAccessPortal.Controllers
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
-            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupName));
-
             switch (containerGroupModel)
             {
                 // running
-                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri != null:
                     UriBuilder externalRequestUri = new UriBuilder
                     {
                         Scheme = Request.Scheme,
@@ -806,6 +805,8 @@ namespace MillimanAccessPortal.Controllers
                     return Redirect(externalRequestUri.Uri.AbsoluteUri);
 
                 // starting
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri == null:
                 case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
                                                                  model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
                     return View("WaitForContainer");
@@ -822,6 +823,9 @@ namespace MillimanAccessPortal.Controllers
                     (string vnetId, string vnetName) = ipAddressType == "Public"
                                                        ? (null, null)
                                                        : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
+
+                    // Ensure that container lifetime management doesn't delete this while it's starting
+                    GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
 
                     // Run a container based on the appropriate image
                     string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),

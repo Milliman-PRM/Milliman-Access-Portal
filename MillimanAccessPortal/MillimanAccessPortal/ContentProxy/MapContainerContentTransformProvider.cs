@@ -45,6 +45,7 @@ namespace MillimanAccessPortal.ContentProxy
         /// <param name="context">The context to add any generated transforms to.</param>
         public void Apply(TransformBuilderContext context)
         {
+            context.RequestTransforms.Add(new MapContainerContentRequestTransform(context.Cluster));
             context.ResponseTransforms.Add(new MapContainerContentResponseTransform(_targetUri!));
         }
     }

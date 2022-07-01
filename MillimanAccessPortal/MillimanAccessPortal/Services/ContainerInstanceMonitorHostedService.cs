@@ -64,8 +64,9 @@ namespace MillimanAccessPortal.Services
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
-                        Log.Information($"Last activity collection is{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", GlobalFunctions.ContainerLastActivity.Select(a => a.Key + ": " + a.Value.ToString()))}");
-                        Log.Information($"Found {allContainerGroups.Count} container groups, {previewContainerGroups.Count} preview, {liveContainerGroups.Count} live");
+                        // Log.Information($"Last activity collection is{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", GlobalFunctions.ContainerLastActivity.Select(a => a.Key + ": " + a.Value.ToString()))}");
+                        Log.Information($"Found {previewContainerGroups.Count} preview container groups:{string.Join($"", previewContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, for content:<{g.Tags["contentItemName"]}>"))}");
+                        Log.Information($"Found {liveContainerGroups.Count} live container groups:{string.Join($"", liveContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, content:<{g.Tags["contentItemName"]}> for selection group <{g.Tags["selectionGroupName"]}>"))}");
 
                         List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
                                                                                               .Include(p => p.RootContentItem)
@@ -76,7 +77,7 @@ namespace MillimanAccessPortal.Services
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
 
-                        Log.Debug($"Preview publications: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", pendingPublications.Select(p => $"initiated:{p.CreateDateTimeUtc}, content:{p.RootContentItem.ContentName}"))}");
+                        Log.Debug($"Found {pendingPublications.Count} Preview publications: {string.Join($"", pendingPublications.Select(p => $"{Environment.NewLine}\tinitiated:{p.CreateDateTimeUtc}, content:<{p.RootContentItem.ContentName}>"))}");
 
                         #region Manage preview container instances
                         TimeSpan previewLingerTime = TimeSpan.FromMinutes(30);
@@ -135,7 +136,7 @@ namespace MillimanAccessPortal.Services
                                                                                                                                            && p.RequestStatus == PublicationStatus.Confirmed))
                                                                                    .ToListAsync();
 
-                        Log.Debug($"Live selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:{g.GroupName}, content:{g.RootContentItem.ContentName}"))}");
+                        Log.Debug($"Found {liveSelectionGroups.Count} Selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:<{g.GroupName}>, content:<{g.RootContentItem.ContentName}>"))}");
 
                         #region Manage live selection group container instances
                         foreach (SelectionGroup selectionGroup in liveSelectionGroups)
@@ -156,7 +157,7 @@ namespace MillimanAccessPortal.Services
                                 ? GlobalFunctions.ContainerLastActivity[contentToken]
                                 : DateTime.MinValue;
 
-                            Log.Debug($"\tFor selection group {selectionGroup.GroupName}: lastActivity={lastActivity}, containerIsScheduledToRunNow={containerIsScheduledToRunNow}, lingerTime={lingerTime}, running container={runningContainer?.Name ?? "<none>"}");
+                            // Log.Debug($"\tFor selection group <{selectionGroup.GroupName}>: lastActivity={lastActivity}, containerIsScheduledToRunNow={containerIsScheduledToRunNow}, lingerTime={lingerTime}, running container=<{runningContainer?.Name ?? "none"}>");
 
                             // 3) If a live container should be running and it is not then launch one
                             if ((containerIsScheduledToRunNow ||
@@ -164,7 +165,7 @@ namespace MillimanAccessPortal.Services
                                 runningContainer == null
                                )
                             {
-                                Log.Debug($"\tPreparing to launch missing container");
+                                Log.Debug($"\tPreparing to launch missing container for selection group <{selectionGroup.GroupName}>, content <{selectionGroup.RootContentItem.ContentName}>");
                                 ContainerGroupResourceTags tags = new()
                                 {
                                     ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
@@ -183,7 +184,7 @@ namespace MillimanAccessPortal.Services
                             }
                             else
                             {
-                                Log.Debug($"\tA container {(runningContainer == null ? "will not be launched" : "is already running")}");
+                                // Log.Debug($"\tA container {(runningContainer == null ? "will not be launched" : "is already running")}");
                             }
 
                             // 4) If a live container should NOT be running and it is then delete it
@@ -197,33 +198,29 @@ namespace MillimanAccessPortal.Services
                             }
                             else
                             {
-                                Log.Debug($"\tNo running container needs to be deleted for Selection Group {selectionGroup.GroupName}");
+                                // Log.Debug($"\tNo running container needs to be deleted for Selection Group <{selectionGroup.GroupName}>, Content Item <{selectionGroup.RootContentItem.ContentName}>");
                             }
 
                         }
                         #endregion
 
-                        // 5) Find all "preview" Container Instances NOT associated with a preview-ready publication request
+                        // 5) Terminate all "preview" Container Instances NOT associated with a preview-ready publication request
                         List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
                         IEnumerable<(string Name, string Token)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
                                                                                                                  .Select(cg => (cg.Name, cg.Tags["content_token"]));
                         foreach ((string Name, string Token) orphan in orphanPreviewContainers)
                         {
                             Log.Debug($"Deleting orphaned preview container group {orphan.Name}");
+                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
                         }
 
-                        // 6) Find all "live" Container Instances NOT associated with a live selection group
+                        // 6) Terminate all "live" Container Instances NOT associated with a live selection group
                         List<string> legitimateLiveContainerNames = liveSelectionGroups.Select(p => p.Id.ToString()).ToList();
                         IEnumerable<(string Name, string Token)> orphanLiveContainers = liveContainerGroups.Where(g => !legitimateLiveContainerNames.Contains(g.Name))
                                                                                                      .Select(g => (g.Name, g.Tags["content_token"]));
                         foreach ((string Name, string Token) orphan in orphanLiveContainers)
                         {
                             Log.Debug($"Deleting orphaned live container group {orphan.Name}");
-                        }
-
-                        // Delete all orphan containers
-                        foreach ((string Name, string Token) orphan in orphanPreviewContainers.Concat(orphanLiveContainers))
-                        {
                             AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
                         }
 
@@ -231,7 +228,10 @@ namespace MillimanAccessPortal.Services
                         await Task.WhenAll(AllParallelTasks);
                     }
                 }
-                catch { }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "Error while processing container lifetime logic");
+                }
 
                 await Task.Delay(30_000, stoppingToken);
             }
@@ -251,7 +251,7 @@ namespace MillimanAccessPortal.Services
             {
                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepoositoryName);
 
-                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {containerGroupNameGuid.ToString()}");
+                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting new container instance for content item {contentItem.ContentName}, container name {containerGroupNameGuid}");
                 string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                              isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                              isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
@@ -262,6 +262,7 @@ namespace MillimanAccessPortal.Services
                                                              vnetId,
                                                              vnetName,
                                                              false,
+                                                             new Dictionary<string, string> { { "PathBase", contentToken } },
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
                 Log.Information($"Container instance started with URL: {containerUrl}");
@@ -279,7 +280,7 @@ namespace MillimanAccessPortal.Services
             // Websockets probably function until the container dies
             await _containerizedAppLibApi.DeleteContainerGroup(containerGroupName);
 
-            GlobalFunctions.ContainerLastActivity.Remove(contentToken);
+            GlobalFunctions.ContainerLastActivity.Remove(contentToken, out _);
         }
     }
 }

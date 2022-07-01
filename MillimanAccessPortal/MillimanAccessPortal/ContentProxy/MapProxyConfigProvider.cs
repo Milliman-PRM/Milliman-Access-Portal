@@ -114,7 +114,6 @@ namespace MillimanAccessPortal.ContentProxy
                 };
 
                 AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
-                GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
 
                 try
                 {
@@ -161,7 +160,7 @@ namespace MillimanAccessPortal.ContentProxy
 
             UpdateConfiguration(newRoutes, newClusters);
 
-            GlobalFunctions.ContainerLastActivity.Remove(contentToken);
+            GlobalFunctions.ContainerLastActivity.Remove(contentToken, out _);
         }
     }
 }

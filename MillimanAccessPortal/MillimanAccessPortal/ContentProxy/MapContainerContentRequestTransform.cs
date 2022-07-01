@@ -37,6 +37,7 @@ namespace MillimanAccessPortal.ContentProxy
             //    throw new ApplicationException(shortMsg);
             //}
 
+            Log.Information($"Request for URI {context.HttpContext.Request.Host}{context.HttpContext.Request.Path}");
             GlobalFunctions.ContainerLastActivity[_cluster.ClusterId] = DateTime.UtcNow;
 
             return ValueTask.CompletedTask;
