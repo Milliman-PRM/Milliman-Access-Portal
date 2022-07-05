@@ -251,6 +251,8 @@ namespace MillimanAccessPortal.Services
             {
                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepoositoryName);
 
+                GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
+
                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting new container instance for content item {contentItem.ContentName}, container name {containerGroupNameGuid}");
                 string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                              isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
@@ -268,10 +270,14 @@ namespace MillimanAccessPortal.Services
                 Log.Information($"Container instance started with URL: {containerUrl}");
             }
             catch { }
-
-            GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
         }
 
+        /// <summary>
+        /// For a named container in ACI: removes the Routes/Cluster from YARP proxy configuration, deletes the container instance, and forgets the last activity time
+        /// </summary>
+        /// <param name="containerGroupName"></param>
+        /// <param name="contentToken"></param>
+        /// <returns></returns>
         private async Task TerminateContainerAsync(string containerGroupName, string contentToken)
         {
             // Any subsequent HTTP request will return 502 after this
