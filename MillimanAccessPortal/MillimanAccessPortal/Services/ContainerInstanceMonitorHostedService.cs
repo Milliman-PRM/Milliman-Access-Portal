@@ -68,6 +68,7 @@ namespace MillimanAccessPortal.Services
                         Log.Information($"Found {previewContainerGroups.Count} preview container groups:{string.Join($"", previewContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, for content:<{g.Tags["contentItemName"]}>"))}");
                         Log.Information($"Found {liveContainerGroups.Count} live container groups:{string.Join($"", liveContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, content:<{g.Tags["contentItemName"]}> for selection group <{g.Tags["selectionGroupName"]}>"))}");
 
+                        #region Manage preview container instances
                         List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
                                                                                               .Include(p => p.RootContentItem)
                                                                                                   .ThenInclude(rc => rc.Client)
@@ -76,11 +77,10 @@ namespace MillimanAccessPortal.Services
                                                                                               .Where(p => p.RequestStatus == PublicationStatus.Processed)
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
+                        TimeSpan previewLingerTime = TimeSpan.FromMinutes(30);
 
                         Log.Debug($"Found {pendingPublications.Count} Preview publications: {string.Join($"", pendingPublications.Select(p => $"{Environment.NewLine}\tinitiated:{p.CreateDateTimeUtc}, content:<{p.RootContentItem.ContentName}>"))}");
 
-                        #region Manage preview container instances
-                        TimeSpan previewLingerTime = TimeSpan.FromMinutes(30);
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
                             ContainerGroup_GetResponseModel runningContainer = previewContainerGroups.SingleOrDefault(c => c.Name == publication.Id.ToString());
@@ -91,7 +91,7 @@ namespace MillimanAccessPortal.Services
                                 ? GlobalFunctions.ContainerLastActivity[contentToken]
                                 : DateTime.MinValue;
 
-                            // 1) If a preview container should be running and it is not then launch one
+                            #region 1) If a preview container should be running and it is not then launch one
                             if ((DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) ||
                                  DateTime.UtcNow < lastActivity + previewLingerTime) &&
                                 runningContainer == null
@@ -113,8 +113,9 @@ namespace MillimanAccessPortal.Services
 
                                 AllParallelTasks.Add(RequestContainer(publication.Id, publication.RootContentItem, true, contentToken, tags));
                             }
+                            #endregion
 
-                            // 2) If a preview container should NOT be running and it is then delete it
+                            #region 2) If a preview container should NOT be running and it is then delete it
                             if (DateTime.UtcNow > publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) &&
                                 DateTime.UtcNow > lastActivity + previewLingerTime &&
                                 runningContainer != null
@@ -122,6 +123,7 @@ namespace MillimanAccessPortal.Services
                             {
                                 AllParallelTasks.Add(TerminateContainerAsync(publication.Id.ToString(), contentToken));
                             }
+                            #endregion
                         }
                         #endregion
 
@@ -159,7 +161,7 @@ namespace MillimanAccessPortal.Services
 
                             // Log.Debug($"\tFor selection group <{selectionGroup.GroupName}>: lastActivity={lastActivity}, containerIsScheduledToRunNow={containerIsScheduledToRunNow}, lingerTime={lingerTime}, running container=<{runningContainer?.Name ?? "none"}>");
 
-                            // 3) If a live container should be running and it is not then launch one
+                            #region 3) If a live container should be running and it is not then launch one
                             if ((containerIsScheduledToRunNow ||
                                 DateTime.UtcNow < lastActivity + lingerTime) &&
                                 runningContainer == null
@@ -184,10 +186,11 @@ namespace MillimanAccessPortal.Services
                             }
                             else
                             {
-                                // Log.Debug($"\tA container {(runningContainer == null ? "will not be launched" : "is already running")}");
+                                // Log.Debug($"\tA container {(runningContainer == null ? "is not expected now" : "is already running")}");
                             }
+                            #endregion
 
-                            // 4) If a live container should NOT be running and it is then delete it
+                            #region 4) If a live container should NOT be running and it is then delete it
                             if (!containerIsScheduledToRunNow &&
                                 DateTime.UtcNow > lastActivity + lingerTime &&
                                 runningContainer != null
@@ -200,7 +203,7 @@ namespace MillimanAccessPortal.Services
                             {
                                 // Log.Debug($"\tNo running container needs to be deleted for Selection Group <{selectionGroup.GroupName}>, Content Item <{selectionGroup.RootContentItem.ContentName}>");
                             }
-
+                            #endregion
                         }
                         #endregion
 
