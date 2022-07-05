@@ -761,7 +761,7 @@ namespace MillimanAccessPortal.Controllers
                 AuditLogger.Log(AuditEventType.PublicationRequestInitiated.ToEvent(ContentItem, ContentItem.Client, NewContentPublicationRequest), currentUser.UserName, currentUser.Id);
             }
 
-            var rootContentItemDetail = await _publishingQueries.BuildContentItemDetailModelAsync(ContentItem, Request);
+            RootContentItemDetail rootContentItemDetail = await _publishingQueries.BuildContentItemDetailModelAsync(ContentItem, Request);
             return Json(rootContentItemDetail);
         }
 

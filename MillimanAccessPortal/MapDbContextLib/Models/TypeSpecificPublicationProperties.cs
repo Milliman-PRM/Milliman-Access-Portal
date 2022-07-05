@@ -125,21 +125,21 @@ namespace MapDbContextLib.Models
     {
         public override TimeSpan Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
         {
-            int selectedHour;
+            string value = reader.GetString();
             try
             {
-                reader.TryGetInt32(out selectedHour);
+                int selectedHour = int.Parse(value);
+                return new TimeSpan(selectedHour, 0, 0);
             }
-            catch (InvalidOperationException)
+            catch
             {
-                selectedHour = Int32.Parse(reader.GetString());
+                return TimeSpan.Parse(value);
             }
-            return new TimeSpan(selectedHour, 0, 0);
         }
 
         public override void Write(Utf8JsonWriter writer, TimeSpan value, JsonSerializerOptions options)
         {
-            writer.WriteNumberValue(value.Hours);
+            writer.WriteStringValue(value.ToString());
         }
     }
 }
