@@ -111,6 +111,8 @@ namespace MillimanAccessPortal.Services
                                     ContentToken = contentToken,
                                 };
 
+                                Log.Information($"Container lifetime service launching container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
+
                                 AllParallelTasks.Add(RequestContainer(publication.Id, publication.RootContentItem, true, contentToken, tags));
                             }
                             #endregion
@@ -121,6 +123,8 @@ namespace MillimanAccessPortal.Services
                                 runningContainer != null
                                )
                             {
+                                Log.Information($"Container lifetime service deleting container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
+
                                 AllParallelTasks.Add(TerminateContainerAsync(publication.Id.ToString(), contentToken));
                             }
                             #endregion
@@ -167,7 +171,7 @@ namespace MillimanAccessPortal.Services
                                 runningContainer == null
                                )
                             {
-                                Log.Debug($"\tPreparing to launch missing container for selection group <{selectionGroup.GroupName}>, content <{selectionGroup.RootContentItem.ContentName}>");
+                                Log.Information($"Container lifetime service launching container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
                                 ContainerGroupResourceTags tags = new()
                                 {
                                     ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
@@ -181,7 +185,6 @@ namespace MillimanAccessPortal.Services
                                     PublicationRequestId = null,
                                     ContentToken = contentToken,
                                 };
-
                                 AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
                             }
                             else
@@ -196,7 +199,7 @@ namespace MillimanAccessPortal.Services
                                 runningContainer != null
                                )
                             {
-                                Log.Debug($"Deleting running container {runningContainer.Name} for Selection Group {selectionGroup.GroupName}");
+                                Log.Information($"Container lifetime service deleting container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
                                 AllParallelTasks.Add(TerminateContainerAsync(selectionGroup.Id.ToString(), contentToken));
                             }
                             else
@@ -207,27 +210,29 @@ namespace MillimanAccessPortal.Services
                         }
                         #endregion
 
-                        // 5) Terminate all "preview" Container Instances NOT associated with a preview-ready publication request
+                        #region 5) Terminate all "preview" Container Instances NOT associated with a preview-ready publication request
                         List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
-                        IEnumerable<(string Name, string Token)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
-                                                                                                                 .Select(cg => (cg.Name, cg.Tags["content_token"]));
-                        foreach ((string Name, string Token) orphan in orphanPreviewContainers)
+                        IEnumerable<(string Name, Dictionary<string, string> Tags)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
+                                                                                                                 .Select(cg => (cg.Name, cg.Tags));
+                        foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanPreviewContainers)
                         {
-                            Log.Debug($"Deleting orphaned preview container group {orphan.Name}");
-                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
+                            Log.Information($"Deleting orphaned preview container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
+                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
                         }
+                        #endregion
 
-                        // 6) Terminate all "live" Container Instances NOT associated with a live selection group
+                        #region 6) Terminate all "live" Container Instances NOT associated with a live selection group
                         List<string> legitimateLiveContainerNames = liveSelectionGroups.Select(p => p.Id.ToString()).ToList();
-                        IEnumerable<(string Name, string Token)> orphanLiveContainers = liveContainerGroups.Where(g => !legitimateLiveContainerNames.Contains(g.Name))
-                                                                                                     .Select(g => (g.Name, g.Tags["content_token"]));
-                        foreach ((string Name, string Token) orphan in orphanLiveContainers)
+                        IEnumerable<(string Name, Dictionary<string,string> Tags)> orphanLiveContainers = liveContainerGroups.Where(g => !legitimateLiveContainerNames.Contains(g.Name))
+                                                                                                     .Select(g => (g.Name, g.Tags));
+                        foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanLiveContainers)
                         {
-                            Log.Debug($"Deleting orphaned live container group {orphan.Name}");
-                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Token));
+                            Log.Information($"Deleting orphaned live container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
+                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
                         }
+                        #endregion
 
-                        // Wait for all the async things to be done
+                        // Wait for all the parallel async things to be done
                         await Task.WhenAll(AllParallelTasks);
                     }
                 }
