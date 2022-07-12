@@ -89,7 +89,9 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Index()
         {
             var currentUser = await UserManager.GetUserAsync(User);
-            var currentUserPermissions = await DataContext.UserRoleInClient
+
+            #region Redirect to File Drop if User is strictly a File Drop User.
+            var currentUserFileDropPermissions = await DataContext.UserRoleInClient
                                                           .Where(ur => ur.UserId == currentUser.Id)
                                                           .Where(ur => ur.Role.RoleEnum == RoleEnum.FileDropUser ||
                                                                        ur.Role.RoleEnum == RoleEnum.FileDropAdmin)
@@ -101,13 +103,11 @@ namespace MillimanAccessPortal.Controllers
             var currentUserSelectionGroups = await DataContext.UserInSelectionGroup
                                                               .Where(uisg => uisg.UserId == currentUser.Id)
                                                               .ToListAsync();
-            if (currentUserPermissions.Any() &&
-                currentUserFileDropPermissionGroups.Any() &&
-                !currentUserSelectionGroups.Any())
+            if (currentUserFileDropPermissions.Any() && currentUserFileDropPermissionGroups.Any() && !currentUserSelectionGroups.Any())
             {
                 return Redirect("/FileDrop");
             }
-
+            #endregion
 
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
             return View();
