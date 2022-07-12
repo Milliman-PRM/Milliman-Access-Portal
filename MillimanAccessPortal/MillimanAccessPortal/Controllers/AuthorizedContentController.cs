@@ -86,10 +86,30 @@ namespace MillimanAccessPortal.Controllers
         /// Presents the user with links to all authorized content. This is the application landing page.
         /// </summary>
         /// <returns>The view</returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
+            var currentUser = await UserManager.GetUserAsync(User);
+            var currentUserPermissions = await DataContext.UserRoleInClient
+                                                          .Where(ur => ur.UserId == currentUser.Id)
+                                                          .Where(ur => ur.Role.RoleEnum == RoleEnum.FileDropUser ||
+                                                                       ur.Role.RoleEnum == RoleEnum.FileDropAdmin)
+                                                          .ToListAsync();
+            var currentUserFileDropPermissionGroups = await DataContext.SftpAccount
+                                                                       .Include(sa => sa.FileDropUserPermissionGroup)
+                                                                       .Where(sa => sa.ApplicationUserId == currentUser.Id)
+                                                                       .ToListAsync();
+            var currentUserSelectionGroups = await DataContext.UserInSelectionGroup
+                                                              .Where(uisg => uisg.UserId == currentUser.Id)
+                                                              .ToListAsync();
+            if (currentUserPermissions.Any() &&
+                currentUserFileDropPermissionGroups.Any() &&
+                !currentUserSelectionGroups.Any())
+            {
+                return Redirect("/FileDrop");
+            }
 
+
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
             return View();
         }
 
