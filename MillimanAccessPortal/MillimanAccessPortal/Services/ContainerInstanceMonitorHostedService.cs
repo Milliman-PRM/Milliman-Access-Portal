@@ -63,7 +63,10 @@ namespace MillimanAccessPortal.Services
 
                         string DatabaseUniqueId = _dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value;
 
-                        List<ContainerGroup_GetResponseModel> allContainerGroups = await _containerizedAppLibApi.ListContainerGroupsInResourceGroup();
+                        List<ContainerGroup_GetResponseModel> allContainerGroups = (await _containerizedAppLibApi.ListContainerGroupsInResourceGroup())
+                                                                                                                 .Where(g => g.Tags.ContainsKey("database_id")
+                                                                                                                          && g.Tags["database_id"].Equals(DatabaseUniqueId))
+                                                                                                                 .ToList();
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
