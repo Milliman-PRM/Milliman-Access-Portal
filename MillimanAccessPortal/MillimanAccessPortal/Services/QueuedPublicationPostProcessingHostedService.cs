@@ -412,6 +412,7 @@ namespace MillimanAccessPortal.Services
                                 SelectionGroupName = null,
                                 PublicationRequestId = publicationRequestId,
                                 ContentToken = contentToken,
+                                DatabaseId = dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
                             // use a tuple so that both succeed or both fail

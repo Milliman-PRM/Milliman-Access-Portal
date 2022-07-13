@@ -47,5 +47,8 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         [JsonProperty(PropertyName = "content_token")]
         public string ContentToken { get; set; }
+
+        [JsonProperty(PropertyName = "database_id")]
+        public string DatabaseId { get; set; }
     }
 }

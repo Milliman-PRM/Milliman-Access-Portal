@@ -704,7 +704,8 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupName = null,
                 PublicationRequestId = publicationRequestId,
                 ContentToken = contentToken,
-            };
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
+        };
 
             return await RequestStartContainer(publicationRequestId, contentItem, false, contentToken, resourceTags);
         }
@@ -773,6 +774,7 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupName = selectionGroup.GroupName,
                 PublicationRequestId = null,
                 ContentToken = contentToken,
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
             };
 
             return await RequestStartContainer(group, selectionGroup.RootContentItem, true, contentToken, resourceTags);

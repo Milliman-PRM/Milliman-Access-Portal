@@ -61,6 +61,8 @@ namespace MillimanAccessPortal.Services
                         _dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                         _containerizedAppLibApi = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(null);
 
+                        string DatabaseUniqueId = _dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value;
+
                         List<ContainerGroup_GetResponseModel> allContainerGroups = await _containerizedAppLibApi.ListContainerGroupsInResourceGroup();
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
@@ -108,6 +110,7 @@ namespace MillimanAccessPortal.Services
                                     SelectionGroupName = null,
                                     PublicationRequestId = publication.Id,
                                     ContentToken = contentToken,
+                                    DatabaseId = DatabaseUniqueId,
                                 };
 
                                 Log.Information($"Container lifetime service launching container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
@@ -183,6 +186,7 @@ namespace MillimanAccessPortal.Services
                                     SelectionGroupName = selectionGroup.GroupName,
                                     PublicationRequestId = null,
                                     ContentToken = contentToken,
+                                    DatabaseId = DatabaseUniqueId,
                                 };
                                 AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
                             }
