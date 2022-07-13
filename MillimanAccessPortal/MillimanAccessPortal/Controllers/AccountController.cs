@@ -1234,19 +1234,32 @@ namespace MillimanAccessPortal.Controllers
             List<NavBarElementModel> NavBarElements = new List<NavBarElementModel> { };
             long order = 1;
 
-            // Add the Content element
-            NavBarElements.Add(new NavBarElementModel
-            {
-                Order = order++,
-                Label = "Content",
-                URL = nameof(AuthorizedContentController).Replace("Controller", ""),
-                View = "Content",
-                Icon = "content-grid",
-            });
-
-            // Conditionally add the FileDrop element
+            var currentUser = await _userManager.GetUserAsync(User);
             AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
             AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
+
+            var currentUserFileDropPermissionGroups = await DbContext.SftpAccount
+                                                           .Include(sa => sa.FileDropUserPermissionGroup)
+                                                           .Where(sa => sa.ApplicationUserId == currentUser.Id)
+                                                           .ToListAsync();
+            var currentUserSelectionGroups = await DbContext.UserInSelectionGroup
+                                                              .Where(uisg => uisg.UserId == currentUser.Id)
+                                                              .ToListAsync();
+
+            // Add the Content element
+            if (!((FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded) && currentUserFileDropPermissionGroups.Any() && !currentUserSelectionGroups.Any()))
+            {
+                NavBarElements.Add(new NavBarElementModel
+                {
+                    Order = order++,
+                    Label = "Content",
+                    URL = nameof(AuthorizedContentController).Replace("Controller", ""),
+                    View = "Content",
+                    Icon = "content-grid",
+                });
+            }
+
+            // Conditionally add the FileDrop element
             if (!FileDropAdminResult.Succeeded && FileDropUserResult.Succeeded)
             {
                 TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
