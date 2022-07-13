@@ -47,7 +47,7 @@ namespace MapDbContextLib.Context
                 {
                     Db.NameValueConfiguration.Add(new NameValueConfiguration 
                     { 
-                        Key = key.ToString(), 
+                        Key = key.GetDisplayNameString(false), 
                         Value = configValue ?? $"A value has not been set for required configuration key <{key}>." 
                     });
                 }
@@ -73,7 +73,7 @@ namespace MapDbContextLib.Context
                 {
                     Db.NameValueConfiguration.Add(new NameValueConfiguration
                     {
-                        Key = key.ToString(),
+                        Key = key.GetDisplayNameString(false),
                         Value = Guid.NewGuid().ToString(),
                     });
                 }
