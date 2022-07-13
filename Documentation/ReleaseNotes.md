@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.16.3
+- Implemented a feature to auto-navigate Users to File Drop if they have access to File Drop but no other MAP Content
+- Hides the Content page navigation bar option for Users with access to File Drop but no other MAP Content
+
 #### v1.16.2
 
 - Fixed a bug that caused a File Drop to incorrectly display deleted directories as if they still exist
