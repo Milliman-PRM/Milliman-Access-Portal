@@ -70,7 +70,7 @@ namespace MapTests
 
                 #region Act
                 // invoke the controller action to be tested
-                var view = sut.Index();
+                var view = await sut.Index();
                 #endregion
 
                 #region Assert
