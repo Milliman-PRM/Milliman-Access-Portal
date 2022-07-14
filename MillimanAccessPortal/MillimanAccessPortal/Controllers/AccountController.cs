@@ -1238,16 +1238,15 @@ namespace MillimanAccessPortal.Controllers
             AuthorizationResult FileDropAdminResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropAdmin));
             AuthorizationResult FileDropUserResult = await AuthorizationService.AuthorizeAsync(User, null, new RoleInClientRequirement(RoleEnum.FileDropUser));
 
-            var currentUserFileDropPermissionGroups = await DbContext.SftpAccount
-                                                           .Include(sa => sa.FileDropUserPermissionGroup)
-                                                           .Where(sa => sa.ApplicationUserId == currentUser.Id)
-                                                           .ToListAsync();
-            var currentUserSelectionGroups = await DbContext.UserInSelectionGroup
-                                                              .Where(uisg => uisg.UserId == currentUser.Id)
-                                                              .ToListAsync();
+            bool userHasFileDropPermissionGroups = await DbContext.SftpAccount
+                                                                   .Include(sa => sa.FileDropUserPermissionGroup)
+                                                                   .Where(sa => sa.FileDropUserPermissionGroupId != null)
+                                                                   .Where(sa => sa.ApplicationUserId == currentUser.Id)
+                                                                   .AnyAsync();
+            bool userHasContent = await DbContext.UserInSelectionGroup.AnyAsync(uisg => uisg.UserId == currentUser.Id);
 
             // Add the Content element
-            if (!((FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded) && currentUserFileDropPermissionGroups.Any() && !currentUserSelectionGroups.Any()))
+            if (!((FileDropAdminResult.Succeeded || FileDropUserResult.Succeeded) && userHasFileDropPermissionGroups && !userHasContent))
             {
                 NavBarElements.Add(new NavBarElementModel
                 {

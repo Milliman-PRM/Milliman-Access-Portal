@@ -91,21 +91,20 @@ namespace MillimanAccessPortal.Controllers
             var currentUser = await UserManager.GetUserAsync(User);
 
             #region Redirect to File Drop if User is strictly a File Drop User.
-            var currentUserFileDropPermissions = await DataContext.UserRoleInClient
-                                                          .Where(ur => ur.UserId == currentUser.Id)
-                                                          .Where(ur => ur.Role.RoleEnum == RoleEnum.FileDropUser ||
-                                                                       ur.Role.RoleEnum == RoleEnum.FileDropAdmin)
-                                                          .ToListAsync();
-            var currentUserFileDropPermissionGroups = await DataContext.SftpAccount
+            bool userHasFileDropPermissions = await DataContext.UserRoleInClient
+                                                                  .AnyAsync(uric => uric.UserId == currentUser.Id &&
+                                                                            uric.Role.RoleEnum == RoleEnum.FileDropUser ||
+                                                                            uric.Role.RoleEnum == RoleEnum.FileDropAdmin);
+            bool userHasFileDropPermissionGroups = await DataContext.SftpAccount
                                                                        .Include(sa => sa.FileDropUserPermissionGroup)
+                                                                       .Where(sa => sa.FileDropUserPermissionGroupId != null)
                                                                        .Where(sa => sa.ApplicationUserId == currentUser.Id)
-                                                                       .ToListAsync();
-            var currentUserSelectionGroups = await DataContext.UserInSelectionGroup
-                                                              .Where(uisg => uisg.UserId == currentUser.Id)
-                                                              .ToListAsync();
-            if (currentUserFileDropPermissions.Any() && currentUserFileDropPermissionGroups.Any() && !currentUserSelectionGroups.Any())
+                                                                       .AnyAsync();
+            bool userHasContent = await DataContext.UserInSelectionGroup.AnyAsync(uisg => uisg.UserId == currentUser.Id);
+
+            if (userHasFileDropPermissions && userHasFileDropPermissionGroups && !userHasContent)
             {
-                return Redirect("/FileDrop");
+                return RedirectToAction(nameof(FileDropController.Index), nameof(FileDropController).Replace("Controller", ""));
             }
             #endregion
 
