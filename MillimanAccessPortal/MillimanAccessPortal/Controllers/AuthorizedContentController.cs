@@ -104,6 +104,9 @@ namespace MillimanAccessPortal.Controllers
 
             if (userHasFileDropPermissions && userHasFileDropPermissionGroups && !userHasContent)
             {
+                var x = nameof(FileDropController.Index);
+                var y = nameof(FileDropController).Replace("Controller", "");
+
                 return RedirectToAction(nameof(FileDropController.Index), nameof(FileDropController).Replace("Controller", ""));
             }
             #endregion
