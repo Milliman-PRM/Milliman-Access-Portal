@@ -47,7 +47,8 @@ namespace MapTests
                 testResources.UserManager,
                 testResources.Configuration,
                 testResources.PowerBiConfig,
-                testResources.AuthorizedContentQueries);
+                testResources.AuthorizedContentQueries
+            );
 
             testController.ControllerContext = testResources.GenerateControllerContext((await testResources.UserManager.FindByNameAsync(UserName)).UserName, requestUriBuilder, requestHeaders);
             testController.HttpContext.Session = new MockSession();
@@ -75,6 +76,26 @@ namespace MapTests
 
                 #region Assert
                 Assert.IsType<ViewResult>(view);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task Index_RedirectToFileDropForFileDropExclusiveUser()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "user4");
+                #endregion
+
+                #region Act
+                // invoke the controller action to be tested
+                var response = await sut.Index();
+                #endregion
+
+                #region Assert
+                Assert.IsType<RedirectToActionResult>(response);
                 #endregion
             }
         }
