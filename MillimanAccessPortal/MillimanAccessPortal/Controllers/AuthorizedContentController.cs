@@ -86,10 +86,29 @@ namespace MillimanAccessPortal.Controllers
         /// Presents the user with links to all authorized content. This is the application landing page.
         /// </summary>
         /// <returns>The view</returns>
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
-            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
+            var currentUser = await UserManager.GetUserAsync(User);
 
+            #region Redirect to File Drop if User is strictly a File Drop User.
+            bool userHasFileDropPermissions = await DataContext.UserRoleInClient
+                                                                  .AnyAsync(uric => uric.UserId == currentUser.Id &&
+                                                                            uric.Role.RoleEnum == RoleEnum.FileDropUser ||
+                                                                            uric.Role.RoleEnum == RoleEnum.FileDropAdmin);
+            bool userHasFileDropPermissionGroups = await DataContext.SftpAccount
+                                                                       .Include(sa => sa.FileDropUserPermissionGroup)
+                                                                       .Where(sa => sa.FileDropUserPermissionGroupId != null)
+                                                                       .Where(sa => sa.ApplicationUserId == currentUser.Id)
+                                                                       .AnyAsync();
+            bool userHasContent = await DataContext.UserInSelectionGroup.AnyAsync(uisg => uisg.UserId == currentUser.Id);
+
+            if (userHasFileDropPermissions && userHasFileDropPermissionGroups && !userHasContent)
+            {
+                return RedirectToAction(nameof(FileDropController.Index), nameof(FileDropController).Replace("Controller", ""));
+            }
+            #endregion
+
+            Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
             return View();
         }
 
