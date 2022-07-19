@@ -9,6 +9,19 @@
 - Fixed a bug that could prevent the deletion of a Client in some situations
 - Fixed a bug that could cause system errors if a username contains certain special characters
 
+#### v1.16.3
+
+- Implemented a feature to auto-navigate Users to File Drop if they have access to File Drop but no other MAP Content
+- Hides the Content page navigation bar option for Users with access to File Drop but no other MAP Content
+
+#### v1.16.2
+
+- Fixed a bug that caused a File Drop to incorrectly display deleted directories as if they still exist
+
+#### v1.16.1
+
+- Fixed a bug that caused the page to unexpectedly refresh when uploading files to File Drop for some users
+
 ### v1.16.0
 
 - Made required changes to maintain MAP compatibility with Qlikview server upgraded to a more recent supported version
