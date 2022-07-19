@@ -450,8 +450,12 @@ namespace MillimanAccessPortal.Services
                                     switch (ex.Message)
                                     {
                                         case "ContainerGroupQuotaReached":
-                                            var notifier = new NotifySupport(_messageQueue, _appConfig);
-                                            notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
+                                            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+                                            if (environmentName == "PRODUCTION")
+                                            {
+                                                var notifier = new NotifySupport(_messageQueue, _appConfig);
+                                                notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
+                                            }
                                             break;
                                         default:
                                             Log.Error($"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}{ex.InnerException.Message}");

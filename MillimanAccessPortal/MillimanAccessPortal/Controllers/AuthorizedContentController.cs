@@ -841,8 +841,12 @@ namespace MillimanAccessPortal.Controllers
                         switch (ex.Message)
                         {
                             case "ContainerGroupQuotaReached":
-                                var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
-                                notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupName, contentItem.Client.Name, ex.Data);
+                                string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+                                if (environmentName == "PRODUCTION")
+                                {
+                                    var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                                    notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupName, contentItem.Client.Name, ex.Data);
+                                }
                                 break;
                             default:
                                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupName}. Inner Exception: {Environment.NewLine}{ex.InnerException.Message}");

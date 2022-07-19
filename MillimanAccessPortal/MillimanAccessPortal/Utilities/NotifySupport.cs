@@ -54,7 +54,7 @@ namespace MillimanAccessPortal.Utilities
                 exceptionInfoMessageBuilder.AppendLine($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
             }
 
-            string emailBody = $"An Azure Container Quota was reached.{Environment.NewLine}{Environment.NewLine}" +
+            string emailBody = $"An Azure Container Quota was reached in Production.{Environment.NewLine}{Environment.NewLine}" +
                  $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
                  $"Content Item: {contentItemName}{Environment.NewLine}" +
                  $"Container Group: {containerGroupName}{Environment.NewLine}" +
