@@ -783,13 +783,12 @@ namespace MillimanAccessPortal.Controllers
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupName);
 
+            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupName));
+
             switch (containerGroupModel)
             {
                 // running
                 case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
-                    // TODO ensure an adequate token value
-                    string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupModel.Uri.AbsoluteUri));
-
                     UriBuilder externalRequestUri = new UriBuilder
                     {
                         Scheme = Request.Scheme,
@@ -834,6 +833,7 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
+                                                                     new Dictionary<string, string> { {"PathBase", contentToken } },
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
                     catch (ApplicationException ex)

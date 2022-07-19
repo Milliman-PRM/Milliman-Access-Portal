@@ -7,6 +7,7 @@ using MapDbContextLib.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
@@ -44,6 +45,8 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
+
+        [JsonConverter(typeof(LifetimeSchemeConverter))]
         public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
 
         public string PreviewImageName { get; set; } = null;
@@ -57,6 +60,9 @@ namespace MapDbContextLib.Models
         {
             public ContainerInstanceLifetimeSchemeEnum Scheme { get; set; } = ContainerInstanceLifetimeSchemeEnum.Unspecified;
             public TimeSpan ContainerLingerTimeAfterActivity { get; set; }
+
+            public LifetimeSchemeBase()
+            { }
 
             public LifetimeSchemeBase(ContainerizedContentPublicationProperties source)
             {
@@ -75,6 +81,9 @@ namespace MapDbContextLib.Models
 
         public class AlwaysColdLifetimeScheme : LifetimeSchemeBase
         {
+            public AlwaysColdLifetimeScheme()
+            {}
+
             public AlwaysColdLifetimeScheme(ContainerizedContentPublicationProperties source) 
                 : base(source)
             {}
@@ -87,6 +96,9 @@ namespace MapDbContextLib.Models
             /// Sequential ordering is not required
             /// </summary>
             public Dictionary<TimeSpan, bool> RunStateInstructions { get; } = new Dictionary<TimeSpan, bool>();
+
+            public CustomScheduleLifetimeScheme()
+            {}
 
             public CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
                 : base(source)
@@ -163,6 +175,133 @@ namespace MapDbContextLib.Models
                 DateTime weekStart = dateTime.Date.AddDays(-(int)dateTime.DayOfWeek);
                 return dateTime - weekStart;
             }
+        }
+
+        public class LifetimeSchemeConverter : JsonConverter<LifetimeSchemeBase>
+        {
+            public override void Write(Utf8JsonWriter writer, LifetimeSchemeBase value, JsonSerializerOptions options)
+            {
+                writer.WriteStartObject();
+
+                writer.WriteNumber("scheme", (int)value.Scheme);
+
+                switch (value.GetType())
+                {
+                    case var x when x == typeof(AlwaysColdLifetimeScheme):
+                        break;
+
+                    case var x when x == typeof(CustomScheduleLifetimeScheme):
+                        CustomScheduleLifetimeScheme customScheme = value as CustomScheduleLifetimeScheme;
+                        writer.WriteStartObject("RunStateInstructions");
+                        foreach (var instruction in customScheme.RunStateInstructions)
+                        {
+                            writer.WriteBoolean(instruction.Key.ToString(), instruction.Value);
+                        }
+                        writer.WriteEndObject();
+                        break;
+
+                    default:
+                        throw new NotImplementedException("This json converter cannot serialize object of unsupported type " + value.GetType().Name);
+                }
+
+                writer.WriteString("ContainerLingerTimeAfterActivity", value.ContainerLingerTimeAfterActivity.ToString());
+
+                writer.WriteEndObject();
+            }
+
+            public override LifetimeSchemeBase Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+            {
+                Dictionary<string, object> allProperties = new Dictionary<string, object>();
+                string currentPropertyName = string.Empty;
+
+                bool continueReading = true;
+                int objectDepth = 0;
+                while (continueReading && reader.Read())
+                {
+                    switch (reader.TokenType)
+                    {
+                        case JsonTokenType.PropertyName:
+                            currentPropertyName = reader.GetString().ToLower();
+                            break;
+
+                        case JsonTokenType.True:
+                        case JsonTokenType.False:
+                            bool boolValue = reader.GetBoolean();
+                            allProperties[currentPropertyName] = boolValue;
+                            break;
+
+                        case JsonTokenType.String:
+                            {
+                                string? text = reader.GetString();
+                                allProperties[currentPropertyName] = text;
+                                break;
+                            }
+
+                        case JsonTokenType.Number:
+                            {
+                                int intValue = reader.GetInt32();
+                                allProperties[currentPropertyName] = intValue;
+                                break;
+                            }
+
+                        case JsonTokenType.StartObject:
+                            objectDepth++;
+                            break;
+
+                        case JsonTokenType.EndObject:
+                            if (objectDepth == 0)
+                            {
+                                continueReading = false;
+                            }
+                            else
+                            {
+                                objectDepth--;
+                            }
+                            break;
+
+                        default:
+                            string otherString = reader.GetString();
+                            break;
+                    }
+                }
+
+                if (! allProperties.TryGetValue("scheme", out object schemeValue))
+                {
+                    throw new ApplicationException("Failed to deserialize container type specific content item properties.  \"Scheme\" property not found");
+                }
+                ContainerInstanceLifetimeSchemeEnum schemeEnum = (ContainerInstanceLifetimeSchemeEnum)schemeValue;
+
+                switch (schemeEnum)
+                {
+                    case ContainerInstanceLifetimeSchemeEnum.AlwaysCold:
+                        return new AlwaysColdLifetimeScheme
+                        {
+                            Scheme = schemeEnum,
+                            ContainerLingerTimeAfterActivity = TimeSpan.Parse(allProperties["containerlingertimeafteractivity"] as string)
+                        };
+
+                    case ContainerInstanceLifetimeSchemeEnum.Custom:
+                        CustomScheduleLifetimeScheme retVal = new CustomScheduleLifetimeScheme
+                        {
+                            Scheme = schemeEnum,
+                            ContainerLingerTimeAfterActivity = TimeSpan.Parse(allProperties["containerlingertimeafteractivity"] as string),
+                        };
+                        foreach (KeyValuePair<string, object> kvp in allProperties)
+                        {
+                            if (TimeSpan.TryParse(kvp.Key, out TimeSpan ts) &&
+                                kvp.Value.GetType() == typeof(bool))
+                            {
+                                retVal.RunStateInstructions.Add(ts, (bool)kvp.Value);
+                            }
+                        }
+
+                        return retVal;
+                }
+                return null;
+            }
+
+            LifetimeSchemeBase startValue = default(LifetimeSchemeBase);
+
         }
         #endregion
     }

@@ -590,8 +590,6 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            app.UseProxyResponseBodyRewriteMiddleware();
-
             app.UseRouting();
 
             app.UseAuthentication();
@@ -633,18 +631,11 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            // for debugging
-            app.Use(async (context, next) =>
-            {
-                await next();
-            });
-
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapReverseProxy(builder => { }) ;
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
-                //endpoints.MapHub<ReverseProxySessionHub>("/contentsessionhub");
                 //endpoints.MapRazorPages();
             });
         }
