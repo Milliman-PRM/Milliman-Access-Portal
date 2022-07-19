@@ -3,7 +3,6 @@ name: Bug Report
 about: Report a software bug
 title: "[BUG] - "
 labels: 'Scope: Bug'
-assignees: kelsie-gosser
 
 ---
 

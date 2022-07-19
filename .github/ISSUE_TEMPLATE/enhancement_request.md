@@ -3,7 +3,6 @@ name: Enhancement Request
 about: Suggest an improvement to an existing feature or functionality
 title: "[ENHANCEMENT] - "
 labels: 'Scope: Enhancement'
-assignees: kelsie-gosser
 
 ---
 
