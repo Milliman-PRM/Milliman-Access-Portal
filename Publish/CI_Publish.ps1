@@ -185,7 +185,7 @@ if ($? -eq $false) {
 log_statement "Result of $($url): status code: $($result.StatusCode)"
 log_statement "Result of $($url): response content: $($result.Content)"
 
-start-sleep 4  # Wait for the environment to update with the result of the Node.js version change
+Start-Sleep -Seconds 4
 
 Set-Location $rootpath\MillimanAccessPortal\MillimanAccessPortal
 
@@ -434,7 +434,7 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "User stats loader packaging completed"
 #endregion
 
-#region Publish MAP Query Admin to a folder
+<# #region Publish MAP Query Admin to a folder
 log_statement "Publishing MAP Query Admin to a folder"
 
 Set-Location $rootpath\MillimanAccessPortal\MapQueryAdminWeb
@@ -470,6 +470,7 @@ if ($LASTEXITCODE -ne 0) {
 log_statement "Query admin packaging completed"
 
 #endregion
+ #>
 
 #region Push package(s) to Octopus
 
@@ -477,7 +478,8 @@ log_statement "Pushing nuget packages to Octopus"
 
 Set-Location $nugetDestination
 
-octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+#octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --package "QueryApp\MapQueryAdmin.$queryVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
+octo push --package "UserStatsLoader\UserStatsLoader.$webVersion.nupkg" --space "Spaces-2" --package "web\MillimanAccessPortal.$webVersion.nupkg" --package "service\ContentPublishingServer.$serviceVersion.nupkg" --replace-existing --server $octopusURL --apiKey "$octopusAPIKey"
 
 if ($LASTEXITCODE -ne 0) {
     $error_code = $LASTEXITCODE
@@ -527,7 +529,8 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Octopus release for MAP Query Admin"
+<# log_statement "Creating Octopus release for MAP Query Admin"
+
 octo create-release --project "Query Admin" --space "Spaces-2" --version $queryVersion --packageVersion $queryVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 if ($LASTEXITCODE -eq 0) {
     log_statement "MAP Query Admin release created successfully"
@@ -538,8 +541,10 @@ else {
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
-
+ #>
+ 
 log_statement "Creating Octopus release for Database Migrations"
+
 octo create-release --project "Database Migrations" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 if ($LASTEXITCODE -eq 0) {
     log_statement "Database Migrations release created successfully"

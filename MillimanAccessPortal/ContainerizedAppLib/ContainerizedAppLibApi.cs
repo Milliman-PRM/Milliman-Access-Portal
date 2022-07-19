@@ -577,7 +577,7 @@ namespace ContainerizedAppLib
                     {
                         try
                         {
-                            log = await GetContainerLogs(containerGroupName, containerGroupName);
+                            log = (await GetContainerLogs(containerGroupName, containerGroupName)) ?? string.Empty;
                         }
                         catch { }
 
