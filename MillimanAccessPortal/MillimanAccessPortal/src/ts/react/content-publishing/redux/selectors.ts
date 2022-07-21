@@ -5,7 +5,7 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
   ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
@@ -251,14 +251,20 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  * @param state Redux store
  */
 export function submitButtonIsActive(state: PublishingState) {
+  const { contentTypes } = state.data;
   const { pendingFormData } = state.formData;
   const formChanged = !_.isEqual(state.formData.pendingFormData, state.formData.originalFormData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
+  const formIsValidIfContainer = state.formData.pendingFormData.contentTypeId &&
+    contentTypes[state.formData.pendingFormData.contentTypeId].displayName !== 'Containerized App' ||
+    state.formData.pendingFormData.typeSpecificPublicationProperties &&
+    state.formData.pendingFormData.typeSpecificPublicationProperties.containerInternalPort;
   const formValid = pendingFormData.clientId
     && pendingFormData.contentName.trim()
     && pendingFormData.contentTypeId
-    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0;
-  return formChanged && noActiveUpload && formValid;
+    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
+    && !formErrorsExist(state);
+  return formChanged && formIsValidIfContainer && noActiveUpload && formValid;
 }
 
 /**
@@ -287,6 +293,13 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
     || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
   return changesPending;
+}
+
+export function formErrorsExist(state: PublishingState) {
+  const { formErrors } = state.formData;
+  return formErrors &&
+    (formErrors.typeSpecificPublicationProperties &&
+      formErrors.typeSpecificPublicationProperties.containerInternalPort);
 }
 
 /**
@@ -323,12 +336,46 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
     };
   }
 
-  if (isContainerApp) {
+  if (isContainerApp && pendingFormData.typeSpecificPublicationProperties) {
     typeSpecificPublishingDetail = {
       containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
       containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
-      containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+      containerInternalPort: Number(pendingFormData.typeSpecificPublicationProperties.containerInternalPort),
+      containerInstanceLifetimeScheme:
+        pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+      customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
     };
+
+    if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+      === ContainerInstanceLifetimeSchemeEnum.Custom) {
+      typeSpecificPublishingDetail.timeZoneId =
+        pendingFormData.typeSpecificPublicationProperties.timeZoneId;
+      typeSpecificPublishingDetail.startTime =
+        pendingFormData.typeSpecificPublicationProperties.startTime;
+      typeSpecificPublishingDetail.endTime =
+        pendingFormData.typeSpecificPublicationProperties.endTime;
+      typeSpecificPublishingDetail.mondayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.mondayChecked;
+      typeSpecificPublishingDetail.tuesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
+      typeSpecificPublishingDetail.wednesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
+      typeSpecificPublishingDetail.thursdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
+      typeSpecificPublishingDetail.fridayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.fridayChecked;
+      typeSpecificPublishingDetail.saturdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
+      typeSpecificPublishingDetail.sundayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.sundayChecked;
+    }
   }
 
   return {
@@ -378,7 +425,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
   const isContainerApp = pendingFormData.contentTypeId
-    && contentTypes[pendingFormData.contentTypeId].displayName === 'Container App';
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   const contentItemInformation: ContentItemPublicationDetail = {
     ClientId: pendingFormData.clientId,
     ContentName: pendingFormData.contentName,
@@ -418,6 +465,9 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
         containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
         containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+        containerInstanceLifetimeScheme:
+          pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+        customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
       };
     }
   }
@@ -437,4 +487,12 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
     && state.formData.originalFormData.isEditable
     && state.formData.formState === 'read'
     && !formChangesPending(state);
+}
+
+export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
+  const { typeSpecificPublicationProperties } = state.formData.pendingFormData;
+  return typeSpecificPublicationProperties
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    === ContainerInstanceLifetimeSchemeEnum.Custom;
 }

@@ -11,6 +11,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
+using MapCommonLib;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.EntityFrameworkCore;
@@ -98,7 +99,7 @@ namespace MapDbContextLib.Context
             AuthenticationService authService = (AuthenticationService)serviceProvider.GetService<IAuthenticationService>();
 
             string defaultSchemeName = (await authService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-            if (!dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, defaultSchemeName)))
+            if (!dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(defaultSchemeName))))
             {
                 AuthenticationScheme newScheme = new AuthenticationScheme
                 {

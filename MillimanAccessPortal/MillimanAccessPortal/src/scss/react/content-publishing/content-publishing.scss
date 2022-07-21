@@ -47,6 +47,10 @@
         }
     }
 
+    .container-note {
+        text-align: left;
+    }
+
     .thumbnailContainer {
         text-align: center;
 
@@ -115,4 +119,8 @@
 
 .go-live-button-container {
     text-align: center;
+}
+
+.checkbox-indent-section {
+    margin-left: 2rem;
 }

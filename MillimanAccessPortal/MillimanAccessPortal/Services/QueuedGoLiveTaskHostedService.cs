@@ -27,6 +27,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -137,11 +138,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            bool ReductionIsInvolved = publicationRequest.RootContentItem.ContentType.TypeEnum switch
-            {
-                ContentTypeEnum.PowerBi => publicationRequest.RootContentItem.DoesReduce,
-                _ => MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce,
-            };
+            bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce;
 
             var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
@@ -329,7 +326,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
                         string TargetFilePath = string.Empty;
 
-                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase))
+                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
                         {
                             // special treatment for content types where no live content file persists in MAP storage
                             switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
@@ -370,6 +367,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
                                 case ContentTypeEnum.ContainerApp:
                                     ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                                    ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
 
                                     failureRecoveryActionList.Add(() => {
                                         publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
@@ -377,13 +375,16 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     });
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
-                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.LiveImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
+                                        string repositoryName = publicationRequest.RootContentItem.AcrRepoositoryName;
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync("");
-#warning TODO await containerizedAppApi.StopAllRunningContainers(theLiveImage); //Is this needed?
-#warning TODO await containerizedAppApi.DeleteImageFromRegistry(theLiveImage);
+                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
+
+#warning TODO Is this needed?               await containerizedAppApi.StopAllRunningContainers(theOutgoingLiveImage);
+
+                                            await containerizedAppApi.RetagImage("preview", "live");
                                         });
                                     }
 
@@ -393,7 +394,13 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
                                         LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
                                         LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
-                                        LiveImageTag = containerizedAppTypeSpecificProperties.PreviewImageTag,
+                                        LiveImageTag = "live",
+                                        LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
+                                        {
+                                            ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppPubProperties),
+                                            ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
+                                            _ => null,
+                                        },
 
                                         PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                         PreviewContainerInternalPort = 0,
@@ -402,47 +409,47 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                         PreviewImageTag = null,
                                     };
                                     break;
+                            }
+                        }
+                        else
+                        {
+                            // This assignment defines the live file name
+                            TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
+                                                          goLiveViewModel.RootContentItemId.ToString(),
+                                                          TargetFileName);
 
-                                default:
-                                    // This assignment defines the live file name
-                                    TargetFilePath = Path.Combine(configuration.GetSection("Storage")["ContentItemRootPath"],
-                                                                  goLiveViewModel.RootContentItemId.ToString(),
-                                                                  TargetFileName);
+                            // Move any existing live file of this name to backed up name
+                            if (File.Exists(TargetFilePath))
+                            {
+                                string BackupFilePath = TargetFilePath + ".bak";
+                                if (File.Exists(BackupFilePath))
+                                {
+                                    File.Delete(BackupFilePath);
+                                }
+                                File.Move(TargetFilePath, BackupFilePath);
 
-                                    // Move any existing live file of this name to backed up name
+                                successActionList.Add(new Action(() => {
+                                    File.Delete(BackupFilePath);
+                                }));
+                                failureRecoveryActionList.Add(new Action(() => {
                                     if (File.Exists(TargetFilePath))
                                     {
-                                        string BackupFilePath = TargetFilePath + ".bak";
-                                        if (File.Exists(BackupFilePath))
-                                        {
-                                            File.Delete(BackupFilePath);
-                                        }
-                                        File.Move(TargetFilePath, BackupFilePath);
-
-                                        successActionList.Add(new Action(() => {
-                                            File.Delete(BackupFilePath);
-                                        }));
-                                        failureRecoveryActionList.Add(new Action(() => {
-                                            if (File.Exists(TargetFilePath))
-                                            {
-                                                File.Delete(TargetFilePath);
-                                            }
-                                            File.Move(BackupFilePath, TargetFilePath);
-                                        }));
+                                        File.Delete(TargetFilePath);
                                     }
-
-                                    // Can move since files are on the same volume
-                                    File.Move(Crf.FullPath, TargetFilePath);
-
-                                    failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
-                                        if (File.Exists(Crf.FullPath))
-                                        {
-                                            File.Delete(Crf.FullPath);
-                                        }
-                                        File.Move(TargetFilePath, Crf.FullPath);
-                                    }));
-                                    break;
+                                    File.Move(BackupFilePath, TargetFilePath);
+                                }));
                             }
+
+                            // Can move since files are on the same volume
+                            File.Move(Crf.FullPath, TargetFilePath);
+
+                            failureRecoveryActionList.Insert(0, new Action(() => {  // This one must run before the one in the if block above
+                                if (File.Exists(Crf.FullPath))
+                                {
+                                    File.Delete(Crf.FullPath);
+                                }
+                                File.Move(TargetFilePath, Crf.FullPath);
+                            }));
                         }
 
                         UpdatedContentFilesList.RemoveAll(f => f.FilePurpose.Equals(Crf.FilePurpose, StringComparison.InvariantCultureIgnoreCase));

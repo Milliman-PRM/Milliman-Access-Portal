@@ -8,6 +8,8 @@
 ## Tasks (Developer)
 
   - [ ] ???
+  - [ ] Appropriate labels have been applied to this pull request
+  - [ ] Appropriate Milestone has been applied to this pull request
   - [ ] User guides updated where appropriate
   - [ ] Release Notes updated where appropriate
   - [ ] [TestRail](https://millimanprm.testrail.io/index.php?/suites/overview/1) tests updated where appropriate
@@ -15,6 +17,7 @@
   - [ ] Unit tests passing
   - [ ] Linter passing (`yarn run tslint --project .`)
   - [ ] Connected issue(s) tagged
+  - [ ] Reviewer(s) have been assigned
 
 ## Review Tasks (Reviewer)
 

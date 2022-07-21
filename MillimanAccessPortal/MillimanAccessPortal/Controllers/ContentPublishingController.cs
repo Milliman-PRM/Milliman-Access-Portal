@@ -22,7 +22,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
-using MillimanAccessPortal.Binders;
+using MillimanAccessPortal.ContentProxy;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.ContentPublishing;
 using MillimanAccessPortal.Models.EntityModels.PublicationModels;
@@ -37,9 +37,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Yarp.ReverseProxy.Configuration;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -59,6 +59,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly QlikviewConfig _qlikviewConfig;
         private readonly IPublicationPostProcessingTaskQueue _PostProcessingTaskQueue;
         private readonly ContentPublishingAdminQueries _publishingQueries;
+        private readonly MapProxyConfigProvider _proxyConfigProvider;
 
         /// <summary>
         /// Constructor, stores local references to injected service instances
@@ -86,7 +87,8 @@ namespace MillimanAccessPortal.Controllers
             IOptions<ContainerizedAppLibApiConfig> ContainerizedAppOptionsAccessorArg,
             IOptions<QlikviewConfig> QlikviewOptionsAccessorArg,
             IPublicationPostProcessingTaskQueue postProcessingTaskQueue,
-            ContentPublishingAdminQueries publishingQueriesArg
+            ContentPublishingAdminQueries publishingQueriesArg,
+            IProxyConfigProvider proxyConfigProviderArg
             )
         {
             AuditLogger = AuditLoggerArg;
@@ -101,6 +103,7 @@ namespace MillimanAccessPortal.Controllers
             _qlikviewConfig = QlikviewOptionsAccessorArg.Value;
             _PostProcessingTaskQueue = postProcessingTaskQueue;
             _publishingQueries = publishingQueriesArg;
+            _proxyConfigProvider = (MapProxyConfigProvider)proxyConfigProviderArg;
         }
 
         /// <summary>
@@ -129,7 +132,7 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
-            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync();
+            PublishingPageGlobalModel model = await _publishingQueries.BuildPublishingPageGlobalModelAsync(await _userManager.GetUserAsync(User));
 
             return Json(model);
         }
@@ -709,9 +712,24 @@ namespace MillimanAccessPortal.Controllers
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        if (request.TypeSpecificPublishingDetail != null)
+                        if (request.TypeSpecificPublishingDetail is null)
                         {
-                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(request.TypeSpecificPublishingDetail.ToObject<ContainerizedContentPublicationProperties>());
+                            Log.Error($"In ContentPublishingController.Publish action: request did not contain valid TypeSpecificPublishingDetail object.");
+                            throw new Exception();
+                        }
+
+                        try
+                        {
+                            var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions
+                            {
+                                PropertyNameCaseInsensitive = true,
+                            });
+                            NewContentPublicationRequest.TypeSpecificDetail = JsonSerializer.Serialize(publicationDetails);
+                        }
+                        catch (Exception ex)
+                        {
+                            var x = ex;
+                            throw;
                         }
                         break;
 
@@ -1186,9 +1204,18 @@ namespace MillimanAccessPortal.Controllers
                             case ContentTypeEnum.ContainerApp:
                                 ContainerizedAppContentItemProperties containerContentProps = rootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
-                                ContainerizedAppLibApi containerLibApi = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(""); // todo
-#warning TODO remove the rejected image from ACR
-                                // await containerLibApi.RemoveImage(containerContentProps.PreviewImageName);
+                                ContainerizedAppLibApi containerLibApi = await new ContainerizedAppLibApi(_containerizedAppLibConfig).InitializeAsync(containerContentProps.PreviewImageName);
+                                if (containerContentProps.LiveImageName is null)
+                                {
+                                    await containerLibApi.DeleteRepository();
+                                } else
+                                {
+#warning get the right token, and make sure this logic is needed and correct
+                                    // string contentToken = "";
+                                    // _proxyConfigProvider.RemoveExistingRoute(contentToken);
+                                    await containerLibApi.DeleteContainerGroup(pubRequest.Id.ToString());
+                                    await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
+                                }
 
                                 containerContentProps.PreviewImageName = null;
                                 containerContentProps.PreviewImageTag = null;

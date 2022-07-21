@@ -117,8 +117,11 @@ export interface FetchGlobalDataSucceeded {
   response: {
     contentTypes: Dict<ContentType>;
     contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
+    timeZoneSelections: Array<{ id: string, displayName: string }>;
+    userTimeZoneId: string;
   };
 }
+
 export interface FetchGlobalDataFailed {
   type: 'FETCH_GLOBAL_DATA_FAILED';
   error: TSError;
@@ -353,7 +356,12 @@ export interface SetPublishingFormTextInputValue {
   | 'contentNotes'
   | 'containerCpuCores'
   | 'containerRamGb'
-  | 'containerInternalPort';
+  | 'containerInternalPort'
+  | 'customCooldownPeriod'
+  | 'containerInstanceLifetimeScheme'
+  | 'startTime'
+  | 'endTime'
+  | 'timeZoneId';
   value: string;
 }
 
@@ -365,7 +373,15 @@ export interface SetPublishingFormBooleanInputValue {
   | 'editableEnabled'
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
-  | 'bookmarksPaneEnabled';
+  | 'bookmarksPaneEnabled'
+  | 'allDaysChecked'
+  | 'mondayChecked'
+  | 'tuesdayChecked'
+  | 'wednesdayChecked'
+  | 'thursdayChecked'
+  | 'fridayChecked'
+  | 'saturdayChecked'
+  | 'sundayChecked';
   value: boolean;
 }
 

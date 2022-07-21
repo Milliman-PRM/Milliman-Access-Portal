@@ -898,7 +898,7 @@ namespace MillimanAccessPortal.Controllers
 
             // 2. There should not be an existing scheme with the requested name
             if (await _schemeProvider.GetSchemeAsync(model.Name) != null || 
-                await _dbContext.AuthenticationScheme.AnyAsync(s => EF.Functions.ILike(s.Name, model.Name)))
+                await _dbContext.AuthenticationScheme.AnyAsync(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(model.Name))))
             {
                 Log.Error($"Attempted to add authentication scheme named {model.Name} but a scheme with this name already exists");
                 return StatusCode(StatusCodes.Status500InternalServerError);
@@ -1224,8 +1224,8 @@ namespace MillimanAccessPortal.Controllers
             }
 
             // 2. The requested scheme name must already exist in the database with the same type conveyed in the request model
-            else if (await _dbContext.AuthenticationScheme.AllAsync(s => !EF.Functions.ILike(s.Name, model.Name)) ||
-                (await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, model.Name))).Type != model.Type)
+            else if (await _dbContext.AuthenticationScheme.AllAsync(s => !EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(model.Name))) ||
+                (await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(model.Name)))).Type != model.Type)
             {
                 errMessages.Add($"In SystemAdminController.UpdateAuthenticationScheme action: Attempted to update external authentication scheme named {model.Name} but no scheme with this name and of the requested authentication type {model.Type.ToString()} exists in the database");
             }
@@ -1263,7 +1263,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // Prepare the database record changes
-            MapDbContextLib.Context.AuthenticationScheme schemeRecord = await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, model.Name));
+            MapDbContextLib.Context.AuthenticationScheme schemeRecord = await _dbContext.AuthenticationScheme.SingleAsync(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(model.Name)));
             MapDbContextLib.Context.AuthenticationScheme beforeUpdate = schemeRecord.DeepCopy();  // for logging
             schemeRecord.DisplayName = model.DisplayName;
             schemeRecord.DomainList = model.DomainList;
@@ -1733,7 +1733,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             var user = await _dbContext.ApplicationUser.SingleOrDefaultAsync(u => u.Id == userId);
-            var authenticationScheme = await _dbContext.AuthenticationScheme.SingleOrDefaultAsync(s => EF.Functions.ILike(s.Name, schemeName));
+            var authenticationScheme = await _dbContext.AuthenticationScheme.SingleOrDefaultAsync(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(schemeName)));
 
             #region Validation
             if (user == null)

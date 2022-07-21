@@ -10,6 +10,7 @@ import '../../../images/icons/check-circle.svg';
 import '../../../images/icons/checkmark.svg';
 import '../../../images/icons/collapse-card.svg';
 import '../../../images/icons/collapse-cards.svg';
+import '../../../images/icons/copy.svg';
 import '../../../images/icons/delete.svg';
 import '../../../images/icons/download.svg';
 import '../../../images/icons/edit.svg';
@@ -37,14 +38,15 @@ import * as React from 'react';
 export interface ActionIconProps {
   label: string;
   icon: 'add-circle' | 'add-file' | 'add-folder' | 'add-group' | 'add-user' | 'add' | 'cancel' | 'cancel-circle' |
-  'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'delete' | 'download' | 'edit' | 'email' |
-  'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' | 'remove-circle' |
-  'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' | 'upload' | 'user' |
-  'userguide';
+  'check-circle' | 'checkmark' | 'collapse-card' | 'collapse-cards' | 'copy' | 'delete' | 'download' | 'edit' |
+  'email' | 'error' | 'expand-card' | 'expand-cards' | 'information' | 'move-file' | 'move-folder' | 'reload' |
+  'remove-circle' | 'sort-alphabetically-asc' | 'sort-alphabetically-desc' | 'sort-date-asc' | 'sort-date-desc' |
+  'upload' | 'user' | 'userguide';
   action: () => void;
   inline: boolean;
   disabled?: boolean;
   cursor?: boolean;
+  small?: boolean;
 }
 
 export class ActionIcon extends React.Component<ActionIconProps, {}> {
@@ -54,17 +56,19 @@ export class ActionIcon extends React.Component<ActionIconProps, {}> {
     inline: true,
     disabled: false,
     cursor: true,
+    small: false,
   };
   public render() {
-    const { inline, disabled, label, icon, action, cursor } = this.props;
+    const { inline, disabled, label, icon, action, cursor, small } = this.props;
+    const cursorClass = icon === 'information' ? ' info-cursor' : (!cursor ? ' no-cursor' : '');
     return action && (
       <div
         className={`action-icon-container${inline ? '-inline' : ''}${disabled ? ' disabled' : ''}
-                    tooltip ${!cursor ? ' no-cursor' : ''}`}
+                    tooltip${cursorClass}`}
         title={label}
         onClick={this.action}
       >
-        <svg className="action-icon">
+        <svg className={`action-icon${small ? ' small' : ''}`}>
           <use xlinkHref={`#${icon}`} />
         </svg>
       </div>

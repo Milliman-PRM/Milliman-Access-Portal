@@ -469,6 +469,11 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
           <div>
             <input
               type="text"
+              id="sftpUserName"
+              defaultValue={data.fileDropSettings.sftpUserName}
+            />
+            <input
+              type="text"
               id="password"
               defaultValue={data.fileDropSettings.fileDropPassword}
             />
@@ -476,11 +481,27 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               <tbody>
                 <tr>
                   <td><strong>Username:</strong></td>
-                  <td>{data.fileDropSettings.sftpUserName}</td>
+                  <td>
+                    <span>{data.fileDropSettings.sftpUserName}</span>
+                    <ActionIcon
+                      label="Copy Username"
+                      icon="copy"
+                      inline={true}
+                      action={() => this.saveInputValueToClipboard('sftpUserName', 'Username copied to clipboard.')}
+                    />
+                  </td>
                 </tr>
                 <tr>
                   <td><strong>Password:</strong></td>
-                  <td>{data.fileDropSettings.fileDropPassword}</td>
+                  <td>
+                    <span>{data.fileDropSettings.fileDropPassword}</span>
+                    <ActionIcon
+                      label="Copy Password"
+                      icon="copy"
+                      inline={true}
+                      action={() => this.saveInputValueToClipboard('password', 'Password copied to clipboard.')}
+                    />
+                  </td>
                 </tr>
               </tbody>
             </table>
@@ -492,22 +513,6 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
               onClick={() => this.props.closePasswordNotificationModal({})}
             >
               Close
-            </button>
-            <button
-              className="blue-button"
-              onClick={() => {
-                const passwordInput = document.getElementById('password') as HTMLInputElement;
-                passwordInput.select();
-                passwordInput.setSelectionRange(0, 99999);
-                document.execCommand('copy');
-                toastr.success('', 'Password copied to clipboard');
-              }}
-            >
-              Copy Password
-              {pending.async.deleteFileDrop
-                ? <ButtonSpinner version="circle" />
-                : null
-              }
             </button>
           </div>
         </Modal>
@@ -1800,6 +1805,14 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
       });
       this.props.setFileOrFolderExpansion({ id: itemId, expanded: false });
     });
+  }
+
+  private saveInputValueToClipboard(inputId: string, successMessage: string) {
+    const input = document.getElementById(inputId) as HTMLInputElement;
+    input.select();
+    input.setSelectionRange(0, 99999);
+    document.execCommand('copy');
+    toastr.success('', successMessage);
   }
 }
 

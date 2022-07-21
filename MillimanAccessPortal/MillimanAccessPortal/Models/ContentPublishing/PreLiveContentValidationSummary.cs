@@ -112,7 +112,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                // This case is handled outside the switch because a new master file is not required for hierarchy change
+                                // This case is handled outside this switch because a new master file is not required to publish a hierarchy change
+                                break;
+
+                            case ContentTypeEnum.ContainerApp:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ContainerizedAppPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Qlikview:
@@ -366,9 +372,9 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                     ContainerizedAppContentItemProperties typeSpecificProps = PubRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
                     ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
                     {
-                        { "CPU Cores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
-                        { "Application Port", typeSpecificProps.PreviewContainerInternalPort.ToString() },
-                        { "RAM", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
+                        { "cpuCores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
+                        { "applicationPort", typeSpecificProps.PreviewContainerInternalPort.ToString() },
+                        { "ram", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
                     };
                     break;
             }

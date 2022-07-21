@@ -359,11 +359,11 @@ export class FileUploadInput extends React.Component<FileUploadInputProps, FileU
               </div>
             }
             {
-              cancelable && this.props.fileUploadId.length === 0 && !errorMsg &&
+              cancelable && !this.props.fileUploadId && !errorMsg &&
               <div
-                title="Uploading..."
+                title={uploadProgress.percentage !== '100%' ? 'Uploading...' : 'Finalizing upload...'}
               >
-                <ButtonSpinner version="bars" />
+                <ButtonSpinner version="bars" spinnerColor="#000" />
               </div>
             }
             {
