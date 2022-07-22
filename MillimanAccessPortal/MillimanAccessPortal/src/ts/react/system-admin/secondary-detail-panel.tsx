@@ -4,7 +4,7 @@ import * as React from 'react';
 import { Toggle } from '../shared-components/form/toggle';
 import { Guid, QueryFilter } from '../shared-components/interfaces';
 import {
-  ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
+  ClientDetailForProfitCenter, ClientDetailForUser, NestedList, NestedSelectionGroupList, RootContentItemDetailForClient,
   RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
 import { SystemAdminColumn, UserStatus } from './system-admin';
@@ -205,7 +205,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Selection Groups</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(rootContentItemDetailForClient.selectionGroups)}
+                          {this.renderNestedSelectionGroupList(rootContentItemDetailForClient.selectionGroups)}
                         </div>
                       </div>
                     </div>
@@ -252,7 +252,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Assigned Clients</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(userDetailForProfitCenter.assignedClients)}
+                          {/*this.renderNestedList(userDetailForProfitCenter.assignedClients)*/}
                         </div>
                       </div>
                     </div>
@@ -302,7 +302,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Authorized Users</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(clientDetailForProfitCenter.authorizedUsers)}
+                          {/*this.renderNestedList(clientDetailForProfitCenter.authorizedUsers)*/}
                         </div>
                       </div>
                     </div>
@@ -329,7 +329,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
     );
   }
 
-  private renderNestedList(list: NestedList): JSX.Element[] {
+  /*private renderNestedList(list: NestedList): JSX.Element[] {
     return list.sections.map((section, i) => {
       const values = section.values.map((value, j) => (
         <div
@@ -358,6 +358,28 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           className="nested-list-section"
         >
           <h4 className="nested-list-section-title">{section.name} {cancelText}</h4>
+          {values}
+        </div>
+      );
+    });
+  }*/
+
+  private renderNestedSelectionGroupList(list: NestedSelectionGroupList): JSX.Element[] {
+    return list.sections.map((section, i) => {
+      const values = section.values.map((value, j) => (
+        <div
+          key={j}
+          className="nested-list-value"
+        >{value}
+        </div>
+      ));
+      const suspended = section.suspended ? '[Suspended]' : '';
+      return (
+        <div
+          key={i}
+          className="nested-list-section"
+        >
+          <h4 className="nested-list-section-title">{section.name} <big>{suspended}</big></h4>
           {values}
         </div>
       );
