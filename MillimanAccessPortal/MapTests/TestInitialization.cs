@@ -345,12 +345,13 @@ namespace MapTests
         {
             ControllerContext returnVal = new ControllerContext
             {
-                HttpContext = new DefaultHttpContext() 
-                { 
+                HttpContext = new DefaultHttpContext()
+                {
                     User = UserAsClaimsPrincipal,
                     RequestServices = ScopedServiceProvider,
                 },
-                ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" }
+                ActionDescriptor = new ControllerActionDescriptor { ActionName = "Unit Test" },
+                RouteData = new Microsoft.AspNetCore.Routing.RouteData(),
             };
 
             SignInManager.Context = returnVal.HttpContext;
