@@ -40,6 +40,8 @@ namespace MapCommonLib
 
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
+        public static UriBuilder MapUriRoot { get; set; }
+
         public static bool IsValidEmail(string TestAddress)
         {
             try

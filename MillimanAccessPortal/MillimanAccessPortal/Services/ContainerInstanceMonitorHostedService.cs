@@ -70,9 +70,7 @@ namespace MillimanAccessPortal.Services
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
-                        // Log.Information($"Last activity collection is{Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", GlobalFunctions.ContainerLastActivity.Select(a => a.Key + ": " + a.Value.ToString()))}");
-                        // Log.Information($"Found {previewContainerGroups.Count} preview container groups:{string.Join($"", previewContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, for content:<{g.Tags["contentItemName"]}>"))}");
-                        // Log.Information($"Found {liveContainerGroups.Count} live container groups:{string.Join($"", liveContainerGroups.Select(g => $"{Environment.NewLine}\tname:<{g.Name}>, content:<{g.Tags["contentItemName"]}> for selection group <{g.Tags["selectionGroupName"]}>"))}");
+                        IProxyConfig proxyConfig = _proxyConfigProvider.GetConfig();
 
                         #region Manage preview container instances
                         List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
@@ -95,30 +93,53 @@ namespace MillimanAccessPortal.Services
                                 ? GlobalFunctions.ContainerLastActivity[contentToken]
                                 : DateTime.MinValue;
 
-                            #region 1) If a preview container should be running and it is not then launch one
-                            if ((DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + _previewContainerLingerTime ||
-                                 DateTime.UtcNow < lastActivity + _previewContainerLingerTime) &&
-                                runningContainer == null
-                               )
+                            #region 1) If a preview container should be running
+                            if (DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + _previewContainerLingerTime ||
+                                DateTime.UtcNow < lastActivity + _previewContainerLingerTime)
                             {
-                                ContainerGroupResourceTags tags = new()
+                                // 1a) If no container is running then launch one
+                                if (runningContainer is null)
                                 {
-                                    ProfitCenterId = publication.RootContentItem.Client.ProfitCenterId,
-                                    ProfitCenterName = publication.RootContentItem.Client.ProfitCenter.Name,
-                                    ClientId = publication.RootContentItem.ClientId,
-                                    ClientName = publication.RootContentItem.Client.Name,
-                                    ContentItemId = publication.RootContentItem.Id,
-                                    ContentItemName = publication.RootContentItem.ContentName,
-                                    SelectionGroupId = null,
-                                    SelectionGroupName = null,
-                                    PublicationRequestId = publication.Id,
-                                    ContentToken = contentToken,
-                                    DatabaseId = DatabaseUniqueId,
-                                };
+                                    ContainerGroupResourceTags tags = new()
+                                    {
+                                        ProfitCenterId = publication.RootContentItem.Client.ProfitCenterId,
+                                        ProfitCenterName = publication.RootContentItem.Client.ProfitCenter.Name,
+                                        ClientId = publication.RootContentItem.ClientId,
+                                        ClientName = publication.RootContentItem.Client.Name,
+                                        ContentItemId = publication.RootContentItem.Id,
+                                        ContentItemName = publication.RootContentItem.ContentName,
+                                        SelectionGroupId = null,
+                                        SelectionGroupName = null,
+                                        PublicationRequestId = publication.Id,
+                                        ContentToken = contentToken,
+                                        DatabaseId = DatabaseUniqueId,
+                                    };
 
-                                Log.Information($"Container lifetime service launching container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
+                                    Log.Information($"Container lifetime service launching container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
 
-                                AllParallelTasks.Add(RequestContainer(publication.Id, publication.RootContentItem, false, contentToken, tags));
+                                    AllParallelTasks.Add(RequestContainer(publication.Id, publication.RootContentItem, false, contentToken, tags));
+                                }
+                                else
+                                {
+                                    // 1b) If container is fully started but there is no matching proxy config then add one
+                                    if (runningContainer.Properties.IpAddress is not null &&
+                                        GlobalFunctions.MapUriRoot is not null)
+                                    {
+                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith($"/{contentToken}")))
+                                        {
+                                            UriBuilder externalRequestUri = new UriBuilder
+                                            {
+                                                Scheme = GlobalFunctions.MapUriRoot.Scheme,
+                                                Host = GlobalFunctions.MapUriRoot.Host,
+                                                Port = GlobalFunctions.MapUriRoot.Port,
+                                                Path = $"/{contentToken}/",  // must include trailing '/' character
+                                            };
+
+                                            // Add a new YARP route/cluster config
+                                            _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
+                                        }
+                                    }
+                                }
                             }
                             #endregion
 
@@ -176,22 +197,46 @@ namespace MillimanAccessPortal.Services
                                 runningContainer == null
                                )
                             {
-                                Log.Information($"Container lifetime service launching container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
-                                ContainerGroupResourceTags tags = new()
+                                if (runningContainer is null)
                                 {
-                                    ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
-                                    ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
-                                    ClientId = selectionGroup.RootContentItem.ClientId,
-                                    ClientName = selectionGroup.RootContentItem.Client.Name,
-                                    ContentItemId = selectionGroup.RootContentItem.Id,
-                                    ContentItemName = selectionGroup.RootContentItem.ContentName,
-                                    SelectionGroupId = selectionGroup.Id,
-                                    SelectionGroupName = selectionGroup.GroupName,
-                                    PublicationRequestId = null,
-                                    ContentToken = contentToken,
-                                    DatabaseId = DatabaseUniqueId,
-                                };
-                                AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
+                                    Log.Information($"Container lifetime service launching container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
+                                    ContainerGroupResourceTags tags = new()
+                                    {
+                                        ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
+                                        ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
+                                        ClientId = selectionGroup.RootContentItem.ClientId,
+                                        ClientName = selectionGroup.RootContentItem.Client.Name,
+                                        ContentItemId = selectionGroup.RootContentItem.Id,
+                                        ContentItemName = selectionGroup.RootContentItem.ContentName,
+                                        SelectionGroupId = selectionGroup.Id,
+                                        SelectionGroupName = selectionGroup.GroupName,
+                                        PublicationRequestId = null,
+                                        ContentToken = contentToken,
+                                        DatabaseId = DatabaseUniqueId,
+                                    };
+                                    AllParallelTasks.Add(RequestContainer(selectionGroup.Id, selectionGroup.RootContentItem, true, contentToken, tags));
+                                }
+                                else
+                                {
+                                    // 3b) If container exists but there is no matching proxy config then add one
+                                    if (runningContainer.Properties.IpAddress is not null &&
+                                        GlobalFunctions.MapUriRoot is not null)
+                                    {
+                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith($"/{contentToken}")))
+                                        {
+                                            UriBuilder externalRequestUri = new UriBuilder
+                                            {
+                                                Scheme = GlobalFunctions.MapUriRoot.Scheme,
+                                                Host = GlobalFunctions.MapUriRoot.Host,
+                                                Port = GlobalFunctions.MapUriRoot.Port,
+                                                Path = $"/{contentToken}/",  // must include trailing '/' character
+                                            };
+
+                                            // Add a new YARP route/cluster config
+                                            _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
