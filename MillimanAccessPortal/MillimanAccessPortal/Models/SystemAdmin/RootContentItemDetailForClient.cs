@@ -22,7 +22,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public DateTime LastUpdated { get; set; }
         public DateTime LastAccessed { get; set; }
         public bool IsPublishing { get; set; }
-        public NestedSelectionGroupList SelectionGroups { get; set; } = null;
+        public SelectionGroupListForContentItem SelectionGroups { get; set; } = null;
 
         public static explicit operator RootContentItemDetailForClient(RootContentItem contentItem)
         {
@@ -68,7 +68,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                     .Where(u => u.SelectionGroupId == g.Id)
                     .Select(u => u.User).ToList());
 
-            var selectionGroupList = new NestedSelectionGroupList();
+            var selectionGroupList = new SelectionGroupListForContentItem();
             foreach (var groupId in selectionGroupIds)
             {
                 var group = selectionGroups.Single(g => g.Id == groupId);
@@ -79,7 +79,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                         .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                         .Include(rt => rt.ContentPublicationRequest)
                         .ToListAsync();
-                    selectionGroupList.Sections.Add(new NestedSelectionGroupListSection
+                    selectionGroupList.Sections.Add(new SelectionGroupListSection
                     {
                         Name = group.GroupName,
                         Id = group.Id,
@@ -90,7 +90,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                 {
                     selectionGroupList
                         .Sections.Single(s => s.Name == group.GroupName)
-                        .Values.Add($"{user.FirstName} {user.LastName}");
+                        .Users.Add($"{user.FirstName} {user.LastName}");
                 }
             }
 

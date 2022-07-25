@@ -12,14 +12,14 @@ export interface NestedListSection {
   values: string[];
 }
 
-export interface NestedSelectionGroupList {
-    sections: NestedSelectionGroupListSection[];
+export interface SelectionGroupListForContentItem {
+    sections: SelectionGroupListSection[];
 }
-export interface NestedSelectionGroupListSection {
+export interface SelectionGroupListSection {
     name: string;
     id?: Guid;
-    suspended: boolean;
-    values: string[];
+    suspended?: boolean;
+    users: string[];
 }
 
 export interface UserInfo {
@@ -220,7 +220,7 @@ export interface RootContentItemDetailForClient {
   lastUpdated: string;
   lastAccessed: string;
   isPublishing: boolean;
-  selectionGroups: NestedSelectionGroupList;
+    selectionGroups: SelectionGroupListForContentItem;
 }
 export function isRootContentItemDetail(detail: SecondaryDetail)
     : detail is RootContentItemDetailForClient | RootContentItemDetailForUser {

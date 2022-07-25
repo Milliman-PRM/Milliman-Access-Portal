@@ -5,8 +5,8 @@ import { Toggle } from '../shared-components/form/toggle';
 import { Guid, QueryFilter } from '../shared-components/interfaces';
 import {
   ClientDetailForProfitCenter, ClientDetailForUser, NestedList,
-  NestedSelectionGroupList, RootContentItemDetailForClient,
-  RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
+  RootContentItemDetailForClient, RootContentItemDetailForUser, SecondaryDetail,
+  SelectionGroupListForContentItem, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
 import { SystemAdminColumn, UserStatus } from './system-admin';
 import { UserStatusDisplay } from './user-status-display';
@@ -206,7 +206,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Selection Groups</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedSelectionGroupList(rootContentItemDetailForClient.selectionGroups)}
+                          {this.renderSelectionGroupList(rootContentItemDetailForClient.selectionGroups)}
                         </div>
                       </div>
                     </div>
@@ -365,13 +365,13 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
     });
   }
 
-  private renderNestedSelectionGroupList(list: NestedSelectionGroupList): JSX.Element[] {
+    private renderSelectionGroupList(list: SelectionGroupListForContentItem): JSX.Element[] {
     return list.sections.map((section, i) => {
-      const values = section.values.map((value, j) => (
+      const values = section.users.map((user, j) => (
         <div
           key={j}
           className="nested-list-value"
-        >{value}
+        >{user}
         </div>
       ));
       const suspended = section.suspended ? '[Suspended]' : '';

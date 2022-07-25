@@ -11,16 +11,16 @@ using System.Collections.Generic;
 
 namespace MillimanAccessPortal.Models.SystemAdmin
 {
-    public class NestedSelectionGroupList
+    public class SelectionGroupListForContentItem
     {
-        public List<NestedSelectionGroupListSection> Sections { get; set; } = new List<NestedSelectionGroupListSection>();
+        public List<SelectionGroupListSection> Sections { get; set; } = new List<SelectionGroupListSection>();
     }
 
-    public class NestedSelectionGroupListSection
+    public class SelectionGroupListSection
     {
         public string Name { get; set; }
         public Guid Id { get; set; }
         public bool Suspended { get; set; }
-        public List<string> Values { get; set; } = new List<string>();
+        public List<string> Users { get; set; } = new List<string>();
     }
 }
