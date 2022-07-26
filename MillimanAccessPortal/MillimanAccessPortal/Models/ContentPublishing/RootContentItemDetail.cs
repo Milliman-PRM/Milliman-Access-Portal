@@ -19,6 +19,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public Guid ClientId { get; set; }
 
         public string ContentDisclaimer { get; set; }
+        public bool ContentDisclaimerAlwaysShown { get; set; } = false;
 
         [Required]
         [Display(Name = "Content Name *")]

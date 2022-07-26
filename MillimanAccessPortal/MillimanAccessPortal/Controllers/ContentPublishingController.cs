@@ -420,6 +420,7 @@ namespace MillimanAccessPortal.Controllers
                 usersInGroup.ForEach(u => u.DisclaimerAccepted = false);
             }
             currentRootContentItem.ContentDisclaimer = rootContentItem.ContentDisclaimer;
+            currentRootContentItem.ContentDisclaimerAlwaysShown = rootContentItem.ContentDisclaimerAlwaysShown;
 
             await _dbContext.SaveChangesAsync();
 
