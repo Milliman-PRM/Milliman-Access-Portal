@@ -1526,14 +1526,17 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               ) &&
               <FormSection title="Custom Content Disclaimer">
                 <FormSectionRow>
-                  <Toggle
-                    label={'Always Require Disclaimer Acceptance'}
-                    checked={pendingFormData.contentDisclaimerAlwaysShown}
-                    onClick={() => this.props.setPublishingFormBooleanInputValue({
-                        inputName: 'contentDisclaimerAlwaysShown',
-                        value: !pendingFormData.contentDisclaimerAlwaysShown,
-                    })}
-                  />
+                  <FormFlexContainer flexPhone={12}>
+                    <Toggle
+                      label={'Always Require Disclaimer Acceptance'}
+                      checked={pendingFormData.contentDisclaimerAlwaysShown}
+                      onClick={() => this.props.setPublishingFormBooleanInputValue({
+                          inputName: 'contentDisclaimerAlwaysShown',
+                          value: !pendingFormData.contentDisclaimerAlwaysShown,
+                      })}
+                      readOnly={!(formData.formState === 'write')}
+                    />
+                  </FormFlexContainer>
                 </FormSectionRow>
                 <FormSectionRow>
                   <FormFlexContainer flexPhone={12}>
