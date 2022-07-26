@@ -18,10 +18,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using MillimanAccessPortal.Utilities;
 using PowerBiLib;
 using QlikviewLib;
 using Serilog;
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -41,16 +43,19 @@ namespace MillimanAccessPortal.Services
         public QueuedPublicationPostProcessingHostedService(
             IServiceProvider services,
             IPublicationPostProcessingTaskQueue taskQueue,
+            IMessageQueue messageQueue,
             IConfiguration config)
         {
             _services = services;
             _taskQueue = taskQueue;
+            _messageQueue = messageQueue;
             _appConfig = config;
         }
 
         public IServiceProvider _services { get; }
         public IPublicationPostProcessingTaskQueue _taskQueue { get; }
         public IConfiguration _appConfig { get; }
+        public IMessageQueue _messageQueue { get; }
 
         protected async override Task ExecuteAsync(CancellationToken cancellationToken)
         {
@@ -438,8 +443,31 @@ namespace MillimanAccessPortal.Services
 
                                 Log.Information($"Container instance started with URL: {containerUrl}");
                             }
-                            catch
+                            catch (Exception ex)
                             {
+                                if (ex.GetType() == typeof(ApplicationException))
+                                {
+                                    switch (ex.Message)
+                                    {
+                                        case "ContainerGroupQuotaReached":
+                                            string environmentName = _services.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
+                                            if (environmentName == "AZURE-PROD")
+                                            {
+                                                var notifier = new NotifySupport(_messageQueue, _appConfig);
+                                                notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
+                                            }
+                                            break;
+                                        default:
+                                            Log.Error(ex, $"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}");
+                                            Log.Error($"Exception Data Entries:");
+                                            foreach (DictionaryEntry kvp in ex.Data)
+                                            {
+                                                Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                            }
+                                            break;
+                                    }
+                                }
+
                                 File.Delete(newMasterFile.FullPath);
                                 throw;
                             }
