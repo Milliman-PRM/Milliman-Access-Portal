@@ -40,6 +40,7 @@ const _initialData: PublishingStateData = {
 const emptyContentItemDetail: ContentItemDetail = {
   clientId: '',
   contentDisclaimer: '',
+  contentDisclaimerAlwaysShown: false,
   contentName: '',
   contentTypeId: '',
   contentDescription: '',
@@ -102,6 +103,7 @@ const emptyContentItemDetail: ContentItemDetail = {
 const emptyContentItemErrors: ContentItemFormErrors = {
   clientId: '',
   contentDisclaimer: '',
+  contentDisclaimerAlwaysShown: '',
   contentName: '',
   contentTypeId: '',
   contentDescription: '',
@@ -831,7 +833,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     disclaimerInputState: 'edit',
   }),
   SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => {
-    if (action.inputName === 'doesReduce' || action.inputName === 'isSuspended') {
+    if (action.inputName === 'doesReduce' ||
+        action.inputName === 'isSuspended' ||
+        action.inputName === 'contentDisclaimerAlwaysShown') {
       return {
         ...state,
         pendingFormData: {
@@ -1171,6 +1175,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         doesReduce: detail.doesReduce,
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
+        contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
         typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
@@ -1185,6 +1190,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         doesReduce: detail.doesReduce,
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
+        contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
         typeSpecificPublicationProperties: {
@@ -1207,6 +1213,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       doesReduce: detail.doesReduce,
       contentDescription: detail.contentDescription,
       contentDisclaimer: detail.contentDisclaimer,
+      contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
       typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,

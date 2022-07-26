@@ -107,6 +107,7 @@ export interface RelatedFiles {
 export interface ContentItemDetail {
   clientId: Guid;
   contentDisclaimer: string;
+  contentDisclaimerAlwaysShown: boolean;
   contentName: string;
   contentTypeId: Guid;
   contentDescription: string;
@@ -141,6 +142,7 @@ export interface ContentItemPublicationDetail {
   Description: string;
   Notes: string;
   ContentDisclaimer: string;
+  ContentDisclaimerAlwaysShown: boolean;
   DoesReduce?: boolean;
   TypeSpecificDetailObject?: {
     // PowerBi specific:
@@ -183,6 +185,7 @@ export interface GoLiveViewModel {
 export interface ContentItemFormErrors {
   clientId?: string;
   contentDisclaimer?: string;
+  contentDisclaimerAlwaysShown?: string;
   contentName?: string;
   contentTypeId?: string;
   contentDescription?: string;

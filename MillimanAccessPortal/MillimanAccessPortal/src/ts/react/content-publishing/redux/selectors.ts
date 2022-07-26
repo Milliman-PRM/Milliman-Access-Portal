@@ -289,6 +289,7 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.contentName !== originalFormData.contentName)
     || (pendingFormData.contentDescription !== originalFormData.contentDescription)
     || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
+    || (pendingFormData.contentDisclaimerAlwaysShown !== originalFormData.contentDisclaimerAlwaysShown)
     || (pendingFormData.contentNotes !== originalFormData.contentNotes)
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
     || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
@@ -432,6 +433,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
     ContentTypeId: pendingFormData.contentTypeId,
     Description: pendingFormData.contentDescription,
     ContentDisclaimer: pendingFormData.contentDisclaimer,
+    ContentDisclaimerAlwaysShown: pendingFormData.contentDisclaimerAlwaysShown,
     Notes: pendingFormData.contentNotes,
   };
 
