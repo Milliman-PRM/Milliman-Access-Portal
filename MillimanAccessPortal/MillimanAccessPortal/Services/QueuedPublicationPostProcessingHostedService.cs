@@ -451,7 +451,7 @@ namespace MillimanAccessPortal.Services
                                     {
                                         case "ContainerGroupQuotaReached":
                                             string environmentName = _services.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
-                                            if (environmentName == "PRODUCTION")
+                                            if (environmentName == "AZURE-PROD")
                                             {
                                                 var notifier = new NotifySupport(_messageQueue, _appConfig);
                                                 notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
