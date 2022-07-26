@@ -450,7 +450,7 @@ namespace MillimanAccessPortal.Services
                                     switch (ex.Message)
                                     {
                                         case "ContainerGroupQuotaReached":
-                                            string environmentName = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
+                                            string environmentName = _services.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
                                             if (environmentName == "PRODUCTION")
                                             {
                                                 var notifier = new NotifySupport(_messageQueue, _appConfig);
@@ -458,7 +458,7 @@ namespace MillimanAccessPortal.Services
                                             }
                                             break;
                                         default:
-                                            Log.Error($"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}{ex.InnerException.Message}");
+                                            Log.Error(ex, $"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}");
                                             Log.Error($"Exception Data Entries:");
                                             foreach (DictionaryEntry kvp in ex.Data)
                                             {
