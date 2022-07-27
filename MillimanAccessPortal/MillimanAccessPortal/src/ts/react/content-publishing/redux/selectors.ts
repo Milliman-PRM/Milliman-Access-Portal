@@ -264,7 +264,10 @@ export function submitButtonIsActive(state: PublishingState) {
     && pendingFormData.contentTypeId
     && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
     && !formErrorsExist(state);
-  return formChanged && formIsValidIfContainer && noActiveUpload && formValid;
+  const disclaimerValid = (pendingFormData.contentDisclaimerAlwaysShown
+    && pendingFormData.contentDisclaimer.trim().length > 0)
+    || !pendingFormData.contentDisclaimerAlwaysShown;
+  return formChanged && formIsValidIfContainer && noActiveUpload && formValid && disclaimerValid;
 }
 
 /**
