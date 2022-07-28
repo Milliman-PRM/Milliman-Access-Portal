@@ -1211,9 +1211,8 @@ namespace MillimanAccessPortal.Controllers
                                     await containerLibApi.DeleteRepository();
                                 } else
                                 {
-#warning get the right token, and make sure this logic is needed and correct
-                                    // string contentToken = "";
-                                    // _proxyConfigProvider.RemoveExistingRoute(contentToken);
+                                    string contentToken = GlobalFunctions.HexMd5String(pubRequest.Id);
+                                    _proxyConfigProvider.RemoveExistingRoute(contentToken);
                                     await containerLibApi.DeleteContainerGroup(pubRequest.Id.ToString());
                                     await containerLibApi.DeleteTag(containerContentProps.PreviewImageTag);
                                 }

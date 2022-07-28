@@ -128,25 +128,30 @@ namespace MapDbContextLib.Models
                 AssignScheduledEventsForDay.Invoke(source.SaturdayChecked, DayOfWeek.Saturday);
             }
 
-            public bool IsScheduledOnNow()
+            public bool IsScheduledOnNow(TimeSpan? bufTime = null)
             {
+                TimeSpan bufferTime = bufTime ?? TimeSpan.Zero;
                 TimeSpan utcNowTimeOfWeek = GetUtcTimeOfWeekForAnyDateTime(DateTime.UtcNow);
+
+                Func<KeyValuePair<TimeSpan, bool>, TimeSpan> GetEffectiveTime = kvp => kvp.Value
+                                                                                       ? kvp.Key - bufferTime
+                                                                                       : kvp.Key + bufferTime;
 
                 switch (OrderedStateInstructionList)
                 {
+                    // nothing configured or no start times configured
                     case var x when !x.Any():
+                    case var y when !y.Any(i => i.Value == true):
                         return false;
 
-                    case var x when utcNowTimeOfWeek < x.First().Key:
+                    // utcNowTimeOfWeek is before the first configured event of the week
+                    case var x when utcNowTimeOfWeek < GetEffectiveTime(x.First()):
                         return x.Last().Value;
 
+                    // There is an applicable instruction in OrderedStateInstructionList
                     default:
-                        return OrderedStateInstructionList.Aggregate(false, (accum, element) =>
-                        {
-                            return element.Key < utcNowTimeOfWeek
-                                ? element.Value
-                                : accum;
-                        });
+                        KeyValuePair<TimeSpan, bool> mostRecentInstructionBeforeNow = OrderedStateInstructionList.Last(i => utcNowTimeOfWeek >= GetEffectiveTime(i));
+                        return mostRecentInstructionBeforeNow.Value;
                 }
             }
 
