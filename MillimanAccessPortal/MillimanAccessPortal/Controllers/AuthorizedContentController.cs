@@ -43,6 +43,7 @@ using System.Threading.Tasks;
 using System.Security.Cryptography;
 using ContainerizedAppLib.AzureRestApiModels;
 using Yarp.ReverseProxy.Configuration;
+using System.Collections;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -845,22 +846,59 @@ namespace MillimanAccessPortal.Controllers
                                                        ? (null, null)
                                                        : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
 
-                    // Ensure that container lifetime management doesn't delete this while it's starting
-                    GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
+                    try
+                    {
+                        // Ensure that container lifetime management doesn't delete this while it's starting
+                        GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
 
-                    // Run a container based on the appropriate image
-                    string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
-                                                                 isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
-                                                                 isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
-                                                                 ipAddressType,
-                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
-                                                                 isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
-                                                                 resourceTags,
-                                                                 vnetId,
-                                                                 vnetName,
-                                                                 false,
-                                                                 new Dictionary<string, string> { {"PathBase", contentToken } },
-                                                                 isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+                        // Run a container based on the appropriate image
+                        string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                                     ipAddressType,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                                     resourceTags,
+                                                                     vnetId,
+                                                                     vnetName,
+                                                                     false,
+                                                                     new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                     isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+                    }
+                    catch (ApplicationException ex)
+                    {
+                        switch (ex.Message)
+                        {
+                            case "ContainerGroupQuotaReached":
+                                string environmentName = _serviceProvider.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
+                                if (environmentName == "AZURE-PROD")
+                                {
+                                    var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                                    notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupNameGuid.ToString(), contentItem.Client.Name, ex.Data);
+                                }
+                                break;
+                            default:
+                                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupNameGuid.ToString()}. Inner Exception: {Environment.NewLine}");
+                                Log.Error($"Exception Data Entries:");
+                                foreach (DictionaryEntry kvp in ex.Data)
+                                {
+                                    Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                }
+                                break;
+                        }
+
+                        UserMessageModel model = new UserMessageModel
+                        {
+                            PrimaryMessages =
+                            {
+                                "Something went wrong. Please contact your MAP Administrator",
+                                "Please click your browser's \"Back\" button or use a navigation button at the left.",
+                            },
+                            Buttons = new List<ConfiguredButton>(),
+                        };
+                        return View("UserMessage", model);
+                    }
+
 
                     return View("WaitForContainer");
 

@@ -5,6 +5,9 @@
  */
 using Microsoft.Extensions.Configuration;
 using MillimanAccessPortal.Services;
+using System;
+using System.Collections;
+using System.Text;
 
 namespace MillimanAccessPortal.Utilities
 {
@@ -29,6 +32,37 @@ namespace MillimanAccessPortal.Utilities
             string supportEmail = _configuration.GetValue("SupportEmailAddress", "map.support@milliman.com");
             string sender = _configuration.GetValue("SmtpFromAddress", "map.support@milliman.com");
             return _messageSender.QueueEmail(supportEmail, $"Automated support notification - {reason}", messageArg, sender);
+        }
+
+        /// <summary>
+        /// Send a messaged to the configured Infrastructure & Security team address notifying about an Azure
+        /// resource quota being exceeded.
+        /// </summary>
+        /// <param name="reason"></param>
+        /// <param name="contentItemName"></param>
+        /// <param name="containerGroupName"></param>
+        /// <param name="clientName"></param>
+        /// <returns></returns>
+        public bool sendAzureQuotaExceededEmail(string contentItemName, string containerGroupName, string clientName, IDictionary exceptionData)
+        {
+            string securityEmailAddress = _configuration.GetValue("SecurityEmailAlias", "prm.security@milliman.com");
+            string sender = _configuration.GetValue("SmtpFromAddress", "prm.security@milliman.com");
+
+            var exceptionInfoMessageBuilder = new StringBuilder();
+            foreach (DictionaryEntry kvp in exceptionData)
+            {
+                exceptionInfoMessageBuilder.AppendLine($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+            }
+
+            string emailBody = $"An Azure Container Quota was reached in Production.{Environment.NewLine}{Environment.NewLine}" +
+                 $"Time stamp (UTC): {DateTime.UtcNow.ToString()}{Environment.NewLine}" +
+                 $"Content Item: {contentItemName}{Environment.NewLine}" +
+                 $"Container Group: {containerGroupName}{Environment.NewLine}" +
+                 $"Client: {clientName}{Environment.NewLine}" +
+                 $"Check for more details in the MAP application log file{Environment.NewLine}{Environment.NewLine}" +
+                 $"Exception Data: {Environment.NewLine}" +
+                 $"{exceptionInfoMessageBuilder.ToString()}";
+            return _messageSender.QueueEmail(securityEmailAddress, "Automated support notification - Azure Container Quota Reached", emailBody, sender);
         }
     }
 }
