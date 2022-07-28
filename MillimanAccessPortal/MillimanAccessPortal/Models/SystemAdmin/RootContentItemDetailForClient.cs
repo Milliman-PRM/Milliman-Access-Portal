@@ -22,7 +22,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
         public DateTime LastUpdated { get; set; }
         public DateTime LastAccessed { get; set; }
         public bool IsPublishing { get; set; }
-        public NestedList SelectionGroups { get; set; } = null;
+        public SelectionGroupListForContentItem SelectionGroups { get; set; } = null;
 
         public static explicit operator RootContentItemDetailForClient(RootContentItem contentItem)
         {
@@ -68,7 +68,7 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                     .Where(u => u.SelectionGroupId == g.Id)
                     .Select(u => u.User).ToList());
 
-            var selectionGroupList = new NestedList();
+            var selectionGroupList = new SelectionGroupListForContentItem();
             foreach (var groupId in selectionGroupIds)
             {
                 var group = selectionGroups.Single(g => g.Id == groupId);
@@ -79,22 +79,18 @@ namespace MillimanAccessPortal.Models.SystemAdmin
                         .Where(rt => ReductionStatusExtensions.activeStatusList.Contains(rt.ReductionStatus))
                         .Include(rt => rt.ContentPublicationRequest)
                         .ToListAsync();
-                    selectionGroupList.Sections.Add(new NestedListSection
+                    selectionGroupList.Sections.Add(new SelectionGroupListSection
                     {
                         Name = group.GroupName,
                         Id = group.Id,
-                        // Mark reduction tasks as cancelable
-                        // The reduction task must either have no publication request or a nonactive publication request
-                        Marked = reductionTasks
-                            .Where(rt => rt.ContentPublicationRequest == null || !rt.ContentPublicationRequest.RequestStatus.IsActive())
-                            .Any(),
+                        Suspended = group.IsSuspended,
                     });
                 }
                 foreach (var user in selectionGroupUsersDictionary[group.Id])
                 {
                     selectionGroupList
                         .Sections.Single(s => s.Name == group.GroupName)
-                        .Values.Add($"{user.FirstName} {user.LastName}");
+                        .Users.Add($"{user.FirstName} {user.LastName}");
                 }
             }
 

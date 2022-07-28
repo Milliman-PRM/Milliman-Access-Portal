@@ -54,6 +54,10 @@
                 .nested-list-section-title {
                     margin: 0;
                     margin-left: 0.5em;
+
+                    .nested-list-suspended-label {
+                        color: $red;
+                    }
                 }
                 .nested-list-value {
                     margin: 0;
