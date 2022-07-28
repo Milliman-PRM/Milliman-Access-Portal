@@ -220,7 +220,7 @@ export interface RootContentItemDetailForClient {
   lastUpdated: string;
   lastAccessed: string;
   isPublishing: boolean;
-    selectionGroups: SelectionGroupListForContentItem;
+  selectionGroups: SelectionGroupListForContentItem;
 }
 export function isRootContentItemDetail(detail: SecondaryDetail)
     : detail is RootContentItemDetailForClient | RootContentItemDetailForUser {
