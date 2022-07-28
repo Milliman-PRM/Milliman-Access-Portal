@@ -709,6 +709,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
             ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
             ContainerGroupResourceTags resourceTags = new()
             {
@@ -721,10 +723,11 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupId = null,
                 SelectionGroupName = null,
                 PublicationRequestId = publicationRequestId,
-                ContentStatus = containerContentItemProperties.PreviewImageTag,
-            };
+                ContentToken = contentToken,
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
+        };
 
-            return await RequestStartContainer(publicationRequestId.ToString(), contentItem, false, resourceTags);
+            return await RequestStartContainer(publicationRequestId, contentItem, false, contentToken, resourceTags);
         }
 
         public async Task<IActionResult> ContainerizedApp(Guid group)
@@ -777,6 +780,8 @@ namespace MillimanAccessPortal.Controllers
             }
             #endregion
 
+            string contentToken = GlobalFunctions.HexMd5String(group);
+
             ContainerGroupResourceTags resourceTags = new()
             {
                 ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
@@ -788,26 +793,26 @@ namespace MillimanAccessPortal.Controllers
                 SelectionGroupId = selectionGroup.Id,
                 SelectionGroupName = selectionGroup.GroupName,
                 PublicationRequestId = null,
-                ContentStatus = "live",
+                ContentToken = contentToken,
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
             };
 
-            return await RequestStartContainer(group.ToString(), selectionGroup.RootContentItem, true, resourceTags);
+            return await RequestStartContainer(group, selectionGroup.RootContentItem, true, contentToken, resourceTags);
         }
 
         [NonAction]
-        private async Task<IActionResult> RequestStartContainer(string containerGroupName, RootContentItem contentItem, bool isLiveContent, ContainerGroupResourceTags resourceTags = null)
+        private async Task<IActionResult> RequestStartContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, string contentToken, ContainerGroupResourceTags resourceTags = null)
         {
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
-            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupName);
-
-            string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(containerGroupName));
+            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
             switch (containerGroupModel)
             {
                 // running
-                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running"):
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri != null:
                     UriBuilder externalRequestUri = new UriBuilder
                     {
                         Scheme = Request.Scheme,
@@ -822,6 +827,8 @@ namespace MillimanAccessPortal.Controllers
                     return Redirect(externalRequestUri.Uri.AbsoluteUri);
 
                 // starting
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri == null:
                 case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
                                                                  model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
                     return View("WaitForContainer");
@@ -841,8 +848,11 @@ namespace MillimanAccessPortal.Controllers
 
                     try
                     {
+                        // Ensure that container lifetime management doesn't delete this while it's starting
+                        GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
+
                         // Run a container based on the appropriate image
-                        string containerUrl = await api.RunContainer(containerGroupName,
+                        string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                                      isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                                      isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
                                                                      ipAddressType,
@@ -852,7 +862,7 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
-                                                                     new Dictionary<string, string> { {"PathBase", contentToken } },
+                                                                     new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
                     catch (ApplicationException ex)
@@ -864,11 +874,11 @@ namespace MillimanAccessPortal.Controllers
                                 if (environmentName == "AZURE-PROD")
                                 {
                                     var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
-                                    notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupName, contentItem.Client.Name, ex.Data);
+                                    notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupNameGuid.ToString(), contentItem.Client.Name, ex.Data);
                                 }
                                 break;
                             default:
-                                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupName}. Inner Exception: {Environment.NewLine}");
+                                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupNameGuid.ToString()}. Inner Exception: {Environment.NewLine}");
                                 Log.Error($"Exception Data Entries:");
                                 foreach (DictionaryEntry kvp in ex.Data)
                                 {

@@ -112,9 +112,15 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
 
+        /// <summary>
+        /// Evaluation of this property requires values for the navigation properties RootContentItem.ContentType
+        /// </summary>
         [NotMapped]
         public bool IsEditablePowerBiEligible { get => RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled; }
 
+        /// <summary>
+        /// Evaluation of this property requires values for the navigation properties RootContentItem.ContentType
+        /// </summary>
         [NotMapped]
         public bool Editable
         {

@@ -402,6 +402,8 @@ namespace MillimanAccessPortal.Services
                             containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                             containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
 
+                            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
                             #region Run a container instance
                             ContainerGroupResourceTags resourceTags = new()
                             {
@@ -414,7 +416,8 @@ namespace MillimanAccessPortal.Services
                                 SelectionGroupId = null,
                                 SelectionGroupName = null,
                                 PublicationRequestId = publicationRequestId,
-                                ContentStatus = containerContentItemProperties.PreviewImageTag,
+                                ContentToken = contentToken,
+                                DatabaseId = dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
                             };
                             string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
                             // use a tuple so that both succeed or both fail
@@ -427,7 +430,6 @@ namespace MillimanAccessPortal.Services
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
                                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
-                                string contentToken = GlobalFunctions.HexMd5String(Encoding.ASCII.GetBytes(publicationRequestId.ToString()));
                                 string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                              containerContentItemProperties.PreviewImageName,
                                                                              containerContentItemProperties.PreviewImageTag,

@@ -69,7 +69,7 @@ namespace ContainerizedAppLib
         {
             _repositoryName = !string.IsNullOrEmpty(repositoryName)
                 ? repositoryName
-                : throw new ArgumentNullException(nameof(repositoryName));
+                : null;
 
             try
             {
@@ -572,8 +572,8 @@ namespace ContainerizedAppLib
                 {
                     string log = string.Empty;
                     for (Stopwatch logTimer = Stopwatch.StartNew();
-                        logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
-                         await Task.Delay(TimeSpan.FromSeconds(3)))
+                         logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
+                         await Task.Delay(TimeSpan.FromSeconds(5)))
                     {
                         try
                         {
@@ -723,9 +723,16 @@ namespace ContainerizedAppLib
                                 .WithHeader("Content-Type", "application/json")
                                 .PutStringAsync(serializedRequestModel);
 
-                var x = response.GetStringAsync();
-
-                return response.StatusCode == 201;
+                if (response.StatusCode == 201)
+                {
+                    return true;
+                }
+                else 
+                {
+                    var x = response.GetStringAsync();
+                    Log.Error($"Error creating container group.  Response json is {x}");
+                    return false;
+                }
             }
             catch (FlurlHttpException ex)
             {

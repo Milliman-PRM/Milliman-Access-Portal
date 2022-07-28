@@ -18,6 +18,11 @@ namespace MapDbContextLib.Context
         UserAgreementText,
     }
 
+    public enum NewGuidValueKeys
+    {
+        DatabaseInstanceGuid,
+    }
+
     public class NameValueConfiguration
     {
         [Key]
@@ -29,18 +34,20 @@ namespace MapDbContextLib.Context
         internal static async Task InitializeNameValueConfigurationAsync(IServiceProvider serviceProvider)
         {
             ApplicationDbContext Db = serviceProvider.GetService<ApplicationDbContext>();
-            IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
 
+            #region Values from appSettings
+            IConfiguration appConfig = serviceProvider.GetService<IConfiguration>();
             foreach (ConfiguredValueKeys key in Enum.GetValues(typeof(ConfiguredValueKeys)))
             {
-                NameValueConfiguration dbRecord = await Db.NameValueConfiguration.SingleOrDefaultAsync(c => c.Key == key.ToString());
-                string configValue = appConfig.GetValue<string>(key.ToString());
+
+                NameValueConfiguration dbRecord = await Db.NameValueConfiguration.SingleOrDefaultAsync(c => c.Key == key.GetDisplayNameString(false));
+                string configValue = appConfig.GetValue<string>(key.GetDisplayNameString());
 
                 if (dbRecord == null)
                 {
                     Db.NameValueConfiguration.Add(new NameValueConfiguration 
                     { 
-                        Key = key.ToString(), 
+                        Key = key.GetDisplayNameString(false), 
                         Value = configValue ?? $"A value has not been set for required configuration key <{key}>." 
                     });
                 }
@@ -55,7 +62,30 @@ namespace MapDbContextLib.Context
 
                 await Db.SaveChangesAsync();
             }
+            #endregion
+
+            #region Permanent Guid values
+            foreach (NewGuidValueKeys key in Enum.GetValues(typeof(NewGuidValueKeys)))
+            {
+                NameValueConfiguration dbRecord = await Db.NameValueConfiguration.SingleOrDefaultAsync(c => c.Key == key.GetDisplayNameString(false));
+
+                if (dbRecord == null)
+                {
+                    Db.NameValueConfiguration.Add(new NameValueConfiguration
+                    {
+                        Key = key.GetDisplayNameString(false),
+                        Value = Guid.NewGuid().ToString(),
+                    });
+                }
+                else
+                {
+                    continue;
+                }
+
+                await Db.SaveChangesAsync();
+            }
+            #endregion
         }
-        
+
     }
 }
