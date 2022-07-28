@@ -374,13 +374,14 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
         >{user}
         </div>
       ));
-      const suspended = section.suspended ? '[Suspended]' : '';
+      const suspended = section.suspended ? ' [Suspended]' : '';
       return (
         <div
           key={i}
           className="nested-list-section"
         >
-          <h4 className="nested-list-section-title">{section.name} <big>{suspended}</big></h4>
+          <h4 className="nested-list-section-title">{section.name}
+            <span className="nested-list-suspended-label">{suspended}</span></h4>
           {values}
         </div>
       );
