@@ -3,7 +3,7 @@
 
 body {
     width: 100%;
-    min-height: 100vh;
+    min-height: 100%;
     background-color: $light-grey;
 }
 
@@ -11,16 +11,16 @@ body {
     display: flex;
     flex-flow: column nowrap;
     position: absolute;
-    top: 50%;
+    top: 47%;
     left: 50%;
     transform: translate(-50%, -50%);
     padding: 2em;
     background-color: $white;
     border: 1px solid $charcoal;
     border-radius: 1em;
-    max-height: 95vh;
-    height: 95vh;
-    max-width: 95vw;
+    max-height: 75vh;
+    height: 75vh;
+    max-width: 80vw;
     width: 50em;
 
     #content-name {
