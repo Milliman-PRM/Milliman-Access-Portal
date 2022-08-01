@@ -10,10 +10,15 @@ import { RoleEnum } from '../../shared-components/interfaces';
  * @param state Redux store.
  */
 export function isFormValid(state: AccessState) {
+  const currrentUserDomain = state.currentUser.substring(state.currentUser.indexOf('@') + 1, state.currentUser.length);
+  const currentUserAllowed =
+    state.formData.acceptedEmailAddressExceptionList.indexOf(state.currentUser) > -1 ||
+    state.formData.acceptedEmailDomainList.indexOf(currrentUserDomain) > -1;
   return state.valid.name &&
     state.valid.profitCenterId &&
     state.valid.contactEmail &&
-    state.valid.consultantEmail;
+    state.valid.consultantEmail &&
+    currentUserAllowed;
 }
 
 /**
