@@ -120,6 +120,8 @@ namespace MapDbContextLib.Context
         [Display(Name = "Content Disclaimer")]
         public string ContentDisclaimer { get; set; }
 
+        public bool ContentDisclaimerAlwaysShown { get; set; } = false;
+
         [Column(TypeName = "jsonb")]
         public string ContentFiles { get; set; } = "[]";
 

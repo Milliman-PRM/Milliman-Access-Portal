@@ -74,11 +74,31 @@ namespace MapTests
 
                 #region Act
                 // invoke the controller action to be tested
-                var view = sut.Index();
+                var view = await sut.Index();
                 #endregion
 
                 #region Assert
                 Assert.IsType<ViewResult>(view);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task Index_RedirectToFileDropForFileDropExclusiveUser()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.FileDrop))
+            {
+                #region Arrange
+                AuthorizedContentController sut = await GetControllerForUser(TestResources, "user4");
+                #endregion
+
+                #region Act
+                // invoke the controller action to be tested
+                var response = await sut.Index();
+                #endregion
+
+                #region Assert
+                Assert.IsType<RedirectToActionResult>(response);
                 #endregion
             }
         }
@@ -189,6 +209,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -237,6 +258,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));
@@ -275,6 +297,7 @@ namespace MapTests
                 string FileName = "CCR_0273ZDM_New_Reduction_Script.qvw";
                 string TestFileSourcePath = Path.Combine(@"\\indy-qlikview.milliman.com\testing\Sample Data", FileName);
                 string TestFileTargetPath = Path.Combine(TestResources.Configuration.GetValue<string>("Storage:ContentItemRootPath"), TestUtil.MakeTestGuid(1).ToString(), FileName);
+                Directory.CreateDirectory(Path.GetDirectoryName(TestFileTargetPath));
                 File.Copy(TestFileSourcePath, TestFileTargetPath, true);
                 SelectionGroup ThisGroup = TestResources.DbContext.SelectionGroup.Single(sg => sg.Id == TestUtil.MakeTestGuid(1));
                 RootContentItem ThisItem = TestResources.DbContext.RootContentItem.FirstOrDefault(rci => rci.Id == TestUtil.MakeTestGuid(1));

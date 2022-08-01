@@ -597,6 +597,18 @@ namespace MillimanAccessPortal
 
             app.UseSession();
 
+            app.Use(async (context, next) =>
+            {
+                if (GlobalFunctions.MapUriRoot is null)
+                {
+                    GlobalFunctions.MapUriRoot = context.Request.Host.Port.HasValue
+                                                 ? new UriBuilder(context.Request.Scheme, context.Request.Host.Host, context.Request.Host.Port.Value)
+                                                 : new UriBuilder(context.Request.Scheme, context.Request.Host.Host);
+                }
+
+                await next();
+            });
+
             // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
             {

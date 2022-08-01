@@ -69,7 +69,7 @@ const _initialDetails: ClientDetail = {
   clientContactEmail: null,
   clientContactPhone: null,
   domainListCountLimit: 3,
-  acceptedEmailDomainList: [],
+  acceptedEmailDomainList: ['milliman.com'],
   acceptedEmailAddressExceptionList: [],
   profitCenter: {
     id: '',
@@ -104,7 +104,7 @@ const _initialFormData: AccessStateBaseFormData = {
   contactEmail: null,
   contactPhone: null,
   domainListCountLimit: 3,
-  acceptedEmailDomainList: [],
+  acceptedEmailDomainList: ['milliman.com'],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
   consultantOffice: '',

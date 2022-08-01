@@ -381,7 +381,8 @@ export interface SetPublishingFormBooleanInputValue {
   | 'thursdayChecked'
   | 'fridayChecked'
   | 'saturdayChecked'
-  | 'sundayChecked';
+  | 'sundayChecked'
+  | 'contentDisclaimerAlwaysShown';
   value: boolean;
 }
 
