@@ -264,7 +264,10 @@ export function submitButtonIsActive(state: PublishingState) {
     && pendingFormData.contentTypeId
     && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
     && !formErrorsExist(state);
-  return formChanged && formIsValidIfContainer && noActiveUpload && formValid;
+  const disclaimerValid = (pendingFormData.contentDisclaimerAlwaysShown
+    && pendingFormData.contentDisclaimer.trim().length > 0)
+    || !pendingFormData.contentDisclaimerAlwaysShown;
+  return formChanged && formIsValidIfContainer && noActiveUpload && formValid && disclaimerValid;
 }
 
 /**
@@ -289,6 +292,7 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.contentName !== originalFormData.contentName)
     || (pendingFormData.contentDescription !== originalFormData.contentDescription)
     || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
+    || (pendingFormData.contentDisclaimerAlwaysShown !== originalFormData.contentDisclaimerAlwaysShown)
     || (pendingFormData.contentNotes !== originalFormData.contentNotes)
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
     || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
@@ -432,6 +436,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
     ContentTypeId: pendingFormData.contentTypeId,
     Description: pendingFormData.contentDescription,
     ContentDisclaimer: pendingFormData.contentDisclaimer,
+    ContentDisclaimerAlwaysShown: pendingFormData.contentDisclaimerAlwaysShown,
     Notes: pendingFormData.contentNotes,
   };
 

@@ -173,6 +173,7 @@ namespace MillimanAccessPortal.DataQueries
                             ? $"{thumbnailUrlBuilder.Uri.AbsoluteUri}{rootContentItem.Id}"
                             : null,
                 ContentDisclaimer = rootContentItem.ContentDisclaimer,
+                ContentDisclaimerAlwaysShown = rootContentItem.ContentDisclaimerAlwaysShown,
                 IsSuspended = rootContentItem.IsSuspended,
                 IsEditable = (rootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi &&  (rootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled),
                 TypeSpecificDetailObject = default,

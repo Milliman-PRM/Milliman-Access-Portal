@@ -190,8 +190,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Content Disclaimer Verification
-            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
-                && !userInSelectionGroup.DisclaimerAccepted)
+            var disclaimerAcceptedTimeoutString = HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout") ?? "";
+            DateTime.TryParse(HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout"), out DateTime disclaimerAcceptedTimeout);
+
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer) && (!userInSelectionGroup.DisclaimerAccepted || 
+                (selectionGroup.RootContentItem.ContentDisclaimerAlwaysShown && disclaimerAcceptedTimeout < DateTime.UtcNow)))
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
@@ -201,12 +204,18 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText), 
+                        userInSelectionGroup, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem.Client, 
+                        disclaimer.ValidationId, 
+                        disclaimer.DisclaimerText), 
                     currentUser.UserName, currentUser.Id);
 
                 return View("ContentDisclaimer", disclaimer);
             }
             #endregion
+            
+            HttpContext.Session.Remove("contentDisclaimerAcceptedTimeout");
 
             UriBuilder contentUrlBuilder = new UriBuilder
             {
@@ -238,6 +247,9 @@ namespace MillimanAccessPortal.Controllers
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
+
+            var disclaimerAcceptedTimeout = DateTime.UtcNow.AddSeconds(2);
+            HttpContext.Session.SetString("contentDisclaimerAcceptedTimeout", disclaimerAcceptedTimeout.ToString());
 
             if (!userInSelectionGroup.DisclaimerAccepted)
             {
