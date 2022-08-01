@@ -93,8 +93,8 @@ const emptyContentItemDetail: ContentItemDetail = {
     saturdayChecked: false,
     sundayChecked: false,
     customCooldownPeriod: ContainerCooldownEnum.OneHour,
-    startTime: '8',
-    endTime: '17',
+    startTime: '08:00:00',
+    endTime: '17:00:00',
     timeZoneId: '',
   },
 };
