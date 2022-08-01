@@ -191,11 +191,10 @@ namespace MillimanAccessPortal.Controllers
 
             #region Content Disclaimer Verification
             var disclaimerAcceptedTimeoutString = HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout") ?? "";
-            DateTime disclaimerAcceptedTimeout;
-            DateTime.TryParse(HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout"), out disclaimerAcceptedTimeout);
+            DateTime.TryParse(HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout"), out DateTime disclaimerAcceptedTimeout);
 
             if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer) && (!userInSelectionGroup.DisclaimerAccepted || 
-                (selectionGroup.RootContentItem.ContentDisclaimerAlwaysShown && DateTime.Compare(disclaimerAcceptedTimeout, DateTime.Now) < 0)))
+                (selectionGroup.RootContentItem.ContentDisclaimerAlwaysShown && disclaimerAcceptedTimeout < DateTime.UtcNow)))
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
@@ -247,7 +246,7 @@ namespace MillimanAccessPortal.Controllers
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
 
-            var disclaimerAcceptedTimeout = DateTime.Now.AddSeconds(2);
+            var disclaimerAcceptedTimeout = DateTime.UtcNow.AddSeconds(2);
             HttpContext.Session.SetString("contentDisclaimerAcceptedTimeout", disclaimerAcceptedTimeout.ToString());
 
             if (!userInSelectionGroup.DisclaimerAccepted)
