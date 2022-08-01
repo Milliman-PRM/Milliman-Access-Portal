@@ -204,8 +204,10 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                        userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, 
-                        userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, 
+                        userInSelectionGroup, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem.Client, 
+                        disclaimer.ValidationId, 
                         disclaimer.DisclaimerText), 
                     currentUser.UserName, currentUser.Id);
 
