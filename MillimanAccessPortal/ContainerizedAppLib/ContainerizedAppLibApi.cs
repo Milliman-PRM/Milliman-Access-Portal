@@ -563,12 +563,16 @@ namespace ContainerizedAppLib
                 Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
                 #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
-
                 int waitTimeSeconds = 60;
-                string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
+
+                string containerLogMatchString = string.Empty;  // TODO this value should eventually be supplied in publication type specific info
                 containerLogMatchString = "Listening on http";  // works for Shiny
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
+                    // *** This code polls the container log for the presence of a test string to help ensure that the containerized application is fully launched before 
+                    // continuing. The test string currently is hard coded to work for R-Shiny content, but it would be better to allow the publication process to supply
+                    // an optional string that will be relevant for the uploaded image. 
+
                     Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
 
                     for (Stopwatch logTimer = Stopwatch.StartNew(); logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(5)))
@@ -584,7 +588,7 @@ namespace ContainerizedAppLib
                             }
                             else
                             {
-                                Log.Debug($"Container logs: {log}");
+                                Log.Debug($"Container log: {log}");
                             }
                         }
                         catch { }
