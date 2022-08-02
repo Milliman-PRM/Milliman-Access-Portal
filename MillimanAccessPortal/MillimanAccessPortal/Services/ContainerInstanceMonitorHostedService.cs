@@ -78,10 +78,9 @@ namespace MillimanAccessPortal.Services
                                                                                                   .ThenInclude(rc => rc.Client)
                                                                                                       .ThenInclude(c => c.ProfitCenter)
                                                                                               .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-                                                                                              .Where(p => p.RequestStatus == PublicationStatus.Processed)
+                                                                                              .Where(p => p.RequestStatus.IsActive())
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
-                        // Log.Debug($"Found {pendingPublications.Count} Preview publications: {string.Join($"", pendingPublications.Select(p => $"{Environment.NewLine}\tinitiated:{p.CreateDateTimeUtc}, content:<{p.RootContentItem.ContentName}>"))}");
 
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
@@ -94,7 +93,8 @@ namespace MillimanAccessPortal.Services
                                 : DateTime.MinValue;
 
                             #region 1) If a preview container should be running
-                            if (DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + _previewContainerLingerTime ||
+                            if (publication.RequestStatus == PublicationStatus.Processed &&
+                                DateTime.UtcNow < publication.OutcomeMetadataObj.StartDateTime + _previewContainerLingerTime ||
                                 DateTime.UtcNow < lastActivity + _previewContainerLingerTime)
                             {
                                 // 1a) If no container is running then launch one
@@ -144,7 +144,8 @@ namespace MillimanAccessPortal.Services
                             #endregion
 
                             #region 2) If a preview container should NOT be running and it is then delete it
-                            if (DateTime.UtcNow > publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) &&
+                            if (publication.RequestStatus == PublicationStatus.Processed &&
+                                DateTime.UtcNow > publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) &&
                                 DateTime.UtcNow > lastActivity + _previewContainerLingerTime &&
                                 runningContainer != null
                                )
