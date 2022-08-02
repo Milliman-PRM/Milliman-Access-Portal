@@ -567,40 +567,44 @@ namespace ContainerizedAppLib
                 int waitTimeSeconds = 60;
                 string containerLogMatchString = string.Empty;  // value should be obtained from a publication type specific info property
                 containerLogMatchString = "Listening on http";  // works for Shiny
-                Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
                 if (!string.IsNullOrEmpty(containerLogMatchString))
                 {
-                    string log = string.Empty;
-                    for (Stopwatch logTimer = Stopwatch.StartNew();
-                         logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds) && !log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase); 
-                         await Task.Delay(TimeSpan.FromSeconds(5)))
+                    Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
+
+                    for (Stopwatch logTimer = Stopwatch.StartNew(); logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(5)))
                     {
                         try
                         {
-                            log = (await GetContainerLogs(containerGroupName, containerGroupName)) ?? string.Empty;
+                            string log = (await GetContainerLogs(containerGroupName, containerGroupName)) ?? string.Empty;
+
+                            if (log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase))
+                            {
+                                Log.Information("Search string found in container log.  Continuing...");
+                                break;
+                            }
+                            else
+                            {
+                                Log.Debug($"Container logs: {log}");
+                            }
                         }
                         catch { }
-
-                        Log.Debug($"Container logs: {log}");
                     }
                 }
 
                 // Wait until the IP:port accepts a TCP connection
-                Log.Information("Waiting up to {waitTimeSeconds} seconds for container to accept a TCP connection");
+                Log.Information($"Waiting up to {waitTimeSeconds} seconds for container to accept a TCP connection");
                 for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(3)))
                 {
                     try
                     {
                         TcpClient tcpClient = new TcpClient(containerUri.Host, containerUri.Port);
-                        Log.Debug($"socket connected state is {tcpClient.Connected}");
                         tcpClient.Close();
+                        break;
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
-                        Log.Information(ex, $"socket connection exception");
                         continue;
                     }
-                    break;
                 }
                 #endregion
 
@@ -800,16 +804,19 @@ namespace ContainerizedAppLib
                 else
                 {
                     CloudError responseJson = await response.GetJsonAsync<CloudError>();
-                    Log.Error($"Error obtaining container logs: {responseJson.Error.Message}");
+                    Log.Error($"Error obtaining container logs: api response status {response.StatusCode}, message {responseJson.Error.Message}");
+                    return null;
                 }
+            }
+            catch (FlurlHttpException ex) when (ex.StatusCode == 404)
+            {
+                return null;
             }
             catch (Exception ex)
             {
                 Log.Error(ex, $"Exception while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.");
                 throw;
             }
-
-            return null;
         }
 
         /// <summary>
