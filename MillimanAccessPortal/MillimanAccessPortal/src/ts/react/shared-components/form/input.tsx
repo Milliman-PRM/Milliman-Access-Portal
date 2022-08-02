@@ -132,7 +132,7 @@ interface MultiAddProps extends InputProps {
   limit?: number;
   limitText?: string;
   exceptions?: string[];
-  addItem: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void;
+  addItem: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => boolean;
   removeItemCallback?: (index: number) => void;
 }
 
@@ -243,10 +243,11 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
     );
   }
 
-  private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void,
+  private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => boolean,
                           list: string[] = [], exceptions: string[] = [], limit: number) {
     const inputArray = this.state.currentText.trim().split(';');
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
+    let clear: boolean;
 
     for (let i = 0; i < inputArray.length; i++) {
       const inputItem = inputArray[i].trim();
@@ -254,12 +255,18 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
       const itemAlreadyExists = _.includes(list.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       const itemIsExemptFromLimit = _.includes(exceptions.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       if (itemIsExemptFromLimit) {
-        addItemCallback(inputItem, false, itemAlreadyExists);
+        clear = addItemCallback(inputItem, false, itemAlreadyExists);
       } else if (inputItem.length > 0) {
-        addItemCallback(inputItem, overLimit, itemAlreadyExists);
+        clear = addItemCallback(inputItem, overLimit, itemAlreadyExists);
+      }
+      if (!clear) {
+        this.setState({ currentText: inputArray.slice(i).join(';') });
+        break;
       }
     }
-    this.setState({ currentText: '' });
+    if (clear) {
+      this.setState({ currentText: '' });
+    }
   }
 
   private getEffectiveListLength(list: string[], exceptions: string[]) {

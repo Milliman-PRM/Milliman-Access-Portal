@@ -509,13 +509,17 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                             limit={formData.id ? formData.domainListCountLimit : this.props.defaultDomainLimit}
                             limitText={'domains'}
                             list={formData.acceptedEmailDomainList}
-                            value={''}
+                            value={this.props.formData.currentAttemptedEmail ?
+                              this.props.formData.currentAttemptedEmail : ''}
                             exceptions={this.props.nonLimitedDomains}
                             addItem={(item: string, overLimit: boolean, itemAlreadyExists: boolean) => {
                               if (itemAlreadyExists) {
                                 toastr.warning('', 'That domain already exists.');
                               } else if (!isDomainNameValid(item)) {
                                 toastr.warning('', 'Please enter a valid domain name (e.g. domain.com)');
+                                this.props.InvalidDomainOrEmail({
+                                  value: item,
+                                });
                               } else if (isDomainNameProhibited(item, this.props.prohibitedDomains)) {
                                 toastr.warning('', `
                                   "${item}" is not allowed in the Approved Email Domain List.
@@ -532,7 +536,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailDomainList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
@@ -577,7 +583,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailAddressExceptionList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
