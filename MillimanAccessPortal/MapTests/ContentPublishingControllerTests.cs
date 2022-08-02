@@ -847,5 +847,48 @@ namespace MapTests
                 #endregion
             }
         }
+
+        [Fact]
+        public async Task PublishContainerApp_MetadataStoredCorrectly()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Publishing))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                RootContentItem dbContentItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(1));
+                PublishRequest publishModel = new PublishRequest
+                {
+                    RootContentItemId = dbContentItem.Id,
+                    AssociatedFiles = new List<AssociatedFileModel>(),
+                    DeleteFilePurposes = new string[0],
+                    NewRelatedFiles = new List<UploadedRelatedFile> { new UploadedRelatedFile { FileUploadId=TestUtil.MakeTestGuid(1), FileOriginalName="", FilePurpose="MasterContent" } },
+                    TypeSpecificPublishingDetail = JObject.FromObject(new ContainerizedContentPublicationProperties
+                    {
+                        ContainerCpuCores = ContainerCpuCoresEnum.Two,
+                        ContainerInternalPort = 3344,
+                        ContainerRamGb = ContainerRamGbEnum.Five,
+                        ContainerInstanceLifetimeScheme = ContainerInstanceLifetimeSchemeEnum.Custom,
+                        ThursdayChecked = true,
+                        StartTime = TimeSpan.FromHours(8),
+                        EndTime = TimeSpan.FromHours(11),
+                    }),
+                };
+
+                int beforeCount = TestResources.DbContext.ContentPublicationRequest.Count();
+                #endregion
+
+                #region Act
+                var result = await controller.Publish(publishModel);
+                int AfterCount = TestResources.DbContext.ContentPublicationRequest.Count();
+                #endregion
+
+                #region Assert
+                Assert.Equal(beforeCount+1, AfterCount);
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                RootContentItemDetail rootContentItemDetail = Assert.IsType<RootContentItemDetail>(jsonResult.Value);
+                ContainerizedContentPublicationProperties containerPubProperties = Assert.IsType<ContainerizedContentPublicationProperties>(rootContentItemDetail.TypeSpecificPublicationProperties);
+                #endregion
+            }
+        }
     }
 }

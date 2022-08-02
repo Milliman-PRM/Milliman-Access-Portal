@@ -3,7 +3,6 @@ import { reducer as toastrReducer } from 'react-redux-toastr';
 import { combineReducers } from 'redux';
 
 import { generateUniqueId } from '../../../generate-unique-identifier';
-import { convertTimeStringToIndex } from '../../../shared';
 import { ProgressSummary } from '../../../upload/progress-monitor';
 import * as UploadActions from '../../../upload/Redux/actions';
 import { uploadStatus } from '../../../upload/Redux/reducers';
@@ -94,8 +93,8 @@ const emptyContentItemDetail: ContentItemDetail = {
     saturdayChecked: false,
     sundayChecked: false,
     customCooldownPeriod: ContainerCooldownEnum.OneHour,
-    startTime: '8',
-    endTime: '17',
+    startTime: '08:00:00',
+    endTime: '17:00:00',
     timeZoneId: '',
   },
 };
@@ -644,11 +643,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           emptyContentItemDetail.typeSpecificPublicationProperties.sundayChecked,
         startTime: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.startTime ?
-          convertTimeStringToIndex(action.response.typeSpecificPublicationProperties.startTime) :
+          action.response.typeSpecificPublicationProperties.startTime :
           emptyContentItemDetail.typeSpecificPublicationProperties.startTime,
         endTime: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.endTime ?
-          convertTimeStringToIndex(action.response.typeSpecificPublicationProperties.endTime) :
+          action.response.typeSpecificPublicationProperties.endTime :
           emptyContentItemDetail.typeSpecificPublicationProperties.endTime,
         timeZoneId: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.timeZoneId ?

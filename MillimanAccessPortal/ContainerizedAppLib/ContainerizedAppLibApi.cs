@@ -544,20 +544,20 @@ namespace ContainerizedAppLib
 
                     containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
-                    containerGroupProvisioningState = containerGroupModel?.Properties.ProvisioningState;
-                    containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State;
+                    containerGroupProvisioningState = containerGroupModel?.Properties?.ProvisioningState ?? "<null>";
+                    containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State ?? "<null>";
                     containerUri = containerGroupModel?.Uri;
 
                     try
                     {
-                        applicationPort = containerGroupModel?.Properties?.IpAddress?.Ports?.Single().Port ?? 0;
+                        applicationPort = containerGroupModel?.Properties?.IpAddress?.Ports?.Single()?.Port ?? 0;
                     }
                     catch { }
 
                     Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
                                     $"instanceView state {containerGroupInstanceViewState}, " +
-                                    $"URL {containerGroupModel.Uri?.AbsoluteUri ?? ""}, " +
-                                    $"containers states: <{string.Join(",", containerGroupModel.Properties.Containers.Select(c => c.Properties.Instance_View?.CurrentState?.State))}>");
+                                    $"URL {containerGroupModel?.Uri?.AbsoluteUri ?? ""}, " +
+                                    $"containers states: <{string.Join(",", containerGroupModel?.Properties?.Containers?.Select(c => c.Properties.Instance_View?.CurrentState?.State) ?? new string[0])}>");
                 }
 
                 Log.Information($"Container group full response: {{@model}}", containerGroupModel);
