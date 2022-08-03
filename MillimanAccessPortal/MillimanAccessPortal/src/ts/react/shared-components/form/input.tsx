@@ -142,6 +142,8 @@ interface MultiAddInputState {
 }
 
 export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputState> {
+  private inputRef: React.RefObject<HTMLInputElement>;
+
   public constructor(props: MultiAddProps) {
     super(props);
 
@@ -149,6 +151,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
       currentText: '',
       isFocused: false,
     };
+
+    this.inputRef = React.createRef();
 
     this.handleBlur = this.handleBlur.bind(this);
     this.handleFocus = this.handleFocus.bind(this);
@@ -186,6 +190,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 );
               })}
               <input
+                ref={this.inputRef}
                 type="text"
                 name={name}
                 id={name}
@@ -247,7 +252,9 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                           list: string[] = [], exceptions: string[] = [], limit: number) {
     const inputArray = this.state.currentText.trim().split(';');
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
+
     let clear: boolean;
+    const invalidItems: string[] = [];
 
     for (let i = 0; i < inputArray.length; i++) {
       const inputItem = inputArray[i].trim();
@@ -260,11 +267,12 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
         clear = addItemCallback(inputItem, overLimit, itemAlreadyExists);
       }
       if (!clear) {
-        this.setState({ currentText: inputArray.slice(i).join(';') });
-        break;
+        invalidItems.push(inputItem);
       }
     }
-    if (clear) {
+    if (invalidItems) {
+      this.setState({ currentText: invalidItems.join(';') });
+    } else {
       this.setState({ currentText: '' });
     }
   }
@@ -280,7 +288,11 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   }
 
   private handleBlur() {
-    this.setState({ currentText: '', isFocused: false });
+    if (this.state.currentText) {
+      this.inputRef.current.focus();
+    } else {
+      this.setState({ currentText: '', isFocused: false });
+    }
   }
 
   private handleFocus() {
