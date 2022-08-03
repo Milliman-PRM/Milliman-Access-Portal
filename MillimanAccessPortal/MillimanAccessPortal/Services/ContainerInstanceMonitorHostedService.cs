@@ -14,6 +14,7 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Yarp.ReverseProxy.Configuration;
@@ -67,6 +68,11 @@ namespace MillimanAccessPortal.Services
                                                                                                                  .Where(g => g.Tags.ContainsKey("database_id")
                                                                                                                           && g.Tags["database_id"].Equals(DatabaseUniqueId))
                                                                                                                  .ToList();
+
+                        // temporary
+                        Log.Information($"All container groups for this database ID:{Environment.NewLine}    " +
+                                        string.Join($"{Environment.NewLine}    ", allContainerGroups.Select(g => $"Name: {g.Name}, Tags: {JsonSerializer.Serialize(g.Tags)}")));
+
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
@@ -78,9 +84,12 @@ namespace MillimanAccessPortal.Services
                                                                                                   .ThenInclude(rc => rc.Client)
                                                                                                       .ThenInclude(c => c.ProfitCenter)
                                                                                               .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-                                                                                              .Where(p => p.RequestStatus.IsActive())
+                                                                                              .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
+                        // TODO remove the following line
+                        Log.Information($"Found the following pending publications:{Environment.NewLine}" +
+                            string.Join(Environment.NewLine, pendingPublications.Select(p => $"Name:{p.Id}")));
 
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
@@ -268,8 +277,9 @@ namespace MillimanAccessPortal.Services
                                                                                                                  .Select(cg => (cg.Name, cg.Tags));
                         foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanPreviewContainers)
                         {
+                            Log.Information($"Container lifetime service using legitimate publication names <{string.Join(",", legitimatePreviewContainerNames)}>");
                             Log.Information($"Container lifetime service deleting orphaned preview container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
-                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
+                            // AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
                         }
                         #endregion
 
