@@ -441,6 +441,11 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
     disabled: false,
     userEnabled: false,
   }),
+  EDIT_CLIENT_FAILED: (state) => ({
+    ...state,
+    disabled: false,
+    userEnabled: true,
+  }),
 });
 
 const formData = createReducer<AccessStateBaseFormData>(_initialFormData, {
