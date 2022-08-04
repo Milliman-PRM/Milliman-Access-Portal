@@ -814,8 +814,6 @@ namespace ContainerizedAppLib
             }
             catch (FlurlHttpException ex) when (ex.StatusCode == 404)
             {
-                // TODO remove the following line
-                Log.Error($"Exception while attempting to get Container Logs for Container {containerName} in Container Group {containerGroupName}.  Exception is:{Environment.NewLine}{{ex}}", ex);
                 return null;
             }
             catch (Exception ex)
