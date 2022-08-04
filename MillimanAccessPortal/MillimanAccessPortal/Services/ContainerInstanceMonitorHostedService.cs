@@ -284,9 +284,9 @@ namespace MillimanAccessPortal.Services
                                                                                                                  .Select(cg => (cg.Name, cg.Tags));
                         foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanPreviewContainers)
                         {
-                            Log.Information($"Container lifetime service using legitimate publication names <{string.Join(",", legitimatePreviewContainerNames)}>");
+                            Log.Information($"Container lifetime service using legitimate preview publication names <{string.Join(",", legitimatePreviewContainerNames)}>");
                             Log.Information($"Container lifetime service deleting orphaned preview container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
-                            // AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
+                            AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
                         }
                         #endregion
 
@@ -296,6 +296,7 @@ namespace MillimanAccessPortal.Services
                                                                                                      .Select(g => (g.Name, g.Tags));
                         foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanLiveContainers)
                         {
+                            Log.Information($"Container lifetime service using legitimate live publication names <{string.Join(",", legitimateLiveContainerNames)}>");
                             Log.Information($"Container lifetime service deleting orphaned live container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
                             AllParallelTasks.Add(TerminateContainerAsync(orphan.Name, orphan.Tags["content_token"]));
                         }
