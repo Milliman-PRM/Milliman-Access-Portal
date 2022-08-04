@@ -69,9 +69,12 @@ namespace MillimanAccessPortal.Services
                                                                                                                           && g.Tags["database_id"].Equals(DatabaseUniqueId))
                                                                                                                  .ToList();
 
-                        // temporary
-                        Log.Information($"All container groups for this database ID:{Environment.NewLine}    " +
-                                        string.Join($"{Environment.NewLine}    ", allContainerGroups.Select(g => $"Name: {g.Name}, Tags: {JsonSerializer.Serialize(g.Tags)}")));
+                        // TODO temporary
+                        if (allContainerGroups.Any())
+                        {
+                            Log.Information($"Lifetime management: All container groups for this database ID:{Environment.NewLine}    " +
+                                            string.Join($"{Environment.NewLine}    ", allContainerGroups.Select(g => $"Name: {g.Name}, Tags: {JsonSerializer.Serialize(g.Tags)}")));
+                        }
 
                         List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
@@ -87,9 +90,13 @@ namespace MillimanAccessPortal.Services
                                                                                               .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
-                        // TODO remove the following line
-                        Log.Information($"Found the following pending publications:{Environment.NewLine}" +
-                            string.Join(Environment.NewLine, pendingPublications.Select(p => $"Name:{p.Id}")));
+
+                        // TODO temporary
+                        if (pendingPublications.Any())
+                        {
+                            Log.Information($"Lifetime management: Found the following pending publications:{Environment.NewLine}" +
+                                            string.Join(Environment.NewLine, pendingPublications.Select(p => $"Name:{p.Id}")));
+                        }
 
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
