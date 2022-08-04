@@ -122,7 +122,9 @@ export class CreateProfitCenterModal extends React.Component<Modal.Props, Create
                   this.setState({
                     quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.concat(item),
                   });
+                  return true;
                 }
+                return false;
               }}
               removeItemCallback={(index: number) => {
                 this.setState({

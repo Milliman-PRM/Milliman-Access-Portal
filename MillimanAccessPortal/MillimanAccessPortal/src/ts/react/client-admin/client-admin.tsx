@@ -532,7 +532,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailDomainList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
@@ -577,7 +579,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailAddressExceptionList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({

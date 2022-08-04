@@ -132,7 +132,7 @@ interface MultiAddProps extends InputProps {
   limit?: number;
   limitText?: string;
   exceptions?: string[];
-  addItem: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void;
+  addItem: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => boolean;
   removeItemCallback?: (index: number) => void;
 }
 
@@ -142,6 +142,8 @@ interface MultiAddInputState {
 }
 
 export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputState> {
+  private inputRef: React.RefObject<HTMLInputElement>;
+
   public constructor(props: MultiAddProps) {
     super(props);
 
@@ -149,6 +151,8 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
       currentText: '',
       isFocused: false,
     };
+
+    this.inputRef = React.createRef();
 
     this.handleBlur = this.handleBlur.bind(this);
     this.handleFocus = this.handleFocus.bind(this);
@@ -186,6 +190,7 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
                 );
               })}
               <input
+                ref={this.inputRef}
                 type="text"
                 name={name}
                 id={name}
@@ -243,10 +248,13 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
     );
   }
 
-  private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => void,
+  private addItemAndClear(addItemCallback: (item: string, overLimit: boolean, itemAlreadyExists: boolean) => boolean,
                           list: string[] = [], exceptions: string[] = [], limit: number) {
     const inputArray = this.state.currentText.trim().split(';');
     const effectiveListLength = this.getEffectiveListLength(list, exceptions);
+
+    let clear: boolean;
+    const invalidItems: string[] = [];
 
     for (let i = 0; i < inputArray.length; i++) {
       const inputItem = inputArray[i].trim();
@@ -254,12 +262,19 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
       const itemAlreadyExists = _.includes(list.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       const itemIsExemptFromLimit = _.includes(exceptions.map((item) => item.toLowerCase()), inputItem.toLowerCase());
       if (itemIsExemptFromLimit) {
-        addItemCallback(inputItem, false, itemAlreadyExists);
+        clear = addItemCallback(inputItem, false, itemAlreadyExists);
       } else if (inputItem.length > 0) {
-        addItemCallback(inputItem, overLimit, itemAlreadyExists);
+        clear = addItemCallback(inputItem, overLimit, itemAlreadyExists);
+      }
+      if (!clear) {
+        invalidItems.push(inputItem);
       }
     }
-    this.setState({ currentText: '' });
+    if (invalidItems) {
+      this.setState({ currentText: invalidItems.join(';') });
+    } else {
+      this.setState({ currentText: '' });
+    }
   }
 
   private getEffectiveListLength(list: string[], exceptions: string[]) {
@@ -273,7 +288,11 @@ export class MultiAddInput extends React.Component<MultiAddProps, MultiAddInputS
   }
 
   private handleBlur() {
-    this.setState({ currentText: '', isFocused: false });
+    if (this.state.currentText) {
+      this.inputRef.current.focus();
+    } else {
+      this.setState({ currentText: '', isFocused: false });
+    }
   }
 
   private handleFocus() {
