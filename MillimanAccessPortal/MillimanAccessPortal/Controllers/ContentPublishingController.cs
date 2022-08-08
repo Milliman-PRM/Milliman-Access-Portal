@@ -647,22 +647,27 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            bool publicationUsesPersistentFile = false;
             switch (ContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
-                    // TODO get the below code moved here as appropriate
+                    List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
+                    List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
+                    publicationUsesPersistentFile = !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList.ToHashSet());
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-                    // TODO anything needed here?
+                    var newContainerAppPublicationDetails = request.TypeSpecificPublishingDetail is not null ?
+                        JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true,
+                        }) : null;
+                    var typeSpecificDetails = JsonSerializer.Serialize(newContainerAppPublicationDetails);
+                    publicationUsesPersistentFile = true; // This needs to reflect whether or not publishing details match root content item type specific details
                     break;
             }
 
-            List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
-            List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
-            var isPublicationWithPersistingFile = ContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList); // Only supports reducible Power BI
-
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !isPublicationWithPersistingFile)
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !publicationUsesPersistentFile)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -688,7 +693,7 @@ namespace MillimanAccessPortal.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            if (request.NewRelatedFiles.Any() || isPublicationWithPersistingFile)
+            if (request.NewRelatedFiles.Any() || publicationUsesPersistentFile)
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
@@ -1328,6 +1333,20 @@ namespace MillimanAccessPortal.Controllers
             if (jObject.TryGetValue("TypeSpecificDetailObject", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificDetailObjectToken))
             {
                 model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
+            }
+
+            // Custom logic for Container App content type
+            // Loads details from publication details into type specific details for the Root Content Item, if any publication properties are found.
+            if (model.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
+            {
+                if (jObject.TryGetValue("TypeSpecificPublicationProperties", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificPublicationPropertiesToken))
+                {
+                    var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(typeSpecificPublicationPropertiesToken.ToString(), new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                    });
+                    model.TypeSpecificDetailObject = (ContainerizedAppContentItemProperties)typeSpecificPublicationPropertiesToken.ToObject(typeof(ContainerizedAppContentItemProperties));
+                }
             }
 
             return model;
