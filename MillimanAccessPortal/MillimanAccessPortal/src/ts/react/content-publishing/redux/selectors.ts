@@ -309,7 +309,10 @@ export function formErrorsExist(state: PublishingState) {
     (formErrors.typeSpecificPublicationProperties && (
       formErrors.typeSpecificPublicationProperties.containerInternalPort ||
       formErrors.typeSpecificPublicationProperties.containerCpuCores ||
-      formErrors.typeSpecificPublicationProperties.containerRamGb
+      formErrors.typeSpecificPublicationProperties.containerRamGb ||
+      formErrors.typeSpecificPublicationProperties.timeZoneId ||
+      formErrors.typeSpecificPublicationProperties.startTime ||
+      formErrors.typeSpecificPublicationProperties.endTime
     ));
 }
 
