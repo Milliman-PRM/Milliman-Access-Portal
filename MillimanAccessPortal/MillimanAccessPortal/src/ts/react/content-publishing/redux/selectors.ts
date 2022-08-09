@@ -306,8 +306,11 @@ export function formChangesPending(state: PublishingState) {
 export function formErrorsExist(state: PublishingState) {
   const { formErrors } = state.formData;
   return formErrors &&
-    (formErrors.typeSpecificPublicationProperties &&
-      formErrors.typeSpecificPublicationProperties.containerInternalPort);
+    (formErrors.typeSpecificPublicationProperties && (
+      formErrors.typeSpecificPublicationProperties.containerInternalPort ||
+      formErrors.typeSpecificPublicationProperties.containerCpuCores ||
+      formErrors.typeSpecificPublicationProperties.containerRamGb
+    ));
 }
 
 /**
