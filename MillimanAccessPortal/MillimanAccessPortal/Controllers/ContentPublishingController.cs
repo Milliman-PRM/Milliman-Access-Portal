@@ -647,13 +647,13 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
-            bool publicationUsesPersistentFile = false;
+            bool publicationHasPublicationDetailChanges = false;
             switch (ContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
                     List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
                     List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
-                    publicationUsesPersistentFile = !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList.ToHashSet());
+                    publicationHasPublicationDetailChanges = !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList.ToHashSet());
                     break;
 
                 case ContentTypeEnum.ContainerApp:
@@ -668,12 +668,12 @@ namespace MillimanAccessPortal.Controllers
                     // What's this for?   string typeSpecificDetails = JsonSerializer.Serialize(newContainerAppPublicationDetails);
 
                     ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
-                    publicationUsesPersistentFile = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
+                    publicationHasPublicationDetailChanges = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
 
                     break;
             }
 
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !publicationUsesPersistentFile)
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !publicationHasPublicationDetailChanges)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -699,7 +699,7 @@ namespace MillimanAccessPortal.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            if (request.NewRelatedFiles.Any() || publicationUsesPersistentFile)
+            if (request.NewRelatedFiles.Any() || publicationHasPublicationDetailChanges)
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest
