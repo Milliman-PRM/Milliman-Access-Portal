@@ -78,9 +78,9 @@ namespace MillimanAccessPortal.Services
                                                                                                   .ThenInclude(rc => rc.Client)
                                                                                                       .ThenInclude(c => c.ProfitCenter)
                                                                                               .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-                                                                                              .Where(p => p.RequestStatus.IsActive())
+                                                                                              .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
+                                                                                              // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
-                        // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
 
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {

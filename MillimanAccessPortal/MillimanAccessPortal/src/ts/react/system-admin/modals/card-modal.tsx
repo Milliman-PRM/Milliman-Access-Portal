@@ -139,7 +139,9 @@ export class CardModal extends React.Component<CardModalProps, CardModalState> {
                   this.setState({
                     quarterlyMaintenanceNotificationList: this.state.quarterlyMaintenanceNotificationList.concat(item),
                   });
+                  return true;
                 }
+                return false;
               }}
               removeItemCallback={(index: number) => {
                 this.setState({

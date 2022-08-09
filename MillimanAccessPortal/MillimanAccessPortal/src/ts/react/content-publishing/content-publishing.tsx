@@ -969,7 +969,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   inputName: 'roleList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setPublishingFormTextArrayValue({
