@@ -610,9 +610,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme :
           emptyContentItemDetail.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
         allDaysChecked: action.response.typeSpecificPublicationProperties &&
-          action.response.typeSpecificPublicationProperties.allDaysChecked ?
-          action.response.typeSpecificPublicationProperties.allDaysChecked :
-          emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
+          action.response.typeSpecificPublicationProperties.allDaysChecked || (
+            action.response.typeSpecificPublicationProperties.mondayChecked &&
+            action.response.typeSpecificPublicationProperties.tuesdayChecked &&
+            action.response.typeSpecificPublicationProperties.wednesdayChecked &&
+            action.response.typeSpecificPublicationProperties.thursdayChecked &&
+            action.response.typeSpecificPublicationProperties.fridayChecked &&
+            action.response.typeSpecificPublicationProperties.saturdayChecked &&
+            action.response.typeSpecificPublicationProperties.sundayChecked
+          ) ? true : emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
         mondayChecked: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.mondayChecked ?
           action.response.typeSpecificPublicationProperties.mondayChecked :
@@ -842,8 +848,25 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           [action.inputName]: action.value,
         },
       };
-    } else if (action.inputName === 'allDaysChecked' ||
-               action.inputName === 'mondayChecked' ||
+    } else if (action.inputName === 'allDaysChecked') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            allDaysChecked: action.value,
+            mondayChecked: action.value,
+            tuesdayChecked: action.value,
+            wednesdayChecked: action.value,
+            thursdayChecked: action.value,
+            fridayChecked: action.value,
+            saturdayChecked: action.value,
+            sundayChecked: action.value,
+          },
+        },
+      };
+    } else if (action.inputName === 'mondayChecked' ||
                action.inputName === 'tuesdayChecked' ||
                action.inputName === 'wednesdayChecked' ||
                action.inputName === 'thursdayChecked' ||

@@ -1335,20 +1335,6 @@ namespace MillimanAccessPortal.Controllers
                 model.TypeSpecificDetailObject = (TypeSpecificContentItemProperties)typeSpecificDetailObjectToken.ToObject(model.TypeSpecificDetailObjectType);
             }
 
-            // Custom logic for Container App content type
-            // Loads details from publication details into type specific details for the Root Content Item, if any publication properties are found.
-            if (model.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-            {
-                if (jObject.TryGetValue("TypeSpecificPublicationProperties", StringComparison.InvariantCultureIgnoreCase, out JToken typeSpecificPublicationPropertiesToken))
-                {
-                    var publicationDetails = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(typeSpecificPublicationPropertiesToken.ToString(), new JsonSerializerOptions
-                    {
-                        PropertyNameCaseInsensitive = true,
-                    });
-                    model.TypeSpecificDetailObject = (ContainerizedAppContentItemProperties)typeSpecificPublicationPropertiesToken.ToObject(typeof(ContainerizedAppContentItemProperties));
-                }
-            }
-
             return model;
         }
     }
