@@ -89,7 +89,27 @@ namespace MapDbContextLib.Models
             {}
         }
 
-        public class CustomScheduleLifetimeScheme : LifetimeSchemeBase
+        public bool DoesPublicationDetailChangeContentDetail(ContainerizedContentPublicationProperties requestProps)
+        {
+            bool returnValue = false;
+
+            returnValue |= LiveContainerCpuCores != requestProps.ContainerCpuCores;
+            returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
+            returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
+            returnValue |= LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
+
+            if (LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && !returnValue)
+            {
+                CustomScheduleLifetimeScheme liveLifetimeScheme = (CustomScheduleLifetimeScheme)LiveContainerLifetimeScheme;
+                CustomScheduleLifetimeScheme requestScheme = new CustomScheduleLifetimeScheme(requestProps);
+
+                returnValue |= !requestScheme.Equals(liveLifetimeScheme);
+            }
+
+            return returnValue;
+        }
+
+        public class CustomScheduleLifetimeScheme : LifetimeSchemeBase, IEquatable<CustomScheduleLifetimeScheme>
         {
             /// <summary>
             /// The key must be relative to the start of the week (Saturday night midnight) in UTC, zero offset.
@@ -99,6 +119,11 @@ namespace MapDbContextLib.Models
 
             public CustomScheduleLifetimeScheme()
             {}
+
+            public bool Equals(CustomScheduleLifetimeScheme other)
+            {
+                return OrderedStateInstructionList.SequenceEqual(other.OrderedStateInstructionList);
+            }
 
             public CustomScheduleLifetimeScheme(ContainerizedContentPublicationProperties source)
                 : base(source)

@@ -7,12 +7,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
 namespace MapDbContextLib.Models
 {
-    public class TypeSpecificPublicationPropertiesBase
+    public abstract class TypeSpecificPublicationPropertiesBase
     {}
 
     public class PowerBiPublicationProperties : TypeSpecificPublicationPropertiesBase

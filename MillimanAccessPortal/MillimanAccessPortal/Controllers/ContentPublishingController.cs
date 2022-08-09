@@ -657,13 +657,19 @@ namespace MillimanAccessPortal.Controllers
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-                    var newContainerAppPublicationDetails = request.TypeSpecificPublishingDetail is not null ?
-                        JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true,
-                        }) : null;
-                    var typeSpecificDetails = JsonSerializer.Serialize(newContainerAppPublicationDetails);
-                    publicationUsesPersistentFile = true; // This needs to reflect whether or not publishing details match root content item type specific details
+                    ContainerizedContentPublicationProperties newContainerAppPublicationDetails = request.TypeSpecificPublishingDetail is not null 
+                        ? JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), 
+                                                                                                new JsonSerializerOptions
+                                                                                                {
+                                                                                                    PropertyNameCaseInsensitive = true,
+                                                                                                }) 
+                        : null;
+
+                    // What's this for?   string typeSpecificDetails = JsonSerializer.Serialize(newContainerAppPublicationDetails);
+
+                    ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
+                    publicationUsesPersistentFile = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
+
                     break;
             }
 
