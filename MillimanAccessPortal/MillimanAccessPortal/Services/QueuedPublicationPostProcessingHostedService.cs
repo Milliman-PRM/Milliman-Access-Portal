@@ -396,13 +396,14 @@ namespace MillimanAccessPortal.Services
                             #endregion
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
+                            containerContentItemProperties.PreviewImageTag = "preview";
                         }
                         else
                         {
                             containerContentItemProperties.PreviewImageName = containerContentItemProperties.LiveImageName;
+                            containerContentItemProperties.PreviewImageTag = "live";
                         }
 
-                        containerContentItemProperties.PreviewImageTag = "preview";
                         containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                         containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
@@ -514,7 +515,7 @@ namespace MillimanAccessPortal.Services
                 newOutcome = thisPubRequest.OutcomeMetadataObj;
                 newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
                 newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
-                thisPubRequest.OutcomeMetadataObj = newOutcome;
+               thisPubRequest.OutcomeMetadataObj = newOutcome;
 
                 await dbContext.SaveChangesAsync();
             }
