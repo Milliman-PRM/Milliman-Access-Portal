@@ -40,7 +40,7 @@ namespace MillimanAccessPortal.ContentProxy
 
             // Log.Information($"Request for URI {context.HttpContext.Request.Host}{context.HttpContext.Request.Path}");
 
-            GlobalFunctions.ContainerLastActivity[_cluster.ClusterId] = DateTime.UtcNow;
+            GlobalFunctions.ContainerLastActivity.AddOrUpdate(_cluster.Metadata["ContentToken"], DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 
             return ValueTask.CompletedTask;
         }

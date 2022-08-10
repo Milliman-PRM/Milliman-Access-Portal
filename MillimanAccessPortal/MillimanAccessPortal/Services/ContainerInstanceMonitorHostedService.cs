@@ -67,7 +67,8 @@ namespace MillimanAccessPortal.Services
                                                                                                                  .Where(g => g.Tags.ContainsKey("database_id")
                                                                                                                           && g.Tags["database_id"].Equals(DatabaseUniqueId))
                                                                                                                  .ToList();
-                        List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId")).ToList();
+                        List<ContainerGroup_GetResponseModel> previewContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("publicationRequestId"))
+                                                                                                         .ToList();
                         List<ContainerGroup_GetResponseModel> liveContainerGroups = allContainerGroups.Where(cg => cg.Tags.ContainsKey("selectionGroupId")).ToList();
 
                         IProxyConfig proxyConfig = _proxyConfigProvider.GetConfig();
@@ -78,7 +79,7 @@ namespace MillimanAccessPortal.Services
                                                                                                   .ThenInclude(rc => rc.Client)
                                                                                                       .ThenInclude(c => c.ProfitCenter)
                                                                                               .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-                                                                                              .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
+                                                                                              .Where(p => p.RequestStatus == PublicationStatus.Processed)
                                                                                               // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
                                                                                               .ToListAsync();
 
@@ -88,9 +89,7 @@ namespace MillimanAccessPortal.Services
 
                             string contentToken = GlobalFunctions.HexMd5String(publication.Id);
 
-                            DateTime lastActivity = GlobalFunctions.ContainerLastActivity.ContainsKey(contentToken)
-                                ? GlobalFunctions.ContainerLastActivity[contentToken]
-                                : DateTime.MinValue;
+                            DateTime lastActivity = GlobalFunctions.ContainerLastActivity.GetValueOrDefault(contentToken, DateTime.MinValue);
 
                             #region 1) If a preview container should be running
                             if (publication.RequestStatus == PublicationStatus.Processed &&
@@ -122,8 +121,7 @@ namespace MillimanAccessPortal.Services
                                 else
                                 {
                                     // 1b) If container is fully started but there is no matching proxy config then add one
-                                    if (runningContainer.Properties.IpAddress is not null &&
-                                        GlobalFunctions.MapUriRoot is not null)
+                                    if (runningContainer.Uri is not null && GlobalFunctions.MapUriRoot is not null)
                                     {
                                         if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith($"/{contentToken}")))
                                         {
@@ -147,7 +145,7 @@ namespace MillimanAccessPortal.Services
                             if (publication.RequestStatus == PublicationStatus.Processed &&
                                 DateTime.UtcNow > publication.OutcomeMetadataObj.StartDateTime + TimeSpan.FromMinutes(30) &&
                                 DateTime.UtcNow > lastActivity + _previewContainerLingerTime &&
-                                runningContainer != null
+                                runningContainer?.Uri is not null
                                )
                             {
                                 Log.Information($"Container lifetime service deleting container for preview of content item <{publication.RootContentItem.ContentName}> (ID {publication.RootContentItemId}), publication request <{publication.Id}>");
@@ -186,18 +184,18 @@ namespace MillimanAccessPortal.Services
                             ContainerGroup_GetResponseModel runningContainer = liveContainerGroups.SingleOrDefault(c => c.Name == selectionGroup.Id.ToString());
                             string contentToken = GlobalFunctions.HexMd5String(selectionGroup.Id);
 
-                            DateTime lastActivity = GlobalFunctions.ContainerLastActivity.ContainsKey(contentToken)
-                                ? GlobalFunctions.ContainerLastActivity[contentToken]
-                                : DateTime.MinValue;
+                            DateTime lastActivity = GlobalFunctions.ContainerLastActivity.GetValueOrDefault(contentToken, DateTime.MinValue);
 
                             // Log.Debug($"\tFor selection group <{selectionGroup.GroupName}>: lastActivity={lastActivity}, containerIsScheduledToRunNow={containerIsScheduledToRunNow}, lingerTime={lingerTime}, running container=<{runningContainer?.Name ?? "none"}>");
 
-                            #region 3) If a live container should be running and it is not then launch one
-                            if ((containerIsScheduledToRunNow ||
-                                DateTime.UtcNow < lastActivity + lingerTime) &&
-                                runningContainer == null
+                            #region 3) If a live container should be running
+                            if ((containerIsScheduledToRunNow || DateTime.UtcNow < lastActivity + lingerTime) &&
+                                runningContainer == null &&
+                                !selectionGroup.IsSuspended &&
+                                !selectionGroup.RootContentItem.IsSuspended
                                )
                             {
+                                // 3a) no container exists
                                 if (runningContainer is null)
                                 {
                                     Log.Information($"Container lifetime service launching container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
@@ -246,9 +244,11 @@ namespace MillimanAccessPortal.Services
                             #endregion
 
                             #region 4) If a live container should NOT be running and it is then delete it
-                            if (!containerIsScheduledToRunNow &&
-                                DateTime.UtcNow > lastActivity + lingerTime &&
-                                runningContainer != null
+                            if ((!containerIsScheduledToRunNow &&
+                                  DateTime.UtcNow > lastActivity + lingerTime &&
+                                  runningContainer != null) ||
+                                selectionGroup.IsSuspended ||
+                                selectionGroup.RootContentItem.IsSuspended
                                )
                             {
                                 Log.Information($"Container lifetime service deleting container for live content item <{selectionGroup.RootContentItem.ContentName}> (ID {selectionGroup.RootContentItemId}), selection group <{selectionGroup.GroupName}> (ID {selectionGroup.Id}).  Last activity time: {lastActivity}, scheduled now: {containerIsScheduledToRunNow}");
@@ -265,7 +265,8 @@ namespace MillimanAccessPortal.Services
                         #region 5) Terminate all "preview" Container Instances NOT associated with a preview-ready publication request
                         List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
                         IEnumerable<(string Name, Dictionary<string, string> Tags)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
-                                                                                                                 .Select(cg => (cg.Name, cg.Tags));
+                                                                                                                                    .Where(cg => cg.Uri is not null)
+                                                                                                                                    .Select(cg => (cg.Name, cg.Tags));
                         foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanPreviewContainers)
                         {
                             Log.Information($"Container lifetime service deleting orphaned preview container group {orphan.Name} with tags: <{string.Join(", ", orphan.Tags.Select(t => $"{t.Key}:{t.Value}"))}>");
@@ -311,7 +312,7 @@ namespace MillimanAccessPortal.Services
             {
                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepoositoryName);
 
-                GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
+                GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_,_) => DateTime.UtcNow);
 
                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting new container instance for content item {contentItem.ContentName}, container name {containerGroupNameGuid}");
                 string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),

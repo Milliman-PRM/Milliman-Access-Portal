@@ -665,8 +665,11 @@ namespace MillimanAccessPortal.Controllers
                                                                                                 }) 
                         : null;
 
-                    // What's this for?   string typeSpecificDetails = JsonSerializer.Serialize(newContainerAppPublicationDetails);
-
+                    if (ContentItem.TypeSpecificDetailObject is null)
+                    {
+                        break;
+                    }
+                    
                     ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
                     publicationHasPublicationDetailChanges = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
 
