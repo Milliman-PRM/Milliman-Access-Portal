@@ -649,6 +649,9 @@ namespace ContainerizedAppLib
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
 
+            // Temporary
+            Log.Information($"ContainerizedAppLibApiConfig object is:{Environment.NewLine}{JsonConvert.SerializeObject(Config, new JsonSerializerSettings { Formatting = Formatting.Indented })}");
+
             try
             {
                 // Query for Resource Group data
