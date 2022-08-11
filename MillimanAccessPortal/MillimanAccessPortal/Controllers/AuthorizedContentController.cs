@@ -817,7 +817,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
-            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
             switch (containerGroupModel)

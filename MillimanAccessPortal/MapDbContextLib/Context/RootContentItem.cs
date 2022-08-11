@@ -163,7 +163,7 @@ namespace MapDbContextLib.Context
         }
 
         [NotMapped]
-        public string AcrRepoositoryName => Id.ToString("D").ToLower();
+        public string AcrRepositoryName => Id.ToString("D").ToLower();
     }
 
     /// <summary>

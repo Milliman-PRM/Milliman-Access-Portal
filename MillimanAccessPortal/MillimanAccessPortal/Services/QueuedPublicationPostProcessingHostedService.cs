@@ -374,7 +374,7 @@ namespace MillimanAccessPortal.Services
                         ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
                         ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
                         ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                        string repositoryName = contentItem.AcrRepoositoryName;
+                        string repositoryName = contentItem.AcrRepositoryName;
 
 
                         if (newMasterFile is not null)

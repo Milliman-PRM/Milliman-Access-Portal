@@ -310,7 +310,7 @@ namespace MillimanAccessPortal.Services
 
             try
             {
-                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepoositoryName);
+                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppLibApiConfig).InitializeAsync(contentItem.AcrRepositoryName);
 
                 GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_,_) => DateTime.UtcNow);
 
