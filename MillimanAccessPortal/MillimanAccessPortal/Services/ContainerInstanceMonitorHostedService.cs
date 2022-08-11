@@ -74,14 +74,16 @@ namespace MillimanAccessPortal.Services
                         IProxyConfig proxyConfig = _proxyConfigProvider.GetConfig();
 
                         #region Manage preview container instances
-                        List<ContentPublicationRequest> pendingPublications = await _dbContext.ContentPublicationRequest
-                                                                                              .Include(p => p.RootContentItem)
-                                                                                                  .ThenInclude(rc => rc.Client)
-                                                                                                      .ThenInclude(c => c.ProfitCenter)
-                                                                                              .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
-                                                                                              .Where(p => p.RequestStatus == PublicationStatus.Processed)
-                                                                                              // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
-                                                                                              .ToListAsync();
+                        List<ContentPublicationRequest> allActivePublications = await _dbContext.ContentPublicationRequest
+                                                                                                .Include(p => p.RootContentItem)
+                                                                                                    .ThenInclude(rc => rc.Client)
+                                                                                                        .ThenInclude(c => c.ProfitCenter)
+                                                                                                .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
+                                                                                                .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
+                                                                                                // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
+                                                                                                .ToListAsync();
+                        List<ContentPublicationRequest> pendingPublications = allActivePublications.Where(p => p.RequestStatus == PublicationStatus.Processed)
+                                                                                                   .ToList();
 
                         foreach (ContentPublicationRequest publication in pendingPublications)
                         {
@@ -166,8 +168,6 @@ namespace MillimanAccessPortal.Services
                                                                                    .Where(sg => _dbContext.ContentPublicationRequest.Any(p => p.RootContentItemId == sg.RootContentItemId
                                                                                                                                            && p.RequestStatus == PublicationStatus.Confirmed))
                                                                                    .ToListAsync();
-
-                        // Log.Debug($"Found {liveSelectionGroups.Count} Selection groups: {Environment.NewLine}\t{string.Join($"{Environment.NewLine}\t", liveSelectionGroups.Select(g => $"group:<{g.GroupName}>, content:<{g.RootContentItem.ContentName}>"))}");
 
                         #region Manage live selection group container instances
                         foreach (SelectionGroup selectionGroup in liveSelectionGroups)
@@ -263,8 +263,8 @@ namespace MillimanAccessPortal.Services
                         #endregion
 
                         #region 5) Terminate all "preview" Container Instances NOT associated with a preview-ready publication request
-                        List<string> legitimatePreviewContainerNames = pendingPublications.Select(p => p.Id.ToString()).ToList();
-                        IEnumerable<(string Name, Dictionary<string, string> Tags)> orphanPreviewContainers = previewContainerGroups.Where(cg => !legitimatePreviewContainerNames.Contains(cg.Name))
+                        List<string> nonOrphanPreviewContainerNames = allActivePublications.Select(p => p.Id.ToString()).ToList();
+                        IEnumerable<(string Name, Dictionary<string, string> Tags)> orphanPreviewContainers = previewContainerGroups.Where(cg => !nonOrphanPreviewContainerNames.Contains(cg.Name))
                                                                                                                                     .Where(cg => cg.Uri is not null)
                                                                                                                                     .Select(cg => (cg.Name, cg.Tags));
                         foreach ((string Name, Dictionary<string, string> Tags) orphan in orphanPreviewContainers)
