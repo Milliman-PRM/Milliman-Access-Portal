@@ -371,18 +371,17 @@ namespace MillimanAccessPortal.Services
                         break;
 
                     case ContentTypeEnum.ContainerApp:
-                        if (newMasterFile != null)
+                        ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
+                        ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
+                        ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                        string repositoryName = contentItem.AcrRepositoryName;
+
+
+                        if (newMasterFile is not null)
                         {
-                            ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
-                            ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(thisPubRequest.TypeSpecificDetail);
-
                             #region Send image to Azure registry
-                            ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
-                            string repositoryName = contentItem.AcrRepoositoryName;
-
                             try
                             {
-                                // Run a container based on the appropriate image
                                 ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
                                 GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting to push image file {newMasterFile.FullPath} for content item ID {contentItem.Id} to Azure container registry");
@@ -398,86 +397,93 @@ namespace MillimanAccessPortal.Services
 
                             containerContentItemProperties.PreviewImageName = repositoryName;
                             containerContentItemProperties.PreviewImageTag = "preview";
-                            containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
-                            containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
-                            containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
-
-                            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
-
-                            #region Run a container instance
-                            ContainerGroupResourceTags resourceTags = new()
-                            {
-                                ProfitCenterId = contentItem.Client.ProfitCenterId,
-                                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
-                                ClientId = contentItem.ClientId,
-                                ClientName = contentItem.Client.Name,
-                                ContentItemId = contentItem.Id,
-                                ContentItemName = contentItem.ContentName,
-                                SelectionGroupId = null,
-                                SelectionGroupName = null,
-                                PublicationRequestId = publicationRequestId,
-                                ContentToken = contentToken,
-                                DatabaseId = dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
-                            };
-                            string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
-                            // use a tuple so that both succeed or both fail
-                            (string vnetId, string vnetName) = ipAddressType.Equals("Public", StringComparison.InvariantCultureIgnoreCase) 
-                                ? (null,null) 
-                                : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
-
-                            try
-                            {
-                                ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
-
-                                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
-                                string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
-                                                                             containerContentItemProperties.PreviewImageName,
-                                                                             containerContentItemProperties.PreviewImageTag,
-                                                                             ipAddressType,
-                                                                             (int)containerContentItemProperties.PreviewContainerCpuCores,
-                                                                             (int)containerContentItemProperties.PreviewContainerRamGb,
-                                                                             resourceTags,
-                                                                             vnetId,
-                                                                             vnetName,
-                                                                             true,
-                                                                             new Dictionary<string, string> { { "PathBase", contentToken } },
-                                                                             containerContentItemProperties.PreviewContainerInternalPort);
-
-                                Log.Information($"Container instance started with URL: {containerUrl}");
-                            }
-                            catch (Exception ex)
-                            {
-                                if (ex.GetType() == typeof(ApplicationException))
-                                {
-                                    switch (ex.Message)
-                                    {
-                                        case "ContainerGroupQuotaReached":
-                                            string environmentName = _services.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
-                                            if (environmentName == "AZURE-PROD")
-                                            {
-                                                var notifier = new NotifySupport(_messageQueue, _appConfig);
-                                                notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
-                                            }
-                                            break;
-                                        default:
-                                            Log.Error(ex, $"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}");
-                                            Log.Error($"Exception Data Entries:");
-                                            foreach (DictionaryEntry kvp in ex.Data)
-                                            {
-                                                Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
-                                            }
-                                            break;
-                                    }
-                                }
-
-                                File.Delete(newMasterFile.FullPath);
-                                throw;
-                            }
-                            #endregion
-
-                            contentItem.TypeSpecificDetailObject = containerContentItemProperties;
-                            await dbContext.SaveChangesAsync();
                         }
+                        else
+                        {
+                            containerContentItemProperties.PreviewImageName = containerContentItemProperties.LiveImageName;
+                            containerContentItemProperties.PreviewImageTag = "live";
+                        }
+
+                        containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
+                        containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
+                        containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+
+                        string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
+                        #region Run a container instance
+                        ContainerGroupResourceTags resourceTags = new()
+                        {
+                            ProfitCenterId = contentItem.Client.ProfitCenterId,
+                            ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                            ClientId = contentItem.ClientId,
+                            ClientName = contentItem.Client.Name,
+                            ContentItemId = contentItem.Id,
+                            ContentItemName = contentItem.ContentName,
+                            SelectionGroupId = null,
+                            SelectionGroupName = null,
+                            PublicationRequestId = publicationRequestId,
+                            ContentToken = contentToken,
+                            DatabaseId = dbContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
+                        };
+                        string ipAddressType = _appConfig.GetValue<string>("ContainerContentIpAddressType");
+                        // use a tuple so that both succeed or both fail
+                        (string vnetId, string vnetName) = ipAddressType.Equals("Public", StringComparison.InvariantCultureIgnoreCase)
+                            ? (null, null)
+                            : (_appConfig.GetValue<string>("ContainerContentVnetId"), _appConfig.GetValue<string>("ContainerContentVnetName"));
+
+                        try
+                        {
+                            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
+
+                            GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+                            string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
+                                                                         containerContentItemProperties.PreviewImageName,
+                                                                         containerContentItemProperties.PreviewImageTag,
+                                                                         ipAddressType,
+                                                                         (int)containerContentItemProperties.PreviewContainerCpuCores,
+                                                                         (int)containerContentItemProperties.PreviewContainerRamGb,
+                                                                         resourceTags,
+                                                                         vnetId,
+                                                                         vnetName,
+                                                                         true,
+                                                                         new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                         containerContentItemProperties.PreviewContainerInternalPort);
+
+                            Log.Information($"Container instance started with URL: {containerUrl}");
+                        }
+                        catch (Exception ex)
+                        {
+                            if (ex.GetType() == typeof(ApplicationException))
+                            {
+                                switch (ex.Message)
+                                {
+                                    case "ContainerGroupQuotaReached":
+                                        string environmentName = _services.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
+                                        if (environmentName == "AZURE-PROD")
+                                        {
+                                            var notifier = new NotifySupport(_messageQueue, _appConfig);
+                                            notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, publicationRequestId.ToString(), contentItem.Client.Name, ex.Data);
+                                        }
+                                        break;
+                                    default:
+                                        Log.Error(ex, $"In QueuedPublicationPostProcessingHostedServiceaction: Error attempting to run container Group {publicationRequestId.ToString()}: {Environment.NewLine}");
+                                        Log.Error($"Exception Data Entries:");
+                                        foreach (DictionaryEntry kvp in ex.Data)
+                                        {
+                                            Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                        }
+                                        break;
+                                }
+                            }
+
+                            File.Delete(newMasterFile.FullPath);
+                            throw;
+                        }
+                        #endregion
+
+                        contentItem.TypeSpecificDetailObject = containerContentItemProperties;
+                        await dbContext.SaveChangesAsync();
+
                         break;
 
                     case ContentTypeEnum.Pdf:
@@ -509,7 +515,7 @@ namespace MillimanAccessPortal.Services
                 newOutcome = thisPubRequest.OutcomeMetadataObj;
                 newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
                 newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
-                thisPubRequest.OutcomeMetadataObj = newOutcome;
+               thisPubRequest.OutcomeMetadataObj = newOutcome;
 
                 await dbContext.SaveChangesAsync();
             }

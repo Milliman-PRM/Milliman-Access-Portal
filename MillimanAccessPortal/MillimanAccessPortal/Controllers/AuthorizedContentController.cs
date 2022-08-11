@@ -817,7 +817,7 @@ namespace MillimanAccessPortal.Controllers
         {
             ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
 
-            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepoositoryName);
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepositoryName);
             ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
 
             switch (containerGroupModel)
@@ -861,7 +861,7 @@ namespace MillimanAccessPortal.Controllers
                     try
                     {
                         // Ensure that container lifetime management doesn't delete this while it's starting
-                        GlobalFunctions.ContainerLastActivity[contentToken] = DateTime.UtcNow;
+                        GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 
                         // Run a container based on the appropriate image
                         string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),

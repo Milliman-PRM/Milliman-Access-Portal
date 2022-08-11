@@ -277,7 +277,11 @@ export function submitButtonIsActive(state: PublishingState) {
 export function uploadChangesPending(state: PublishingState) {
   const { pendingFormData, originalFormData } = state.formData;
   const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles) ||
-    !_.isEqual(pendingFormData.typeSpecificPublicationProperties, originalFormData.typeSpecificPublicationProperties);
+    !_.isEqual(
+      _.omit(pendingFormData.typeSpecificPublicationProperties, ['allDaysChecked']),
+      _.omit(originalFormData.typeSpecificPublicationProperties, ['allDaysChecked']),
+    );
+
   return changesPending;
 }
 
@@ -302,8 +306,14 @@ export function formChangesPending(state: PublishingState) {
 export function formErrorsExist(state: PublishingState) {
   const { formErrors } = state.formData;
   return formErrors &&
-    (formErrors.typeSpecificPublicationProperties &&
-      formErrors.typeSpecificPublicationProperties.containerInternalPort);
+    (formErrors.typeSpecificPublicationProperties && (
+      formErrors.typeSpecificPublicationProperties.containerInternalPort ||
+      formErrors.typeSpecificPublicationProperties.containerCpuCores ||
+      formErrors.typeSpecificPublicationProperties.containerRamGb ||
+      formErrors.typeSpecificPublicationProperties.timeZoneId ||
+      formErrors.typeSpecificPublicationProperties.startTime ||
+      formErrors.typeSpecificPublicationProperties.endTime
+    ));
 }
 
 /**

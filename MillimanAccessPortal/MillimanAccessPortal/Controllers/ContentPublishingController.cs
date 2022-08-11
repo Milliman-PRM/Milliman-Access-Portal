@@ -647,22 +647,36 @@ namespace MillimanAccessPortal.Controllers
                 return BadRequest();
             }
 
+            bool publicationHasPublicationDetailChanges = false;
             switch (ContentItem.ContentType.TypeEnum)
             {
                 case ContentTypeEnum.PowerBi:
-                    // TODO get the below code moved here as appropriate
+                    List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
+                    List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
+                    publicationHasPublicationDetailChanges = !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList.ToHashSet());
                     break;
 
                 case ContentTypeEnum.ContainerApp:
-                    // TODO anything needed here?
+                    ContainerizedContentPublicationProperties newContainerAppPublicationDetails = request.TypeSpecificPublishingDetail is not null 
+                        ? JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(request.TypeSpecificPublishingDetail.ToString(), 
+                                                                                                new JsonSerializerOptions
+                                                                                                {
+                                                                                                    PropertyNameCaseInsensitive = true,
+                                                                                                }) 
+                        : null;
+
+                    if (ContentItem.TypeSpecificDetailObject is null)
+                    {
+                        break;
+                    }
+                    
+                    ContainerizedAppContentItemProperties liveDetails = (ContainerizedAppContentItemProperties)ContentItem.TypeSpecificDetailObject;
+                    publicationHasPublicationDetailChanges = liveDetails.DoesPublicationDetailChangeContentDetail(newContainerAppPublicationDetails);
+
                     break;
             }
 
-            List<string> existingHierarchyRoles = ContentReductionHierarchy<ReductionFieldValue>.GetHierarchyForRootContentItem(_dbContext, ContentItem.Id).Fields.SelectMany(f => f.Values.Select(v => v.Value)).ToList();
-            List<string> newRoleList = request.TypeSpecificPublishingDetail is not null ? request.TypeSpecificPublishingDetail.ToObject<PowerBiPublicationProperties>().RoleList : new List<string>();
-            var isPublicationWithPersistingFile = ContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && !existingHierarchyRoles.ToHashSet().SetEquals(newRoleList); // Only supports reducible Power BI
-
-            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !isPublicationWithPersistingFile)
+            if (!request.NewRelatedFiles.Any() && !request.DeleteFilePurposes.Any() && !publicationHasPublicationDetailChanges)
             {
                 Log.Debug($"In ContentPublishingController.Publish action: no files provided, aborting");
                 Response.Headers.Add("Warning", "No files provided.");
@@ -688,7 +702,7 @@ namespace MillimanAccessPortal.Controllers
                 await _dbContext.SaveChangesAsync();
             }
 
-            if (request.NewRelatedFiles.Any() || isPublicationWithPersistingFile)
+            if (request.NewRelatedFiles.Any() || publicationHasPublicationDetailChanges)
             {
                 // Insert the initial publication request (not queued yet)
                 ContentPublicationRequest NewContentPublicationRequest = new ContentPublicationRequest

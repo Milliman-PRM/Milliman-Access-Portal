@@ -1012,7 +1012,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     <FormSectionRow>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
-                          error={null}
+                          error={formErrors.typeSpecificPublicationProperties ?
+                            formErrors.typeSpecificPublicationProperties.containerCpuCores : null}
                           label="vCPU Cores"
                           name="vCPUCores"
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
@@ -1029,7 +1030,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
                         <DropDown
-                          error={null}
+                          error={formErrors.typeSpecificPublicationProperties ?
+                            formErrors.typeSpecificPublicationProperties.containerRamGb : null}
                           label="RAM"
                           name="ram"
                           onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
@@ -1327,7 +1329,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             <FormSectionRow>
                               <FormFlexContainer flexPhone={12} flexDesktop={12}>
                                 <DropDown
-                                  error={null}
+                                  error={formErrors.typeSpecificPublicationProperties ?
+                                    formErrors.typeSpecificPublicationProperties.timeZoneId : null}
                                   label="Timezone"
                                   name="timezone"
                                   onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
@@ -1348,7 +1351,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             <FormSectionRow>
                               <FormFlexContainer flexPhone={12} flexDesktop={6}>
                                 <DropDown
-                                  error={null}
+                                  error={formErrors.typeSpecificPublicationProperties ?
+                                    formErrors.typeSpecificPublicationProperties.startTime : null}
                                   label="Start Time"
                                   name="startTime"
                                   onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {
@@ -1367,7 +1371,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               </FormFlexContainer>
                               <FormFlexContainer flexPhone={12} flexDesktop={6}>
                                 <DropDown
-                                  error={null}
+                                  error={formErrors.typeSpecificPublicationProperties ?
+                                    formErrors.typeSpecificPublicationProperties.endTime : null}
                                   label="End Time"
                                   name="endTime"
                                   onChange={({ currentTarget: target }: React.FormEvent<HTMLSelectElement>) => {

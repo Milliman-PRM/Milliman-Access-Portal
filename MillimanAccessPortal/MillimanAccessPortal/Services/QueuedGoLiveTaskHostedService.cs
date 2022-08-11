@@ -377,7 +377,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
                                     if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
                                     {
-                                        string repositoryName = publicationRequest.RootContentItem.AcrRepoositoryName;
+                                        string repositoryName = publicationRequest.RootContentItem.AcrRepositoryName;
                                         successActionList.Add(async () => {
                                             ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                                             ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
@@ -555,6 +555,58 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             File.Move(TargetFilePath, Caf.FullPath);
                         }));
                     }
+
+                    #region 2.2 Handle Content Types that go through re-publishing if their publication details are modified and already have uploaded a file in a previous pub request
+                    if (!publicationRequest.LiveReadyFilesObj.Any())
+                    {
+                        switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
+                        {
+                            case ContentTypeEnum.ContainerApp:
+                                ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                                ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
+
+                                failureRecoveryActionList.Add(() => {
+                                    publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
+                                    dbContext.SaveChanges();
+                                });
+
+                                // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
+                                if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
+                                {
+                                    string repositoryName = publicationRequest.RootContentItem.AcrRepositoryName;
+                                    successActionList.Add(async () => {
+                                        ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                                        ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
+
+#warning TODO Is this needed?               await containerizedAppApi.StopAllRunningContainers(theOutgoingLiveImage);
+                                    });
+                                }
+
+                                publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
+                                {
+                                    LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
+                                    LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
+                                    LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
+                                    LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+                                    LiveImageTag = "live",
+                                    LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
+                                    {
+                                        ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppPubProperties),
+                                        ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
+                                        _ => null,
+                                    },
+
+                                    PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
+                                    PreviewContainerInternalPort = 0,
+                                    PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
+                                    PreviewImageName = null,
+                                    PreviewImageTag = null,
+                                };
+                                break;
+                        }
+                    }
+                    #endregion
+
 
                     //      - store the new list in the RootContentItem
                     publicationRequest.RootContentItem.AssociatedFilesList = updatedAssociatedFilesList.OrderBy(f => f.SortOrder).ToList();
