@@ -20,8 +20,8 @@
     <% } %>
 }
 
-<div id="message-container" style="margin-bottom: 8rem">
-    <div class="primary-message" style="z-index: 99">
+<div id="message-container">
+    <div class="primary-message" style="z-index: 99; margin-bottom: 5rem;">
         <p>Your content is loading. This may take several minutes.</p>
     </div>
     <br />
