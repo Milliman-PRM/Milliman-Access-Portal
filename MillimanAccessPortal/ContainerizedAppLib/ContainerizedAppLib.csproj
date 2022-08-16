@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
+    <Version>1.17.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
