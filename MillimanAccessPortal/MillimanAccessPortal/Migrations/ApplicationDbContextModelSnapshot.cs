@@ -18,7 +18,7 @@ namespace MillimanAccessPortal.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .HasPostgresEnum(null, "authentication_type", new[] { "default", "ws_federation" })
-                .HasPostgresEnum(null, "content_type_enum", new[] { "unknown", "qlikview", "html", "pdf", "file_download", "power_bi" })
+                .HasPostgresEnum(null, "content_type_enum", new[] { "unknown", "qlikview", "html", "pdf", "file_download", "power_bi", "container_app" })
                 .HasPostgresEnum(null, "file_drop_notification_type", new[] { "file_write", "file_read", "file_delete" })
                 .HasPostgresEnum(null, "publication_status", new[] { "unknown", "canceled", "rejected", "validating", "queued", "processing", "post_process_ready", "post_processing", "processed", "confirming", "confirmed", "replaced", "error" })
                 .HasPostgresEnum(null, "reduction_status_enum", new[] { "unspecified", "canceled", "rejected", "validating", "queued", "reducing", "reduced", "live", "replaced", "warning", "error" })
@@ -595,6 +595,9 @@ namespace MillimanAccessPortal.Migrations
 
                     b.Property<string>("ContentDisclaimer")
                         .HasColumnType("text");
+
+                    b.Property<bool>("ContentDisclaimerAlwaysShown")
+                        .HasColumnType("boolean");
 
                     b.Property<string>("ContentFiles")
                         .HasColumnType("jsonb");

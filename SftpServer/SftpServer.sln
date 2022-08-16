@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29521.150
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32602.215
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SftpServerLib", "SftpServerLib\SftpServerLib.csproj", "{05ACF5A2-AA44-44A2-83ED-5F32836492DF}"
 EndProject
@@ -15,7 +15,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuditLogLib", "..\MillimanA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SftpServer", "SftpServer\SftpServer.csproj", "{B847C19B-43BA-4713-8C53-980FF801DB37}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileDropLib", "..\MillimanAccessPortal\FileDropLib\FileDropLib.csproj", "{E05E44C6-0322-4C20-9C03-3440DF078636}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "..\MillimanAccessPortal\FileDropLib\FileDropLib.csproj", "{E05E44C6-0322-4C20-9C03-3440DF078636}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SshKeyGenerator", "SshKeyGenerator\SshKeyGenerator.csproj", "{05177711-68E1-4796-B6DD-E1BFF41DD0EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{E05E44C6-0322-4C20-9C03-3440DF078636}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E05E44C6-0322-4C20-9C03-3440DF078636}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E05E44C6-0322-4C20-9C03-3440DF078636}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05177711-68E1-4796-B6DD-E1BFF41DD0EF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05177711-68E1-4796-B6DD-E1BFF41DD0EF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05177711-68E1-4796-B6DD-E1BFF41DD0EF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05177711-68E1-4796-B6DD-E1BFF41DD0EF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

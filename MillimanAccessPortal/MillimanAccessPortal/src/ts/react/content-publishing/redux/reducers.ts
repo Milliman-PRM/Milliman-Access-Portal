@@ -9,7 +9,8 @@ import { uploadStatus } from '../../../upload/Redux/reducers';
 import { UploadState } from '../../../upload/Redux/store';
 import { PublicationStatus } from '../../../view-models/content-publishing';
 import {
-  AssociatedContentItemUpload, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
+  AssociatedContentItemUpload, ContainerCooldownEnum, ContainerCpuCoresEnum, ContainerInstanceLifetimeSchemeEnum,
+  ContainerRamGbEnum, ContentItemDetail, ContentItemFormErrors, Guid, RelatedFiles,
 } from '../../models';
 import { CardAttributes } from '../../shared-components/card/card';
 import { createReducerCreator, Handlers } from '../../shared-components/redux/reducers';
@@ -32,11 +33,13 @@ const _initialData: PublishingStateData = {
   contentAssociatedFileTypes: {},
   publications: {},
   publicationQueue: {},
+  timeZones: [],
 };
 
 const emptyContentItemDetail: ContentItemDetail = {
   clientId: '',
   contentDisclaimer: '',
+  contentDisclaimerAlwaysShown: false,
   contentName: '',
   contentTypeId: '',
   contentDescription: '',
@@ -77,12 +80,29 @@ const emptyContentItemDetail: ContentItemDetail = {
   },
   typeSpecificPublicationProperties: {
     roleList: [],
+    containerCpuCores: ContainerCpuCoresEnum.Two,
+    containerRamGb: ContainerRamGbEnum.Eight,
+    containerInternalPort: '',
+    containerInstanceLifetimeScheme: ContainerInstanceLifetimeSchemeEnum.AlwaysCold,
+    allDaysChecked: false,
+    mondayChecked: false,
+    tuesdayChecked: false,
+    wednesdayChecked: false,
+    thursdayChecked: false,
+    fridayChecked: false,
+    saturdayChecked: false,
+    sundayChecked: false,
+    customCooldownPeriod: ContainerCooldownEnum.OneHour,
+    startTime: '08:00:00',
+    endTime: '17:00:00',
+    timeZoneId: '',
   },
 };
 
 const emptyContentItemErrors: ContentItemFormErrors = {
   clientId: '',
   contentDisclaimer: '',
+  contentDisclaimerAlwaysShown: '',
   contentName: '',
   contentTypeId: '',
   contentDescription: '',
@@ -98,7 +118,25 @@ const emptyContentItemErrors: ContentItemFormErrors = {
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
-  typeSpecificPublicationProperties: {},
+  typeSpecificPublicationProperties: {
+    roleList: '',
+    containerCpuCores: '',
+    containerRamGb: '',
+    containerInternalPort: '',
+    containerInstanceLifetimeScheme: '',
+    allDaysChecked: '',
+    mondayChecked: '',
+    tuesdayChecked: '',
+    wednesdayChecked: '',
+    thursdayChecked: '',
+    fridayChecked: '',
+    saturdayChecked: '',
+    sundayChecked: '',
+    customCooldownPeriod: '',
+    startTime: '',
+    endTime: '',
+    timeZoneId: '',
+  },
 };
 
 const _initialFormData: PublishingFormData = {
@@ -108,6 +146,7 @@ const _initialFormData: PublishingFormData = {
   uploads: {},
   formState: 'read',
   disclaimerInputState: 'edit',
+  defaultUserTimeZoneId: '',
 };
 
 const _initialGoLiveData: GoLiveSummaryData = {
@@ -396,6 +435,9 @@ const data = createReducer<PublishingStateData>(_initialData, {
     contentAssociatedFileTypes: {
       ...action.response.contentAssociatedFileTypes,
     },
+    timeZones: _.map(action.response.timeZoneSelections,
+      (tzi) => ({ selectionValue: tzi.id, selectionLabel: tzi.displayName })),
+    userTimeZoneId: action.response.userTimeZoneId,
   }),
   FETCH_CLIENTS_SUCCEEDED: (state, action: PublishingActions.FetchClientsSucceeded) => ({
     ...state,
@@ -547,6 +589,76 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         roleList: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.roleList ?
           action.response.typeSpecificPublicationProperties.roleList : [],
+        containerCpuCores: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerCpuCores ?
+          action.response.typeSpecificPublicationProperties.containerCpuCores :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerCpuCores,
+        containerRamGb: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerRamGb ?
+          action.response.typeSpecificPublicationProperties.containerRamGb :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerRamGb,
+        containerInternalPort: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerInternalPort ?
+          action.response.typeSpecificPublicationProperties.containerInternalPort :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerInternalPort,
+        customCooldownPeriod: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.customCooldownPeriod ?
+          action.response.typeSpecificPublicationProperties.customCooldownPeriod :
+          emptyContentItemDetail.typeSpecificPublicationProperties.customCooldownPeriod,
+        containerInstanceLifetimeScheme: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme ?
+          action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme :
+          emptyContentItemDetail.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+        allDaysChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.allDaysChecked || (
+            action.response.typeSpecificPublicationProperties.mondayChecked &&
+            action.response.typeSpecificPublicationProperties.tuesdayChecked &&
+            action.response.typeSpecificPublicationProperties.wednesdayChecked &&
+            action.response.typeSpecificPublicationProperties.thursdayChecked &&
+            action.response.typeSpecificPublicationProperties.fridayChecked &&
+            action.response.typeSpecificPublicationProperties.saturdayChecked &&
+            action.response.typeSpecificPublicationProperties.sundayChecked
+          ) ? true : emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
+        mondayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.mondayChecked ?
+          action.response.typeSpecificPublicationProperties.mondayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.mondayChecked,
+        tuesdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.tuesdayChecked ?
+          action.response.typeSpecificPublicationProperties.tuesdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.tuesdayChecked,
+        wednesdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.wednesdayChecked ?
+          action.response.typeSpecificPublicationProperties.wednesdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.wednesdayChecked,
+        thursdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.thursdayChecked ?
+          action.response.typeSpecificPublicationProperties.thursdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.thursdayChecked,
+        fridayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.fridayChecked ?
+          action.response.typeSpecificPublicationProperties.fridayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.fridayChecked,
+        saturdayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.saturdayChecked ?
+          action.response.typeSpecificPublicationProperties.saturdayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.saturdayChecked,
+        sundayChecked: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.sundayChecked ?
+          action.response.typeSpecificPublicationProperties.sundayChecked :
+          emptyContentItemDetail.typeSpecificPublicationProperties.sundayChecked,
+        startTime: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.startTime ?
+          action.response.typeSpecificPublicationProperties.startTime :
+          emptyContentItemDetail.typeSpecificPublicationProperties.startTime,
+        endTime: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.endTime ?
+          action.response.typeSpecificPublicationProperties.endTime :
+          emptyContentItemDetail.typeSpecificPublicationProperties.endTime,
+        timeZoneId: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.timeZoneId ?
+          action.response.typeSpecificPublicationProperties.timeZoneId :
+          state.defaultUserTimeZoneId,
       },
       relatedFiles: {
         MasterContent: {
@@ -601,9 +713,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: state.formState,
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: state.defaultUserTimeZoneId,
     };
   },
-  SET_FORM_FOR_NEW_CONTENT_ITEM: (_state, action: PublishingActions.SetFormForNewContentItem) => {
+  SET_FORM_FOR_NEW_CONTENT_ITEM: (state, action: PublishingActions.SetFormForNewContentItem) => {
     const contentItemDetail: ContentItemDetail = emptyContentItemDetail;
 
     contentItemDetail.clientId = action.clientId;
@@ -625,6 +738,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       pendingFormData: {
         ...contentItemDetail,
+        typeSpecificPublicationProperties: {
+          timeZoneId: state.defaultUserTimeZoneId,
+        },
       },
       formErrors: {},
       uploads: {
@@ -632,10 +748,15 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       },
       formState: 'write',
       disclaimerInputState: 'edit',
+      defaultUserTimeZoneId: state.defaultUserTimeZoneId,
     };
 
     return emptyContentItemFormData;
   },
+  FETCH_GLOBAL_DATA_SUCCEEDED: (state, action: PublishingActions.FetchGlobalDataSucceeded) => ({
+    ...state,
+    defaultUserTimeZoneId: action.response.userTimeZoneId,
+  }),
   SET_PENDING_TEXT_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormTextInputValue) => {
     if (action.inputName === 'contentTypeId') {
       return {
@@ -645,7 +766,74 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           doesReduce: false,
           [action.inputName]: action.value,
           typeSpecificDetailObject: emptyContentItemDetail.typeSpecificDetailObject,
-          typeSpecificPublicationProperties: emptyContentItemDetail.typeSpecificPublicationProperties,
+          typeSpecificPublicationProperties: {
+            ...emptyContentItemDetail.typeSpecificPublicationProperties,
+            timeZoneId: state.defaultUserTimeZoneId,
+          },
+        },
+        formErrors: _initialFormData.formErrors,
+      };
+    } else if (action.inputName === 'containerCpuCores'
+      || action.inputName === 'containerRamGb'
+      || action.inputName === 'containerInstanceLifetimeScheme') {
+      const value = parseInt(action.value, 10);
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: value,
+          },
+        },
+        formErrors: {
+          ...state.formErrors,
+          typeSpecificPublicationProperties: {
+            ...state.formErrors.typeSpecificPublicationProperties,
+            [action.inputName]: (isNaN(value)) ? 'Please select an option from the dropdown.' : null,
+          },
+        },
+      };
+    } else if (action.inputName === 'containerInternalPort') {
+      const portNumber = Number(action.value);
+
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            containerInternalPort: action.value,
+          },
+        },
+        formErrors: {
+          ...state.formErrors,
+          typeSpecificPublicationProperties: {
+            ...state.formErrors.typeSpecificPublicationProperties,
+            containerInternalPort: (isNaN(portNumber) || portNumber <= 0 || portNumber > 65536) ?
+              'Please choose a valid port number.' : null,
+          },
+        },
+      };
+    } else if (action.inputName === 'customCooldownPeriod' ||
+               action.inputName === 'startTime' ||
+               action.inputName === 'endTime' ||
+               action.inputName === 'timeZoneId') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
+          },
+        },
+        formErrors: {
+          ...state.formErrors,
+          typeSpecificPublicationProperties: {
+            ...state.formErrors.typeSpecificPublicationProperties,
+            [action.inputName]: !action.value ? 'Please select an option from the dropdown.' : null,
+          },
         },
       };
     } else {
@@ -664,12 +852,49 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     disclaimerInputState: 'edit',
   }),
   SET_PENDING_BOOLEAN_INPUT_VALUE: (state, action: PublishingActions.SetPublishingFormBooleanInputValue) => {
-    if (action.inputName === 'doesReduce' || action.inputName === 'isSuspended') {
+    if (action.inputName === 'doesReduce' ||
+        action.inputName === 'isSuspended' ||
+        action.inputName === 'contentDisclaimerAlwaysShown') {
       return {
         ...state,
         pendingFormData: {
           ...state.pendingFormData,
           [action.inputName]: action.value,
+        },
+      };
+    } else if (action.inputName === 'allDaysChecked') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            allDaysChecked: action.value,
+            mondayChecked: action.value,
+            tuesdayChecked: action.value,
+            wednesdayChecked: action.value,
+            thursdayChecked: action.value,
+            fridayChecked: action.value,
+            saturdayChecked: action.value,
+            sundayChecked: action.value,
+          },
+        },
+      };
+    } else if (action.inputName === 'mondayChecked' ||
+               action.inputName === 'tuesdayChecked' ||
+               action.inputName === 'wednesdayChecked' ||
+               action.inputName === 'thursdayChecked' ||
+               action.inputName === 'fridayChecked' ||
+               action.inputName === 'saturdayChecked' ||
+               action.inputName === 'sundayChecked') {
+      return {
+        ...state,
+        pendingFormData: {
+          ...state.pendingFormData,
+          typeSpecificPublicationProperties: {
+            ...state.pendingFormData.typeSpecificPublicationProperties,
+            [action.inputName]: action.value,
+          },
         },
       };
     } else {
@@ -862,6 +1087,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         ...state.uploads,
         [action.uploadId]: {
           ...state.uploads[action.uploadId],
+          checksumProgress: ProgressSummary.empty(),
+          uploadProgress: ProgressSummary.empty(),
           errorMsg: '',
           cancelable: true,
         },
@@ -984,6 +1211,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         doesReduce: detail.doesReduce,
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
+        contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
         typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
@@ -998,6 +1226,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
         doesReduce: detail.doesReduce,
         contentDescription: detail.contentDescription,
         contentDisclaimer: detail.contentDisclaimer,
+        contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
         contentNotes: detail.contentNotes,
         typeSpecificDetailObject: detail.typeSpecificDetailObject,
         typeSpecificPublicationProperties: {
@@ -1020,6 +1249,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       doesReduce: detail.doesReduce,
       contentDescription: detail.contentDescription,
       contentDisclaimer: detail.contentDisclaimer,
+      contentDisclaimerAlwaysShown: detail.contentDisclaimerAlwaysShown,
       contentNotes: detail.contentNotes,
       typeSpecificDetailObject: detail.typeSpecificDetailObject,
       typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
@@ -1209,6 +1439,9 @@ const goLiveSummary = createReducer<GoLiveSummaryData>(_initialGoLiveData, {
     }
     if (action.response.selectionGroups) {
       elementsToConfirm.selectionGroups = false;
+    }
+    if (action.response.contentTypeName === 'ContainerApp' && action.response.typeSpecificMetadata) {
+      elementsToConfirm.containerConfigurations = false;
     }
 
     return {

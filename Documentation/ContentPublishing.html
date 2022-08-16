@@ -10,8 +10,8 @@
     </div>
     <div class="content">
         <ol>
-            <li>Select the client to which the content will be published in the <strong>Clients</strong> column on the left side of the screen</li>
-            <li>Click on the plus sign next to the search bar or click on the large <strong>Add Content Item</strong> button in the <strong>Content Items</strong> column</li>
+            <li>Select the client to which the content will be published in the <strong>Clients</strong> column on the left side of the screen.</li>
+            <li>Click on the plus sign next to the search bar or click on the large <strong>Add Content Item</strong> button in the <strong>Content Items</strong> column.</li>
             <li>Fill out the Content Item form</li>
             <div>
                 <ul>
@@ -31,7 +31,7 @@
             </div>
             <li>Click <strong>Create Content Item</strong></li>
         </ol>
-        <li>Processing of publications is performed in the order requested; depending on the content type and complexity of the publication, this may take some time</li>
+        <li>Processing of publications is performed in the order requested. Depending on the content type and complexity of the publication, this may take some time.</li>
         <li>The status of the request will be displayed below the content item card on this page</li>
         <h3 class="subheading">Approving a new or republished Content Item</h3>
         <ol>
@@ -39,8 +39,67 @@
             <li>Review and check off each section (if it is correct), and consider the attestation statement. Note that for the FileDownload content type, you can download the file to review it</li>
             <li>If something looks incorrect, click <strong>Reject</strong> to cancel the publication</li>
             <li>Click <strong>Approve</strong> at the bottom of the publication preview to make the content live</li>
-            <li>The new content will not be viewable by the end user until the publication has been reviewed and approved</li>
+            <li>Navigate to the <strong>Content Access Admin</strong> page to grant users access to the published content</li>
+            <li>The new content will not be viewable by the end user until the publication has been approved and the user has been granted access to it</li>
         </ol>
+    </div>
+    <div class="accordion">
+        <p>Publishing Containerized Apps</p>
+        <span class="material-icons icon">expand_more</span>
+    </div>
+    <div class="content">
+        <p>
+            Publishing Containerized Apps follows the same general content publication workflow as any of the other content types available in MAP, but with some additional options and considerations unique to this content type.
+            These can be broken down into two categories: <b>Container Settings</b> and <b>Container Lifetime</b>.
+        </p>
+        <p>
+            To obtain pricing information for containers, please do the following:
+            <ol>
+                <li>Navigate to the <a href="https://azure.microsoft.com/en-us/pricing/calculator/" target="_blank">Azure Pricing Calculator</a></li>
+                <li>Click on "Containers" in the left-hand column</li>
+                <li>Click on "Azure Container Instances"</li>
+                <li>Scroll down to the Azure Container Instances calculator form</li>
+                <li>Set the region to "Central US"</li>
+                <li>Set the operating system to "Linux"</li>
+                <li>Set the number of container groups to the expected number of anticipated selection groups for the app</li>
+                <li>Set the duration to the estimated time you expect the containerized application to be active during a month</li>
+                <li>Set memory and vCPU to the expected values for your containerized application</li>
+                <li>View the estimated monthly cost in the bottom-right corner of the form</li>
+            </ol>
+        </p>
+        <h3 class="subheading">Container Settings</h3>
+        <p>
+            Container settings are where you have the ability to set options like number of vCPU's, amount of allocated RAM, and the port number exposed by the container that is being published.
+            <p>
+                <b>vCPU</b>: The number of cores allocated to the container. Increasing this number will increase the amount of processing power available, but will also increase the cost to run the container.
+                This should be set based on the amount of processing done in the application as well as how many simultaneous users are expected.
+            </p>
+            <p>
+                <b>RAM</b>: Indicates the amount of RAM allocated to the running container.  Increasing this number also increases the cost to run the container.
+                This number should be set based on the specific memory needs of the container, along with expected utilization.
+            </p>
+            <p>
+                <b>Internal Port</b>: Indicates the port that is exposed on the container for accessing the application within. This values is set in the Dockerfile that is used to define the container image.
+                The internal port number can be found in the Dockerfile after the keyword EXPOSE <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
+            </p>
+        </p>
+        <h3 class="subheading">Container Lifetime</h3>
+        <p>
+            Container Lifetime pertains to the management of the active status of the container. These settings allow you to fine tune when a container is kept active while also allowing for the container to be kept in a "cold" or standby state.
+            Since containers are only incurring cost while running, this allows you to better manage the associated cost of the container. If a user attempts to access a container app while it is in a cold state, they may need to wait several minutes for the container to start up.
+            <p>
+                <b>Container Cooldown Times</b>: This setting allows you to decide how long a container should remain active after the last interaction has happened outside of any custom scheduled active hours.
+                This will allow users to come back within the set amount of time without the need to wait for a new container to start up.
+            <p>
+                <b>Customize Container Lifecycle</b>: This indicates whether the container should follow a custom "hot" schedule. Providing a custom schedule allows the container to be kept ready during business hours, while being kept in a standby state outside of those pre-defined hours.
+                Turning this option on will expose the controls for setting the custom hot hours.
+            </p>
+            <p>
+                <b>Custom Container Lifetime Schedule</b>: These settings are used to set days and times for containers to remain in an active state what will remove the need for users to wait for containers to start up before viewing and interacting with the container content.
+                This schedule is configured by setting the start and end times, the time zone of the scheduled hours, and the days that the schedule should be applied to.
+                Outside of these scheduled active hours, the container will be in a cold standby state that will require the user to wait for several minutes while the container is started.
+            </p>
+        </p>
     </div>
     <div class="accordion">
         <p>Updating Existing Content</p>
@@ -69,6 +128,7 @@
             <li>Input the desired disclaimer text in the "Custom Disclaimer Text" input field</li>
             <li>If text formatting is desired, this can be accomplished through the use of <a href="https://www.markdownguide.org/basic-syntax/" target="_blank">markdown syntax</a></li>
             <li>To preview the formatted disclaimer text, click the "Preview" button above the "Custom Disclaimer Text" text box</li>
+            <li>If desired, the content disclaimer can be made to appear every time a user accesses it by checking "Always Require Disclaimer Acceptance". By default, the disclaimer will be shown the first time a user accesses the content, and when the disclaimer is edited or the content is republished.</li>
             <li>Once you are satisfied with the disclaimer text and formatting, click the "CREATE CONTENT ITEM" or "UPDATE CONTENT ITEM" button</li>
         </ol>
     </div>

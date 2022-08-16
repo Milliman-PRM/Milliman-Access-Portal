@@ -9,7 +9,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using MapDbContextLib.Models;
-using Newtonsoft.Json;
+using System.Text.Json;
 
 namespace MapDbContextLib.Context
 {
@@ -51,7 +51,10 @@ namespace MapDbContextLib.Context
                 switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
-                        return JsonConvert.DeserializeObject<PowerBiContentItemProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
+                        return JsonSerializer.Deserialize<PowerBiContentItemProperties>(TypeSpecificDetail);
+
+                    case ContentTypeEnum.ContainerApp:
+                        return JsonSerializer.Deserialize<ContainerizedAppContentItemProperties>(TypeSpecificDetail);
 
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
@@ -66,7 +69,10 @@ namespace MapDbContextLib.Context
                 switch (ContentType?.TypeEnum)
                 {
                     case ContentTypeEnum.PowerBi:
-                        TypeSpecificDetail = JsonConvert.SerializeObject(value as PowerBiContentItemProperties);
+                        TypeSpecificDetail = JsonSerializer.Serialize(value as PowerBiContentItemProperties);
+                        break;
+                    case ContentTypeEnum.ContainerApp:
+                        TypeSpecificDetail = JsonSerializer.Serialize(value as ContainerizedAppContentItemProperties);
                         break;
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
@@ -91,6 +97,9 @@ namespace MapDbContextLib.Context
                     case ContentTypeEnum.PowerBi:
                         return typeof(PowerBiContentItemProperties);
 
+                    case ContentTypeEnum.ContainerApp:
+                        return typeof(ContainerizedAppContentItemProperties);
+
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
@@ -111,6 +120,8 @@ namespace MapDbContextLib.Context
         [Display(Name = "Content Disclaimer")]
         public string ContentDisclaimer { get; set; }
 
+        public bool ContentDisclaimerAlwaysShown { get; set; } = false;
+
         [Column(TypeName = "jsonb")]
         public string ContentFiles { get; set; } = "[]";
 
@@ -121,13 +132,13 @@ namespace MapDbContextLib.Context
             {
                 return ContentFiles == null
                     ? new List<ContentRelatedFile>()
-                    : JsonConvert.DeserializeObject<List<ContentRelatedFile>>(ContentFiles);
+                    : JsonSerializer.Deserialize<List<ContentRelatedFile>>(ContentFiles);
             }
             set
             {
                 ContentFiles = value == null
                     ? "[]"
-                    : JsonConvert.SerializeObject(value);
+                    : JsonSerializer.Serialize(value);
             }
         }
 
@@ -141,15 +152,18 @@ namespace MapDbContextLib.Context
             {
                 return string.IsNullOrEmpty(AssociatedFiles)
                     ? new List<ContentAssociatedFile>()
-                    : JsonConvert.DeserializeObject<List<ContentAssociatedFile>>(AssociatedFiles);
+                    : JsonSerializer.Deserialize<List<ContentAssociatedFile>>(AssociatedFiles);
             }
             set
             {
                 AssociatedFiles = value == null
                     ? "[]"
-                    : JsonConvert.SerializeObject(value);
+                    : JsonSerializer.Serialize(value);
             }
         }
+
+        [NotMapped]
+        public string AcrRepositoryName => Id.ToString("D").ToLower();
     }
 
     /// <summary>

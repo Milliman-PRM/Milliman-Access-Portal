@@ -5,8 +5,8 @@ import {
   publicationStatusNames, PublishRequest, UploadedRelatedFile,
 } from '../../../view-models/content-publishing';
 import {
-  ClientWithStats, ContentItemPublicationDetail, ContentPublicationRequest,
-  ContentReductionTask, Guid, RootContentItemWithStats,
+  ClientWithStats, ContainerInstanceLifetimeSchemeEnum, ContentItemPublicationDetail, ContentPublicationRequest,
+  ContentReductionTask, Guid, RootContentItemWithStats, TypeSpecificPublicationProperties,
 } from '../../models';
 import { PublishingState } from './store';
 
@@ -227,7 +227,7 @@ export function availableContentTypes(state: PublishingState) {
       selectionLabel: contentTypes[contentType].displayName,
     });
   }
-  return contentTypesArray.sort((a, b) => (a.selectionValue > b.selectionValue) ? 1 : -1);
+  return contentTypesArray.sort((a, b) => (a.selectionLabel > b.selectionLabel) ? 1 : -1);
 }
 
 /**
@@ -251,14 +251,23 @@ export function availableAssociatedContentTypes(state: PublishingState) {
  * @param state Redux store
  */
 export function submitButtonIsActive(state: PublishingState) {
+  const { contentTypes } = state.data;
   const { pendingFormData } = state.formData;
   const formChanged = !_.isEqual(state.formData.pendingFormData, state.formData.originalFormData);
   const noActiveUpload = _.size(state.pending.uploads) === 0;
+  const formIsValidIfContainer = state.formData.pendingFormData.contentTypeId &&
+    contentTypes[state.formData.pendingFormData.contentTypeId].displayName !== 'Containerized App' ||
+    state.formData.pendingFormData.typeSpecificPublicationProperties &&
+    state.formData.pendingFormData.typeSpecificPublicationProperties.containerInternalPort;
   const formValid = pendingFormData.clientId
     && pendingFormData.contentName.trim()
     && pendingFormData.contentTypeId
-    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0;
-  return formChanged && noActiveUpload && formValid;
+    && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0
+    && !formErrorsExist(state);
+  const disclaimerValid = (pendingFormData.contentDisclaimerAlwaysShown
+    && pendingFormData.contentDisclaimer.trim().length > 0)
+    || !pendingFormData.contentDisclaimerAlwaysShown;
+  return formChanged && formIsValidIfContainer && noActiveUpload && formValid && disclaimerValid;
 }
 
 /**
@@ -268,7 +277,11 @@ export function submitButtonIsActive(state: PublishingState) {
 export function uploadChangesPending(state: PublishingState) {
   const { pendingFormData, originalFormData } = state.formData;
   const changesPending = !_.isEqual(pendingFormData.relatedFiles, originalFormData.relatedFiles) ||
-    !_.isEqual(pendingFormData.typeSpecificPublicationProperties, originalFormData.typeSpecificPublicationProperties);
+    !_.isEqual(
+      _.omit(pendingFormData.typeSpecificPublicationProperties, ['allDaysChecked']),
+      _.omit(originalFormData.typeSpecificPublicationProperties, ['allDaysChecked']),
+    );
+
   return changesPending;
 }
 
@@ -283,10 +296,24 @@ export function formChangesPending(state: PublishingState) {
     || (pendingFormData.contentName !== originalFormData.contentName)
     || (pendingFormData.contentDescription !== originalFormData.contentDescription)
     || (pendingFormData.contentDisclaimer !== originalFormData.contentDisclaimer)
+    || (pendingFormData.contentDisclaimerAlwaysShown !== originalFormData.contentDisclaimerAlwaysShown)
     || (pendingFormData.contentNotes !== originalFormData.contentNotes)
     || (pendingFormData.doesReduce !== originalFormData.doesReduce)
     || !_.isEqual(pendingFormData.typeSpecificDetailObject, originalFormData.typeSpecificDetailObject);
   return changesPending;
+}
+
+export function formErrorsExist(state: PublishingState) {
+  const { formErrors } = state.formData;
+  return formErrors &&
+    (formErrors.typeSpecificPublicationProperties && (
+      formErrors.typeSpecificPublicationProperties.containerInternalPort ||
+      formErrors.typeSpecificPublicationProperties.containerCpuCores ||
+      formErrors.typeSpecificPublicationProperties.containerRamGb ||
+      formErrors.typeSpecificPublicationProperties.timeZoneId ||
+      formErrors.typeSpecificPublicationProperties.startTime ||
+      formErrors.typeSpecificPublicationProperties.endTime
+    ));
 }
 
 /**
@@ -301,6 +328,8 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
   const { pendingFormData } = state.formData;
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const isContainerApp = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   for (const key in relatedFiles) {
     if (relatedFiles[key].fileUploadId) {
       filesToPublish.push({
@@ -313,10 +342,55 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       deleteFilePurposes.push(key);
     }
   }
-  const typeSpecificPublishingDetail =
-    (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) ? {
-    roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
-  } : null;
+  let typeSpecificPublishingDetail: TypeSpecificPublicationProperties = null;
+
+  if (isPowerBI && pendingFormData.doesReduce && pendingFormData.typeSpecificPublicationProperties) {
+    typeSpecificPublishingDetail = {
+      roleList: pendingFormData.typeSpecificPublicationProperties.roleList,
+    };
+  }
+
+  if (isContainerApp && pendingFormData.typeSpecificPublicationProperties) {
+    typeSpecificPublishingDetail = {
+      containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
+      containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
+      containerInternalPort: Number(pendingFormData.typeSpecificPublicationProperties.containerInternalPort),
+      containerInstanceLifetimeScheme:
+        pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+      customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
+    };
+
+    if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+      === ContainerInstanceLifetimeSchemeEnum.Custom) {
+      typeSpecificPublishingDetail.timeZoneId =
+        pendingFormData.typeSpecificPublicationProperties.timeZoneId;
+      typeSpecificPublishingDetail.startTime =
+        pendingFormData.typeSpecificPublicationProperties.startTime;
+      typeSpecificPublishingDetail.endTime =
+        pendingFormData.typeSpecificPublicationProperties.endTime;
+      typeSpecificPublishingDetail.mondayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.mondayChecked;
+      typeSpecificPublishingDetail.tuesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.tuesdayChecked;
+      typeSpecificPublishingDetail.wednesdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.wednesdayChecked;
+      typeSpecificPublishingDetail.thursdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.thursdayChecked;
+      typeSpecificPublishingDetail.fridayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.fridayChecked;
+      typeSpecificPublishingDetail.saturdayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.saturdayChecked;
+      typeSpecificPublishingDetail.sundayChecked =
+        pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
+        pendingFormData.typeSpecificPublicationProperties.sundayChecked;
+    }
+  }
 
   return {
     rootContentItemId,
@@ -364,12 +438,15 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
   const { pendingFormData } = state.formData;
   const isPowerBI = pendingFormData.contentTypeId
     && contentTypes[pendingFormData.contentTypeId].displayName === 'Power BI';
+  const isContainerApp = pendingFormData.contentTypeId
+    && contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App';
   const contentItemInformation: ContentItemPublicationDetail = {
     ClientId: pendingFormData.clientId,
     ContentName: pendingFormData.contentName,
     ContentTypeId: pendingFormData.contentTypeId,
     Description: pendingFormData.contentDescription,
     ContentDisclaimer: pendingFormData.contentDisclaimer,
+    ContentDisclaimerAlwaysShown: pendingFormData.contentDisclaimerAlwaysShown,
     Notes: pendingFormData.contentNotes,
   };
 
@@ -397,6 +474,19 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
     }
   }
 
+  if (isContainerApp) {
+    if (pendingFormData.typeSpecificPublicationProperties) {
+      contentItemInformation.typeSpecificPublicationProperties = {
+        containerCpuCores: pendingFormData.typeSpecificPublicationProperties.containerCpuCores,
+        containerRamGb: pendingFormData.typeSpecificPublicationProperties.containerRamGb,
+        containerInternalPort: pendingFormData.typeSpecificPublicationProperties.containerInternalPort,
+        containerInstanceLifetimeScheme:
+          pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
+        customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
+      };
+    }
+  }
+
   return contentItemInformation;
 }
 
@@ -412,4 +502,12 @@ export function canDownloadCurrentContentItem(state: PublishingState): boolean {
     && state.formData.originalFormData.isEditable
     && state.formData.formState === 'read'
     && !formChangesPending(state);
+}
+
+export function canModifyCustomContainerLifecycleOptions(state: PublishingState): boolean {
+  const { typeSpecificPublicationProperties } = state.formData.pendingFormData;
+  return typeSpecificPublicationProperties
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    && typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+    === ContainerInstanceLifetimeSchemeEnum.Custom;
 }

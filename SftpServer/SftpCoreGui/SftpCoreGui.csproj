@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net5.0-windows7.0</TargetFramework>
     <UseWindowsForms>true</UseWindowsForms>
     <UserSecretsId>f332be56-1c11-4275-9d82-8a84f4b022c3</UserSecretsId>
     <Version>1.16.3</Version>

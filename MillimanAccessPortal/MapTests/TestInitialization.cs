@@ -47,6 +47,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 using TestResourcesLib;
+using ContainerizedAppLib;
 
 namespace MapTests
 {
@@ -58,6 +59,7 @@ namespace MapTests
         Account,
         SystemAdmin,
         FileDrop,
+        Publishing,
     }
 
     internal class TestInitialization : IDisposable
@@ -80,6 +82,7 @@ namespace MapTests
         public IAuthenticationService AuthenticationService { get; private set; } = default;
         public IOptions<PowerBiConfig> PowerBiConfig { get; private set; } = default;
         public IOptions<QlikviewConfig> QvConfig { get; private set; } = default;
+        public IOptions<ContainerizedAppLibApiConfig> ContainerizedAppConfig { get; private set; } = default;
         public IAuthenticationSchemeProvider AuthenticationSchemeProvider { get; private set; } = default;
         public StandardQueries StandardQueries { get; set; } = default;
         public ContentAccessAdminQueries ContentAccessAdminQueries { get; set; } = default;
@@ -296,6 +299,7 @@ namespace MapTests
             FileProvider = ScopedServiceProvider.GetService<IFileProvider>();
             QvConfig = ScopedServiceProvider.GetService<IOptions<QlikviewConfig>>();
             PowerBiConfig = ScopedServiceProvider.GetService<IOptions<PowerBiConfig>>();
+            ContainerizedAppConfig = ScopedServiceProvider.GetService<IOptions<ContainerizedAppLibApiConfig>>();
             #endregion
 
             #region Transient registered services
@@ -417,6 +421,9 @@ namespace MapTests
                     break;
                 case DataSelection.FileDrop:
                     await GenerateFileDropTestData();
+                    break;
+                case DataSelection.Publishing:
+                    await GeneratePublishingTestData();
                     break;
             }
 
@@ -609,16 +616,6 @@ namespace MapTests
             DbContext.ApplicationUser.Load();
             #endregion
 
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.Qlikview), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
-                    new ContentType{ Id=TestUtil.MakeTestGuid((int)ContentTypeEnum.PowerBi), TypeEnum=ContentTypeEnum.PowerBi, CanReduce=true },
-                });
-            */
-            #endregion
-
             #region Initialize ProfitCenters
             DbContext.ProfitCenter.AddRange(new List<ProfitCenter>
                 {
@@ -668,6 +665,7 @@ namespace MapTests
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 4", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties()) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(5), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 5", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = true }) },
                 new RootContentItem{ Id=TestUtil.MakeTestGuid(6), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 6", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.PowerBi).Id, TypeSpecificDetail = JsonConvert.SerializeObject(new PowerBiContentItemProperties() { EditableEnabled = false }) },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(7), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 7", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.ContainerApp).Id  },
             });
             #endregion
 
@@ -729,10 +727,9 @@ namespace MapTests
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(7), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(4) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
-                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(5) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(9), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum ==
-                  RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(8), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(5) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(9), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(6) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(10), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(7) },
             });
             #endregion
 
@@ -844,15 +841,6 @@ namespace MapTests
             DbContext.ApplicationUser.Load();
             #endregion
 
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-                {
-                    new ContentType{ Id=TestUtil.MakeTestGuid(1), TypeEnum=ContentTypeEnum.Qlikview, CanReduce=true },
-                });
-            */
-            #endregion
-
             #region Initialize ProfitCenters
             DbContext.ProfitCenter.AddRange(new List<ProfitCenter>
                 {
@@ -864,7 +852,6 @@ namespace MapTests
             DbContext.Client.AddRange(new List<Client>
                 {
                     new Client { Id=TestUtil.MakeTestGuid(1), Name="Client 1", ClientCode="C1", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
-                    new Client { Id=TestUtil.MakeTestGuid(2), Name="Client 2", ClientCode="C2", ProfitCenterId=TestUtil.MakeTestGuid(1), ParentClientId=null, AcceptedEmailDomainList=new List<string> { "example.com" }  },
                 });
             #endregion
 
@@ -879,10 +866,9 @@ namespace MapTests
             #region Initialize UserRoleInClient
             DbContext.UserRoleInClient.AddRange(new List<UserRoleInClient>
             {
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
-                //new UserRoleInClient { Id=TestUtil.MakeTestGuid(4), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInClient { Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2) },
             });
             #endregion
 
@@ -896,48 +882,26 @@ namespace MapTests
             #region Initialize RootContentItem
             DbContext.RootContentItem.AddRange(new List<RootContentItem>
             {
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(2), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 2", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
-                new RootContentItem{ Id=TestUtil.MakeTestGuid(3), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 3", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.Qlikview).Id },
+                new RootContentItem{ Id=TestUtil.MakeTestGuid(1), ClientId=TestUtil.MakeTestGuid(1), ContentName="RootContent 1", ContentTypeId=DbContext.ContentType.Single(t=>t.TypeEnum==ContentTypeEnum.ContainerApp).Id },
             });
-            #endregion
-
-            #region Initialize HierarchyField
-            DbContext.HierarchyField.AddRange(new List<HierarchyField>
-                {
-                    new HierarchyField { Id=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName1", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(2), FieldName="Field2", FieldDisplayName="DisplayName2", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                    new HierarchyField { Id=TestUtil.MakeTestGuid(3), RootContentItemId=TestUtil.MakeTestGuid(1), FieldName="Field1", FieldDisplayName="DisplayName3", StructureType=FieldStructureType.Flat, FieldDelimiter="|" },
-                });
-            #endregion
-
-            #region Initialize HierarchyFieldValue
-            DbContext.HierarchyFieldValue.AddRange(new List<HierarchyFieldValue>
-                {
-                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(1), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(2), HierarchyFieldId=TestUtil.MakeTestGuid(1),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(3), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 1" },
-                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(4), HierarchyFieldId=TestUtil.MakeTestGuid(2),  Value="Value 2" },
-                    new HierarchyFieldValue { Id=TestUtil.MakeTestGuid(5), HierarchyFieldId=TestUtil.MakeTestGuid(3),  Value="Value 1" },
-                });
             #endregion
 
             #region Initialize SelectionGroups
             DbContext.SelectionGroup.AddRange(new List<SelectionGroup>
                 {
-                    new SelectionGroup { Id=TestUtil.MakeTestGuid(1), ContentInstanceUrl="Folder1/File1", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
-                    new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
-                    new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new List<Guid>() },
-                    new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new List<Guid>() },
-                    new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="", RootContentItemId=TestUtil.MakeTestGuid(5),
-                      GroupName="Group1 For Content5", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    new SelectionGroup { Id=TestUtil.MakeTestGuid(1), ContentInstanceUrl=null, RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group1 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    //new SelectionGroup { Id=TestUtil.MakeTestGuid(2), ContentInstanceUrl="Folder1/File2", RootContentItemId=TestUtil.MakeTestGuid(1), GroupName="Group2 For Content1", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    //new SelectionGroup { Id=TestUtil.MakeTestGuid(3), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(2), GroupName="Group1 For Content2", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    //new SelectionGroup { Id=TestUtil.MakeTestGuid(4), ContentInstanceUrl="Folder2/File1", RootContentItemId=TestUtil.MakeTestGuid(3), GroupName="Group1 For Content3", SelectedHierarchyFieldValueList=new List<Guid>() },
+                    //new SelectionGroup { Id=TestUtil.MakeTestGuid(5), ContentInstanceUrl="", RootContentItemId=TestUtil.MakeTestGuid(5), GroupName="Group1 For Content5", SelectedHierarchyFieldValueList=new List<Guid>() },
                 });
             #endregion
 
             #region Initialize UserInSelectionGroups
             DbContext.UserInSelectionGroup.AddRange(new List<UserInSelectionGroup>
                 {
-                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(1), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(2) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(1), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(1) },
+                    new UserInSelectionGroup { Id=TestUtil.MakeTestGuid(2), SelectionGroupId=TestUtil.MakeTestGuid(1), UserId=TestUtil.MakeTestGuid(2) },
                 });
             #endregion
 
@@ -953,34 +917,23 @@ namespace MapTests
             #region Initialize UserRoleInRootContentItem
             DbContext.UserRoleInRootContentItem.AddRange(new List<UserRoleInRootContentItem>
             {
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(1), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
                 new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(2), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(1) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentAccessAdmin).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(4), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentPublisher).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(5), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(1), RootContentItemId=TestUtil.MakeTestGuid(3) },
-                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(6), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
+                new UserRoleInRootContentItem { Id=TestUtil.MakeTestGuid(3), RoleId=DbContext.ApplicationRole.SingleOrDefault(r => r.RoleEnum == RoleEnum.ContentUser).Id, UserId=TestUtil.MakeTestGuid(2), RootContentItemId=TestUtil.MakeTestGuid(1) },
             });
             #endregion
 
             #region Initialize ContentPublicationRequest
             DbContext.ContentPublicationRequest.AddRange(new List<ContentPublicationRequest>
             {
-                new ContentPublicationRequest
-                {
-                    Id = TestUtil.MakeTestGuid(1),
-                    ApplicationUserId =TestUtil.MakeTestGuid(1),
-                    RootContentItemId = TestUtil.MakeTestGuid(1),
-                    RequestStatus = PublicationStatus.Confirmed,
-                    ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ },
-                    CreateDateTimeUtc = DateTime.FromFileTimeUtc(100),
-                },
+                // new ContentPublicationRequest { Id = TestUtil.MakeTestGuid(1), ApplicationUserId =TestUtil.MakeTestGuid(1), RootContentItemId = TestUtil.MakeTestGuid(1), RequestStatus = PublicationStatus.Confirmed, ReductionRelatedFilesObj = new List<ReductionRelatedFiles>{ }, CreateDateTimeUtc = DateTime.FromFileTimeUtc(100)},
             });
             #endregion
 
             #region Initialize FileUpload
             DbContext.FileUpload.AddRange(new List<FileUpload>
             {
-                new FileUpload { Id=TestUtil.MakeTestGuid(1) },
+                new FileUpload { Id=TestUtil.MakeTestGuid(1), ClientFileIdentifier="", Status=FileUploadStatus.Complete, InitiatedDateTimeUtc=DateTime.UtcNow },
             });
             #endregion
 
@@ -1036,15 +989,6 @@ namespace MapTests
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(11), UserName = "sysUser1", Email = "sysUser1@site.domain" });
             await UserManager.CreateAsync(new ApplicationUser { Id = TestUtil.MakeTestGuid(12), UserName = "sysUser2", Email = "sysUser2@site.domain" });
             DbContext.ApplicationUser.Load();
-            #endregion
-
-            #region Initialize ContentType
-            /*
-            DbContext.ContentType.AddRange(new List<ContentType>
-            {
-                new ContentType{ Id = TestUtil.MakeTestGuid(1), TypeEnum = ContentTypeEnum.Qlikview, CanReduce = true },
-            });
-            */
             #endregion
 
             #region Initialize ProfitCenters

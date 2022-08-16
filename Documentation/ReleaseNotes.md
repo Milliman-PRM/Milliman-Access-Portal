@@ -3,9 +3,12 @@
 ## Release Notes
 
 ### v1.17.0
-
+- Introduced support for Containerized Apps as a new content type
+- General improvements to file upload status indicators
 - Added buttons to copy both username and password SFTP credentials for a File Drop
 - Fixed a bug that could prevent the deletion of a Client in some situations
+- Fixed a bug that could cause system errors if a username contains certain special characters
+- Added an option for content items to require users to accept the content disclaimer everytime they access it
 - Made a change allowing subclients of different top level clients to have the same name
 
 #### v1.16.3

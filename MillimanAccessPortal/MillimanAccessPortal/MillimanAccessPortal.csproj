@@ -53,6 +53,7 @@
     <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
     <PackageReference Include="System.IO.Compression" Version="4.3.0" />
     <PackageReference Include="System.IO.Compression.ZipFile" Version="4.3.0" />
+    <PackageReference Include="Yarp.ReverseProxy" Version="1.1.0" />
   </ItemGroup>
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.0" />
@@ -96,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\ContainerizedAppLib\ContainerizedAppLib.csproj" />
     <ProjectReference Include="..\FileDropLib\FileDropLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />
     <ProjectReference Include="..\MapDbContextLib\MapDbContextLib.csproj" />
@@ -111,10 +113,22 @@
     <None Include="ViewTemplates\AuthorizedContent\PowerBi.cshtml" />
   </ItemGroup>
   <ItemGroup>
+    <Content Update="appsettings.azure-devtest.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Update="appsettings.AzureCI.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="appsettings.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="AzureKeyVault.Internal.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="AzureKeyVault.Production.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Update="AzureKeyVault.Staging.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Update="powerbi.json">

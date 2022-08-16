@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Session;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using ContainerizedAppLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -51,6 +54,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
+        private readonly ContainerizedAppLibApiConfig _containerizedAppLibApiConfig;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -62,7 +66,8 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
-            IAuthenticationService authentService
+            IAuthenticationService authentService,
+            IOptions<ContainerizedAppLibApiConfig> containerizedAppLibApiConfig
             )
         {
             DbContext = ContextArg;
@@ -75,6 +80,7 @@ namespace MillimanAccessPortal.Controllers
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
+            _containerizedAppLibApiConfig = containerizedAppLibApiConfig.Value;
         }
 
         //

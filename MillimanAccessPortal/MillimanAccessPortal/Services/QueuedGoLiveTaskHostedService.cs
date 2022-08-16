@@ -1,11 +1,19 @@
 ﻿/*
  * CODE OWNERS: Joseph Sweeney, Tom Puckett
  * OBJECTIVE: Asynchronous publication go-live processing
- * DEVELOPER NOTES: <What future developers need to know.>
+ * DEVELOPER NOTES: The majority of the operation is coded inside a database transaction that commits only after everything preceeding it 
+ *                  has succeeded. However, actions in the successActionList are executed after the transaction commits, so any action 
+ *                  that writes to the database must include its own call to `await dbContext.SaveChangesAsync`.  If any exception is caught
+ *                  the transaction rolls back and each action in the failureRecoveryActionList is executed.  Any SQL write in such action 
+ *                  also require `await dbContext.SaveChangesAsync` calls since they are outside the transaction.  When writing a failure 
+ *                  action bear in mind that the transaction rollback eliminates any database writes that were previously saved so undoing 
+ *                  those is generally not needed. 
  */
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -26,6 +34,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -69,7 +78,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         ContentPublicationRequest thisPubRequest = await dbContext.ContentPublicationRequest.SingleOrDefaultAsync(r => r.Id == kvpWithException.Key);
 
                         thisPubRequest.RequestStatus = PublicationStatus.Error;
-                        thisPubRequest.StatusMessage = kvpWithException.Value.Exception.Message;
+                        thisPubRequest.StatusMessage = GlobalFunctions.LoggableExceptionString(kvpWithException.Value.Exception, "Exception during go-live processing:", IncludeStackTrace: true);
                         foreach (var reduction in dbContext.ContentReductionTask.Where(t => t.ContentPublicationRequestId == thisPubRequest.Id))
                         {
                             reduction.ReductionStatus = ReductionStatusEnum.Error;
@@ -136,11 +145,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            bool ReductionIsInvolved = publicationRequest.RootContentItem.ContentType.TypeEnum switch
-            {
-                ContentTypeEnum.PowerBi => publicationRequest.RootContentItem.DoesReduce,
-                _ => MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce,
-            };
+            bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce;
 
             var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
@@ -246,8 +251,8 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         relatedReductionTasks.ForEach(t => t.ReductionStatus = ReductionStatusEnum.Live);
                     }
 
-                    //1.3  HierarchyFieldValue due to hierarchy changes
-                    //1.3.1  If this is first publication for this RootContentItem add the fields to db and to LiveHierarchy (not values to LiveHierarchy)
+                    #region 1.3  HierarchyFieldValue due to hierarchy changes
+                    #region 1.3.1  If this is first publication for this RootContentItem add the fields to db and to LiveHierarchy (not values to LiveHierarchy)
                     if (LiveHierarchy.Fields.Count == 0)
                     {  // This must be first time publication, need to insert the fields.  Field values are handled later
                         NewHierarchy.Fields.ForEach(f =>
@@ -274,8 +279,9 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             });
                         });
                     }
+                    #endregion
 
-                    //1.3.2  Add/Remove field values based on value list differences between new/old
+                    #region 1.3.2  Add/Remove field values based on value list differences between new/old
                     foreach (var NewHierarchyField in NewHierarchy.Fields)
                     {
                         ReductionField<ReductionFieldValue> MatchingLiveField = LiveHierarchy.Fields
@@ -304,9 +310,11 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             dbContext.HierarchyFieldValue.Remove(ObsoleteRecord);
                         }
                     }
+                    #endregion
+                    #endregion
                     await dbContext.SaveChangesAsync();
 
-                    //1.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
+                    #region 1.4  Update SelectionGroup SelectedHierarchyFieldValueList due to hierarchy changes
                     List<Guid> AllRemainingFieldValues = await dbContext.HierarchyFieldValue
                         .Where(v => v.HierarchyField.RootContentItemId == publicationRequest.RootContentItemId)
                         .Select(v => v.Id)
@@ -318,37 +326,19 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                         Group.SelectedHierarchyFieldValueList = Group.SelectedHierarchyFieldValueList
                             .Intersect(AllRemainingFieldValues).ToList();
                     }
+                    #endregion
 
-                    // 2 Move new files into live file names, removing any existing copies of previous version
-                    #region 2.1 Master content (not reduced content) and Content Related Files
-                    List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
-                    foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
+                    #region 1.5 Handle changes to type specific information for content types that support it
+                    // TODO This assumes that type specific info is always provided regardless of whether anything is changed
+                    switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                     {
-                        string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
-                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
-                        string TargetFilePath = string.Empty;
-
-                        // special treatment for powerbi content file (no live content file persists in MAP)
-                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && 
-                            publicationRequest.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi)
-                        {
+                        case ContentTypeEnum.PowerBi:
                             PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
 
                             failureRecoveryActionList.Add(() => {
                                 publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
                                 dbContext.SaveChanges();
                             });
-
-                            // Preserves the ID of the previously created Power BI report (if it exists) locally to allow the delegate function to recall it at a later point in execution.
-                            Guid? previousReportId = typeSpecificProperties.LiveReportId;
-                            if (previousReportId != null)
-                            {
-                                successActionList.Add(async () => {
-                                    PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
-                                    PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
-                                    await powerBiApi.DeleteReportAsync(previousReportId.Value);
-                                });
-                            }
 
                             publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
                             {
@@ -363,6 +353,98 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                 FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
                                 BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
                             };
+                            break;
+
+                        case ContentTypeEnum.ContainerApp:
+                            ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                            ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
+
+                            failureRecoveryActionList.Add(() => {
+                                publicationRequest.RootContentItem.TypeSpecificDetailObject = containerizedAppTypeSpecificProperties;
+                                dbContext.SaveChanges();
+                            });
+
+                            publicationRequest.RootContentItem.TypeSpecificDetailObject = new ContainerizedAppContentItemProperties()
+                            {
+                                LiveContainerCpuCores = containerizedAppTypeSpecificProperties.PreviewContainerCpuCores,
+                                LiveContainerInternalPort = containerizedAppTypeSpecificProperties.PreviewContainerInternalPort,
+                                LiveContainerRamGb = containerizedAppTypeSpecificProperties.PreviewContainerRamGb,
+                                LiveImageName = containerizedAppTypeSpecificProperties.PreviewImageName,
+                                LiveImageTag = "live",
+                                LiveContainerLifetimeScheme = containerizedAppPubProperties.ContainerInstanceLifetimeScheme switch
+                                {
+                                    ContainerInstanceLifetimeSchemeEnum.AlwaysCold => new ContainerizedAppContentItemProperties.AlwaysColdLifetimeScheme(containerizedAppPubProperties),
+                                    ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
+                                    _ => null,
+                                },
+
+                                PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
+                                PreviewContainerInternalPort = 0,
+                                PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
+                                PreviewImageName = null,
+                                PreviewImageTag = null,
+                            };
+                            break;
+                    }
+                    await dbContext.SaveChangesAsync();
+                    #endregion
+
+                    // 2 Move new files into live file names, removing any existing copies of previous version
+                    #region 2.1 Master content (not reduced content) and Content Related Files
+                    List<ContentRelatedFile> UpdatedContentFilesList = publicationRequest.RootContentItem.ContentFilesList;
+                    foreach (ContentRelatedFile Crf in publicationRequest.LiveReadyFilesObj)
+                    {
+                        string TargetFileName = ContentTypeSpecificApiBase.GenerateContentFileName(
+                            Crf.FilePurpose, Path.GetExtension(Crf.FullPath), goLiveViewModel.RootContentItemId);
+                        string TargetFilePath = string.Empty;
+
+                        if (Crf.FilePurpose.Equals("mastercontent", StringComparison.OrdinalIgnoreCase) && !publicationRequest.RootContentItem.ContentType.TypeEnum.LiveContentFileStoredInMap())
+                        {
+                            // special treatment for content types for which NO live content file persists in MAP storage
+                            switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
+                            {
+                                case ContentTypeEnum.PowerBi:
+                                    PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+
+                                    // Preserve the ID of the existing live content (if any) for the delegate function to use later when removing the current live report.
+                                    Guid? previousReportId = typeSpecificProperties.LiveReportId;
+                                    if (previousReportId != null)
+                                    {
+                                        successActionList.Add(async () => {
+                                            PowerBiConfig pbiConfig = scope.ServiceProvider.GetRequiredService<IOptions<PowerBiConfig>>().Value;
+                                            PowerBiLibApi powerBiApi = await new PowerBiLibApi(pbiConfig).InitializeAsync();
+                                            await powerBiApi.DeleteReportAsync(previousReportId.Value);
+                                        });
+                                    }
+                                    break;
+
+                                case ContentTypeEnum.ContainerApp:
+                                    ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+                                    // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
+                                    if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?
+                                    {
+                                        string repositoryName = publicationRequest.RootContentItem.AcrRepositoryName;
+                                        successActionList.Add(async () => {
+                                            ContainerizedAppLibApiConfig containerizedAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
+                                            ContainerizedAppLibApi containerizedAppApi = await new ContainerizedAppLibApi(containerizedAppApiConfig).InitializeAsync(repositoryName);
+
+                                            List<ContainerGroup_GetResponseModel> allRunningContainers = await containerizedAppApi.ListContainerGroupsInResourceGroup();
+                                            List<ContainerGroup_GetResponseModel> containersOfThisLiveContent = allRunningContainers.Where(g => g.Tags["contentItemId"] == publicationRequest.RootContentItemId.ToString()
+                                                                                                                                             && g.Tags.ContainsKey("selectionGroupId")
+                                                                                                                                             && !string.IsNullOrWhiteSpace(g.Tags["selectionGroupId"]))
+                                                                                                                                    .ToList();
+
+                                            await containerizedAppApi.RetagImage("preview", "live");
+
+                                            Task[] allDeleteTasks = new Task[0];
+                                            containersOfThisLiveContent.ForEach(c => allDeleteTasks.Append(containerizedAppApi.DeleteContainerGroup(c.Name)));
+                                            await Task.WhenAll(allDeleteTasks);
+                                        });
+                                    }
+
+                                    break;
+                            }
                         }
                         else
                         {
@@ -589,6 +671,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             await new QlikviewLibApi(qvConfig).AuthorizeUserDocumentsInFolderAsync(goLiveViewModel.RootContentItemId.ToString());
                             break;
 
+                        case ContentTypeEnum.ContainerApp:
                         case ContentTypeEnum.PowerBi:
                         case ContentTypeEnum.Html:
                         case ContentTypeEnum.Pdf:
@@ -631,6 +714,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                 publicationRequest.RequestStatus = PublicationStatus.Processed;
                 await dbContext.SaveChangesAsync();
 
+                // Invoke all the delegate actions in failureRecoveryActionList
                 foreach (var recoverAction in failureRecoveryActionList)
                 {
                     recoverAction.Invoke();

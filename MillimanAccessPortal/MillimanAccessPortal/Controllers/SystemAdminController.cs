@@ -2331,7 +2331,7 @@ namespace MillimanAccessPortal.Controllers
             var accountToEnable = await _dbContext.Users.FindAsync(userId);
 
             #region Validation
-            if (userId == null || userId == Guid.Empty)
+            if (userId == Guid.Empty)
             {
                 Log.Debug($"In {ControllerContext.ActionDescriptor.DisplayName} action: User ID is invalid.");
                 Response.Headers.Add("Warning", "The specified content item does not exist.");

@@ -47,9 +47,11 @@ namespace MapTests
                 TestResources.UserManager,
                 TestResources.Configuration,
                 TestResources.PowerBiConfig,
+                TestResources.ContainerizedAppConfig,
                 TestResources.QvConfig,
                 TestResources.PublicationPostProcessingTaskQueue,
-                TestResources.ContentPublishingAdminQueries
+                TestResources.ContentPublishingAdminQueries,
+                null  // TODO might need to add an instance of MapProxyConfigProvider in setup
                 );
 
             try
@@ -219,7 +221,7 @@ namespace MapTests
         }
 
         [Fact]
-        public async Task CreateRootContentItem_TypeSpecificProperties_Success()
+        public async Task CreateRootContentItem_PowerBiTypeSpecificProperties_Success()
         {
             using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
             {
@@ -479,6 +481,54 @@ namespace MapTests
                 #region Assert
                 Assert.IsType<BadRequestResult>(view);
                 Assert.Contains(controller.Response.Headers, h => h.Value == "A previous reduction task is pending for this content.");
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task Publish_ContainerAppTypeSpecificPropertiesStored()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Reduction))
+            {
+                // user1 is authorized with role 4 (ContentPublisher) to RootContentItem 3
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                PublishRequest RequestArg = new PublishRequest
+                {
+                    RootContentItemId = TestUtil.MakeTestGuid(7),
+                    TypeSpecificPublishingDetail = JObject.FromObject(new ContainerizedContentPublicationProperties 
+                    {
+                        ContainerCpuCores = ContainerCpuCoresEnum.Three, 
+                        ContainerInternalPort = 3838, 
+                        ContainerRamGb = ContainerRamGbEnum.Seven 
+                    }),
+                    NewRelatedFiles = new List<UploadedRelatedFile>
+                    {
+                        new UploadedRelatedFile
+                        {  // does not exist in initialized FileUpload entity. 
+                            FilePurpose = "MasterContent",
+                            FileUploadId = TestUtil.MakeTestGuid(99),
+                            FileOriginalName = "Not really uploaded"
+                        }
+                    }
+                };
+                TestResources.DbContext.FileUpload.Add(new FileUpload { Id = TestUtil.MakeTestGuid(99), CreatedDateTimeUtc = DateTime.UtcNow, InitiatedDateTimeUtc = DateTime.UtcNow, ClientFileIdentifier = "Not really uploaded" });
+                TestResources.DbContext.SaveChanges();
+                #endregion
+
+                #region Act
+                var view = await controller.Publish(RequestArg);
+                ContentPublicationRequest publishRequestObject = TestResources.DbContext.ContentPublicationRequest.SingleOrDefault(p => p.RootContentItemId == RequestArg.RootContentItemId);
+                #endregion
+
+                #region Assert
+                Assert.NotNull(publishRequestObject);
+                Assert.NotEmpty(publishRequestObject.TypeSpecificDetail);
+                ContainerizedContentPublicationProperties typeSpecificDetail = Assert.IsType<ContainerizedContentPublicationProperties>(JsonConvert.DeserializeObject<ContainerizedContentPublicationProperties>(publishRequestObject.TypeSpecificDetail));
+                Assert.NotNull(typeSpecificDetail);
+                Assert.Equal(ContainerCpuCoresEnum.Three, typeSpecificDetail.ContainerCpuCores);
+                Assert.Equal(3838u, typeSpecificDetail.ContainerInternalPort);
+                Assert.Equal(ContainerRamGbEnum.Seven, typeSpecificDetail.ContainerRamGb);
                 #endregion
             }
         }
@@ -794,6 +844,49 @@ namespace MapTests
 
                 #region Assert
                 Assert.IsType<BadRequestResult>(result);
+                #endregion
+            }
+        }
+
+        [Fact]
+        public async Task PublishContainerApp_MetadataStoredCorrectly()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Publishing))
+            {
+                #region Arrange
+                ContentPublishingController controller = await GetControllerForUser(TestResources, "user1");
+                RootContentItem dbContentItem = TestResources.DbContext.RootContentItem.Find(TestUtil.MakeTestGuid(1));
+                PublishRequest publishModel = new PublishRequest
+                {
+                    RootContentItemId = dbContentItem.Id,
+                    AssociatedFiles = new List<AssociatedFileModel>(),
+                    DeleteFilePurposes = new string[0],
+                    NewRelatedFiles = new List<UploadedRelatedFile> { new UploadedRelatedFile { FileUploadId=TestUtil.MakeTestGuid(1), FileOriginalName="", FilePurpose="MasterContent" } },
+                    TypeSpecificPublishingDetail = JObject.FromObject(new ContainerizedContentPublicationProperties
+                    {
+                        ContainerCpuCores = ContainerCpuCoresEnum.Two,
+                        ContainerInternalPort = 3344,
+                        ContainerRamGb = ContainerRamGbEnum.Five,
+                        ContainerInstanceLifetimeScheme = ContainerInstanceLifetimeSchemeEnum.Custom,
+                        ThursdayChecked = true,
+                        StartTime = TimeSpan.FromHours(8),
+                        EndTime = TimeSpan.FromHours(11),
+                    }),
+                };
+
+                int beforeCount = TestResources.DbContext.ContentPublicationRequest.Count();
+                #endregion
+
+                #region Act
+                var result = await controller.Publish(publishModel);
+                int AfterCount = TestResources.DbContext.ContentPublicationRequest.Count();
+                #endregion
+
+                #region Assert
+                Assert.Equal(beforeCount+1, AfterCount);
+                JsonResult jsonResult = Assert.IsType<JsonResult>(result);
+                RootContentItemDetail rootContentItemDetail = Assert.IsType<RootContentItemDetail>(jsonResult.Value);
+                ContainerizedContentPublicationProperties containerPubProperties = Assert.IsType<ContainerizedContentPublicationProperties>(rootContentItemDetail.TypeSpecificPublicationProperties);
                 #endregion
             }
         }

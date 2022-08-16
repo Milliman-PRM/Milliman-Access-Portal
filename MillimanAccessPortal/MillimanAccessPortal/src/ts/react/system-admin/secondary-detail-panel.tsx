@@ -4,8 +4,9 @@ import * as React from 'react';
 import { Toggle } from '../shared-components/form/toggle';
 import { Guid, QueryFilter } from '../shared-components/interfaces';
 import {
-  ClientDetailForProfitCenter, ClientDetailForUser, NestedList, RootContentItemDetailForClient,
-  RootContentItemDetailForUser, SecondaryDetail, UserDetailForClient, UserDetailForProfitCenter,
+  ClientDetailForProfitCenter, ClientDetailForUser, NestedList,
+  RootContentItemDetailForClient, RootContentItemDetailForUser, SecondaryDetail,
+  SelectionGroupListForContentItem, UserDetailForClient, UserDetailForProfitCenter,
 } from './interfaces';
 import { SystemAdminColumn, UserStatus } from './system-admin';
 import { UserStatusDisplay } from './user-status-display';
@@ -205,7 +206,7 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
                       <div className="detail-section">
                         <h3 className="detail-section-title">Selection Groups</h3>
                         <div className="nested-list-container">
-                          {this.renderNestedList(rootContentItemDetailForClient.selectionGroups)}
+                          {this.renderSelectionGroupList(rootContentItemDetailForClient.selectionGroups)}
                         </div>
                       </div>
                     </div>
@@ -358,6 +359,31 @@ export class SecondaryDetailPanel extends React.Component<SecondaryDetailPanelPr
           className="nested-list-section"
         >
           <h4 className="nested-list-section-title">{section.name} {cancelText}</h4>
+          {values}
+        </div>
+      );
+    });
+  }
+
+    private renderSelectionGroupList(list: SelectionGroupListForContentItem): JSX.Element[] {
+    return list.sections.map((section, i) => {
+      const values = section.users.map((user, j) => (
+        <div
+          key={j}
+          className="nested-list-value"
+        >{user}
+        </div>
+      ));
+      const suspended = section.suspended ? ' [Suspended]' : '';
+      return (
+        <div
+          key={i}
+          className="nested-list-section"
+        >
+          <h4 className="nested-list-section-title">
+            {section.name}
+            <span className="nested-list-suspended-label">{suspended}</span>
+          </h4>
           {values}
         </div>
       );

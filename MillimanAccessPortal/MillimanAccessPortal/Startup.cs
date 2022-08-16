@@ -32,6 +32,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Net.Http.Headers;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.ContentProxy;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.DataQueries.EntityQueries;
@@ -53,6 +54,7 @@ using System.Web;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
+using ContainerizedAppLib;
 
 namespace MillimanAccessPortal
 {
@@ -364,6 +366,7 @@ namespace MillimanAccessPortal
             services.Configure<PowerBiConfig>(Configuration);
             services.Configure<AuditLoggerConfiguration>(Configuration);
             services.Configure<SmtpConfig>(Configuration);
+            services.Configure<ContainerizedAppLibApiConfig>(Configuration);
 
             //services.AddMemoryCache();
             services.AddDistributedMemoryCache();
@@ -395,6 +398,11 @@ namespace MillimanAccessPortal
                 options.SerializerSettings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
             })
             .AddControllersAsServices();
+
+            // Add YARP proxy component for container content
+            services.AddReverseProxy()
+                    .AddMapProxyConfigProvider()
+                    .AddTransforms<MapContainerContentTransformProvider>();
 
             services.AddApplicationInsightsTelemetry(Configuration);
 
@@ -446,6 +454,8 @@ namespace MillimanAccessPortal
             services.AddHostedService<FileDropUploadProcessingHostedService>();
             services.AddSingleton<IFileDropUploadTaskTracker, FileDropUploadTaskTracker>();
             services.AddScoped<FileSystemTasks>();
+            services.AddSignalR(); //.AddJsonProtocol();
+            services.AddHostedService<ContainerInstanceMonitorHostedService>();
 
             string EnvironmentNameUpper = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT").ToUpper();
 
@@ -479,6 +489,7 @@ namespace MillimanAccessPortal
                 case "AZURE-DEV":
                 case "AZURE-UAT":
                 case "AZURE-PROD":
+                case "AZURE-DEVTEST":
                     Log.Debug("Configuring Data Protection");
 
                     DirectoryInfo azKeyDirectory = new DirectoryInfo(@"C:\temp-keys");
@@ -586,6 +597,18 @@ namespace MillimanAccessPortal
 
             app.UseSession();
 
+            app.Use(async (context, next) =>
+            {
+                if (GlobalFunctions.MapUriRoot is null)
+                {
+                    GlobalFunctions.MapUriRoot = context.Request.Host.Port.HasValue
+                                                 ? new UriBuilder(context.Request.Scheme, context.Request.Host.Host, context.Request.Host.Port.Value)
+                                                 : new UriBuilder(context.Request.Scheme, context.Request.Host.Host);
+                }
+
+                await next();
+            });
+
             // Redirect to the user agreement view if an authenticated user has not accepted. 
             app.Use(async (context, next) =>
             {
@@ -620,14 +643,9 @@ namespace MillimanAccessPortal
                 await next();
             });
 
-            // for debugging
-            app.Use(async (context, next) =>
-            {
-                await next();
-            });
-
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapReverseProxy(builder => { }) ;
                 endpoints.MapControllers();
                 endpoints.MapControllerRoute("default", "{controller=AuthorizedContent}/{action=Index}/{id?}");
                 //endpoints.MapRazorPages();

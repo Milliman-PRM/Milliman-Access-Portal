@@ -777,7 +777,7 @@ namespace MillimanAccessPortal.Controllers
                                                                         .AnyAsync(r => r.UserId != model.UserId);
                 if (!OtherAdminExists)
                 {
-                    Log.Debug($"In ClientAdminController.RemoveUserFromClient action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
+                    Log.Debug($"In ClientAdminController.SetUserRoleInClient action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
                     Response.Headers.Add("Warning", "Cannot remove the last client admin user role from the client");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }

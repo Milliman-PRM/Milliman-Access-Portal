@@ -15,6 +15,7 @@ export const contentTypeMap: { [name: string]: ContentTypeEnum } = {
   Pdf: ContentTypeEnum.Pdf,
   FileDownload: ContentTypeEnum.FileDownload,
   PowerBi: ContentTypeEnum.PowerBi,
+  ContainerApp: ContentTypeEnum.ContainerApp,
 };
 
 interface ContentContainerState {
@@ -74,6 +75,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
         sandboxValues = null;
         break;
       case ContentTypeEnum.PowerBi:
+      case ContentTypeEnum.ContainerApp:
         sandboxValues = 'allow-scripts allow-popups allow-modals allow-forms allow-same-origin allow-downloads';
         break;
       default:
@@ -96,7 +98,7 @@ export class ContentContainer extends React.Component<ContentContainerProps, Con
 
     return (
       <div className="iframe-container">
-        {this.state.isLoading && <ColumnSpinner />}
+        {(this.state.isLoading) && <ColumnSpinner />}
         {this.props.children}
         {frame}
       </div>

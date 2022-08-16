@@ -4,9 +4,9 @@
  * DEVELOPER NOTES: <What future developers need to know.>
  */
 
-using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using ContainerizedAppLib;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
 using MapDbContextLib.Context;
@@ -14,12 +14,17 @@ using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using MillimanAccessPortal.Authorization;
+using MillimanAccessPortal.ContentProxy;
 using MillimanAccessPortal.DataQueries;
 using MillimanAccessPortal.Models.AuthorizedContentViewModels;
 using MillimanAccessPortal.Models.SharedModels;
@@ -32,8 +37,13 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-
+using System.Security.Cryptography;
+using ContainerizedAppLib.AzureRestApiModels;
+using Yarp.ReverseProxy.Configuration;
+using System.Collections;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -46,9 +56,12 @@ namespace MillimanAccessPortal.Controllers
         private readonly IMessageQueue MessageQueue;
         private readonly PowerBiConfig _powerBiConfig;
         private readonly QlikviewConfig QlikviewConfig;
+        private readonly ContainerizedAppLibApiConfig _containerizedAppConfig;
         private readonly UserManager<ApplicationUser> UserManager;
         private readonly IConfiguration ApplicationConfig;
         private readonly AuthorizedContentQueries _authorizedContentQueries;
+        private readonly IServiceProvider _serviceProvider;
+        private readonly MapProxyConfigProvider _mapProxyConfigProvider;
 
         /// <summary>
         /// Constructor.  Makes instance copies of injected resources from the application. 
@@ -56,10 +69,15 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="AuditLoggerArg"></param>
         /// <param name="AuthorizationServiceArg"></param>
         /// <param name="DataContextArg"></param>
-        /// <param name="LoggerFactoryArg"></param>
+        /// <param name="MessageQueueArg"></param>
         /// <param name="QlikviewOptionsAccessorArg"></param>
         /// <param name="UserManagerArg"></param>
         /// <param name="AppConfigurationArg"></param>
+        /// <param name="powerBiConfigArg"></param>
+        /// <param name="containerizedAppConfigArg"></param>
+        /// <param name="AuthorizedContentQueriesArg"></param>
+        /// <param name="serviceProviderArg"></param>
+        /// <param name="mapProxyConfigProvider"></param>
         public AuthorizedContentController(
             IAuditLogger AuditLoggerArg,
             IAuthorizationService AuthorizationServiceArg,
@@ -69,7 +87,11 @@ namespace MillimanAccessPortal.Controllers
             UserManager<ApplicationUser> UserManagerArg,
             IConfiguration AppConfigurationArg,
             IOptions<PowerBiConfig> powerBiConfigArg,
-            AuthorizedContentQueries AuthorizedContentQueriesArg)
+            IOptions<ContainerizedAppLibApiConfig> containerizedAppConfigArg,
+            AuthorizedContentQueries AuthorizedContentQueriesArg,
+            IServiceProvider serviceProviderArg,
+            IProxyConfigProvider mapProxyConfigProvider
+            )
         {
             AuditLogger = AuditLoggerArg;
             AuthorizationService = AuthorizationServiceArg;
@@ -77,9 +99,12 @@ namespace MillimanAccessPortal.Controllers
             MessageQueue = MessageQueueArg;
             _powerBiConfig = powerBiConfigArg.Value;
             QlikviewConfig = QlikviewOptionsAccessorArg.Value;
+            _containerizedAppConfig = containerizedAppConfigArg.Value;
             UserManager = UserManagerArg;
             ApplicationConfig = AppConfigurationArg;
             _authorizedContentQueries = AuthorizedContentQueriesArg;
+            _serviceProvider = serviceProviderArg;
+            _mapProxyConfigProvider = (MapProxyConfigProvider)mapProxyConfigProvider;
         }
 
         /// <summary>
@@ -115,7 +140,6 @@ namespace MillimanAccessPortal.Controllers
         public async Task<IActionResult> Content()
         {
             Log.Verbose($"Entered {ControllerContext.ActionDescriptor.DisplayName} action");
-
             var model = await _authorizedContentQueries.GetAuthorizedContentViewModel(HttpContext);
 
             return Json(model);
@@ -166,8 +190,11 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             #region Content Disclaimer Verification
-            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer)
-                && !userInSelectionGroup.DisclaimerAccepted)
+            var disclaimerAcceptedTimeoutString = HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout") ?? "";
+            DateTime.TryParse(HttpContext.Session.GetString("contentDisclaimerAcceptedTimeout"), out DateTime disclaimerAcceptedTimeout);
+
+            if (!string.IsNullOrWhiteSpace(selectionGroup.RootContentItem.ContentDisclaimer) && (!userInSelectionGroup.DisclaimerAccepted || 
+                (selectionGroup.RootContentItem.ContentDisclaimerAlwaysShown && disclaimerAcceptedTimeout < DateTime.UtcNow)))
             {
                 var disclaimer = new ContentDisclaimerModel
                 {
@@ -177,12 +204,18 @@ namespace MillimanAccessPortal.Controllers
                     DisclaimerText = selectionGroup.RootContentItem.ContentDisclaimer,
                 };
                 AuditLogger.Log(AuditEventType.ContentDisclaimerPresented.ToEvent(
-                    userInSelectionGroup, userInSelectionGroup.SelectionGroup.RootContentItem, userInSelectionGroup.SelectionGroup.RootContentItem.Client, disclaimer.ValidationId, disclaimer.DisclaimerText), 
+                        userInSelectionGroup, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem, 
+                        userInSelectionGroup.SelectionGroup.RootContentItem.Client, 
+                        disclaimer.ValidationId, 
+                        disclaimer.DisclaimerText), 
                     currentUser.UserName, currentUser.Id);
 
                 return View("ContentDisclaimer", disclaimer);
             }
             #endregion
+            
+            HttpContext.Session.Remove("contentDisclaimerAcceptedTimeout");
 
             UriBuilder contentUrlBuilder = new UriBuilder
             {
@@ -214,6 +247,9 @@ namespace MillimanAccessPortal.Controllers
                 .Where(usg => usg.UserId == user.Id)
                 .Where(usg => usg.SelectionGroupId == selectionGroupId)
                 .FirstOrDefaultAsync();
+
+            var disclaimerAcceptedTimeout = DateTime.UtcNow.AddSeconds(2);
+            HttpContext.Session.SetString("contentDisclaimerAcceptedTimeout", disclaimerAcceptedTimeout.ToString());
 
             if (!userInSelectionGroup.DisclaimerAccepted)
             {
@@ -411,6 +447,12 @@ namespace MillimanAccessPortal.Controllers
                         Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning PowerBI URI {pbiContentUri.Uri.AbsoluteUri}");
                         return Redirect(pbiContentUri.Uri.AbsoluteUri);
 
+                    case ContentTypeEnum.ContainerApp:
+                        ContentSpecificHandler = new ContainerizedAppLibApi(_containerizedAppConfig);
+                        UriBuilder containerizedAppContentUri = await ContentSpecificHandler.GetContentUri(selectionGroup.Id.ToString(), HttpContext.User.Identity.Name, HttpContext.Request);
+                        Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: returning ContainerizedApp URI {containerizedAppContentUri.Uri.AbsoluteUri}");
+                        return Redirect(containerizedAppContentUri.Uri.AbsoluteUri);
+
                     default:
                         Log.Error($"In AuthorizedContentController.WebHostedContent action, unsupported content type <{selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}>, aborting");
                         return View("UserMessage", new UserMessageModel($"Display of an unsupported ContentType was requested: {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayNameString()}"));
@@ -572,6 +614,7 @@ namespace MillimanAccessPortal.Controllers
                                                        .Where(sg => sg.Id == group)
                                                        .SingleOrDefault();
 
+            #region Validation
             if (selectionGroup == null)
             {
                 Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
@@ -589,6 +632,7 @@ namespace MillimanAccessPortal.Controllers
                 Response.Headers.Add("Warning", $"The content could not be loaded.");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
+            #endregion
 
             PowerBiContentItemProperties embedProperties = selectionGroup.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
             List<string> roleList = null;
@@ -624,8 +668,255 @@ namespace MillimanAccessPortal.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while building return model");
+                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} Exception while preparing to launch the Power BI report");
                 throw;
+            }
+        }
+
+        public async Task<IActionResult> ContainerizedAppPreview(Guid publicationRequestId)
+        {
+            #region Authorization
+            var PubRequest = DataContext.ContentPublicationRequest.FirstOrDefault(r => r.Id == publicationRequestId);
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new RoleInRootContentItemRequirement(RoleEnum.ContentPublisher, PubRequest.RootContentItemId));
+            if (!Result1.Succeeded)
+            {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
+                Log.Information($"In {ControllerContext.ActionDescriptor.DisplayName}: authorization failed for user {User.Identity.Name}, "
+                    + $"content item {PubRequest.RootContentItemId}, role {RoleEnum.ContentPublisher}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentPublisher), currentUser.UserName, currentUser.Id);
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            RootContentItem contentItem = await DataContext.ContentPublicationRequest
+                                                           .Include(r => r.RootContentItem)
+                                                               .ThenInclude(c => c.ContentType)
+                                                           .Include(r => r.RootContentItem)
+                                                               .ThenInclude(rc => rc.Client)
+                                                                   .ThenInclude(cl => cl.ProfitCenter)
+                                                           .Where(r => r.Id == publicationRequestId)
+                                                           .Select(r => r.RootContentItem)
+                                                           .SingleOrDefaultAsync();
+
+            #region Validation
+            if (contentItem == null)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested publication request with ID {publicationRequestId} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (contentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {contentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (contentItem.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested publication request with ID {publicationRequestId} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
+
+            ContainerizedAppContentItemProperties containerContentItemProperties = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties ?? new ContainerizedAppContentItemProperties();
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = contentItem.Client.ProfitCenterId,
+                ProfitCenterName = contentItem.Client.ProfitCenter.Name,
+                ClientId = contentItem.ClientId,
+                ClientName = contentItem.Client.Name,
+                ContentItemId = contentItem.Id,
+                ContentItemName = contentItem.ContentName,
+                SelectionGroupId = null,
+                SelectionGroupName = null,
+                PublicationRequestId = publicationRequestId,
+                ContentToken = contentToken,
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
+        };
+
+            return await RequestStartContainer(publicationRequestId, contentItem, false, contentToken, resourceTags);
+        }
+
+        public async Task<IActionResult> ContainerizedApp(Guid group)
+        {
+            #region Authorization
+            AuthorizationResult Result1 = await AuthorizationService.AuthorizeAsync(User, null, new UserInSelectionGroupRequirement(group));
+            if (!Result1.Succeeded)
+            {
+                ApplicationUser currentUser = await UserManager.GetUserAsync(User);
+
+                Log.Verbose($"In {ControllerContext.ActionDescriptor.DisplayName} action: authorization failed for user {User.Identity.Name}, selection group {group}, aborting");
+                AuditLogger.Log(AuditEventType.Unauthorized.ToEvent(RoleEnum.ContentUser), currentUser.UserName, currentUser.Id);
+
+                Response.Headers.Add("Warning", $"You are not authorized to access the requested content");
+                return Unauthorized();
+            }
+            #endregion
+
+            SelectionGroup selectionGroup = DataContext.SelectionGroup
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.ContentType)
+                                                       .Include(g => g.RootContentItem)
+                                                           .ThenInclude(c => c.Client)
+                                                               .ThenInclude(cl => cl.ProfitCenter)
+                                                       .SingleOrDefault(g => g.Id == group);
+
+            #region Validation
+            if (selectionGroup == null)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} not found");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.RootContentItem.ContentType.TypeEnum != ContentTypeEnum.ContainerApp)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested content has invalid type {selectionGroup.RootContentItem.ContentType.TypeEnum.GetDisplayDescriptionString()}");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsInactive)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is inactive.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            if (selectionGroup.IsSuspended)
+            {
+                Log.Error($"In {ControllerContext.ActionDescriptor.DisplayName} requested selection group with ID {group} is suspended.");
+                Response.Headers.Add("Warning", $"The content could not be loaded.");
+                return StatusCode(StatusCodes.Status422UnprocessableEntity);
+            }
+            #endregion
+
+            string contentToken = GlobalFunctions.HexMd5String(group);
+
+            ContainerGroupResourceTags resourceTags = new()
+            {
+                ProfitCenterId = selectionGroup.RootContentItem.Client.ProfitCenterId,
+                ProfitCenterName = selectionGroup.RootContentItem.Client.ProfitCenter.Name,
+                ClientId = selectionGroup.RootContentItem.ClientId,
+                ClientName = selectionGroup.RootContentItem.Client.Name,
+                ContentItemId = selectionGroup.RootContentItem.Id,
+                ContentItemName = selectionGroup.RootContentItem.ContentName,
+                SelectionGroupId = selectionGroup.Id,
+                SelectionGroupName = selectionGroup.GroupName,
+                PublicationRequestId = null,
+                ContentToken = contentToken,
+                DatabaseId = DataContext.NameValueConfiguration.Single(c => c.Key == NewGuidValueKeys.DatabaseInstanceGuid.GetDisplayNameString(false)).Value,
+            };
+
+            return await RequestStartContainer(group, selectionGroup.RootContentItem, true, contentToken, resourceTags);
+        }
+
+        [NonAction]
+        private async Task<IActionResult> RequestStartContainer(Guid containerGroupNameGuid, RootContentItem contentItem, bool isLiveContent, string contentToken, ContainerGroupResourceTags resourceTags = null)
+        {
+            ContainerizedAppContentItemProperties typeSpecificInfo = contentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+
+            ContainerizedAppLibApi api = await new ContainerizedAppLibApi(_containerizedAppConfig).InitializeAsync(contentItem.AcrRepositoryName);
+            ContainerGroup_GetResponseModel containerGroupModel = await api.GetContainerGroupDetails(containerGroupNameGuid.ToString());
+
+            switch (containerGroupModel)
+            {
+                // running
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri != null:
+                    UriBuilder externalRequestUri = new UriBuilder
+                    {
+                        Scheme = Request.Scheme,
+                        Host = Request.Host.Host,
+                        Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1,
+                        Path = $"/{contentToken}/",  // must include trailing '/' character
+                    };
+
+                    // Add a new YARP route/cluster config
+                    _mapProxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
+
+                    return Redirect(externalRequestUri.Uri.AbsoluteUri);
+
+                // starting
+                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Uri == null:
+                case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
+                                                                 model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
+                    return View("WaitForContainer");
+
+                // stopped
+                case ContainerGroup_GetResponseModel model2 when model2.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Terminated"):
+                    await api.RestartContainerGroup(containerGroupModel.Name);
+
+                    return View("WaitForContainer");
+
+                // not found
+                case null:
+                    string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
+                    (string vnetId, string vnetName) = ipAddressType == "Public"
+                                                       ? (null, null)
+                                                       : (ApplicationConfig.GetValue<string>("ContainerContentVnetId"), ApplicationConfig.GetValue<string>("ContainerContentVnetName"));
+
+                    try
+                    {
+                        // Ensure that container lifetime management doesn't delete this while it's starting
+                        GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_, _) => DateTime.UtcNow);
+
+                        // Run a container based on the appropriate image
+                        string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
+                                                                     isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
+                                                                     ipAddressType,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerCpuCores : (int)typeSpecificInfo.PreviewContainerCpuCores,
+                                                                     isLiveContent ? (int)typeSpecificInfo.LiveContainerRamGb : (int)typeSpecificInfo.PreviewContainerRamGb,
+                                                                     resourceTags,
+                                                                     vnetId,
+                                                                     vnetName,
+                                                                     false,
+                                                                     new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                     isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
+                    }
+                    catch (ApplicationException ex)
+                    {
+                        switch (ex.Message)
+                        {
+                            case "ContainerGroupQuotaReached":
+                                string environmentName = _serviceProvider.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
+                                if (environmentName == "AZURE-PROD")
+                                {
+                                    var notifier = new NotifySupport(MessageQueue, ApplicationConfig);
+                                    notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupNameGuid.ToString(), contentItem.Client.Name, ex.Data);
+                                }
+                                break;
+                            default:
+                                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupNameGuid.ToString()}. Inner Exception: {Environment.NewLine}");
+                                Log.Error($"Exception Data Entries:");
+                                foreach (DictionaryEntry kvp in ex.Data)
+                                {
+                                    Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                }
+                                break;
+                        }
+
+                        UserMessageModel model = new UserMessageModel
+                        {
+                            PrimaryMessages =
+                            {
+                                "Something went wrong. Please contact your MAP Administrator",
+                                "Please click your browser's \"Back\" button or use a navigation button at the left.",
+                            },
+                            Buttons = new List<ConfiguredButton>(),
+                        };
+                        return View("UserMessage", model);
+                    }
+
+
+                    return View("WaitForContainer");
+
+                default:
+                    Log.Error($"**** Unsupported result returned from api.GetContainerGroupDetails: {JsonSerializer.Serialize(containerGroupModel)}");
+                    throw new ApplicationException("Check application log, Unsupported result returned from api.GetContainerGroupDetails");
             }
         }
 
