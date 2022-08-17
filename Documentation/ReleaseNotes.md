@@ -9,6 +9,7 @@
 - Fixed a bug that could prevent the deletion of a Client in some situations
 - Fixed a bug that could cause system errors if a username contains certain special characters
 - Added an option for content items to require users to accept the content disclaimer everytime they access it
+- Made a change allowing subclients of different top level clients to have the same name
 
 #### v1.16.3
 
