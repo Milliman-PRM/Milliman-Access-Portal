@@ -39,7 +39,6 @@ namespace MillimanAccessPortal
 {
     public class Program
     {
-
         public static async Task Main(string[] args)
         {
             var host = RunTimeBuildHost(args);
@@ -282,4 +281,3 @@ namespace MillimanAccessPortal
 
     }
 }
-
