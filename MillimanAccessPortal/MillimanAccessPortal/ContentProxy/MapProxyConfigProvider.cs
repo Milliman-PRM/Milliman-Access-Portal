@@ -12,24 +12,26 @@ namespace MillimanAccessPortal.ContentProxy
 {
     public class MapProxyConfigProvider : IProxyConfigProvider
     {
-        // private readonly IConfiguration _appConfiguration;
         private volatile MapProxyConfiguration _proxyConfig = new MapProxyConfiguration();
 
         // Implementation of the base interface signature
         public IProxyConfig GetConfig() => _proxyConfig;
 
-        // public MapProxyConfigProvider(IConfiguration appConfiguration)
-        // {
-        //     _appConfiguration = appConfiguration;
-        // }
-
-        public void UpdateConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters)
+        private void UpdateConfiguration(IReadOnlyList<RouteConfig>? routes, IReadOnlyList<ClusterConfig>? clusters, bool logNewConfig = true)
         {
-            MapProxyConfiguration? oldConfig = _proxyConfig;
-            _proxyConfig = new MapProxyConfiguration(routes, clusters);
-            oldConfig?.SignalChange();
+            lock(_proxyConfig)
+            {
+                MapProxyConfiguration? oldConfig = _proxyConfig;
+                _proxyConfig = new MapProxyConfiguration(routes, clusters);
+                oldConfig?.SignalChange();
 
-            Log.Information($"New Configuration:{Environment.NewLine}{JsonSerializer.Serialize(_proxyConfig)}");
+                if (logNewConfig)
+                {
+                    Log.Information($"New proxy configuration:{Environment.NewLine}" +
+                                    $"  {JsonSerializer.Serialize(_proxyConfig)}{Environment.NewLine}" +
+                                    $"  Route count changed by {_proxyConfig.Routes.Count - oldConfig.Routes.Count}, Cluster count changed by {_proxyConfig.Clusters.Count - oldConfig.Clusters.Count}");
+                }
+            }
         }
 
         public void RemoveExistingRoute(string contentToken)
@@ -114,16 +116,6 @@ namespace MillimanAccessPortal.ContentProxy
                 };
 
                 AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
-
-                try
-                {
-                    var cfg = JsonSerializer.Serialize(GetConfig(), new JsonSerializerOptions { WriteIndented=true });
-                    Log.Information($"New proxy configuration is{Environment.NewLine}{cfg}");
-                }
-                catch (Exception ex)
-                {
-                    string msg = ex.Message;
-                }
             }
         }
 
@@ -139,7 +131,7 @@ namespace MillimanAccessPortal.ContentProxy
                 }
                 else
                 {
-                    Log.Information($"From ProxyConfigProvider.OpenSession, add a RouteConfig with ID that already exists: {route.RouteId}");
+                    Log.Information($"From MapProxyConfigProvider.AddNewConfigs, will not add a RouteConfig with ID that is already configured: {route.RouteId}");
                 }
             }
 
@@ -147,6 +139,9 @@ namespace MillimanAccessPortal.ContentProxy
 
             if (cluster is not null)
             {
+                // The new cluster could be different (e.g. destination IP address) from an existing ClusterConfig with the same id
+                newClusters.RemoveAll(c => c.ClusterId == cluster.ClusterId);
+
                 newClusters.Add(cluster);
             }
 
