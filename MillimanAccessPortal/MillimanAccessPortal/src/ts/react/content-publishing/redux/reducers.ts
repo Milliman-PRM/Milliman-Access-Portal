@@ -610,7 +610,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme :
           emptyContentItemDetail.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
         allDaysChecked: action.response.typeSpecificPublicationProperties && (
-          action.response.typeSpecificPublicationProperties.allDaysChecked ||
+          action.response.typeSpecificPublicationProperties.allDaysChecked || (
             action.response.typeSpecificPublicationProperties.mondayChecked &&
             action.response.typeSpecificPublicationProperties.tuesdayChecked &&
             action.response.typeSpecificPublicationProperties.wednesdayChecked &&
@@ -618,7 +618,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
             action.response.typeSpecificPublicationProperties.fridayChecked &&
             action.response.typeSpecificPublicationProperties.saturdayChecked &&
             action.response.typeSpecificPublicationProperties.sundayChecked
-          ) ? true : emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
+          )) ? true : emptyContentItemDetail.typeSpecificPublicationProperties.allDaysChecked,
         mondayChecked: action.response.typeSpecificPublicationProperties &&
           action.response.typeSpecificPublicationProperties.mondayChecked ?
           action.response.typeSpecificPublicationProperties.mondayChecked :
