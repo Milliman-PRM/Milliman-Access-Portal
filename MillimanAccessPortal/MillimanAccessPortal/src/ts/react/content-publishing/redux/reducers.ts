@@ -609,8 +609,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme ?
           action.response.typeSpecificPublicationProperties.containerInstanceLifetimeScheme :
           emptyContentItemDetail.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
-        allDaysChecked: action.response.typeSpecificPublicationProperties &&
-          action.response.typeSpecificPublicationProperties.allDaysChecked || (
+        allDaysChecked: action.response.typeSpecificPublicationProperties && (
+          action.response.typeSpecificPublicationProperties.allDaysChecked ||
             action.response.typeSpecificPublicationProperties.mondayChecked &&
             action.response.typeSpecificPublicationProperties.tuesdayChecked &&
             action.response.typeSpecificPublicationProperties.wednesdayChecked &&
