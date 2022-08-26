@@ -100,6 +100,23 @@
                 Outside of these scheduled active hours, the container will be in a cold standby state that will require the user to wait for several minutes while the container is started.
             </p>
         </p>
+        <h3 class="subheading">Bundling a Containerized App for Upload in MAP</h3>
+        <p>
+            Containerized Apps must be bundled appropriately in a format that MAP accepts. You can bundle your Container App as a TAR file or a gzipped TAR file (.tar.gz), and then upload it in the Content Publishing page like any other content.</p>
+            <p>Bundling the application requires the use of <a href="https://docs.podman.io/">Podman</a>. Podman is a utility that serves as an open-source alternative to Docker, and can be used for building and running Containers in much the same way.</p>
+            <p>To bundle your image for MAP, <a href="https://podman.io/getting-started/installation">ensure you have Podman installed on your machine</a>, and then complete the following steps:</p>
+            <ol>
+                <li>In the root of your project, where your project's Dockerfile lives, build your image with Podman using the following command: <code>podman build -t YourImageName .</code></li>
+                <li>From a directory you'd like to store your bundled image, run the following command: <code>podman save -o YourImageName --format=docker-dir localhost/YourImageName</code></li>
+                <li>
+                    Then, create a TAR or gzipped TAR file of the new directory using your favorite archiving software, or by running the following commands:<br />
+                    <code>cd YourImageName</code><br />
+                    <code>tar cvf YourImageName.tar * # To create a .tar</code><br />
+                    <code>tar cvfz YourImageName.tar.gz * # To create a .tar.gz</code><br />
+                    We recommend bundling your application into a tar.gz for increased upload speeds when publishing to MAP.
+                </li>
+            </ol>
+        </p>
     </div>
     <div class="accordion">
         <p>Updating Existing Content</p>
