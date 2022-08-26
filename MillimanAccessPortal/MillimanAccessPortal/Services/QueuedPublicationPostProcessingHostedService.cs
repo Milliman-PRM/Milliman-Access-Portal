@@ -449,7 +449,7 @@ namespace MillimanAccessPortal.Services
                                                                          new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
-                            Log.Information($"Container instance started with URL: {containerUrl}");
+                            Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");
                         }
                         catch (Exception ex)
                         {

@@ -864,6 +864,7 @@ namespace MillimanAccessPortal.Controllers
                         GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 
                         // Run a container based on the appropriate image
+                        Log.Information($"Starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
                         string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                                      isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                                      isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,

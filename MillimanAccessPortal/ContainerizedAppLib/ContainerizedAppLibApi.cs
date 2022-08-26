@@ -508,6 +508,7 @@ namespace ContainerizedAppLib
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
+                Stopwatch localStopWatch = Stopwatch.StartNew();
            
                 bool createResult = await CreateContainerGroup(containerGroupName, 
                                                                imagePath, 
@@ -548,7 +549,9 @@ namespace ContainerizedAppLib
                     containerUri = containerGroupModel?.Uri;
                 }
 
-                Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
+                localStopWatch.Stop();
+                Log.Information($"After time {localStopWatch.Elapsed} " +
+                                $"containerGroup provisioning state {containerGroupProvisioningState}, " +
                                 $"instanceView state {containerGroupInstanceViewState}, " +
                                 $"URL {containerGroupModel?.Uri?.AbsoluteUri ?? ""}, " +
                                 $"containers states: <{string.Join(",", containerGroupModel?.Properties?.Containers?.Select(c => c.Properties.Instance_View?.CurrentState?.State) ?? new string[0])}>");
