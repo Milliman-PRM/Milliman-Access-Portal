@@ -86,9 +86,10 @@ namespace SftpServerLib
             {
                 RootDirectory = GlobalResources.GetConfigValue<string>("FileDropRoot"),
                 SSHCert = cert,
-                RuntimeLicense = GlobalResources.GetConfigValue("SftpServerRuntimeLicense", "31484E4641443153554232303232303231335241454E545032444D30474B303000000000000000003454444844434357000054454B385A533434424347330000"),
+                RuntimeLicense = GlobalResources.GetConfigValue<string>("SftpServerRuntimeLicense"),
             };
 
+            // arcfour algorithms were identified as weak during penetration tests
             string[] defaultEncryptionAlgorithms = _sftpServer.SSHEncryptionAlgorithms.Split(',');
             IEnumerable<string> algorithmsToRemove = defaultEncryptionAlgorithms.Where(a => a.Contains("arcfour", StringComparison.InvariantCultureIgnoreCase));
             _sftpServer.SSHEncryptionAlgorithms = string.Join(',', defaultEncryptionAlgorithms.Except(algorithmsToRemove));
