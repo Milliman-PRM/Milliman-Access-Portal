@@ -42,9 +42,9 @@ namespace SftpServer
             _SftpApi.Start(privateKeyBytes);
 
             var state = _SftpApi.ReportState();
-            Console.WriteLine($"SFTP server listening port: {state.LocalPort}");
-            Console.WriteLine($"SFTP server fingerprint: {state.Fingerprint}");
-            Console.WriteLine($"Supported SSL encryption algorithms: {state.SshEncryptionAlgorithms}");
+            Log.Information($"SFTP server listening port: {state.LocalPort}");
+            Log.Information($"SFTP server fingerprint: {state.Fingerprint}");
+            Log.Information($"Supported SSL encryption algorithms: {state.SshEncryptionAlgorithms}");
 
             Task KeyPressTask = Task.Run(() => CancelTokenOnConsoleKeyPress());
 
