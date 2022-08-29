@@ -1146,7 +1146,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
-                      <FormFlexContainer flexPhone={12} flexDesktop={4}>
+                      <FormFlexContainer flexPhone={12} flexDesktop={12}>
                         <div>
                           <h4>
                             Pre-scheduled hot times
@@ -1177,7 +1177,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             readOnly={formState === 'read'}
                           />
                         </div>
-                      </ FormFlexContainer>
+                      </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
                       {pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
                         === ContainerInstanceLifetimeSchemeEnum.Custom &&
                       <>
@@ -1312,7 +1314,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             </div>
                           </div>
                         </FormFlexContainer>
-                        <FormFlexContainer flexPhone={12} flexDesktop={4} block={true}>
+                        <FormFlexContainer flexPhone={12} flexDesktop={8} block={true}>
                           <FormSection>
                             <FormSectionRow>
                               <h4>
