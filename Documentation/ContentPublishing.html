@@ -79,8 +79,8 @@
                 This number should be set based on the specific memory needs of the container, along with expected utilization.
             </p>
             <p>
-                <b>Internal Port</b>: Indicates the port that is exposed on the container for accessing the application within. This values is set in the Dockerfile that is used to define the container image.
-                The internal port number can be found in the Dockerfile after the keyword EXPOSE <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
+                <b>Internal Port</b>: Indicates the port that is exposed on the container for accessing the application within. This value is set in the Dockerfile/Containerfile that is used to define the container image.
+                The internal port number can be found in the Dockerfile/Containerfile after the keyword EXPOSE <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
             </p>
         </p>
         <h3 class="subheading">Container Lifetime</h3>
@@ -106,7 +106,7 @@
             <p>Bundling the application requires the use of <a href="https://docs.podman.io/">Podman</a>. Podman is a utility that serves as an open-source alternative to Docker, and can be used for building and running Containers in much the same way.</p>
             <p>To bundle your image for MAP, <a href="https://podman.io/getting-started/installation">ensure you have Podman installed on your machine</a>, and then complete the following steps:</p>
             <ol>
-                <li>In the root of your project, where your project's Dockerfile lives, build your image with Podman using the following command: <code>podman build -t YourImageName .</code></li>
+                <li>In the root of your project, where your project's Dockerfile/Containerfile lives, build your image with Podman using the following command: <code>podman build -t YourImageName .</code></li>
                 <li>From a directory you'd like to store your bundled image, run the following command: <code>podman save -o YourImageName --format=docker-dir localhost/YourImageName</code></li>
                 <li>
                     Then, create a TAR or gzipped TAR file of the new directory using your favorite archiving software, or by running the following commands:<br />
