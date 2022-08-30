@@ -117,6 +117,24 @@
                 </li>
             </ol>
         </p>
+        <h3 class="subheading">Websocket Considerations</h3>
+        <p>
+            <p>Applications with architectures that utilize <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API">websockets</a> (such as R Shiny or Blazor) as their primary method of communicating requests may require some additional considerations.</p>
+            <p><b>Keeping the Containerized Application from Shutting Down</b></p>
+            <p>For Containerized Apps with the <b>Always Cold</b> lifecycle option selected, applications which utilize websockets will spin down after the cooldown period has elapsed <i>since the last User opened the Content Item.</i> This is due to the fact that MAP keeps applications in use from shutting down by monitoring requests coming to/from the application, but MAP cannot keep track of messages coming across websockets.</p>
+            <p>To remedy Containerized Apps shutting down while in use, we recommend the following remediations:</p>
+            <ul>
+                <li>Periodically close and reopen the application to ensure it does not shut down while in use. Reopening the application will ensure that a new connection has been established, which will reset the amount of time until MAP shuts it down back to the cooldown time amount.</li>
+                <li>Increase the amount of cooldown time for the Content Item publicatino.</li>
+                <li>Transition your Content Item to use a custom lifecycle method, and set appropriate hours for which the Content Item will always be kept alive regardless of User activity.</li>
+            </ul>
+            <br />
+            <p><b>Adding a Keep-Alive to Your Application</b></p>
+            <p>Certain applications which utilize websockets will stop working after a certain period of inactivity due to the websocket timing out. The actual amount of time depends on the type of application.</p>
+            <p>We recommend inserting code into your application which will periodically send a message across the websocket, regardless of any User activity in the application, in order to ensure the websocket stays alive.</p>
+            <p>Please reach out to the <a href="emailto:map.support@milliman.com">MAP support team</a> to learn more.</p>
+            <p>Note: This is different than the above issue, in which Applications are actually <b>stopped</b> and may take time to start back up. If your application stops working due to a websocket timeout, you should be able to refresh the page and get a fresh connection relatively quickly.</p>
+        </p>
     </div>
     <div class="accordion">
         <p>Updating Existing Content</p>
