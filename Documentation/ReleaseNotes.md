@@ -10,6 +10,7 @@
 - Fixed a bug that could cause system errors if a username contains certain special characters
 - Added an option for content items to require users to accept the content disclaimer everytime they access it
 - Made a change allowing subclients of different top level clients to have the same name
+- Fixed a bug which prevented renaming or moving directories in File Drops while using 3rd-party SFTP clients 
 
 #### v1.16.3
 
