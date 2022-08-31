@@ -569,8 +569,11 @@ namespace FileDropLib
 
                     if (sftpStatus == 0)
                     {
-                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
-                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
+                        // Canonical paths will be different based on which application caused the firing of this event.
+                        // For File Drop usage in MAP: Convert the existing relative path (pre-pended with a forward /) to a canonical path
+                        // For 3rd-party SFTP Clients: Simply use the supplied oldPath/newPath, which are already canonical to the File Drop in use
+                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath))) ?? oldPath;
+                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath))) ?? newPath;
 
                         List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
                                                                                  .Where(d => d.FileDropId == fileDropId)
