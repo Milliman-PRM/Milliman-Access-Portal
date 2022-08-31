@@ -19,7 +19,7 @@ namespace SftpServer
     {
         static readonly CancellationTokenSource Cts = new CancellationTokenSource();
 
-        static SftpLibApi _SftpApi = null;
+        // static SftpLibApi _SftpApi = null;
 
         static async Task Main(string[] args)
         {
@@ -34,17 +34,17 @@ namespace SftpServer
 
             GlobalResources.LoadConfiguration();
 
-            _SftpApi = SftpLibApi.NewInstance();
+            //_SftpApi = SftpLibApi.NewInstance();
 
-            string privateKeyString = GlobalResources.GetConfigValue<string>("SftpServerPrivateKey").Replace(@"\n", "\n");
-            byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
+            //string privateKeyString = GlobalResources.GetConfigValue<string>("SftpServerPrivateKey").Replace(@"\n", "\n");
+            //byte[] privateKeyBytes = Encoding.UTF8.GetBytes(privateKeyString);
 
-            _SftpApi.Start(privateKeyBytes);
+            //_SftpApi.Start(privateKeyBytes);
 
-            var state = _SftpApi.ReportState();
-            Log.Information($"SFTP server listening port: {state.LocalPort}");
-            Log.Information($"SFTP server fingerprint: {state.Fingerprint}");
-            Log.Information($"Supported SSL encryption algorithms: {state.SshEncryptionAlgorithms}");
+            //var state = _SftpApi.ReportState();
+            //Log.Information($"SFTP server listening port: {state.LocalPort}");
+            //Log.Information($"SFTP server fingerprint: {state.Fingerprint}");
+            //Log.Information($"Supported SSL encryption algorithms: {state.SshEncryptionAlgorithms}");
 
             Task KeyPressTask = Task.Run(() => CancelTokenOnConsoleKeyPress());
 
@@ -55,8 +55,8 @@ namespace SftpServer
             }
             catch (TaskCanceledException)
             {
-                _SftpApi.Stop();
-                _SftpApi = null;
+                // _SftpApi.Stop();
+                // _SftpApi = null;
             }
             catch (Exception ex)
             {
