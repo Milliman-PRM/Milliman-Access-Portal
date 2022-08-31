@@ -108,7 +108,8 @@ namespace SftpServerLib
                 InitializeSerilog(ApplicationConfiguration);
             }
 
-            // ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder, ApplicationConfiguration, ConfigurationDumper.DumpTarget.Console);
+            string cfgString = MapCommonLib.ConfigurationDumper.DumpConfigurationDetails(EnvironmentName, CfgBuilder);
+            Log.Information(cfgString);
         }
 
         private static void AddEnvironmentSuppliedConfigurationOverrides(IConfigurationBuilder appCfgBuilder)
