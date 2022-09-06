@@ -78,6 +78,8 @@ namespace MillimanAccessPortal.Services
                                                                                                 .Include(p => p.RootContentItem)
                                                                                                     .ThenInclude(rc => rc.Client)
                                                                                                         .ThenInclude(c => c.ProfitCenter)
+                                                                                                .Include(p => p.RootContentItem)
+                                                                                                    .ThenInclude(rci => rci.ContentType)
                                                                                                 .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
                                                                                                 .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
                                                                                                 // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
