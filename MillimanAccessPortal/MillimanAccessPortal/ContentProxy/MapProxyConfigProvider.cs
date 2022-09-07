@@ -95,6 +95,48 @@ namespace MillimanAccessPortal.ContentProxy
                        },
             };
 
+
+            // ALL THIS IS NEW
+            // Problem: When a Container gets spun-up even though it already has routes/clusters defined in 
+            // memory, we don't update the Cluster with the new internal URI because we don't create
+            // a new cluster from scratch.
+            //
+            // Proposed fix: Remove the existing Cluster's address and replace with updated internal URI from Azure
+            // Alternative: Just replace all the routes and clusters altogether (might be necessary, because I can't seem to change a Cluster's DestinationAddress object without creating a new one altoghether)
+            if (_proxyConfig.Routes.Any(r => r.Match.Path?.Equals(newPathRoute.Match.Path) ?? false))
+            {
+                var overwrittenRoutes = _proxyConfig.Routes.Where(r => r.Match.Path?.Equals(newPathRoute.Match.Path) ?? false).ToList();
+                foreach (var route in overwrittenRoutes) // Here be Spaghetti.
+                {
+                    var routeCluster = _proxyConfig.Clusters.SingleOrDefault(c => c.ClusterId == route.ClusterId);
+                    if (routeCluster is not null)
+                    {
+                        routeCluster.Destinations.TryGetValue("destination1", out DestinationConfig destinationConfig);
+                        if (destinationConfig is not null)
+                        {
+                            ClusterConfig newCluster = new ClusterConfig
+                            {
+                                ClusterId = contentToken,
+                                Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                                    { {
+                                            "destination1",
+                                            new DestinationConfig
+                                            {
+                                                Address = internalUri,
+                                            }
+                                    } },
+                                Metadata = new Dictionary<string, string>
+                                   {
+                                       { "ContentToken", contentToken },
+                                   },
+                            };
+
+                            AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
+                        }
+                    }
+                }
+            }
+
             // TODO this if statement needs some attention
             if (!_proxyConfig.Routes.Any(r => r.Match.Path?.Equals(newPathRoute.Match.Path) ?? false))
             {
