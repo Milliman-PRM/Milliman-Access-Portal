@@ -95,13 +95,10 @@ namespace MillimanAccessPortal.ContentProxy
                        },
             };
 
-            // TODO this if statement needs some attention
-            if (!_proxyConfig.Routes.Any(r => r.Match.Path?.Equals(newPathRoute.Match.Path) ?? false))
+            ClusterConfig newCluster = new ClusterConfig
             {
-                ClusterConfig newCluster = new ClusterConfig
-                {
-                    ClusterId = contentToken,
-                    Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
+                ClusterId = contentToken,
+                Destinations = new Dictionary<string, DestinationConfig>(StringComparer.OrdinalIgnoreCase)
                         { {
                                 "destination1",
                                 new DestinationConfig
@@ -109,39 +106,29 @@ namespace MillimanAccessPortal.ContentProxy
                                     Address = internalUri,
                                 }
                         } },
-                    Metadata = new Dictionary<string, string>
+                Metadata = new Dictionary<string, string>
                        {
                            { "ContentToken", contentToken },
                        },
-                };
+            };
 
-                AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
-            }
+            AddNewConfigs(new[] { newPathRoute, newRefererRoute }, newCluster);
         }
 
         private void AddNewConfigs(IEnumerable<RouteConfig> routes, ClusterConfig? cluster)
         {
             List<RouteConfig> newRoutes = _proxyConfig.Routes.ToList();
-
             foreach (var route in routes)
             {
-                if (!newRoutes.Any(r => r.RouteId.Equals(route.RouteId, StringComparison.OrdinalIgnoreCase)))
-                {
-                    newRoutes.Add(route);
-                }
-                else
-                {
-                    Log.Information($"From MapProxyConfigProvider.AddNewConfigs, will not add a RouteConfig with ID that is already configured: {route.RouteId}");
-                }
+                newRoutes.RemoveAll(r => r.RouteId.Equals(route.RouteId));
+                newRoutes.Add(route);
             }
 
             List<ClusterConfig> newClusters = _proxyConfig.Clusters.ToList();
-
             if (cluster is not null)
             {
                 // The new cluster could be different (e.g. destination IP address) from an existing ClusterConfig with the same id
-                newClusters.RemoveAll(c => c.ClusterId == cluster.ClusterId);
-
+                newClusters.RemoveAll(c => c.ClusterId.Equals(cluster.ClusterId));
                 newClusters.Add(cluster);
             }
 
