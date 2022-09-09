@@ -502,14 +502,14 @@ else {
     exit $error_code
 }
 
-log_statement "Creating Octopus release for SFTP Server"
-octo create-release --project "SFTP Server" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
+log_statement "Creating Octopus release for SFTP Server Podman"
+octo create-release --project "SFTP Server Podman" --space "Spaces-2" --channel $channelName --version $webVersion --packageVersion $webVersion --ignoreexisting --apiKey "$octopusAPIKey" --server $octopusURL
 if ($LASTEXITCODE -eq 0) {
-    log_statement "SFTP Server release created successfully"
+    log_statement "SFTP Server Podman release created successfully"
 }
 else {
     $error_code = $LASTEXITCODE
-    log_statement "ERROR: Failed to create Octopus release for the SFTP Server project"
+    log_statement "ERROR: Failed to create Octopus release for the SFTP Server Podman project"
     log_statement "errorlevel was $LASTEXITCODE"
     exit $error_code
 }
