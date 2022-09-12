@@ -78,6 +78,8 @@ namespace MillimanAccessPortal.Services
                                                                                                 .Include(p => p.RootContentItem)
                                                                                                     .ThenInclude(rc => rc.Client)
                                                                                                         .ThenInclude(c => c.ProfitCenter)
+                                                                                                .Include(p => p.RootContentItem)
+                                                                                                    .ThenInclude(rci => rci.ContentType)
                                                                                                 .Where(p => p.RootContentItem.ContentType.TypeEnum == ContentTypeEnum.ContainerApp)
                                                                                                 .Where(p => PublicationStatusExtensions.ActiveStatuses.Contains(p.RequestStatus))
                                                                                                 // .Where(p => p.CreateDateTimeUtc > DateTime.UtcNow - TimeSpan.FromDays(7))   TODO is this a good idea?
@@ -314,7 +316,7 @@ namespace MillimanAccessPortal.Services
 
                 GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_,_) => DateTime.UtcNow);
 
-                GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting new container instance for content item {contentItem.ContentName}, container name {containerGroupNameGuid}");
+                Log.Information($"Starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
                 string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                              isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                              isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
@@ -328,7 +330,7 @@ namespace MillimanAccessPortal.Services
                                                              new Dictionary<string, string> { { "PathBase", contentToken } },
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
-                Log.Information($"Container instance started with URL: {containerUrl}");
+                Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");
             }
             catch { }
         }
