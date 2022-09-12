@@ -62,7 +62,6 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return JsonConvert.DeserializeObject<PowerBiSelectionGroupProperties>(TypeSpecificDetail, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Include });
-
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
@@ -100,7 +99,6 @@ namespace MapDbContextLib.Context
                 {
                     case ContentTypeEnum.PowerBi:
                         return typeof(PowerBiSelectionGroupProperties);
-
                     case ContentTypeEnum.Qlikview:
                     case ContentTypeEnum.Pdf:
                     case ContentTypeEnum.Html:
@@ -114,9 +112,15 @@ namespace MapDbContextLib.Context
         [NotMapped]
         public bool IsInactive { get => string.IsNullOrWhiteSpace(ContentInstanceUrl); }
 
+        /// <summary>
+        /// Evaluation of this property requires values for the navigation properties RootContentItem.ContentType
+        /// </summary>
         [NotMapped]
         public bool IsEditablePowerBiEligible { get => RootContentItem.ContentType.TypeEnum == ContentTypeEnum.PowerBi && (RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties).EditableEnabled; }
 
+        /// <summary>
+        /// Evaluation of this property requires values for the navigation properties RootContentItem.ContentType
+        /// </summary>
         [NotMapped]
         public bool Editable
         {
@@ -166,6 +170,10 @@ namespace MapDbContextLib.Context
                 case ContentTypeEnum.PowerBi:
                     PowerBiContentItemProperties props = RootContentItem?.TypeSpecificDetailObject as PowerBiContentItemProperties;
                     ContentInstanceUrl = (props?.LiveReportId ?? Guid.Empty).ToString();
+                    return;
+
+                case ContentTypeEnum.ContainerApp:
+                    ContentInstanceUrl = "Generated on demand";
                     return;
 
                 default:

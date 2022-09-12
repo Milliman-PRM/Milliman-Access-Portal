@@ -777,7 +777,7 @@ namespace MillimanAccessPortal.Controllers
                                                                         .AnyAsync(r => r.UserId != model.UserId);
                 if (!OtherAdminExists)
                 {
-                    Log.Debug($"In ClientAdminController.RemoveUserFromClient action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
+                    Log.Debug($"In ClientAdminController.SetUserRoleInClient action: unable to remove requested user {model.UserId} from client {model.ClientId}.  User is the sole client administrator");
                     Response.Headers.Add("Warning", "Cannot remove the last client admin user role from the client");
                     return StatusCode(StatusCodes.Status422UnprocessableEntity);
                 }
@@ -1142,11 +1142,20 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // Name must be unique
-            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name))
+            // Name must be unique among parents, if the new client is a parent, or among child clients of the mutual parent if new client is a child
+            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name && c.ParentClientId == Model.ParentClientId))
             {
-                Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another client");
-                Response.Headers.Add("Warning", $"The client name already exists for another client: ({Model.Name})");
+                if (Model.ParentClientId == null)
+                {
+                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another client");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists for another client. Please choose a different name");
+                }
+                else
+                {
+                    Log.Debug($"In ClientAdminController.SaveNewClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists under this client. Please choose a different name.");
+                }
+
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
@@ -1289,10 +1298,6 @@ namespace MillimanAccessPortal.Controllers
                     return Unauthorized();
                 }
             }
-            else
-            {
-                // 
-            }
             #endregion Authorization
 
             #region Validation
@@ -1366,12 +1371,21 @@ namespace MillimanAccessPortal.Controllers
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
-            // Name must be unique
-            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name && 
+            // Name must be unique among parents, if the new client is a parent, or among child clients of the mutual parent if new client is a child
+            if (await DbContext.Client.AnyAsync(c => c.Name == Model.Name &&
+                                                     c.ParentClientId == Model.ParentClientId &&
                                                      c.Id != Model.Id))
             {
-                Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use");
-                Response.Headers.Add("Warning", $"The client name ({Model.Name}) already exists for another client.");
+                if (Model.ParentClientId == null)
+                {
+                    Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use by another client");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists for another client. Please choose a different name");
+                }
+                else
+                {
+                    Log.Debug($"In ClientAdminController.EditClient action: requested client name {Model.Name} already in use by another child of the parent client {Model.ParentClient}");
+                    Response.Headers.Add("Warning", $"That name ({Model.Name}) already exists under this client. Please choose a different name.");
+                }
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
             #endregion Validation
@@ -1397,8 +1411,9 @@ namespace MillimanAccessPortal.Controllers
                             IActionResult result = await RemoveUserFromClient(new ClientUserAssociationViewModel { UserId = ClientMemberUser.Id, ClientId = Model.Id });
 
                             if (result.GetType() != typeof(JsonResult))
-                            {
-                                Log.Information($"In ClientAdminController.EditClient action: failed to remove user from client in response to modified email whitelist");
+                            {  
+                                Log.Information("In ClientAdminController.EditClient action: failed to remove user from client in response to modified domain whitelist");
+                                Response.Headers.Add("Warning", "This change could not be processed because one or more users are currently associated with this client that must be removed before this change can be made.");
                                 await Tx.RollbackAsync();
                                 return result;
                             }
@@ -1526,10 +1541,11 @@ namespace MillimanAccessPortal.Controllers
 
                     foreach (ApplicationUser user in AllClientUsers)
                     {
-                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id }, true);
+                        await RemoveUserFromClient(new ClientUserAssociationViewModel { ClientId = ExistingClient.Id, UserId = user.Id, Reason = HitrustReason.ClientRemoval.NumericValue }, true);
                     }
 
                     // Remove the client
+                    await DbContext.Entry(ExistingClient).ReloadAsync();
                     DbContext.Client.Remove(ExistingClient);
 
                     await DbContext.SaveChangesAsync();

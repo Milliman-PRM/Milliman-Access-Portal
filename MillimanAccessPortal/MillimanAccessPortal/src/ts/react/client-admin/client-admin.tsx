@@ -532,7 +532,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailDomainList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
@@ -577,7 +579,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                                   field: 'acceptedEmailAddressExceptionList',
                                   value: item,
                                 });
+                                return true;
                               }
+                              return false;
                             }}
                             removeItemCallback={(index: number) => {
                               this.props.setFormFieldValue({
@@ -982,6 +986,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                     <div>
                       <Checkbox
                         name={'Client Admin'}
+                        hoverText={'Enables the ability to create, edit, delete, and view' +
+                          ' Client information, manage the membership of Users of the Client, ' +
+                          'and manage each member User\'s roles for the Client.'}
                         selected={this.isRoleSelected(RoleEnum.Admin, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {
@@ -991,6 +998,8 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       />
                       <Checkbox
                         name={'Content Access Admin'}
+                        hoverText={'Enables the ability to grant or revoke access to specific ' +
+                                   'content items by member Users that have the Content User role.'}
                         selected={this.isRoleSelected(RoleEnum.ContentAccessAdmin, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {
@@ -1003,6 +1012,7 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       />
                       <Checkbox
                         name={'Content Publisher'}
+                        hoverText={'Enables the ability to publish content for the Client.'}
                         selected={this.isRoleSelected(RoleEnum.ContentPublisher, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {
@@ -1015,6 +1025,9 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       />
                       <Checkbox
                         name={'Content User'}
+                        hoverText={'Makes the User eligible to be granted access to Content of the ' +
+                          'Client. Note that a User with the Content Access Admin role still has to authorize ' +
+                          'this User to specific items of Content before Content can be accessed.'}
                         selected={this.isRoleSelected(RoleEnum.ContentUser, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {
@@ -1027,6 +1040,10 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       />
                       <Checkbox
                         name={'File Drop Admin'}
+                        hoverText={'Enables the ability to create, delete, and view File Drops of the Client, ' +
+                          'create and delete user groups for a File Drop, assign read, write, and delete permission ' +
+                          'to each user group, and manage user membership of each user group. This role also ' +
+                          'enables viewing and export of the activity log for the File Drop.'}
                         selected={this.isRoleSelected(RoleEnum.FileDropAdmin, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {
@@ -1039,6 +1056,11 @@ class ClientAdmin extends React.Component<ClientAdminProps & typeof AccessAction
                       />
                       <Checkbox
                         name={'File Drop User'}
+                        hoverText={'Enables the ability to upload, download, delete, rename, and move files and ' +
+                          'folders in the File Drop, and to perform equivalent actions through the SFTP protocol, ' +
+                          'all subject to read, write, and delete permissions as granted by a User with File Drop ' +
+                          'Admin role. This role also enables the User to generate a new SFTP authentication ' +
+                          'password (passwords expire periodically).'}
                         selected={this.isRoleSelected(RoleEnum.FileDropUser, entity, selected.user,
                           pending.roles.roleAssignments)}
                         onChange={(checked) => {

@@ -26,6 +26,7 @@ module.exports = {
     'update-user-agreement': './src/ts/react/system-admin/update-user-agreement/index.tsx',
     'user-agreement': './src/ts/user-agreement.ts',
     'user-agreement-read-only': './src/ts/user-agreement-read-only.ts',
+    'wait-for-container': './src/ts/wait-for-container.ts',
   },
   output: {
     path: path.resolve(__dirname, 'wwwroot'),
@@ -250,6 +251,13 @@ module.exports = {
       template: path.resolve(__dirname, 'ViewTemplates', 'Account', 'UserAgreementReadOnly.cshtml.template'),
       inject: false,
       chunks: ['commons', 'user-agreement-read-only'],
+      minify: false,
+    }),
+    new HtmlWebpackPlugin({
+      filename: path.resolve(__dirname, 'Views', 'AuthorizedContent', 'WaitForContainer.cshtml'),
+      template: path.resolve(__dirname, 'ViewTemplates', 'AuthorizedContent', 'WaitForContainer.cshtml.template'),
+      inject: false,
+      chunks: ['commons', 'wait-for-container'],
       minify: false,
     }),
   ],

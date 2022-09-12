@@ -7,6 +7,7 @@
 using AuditLogLib.Event;
 using AuditLogLib.Models;
 using AuditLogLib.Services;
+using MapCommonLib;
 using MapDbContextLib.Context;
 using MapDbContextLib.Identity;
 using MapDbContextLib.Models;
@@ -707,7 +708,7 @@ namespace MillimanAccessPortal.DataQueries
                                                     .Include(d => d.ChildDirectories)
                                                     .Include(d => d.Files)
                                                     .Where(d => d.FileDropId == fileDropId)
-                                                    .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, canonicalPath))
+                                                    .Where(d => EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(canonicalPath)))
                                                     .SingleOrDefaultAsync();
 
                 try

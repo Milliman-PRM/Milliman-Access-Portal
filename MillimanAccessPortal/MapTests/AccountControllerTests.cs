@@ -50,7 +50,8 @@ namespace MapTests
                 testResources.AuthorizationService,
                 testResources.Configuration,
                 testResources.ScopedServiceProvider,
-                testResources.AuthenticationService)
+                testResources.AuthenticationService,
+                testResources.ContainerizedAppConfig)
                 ;
 
             UriBuilder uriBuilder = new UriBuilder

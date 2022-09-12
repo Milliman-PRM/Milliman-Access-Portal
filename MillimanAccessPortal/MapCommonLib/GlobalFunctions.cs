@@ -1,7 +1,10 @@
-﻿using Serilog;
+﻿using ICSharpCode.SharpZipLib.GZip;
+using ICSharpCode.SharpZipLib.Tar;
+using Serilog;
 using Serilog.Events;
 using System;
 using System.Collections.Generic;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
@@ -25,6 +28,7 @@ namespace MapCommonLib
         public static string MillimanSupportEmailAlias { get; set; } = "";
         public static List<string> NonLimitedDomains { get; set; } = new List<string> { "milliman.com" };
         public static List<string> ProhibitedDomains { get; set; } = new List<string> { "hotmail.com" };
+        public static ConcurrentDictionary<string,DateTime> ContainerLastActivity { get; set; } = new ConcurrentDictionary<string,DateTime>();
 
         public static readonly int fallbackPasswordHistoryDays = 30;
         public static readonly int fallbackPasswordHashingIterations= 100_000;
@@ -35,6 +39,8 @@ namespace MapCommonLib
         public static readonly string TwoFactorEmailTokenProviderName = "TwoFactorEmailTokenProvider";
 
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
+
+        public static UriBuilder MapUriRoot { get; set; }
 
         public static bool IsValidEmail(string TestAddress)
         {
@@ -202,6 +208,106 @@ namespace MapCommonLib
 
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
         }
+
+        public static string EscapePgWildcards(string original)
+        {
+            return EscapePgWildcards(original, '\\');
+        }
+
+        public static string EscapePgWildcards(string original, char escapeChar = '\\')
+        {
+            return original.Replace("_", escapeChar + "_")
+                           .Replace("%", escapeChar + "%");
+        }
+
+        /// <summary>
+        /// Returns an MD5 hash of the input source byte array
+        /// </summary>
+        /// <param name="source">array of bytes to be hashed</param>
+        /// <param name="forceCase">true for upper case, false for lower case, null for no intervention</param>
+        /// <returns></returns>
+        public static string HexMd5String(byte[] source, bool? forceCase = null)
+        {
+#if NETSTANDARD
+            byte[] hashBytes = MD5.Create().ComputeHash(source);
+            string returnVal = BitConverter.ToString(hashBytes).Replace("-", "");
+#else
+            // These lines are better but the methods are not supported in NETSTANDARD.  Eventually all our libraries should target .net 5+
+            byte[] hashBytes = MD5.HashData(source);
+            string returnVal = Convert.ToHexString(hashBytes);
+#endif
+            if (forceCase.HasValue)
+            {
+                returnVal = forceCase.Value switch
+                {
+                    true => returnVal.ToUpper(),
+                    false => returnVal.ToLower()
+                };
+            }
+
+            return returnVal;
+        }
+
+        /// <summary>
+        /// Returns an MD5 hash of the input source byte array
+        /// </summary>
+        /// <param name="source">array of bytes to be hashed</param>
+        /// <param name="forceCase">true for upper case, false for lower case, null for no intervention</param>
+        /// <returns></returns>
+        public static string HexMd5String(Guid guid, bool? forceCase = null)
+        {
+            return HexMd5String(guid.ToByteArray(), forceCase);    
+        }
+
+        /// <summary>
+        /// Extracts all contents of a tar file to a folder.  The file may be gzip compressed.  The archive file is not deleted. 
+        /// The tar file should use only ASCII encoding in the name fields.
+        /// </summary>
+        /// <param name="fileFullPath">Filename extension must be .tar or .gz</param>
+        /// <param name="targetFolder">If not provided, the contents will be extracted to the folder containing the tar file</param>
+        /// <exception cref="FileNotFoundException"></exception>
+        /// <exception cref="DirectoryNotFoundException"></exception>
+        /// <exception cref="ArgumentException"></exception>
+        public static void ExtractFromTar(string fileFullPath, string targetFolder = null)
+        {
+            if (!File.Exists(fileFullPath))
+            {
+                throw new FileNotFoundException("Unable to extract archive, not found", fileFullPath);
+            }
+
+            targetFolder = targetFolder ?? Path.GetDirectoryName(fileFullPath);
+
+            if (!Directory.Exists(targetFolder))
+            {
+                throw new DirectoryNotFoundException($"Unable to extract archive to folder, target folder <{targetFolder}> not found");
+            }
+
+            using (Stream rawFileStream = File.OpenRead(fileFullPath))
+            {
+                switch (fileFullPath)
+                {
+                    case string name when name.EndsWith(".tar", StringComparison.InvariantCultureIgnoreCase):
+                        using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(rawFileStream, null)) // If name encoding changes, note this in the method comment
+                        {
+                            tarArchive.ExtractContents(targetFolder);
+                        }
+                        break;
+
+                    case string name when name.EndsWith(".gz", StringComparison.InvariantCultureIgnoreCase):
+                        using (Stream gzipStream = new GZipInputStream(rawFileStream))
+                        {
+                            using (TarArchive tarArchive = TarArchive.CreateInputTarArchive(gzipStream, null)) // If name encoding changes, note this in the method comment
+                            {
+                                tarArchive.ExtractContents(targetFolder);
+                            }
+                        }
+                        break;
+
+                    default:
+                        throw new ArgumentException($"Archive file name {Path.GetFileName(fileFullPath)} does not have a supported extension, must be .tar or .gz", nameof(fileFullPath));
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -212,7 +318,7 @@ namespace MapCommonLib
     {
         LongRunningSelectionGroupProcessing,
         TrackQlikviewApiTiming,
-        PublishingStuck
+        TrackingContainerPublishing
     }
 
 }

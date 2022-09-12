@@ -21,6 +21,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Session;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using ContainerizedAppLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -51,6 +54,7 @@ namespace MillimanAccessPortal.Controllers
         private readonly IConfiguration _configuration;
         private readonly IServiceProvider _serviceProvider;
         private readonly AuthenticationService _authentService;
+        private readonly ContainerizedAppLibApiConfig _containerizedAppLibApiConfig;
 
         public AccountController(
             ApplicationDbContext ContextArg,
@@ -62,7 +66,8 @@ namespace MillimanAccessPortal.Controllers
             IAuthorizationService AuthorizationServiceArg,
             IConfiguration ConfigArg,
             IServiceProvider serviceProviderArg,
-            IAuthenticationService authentService
+            IAuthenticationService authentService,
+            IOptions<ContainerizedAppLibApiConfig> containerizedAppLibApiConfig
             )
         {
             DbContext = ContextArg;
@@ -75,6 +80,7 @@ namespace MillimanAccessPortal.Controllers
             _configuration = ConfigArg;
             _serviceProvider = serviceProviderArg;
             _authentService = (AuthenticationService)authentService;
+            _containerizedAppLibApiConfig = containerizedAppLibApiConfig.Value;
         }
 
         //
@@ -135,7 +141,7 @@ namespace MillimanAccessPortal.Controllers
             // 1. If the specified user has an assigned scheme
             MapDbContextLib.Context.AuthenticationScheme assignedScheme = DbContext.ApplicationUser
                                                                                    .Include(u => u.AuthenticationScheme)
-                                                                                   .SingleOrDefault(u => EF.Functions.ILike(u.UserName, userName))
+                                                                                   .SingleOrDefault(u => EF.Functions.ILike(u.UserName, GlobalFunctions.EscapePgWildcards(userName)))
                                                                                    ?.AuthenticationScheme;
             if (assignedScheme != null)
             {
@@ -158,7 +164,7 @@ namespace MillimanAccessPortal.Controllers
             {
                 // Secondary domain is the portion of userName between '@' and the last '.'
                 string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
-                matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+                matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(userSecondaryDomain)));
 
                 return matchingScheme;
             }
@@ -1264,7 +1270,7 @@ namespace MillimanAccessPortal.Controllers
                 TimeSpan expirationTime = TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"));
                 // Check whether any sftp account of the user is currently authorized to any File Drop for an authorized and available client
                 List<Guid> authorizedClientIds = (await DbContext.UserRoleInClient
-                                                                 .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                                 .Where(urc => EF.Functions.ILike(urc.User.UserName, GlobalFunctions.EscapePgWildcards(User.Identity.Name)))
                                                                  .Where(urc => urc.Role.RoleEnum == RoleEnum.FileDropUser)
                                                                  .Select(urc => urc.Client)
                                                                  .ToListAsync())
@@ -1274,7 +1280,7 @@ namespace MillimanAccessPortal.Controllers
                                                       && (a.FileDropUserPermissionGroup.ReadAccess || 
                                                           a.FileDropUserPermissionGroup.WriteAccess ||
                                                           a.FileDropUserPermissionGroup.DeleteAccess)
-                                                      && EF.Functions.ILike(a.ApplicationUser.UserName, User.Identity.Name))
+                                                      && EF.Functions.ILike(a.ApplicationUser.UserName, GlobalFunctions.EscapePgWildcards(User.Identity.Name)))
                     || !authorizedClientIds.Any())
                 {
                     FileDropUserResult = AuthorizationResult.Failed();
@@ -1326,7 +1332,7 @@ namespace MillimanAccessPortal.Controllers
             if (ClientAdminResult1.Succeeded)
             {
                 List<Guid> myClientIds = await DbContext.UserRoleInClient
-                                                        .Where(urc => EF.Functions.ILike(urc.User.UserName, User.Identity.Name))
+                                                        .Where(urc => EF.Functions.ILike(urc.User.UserName, GlobalFunctions.EscapePgWildcards(User.Identity.Name)))
                                                         .Where(urc => urc.Role.RoleEnum == RoleEnum.Admin)
                                                         .Select(urc => urc.ClientId)
                                                         .Distinct()

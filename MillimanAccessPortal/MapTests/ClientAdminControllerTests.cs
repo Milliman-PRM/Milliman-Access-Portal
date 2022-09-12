@@ -813,6 +813,68 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that a parent can't have a 2nd client of the same name saved as a subclient
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_SameNameAndParent()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient = GetValidClient();
+
+                testClient.ParentClientId = TestUtil.MakeTestGuid(1);
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
+                testClient.Name = "Name2";
+                #endregion
+
+                #region Act
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
+
+                #region Assert
+                StatusCodeResult result = Assert.IsType<StatusCodeResult>(view);
+                Assert.Equal(422, result.StatusCode);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Validate that a 2 different parents can have child clients of the same name saved as a subclient
+        /// </summary>
+        [Fact]
+        public async Task SaveNewClient_SameNameDifferentParent()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient = GetValidClient();
+
+                int beforeCount = TestResources.DbContext.Client.Count();
+                int expectedAfterCount = beforeCount + 1;
+
+                testClient.ParentClientId = null;
+                testClient.ProfitCenterId = TestUtil.MakeTestGuid(1);
+                testClient.Name = "Name8";
+                #endregion
+
+                #region Act
+                var view = await controller.SaveNewClient(testClient);
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view);
+                Assert.IsType<SaveNewClientResponseModel>(result.Value);
+
+                int afterCount = TestResources.DbContext.Client.Count();
+                Assert.Equal<int>(expectedAfterCount, afterCount);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Validate that new clients are added successfully when the model is valid and the user is authorized
         /// </summary>
         [Fact]
@@ -970,13 +1032,100 @@ namespace MapTests
         }
 
         /// <summary>
+        /// Validate that the different parent clientID can have child clients of the same name.
+        /// </summary>
+        [Fact]
+        public async Task EditClient_RepeatNameDifferentParentClient()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient1 = GetValidClient();
+                Client testClient2 = GetValidClient();
+
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must not be null
+                 *       Both test clients have different parent
+                 */
+                testClient1.Id = TestUtil.MakeTestGuid(6);
+                testClient1.ParentClientId = TestUtil.MakeTestGuid(1);
+                testClient1.Name = "TestName";
+                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                testClient2.Id = TestUtil.MakeTestGuid(8);
+                testClient2.ParentClientId = TestUtil.MakeTestGuid(7);
+                testClient2.Name = "TestName";
+                testClient2.AcceptedEmailDomainList = new List<string> { "example2.com", "example.com" };
+                #endregion
+
+                #region Act
+                var view1 = await controller.EditClient(testClient1); //this should be fine, its the only one with this name so far in the client list
+                var view2 = await controller.EditClient(testClient2); //this should be fine as while it is a repeat name, it is still unique for its parent
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view1);
+                Assert.IsType<ClientsResponseModel>(result.Value);
+
+                JsonResult result2 = Assert.IsType<JsonResult>(view2);
+                Assert.IsType<ClientsResponseModel>(result2.Value);
+                #endregion
+            }
+        }
+
+        /// <summary>
+        /// Validate that the same parent clientID can not have child clients of the same name.
+        /// </summary>
+        [Fact]
+        public async Task EditClient_RepeatNameSameParentClient()
+        {
+            using (var TestResources = await TestInitialization.Create(_dbLifeTimeFixture, DataSelection.Basic))
+            {
+                #region Arrange
+                ClientAdminController controller = await GetControllerForUser(TestResources, "ClientAdmin1");
+                Client testClient1 = GetValidClient();
+                Client testClient2 = GetValidClient();
+
+                /*
+                 * Requirements/Assumptions for the test client:
+                 *       The test user must be a client admin
+                 *       The parent client must be null
+                 *       Both test clients have the same parent
+                 */
+                testClient1.Id = TestUtil.MakeTestGuid(4);
+                testClient1.ParentClientId = null;
+                testClient1.Name = "TestName";
+                testClient1.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                testClient2.Id = TestUtil.MakeTestGuid(5);
+                testClient2.ParentClientId = null;
+                testClient2.Name = "TestName";
+                testClient2.AcceptedEmailDomainList = new List<string> { "example2.com" };
+                #endregion
+
+                #region Act
+                var view1 = await controller.EditClient(testClient1); //this should be fine, its the only one with this name so far for the parent
+                var view2 = await controller.EditClient(testClient2); //this should be throw an error as it is a repeat subclient name
+                #endregion
+
+                #region Assert
+                JsonResult result = Assert.IsType<JsonResult>(view1);
+                Assert.IsType<ClientsResponseModel>(result.Value);
+
+                Assert.IsType<StatusCodeResult>(view2);
+                Assert.Equal(422, (view2 as StatusCodeResult).StatusCode);
+                #endregion
+            }
+        }
+
+        /// <summary>
         /// Validate that invalid data causes return code 422
         /// Multiple scenarios should cause code 422 and must be tested
         /// 
         /// Providing a null value for an argument will retain the current value for the corresponding property
         /// </summary>
         [Theory]
-        [InlineData("Name1", null, null)]// Client name already exists for other client
         [InlineData(null, new string[] { "test" }, null)]// Email domain whitelist invalid (no TLD)
         [InlineData(null, null, new string[] { "test" })] // Email address whitelist invalid (no @, no tld)
         [InlineData(null, null, new string[] { "test.com" })] // Email address whitelist invalid (no @)

@@ -50,7 +50,8 @@ namespace MapTests
                 TestResources.AuthorizationService,
                 TestResources.Configuration,
                 TestResources.ScopedServiceProvider,
-                null);
+                null,
+                TestResources.ContainerizedAppConfig);
 
             var testController = new SystemAdminController(
                 accountController,

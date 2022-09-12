@@ -40,6 +40,7 @@ interface FormFlexContainerProps {
   flexPhone?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   flexTablet?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
   flexDesktop?: 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12;
+  block?: boolean;
 }
 
 export const FormFlexContainer: React.SFC<FormFlexContainerProps> = (props) => {
@@ -49,9 +50,12 @@ export const FormFlexContainer: React.SFC<FormFlexContainerProps> = (props) => {
   const cssDesktop = (props.flexDesktop) ? ` flex-item-for-desktop-up-${props.flexDesktop}-12` : '';
   const cssFlex = (props.flex) ? ' form-input-flex' : '';
   const cssCIFlex = (props.contentItemFlex) ? ` content-item-flex-${props.contentItemFlex}` : '';
+  const block = (props.block) ? ' content-item-block' : '';
 
   return (
-    <div className={`form-section-divider${cssAlign}${cssPhone}${cssTablet}${cssDesktop}${cssFlex}${cssCIFlex}`}>
+    <div
+      className={`form-section-divider${cssAlign}${cssPhone}${cssTablet}${cssDesktop}${cssFlex}${cssCIFlex}${block}`}
+    >
       {props.children}
     </div>
   );

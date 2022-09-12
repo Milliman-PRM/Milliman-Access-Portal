@@ -122,9 +122,9 @@ namespace FileDropLib
             {
                 FileDropFile fileRecord = db.FileDropFile
                                             .Include(f => f.Directory)
-                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, requestedDirectoryCanonicalPath))
+                                            .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(requestedDirectoryCanonicalPath)))
                                             .Where(f => f.Directory.FileDropId == fileDropId)
-                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, requestedFileName));
+                                            .SingleOrDefault(f => EF.Functions.ILike(f.FileName, GlobalFunctions.EscapePgWildcards(requestedFileName)));
 
                 switch (BeforeExec)
                 {
@@ -310,7 +310,7 @@ namespace FileDropLib
                         // 1. Requested directory must not already exist
                         if (Directory.Exists(requestedAbsolutePath) ||
                             db.FileDropDirectory.Any(d => d.FileDropId == fileDropId
-                                                       && EF.Functions.ILike(d.CanonicalFileDropPath, requestedCanonicalPath)))
+                                                       && EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(requestedCanonicalPath))))
                         {
                             Log.Warning($"CreateDirectory invoked but requested path <{canonicalPath}> already exists");
                             return FileDropOperationResult.FILE_ALREADY_EXISTS;
@@ -319,7 +319,7 @@ namespace FileDropLib
                         // 2. The parent of the requested directory must already exist, including in the database
                         if (!Directory.Exists(parentAbsolutePath) ||
                             (!db.FileDropDirectory.Any(d => d.FileDropId == fileDropId 
-                                                         && EF.Functions.ILike(d.CanonicalFileDropPath, parentCanonicalPath))))
+                                                         && EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(parentCanonicalPath)))))
                         {
                             Log.Warning($"CreateDirectory invoked but parent directory of requested path <{canonicalPath}> does not exist");
                             return FileDropOperationResult.NO_SUCH_PATH;
@@ -361,7 +361,7 @@ namespace FileDropLib
                             return FileDropOperationResult.FAILURE;
                         }
 
-                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, parentCanonicalPath));
+                        FileDropDirectory parentRecord = db.FileDropDirectory.SingleOrDefault(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(parentCanonicalPath)));
                         FileDropDirectory newDirRecord = new FileDropDirectory
                         {
                             CanonicalFileDropPath = requestedCanonicalPath,
@@ -404,7 +404,7 @@ namespace FileDropLib
                 case true:
                     // oldPath and newPath are absolute
                     string recordNameString = Path.GetFileName(oldPath);
-                    bool sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == fileDropId && EF.Functions.ILike(f.FileName, recordNameString));
+                    bool sourceRecordFound = db.FileDropFile.Any(f => f.Directory.FileDropId == fileDropId && EF.Functions.ILike(f.FileName, GlobalFunctions.EscapePgWildcards(recordNameString)));
 
                     if (!sourceRecordFound || !File.Exists(oldPath))
                     {
@@ -434,8 +434,8 @@ namespace FileDropLib
                     {
                         FileDropFile currentFileRecord = db.FileDropFile
                                                            .Where(f => f.Directory.FileDropId == fileDropId)
-                                                           .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(oldPath))))
-                                                           .Where(f => EF.Functions.ILike(f.FileName, Path.GetFileName(oldPath)))
+                                                           .Where(f => EF.Functions.ILike(f.Directory.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(oldPath)))))
+                                                           .Where(f => EF.Functions.ILike(f.FileName, GlobalFunctions.EscapePgWildcards(Path.GetFileName(oldPath))))
                                                            .FirstOrDefault();
                         if (currentFileRecord == null)
                         {
@@ -448,7 +448,7 @@ namespace FileDropLib
                         {
                             FileDropDirectory newDirectoryRecord = db.FileDropDirectory
                                                                         .Where(d => d.FileDropId == fileDropId)
-                                                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath))));
+                                                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(FileDropDirectory.ConvertPathToCanonicalPath(Path.GetDirectoryName(newPath)))));
                             if (newDirectoryRecord == null)
                             {
                                 return FileDropOperationResult.NO_SUCH_PATH;
@@ -532,7 +532,7 @@ namespace FileDropLib
                     }
 
                     // confirm db connectivity and that the source record exists in the db
-                    bool sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, recordNameString));
+                    bool sourceRecordFound = db.FileDropDirectory.Any(d => d.FileDropId == fileDropId && EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(recordNameString)));
                     if (!sourceRecordFound)
                     {
                         Log.Warning($"Request to rename {recordNameString} in FileDrop <{fileDropName}> (Id {fileDropId}) cannot be performed.  Corresponding database record not found.  Account {account?.UserName} (Id {account?.Id})");
@@ -569,8 +569,11 @@ namespace FileDropLib
 
                     if (sftpStatus == 0)
                     {
-                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
-                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
+                        // Canonical paths will be different based on which application caused the firing of this event.
+                        // For File Drop usage in MAP: Convert the existing relative path (pre-pended with a forward /) to a canonical path
+                        // For 3rd-party SFTP Clients: Simply use the supplied oldPath/newPath, which are already canonical to the File Drop in use
+                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath))) ?? FileDropDirectory.ConvertPathToCanonicalPath(oldPath);
+                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath))) ?? FileDropDirectory.ConvertPathToCanonicalPath(newPath);
 
                         List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
                                                                                  .Where(d => d.FileDropId == fileDropId)

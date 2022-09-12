@@ -107,6 +107,7 @@ export interface RelatedFiles {
 export interface ContentItemDetail {
   clientId: Guid;
   contentDisclaimer: string;
+  contentDisclaimerAlwaysShown: boolean;
   contentName: string;
   contentTypeId: Guid;
   contentDescription: string;
@@ -130,9 +131,7 @@ export interface ContentItemDetail {
     previewReportId?: Guid;
     previewWorkspaceId?: Guid;
   };
-  typeSpecificPublicationProperties?: {
-    roleList?: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
 }
 
 export interface ContentItemPublicationDetail {
@@ -143,6 +142,7 @@ export interface ContentItemPublicationDetail {
   Description: string;
   Notes: string;
   ContentDisclaimer: string;
+  ContentDisclaimerAlwaysShown: boolean;
   DoesReduce?: boolean;
   TypeSpecificDetailObject?: {
     // PowerBi specific:
@@ -151,9 +151,29 @@ export interface ContentItemPublicationDetail {
     FilterPaneEnabled?: boolean;
     NavigationPaneEnabled?: boolean;
   };
-  typeSpecificPublicationProperties?: {
-    roleList: string[];
-  };
+  typeSpecificPublicationProperties?: TypeSpecificPublicationProperties;
+}
+
+export interface TypeSpecificPublicationProperties {
+  // PowerBi specific:
+  roleList?: string[];
+  // Container App specific:
+  containerCpuCores?: ContainerCpuCoresEnum;
+  containerRamGb?: ContainerRamGbEnum;
+  containerInternalPort?: string | number;
+  customCooldownPeriod?: ContainerCooldownEnum;
+  containerInstanceLifetimeScheme?: ContainerInstanceLifetimeSchemeEnum;
+  allDaysChecked?: boolean;
+  mondayChecked?: boolean;
+  tuesdayChecked?: boolean;
+  wednesdayChecked?: boolean;
+  thursdayChecked?: boolean;
+  fridayChecked?: boolean;
+  saturdayChecked?: boolean;
+  sundayChecked?: boolean;
+  startTime?: string;
+  endTime?: string;
+  timeZoneId?: string;
 }
 
 export interface GoLiveViewModel {
@@ -165,6 +185,7 @@ export interface GoLiveViewModel {
 export interface ContentItemFormErrors {
   clientId?: string;
   contentDisclaimer?: string;
+  contentDisclaimerAlwaysShown?: string;
   contentName?: string;
   contentTypeId?: string;
   contentDescription?: string;
@@ -194,6 +215,22 @@ export interface ContentItemFormErrors {
   };
   typeSpecificPublicationProperties?: {
     roleList?: string;
+    containerCpuCores?: string;
+    containerRamGb?: string;
+    containerInternalPort?: string;
+    containerInstanceLifetimeScheme?: string;
+    customCooldownPeriod?: string;
+    allDaysChecked?: string;
+    mondayChecked?: string;
+    tuesdayChecked?: string;
+    wednesdayChecked?: string;
+    thursdayChecked?: string;
+    fridayChecked?: string;
+    saturdayChecked?: string;
+    sundayChecked?: string;
+    startTime?: string;
+    endTime?: string;
+    timeZoneId?: string;
   };
 }
 
@@ -711,4 +748,46 @@ export interface FileUpload {
 export interface FileDropFileUpload {
   status: FileDropUploadTaskStatus;
   fileName: string;
+}
+
+export enum ContainerCpuCoresEnum {
+  Unspecified = 0,
+  One = 1,
+  Two = 2,
+  Three = 3,
+  Four = 4,
+}
+
+export enum ContainerCooldownEnum {
+  Unspecified = 0,
+  ThirtyMinutes = 1,
+  OneHour = 2,
+  NinetyMinutes = 3,
+  TwoHours = 4,
+}
+
+export enum ContainerRamGbEnum {
+  Unspecified = 0,
+  One = 1,
+  Two = 2,
+  Three = 3,
+  Four = 4,
+  Five = 5,
+  Six = 6,
+  Seven = 7,
+  Eight = 8,
+  Nine = 9,
+  Ten = 10,
+  Eleven = 11,
+  Twelve = 12,
+  Thirteen = 13,
+  Fourteen = 14,
+  Fifteen = 15,
+  Sixteen = 16,
+}
+
+export enum ContainerInstanceLifetimeSchemeEnum {
+  Unspecified = 0,
+  AlwaysCold = 1,
+  Custom = 2,
 }

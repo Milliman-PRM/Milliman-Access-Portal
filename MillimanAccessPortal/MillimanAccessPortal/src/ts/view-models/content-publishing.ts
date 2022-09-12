@@ -134,6 +134,7 @@ export enum ContentTypeEnum {
   Pdf = 3,
   FileDownload = 4,
   PowerBi = 5,
+  ContainerApp = 6,
 }
 export enum ContentAssociatedFileTypeEnum {
     Unknown = 0,
@@ -192,7 +193,7 @@ export interface PublishRequest {
   associatedFiles?: RequestedAssociatedFile[];
   deleteFilePurposes?: string[];
   typeSpecificPublishingDetail?: {
-    roleList: string[];
+    roleList?: string[];
   };
 }
 
@@ -214,6 +215,12 @@ export interface PreLiveContentValidationSummary {
   reductionHierarchy: ContentReductionHierarchy<ReductionFieldValue>;
   selectionGroups: SelectionGroupSummary[];
   associatedFiles: AssociatedFileSummary[];
+  typeSpecificMetadata?: ContainerizedAppTypeSpecificMetadata;
+}
+export interface ContainerizedAppTypeSpecificMetadata {
+  applicationPort: string;
+  cpuCores: string;
+  ram: string;
 }
 export interface SelectionGroupSummary {
   id: Guid;

@@ -117,8 +117,11 @@ export interface FetchGlobalDataSucceeded {
   response: {
     contentTypes: Dict<ContentType>;
     contentAssociatedFileTypes: Dict<ContentAssociatedFileType>;
+    timeZoneSelections: Array<{ id: string, displayName: string }>;
+    userTimeZoneId: string;
   };
 }
+
 export interface FetchGlobalDataFailed {
   type: 'FETCH_GLOBAL_DATA_FAILED';
   error: TSError;
@@ -346,7 +349,19 @@ export interface CancelPublicationRequestFailed {
 
 export interface SetPublishingFormTextInputValue {
   type: 'SET_PENDING_TEXT_INPUT_VALUE';
-  inputName: 'contentDisclaimer' | 'contentName' | 'contentTypeId' | 'contentDescription' | 'contentNotes';
+  inputName: 'contentDisclaimer'
+  | 'contentName'
+  | 'contentTypeId'
+  | 'contentDescription'
+  | 'contentNotes'
+  | 'containerCpuCores'
+  | 'containerRamGb'
+  | 'containerInternalPort'
+  | 'customCooldownPeriod'
+  | 'containerInstanceLifetimeScheme'
+  | 'startTime'
+  | 'endTime'
+  | 'timeZoneId';
   value: string;
 }
 
@@ -358,7 +373,16 @@ export interface SetPublishingFormBooleanInputValue {
   | 'editableEnabled'
   | 'filterPaneEnabled'
   | 'navigationPaneEnabled'
-  | 'bookmarksPaneEnabled';
+  | 'bookmarksPaneEnabled'
+  | 'allDaysChecked'
+  | 'mondayChecked'
+  | 'tuesdayChecked'
+  | 'wednesdayChecked'
+  | 'thursdayChecked'
+  | 'fridayChecked'
+  | 'saturdayChecked'
+  | 'sundayChecked'
+  | 'contentDisclaimerAlwaysShown';
   value: boolean;
 }
 

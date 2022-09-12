@@ -69,7 +69,7 @@ const _initialDetails: ClientDetail = {
   clientContactEmail: null,
   clientContactPhone: null,
   domainListCountLimit: 3,
-  acceptedEmailDomainList: [],
+  acceptedEmailDomainList: ['milliman.com'],
   acceptedEmailAddressExceptionList: [],
   profitCenter: {
     id: '',
@@ -104,7 +104,7 @@ const _initialFormData: AccessStateBaseFormData = {
   contactEmail: null,
   contactPhone: null,
   domainListCountLimit: 3,
-  acceptedEmailDomainList: [],
+  acceptedEmailDomainList: ['milliman.com'],
   acceptedEmailAddressExceptionList: [],
   profitCenterId: '',
   consultantOffice: '',
@@ -440,6 +440,11 @@ const edit = createReducer<AccessStateEdit>(_initialEditStatus, {
   SELECT_NEW_SUB_CLIENT: () => ({
     disabled: false,
     userEnabled: false,
+  }),
+  EDIT_CLIENT_FAILED: (state) => ({
+    ...state,
+    disabled: false,
+    userEnabled: true,
   }),
 });
 

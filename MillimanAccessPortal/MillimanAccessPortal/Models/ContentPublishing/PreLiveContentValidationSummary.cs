@@ -42,6 +42,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
         public ContentReductionHierarchy<ReductionFieldValueChange> ReductionHierarchy { get; set; }
         public List<SelectionGroupSummary> SelectionGroups { get; set; } = null;
         public List<AssociatedFilePreviewSummary> AssociatedFiles { get; set; } = new List<AssociatedFilePreviewSummary>();
+        public Dictionary<string,string> TypeSpecificMetadata { get; set; } = new Dictionary<string,string>();
 
         public static async Task<PreLiveContentValidationSummary> BuildAsync(ApplicationDbContext Db, Guid RootContentItemId, IConfiguration ApplicationConfig, HttpContext Context)
         {
@@ -111,7 +112,13 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                         switch (PubRequest.RootContentItem.ContentType.TypeEnum)
                         {
                             case ContentTypeEnum.PowerBi:
-                                // This case is handled outside the switch because a new master file is not required for hierarchy change
+                                // This case is handled outside this switch because a new master file is not required to publish a hierarchy change
+                                break;
+
+                            case ContentTypeEnum.ContainerApp:
+                                contentUri.Path = $"/AuthorizedContent/{nameof(AuthorizedContentController.ContainerizedAppPreview)}";
+                                contentUri.Query = $"publicationRequestId={PubRequest.Id}";
+                                ReturnObj.MasterContentLink = contentUri.Uri.AbsoluteUri;
                                 break;
 
                             case ContentTypeEnum.Qlikview:
@@ -347,6 +354,31 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 ReturnObj.AssociatedFiles.Add(summary);
             }
 
+            // Include any user facing content type specific information from the publication request
+            switch (PubRequest.RootContentItem.ContentType.TypeEnum)
+            {
+                case ContentTypeEnum.PowerBi:
+                    if (PubRequest.RootContentItem.DoesReduce && !string.IsNullOrWhiteSpace(PubRequest.TypeSpecificDetail))
+                    {
+                        PowerBiPublicationProperties pbiTypeSpecificProps = JsonConvert.DeserializeObject<PowerBiPublicationProperties>(PubRequest.TypeSpecificDetail);
+                        ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
+                        {
+                            { "Roles", string.Join(",", pbiTypeSpecificProps.RoleList) },
+                        };
+                    }
+                    break;
+
+                case ContentTypeEnum.ContainerApp:
+                    ContainerizedAppContentItemProperties typeSpecificProps = PubRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                    ReturnObj.TypeSpecificMetadata = new Dictionary<string, string>
+                    {
+                        { "cpuCores", typeSpecificProps.PreviewContainerCpuCores.GetDisplayNameString() },
+                        { "applicationPort", typeSpecificProps.PreviewContainerInternalPort.ToString() },
+                        { "ram", typeSpecificProps.PreviewContainerRamGb.GetDisplayNameString() },
+                    };
+                    break;
+            }
+
             return ReturnObj;
         }
 
@@ -402,6 +434,7 @@ namespace MillimanAccessPortal.Models.ContentPublishing
                 SelectionGroupSummary = source.SelectionGroups != null
                     ? JArray.FromObject(source.SelectionGroups)
                     : null,
+                TypeSpecificMetadata = source.TypeSpecificMetadata,
             };
         }
     }
