@@ -76,6 +76,11 @@ namespace ContainerizedAppLib
                 await GetAcrAccessTokenAsync();
                 await GetAzureResourcesAccessToken();
             }
+            catch (FlurlHttpException ex)
+            {
+                Log.Error($"Error obtaining ContainerizedAppLibApi authentication tokens. Response is:{Environment.NewLine}  {ex.GetResponseStringAsync()}");
+                throw;
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication tokens.");
