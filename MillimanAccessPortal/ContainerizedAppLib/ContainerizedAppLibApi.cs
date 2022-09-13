@@ -78,7 +78,7 @@ namespace ContainerizedAppLib
             }
             catch (FlurlHttpException ex)
             {
-                Log.Error($"Error obtaining ContainerizedAppLibApi authentication tokens. Response is:{Environment.NewLine}  {ex.GetResponseStringAsync()}");
+                Log.Error($"Error obtaining ContainerizedAppLibApi authentication tokens. Response is:{Environment.NewLine}  {await ex.GetResponseStringAsync()}");
                 throw;
             }
             catch (Exception ex)
