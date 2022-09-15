@@ -39,6 +39,11 @@ namespace MillimanAccessPortal.ContentProxy
 
 
             // Log.Information($"Request for URI {context.HttpContext.Request.Host}{context.HttpContext.Request.Path}");
+            if (context.HttpContext.Request.Path.HasValue &&
+                context.HttpContext.Request.Path.Value.Contains("websocket", StringComparison.InvariantCultureIgnoreCase))
+            {
+                Log.Information($"After routing decision, MAP application proxy will forward request {context.HttpContext.Request.Scheme}://{context.HttpContext.Request.Host.Value}{context.HttpContext.Request.Path} to {context.DestinationPrefix.TrimEnd('/')}{context.Path}");
+            }
 
             GlobalFunctions.ContainerLastActivity.AddOrUpdate(_cluster.Metadata["ContentToken"], DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 

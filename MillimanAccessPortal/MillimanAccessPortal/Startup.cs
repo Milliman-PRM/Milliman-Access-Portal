@@ -590,6 +590,25 @@ namespace MillimanAccessPortal
                 await next();
             });
 
+#warning This is temporary code
+            app.Use(async (context, next) =>
+            {
+                bool logThisRequest = context.Request.Path.HasValue && 
+                                      context.Request.Path.Value.Contains("websocket", StringComparison.InvariantCultureIgnoreCase);
+
+                if (logThisRequest)
+                {
+                    Log.Information($"Before routing decision, MAP application has received request {context.Request.GetDisplayUrl()}");
+                }
+
+                await next();
+
+                if (logThisRequest)
+                {
+                    Log.Information($"After execution, websocket response status is {context.Response.StatusCode}");
+                }
+            });
+
             app.UseRouting();
 
             app.UseAuthentication();
