@@ -625,11 +625,6 @@ namespace SftpServerLib
                     {
                         evtData.Accept = false;
                         Log.Information($"Sftp authentication request on connection {evtData.ConnectionId} from remote host <{clientAddress}> denied.  An account with permission to a FileDrop was not found, requested account name is <{evtData.User}>");
-                        if (!string.IsNullOrWhiteSpace(evtData.User))
-                        {
-                            userAccount = new SftpAccount(Guid.Empty) { UserName = evtData.User };
-                            new AuditLogger().Log(AuditEventType.SftpAuthenticationFailed.ToEvent(userAccount, AuditEventType.SftpAuthenticationFailReason.UserNotFound, null, clientAddress), evtData.User, null);
-                        }
                         return;
                     }
 
