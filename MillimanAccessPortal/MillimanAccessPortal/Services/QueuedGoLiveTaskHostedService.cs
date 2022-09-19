@@ -145,7 +145,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce;
+
+            bool ReductionIsInvolved = publicationRequest.RootContentItem.ContentType.TypeEnum switch
+            {
+                ContentTypeEnum.PowerBi => publicationRequest.RootContentItem.DoesReduce,
+                _ => MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce,
+            }; 
 
             var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
