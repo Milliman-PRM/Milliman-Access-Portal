@@ -612,10 +612,10 @@ namespace FileDropLib
                                         $"------------------------------{Environment.NewLine}");
 
                         List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
-                                                                                .Where(d => d.FileDropId == fileDropId)
-                                                                                .Include(d => d.ParentDirectory)
-                                                                                .Include(d => d.ChildDirectories)
-                                                                                .ToList();
+                                                                                 .Where(d => d.FileDropId == fileDropId)
+                                                                                 .Include(d => d.ParentDirectory)
+                                                                                 .Include(d => d.ChildDirectories)
+                                                                                 .ToList();
 
                         FileDropDirectory directoryRecord = allDirectoriesInThisFileDrop.SingleOrDefault(d => d.CanonicalFileDropPath.Equals(canonicalOldPath, StringComparison.InvariantCultureIgnoreCase));
                         if (directoryRecord == null)
