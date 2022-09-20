@@ -571,14 +571,6 @@ namespace FileDropLib
                     {
                         // Handles discrepancies between FTP Client usage and MAP Usage.
                         // FTP Clients pass in a version of the oldPath/newPath that does not include the fileDropRootPath prepended.
-                        // oldPath/newPath must be amended to be absolute.
-                         Log.Information($"------------------------------{Environment.NewLine}" + 
-                                        $"Renaming Directory:{Environment.NewLine}" +
-                                        $"Old Path: {oldPath}{Environment.NewLine}" +
-                                        $"New Path: {newPath}{Environment.NewLine}" +
-                                        $"File Drop Root Path: {fileDropRootPath}{Environment.NewLine}" +
-                                        $"File Drop Name: {fileDropName}{Environment.NewLine}");
-
                         if (!oldPath.StartsWith(fileDropRootPath))
                         {
                             if (newPath.StartsWith(fileDropRootPath))
@@ -600,16 +592,9 @@ namespace FileDropLib
                                 return FileDropOperationResult.NO_SUCH_PATH;
                             }
                         }
-                                        
-                        string relativeOldPath = Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath));
-                        string relativeNewPath = Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath));
-                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(relativeOldPath);
-                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(relativeNewPath);
-                        Log.Information($"Relative Old Path: {relativeOldPath}{Environment.NewLine}" +
-                                        $"Relative New Path: {relativeNewPath}{Environment.NewLine}" +
-                                        $"Canonical Old Path: {canonicalOldPath}{Environment.NewLine}" +
-                                        $"Canonical New Path: {canonicalNewPath}{Environment.NewLine}" +
-                                        $"------------------------------{Environment.NewLine}");
+
+                        string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
+                        string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
 
                         List<FileDropDirectory> allDirectoriesInThisFileDrop = db.FileDropDirectory
                                                                                  .Where(d => d.FileDropId == fileDropId)
