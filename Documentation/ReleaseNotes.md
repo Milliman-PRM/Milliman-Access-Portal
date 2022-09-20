@@ -2,6 +2,16 @@
 
 ## Release Notes
 
+#### v1.17.2
+
+- Fixed an error which occurred when renaming or moving a folder in a File Drop while using a 3rd-party FTP Client
+- Fixed a bug that prevented republishing of user guides and release notes for QlikView Content Items
+- Removed logging of spam SFTP connection requests
+
+#### v1.17.1
+
+- Fixed a bug that caused errors with container related features in the production infrastructure
+
 ### v1.17.0
 - Introduced support for Containerized Apps as a new content type
 - General improvements to file upload status indicators

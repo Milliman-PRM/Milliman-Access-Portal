@@ -435,7 +435,7 @@ namespace MillimanAccessPortal.Services
                         {
                             ContainerizedAppLibApi api = await new ContainerizedAppLibApi(containerAppApiConfig).InitializeAsync(repositoryName: repositoryName);
 
-                            GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Initiating run of preview container instance for content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
+                            GlobalFunctions.IssueLog(IssueLogEnum.TrackingContainerPublishing, $"Starting preview container instance, content token {contentToken}, content item ID {contentItem.Id}, publication request ID {publicationRequestId}");
                             string containerUrl = await api.RunContainer(publicationRequestId.ToString(),
                                                                          containerContentItemProperties.PreviewImageName,
                                                                          containerContentItemProperties.PreviewImageTag,
@@ -449,7 +449,7 @@ namespace MillimanAccessPortal.Services
                                                                          new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
-                            Log.Information($"Container instance started with URL: {containerUrl}");
+                            Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");
                         }
                         catch (Exception ex)
                         {

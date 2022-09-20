@@ -79,8 +79,8 @@
                 This number should be set based on the specific memory needs of the container, along with expected utilization.
             </p>
             <p>
-                <b>Internal Port</b>: Indicates the port that is exposed on the container for accessing the application within. This values is set in the Dockerfile that is used to define the container image.
-                The internal port number can be found in the Dockerfile after the keyword EXPOSE <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
+                <b>Internal Port</b>: Indicates the port that is exposed on the container for accessing the application within. This value is set in the Dockerfile/Containerfile that is used to define the container image.
+                The internal port number can be found in the Dockerfile/Containerfile after the keyword <code>EXPOSE</code> followed by a number.  This number is the port that should be provided here.
             </p>
         </p>
         <h3 class="subheading">Container Lifetime</h3>
@@ -99,6 +99,41 @@
                 This schedule is configured by setting the start and end times, the time zone of the scheduled hours, and the days that the schedule should be applied to.
                 Outside of these scheduled active hours, the container will be in a cold standby state that will require the user to wait for several minutes while the container is started.
             </p>
+        </p>
+        <h3 class="subheading">Bundling a Containerized App for Upload in MAP</h3>
+        <p>
+            Containerized Apps must be bundled appropriately in a format that MAP accepts. You can bundle your Container App as a TAR file or a gzipped TAR file (.tar.gz), and then upload it in the Content Publishing page like any other content.</p>
+            <p>Bundling the application requires the use of <a href="https://docs.podman.io/">Podman</a>. Podman is a utility that serves as an open-source alternative to Docker, and can be used for building and running Containers in much the same way.</p>
+            <p>To bundle your image for MAP, <a href="https://podman.io/getting-started/installation">ensure you have Podman installed on your machine</a>, and then complete the following steps:</p>
+            <ol>
+                <li>In the root of your project, where your project's Dockerfile/Containerfile lives, build your image with Podman using the following command: <code>podman build -t YourImageName .</code></li>
+                <li>From a directory you'd like to store your bundled image, run the following command: <code>podman save -o YourImageName --format=docker-dir localhost/YourImageName</code></li>
+                <li>
+                    Then, create a TAR or gzipped TAR file of the new directory using your favorite archiving software, or by running the following commands:<br />
+                    <code>cd YourImageName</code><br />
+                    <code>tar cvf YourImageName.tar * # To create a .tar</code><br />
+                    <code>tar cvfz YourImageName.tar.gz * # To create a .tar.gz</code><br />
+                    We recommend bundling your application into a tar.gz for increased upload speeds when publishing to MAP.
+                </li>
+            </ol>
+        </p>
+        <h3 class="subheading">Websocket Considerations</h3>
+        <p>
+            <p>Applications with architectures that utilize <a href="https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API">websockets</a> (such as R Shiny or Blazor) as their primary method of communicating requests may require some additional considerations.</p>
+            <p><b>Keeping the Containerized Application from Shutting Down</b></p>
+            <p>For Containerized Apps with the <b>Always Cold</b> lifecycle option selected, applications which utilize websockets will spin down after the selected cooldown period <i>starting when the User opened the Content Item</i>. This is because MAP cannot keep track of messages coming across websockets, although we are working toward improving this in future releases so that the cooldown period begins when a User's session is completed.</p>
+            <p>To remedy Containerized Apps shutting down while in use, we recommend the following:</p>
+            <ul>
+                <li>Increase the amount of cooldown time for the Content Item publication.</li>
+                <li>Transition your Content Item to use a custom lifecycle method, and set appropriate hours for which the Content Item will always be kept alive regardless of User activity.</li>
+                <li>Periodically close and reopen the application to ensure it does not shut down while in use. Reopening the application will ensure that a new connection has been established, which will reset the amount of time until MAP shuts it down back to the cooldown time amount.</li>
+            </ul>
+            <br />
+            <p><b>Adding a Keep-Alive to Your Application</b></p>
+            <p>Certain applications which utilize websockets will stop working after a certain period of inactivity due to the websocket timing out. The actual amount of time depends on the type of application.</p>
+            <p>We recommend inserting code into your application which will periodically send a message across the websocket, regardless of any User activity in the application, in order to ensure the websocket stays alive.</p>
+            <p>Please reach out to the <a href="emailto:map.support@milliman.com">MAP support team</a> to learn more.</p>
+            <p>Note: This is different than the above issue, in which Applications are actually <b>stopped</b> and may take time to start back up. If your application stops working due to a websocket timeout, you should be able to refresh the page and get a fresh connection relatively quickly.</p>
         </p>
     </div>
     <div class="accordion">

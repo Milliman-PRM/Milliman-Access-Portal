@@ -145,7 +145,12 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
 
             bool MasterContentUploaded = publicationRequest.LiveReadyFilesObj
                 .Any(f => f.FilePurpose.ToLower() == "mastercontent");
-            bool ReductionIsInvolved = publicationRequest.RootContentItem.DoesReduce;
+
+            bool ReductionIsInvolved = publicationRequest.RootContentItem.ContentType.TypeEnum switch
+            {
+                ContentTypeEnum.PowerBi => publicationRequest.RootContentItem.DoesReduce,
+                _ => MasterContentUploaded && publicationRequest.RootContentItem.DoesReduce,
+            }; 
 
             var relatedReductionTasks = await dbContext.ContentReductionTask
                 .Include(t => t.SelectionGroup)
@@ -328,35 +333,37 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                     }
                     #endregion
 
+                    TypeSpecificContentItemProperties priorTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject;
+
                     #region 1.5 Handle changes to type specific information for content types that support it
                     // TODO This assumes that type specific info is always provided regardless of whether anything is changed
                     switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                     {
                         case ContentTypeEnum.PowerBi:
-                            PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                            PowerBiContentItemProperties powerBiTypeSpecificProperties = priorTypeSpecificProperties as PowerBiContentItemProperties;
 
                             failureRecoveryActionList.Add(() => {
-                                publicationRequest.RootContentItem.TypeSpecificDetailObject = typeSpecificProperties;
+                                publicationRequest.RootContentItem.TypeSpecificDetailObject = powerBiTypeSpecificProperties;
                                 dbContext.SaveChanges();
                             });
 
                             publicationRequest.RootContentItem.TypeSpecificDetailObject = new PowerBiContentItemProperties()
                             {
-                                LiveEmbedUrl = typeSpecificProperties.PreviewEmbedUrl,
-                                LiveReportId = typeSpecificProperties.PreviewReportId,
-                                LiveWorkspaceId = typeSpecificProperties.PreviewWorkspaceId,
+                                LiveEmbedUrl = powerBiTypeSpecificProperties.PreviewEmbedUrl,
+                                LiveReportId = powerBiTypeSpecificProperties.PreviewReportId,
+                                LiveWorkspaceId = powerBiTypeSpecificProperties.PreviewWorkspaceId,
                                 PreviewEmbedUrl = null,
                                 PreviewReportId = null,
                                 PreviewWorkspaceId = null,
-                                EditableEnabled = typeSpecificProperties.EditableEnabled,
-                                NavigationPaneEnabled = typeSpecificProperties.NavigationPaneEnabled,
-                                FilterPaneEnabled = typeSpecificProperties.FilterPaneEnabled,
-                                BookmarksPaneEnabled = typeSpecificProperties.BookmarksPaneEnabled,
+                                EditableEnabled = powerBiTypeSpecificProperties.EditableEnabled,
+                                NavigationPaneEnabled = powerBiTypeSpecificProperties.NavigationPaneEnabled,
+                                FilterPaneEnabled = powerBiTypeSpecificProperties.FilterPaneEnabled,
+                                BookmarksPaneEnabled = powerBiTypeSpecificProperties.BookmarksPaneEnabled,
                             };
                             break;
 
                         case ContentTypeEnum.ContainerApp:
-                            ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                            ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = priorTypeSpecificProperties as ContainerizedAppContentItemProperties;
                             ContainerizedContentPublicationProperties containerizedAppPubProperties = JsonSerializer.Deserialize<ContainerizedContentPublicationProperties>(publicationRequest.TypeSpecificDetail);
 
                             failureRecoveryActionList.Add(() => {
@@ -404,10 +411,10 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                             switch (publicationRequest.RootContentItem.ContentType.TypeEnum)
                             {
                                 case ContentTypeEnum.PowerBi:
-                                    PowerBiContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as PowerBiContentItemProperties;
+                                    PowerBiContentItemProperties powerBiTypeSpecificProperties = priorTypeSpecificProperties as PowerBiContentItemProperties;
 
                                     // Preserve the ID of the existing live content (if any) for the delegate function to use later when removing the current live report.
-                                    Guid? previousReportId = typeSpecificProperties.LiveReportId;
+                                    Guid? previousReportId = powerBiTypeSpecificProperties.LiveReportId;
                                     if (previousReportId != null)
                                     {
                                         successActionList.Add(async () => {
@@ -419,7 +426,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     break;
 
                                 case ContentTypeEnum.ContainerApp:
-                                    ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties;
+                                    ContainerizedAppContentItemProperties containerizedAppTypeSpecificProperties = priorTypeSpecificProperties as ContainerizedAppContentItemProperties;
 
                                     // Preserve info of the existing live content (if any) for the delegate function to use later when removing the current live image.
                                     if (!string.IsNullOrEmpty(containerizedAppTypeSpecificProperties?.PreviewImageName))  // TODO Get this right, maybe check whether the image exists in ACI?

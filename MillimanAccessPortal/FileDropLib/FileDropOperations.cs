@@ -569,6 +569,30 @@ namespace FileDropLib
 
                     if (sftpStatus == 0)
                     {
+                        // Handles discrepancies between FTP Client usage and MAP Usage.
+                        // FTP Clients pass in a version of the oldPath/newPath that does not include the fileDropRootPath prepended.
+                        if (!oldPath.StartsWith(fileDropRootPath))
+                        {
+                            if (newPath.StartsWith(fileDropRootPath))
+                            {
+                                Log.Error($"Path for rename has different base path than old path.");
+                                return FileDropOperationResult.FAILURE;
+                            }
+
+                            string absoluteOldPath = Path.Combine(fileDropRootPath, oldPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                            string absoluteNewPath = Path.Combine(fileDropRootPath, newPath.TrimStart(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar));
+                            if (Directory.Exists(absoluteNewPath))
+                            {
+                                oldPath = absoluteOldPath;
+                                newPath = absoluteNewPath;
+                            }
+                            else
+                            {
+                                Log.Error($"Directory to be renamed could not be found.");
+                                return FileDropOperationResult.NO_SUCH_PATH;
+                            }
+                        }
+
                         string canonicalOldPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, oldPath)));
                         string canonicalNewPath = FileDropDirectory.ConvertPathToCanonicalPath(Path.Combine("/", Path.GetRelativePath(fileDropRootPath, newPath)));
 

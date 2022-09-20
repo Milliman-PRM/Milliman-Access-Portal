@@ -76,6 +76,11 @@ namespace ContainerizedAppLib
                 await GetAcrAccessTokenAsync();
                 await GetAzureResourcesAccessToken();
             }
+            catch (FlurlHttpException ex)
+            {
+                Log.Error($"Error obtaining ContainerizedAppLibApi authentication tokens. Response is:{Environment.NewLine}  {await ex.GetResponseStringAsync()}");
+                throw;
+            }
             catch (Exception ex)
             {
                 Log.Error(ex, "Error obtaining ContainerizedAppLibApi authentication tokens.");
@@ -508,6 +513,7 @@ namespace ContainerizedAppLib
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
+                Stopwatch localStopWatch = Stopwatch.StartNew();
            
                 bool createResult = await CreateContainerGroup(containerGroupName, 
                                                                imagePath, 
@@ -533,7 +539,6 @@ namespace ContainerizedAppLib
 
                 DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
                 string containerGroupProvisioningState = null;
-                ushort applicationPort = 0;
                 Uri containerUri = default;
                 string containerGroupInstanceViewState = null;
                 ContainerGroup_GetResponseModel containerGroupModel = default;
@@ -547,19 +552,14 @@ namespace ContainerizedAppLib
                     containerGroupProvisioningState = containerGroupModel?.Properties?.ProvisioningState ?? "<null>";
                     containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State ?? "<null>";
                     containerUri = containerGroupModel?.Uri;
-
-                    try
-                    {
-                        applicationPort = containerGroupModel?.Properties?.IpAddress?.Ports?.Single()?.Port ?? 0;
-                    }
-                    catch { }
-
-                    Log.Information($"ContainerGroup provisioning state {containerGroupProvisioningState}, " +
-                                    $"instanceView state {containerGroupInstanceViewState}, " +
-                                    $"URL {containerGroupModel?.Uri?.AbsoluteUri ?? ""}, " +
-                                    $"containers states: <{string.Join(",", containerGroupModel?.Properties?.Containers?.Select(c => c.Properties.Instance_View?.CurrentState?.State) ?? new string[0])}>");
                 }
 
+                localStopWatch.Stop();
+                Log.Information($"After time {localStopWatch.Elapsed} " +
+                                $"containerGroup provisioning state {containerGroupProvisioningState}, " +
+                                $"instanceView state {containerGroupInstanceViewState}, " +
+                                $"URL {containerGroupModel?.Uri?.AbsoluteUri ?? ""}, " +
+                                $"containers states: <{string.Join(",", containerGroupModel?.Properties?.Containers?.Select(c => c.Properties.Instance_View?.CurrentState?.State) ?? new string[0])}>");
                 Log.Information($"Container group full response: {{@model}}", containerGroupModel);
 
                 #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
