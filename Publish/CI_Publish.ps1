@@ -279,24 +279,6 @@ $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse 
 $sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
 $env:MSBuildSDKsPath=$net6
-Set-Location "$rootPath\ContainerReverseProxy"
-
-log_statement "Building Container Reverse Proxy"
-
-Get-ChildItem -Recurse "$rootpath\ContainerReverseProxy\out" | remove-item
-mkdir "out"
-
-MSBuild /restore:true /verbosity:minimal /p:Configuration=$buildType /p:PlatformTarget=x64 /p:outdir="$rootPath\SftpServer\out"
-
-if ($LASTEXITCODE -ne 0)
-{
-    log_statement "ERROR: Build failed for Container Reverse Proxy project"
-    log_statement "errorlevel was $LASTEXITCODE"
-    exit $LASTEXITCODE
-}
-
-$reverseProxyVersion = get-childitem "$rootpath\ContainerReverseProxy\out\ContainerReverseProxy.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
-$reverseProxyVersion = "$reverseProxyVersion-$TrimmedBranch"
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
