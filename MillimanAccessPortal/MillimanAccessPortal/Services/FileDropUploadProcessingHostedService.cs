@@ -80,7 +80,7 @@ namespace MillimanAccessPortal.Services
 
                 FileUpload uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
 
-                Log.Debug("FileDrop upload task transitioning to FinalizingUpload status");
+                Log.Information($"FileDrop upload task transitioning to FinalizingUpload status{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.FinalizingUpload);
                 while (uploadRecord.Status == FileUploadStatus.InProgress)
                 {
@@ -90,16 +90,18 @@ namespace MillimanAccessPortal.Services
                         await _fileDropUploadTaskTracker.RemoveFileUploadAsync(taskKvp.Key);
                         return;
                     }
+                    Log.Information($"Upload status is still in progress{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                     await Task.Delay(1000);
                     dbContext.Entry(uploadRecord).State = EntityState.Detached;
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
 
-                Log.Debug("FileDrop upload task transitioning to ValidatingFile status");
+                Log.Information($"FileDrop upload task transitioning to ValidatingFile status{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.ValidatingFile);
                 stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
                 while (!uploadRecord.VirusScanWindowComplete)
                 {
+                    Log.Information($"Virus scan window is still active{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                     if (DateTime.UtcNow > stopWaitingAtUtc)
                     {
                         _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
@@ -111,7 +113,7 @@ namespace MillimanAccessPortal.Services
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
 
-                Log.Debug("FileDrop upload task transitioning to Copying status");
+                Log.Information($"FileDrop upload task transitioning to Copying status{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Copying);
 
                 var destinationDirectoryRecord = await dbContext.FileDropDirectory
@@ -122,6 +124,7 @@ namespace MillimanAccessPortal.Services
                 bool fileRenamed = false;
                 while (destinationDirectoryRecord.Files.Select(f => f.FileName).Contains(taskKvp.Value.FileName, StringComparer.InvariantCultureIgnoreCase))
                 {
+                    Log.Information($"Destination directory already contains file with same name, adjusting.{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                     // requested file name already exists
                     string requestedNameSansExtension = Path.GetFileNameWithoutExtension(taskKvp.Value.FileName);
                     string requestedExtension = Path.GetExtension(taskKvp.Value.FileName);
@@ -142,6 +145,8 @@ namespace MillimanAccessPortal.Services
                     fileRenamed = true;
                 }
 
+                Log.Information($"Creating target full path{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
+
                 string targetFullPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), 
                                                      destinationDirectoryRecord.FileDrop.RootPath, 
                                                      destinationDirectoryRecord.CanonicalFileDropPath.TrimStart('/'), 
@@ -149,7 +154,9 @@ namespace MillimanAccessPortal.Services
 
                 try
                 {
+                    Log.Information($"Starting actual Copy File with Retry{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                     FileSystemUtil.CopyFileWithRetry(uploadRecord.StoragePath, targetFullPath, false);
+                    Log.Information($"$Copying has finished{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                     FileInfo fi = new FileInfo(targetFullPath);
                     FileDropFile newFileRecord = new FileDropFile
                     {
@@ -162,6 +169,7 @@ namespace MillimanAccessPortal.Services
 
                     dbContext.FileDropFile.Add(newFileRecord);
                     await dbContext.SaveChangesAsync();
+                    Log.Information($"FileDropFile record created in Database{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
 
                     FileDropOperations.HandleUserNotifications(
                         destinationDirectoryRecord.FileDrop.Id,
@@ -189,6 +197,7 @@ namespace MillimanAccessPortal.Services
 
                 bool removeUploadSuccess = await _fileDropUploadTaskTracker.RemoveFileUploadAsync(uploadRecord);
 
+                Log.Information($"File rename was attempted. Success: {removeUploadSuccess}{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                 if (removeUploadSuccess)
                 {
                     if (fileRenamed)
