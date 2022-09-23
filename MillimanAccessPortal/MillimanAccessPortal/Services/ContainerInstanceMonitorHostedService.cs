@@ -127,7 +127,7 @@ namespace MillimanAccessPortal.Services
                                     // 1b) If container is fully started but there is no matching proxy config then add one
                                     if (runningContainer.Uri is not null && GlobalFunctions.MapUriRoot is not null)
                                     {
-                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith($"/{contentToken}")))
+                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith(contentToken)))
                                         {
                                             UriBuilder externalRequestUri = new UriBuilder
                                             {
@@ -138,6 +138,7 @@ namespace MillimanAccessPortal.Services
                                             };
 
                                             // Add a new YARP route/cluster config
+                                            Log.Information("Container lifetime service updating yarp cfg in section 1b");
                                             _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
                                         }
                                     }
@@ -223,7 +224,7 @@ namespace MillimanAccessPortal.Services
                                     if (runningContainer.Properties.IpAddress is not null &&
                                         GlobalFunctions.MapUriRoot is not null)
                                     {
-                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith($"/{contentToken}")))
+                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith(contentToken)))
                                         {
                                             UriBuilder externalRequestUri = new UriBuilder
                                             {
@@ -234,6 +235,7 @@ namespace MillimanAccessPortal.Services
                                             };
 
                                             // Add a new YARP route/cluster config
+                                            Log.Information("Container lifetime service updating yarp cfg in section 3b");
                                             _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
                                         }
                                     }
@@ -316,7 +318,7 @@ namespace MillimanAccessPortal.Services
 
                 GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_,_) => DateTime.UtcNow);
 
-                Log.Information($"Starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
+                Log.Information($"Container lifetime service starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
                 string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                              isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                              isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
@@ -330,7 +332,7 @@ namespace MillimanAccessPortal.Services
                                                              new Dictionary<string, string> { { "PathBase", contentToken } },
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
-                Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");
+                Log.Information($"Container lifetime service requested non-blocking start of container instance with content token {contentToken}");
             }
             catch { }
         }
