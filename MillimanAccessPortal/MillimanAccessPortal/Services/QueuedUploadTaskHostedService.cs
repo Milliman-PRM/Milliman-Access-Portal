@@ -6,6 +6,7 @@ using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Services;
 using Serilog;
 using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -41,7 +42,12 @@ public class QueuedUploadTaskHostedService : BackgroundService
 
                 try
                 {
+                    Stopwatch stopwatch = new Stopwatch();
+                    Log.Information($"$In UploadHelper.cs: Beginning FinalizeUpload for file {resumableInfo.FileName} with # of chunks: {resumableInfo.TotalChunks}");
+                    stopwatch.Start();
                     uploadHelper.FinalizeUpload(resumableInfo);
+                    stopwatch.Stop();
+                    Log.Information($"Upload finalized, took: {stopwatch.Elapsed.TotalSeconds} seconds");
                 }
                 catch (Exception e)
                 {
