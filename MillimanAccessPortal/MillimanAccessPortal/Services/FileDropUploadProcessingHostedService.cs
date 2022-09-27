@@ -72,7 +72,8 @@ namespace MillimanAccessPortal.Services
 
         private async Task ProcessOneUploadAsync(KeyValuePair<Guid, FileDropUploadTask> taskKvp)
         {
-            DateTime stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
+            uint timeoutSeconds = 180;
+            DateTime stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(timeoutSeconds);
 
             using (var scope = _services.CreateScope())
             {
@@ -98,7 +99,7 @@ namespace MillimanAccessPortal.Services
                 }
 
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.ValidatingFile);
-                stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
+                stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(timeoutSeconds);
                 while (!uploadRecord.VirusScanWindowComplete)
                 {
                     if (DateTime.UtcNow > stopWaitingAtUtc)
