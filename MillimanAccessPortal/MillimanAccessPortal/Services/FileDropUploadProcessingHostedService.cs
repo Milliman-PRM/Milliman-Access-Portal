@@ -24,7 +24,6 @@ using System.Threading.Tasks;
 using Serilog;
 using FileDropLib;
 using MapDbContextLib.Models;
-using System.Diagnostics;
 
 namespace MillimanAccessPortal.Services
 {
@@ -82,7 +81,6 @@ namespace MillimanAccessPortal.Services
 
                 FileUpload uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
 
-                Log.Information($"FileDrop upload task transitioning to FinalizingUpload status{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.FinalizingUpload);
                 while (uploadRecord.Status == FileUploadStatus.InProgress)
                 {

@@ -6,7 +6,6 @@ using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Services;
 using Serilog;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
