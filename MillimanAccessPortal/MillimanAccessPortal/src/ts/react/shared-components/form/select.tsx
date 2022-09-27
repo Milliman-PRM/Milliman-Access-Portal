@@ -36,7 +36,7 @@ export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>((prop
             value={''}
             {...rest}
           >
-            {!ignorePlaceholderText && <option value="">{placeholderText || 'Select a ' + label}</option>}
+            {!ignorePlaceholderText && <option>{placeholderText || 'Select a ' + label}</option>}
             {options}
           </select>
           <label className="form-input-label" htmlFor={name}>{label}</label>
