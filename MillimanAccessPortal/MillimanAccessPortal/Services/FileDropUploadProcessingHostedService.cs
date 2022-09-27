@@ -24,6 +24,7 @@ using System.Threading.Tasks;
 using Serilog;
 using FileDropLib;
 using MapDbContextLib.Models;
+using System.Diagnostics;
 
 namespace MillimanAccessPortal.Services
 {
@@ -141,8 +142,6 @@ namespace MillimanAccessPortal.Services
 
                     fileRenamed = true;
                 }
-
-                Log.Information($"Creating target full path{Environment.NewLine}Task ID: {taskKvp.Key}{Environment.NewLine}File Upload ID: {taskKvp.Value.FileUploadId}{Environment.NewLine}File Name: {taskKvp.Value.FileName}{Environment.NewLine}");
 
                 string targetFullPath = Path.Combine(_appConfig.GetValue<string>("Storage:FileDropRoot"), 
                                                      destinationDirectoryRecord.FileDrop.RootPath, 

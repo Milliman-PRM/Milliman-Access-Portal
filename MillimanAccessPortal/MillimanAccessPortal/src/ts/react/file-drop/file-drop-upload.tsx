@@ -61,6 +61,7 @@ export class FileDropUpload extends React.Component<FileDropUploadProps, {}> {
       headers: () => this.resumableHeaders,
       query: () => this.resumableFormData,
       target: '/FileUpload/UploadChunk',
+      chunkSize: 1024 * 1024 * 5, // 5MB
     }));
 
     // Hook up the file upload input
