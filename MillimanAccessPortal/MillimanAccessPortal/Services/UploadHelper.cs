@@ -177,7 +177,6 @@ namespace MillimanAccessPortal.Services
         /// <param name="resumableInfo">Identifies the resumable upload</param>
         public void FinalizeUpload(ResumableInfo resumableInfo)
         {
-            Log.Information($"$In UploadHelper.cs: Beginning FinalizeUpload for file {resumableInfo.FileName} with # of chunks: {resumableInfo.TotalChunks}");
             Info = resumableInfo;
 
             // Make sure the expected and actual number of chunks match
@@ -194,24 +193,18 @@ namespace MillimanAccessPortal.Services
                     .Select(chunkNumber => _pathSet.ChunkFilePath(((uint) chunkNumber)));
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
-                    Stopwatch innerStopwatch = new Stopwatch();
-                    innerStopwatch.Start();
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
                     using (var chunkStream = File.OpenRead(chunkFilePathPhysical))
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
                     File.Delete(chunkFilePathPhysical);
-                    innerStopwatch.Stop();
-                    Log.Information($"Chunk #{chunkFilePath} concatenated. Took {innerStopwatch.Elapsed.TotalMilliseconds} ms");
                 }
             }
             var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;
             Directory.Delete(chunkDirPath);
             #endregion
 
-            Stopwatch stopwatch = new Stopwatch();
-            stopwatch.Start();
             #region Verify upload
             // Guess MIME type of uploaded file and compare with provided file extension
             using (var fileStream = File.OpenRead(concatenationFilePath))
@@ -221,20 +214,14 @@ namespace MillimanAccessPortal.Services
                     throw new FileUploadException(StatusCodes.Status415UnsupportedMediaType, "File contents do not match extension.");
                 }
             }
-            stopwatch.Stop();
-            Log.Information($"Guess MIME type completed. Took {stopwatch.Elapsed.TotalMilliseconds} ms");
 
-            stopwatch.Restart();
             // Compute and compare checksum
             var checksumInfo = GlobalFunctions.GetFileChecksum(concatenationFilePath);
             if (!Info.Checksum.Equals(checksumInfo.checksum, StringComparison.OrdinalIgnoreCase))
             {
                 throw new FileUploadException(StatusCodes.Status409Conflict, "Checksums do not match.");
             }
-            Log.Information($"Checksum computation completed. Took {stopwatch.Elapsed.TotalMilliseconds} ms");
-            stopwatch.Stop();
 
-            stopwatch.Restart();
             // Rename the file with proper extension - this makes it visible to the virus scanner
             var outputFilePath = _fileProvider.GetFileInfo(_pathSet.Output).PhysicalPath;
             if (File.Exists(outputFilePath))
@@ -242,8 +229,6 @@ namespace MillimanAccessPortal.Services
                 File.Delete(outputFilePath);
             }
             File.Move(concatenationFilePath, outputFilePath);
-            Log.Information($"Rename completed. Took {stopwatch.Elapsed.TotalMilliseconds} ms");
-            stopwatch.Stop();
             #endregion
         }
 
