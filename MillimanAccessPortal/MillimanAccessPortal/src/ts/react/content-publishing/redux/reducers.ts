@@ -821,13 +821,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
             [action.inputName]: action.value,
           },
         },
-        formErrors: {
-          ...state.formErrors,
-          typeSpecificPublicationProperties: {
-            ...state.formErrors.typeSpecificPublicationProperties,
-            [action.inputName]: !action.value ? 'Please select an option from the dropdown.' : null,
-          },
-        },
       };
     } else {
       return {

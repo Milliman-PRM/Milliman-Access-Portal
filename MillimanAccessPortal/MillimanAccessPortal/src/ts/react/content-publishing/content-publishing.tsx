@@ -1341,7 +1341,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText={''}
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                   values={timeZones}
                                   readOnly={
@@ -1363,7 +1363,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText="Start Time"
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.startTime}
                                   values={onlyHoursBefore(pendingFormData.typeSpecificPublicationProperties.endTime)}
                                   readOnly={
@@ -1383,7 +1383,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText="End Time"
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.endTime}
                                   values={onlyHoursAfter(pendingFormData.typeSpecificPublicationProperties.startTime)}
                                   readOnly={
