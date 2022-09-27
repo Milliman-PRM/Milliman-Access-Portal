@@ -786,13 +786,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
             [action.inputName]: value,
           },
         },
-        formErrors: {
-          ...state.formErrors,
-          typeSpecificPublicationProperties: {
-            ...state.formErrors.typeSpecificPublicationProperties,
-            [action.inputName]: (isNaN(value)) ? 'Please select an option from the dropdown.' : null,
-          },
-        },
       };
     } else if (action.inputName === 'containerInternalPort') {
       const portNumber = Number(action.value);

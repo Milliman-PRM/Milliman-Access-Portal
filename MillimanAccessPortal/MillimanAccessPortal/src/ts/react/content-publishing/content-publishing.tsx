@@ -1022,7 +1022,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: target.value,
                             });
                           }}
-                          placeholderText="vCPU Cores *"
+                          ignorePlaceholderText={true}
                           value={pendingFormData.typeSpecificPublicationProperties.containerCpuCores}
                           values={cpuCoresDropdownValues}
                           readOnly={formState === 'read'}
@@ -1040,7 +1040,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: target.value,
                             });
                           }}
-                          placeholderText="RAM *"
+                          ignorePlaceholderText={true}
                           value={pendingFormData.typeSpecificPublicationProperties.containerRamGb}
                           values={containerRamGbDropdownValues}
                           readOnly={formState === 'read'}
