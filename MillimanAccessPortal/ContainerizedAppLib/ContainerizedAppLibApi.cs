@@ -9,10 +9,12 @@ using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -513,8 +515,9 @@ namespace ContainerizedAppLib
             try
             {
                 string imagePath = $"{Config.ContainerRegistryUrl}/{containerImageName}:{containerImageTag}";
-                Stopwatch localStopWatch = Stopwatch.StartNew();
-           
+                Stopwatch containerLaunchStopWatch = Stopwatch.StartNew();
+
+                #region Request to start container group launch
                 bool createResult = await CreateContainerGroup(containerGroupName, 
                                                                imagePath, 
                                                                ipType, 
@@ -528,87 +531,58 @@ namespace ContainerizedAppLib
 
                 if (!createResult)
                 {
-                    Log.Error("Failed to create container group");
-                    throw new ApplicationException($"");
+                    string msg = $"Failed to create container group named {containerGroupName}";
+                    throw new ApplicationException(msg);
                 }
+                #endregion
 
                 if (!blockUntilStarted)
                 {
                     return null;
                 }
 
-                DateTime timeLimit = DateTime.UtcNow + TimeSpan.FromMinutes(5);
-                string containerGroupProvisioningState = null;
-                Uri containerUri = default;
-                string containerGroupInstanceViewState = null;
-                ContainerGroup_GetResponseModel containerGroupModel = default;
-
-                while (DateTime.UtcNow < timeLimit && new[] { null, "Pending", "Creating" }.Contains(containerGroupProvisioningState))
+                #region Wait for container group to have an assigned IP address
+                int loopPauseSeconds = 15;  // initial value
+                ContainerGroup_GetResponseModel containerGroupModel = null;
+                while (containerLaunchStopWatch.Elapsed < TimeSpan.FromMinutes(7) && containerGroupModel?.Uri == null)
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    await Task.Delay(TimeSpan.FromSeconds(loopPauseSeconds));
 
                     containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
-                    containerGroupProvisioningState = containerGroupModel?.Properties?.ProvisioningState ?? "<null>";
-                    containerGroupInstanceViewState = containerGroupModel?.Properties?.InstanceView?.State ?? "<null>";
-                    containerUri = containerGroupModel?.Uri;
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"Waiting for container group launch, container group model is: {JsonConvert.SerializeObject(containerGroupModel)}", Serilog.Events.LogEventLevel.Debug);
+                    loopPauseSeconds = Math.Max(--loopPauseSeconds, 7);
                 }
-
-                localStopWatch.Stop();
-                Log.Information($"After time {localStopWatch.Elapsed} " +
-                                $"containerGroup provisioning state {containerGroupProvisioningState}, " +
-                                $"instanceView state {containerGroupInstanceViewState}, " +
-                                $"URL {containerGroupModel?.Uri?.AbsoluteUri ?? ""}, " +
-                                $"containers states: <{string.Join(",", containerGroupModel?.Properties?.Containers?.Select(c => c.Properties.Instance_View?.CurrentState?.State) ?? new string[0])}>");
-                Log.Information($"Container group full response: {{@model}}", containerGroupModel);
-
-                #region This region waits until the application in the container has launched/initialized.  How much time is enough, different applications have different initializations
-                int waitTimeSeconds = 60;
-
-                string containerLogMatchString = string.Empty;  // TODO this value should eventually be supplied in publication type specific info
-                containerLogMatchString = "Listening on http";  // works for Shiny
-                if (!string.IsNullOrEmpty(containerLogMatchString))
+                if (containerGroupModel?.Properties?.ProvisioningState != "Succeeded" || containerGroupModel?.Properties?.InstanceView?.State != "Running")
                 {
-                    // *** This code polls the container log for the presence of a test string to help ensure that the containerized application is fully launched before 
-                    // continuing. The test string currently is hard coded to work for R-Shiny content, but it would be better to allow the publication process to supply
-                    // an optional string that will be relevant for the uploaded image. 
-
-                    Log.Information($"Waiting up to {waitTimeSeconds} seconds for container log to contain search string \"{containerLogMatchString}\"");
-
-                    for (Stopwatch logTimer = Stopwatch.StartNew(); logTimer.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(5)))
-                    {
-                        try
-                        {
-                            string log = (await GetContainerLogs(containerGroupName, containerGroupName)) ?? string.Empty;
-
-                            if (log.Contains(containerLogMatchString, StringComparison.InvariantCultureIgnoreCase))
-                            {
-                                Log.Information("Search string found in container log.  Continuing...");
-                                break;
-                            }
-                            else
-                            {
-                                Log.Debug($"Container log: {log}");
-                            }
-                        }
-                        catch { }
-                    }
+                    string msg = $"After {containerLaunchStopWatch.Elapsed}, " +
+                                 $"ContainerGroupProvisioningState is \"{containerGroupModel?.Properties?.ProvisioningState}\", " +
+                                 $"ContainerGroupInstanceViewState is \"<{containerGroupModel?.Properties?.InstanceView?.State}\". " +
+                                 $"Failed to reach desired state, aborting!";
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
+                    throw new ApplicationException(msg);
                 }
-
-                // Wait until the IP:port accepts a TCP connection
-                Log.Information($"Waiting up to {waitTimeSeconds} seconds for container to accept a TCP connection");
-                for (Stopwatch stopWatch = Stopwatch.StartNew(); stopWatch.Elapsed < TimeSpan.FromSeconds(waitTimeSeconds); await Task.Delay(TimeSpan.FromSeconds(3)))
+                if (containerGroupModel?.Uri == null)
                 {
-                    try
-                    {
-                        TcpClient tcpClient = new TcpClient(containerUri.Host, containerUri.Port);
-                        tcpClient.Close();
-                        break;
-                    }
-                    catch (Exception)
-                    {
-                        continue;
-                    }
+                    string msg = $"After {containerLaunchStopWatch.Elapsed} container group failed to acquire an IP address.  Aborting.";
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
+                    throw new ApplicationException(msg);
+                }
+                #endregion
+
+                #region Wait for the container to respond to an http request
+                bool httpReady = false;
+                while (containerLaunchStopWatch.Elapsed < TimeSpan.FromMinutes(10) && !httpReady)
+                {
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+
+                    httpReady = await IsHttpSuccess(containerGroupModel.Uri);
+                }
+                if (!httpReady)
+                {
+                    string msg = $"Container group failed to provide successful http response.  Aborting.";
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
+                    throw new ApplicationException(msg);
                 }
                 #endregion
 
@@ -616,8 +590,33 @@ namespace ContainerizedAppLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Exception in ContainerizedAppLibApi.RunContainer: Error trying to run Container Group {containerGroupName} with image {containerImageName}:{containerImageTag}.");
+                GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, ex, $"Exception in ContainerizedAppLibApi.RunContainer: Error trying to run Container Group {containerGroupName} with image {containerImageName}:{containerImageTag}.", Serilog.Events.LogEventLevel.Error);
                 throw;
+            }
+        }
+
+        /// <summary>
+        /// Tests the provided URI for a valid response to an HTTP request
+        /// </summary>
+        /// <param name="containerUri"></param>
+        /// <param name="successStatusMeansLessThan"></param>
+        /// <param name="ssl">true to use https://, false for http://</param>
+        /// <returns>true iff a response is received with status less than successStatusMeansLessThan</returns>
+        public async Task<bool> IsHttpSuccess([DisallowNull] Uri containerUri, int successStatusMeansLessThan = 400, bool ssl = false)
+        {
+            try
+            {
+                HttpClient httpClient = new HttpClient();
+                HttpResponseMessage responseMsg = await httpClient.GetAsync($"{(ssl ? "https" : "http")}://{containerUri.Host}:{containerUri.Port}/");
+                if ((int)responseMsg.StatusCode >= successStatusMeansLessThan)
+                {
+                    throw new ApplicationException($"Invalid response status {responseMsg.StatusCode}");
+                }
+                return true;
+            }
+            catch (Exception ex)
+            {
+                return false;
             }
         }
 
@@ -738,7 +737,7 @@ namespace ContainerizedAppLib
                 else 
                 {
                     var x = response.GetStringAsync();
-                    Log.Error($"Error creating container group.  Response json is {x}");
+                    Log.Error($"Error creating container group with name {containerGroupName}.  Response json is {x}, status code is {response.StatusCode}");
                     return false;
                 }
             }

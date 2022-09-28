@@ -125,22 +125,21 @@ namespace MillimanAccessPortal.Services
                                 else
                                 {
                                     // 1b) If container is fully started but there is no matching proxy config then add one
-                                    if (runningContainer.Uri is not null && GlobalFunctions.MapUriRoot is not null)
+                                    if (runningContainer.Uri is not null && 
+                                        GlobalFunctions.MapUriRoot is not null &&
+                                        !proxyConfig.Routes.Any(r => r.RouteId.StartsWith(contentToken)))
                                     {
-                                        if (!proxyConfig.Routes.Any(r => r.RouteId.StartsWith(contentToken)))
+                                        UriBuilder externalRequestUri = new UriBuilder
                                         {
-                                            UriBuilder externalRequestUri = new UriBuilder
-                                            {
-                                                Scheme = GlobalFunctions.MapUriRoot.Scheme,
-                                                Host = GlobalFunctions.MapUriRoot.Host,
-                                                Port = GlobalFunctions.MapUriRoot.Port,
-                                                Path = $"/{contentToken}/",  // must include trailing '/' character
-                                            };
+                                            Scheme = GlobalFunctions.MapUriRoot.Scheme,
+                                            Host = GlobalFunctions.MapUriRoot.Host,
+                                            Port = GlobalFunctions.MapUriRoot.Port,
+                                            Path = $"/{contentToken}/",  // must include trailing '/' character
+                                        };
 
-                                            // Add a new YARP route/cluster config
-                                            Log.Information("Container lifetime service updating yarp cfg in section 1b");
-                                            _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
-                                        }
+                                        // Add a new YARP route/cluster config
+                                        Log.Information("Container lifetime service updating yarp cfg in section 1b");
+                                        _proxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, runningContainer.Uri.AbsoluteUri);
                                     }
                                 }
                             }

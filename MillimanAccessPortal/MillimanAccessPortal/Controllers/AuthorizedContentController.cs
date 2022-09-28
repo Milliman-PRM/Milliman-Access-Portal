@@ -44,6 +44,8 @@ using System.Security.Cryptography;
 using ContainerizedAppLib.AzureRestApiModels;
 using Yarp.ReverseProxy.Configuration;
 using System.Collections;
+using System.Net.Sockets;
+using System.Net.Http;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -825,6 +827,14 @@ namespace MillimanAccessPortal.Controllers
                 // running
                 case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
                                                                 model.Uri != null:
+
+                    bool isContainerReady = await api.IsHttpSuccess(model.Uri);
+                    if (!isContainerReady)
+                    {
+                        GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"Container did not respond to http successfully, waiting longer", Serilog.Events.LogEventLevel.Debug);
+                        return View("WaitForContainer");
+                    }
+
                     UriBuilder externalRequestUri = new UriBuilder
                     {
                         Scheme = Request.Scheme,
@@ -832,6 +842,8 @@ namespace MillimanAccessPortal.Controllers
                         Port = Request.Host.Port.HasValue ? Request.Host.Port.Value : -1,
                         Path = $"/{contentToken}/",  // must include trailing '/' character
                     };
+
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"ACI Container is ready, adding new route config and redirecting to {externalRequestUri.Uri.AbsoluteUri}", Serilog.Events.LogEventLevel.Debug);
 
                     // Add a new YARP route/cluster config
                     _mapProxyConfigProvider.AddNewRoute(contentToken, externalRequestUri.Uri.AbsoluteUri, model.Uri.AbsoluteUri);
@@ -843,16 +855,23 @@ namespace MillimanAccessPortal.Controllers
                                                                 model.Uri == null:
                 case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
                                                                  model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
+
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"ACI Container is starting, returning View(\"WaitForContainer\")", Serilog.Events.LogEventLevel.Debug);
+
                     return View("WaitForContainer");
 
                 // stopped
                 case ContainerGroup_GetResponseModel model2 when model2.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Terminated"):
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"ACI Container is stopped, calling api.RestartContainerGroup({containerGroupModel.Name}) and returning View(\"WaitForContainer\")", Serilog.Events.LogEventLevel.Debug);
+
                     await api.RestartContainerGroup(containerGroupModel.Name);
 
                     return View("WaitForContainer");
 
                 // not found
                 case null:
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"ACI Container not found, calling api.RunContainer and returning View(\"WaitForContainer\")", Serilog.Events.LogEventLevel.Debug);
+
                     string ipAddressType = ApplicationConfig.GetValue<string>("ContainerContentIpAddressType");
                     (string vnetId, string vnetName) = ipAddressType == "Public"
                                                        ? (null, null)
@@ -864,7 +883,7 @@ namespace MillimanAccessPortal.Controllers
                         GlobalFunctions.ContainerLastActivity.AddOrUpdate(contentToken, DateTime.UtcNow, (_, _) => DateTime.UtcNow);
 
                         // Run a container based on the appropriate image
-                        Log.Information($"Starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
+                        GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"AuthorizedContentController starting new container instance for content item <{contentItem.ContentName}>, container name {containerGroupNameGuid}");
                         string containerUrl = await api.RunContainer(containerGroupNameGuid.ToString(),
                                                                      isLiveContent ? typeSpecificInfo.LiveImageName : typeSpecificInfo.PreviewImageName,
                                                                      isLiveContent ? typeSpecificInfo.LiveImageTag : typeSpecificInfo.PreviewImageTag,
@@ -883,6 +902,8 @@ namespace MillimanAccessPortal.Controllers
                         switch (ex.Message)
                         {
                             case "ContainerGroupQuotaReached":
+                                GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, ex, $"api.RunContainer failed due to ContainerGroupQuotaReached error", Serilog.Events.LogEventLevel.Error);
+
                                 string environmentName = _serviceProvider.GetService<IHostEnvironment>().EnvironmentName.ToUpper();
                                 if (environmentName == "AZURE-PROD")
                                 {
@@ -890,13 +911,16 @@ namespace MillimanAccessPortal.Controllers
                                     notifier.sendAzureQuotaExceededEmail(contentItem.ContentName, containerGroupNameGuid.ToString(), contentItem.Client.Name, ex.Data);
                                 }
                                 break;
+
                             default:
-                                Log.Error(ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupNameGuid.ToString()}. Inner Exception: {Environment.NewLine}");
-                                Log.Error($"Exception Data Entries:");
+                                GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, ex, $"In {ControllerContext.ActionDescriptor.DisplayName} action: Error attempting to run Container {containerGroupNameGuid}. Inner Exception: {Environment.NewLine}", Serilog.Events.LogEventLevel.Error);
+                                string msg = $"Exception Data Entries:";
                                 foreach (DictionaryEntry kvp in ex.Data)
                                 {
-                                    Log.Error($"- {kvp.Key.ToString()}: {kvp.Value.ToString()}");
+                                    msg += $"{Environment.NewLine}  - {kvp.Key.ToString()}: {kvp.Value.ToString()}";
+                                    Log.Error($"");
                                 }
+                                GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
                                 break;
                         }
 
