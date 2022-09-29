@@ -194,18 +194,15 @@ namespace MillimanAccessPortal.Services
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
-                    Stopwatch stopwatch = new Stopwatch();
-                    stopwatch.Start();
+                    Stopwatch stopwatch = Stopwatch.StartNew();
                     using (var chunkStream = File.OpenRead(chunkFilePathPhysical))
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
-                    stopwatch.Stop();
                     Log.Information($"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
 
                     stopwatch.Restart();
                     File.Delete(chunkFilePathPhysical);
-                    stopwatch.Stop();
                     Log.Information($"Deleted chunk {chunkFilePathPhysical}, took {stopwatch.ElapsedMilliseconds}");
                 }
             }

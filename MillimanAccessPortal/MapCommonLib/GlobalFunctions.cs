@@ -318,7 +318,8 @@ namespace MapCommonLib
     {
         LongRunningSelectionGroupProcessing,
         TrackQlikviewApiTiming,
-        TrackingContainerPublishing
+        TrackingContainerPublishing,
+        ResumableConcatenationProcessing,
     }
 
 }
