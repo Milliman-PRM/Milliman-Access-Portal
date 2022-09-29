@@ -550,13 +550,15 @@ namespace ContainerizedAppLib
 
                     containerGroupModel = await GetContainerGroupDetails(containerGroupName);
 
-                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"Waiting for container group launch, container group model is: {JsonConvert.SerializeObject(containerGroupModel)}", Serilog.Events.LogEventLevel.Debug);
+                    GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"Waiting for container group launch, container group named <{containerGroupName}> model is: {JsonConvert.SerializeObject(containerGroupModel)}", Serilog.Events.LogEventLevel.Debug);
                     loopPauseSeconds = Math.Max(--loopPauseSeconds, 7);
                 }
+
+                Log.Information($"After {containerLaunchStopWatch.Elapsed}, container group named <{containerGroupName}> model is: {JsonConvert.SerializeObject(containerGroupModel)}", Serilog.Events.LogEventLevel.Debug);
+
                 if (containerGroupModel?.Properties?.ProvisioningState != "Succeeded" || containerGroupModel?.Properties?.InstanceView?.State != "Running")
                 {
-                    string msg = $"After {containerLaunchStopWatch.Elapsed}, " +
-                                 $"ContainerGroupProvisioningState is \"{containerGroupModel?.Properties?.ProvisioningState}\", " +
+                    string msg = $"ContainerGroupProvisioningState is \"{containerGroupModel?.Properties?.ProvisioningState}\", " +
                                  $"ContainerGroupInstanceViewState is \"<{containerGroupModel?.Properties?.InstanceView?.State}\". " +
                                  $"Failed to reach desired state, aborting!";
                     GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
@@ -564,7 +566,7 @@ namespace ContainerizedAppLib
                 }
                 if (containerGroupModel?.Uri == null)
                 {
-                    string msg = $"After {containerLaunchStopWatch.Elapsed} container group failed to acquire an IP address.  Aborting.";
+                    string msg = "Container group failed to acquire an IP address.  Aborting.";
                     GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, msg, Serilog.Events.LogEventLevel.Error);
                     throw new ApplicationException(msg);
                 }
