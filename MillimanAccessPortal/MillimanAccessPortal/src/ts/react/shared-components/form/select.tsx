@@ -11,13 +11,15 @@ interface DropDownProps {
   onBlur?: (currentTarget: React.FormEvent<HTMLSelectElement>) => void;
   error: string;
   placeholderText?: string;
+  ignorePlaceholderText?: boolean;
   autoFocus?: boolean;
   readOnly?: boolean;
   hidden?: boolean;
 }
 
 export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>((props, ref) => {
-  const { name, label, error, placeholderText, readOnly, hidden, values, children, ...rest } = props;
+  const { name, label, error, placeholderText, ignorePlaceholderText, readOnly,
+    hidden, values, children, ...rest } = props;
   const options = values.map((option, index) => {
     return (<option key={index} value={option.selectionValue}>{option.selectionLabel}</option>);
   });
@@ -34,7 +36,7 @@ export const DropDown = React.forwardRef<HTMLSelectElement, DropDownProps>((prop
             value={''}
             {...rest}
           >
-            <option value="">{placeholderText || 'Select a ' + label}</option>
+            {!ignorePlaceholderText && <option value="">{placeholderText || 'Select a ' + label}</option>}
             {options}
           </select>
           <label className="form-input-label" htmlFor={name}>{label}</label>

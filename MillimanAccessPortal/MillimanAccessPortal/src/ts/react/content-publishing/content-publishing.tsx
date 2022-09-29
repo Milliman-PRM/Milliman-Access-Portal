@@ -991,7 +991,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                 }
                 {
                   contentTypes[pendingFormData.contentTypeId].displayName === 'Containerized App' &&
-                  pendingFormData.typeSpecificPublicationProperties &&
                   <>
                     <h4>
                       Container Settings
@@ -1022,8 +1021,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: target.value,
                             });
                           }}
-                          placeholderText="vCPU Cores *"
-                          value={pendingFormData.typeSpecificPublicationProperties.containerCpuCores}
+                          ignorePlaceholderText={true}
+                          value={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.containerCpuCores :
+                            ContainerCpuCoresEnum.Two}
                           values={cpuCoresDropdownValues}
                           readOnly={formState === 'read'}
                         />
@@ -1040,8 +1041,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: target.value,
                             });
                           }}
-                          placeholderText="RAM *"
-                          value={pendingFormData.typeSpecificPublicationProperties.containerRamGb}
+                          ignorePlaceholderText={true}
+                          value={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.containerRamGb : ContainerRamGbEnum.Eight}
                           values={containerRamGbDropdownValues}
                           readOnly={formState === 'read'}
                         />
@@ -1063,7 +1065,8 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             });
                           }}
                           type="text"
-                          value={pendingFormData.typeSpecificPublicationProperties.containerInternalPort}
+                          value={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.containerInternalPort : ''}
                           readOnly={formState === 'read'}
                         />
                       </FormFlexContainer>
@@ -1085,8 +1088,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       <FormFlexContainer flexPhone={12} flexDesktop={12}>
                         <RadioButton
                           id={'thirty-minutes'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.ThirtyMinutes}
+                          selected={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
+                            ContainerCooldownEnum.ThirtyMinutes : false}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.ThirtyMinutes}
                           onSelect={(val) => {
@@ -1100,8 +1104,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'one-hour'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.OneHour}
+                          selected={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
+                            ContainerCooldownEnum.OneHour : true}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.OneHour}
                           onSelect={(val) => {
@@ -1115,8 +1120,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'ninety-minutes'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.NinetyMinutes}
+                          selected={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
+                            ContainerCooldownEnum.NinetyMinutes : false}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.NinetyMinutes}
                           onSelect={(val) => {
@@ -1130,8 +1136,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         />
                         <RadioButton
                           id={'two-hours'}
-                          selected={pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
-                            ContainerCooldownEnum.TwoHours}
+                          selected={pendingFormData.typeSpecificPublicationProperties ?
+                            pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod ===
+                            ContainerCooldownEnum.TwoHours : false}
                           group={'container-cooldown'}
                           value={ContainerCooldownEnum.TwoHours}
                           onSelect={(val) => {
@@ -1165,8 +1172,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           </h4>
                           <Toggle
                             label="Customize container lifecycle"
-                            checked={pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
-                              === ContainerInstanceLifetimeSchemeEnum.Custom}
+                            checked={pendingFormData.typeSpecificPublicationProperties ?
+                              pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+                              === ContainerInstanceLifetimeSchemeEnum.Custom : false}
                             onClick={() => this.props.setPublishingFormTextInputValue({
                               inputName: 'containerInstanceLifetimeScheme',
                               value: pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
@@ -1180,8 +1188,9 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
-                      {pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
-                        === ContainerInstanceLifetimeSchemeEnum.Custom &&
+                      { pendingFormData.typeSpecificPublicationProperties &&
+                        pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
+                          === ContainerInstanceLifetimeSchemeEnum.Custom &&
                       <>
                         <FormFlexContainer flexPhone={12} flexDesktop={4}>
                           <div>
@@ -1341,7 +1350,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText={''}
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                   values={timeZones}
                                   readOnly={
@@ -1363,7 +1372,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText="Start Time"
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.startTime}
                                   values={onlyHoursBefore(pendingFormData.typeSpecificPublicationProperties.endTime)}
                                   readOnly={
@@ -1383,7 +1392,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                       value: target.value,
                                     });
                                   }}
-                                  placeholderText="End Time"
+                                  ignorePlaceholderText={true}
                                   value={pendingFormData.typeSpecificPublicationProperties.endTime}
                                   values={onlyHoursAfter(pendingFormData.typeSpecificPublicationProperties.startTime)}
                                   readOnly={
