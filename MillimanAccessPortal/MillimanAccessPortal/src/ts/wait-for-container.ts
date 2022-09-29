@@ -9,8 +9,9 @@ const checkContainerStatus = () => {
       .then((response) => {
         if (response.redirected) {
           location.reload();
+        } else {
+          checkContainerStatus();
         }
-        checkContainerStatus();
       });
   }, 5000);
 };
