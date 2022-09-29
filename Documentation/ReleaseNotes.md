@@ -2,9 +2,12 @@
 
 ## Release Notes
 
-#### v1.17.2
+#### v1.17.3
 
+- Fixed a bug which prevented larger uploads from occurring in File Drop
 - Fixed a bug that sometimes caused a container to fail loading in the UI on the first attempt
+- Removed unnecessary selections from the Container Specific publishing form sections
+- Fixed a bug which caused the Content Publishing page to get into a bad state when canceling Containerized App or PowerBI publications
 
 #### v1.17.2
 
