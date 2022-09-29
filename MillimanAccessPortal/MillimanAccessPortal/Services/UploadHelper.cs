@@ -12,6 +12,7 @@ using MillimanAccessPortal.Models.ContentPublishing;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
@@ -192,11 +193,16 @@ namespace MillimanAccessPortal.Services
                 foreach (var chunkFilePath in chunkFilePaths)
                 {
                     var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
+                    Stopwatch stopwatch = Stopwatch.StartNew();
                     using (var chunkStream = File.OpenRead(chunkFilePathPhysical))
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
+
+                    stopwatch.Restart();
                     File.Delete(chunkFilePathPhysical);
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
                 }
             }
             var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;

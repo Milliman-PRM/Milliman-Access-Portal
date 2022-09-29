@@ -71,7 +71,8 @@ namespace MillimanAccessPortal.Services
 
         private async Task ProcessOneUploadAsync(KeyValuePair<Guid, FileDropUploadTask> taskKvp)
         {
-            DateTime stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
+            uint timeoutSeconds = 180;
+            DateTime stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(timeoutSeconds);
 
             using (var scope = _services.CreateScope())
             {
@@ -80,7 +81,6 @@ namespace MillimanAccessPortal.Services
 
                 FileUpload uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
 
-                Log.Debug("FileDrop upload task transitioning to FinalizingUpload status");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.FinalizingUpload);
                 while (uploadRecord.Status == FileUploadStatus.InProgress)
                 {
@@ -88,6 +88,7 @@ namespace MillimanAccessPortal.Services
                     {
                         _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
                         await _fileDropUploadTaskTracker.RemoveFileUploadAsync(taskKvp.Key);
+                        Log.Error("Error in FileDropUploadProcessingHostedService: Upload status took too long in InProgress state, upload task status set to Error.");
                         return;
                     }
                     await Task.Delay(1000);
@@ -95,15 +96,15 @@ namespace MillimanAccessPortal.Services
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
 
-                Log.Debug("FileDrop upload task transitioning to ValidatingFile status");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.ValidatingFile);
-                stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(60);
+                stopWaitingAtUtc = DateTime.UtcNow + TimeSpan.FromSeconds(timeoutSeconds);
                 while (!uploadRecord.VirusScanWindowComplete)
                 {
                     if (DateTime.UtcNow > stopWaitingAtUtc)
                     {
                         _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Error);
                         await _fileDropUploadTaskTracker.RemoveFileUploadAsync(taskKvp.Key);
+                        Log.Error("Error in FileDropUploadProcessingHostedService: Virus scanning took too long.");
                         return;
                     }
                     await Task.Delay(1000);
@@ -111,7 +112,6 @@ namespace MillimanAccessPortal.Services
                     uploadRecord = await dbContext.FileUpload.FindAsync(taskKvp.Value.FileUploadId);
                 }
 
-                Log.Debug("FileDrop upload task transitioning to Copying status");
                 _fileDropUploadTaskTracker.UpdateTaskStatus(taskKvp.Key, FileDropUploadTaskStatus.Copying);
 
                 var destinationDirectoryRecord = await dbContext.FileDropDirectory

@@ -320,6 +320,7 @@ namespace MapCommonLib
         TrackQlikviewApiTiming,
         TrackingContainerPublishing,
         ContainerLaunchFlow,
+        UploadHelperProcessing,
     }
 
 }
