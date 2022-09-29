@@ -4,6 +4,10 @@
 
 #### v1.17.2
 
+- Fixed a bug that sometimes caused a container to fail loading in the UI on the first attempt
+
+#### v1.17.2
+
 - Fixed an error which occurred when renaming or moving a folder in a File Drop while using a 3rd-party FTP Client
 - Fixed a bug that prevented republishing of user guides and release notes for QlikView Content Items
 - Removed logging of spam SFTP connection requests

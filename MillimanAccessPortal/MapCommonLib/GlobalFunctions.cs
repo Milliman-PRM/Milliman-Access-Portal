@@ -319,6 +319,7 @@ namespace MapCommonLib
         LongRunningSelectionGroupProcessing,
         TrackQlikviewApiTiming,
         TrackingContainerPublishing,
+        ContainerLaunchFlow,
         UploadHelperProcessing,
     }
 
