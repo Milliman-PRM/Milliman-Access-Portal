@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ContentPublishing;
-using Serilog;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -199,11 +198,11 @@ namespace MillimanAccessPortal.Services
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
-                    Log.Information($"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
 
                     stopwatch.Restart();
                     File.Delete(chunkFilePathPhysical);
-                    Log.Information($"Deleted chunk {chunkFilePathPhysical}, took {stopwatch.ElapsedMilliseconds}");
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
                 }
             }
             var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;
