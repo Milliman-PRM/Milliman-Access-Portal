@@ -786,13 +786,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
             [action.inputName]: value,
           },
         },
-        formErrors: {
-          ...state.formErrors,
-          typeSpecificPublicationProperties: {
-            ...state.formErrors.typeSpecificPublicationProperties,
-            [action.inputName]: (isNaN(value)) ? 'Please select an option from the dropdown.' : null,
-          },
-        },
       };
     } else if (action.inputName === 'containerInternalPort') {
       const portNumber = Number(action.value);
@@ -826,13 +819,6 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           typeSpecificPublicationProperties: {
             ...state.pendingFormData.typeSpecificPublicationProperties,
             [action.inputName]: action.value,
-          },
-        },
-        formErrors: {
-          ...state.formErrors,
-          typeSpecificPublicationProperties: {
-            ...state.formErrors.typeSpecificPublicationProperties,
-            [action.inputName]: !action.value ? 'Please select an option from the dropdown.' : null,
           },
         },
       };
@@ -1377,7 +1363,9 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       associatedFiles: {
         ...associatedContentItems,
       },
-      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties,
+      typeSpecificPublicationProperties: detail.typeSpecificPublicationProperties ?
+        detail.typeSpecificPublicationProperties :
+        emptyContentItemDetail.typeSpecificPublicationProperties,
     };
 
     const uploads: Dict<UploadState> = {
