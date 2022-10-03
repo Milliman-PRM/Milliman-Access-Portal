@@ -544,7 +544,10 @@ namespace ContainerizedAppLib
                 #region Wait for container group to have an assigned IP address
                 int loopPauseSeconds = 15;  // initial value
                 ContainerGroup_GetResponseModel containerGroupModel = null;
-                while (containerLaunchStopWatch.Elapsed < TimeSpan.FromMinutes(7) && containerGroupModel?.Uri == null)
+                while (containerLaunchStopWatch.Elapsed < TimeSpan.FromMinutes(7) && 
+                       (containerGroupModel?.Uri is null || 
+                        containerGroupModel?.Uri.Host == "0.0.0.0" || 
+                        new[] { null, "Pending", "Creating" }.Contains(containerGroupModel?.Properties?.ProvisioningState)) )
                 {
                     await Task.Delay(TimeSpan.FromSeconds(loopPauseSeconds));
 
