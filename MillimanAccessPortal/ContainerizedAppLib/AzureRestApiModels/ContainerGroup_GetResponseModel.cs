@@ -39,8 +39,6 @@ namespace ContainerizedAppLib.AzureRestApiModels
             {
                 try
                 {
-                    string containerGroupIpAddress = Properties.IpAddress.Ip;
-                    ushort applicationPort = Properties.IpAddress.Ports.SingleOrDefault().Port;
                     UriBuilder uriBuilder = new UriBuilder
                     {
                         // TODO We currently don't support a redirect to another port (e.g. https redirect). If we decide to support SSL in containerized apps 

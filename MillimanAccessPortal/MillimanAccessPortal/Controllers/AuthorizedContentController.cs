@@ -825,8 +825,11 @@ namespace MillimanAccessPortal.Controllers
             switch (containerGroupModel)
             {
                 // running
-                case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
-                                                                model.Uri != null:
+                case ContainerGroup_GetResponseModel model when model?.Properties?.Containers is not null &&
+                                                                model.Properties.Containers.All(c => c.Properties?.Instance_View?.CurrentState?.State == "Running") &&
+                                                                model.Properties.ProvisioningState == "Succeeded" &&
+                                                                model.Uri != null &&
+                                                                model.Uri.Host != "0.0.0.0":
 
                     bool isContainerReady = await api.IsHttpSuccess(model.Uri);
                     if (!isContainerReady)
@@ -852,8 +855,8 @@ namespace MillimanAccessPortal.Controllers
 
                 // starting
                 case ContainerGroup_GetResponseModel model when model.Properties.Containers.All(c => c.Properties.Instance_View?.CurrentState?.State == "Running") &&
-                                                                model.Uri == null:
-                case ContainerGroup_GetResponseModel model1 when model1.Properties.ProvisioningState == "Pending" ||
+                                                                (model.Uri == null ||  model.Uri.Host == "0.0.0.0"):
+                case ContainerGroup_GetResponseModel model1 when new[] { null, "Pending", "Creating" }.Contains(containerGroupModel?.Properties?.ProvisioningState) ||
                                                                  model1.Properties.Containers.Any(c => c.Properties.Instance_View?.CurrentState?.State == "Waiting"):
 
                     GlobalFunctions.IssueLog(IssueLogEnum.ContainerLaunchFlow, $"ACI Container is starting, returning View(\"WaitForContainer\")", Serilog.Events.LogEventLevel.Debug);

@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v1.17.4
+
+- Fixed a bug which caused an error while processing some container publications
+
 #### v1.17.3
 
 - Fixed a bug which prevented larger uploads from occurring in File Drop
