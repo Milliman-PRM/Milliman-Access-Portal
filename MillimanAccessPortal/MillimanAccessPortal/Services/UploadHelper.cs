@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.FileProviders;
 using MillimanAccessPortal.Controllers;
 using MillimanAccessPortal.Models.ContentPublishing;
+using Serilog.Events;
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -185,24 +186,30 @@ namespace MillimanAccessPortal.Services
             }
 
             #region Concatenate chunks
-            var concatenationFilePath = _fileProvider.GetFileInfo(_pathSet.Concat).PhysicalPath;
-            using (var concatenationStream = File.OpenWrite(concatenationFilePath))
+            string concatenationFilePath = _fileProvider.GetFileInfo(_pathSet.Concat).PhysicalPath;
+            using (FileStream concatenationStream = File.OpenWrite(concatenationFilePath))
             {
-                var chunkFilePaths = Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks))
-                    .Select(chunkNumber => _pathSet.ChunkFilePath(((uint) chunkNumber)));
-                foreach (var chunkFilePath in chunkFilePaths)
+                Stopwatch stopwatch = new Stopwatch();
+                foreach (int chunkNumber in Enumerable.Range(1, Convert.ToInt32(Info.TotalChunks)))
                 {
-                    var chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
-                    Stopwatch stopwatch = Stopwatch.StartNew();
-                    using (var chunkStream = File.OpenRead(chunkFilePathPhysical))
+                    // Log one of every 10 chunks at Information level
+                    LogEventLevel logLevel = chunkNumber % 10 == 0 
+                                           ? LogEventLevel.Information 
+                                           : LogEventLevel.Verbose;
+
+                    string chunkFilePath = _pathSet.ChunkFilePath((uint)chunkNumber);
+                    string chunkFilePathPhysical = _fileProvider.GetFileInfo(chunkFilePath).PhysicalPath;
+
+                    stopwatch.Restart();
+                    using (FileStream chunkStream = File.OpenRead(chunkFilePathPhysical))
                     {
                         chunkStream.CopyTo(concatenationStream);
                     }
-                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenating chunk {chunkNumber}, file {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}", logLevel);
 
                     stopwatch.Restart();
                     File.Delete(chunkFilePathPhysical);
-                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Concatenated chunk {chunkFilePathPhysical} to {concatenationFilePath}, took {stopwatch.ElapsedMilliseconds}");
+                    GlobalFunctions.IssueLog(IssueLogEnum.UploadHelperProcessing, $"Deleting chunk {chunkNumber}, file {chunkFilePathPhysical} took {stopwatch.ElapsedMilliseconds}", logLevel);
                 }
             }
             var chunkDirPath = _fileProvider.GetFileInfo(_pathSet.Chunk).PhysicalPath;
