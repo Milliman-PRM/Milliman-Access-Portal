@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+#### v?.?.?
+
+- Fixed a bug which caused the publishing server to neglect QlikView reductions until it is restarted
+
 #### v1.17.4
 
 - Fixed a bug which caused an error while processing some container publications
