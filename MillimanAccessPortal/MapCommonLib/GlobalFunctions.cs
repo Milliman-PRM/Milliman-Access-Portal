@@ -209,15 +209,26 @@ namespace MapCommonLib
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
         }
 
+        /// <summary>
+        /// Note that the escape character used in this function is @"\"
+        /// </summary>
+        /// <param name="original">The string to process</param>
+        /// <returns></returns>
         public static string EscapePgWildcards(string original)
         {
-            return EscapePgWildcards(original, '\\');
+            return EscapePgWildcards(original, @"\");
         }
 
-        public static string EscapePgWildcards(string original, char escapeChar = '\\')
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="original">The string to process</param>
+        /// <param name="escapeWith">The escape character to prepend to any character that is normally a wildcard</param>
+        /// <returns></returns>
+        public static string EscapePgWildcards(string original, string escapeWith)
         {
-            return original.Replace("_", escapeChar + "_")
-                           .Replace("%", escapeChar + "%");
+            return original.Replace("_", escapeWith + "_")
+                           .Replace("%", escapeWith + "%");
         }
 
         /// <summary>
