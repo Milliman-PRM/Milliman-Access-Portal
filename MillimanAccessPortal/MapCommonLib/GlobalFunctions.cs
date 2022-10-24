@@ -37,6 +37,7 @@ namespace MapCommonLib
 
         public static readonly string PasswordResetTokenProviderName = "MAPResetToken";
         public static readonly string TwoFactorEmailTokenProviderName = "TwoFactorEmailTokenProvider";
+        public static readonly string DefaultPgEscapeChar = @"\";
 
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
@@ -216,19 +217,25 @@ namespace MapCommonLib
         /// <returns></returns>
         public static string EscapePgWildcards(string original)
         {
-            return EscapePgWildcards(original, @"\");
+            return EscapePgWildcards(original, DefaultPgEscapeChar);
         }
 
         /// <summary>
         /// 
         /// </summary>
         /// <param name="original">The string to process</param>
-        /// <param name="escapeWith">The escape character to prepend to any character that is normally a wildcard</param>
+        /// <param name="escapeChar">The escape character to prepend to any character in `original` that is intended literally in the search pattern</param>
         /// <returns></returns>
-        public static string EscapePgWildcards(string original, string escapeWith)
+        public static string EscapePgWildcards(string original, string escapeChar)
         {
-            return original.Replace("_", escapeWith + "_")
-                           .Replace("%", escapeWith + "%");
+            if (escapeChar.Length != 1)
+            {
+                throw new ArgumentException("Invalid escape string", nameof(escapeChar));
+            }
+
+            return original.Replace(escapeChar, escapeChar + escapeChar)
+                           .Replace("_", escapeChar + "_")
+                           .Replace("%", escapeChar + "%");
         }
 
         /// <summary>
