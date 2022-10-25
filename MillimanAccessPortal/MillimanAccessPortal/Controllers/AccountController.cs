@@ -153,7 +153,7 @@ namespace MillimanAccessPortal.Controllers
                 : userName;
 
             // 2. If the username's domain is found in a domain list of a scheme
-            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainList.Contains(userFullDomain));
+            MapDbContextLib.Context.AuthenticationScheme matchingScheme = DbContext.AuthenticationScheme.SingleOrDefault(s => s.DomainList.Contains(userFullDomain, StringComparer.InvariantCultureIgnoreCase));
             if (matchingScheme != null)
             {
                 return matchingScheme;
