@@ -99,7 +99,7 @@ namespace MapDbContextLib.Context
             AuthenticationService authService = (AuthenticationService)serviceProvider.GetService<IAuthenticationService>();
 
             string defaultSchemeName = (await authService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name;
-            if (!dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(defaultSchemeName))))
+            if (!dbContext.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(defaultSchemeName), @"\")))
             {
                 AuthenticationScheme newScheme = new AuthenticationScheme
                 {

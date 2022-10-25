@@ -37,6 +37,7 @@ namespace MapCommonLib
 
         public static readonly string PasswordResetTokenProviderName = "MAPResetToken";
         public static readonly string TwoFactorEmailTokenProviderName = "TwoFactorEmailTokenProvider";
+        public static readonly string DefaultPgEscapeChar = @"\";
 
         static Regex EmailAddressValidationRegex = new Regex (EmailValRegex, RegexOptions.IgnoreCase, TimeSpan.FromMilliseconds(250));
 
@@ -209,14 +210,31 @@ namespace MapCommonLib
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
         }
 
+        /// <summary>
+        /// Note that the escape character used in this function is @"\"
+        /// </summary>
+        /// <param name="original">The string to process</param>
+        /// <returns></returns>
         public static string EscapePgWildcards(string original)
         {
-            return EscapePgWildcards(original, '\\');
+            return EscapePgWildcards(original, DefaultPgEscapeChar);
         }
 
-        public static string EscapePgWildcards(string original, char escapeChar = '\\')
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="original">The string to process</param>
+        /// <param name="escapeChar">The escape character to prepend to any character in `original` that is intended literally in the search pattern</param>
+        /// <returns></returns>
+        public static string EscapePgWildcards(string original, string escapeChar)
         {
-            return original.Replace("_", escapeChar + "_")
+            if (escapeChar.Length != 1)
+            {
+                throw new ArgumentException("Invalid escape string", nameof(escapeChar));
+            }
+
+            return original.Replace(escapeChar, escapeChar + escapeChar)
+                           .Replace("_", escapeChar + "_")
                            .Replace("%", escapeChar + "%");
         }
 
