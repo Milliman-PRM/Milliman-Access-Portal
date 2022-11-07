@@ -118,7 +118,7 @@ INSERT INTO public."SftpAccount"
     SELECT "Id", "UserName", "IsSuspended", "ApplicationUserId", "FileDropUserPermissionGroupId", "FileDropId", (current_timestamp AT TIME ZONE 'UTC')
     FROM map."SftpAccount"
 )
-ON CONFLICT ON CONSTRAINT "UNIQUE_User_PermissionGroup_Current" DO NOTHING;
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_PermissionGroup_Current" DO UPDATE SET ("UserName","IsSuspended") = (excluded."UserName",excluded."IsSuspended");
 
 /*
 	SECTION 5: Audit Events
