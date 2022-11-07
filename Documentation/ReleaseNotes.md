@@ -2,6 +2,13 @@
 
 ## Release Notes
 
+### v1.18.0
+
+- Fixed a bug causing incorrect sizing for content opened in a new tab
+- Fixed a typo in a label when adding unactivated users to a File Drop
+- Fixed a bug where updates to a File Drop were submitted when no changes were actually made
+- Removed the link to the PRM Analytics website from the site footer
+
 #### v1.17.5
 
 - Fixed a bug that caused authorization failures for a username containing the '_' character
