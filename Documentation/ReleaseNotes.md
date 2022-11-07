@@ -5,6 +5,11 @@
 #### ????
 - Fixed a bug where a Single Signon user may not be recognized as remotely authenticated depending on the domain of their email address
 
+#### v1.17.5
+
+- Fixed a bug that caused authorization failures for a username containing the '_' character
+
+
 #### v1.17.4
 
 - Fixed a bug which caused an error while processing some container publications

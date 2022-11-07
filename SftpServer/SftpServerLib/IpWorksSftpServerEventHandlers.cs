@@ -21,6 +21,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using MapCommonLib;
 
 namespace SftpServerLib
 {
@@ -137,7 +138,7 @@ namespace SftpServerLib
             {
                 containingDirectory = db.FileDropDirectory
                                         .Where(d => d.FileDropId == connection.FileDropId)
-                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, dirPathToFind));
+                                        .SingleOrDefault(d => EF.Functions.ILike(d.CanonicalFileDropPath, GlobalFunctions.EscapePgWildcards(dirPathToFind), @"\"));
             }
 
             if (evtData.BeforeExec)
@@ -202,7 +203,7 @@ namespace SftpServerLib
 
                         using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
-                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
+                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, GlobalFunctions.EscapePgWildcards(fileName), @"\")) ||
                                 !File.Exists(absoluteFilePath))
                             {
                                 Log.Warning($"OnFileOpen event invoked for file read, but file {evtData.Path} or file record not found, account {evtData.User}");
@@ -257,7 +258,7 @@ namespace SftpServerLib
 
                         using (ApplicationDbContext db = FileDropOperations.NewMapDbContext)
                         {
-                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, fileName)) ||
+                            if (!db.FileDropFile.Any(f => EF.Functions.ILike(f.FileName, GlobalFunctions.EscapePgWildcards(fileName), @"\")) ||
                                 !File.Exists(absoluteFilePath))
                             {
                                 Log.Warning($"OnFileOpen event invoked for file read, but file {evtData.Path} or file record not found, account {evtData.User}");
@@ -619,7 +620,7 @@ namespace SftpServerLib
                                                 .Include(a => a.FileDropUserPermissionGroup)
                                                     .ThenInclude(g => g.FileDrop)
                                                         .ThenInclude(d => d.Client)
-                                                .SingleOrDefault(a => EF.Functions.ILike(a.UserName, evtData.User));
+                                                .SingleOrDefault(a => EF.Functions.ILike(a.UserName, GlobalFunctions.EscapePgWildcards(evtData.User), @"\"));
 
                     if (userAccount is null)
                     {
@@ -943,7 +944,7 @@ namespace SftpServerLib
                     {
                         // Secondary domain (the portion of userName between '@' and the last '.') matches a scheme name
                         string userSecondaryDomain = userFullDomain.Substring(0, userFullDomain.LastIndexOf('.'));
-                        return db.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, userSecondaryDomain));
+                        return db.AuthenticationScheme.Any(s => EF.Functions.ILike(s.Name, GlobalFunctions.EscapePgWildcards(userSecondaryDomain), @"\"));
                     }
                     else
                     {
