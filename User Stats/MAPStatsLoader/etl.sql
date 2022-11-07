@@ -48,7 +48,7 @@ INSERT INTO public."FileDrop"
 INSERT INTO public."FileDropUserPermissionGroup"
 	("Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId")
 	(SELECT "Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId" FROM map."FileDropUserPermissionGroup")
-	ON CONFLICT ON CONSTRAINT "PK_FileDropUserPermissionGroup" DO UPDATE SET ("Name","ReadAccess","WriteAccess","DeleteAccess","IsPersonalGroup") = (excluded."Name",excluded"ReadAccess",excluded."WriteAccess",excluded."DeleteAccess",excluded."IsPersonalGroup");
+	ON CONFLICT ON CONSTRAINT "PK_FileDropUserPermissionGroup" DO UPDATE SET ("Name","ReadAccess","WriteAccess","DeleteAccess","IsPersonalGroup") = (excluded."Name",excluded."ReadAccess",excluded."WriteAccess",excluded."DeleteAccess",excluded."IsPersonalGroup");
 
 /*
 	SECTION 2: Client-ProfitCenter relationships
