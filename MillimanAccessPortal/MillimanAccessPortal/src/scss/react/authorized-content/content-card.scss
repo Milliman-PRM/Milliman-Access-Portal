@@ -62,13 +62,14 @@
                 .content-card-image {
                     margin: 0;
                     float: none;
+                    max-width: 80%;
                 }
             }
 
             .content-card-image {
-                width: 50%;
+                max-width: 50%;
                 margin-right: 1em;
-                height: auto;
+                max-height: 10rem;
                 float: left;
             }
 
