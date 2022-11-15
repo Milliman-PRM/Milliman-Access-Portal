@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.18.0
+
+- Increased content card image size
+
 #### v1.17.5
 
 - Fixed a bug that caused authorization failures for a username containing the '_' character
