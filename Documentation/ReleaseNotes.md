@@ -9,6 +9,7 @@
 - Fixed a bug where updates to a File Drop were submitted when no changes were actually made
 - Removed the link to the PRM Analytics website from the site footer
 - Added "yahoo.com" to the list of domains that cannot be added to the client domain whitelist
+- Increased content card image size
 
 #### v1.17.5
 

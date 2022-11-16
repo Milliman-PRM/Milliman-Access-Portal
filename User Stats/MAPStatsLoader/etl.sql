@@ -13,42 +13,42 @@ BEGIN TRANSACTION;
 INSERT INTO public."Users"
 	("Id", "FirstName", "LastName", "UserName", "Employer")
 	(select "Id", "FirstName", "LastName", "UserName", "Employer" from map."AspNetUsers")
-	ON CONFLICT ON CONSTRAINT "PK_Users" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_Users" DO UPDATE SET ("FirstName","LastName","UserName") = (excluded."FirstName",excluded."LastName",excluded."UserName");
 
 INSERT INTO public."ContentType"
 	("Id", "Name")
 	(select "Id", "TypeEnum"::TEXT from map."ContentType")
-	ON CONFLICT ON CONSTRAINT "PK_ContentType" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_ContentType" DO UPDATE SET "Name" = excluded."Name";
 
 INSERT INTO public."Client"
 	("Id", "ClientCode", "Name", "ParentClientId")
 	(select "Id", "ClientCode", "Name", "ParentClientId" from  map."Client")
-	ON CONFLICT ON CONSTRAINT "PK_Client" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_Client" DO UPDATE SET ("ClientCode","Name") = (excluded."ClientCode",excluded."Name");
 
 INSERT INTO public."RootContentItem"
 	("Id", "ClientId", "ContentName", "ContentTypeId")
 	(SELECT "Id", "ClientId", "ContentName", "ContentTypeId" FROM map."RootContentItem")
-	ON CONFLICT ON CONSTRAINT "PK_RootContentItem" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_RootContentItem" DO UPDATE SET "ContentName" = excluded."ContentName";
 
 INSERT INTO public."SelectionGroup"
 	("Id", "ContentInstanceUrl", "GroupName", "RootContentItemId")
 	(SELECT "Id", "ContentInstanceUrl", "GroupName", "RootContentItemId" FROM map."SelectionGroup")
-	ON CONFLICT ON CONSTRAINT "PK_SelectionGroup" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_SelectionGroup" DO UPDATE SET ("ContentInstanceUrl","GroupName") = (excluded."ContentInstanceUrl",excluded."GroupName");
 
 INSERT INTO public."ProfitCenter"
 	("Id", "Name", "ProfitCenterCode")
 	(SELECT "Id", "Name", "ProfitCenterCode" FROM map."ProfitCenter")
-	ON CONFLICT ON CONSTRAINT "PK_ProfitCenter" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_ProfitCenter" DO UPDATE SET ("Name","ProfitCenterCode") = (excluded."Name",excluded."ProfitCenterCode");
 
 INSERT INTO public."FileDrop"
 	("Id", "ClientId", "Name", "Description")
 	(SELECT "Id", "ClientId", "Name", "Description" FROM map."FileDrop")
-	ON CONFLICT ON CONSTRAINT "PK_FileDrop" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_FileDrop" DO UPDATE SET ("Name", "Description") = (excluded."Name",excluded."Description");
 
 INSERT INTO public."FileDropUserPermissionGroup"
 	("Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId")
 	(SELECT "Id", "Name", "ReadAccess", "WriteAccess", "DeleteAccess", "IsPersonalGroup", "FileDropId" FROM map."FileDropUserPermissionGroup")
-	ON CONFLICT ON CONSTRAINT "PK_FileDropUserPermissionGroup" DO NOTHING;
+	ON CONFLICT ON CONSTRAINT "PK_FileDropUserPermissionGroup" DO UPDATE SET ("Name","ReadAccess","WriteAccess","DeleteAccess","IsPersonalGroup") = (excluded."Name",excluded."ReadAccess",excluded."WriteAccess",excluded."DeleteAccess",excluded."IsPersonalGroup");
 
 /*
 	SECTION 2: Client-ProfitCenter relationships
@@ -118,7 +118,7 @@ INSERT INTO public."SftpAccount"
     SELECT "Id", "UserName", "IsSuspended", "ApplicationUserId", "FileDropUserPermissionGroupId", "FileDropId", (current_timestamp AT TIME ZONE 'UTC')
     FROM map."SftpAccount"
 )
-ON CONFLICT ON CONSTRAINT "UNIQUE_User_PermissionGroup_Current" DO NOTHING;
+ON CONFLICT ON CONSTRAINT "UNIQUE_User_PermissionGroup_Current" DO UPDATE SET ("UserName","IsSuspended") = (excluded."UserName",excluded."IsSuspended");
 
 /*
 	SECTION 5: Audit Events
