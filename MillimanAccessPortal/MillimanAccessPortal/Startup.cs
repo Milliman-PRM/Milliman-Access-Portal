@@ -310,10 +310,11 @@ namespace MillimanAccessPortal
                 });
                 builder.ApplicationCookie.Configure(options =>
                 {
-                    options.SessionStore = new MemoryCacheTicketStore(TimeSpan.FromMinutes(30));
+                    TimeSpan sessionTimeout = TimeSpan.FromMinutes(30);
+                    options.SessionStore = new MemoryCacheTicketStore(sessionTimeout);
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.ExpireTimeSpan = sessionTimeout;
                     options.SlidingExpiration = true;
                     options.ReturnUrlParameter = "returnUrl";
                 });
