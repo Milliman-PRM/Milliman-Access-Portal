@@ -2,8 +2,9 @@
 
 ## Release Notes
 
-### v1.18.0
+### v1.17.6
 
+- Fixed a bug preventing some users from accessing container apps due to cookie size
 - Fixed a bug causing incorrect sizing for content opened in a new tab
 - Fixed a typo in a label when adding unactivated users to a File Drop
 - Fixed a bug where updates to a File Drop were submitted when no changes were actually made
