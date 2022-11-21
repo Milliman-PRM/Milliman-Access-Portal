@@ -1166,7 +1166,7 @@ namespace MillimanAccessPortal.Controllers
             if (prohibitedDomains.Any())
             {
                 Log.Debug($"In ClientAdminController.SaveNewClient action: domains <{string.Join(", ", prohibitedDomains)}> are prohibited by the system");
-                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains maybe added to the client in the email exception list");
+                Response.Headers.Add("Warning", $"The requested domains ({string.Join(", ", prohibitedDomains)}) are prohibited. Individual users from these domains may be added to the client in the email exception list");
                 return StatusCode(StatusCodes.Status422UnprocessableEntity);
             }
 
