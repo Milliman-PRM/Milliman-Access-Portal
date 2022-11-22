@@ -841,7 +841,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
 
   private renderFileDropPanel() {
     const {
-      activeSelectedClient, selected, filters, pending, cardAttributes,
+      activeSelectedClient, selected, filters, pending, cardAttributes, data,
       fileDrops, permissionGroupChangesPending, filesOrFoldersModified,
     } = this.props;
     const createNewFileDropIcon = activeSelectedClient.canManageFileDrops && (
@@ -904,12 +904,18 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   color={'green'}
                   tooltip={'Update File Drop'}
                   onClick={() => {
-                    this.props.updateFileDrop({
-                      clientId: pending.editFileDrop.clientId,
-                      id: pending.editFileDrop.id,
-                      name: pending.editFileDrop.fileDropName,
-                      description: pending.editFileDrop.fileDropDescription,
-                    });
+                    if (pending.editFileDrop.fileDropName !== data.fileDrops[pending.editFileDrop.id].name
+                      || pending.editFileDrop.fileDropDescription !==
+                         data.fileDrops[pending.editFileDrop.id].description) {
+                      this.props.updateFileDrop({
+                        clientId: pending.editFileDrop.clientId,
+                        id: pending.editFileDrop.id,
+                        name: pending.editFileDrop.fileDropName,
+                        description: pending.editFileDrop.fileDropDescription,
+                      });
+                    } else {
+                      this.props.cancelFileDropEdit({});
+                    }
                   }}
                   icon={'checkmark'}
                 />

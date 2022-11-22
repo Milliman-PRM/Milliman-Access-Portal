@@ -2,9 +2,20 @@
 
 ## Release Notes
 
-#### v?.?.?
+### v1.17.6
 
 - Fixed a bug which caused the publishing server to neglect QlikView reductions until it is restarted
+- Fixed a bug where a Single Signon user may not be recognized as remotely authenticated depending on the domain of their email address
+- Fixed a bug causing incorrect sizing for content opened in a new tab
+- Fixed a typo in a label when adding unactivated users to a File Drop
+- Fixed a bug where updates to a File Drop were submitted when no changes were actually made
+- Removed the link to the PRM Analytics website from the site footer
+- Added "yahoo.com" to the list of domains that cannot be added to the client domain whitelist
+- Increased content card image size
+
+#### v1.17.5
+
+- Fixed a bug that caused authorization failures for a username containing the '_' character
 
 #### v1.17.4
 

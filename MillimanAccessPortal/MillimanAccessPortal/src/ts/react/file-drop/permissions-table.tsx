@@ -114,7 +114,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                             classNamePrefix="react-select"
                             options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                               value: u.id,
-                              name: u.name.trim() ? u.name : '(Inactivate)',
+                              name: u.name.trim() ? u.name : '(Unactivated)',
                               userName: u.userName,
                             }))}
                             styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
@@ -166,7 +166,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                                     eligibleUsers[thisPG.assignedMapUserIds[0]].firstName,
                                     eligibleUsers[thisPG.assignedMapUserIds[0]].lastName,
                                   ].join(' ') :
-                                  '(Inactive)'
+                                  '(Unactivated)'
                               }
                             </strong>
                           </td>
@@ -274,7 +274,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                     {
                       (thisUser.firstName || thisUser.lastName)
                         ? [thisUser.firstName, thisUser.lastName].join(' ')
-                        : '(Inactive)'
+                        : '(Unactivated)'
                     }
                   </td>
                   <td colSpan={5}>{thisUser.userName}</td>
@@ -303,7 +303,7 @@ export class PermissionsTable extends React.Component<PermissionsTableProps> {
                   classNamePrefix="react-select"
                   options={unassignedEligibleUsers && unassignedEligibleUsers.map((u) => ({
                     value: u.id,
-                    name: u.name.trim() ? u.name : '(Inactivate)',
+                    name: u.name.trim() ? u.name : '(Unactivated)',
                     userName: u.userName,
                   }))}
                   styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
