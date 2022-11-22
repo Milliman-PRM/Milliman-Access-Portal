@@ -4,6 +4,7 @@
 
 ### v1.17.6
 
+- Fixed a bug which caused the publishing server to neglect QlikView reductions until it is restarted
 - Fixed a bug where a Single Signon user may not be recognized as remotely authenticated depending on the domain of their email address
 - Fixed a bug causing incorrect sizing for content opened in a new tab
 - Fixed a typo in a label when adding unactivated users to a File Drop
@@ -15,7 +16,6 @@
 #### v1.17.5
 
 - Fixed a bug that caused authorization failures for a username containing the '_' character
-
 
 #### v1.17.4
 

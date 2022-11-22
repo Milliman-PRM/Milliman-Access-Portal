@@ -17,6 +17,7 @@ using Microsoft.Extensions.Configuration;
 using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using ContentPublishingLib.JobRunners;
+using System.Diagnostics;
 
 namespace ContentPublishingLib.JobMonitors
 {
@@ -100,14 +101,25 @@ namespace ContentPublishingLib.JobMonitors
                 {
                     List<Guid> AllActiveReductionTaskIdList = ActiveReductionRunnerItems.Select(i => i.dbTask.Id).ToList();
 
-                    List<Guid> CanceledTaskIdList = await Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
-                                                                                .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
-                                                                                .Select(t => t.Id)
-                                                                                .ToListAsync();
+                    for (Stopwatch stopwatch = Stopwatch.StartNew(); stopwatch.ElapsedMilliseconds < 20_000; await Task.Delay(TimeSpan.FromSeconds(1)))
+                    {
+                        try
+                        {
+                            List<Guid> CanceledTaskIdList = await Db.ContentReductionTask.Where(t => AllActiveReductionTaskIdList.Contains(t.Id))
+                                                                                         .Where(t => t.ReductionStatus == ReductionStatusEnum.Canceled)
+                                                                                         .Select(t => t.Id)
+                                                                                         .ToListAsync();
 
-                    ActiveReductionRunnerItems.Where(i => CanceledTaskIdList.Contains(i.dbTask.Id))
-                                              .ToList()
-                                              .ForEach(i => i.tokenSource.Cancel());
+                            ActiveReductionRunnerItems.Where(i => CanceledTaskIdList.Contains(i.dbTask.Id))
+                                                                                    .ToList()
+                                                                                   .ForEach(i => i.tokenSource.Cancel());
+                        }
+                        catch
+                        {
+                            continue;
+                        }
+                        break;
+                    }
                 }
 
                 // Remove completed tasks from the RunningTasks collection. 
