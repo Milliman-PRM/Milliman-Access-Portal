@@ -55,6 +55,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
 using ContainerizedAppLib;
+using Yarp.Telemetry.Consumption;
 
 namespace MillimanAccessPortal
 {
@@ -408,6 +409,8 @@ namespace MillimanAccessPortal
 
             services.AddDatabaseDeveloperPageExceptionFilter();
 
+            services.AddTelemetryConsumer<WebsocketTelemetryConsumer>();
+
             string fileUploadPath = Path.GetTempPath();
             // The environment variable check enables migrations to be deployed to Staging or Production via the MAP deployment server
             // This variable should never be set on a real production or staging system
@@ -589,6 +592,8 @@ namespace MillimanAccessPortal
                 }, context.Response);
                 await next();
             });
+
+            app.UseWebSocketsTelemetry();
 
             app.UseRouting();
 
