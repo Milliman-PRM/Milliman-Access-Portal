@@ -174,6 +174,7 @@ export interface TypeSpecificPublicationProperties {
   startTime?: string;
   endTime?: string;
   timeZoneId?: string;
+  dataPersistenceEnabled?: boolean;
 }
 
 export interface GoLiveViewModel {
@@ -231,6 +232,7 @@ export interface ContentItemFormErrors {
     startTime?: string;
     endTime?: string;
     timeZoneId?: string;
+    dataPersistenceEnabled?: string;
   };
 }
 

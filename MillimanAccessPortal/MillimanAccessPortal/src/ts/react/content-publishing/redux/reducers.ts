@@ -96,6 +96,7 @@ const emptyContentItemDetail: ContentItemDetail = {
     startTime: '08:00:00',
     endTime: '17:00:00',
     timeZoneId: '',
+    dataPersistenceEnabled: false,
   },
 };
 
@@ -136,6 +137,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
     startTime: '',
     endTime: '',
     timeZoneId: '',
+    dataPersistenceEnabled: '',
   },
 };
 
@@ -659,6 +661,10 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           action.response.typeSpecificPublicationProperties.timeZoneId ?
           action.response.typeSpecificPublicationProperties.timeZoneId :
           state.defaultUserTimeZoneId,
+        dataPersistenceEnabled: action.response.typeSpecificPublicationProperties &&
+          action.response.typeSpecificPublicationProperties.dataPersistenceEnabled ?
+          action.response.typeSpecificPublicationProperties.dataPersistenceEnabled :
+          emptyContentItemDetail.typeSpecificPublicationProperties.dataPersistenceEnabled,
       },
       relatedFiles: {
         MasterContent: {
@@ -872,7 +878,8 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
                action.inputName === 'thursdayChecked' ||
                action.inputName === 'fridayChecked' ||
                action.inputName === 'saturdayChecked' ||
-               action.inputName === 'sundayChecked') {
+               action.inputName === 'sundayChecked' ||
+               action.inputName === 'dataPersistenceEnabled') {
       return {
         ...state,
         pendingFormData: {
