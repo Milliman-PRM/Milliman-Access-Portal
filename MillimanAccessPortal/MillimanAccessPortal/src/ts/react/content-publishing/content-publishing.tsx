@@ -1072,6 +1072,35 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={12}>
+                        <div>
+                          <h4>
+                            Data Persistence
+                            <ActionIcon
+                              icon="information"
+                              label={'Data persistence provides the container with a location to read and write data. '
+                                + '"Off" indicates that the container does not require data persistence, in which case '
+                                + 'none will be provided. '
+                                + 'Setting this value to "On" will make available the required resources necessary to '
+                                + 'enable data persistence for this container. '
+                              }
+                              small={true}
+                            />
+                          </h4>
+                          <Toggle
+                            label="Data Persistence"
+                            checked={pendingFormData.typeSpecificPublicationProperties &&
+                              pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled}
+                            onClick={() => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'dataPersistenceEnabled',
+                                  value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+                                })}
+                            readOnly={formState === 'read'}
+                          />
+                        </div>
+                      </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
                       <h4>
                         Container cooldown times
                         <ActionIcon
@@ -1150,35 +1179,6 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           readOnly={formState === 'read'}
                           labelText="2 Hours"
                         />
-                      </FormFlexContainer>
-                    </FormSectionRow>
-                    <FormSectionRow>
-                      <FormFlexContainer flexPhone={12} flexDesktop={12}>
-                        <div>
-                          <h4>
-                            Data Persistence
-                            <ActionIcon
-                              icon="information"
-                              label={'Data persistence provides the container with a location to read and write data. '
-                                + '"Off" indicates that the container does not require data persistence, in which case '
-                                + 'none will be provided. '
-                                + 'Setting this value to "On" will make available the required resources necessary to '
-                                + 'enable data persistence for this container. '
-                              }
-                              small={true}
-                            />
-                          </h4>
-                          <Toggle
-                            label="Data Persistence"
-                            checked={pendingFormData.typeSpecificPublicationProperties &&
-                              pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled}
-                            onClick={() => this.props.setPublishingFormBooleanInputValue({
-                                  inputName: 'dataPersistenceEnabled',
-                                  value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
-                                })}
-                            readOnly={formState === 'read'}
-                          />
-                        </div>
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
