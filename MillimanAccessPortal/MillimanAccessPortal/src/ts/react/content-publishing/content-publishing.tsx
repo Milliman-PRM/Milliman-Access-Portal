@@ -1101,6 +1101,48 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       </FormFlexContainer>
                     </FormSectionRow>
                     <FormSectionRow>
+                      {
+                        pendingFormData.typeSpecificPublicationProperties &&
+                        pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
+                        <>
+                          <FormFlexContainer flexPhone={10}>
+                            <FileUploadInput
+                              fileExtensions={['zip']}
+                              label="Zip File"
+                              name="containerDataPersistenceData"
+                              placeholderText="Zipped Data Persistence Directory"
+                              beginUpload={(uploadId, fileName) =>
+                                this.props.beginFileUpload({ uploadId, fileName })}
+                              cancelFileUpload={(uploadId) =>
+                                this.props.cancelFileUpload({ uploadId })}
+                              removeExistingFile={(uploadId) =>
+                                this.props.removeExistingFile({ uploadId })}
+                              finalizeUpload={(uploadId, fileName, guid) =>
+                                this.props.finalizeUpload({ uploadId, fileName, guid })}
+                              setUploadError={(uploadId, errorMsg) =>
+                                this.props.setUploadError({ uploadId, errorMsg })}
+                              updateChecksumProgress={(uploadId, progress) =>
+                                this.props.updateChecksumProgress({ uploadId, progress })}
+                              updateUploadProgress={(uploadId, progress) =>
+                                this.props.updateUploadProgress({ uploadId, progress })}
+                              upload={uploads[pendingFormData.relatedFiles.ContainerPersistedData.uniqueUploadId]}
+                              uploadId={pendingFormData.relatedFiles.ContainerPersistedData.uniqueUploadId}
+                              fileUploadId={
+                                (pendingFormData.relatedFiles.ContainerPersistedData.fileUploadId !== undefined)
+                                  ? pendingFormData.relatedFiles.ContainerPersistedData.fileUploadId
+                                  : null
+                              }
+                              value={pendingFormData.relatedFiles.ContainerPersistedData.fileOriginalName}
+                              readOnly={formState === 'read'}
+                            />
+                          </FormFlexContainer>
+                          <FormFlexContainer flexPhone={2} flex={true}>
+                              <ActionIcon label="Download live data" icon="download" />
+                          </FormFlexContainer>
+                        </>
+                      }
+                    </FormSectionRow>
+                    <FormSectionRow>
                       <h4>
                         Container cooldown times
                         <ActionIcon

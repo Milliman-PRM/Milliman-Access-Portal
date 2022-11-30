@@ -101,6 +101,7 @@ export interface RelatedFiles {
   Thumbnail: RelatedFileUpload;
   UserGuide: RelatedFileUpload;
   ReleaseNotes: RelatedFileUpload;
+  ContainerPersistedData: RelatedFileUpload;
   [key: string]: RelatedFileUpload;
 }
 
@@ -199,6 +200,7 @@ export interface ContentItemFormErrors {
     Thumbnail?: string;
     UserGuide?: string;
     ReleaseNotes?: string;
+    ContainerPersistedData?: string;
   };
   associatedFiles?: {
     [uniqueId: string]: string;

@@ -69,6 +69,11 @@ const emptyContentItemDetail: ContentItemDetail = {
       uniqueUploadId: '',
       fileUploadId: '',
     },
+    ContainerPersistedData: {
+      fileOriginalName: '',
+      uniqueUploadId: '',
+      fileUploadId: '',
+    },
   },
   associatedFiles: {},
   thumbnailLink: '',
@@ -116,6 +121,7 @@ const emptyContentItemErrors: ContentItemFormErrors = {
     Thumbnail: '',
     UserGuide: '',
     ReleaseNotes: '',
+    ContainerPersistedData: '',
   },
   associatedFiles: {},
   typeSpecificDetailObject: {},
@@ -687,6 +693,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(action.response.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -698,6 +709,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -730,12 +742,14 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
     contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId = generateUniqueId('Thumbnail');
     contentItemDetail.relatedFiles.UserGuide.uniqueUploadId = generateUniqueId('UserGuide');
     contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId = generateUniqueId('ReleaseNotes');
+    contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId = generateUniqueId('ContainerPersistedData');
 
     const uploads: Dict<UploadState> = {
       [contentItemDetail.relatedFiles.MasterContent.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     const emptyContentItemFormData: PublishingFormData = {
@@ -962,6 +976,12 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName:
+            defaultIfUndefined(originalFormData.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -973,6 +993,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -1294,6 +1315,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -1305,6 +1331,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
@@ -1366,6 +1393,11 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
           uniqueUploadId: generateUniqueId('ReleaseNotes'),
           fileUploadId: '',
         },
+        ContainerPersistedData: {
+          fileOriginalName: defaultIfUndefined(detail.relatedFiles.ContainerPersistedData, 'fileOriginalName'),
+          uniqueUploadId: generateUniqueId('ContainerPersistedData'),
+          fileUploadId: '',
+        },
       },
       associatedFiles: {
         ...associatedContentItems,
@@ -1380,6 +1412,7 @@ const formData = createReducer<PublishingFormData>(_initialFormData, {
       [contentItemDetail.relatedFiles.Thumbnail.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.UserGuide.uniqueUploadId]: newUpload,
       [contentItemDetail.relatedFiles.ReleaseNotes.uniqueUploadId]: newUpload,
+      [contentItemDetail.relatedFiles.ContainerPersistedData.uniqueUploadId]: newUpload,
     };
 
     for (const key of keys) {
