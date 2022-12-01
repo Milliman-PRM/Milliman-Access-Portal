@@ -1105,7 +1105,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         pendingFormData.typeSpecificPublicationProperties &&
                         pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
                         <>
-                          <FormFlexContainer flexPhone={10}>
+                          <FormFlexContainer flex={true} contentItemFlex={1}>
                             <FileUploadInput
                               fileExtensions={['zip']}
                               label="Zip File"
@@ -1136,8 +1136,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               readOnly={formState === 'read'}
                             />
                           </FormFlexContainer>
-                          <FormFlexContainer flexPhone={2} flex={true}>
+                          <FormFlexContainer flex={false}>
+                            <div style={{paddingTop: '1rem'}}>
                               <ActionIcon label="Download live data" icon="download" />
+                            </div>
                           </FormFlexContainer>
                         </>
                       }
