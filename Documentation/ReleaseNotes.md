@@ -2,8 +2,11 @@
 
 ## Release Notes
 
-### v1.18.0
+### v1.17.6
 
+- Fixed a bug preventing some users from accessing container apps due to cookie size
+- Fixed a bug which caused the publishing server to neglect QlikView reductions until it is restarted
+- Fixed a bug where a Single Signon user may not be recognized as remotely authenticated depending on the domain of their email address
 - Fixed a bug causing incorrect sizing for content opened in a new tab
 - Fixed a typo in a label when adding unactivated users to a File Drop
 - Fixed a bug where updates to a File Drop were submitted when no changes were actually made

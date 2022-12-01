@@ -14,6 +14,8 @@ The ETL load function runs on a scheduled basis. The trigger is configured direc
 
 The function executes the `etl.sql` script utilizing `Npgsql` and a connection string retrieved configuration.
 
+> If you update the `etl.sql` script you will need to ask I&S to upload the new file to Azure.  In the Azure Portal there is a storage account in the same resource group as the Function App, within that storage account there is a file share named `[Function App Name]-content`.  The updated `etl.sql` file goes in the latest zip file within the `data/site_packages` directory.
+
 Monitoring of the function takes place in Azure Application Insights.
 
 ## Developer Setup

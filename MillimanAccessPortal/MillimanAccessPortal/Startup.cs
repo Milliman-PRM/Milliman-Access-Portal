@@ -50,7 +50,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
-using System.Web;
 using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
@@ -311,9 +310,11 @@ namespace MillimanAccessPortal
                 });
                 builder.ApplicationCookie.Configure(options =>
                 {
+                    TimeSpan sessionTimeout = TimeSpan.FromMinutes(30);
+                    options.SessionStore = new MemoryCacheTicketStore(sessionTimeout);
                     options.LoginPath = "/Account/LogIn";
                     options.LogoutPath = "/Account/LogOut";
-                    options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
+                    options.ExpireTimeSpan = sessionTimeout;
                     options.SlidingExpiration = true;
                     options.ReturnUrlParameter = "returnUrl";
                 });
