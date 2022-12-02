@@ -122,15 +122,54 @@ namespace MillimanAccessPortal
                     options.Wtrealm = schemeProperties.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
+                    object optionsObj = new
+                    {
+                        options.AccessDeniedPath,
+                        options.AllowUnsolicitedLogins,
+                        options.Backchannel,
+                        options.BackchannelHttpHandler,
+                        options.BackchannelTimeout,
+                        options.CallbackPath,
+                        options.ClaimsIssuer,
+                        options.Configuration,
+                        options.ConfigurationManager,
+                        options.CorrelationCookie,
+                        options.DataProtectionProvider,
+                        // options.Events,
+                        // options.EventsType,
+                        options.ForwardAuthenticate,
+                        options.ForwardChallenge,
+                        options.ForwardDefault,
+                        options.ForwardDefaultSelector,
+                        options.ForwardForbid,
+                        options.ForwardSignIn,
+                        options.ForwardSignOut,
+                        options.MetadataAddress,
+                        options.RefreshOnIssuerKeyNotFound,
+                        options.RemoteAuthenticationTimeout,
+                        options.RemoteSignOutPath,
+                        options.RequireHttpsMetadata,
+                        options.ReturnUrlParameter,
+                        options.SecurityTokenHandlers,
+                        options.SignInScheme,
+                        options.SignOutScheme,
+                        options.SignOutWreply,
+                        options.SkipUnrecognizedRequests,
+                        options.StateDataFormat,
+                        options.TokenValidationParameters,
+                        options.UseTokenLifetime,
+                        options.Wreply,
+                        options.Wtrealm
+                    };
                     Log.Information($"Initializing WsFederation authentication scheme{Environment.NewLine}" +
-                        $"Scheme record is:{Environment.NewLine}{JsonConvert.SerializeObject(scheme, Formatting.Indented)}{Environment.NewLine}" +
-                        $"WsFederationOptions object is:{Environment.NewLine}{JsonConvert.SerializeObject(options, Formatting.Indented)}");
+                        $"Scheme record is:{Environment.NewLine}{JsonConvert.SerializeObject(scheme, Formatting.Indented, new JsonSerializerSettings {ReferenceLoopHandling=ReferenceLoopHandling.Ignore})}{Environment.NewLine}" +
+                        $"WsFederationOptions object is:{Environment.NewLine}{JsonConvert.SerializeObject(optionsObj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore, MaxDepth = 2 })}");
 
                     #region WS-Federation middleware event overrides
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        Log.Information($"OnRedirectToIdentityProvider event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnRedirectToIdentityProvider event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         // maximum age in minutes of the authentication token; 0 requires authentication on every request
                         context.ProtocolMessage.Wfresh = "0";
@@ -147,7 +186,7 @@ namespace MillimanAccessPortal
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
                         }
 
-                        Log.Information($"OnRedirectToIdentityProvider event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnRedirectToIdentityProvider event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
@@ -155,12 +194,12 @@ namespace MillimanAccessPortal
                     // Event override to handle all remote failures from WsFederation middleware
                     options.Events.OnRemoteFailure = context =>
                     {
-                        Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
-                        Log.Information($"OnRemoteFailure event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnRemoteFailure event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
@@ -168,12 +207,12 @@ namespace MillimanAccessPortal
                     // Event override to handle authentication failures from WsFederation middleware
                     options.Events.OnAuthenticationFailed = context =>
                     {
-                        Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
-                        Log.Information($"OnAuthenticationFailed event completed with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnAuthenticationFailed event completed with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
@@ -181,7 +220,7 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
-                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 

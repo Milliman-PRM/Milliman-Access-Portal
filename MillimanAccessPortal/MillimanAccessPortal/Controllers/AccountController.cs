@@ -204,7 +204,7 @@ namespace MillimanAccessPortal.Controllers
                     }
 
                     Log.Information($"In Account.RemoteAuthenticate, ready to return Challenge response, authentication properties object is{Environment.NewLine}" +
-                        $"{JsonConvert.SerializeObject(properties, Formatting.Indented)}");
+                        $"{JsonConvert.SerializeObject(properties, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore, MaxDepth = 4 })}");
 
                     return Challenge(properties, scheme.Name);
                 }
