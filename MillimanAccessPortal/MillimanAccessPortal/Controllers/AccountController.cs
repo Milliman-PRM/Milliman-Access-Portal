@@ -185,10 +185,10 @@ namespace MillimanAccessPortal.Controllers
             {
                 MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
 
-                Log.Information($"In Account.RemoteAuthenticate, scheme {scheme.Name} is identified for user {userName}");
-
                 if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
                 {
+                    Log.Information($"In Account.RemoteAuthenticate, scheme {scheme.Name} is identified for user {userName}");
+
                     string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
                     AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                     properties.SetString("username", userName);
