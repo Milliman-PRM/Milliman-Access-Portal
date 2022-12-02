@@ -38,6 +38,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using ContainerizedAppLib;
+using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -180,29 +181,42 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName, string returnUrl)
         {
-            MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
-
-            if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
+            try
             {
-                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
-                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
-                properties.SetString("username", userName);
-                switch (scheme.Type)
+                MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
+
+                Log.Information($"In Account.RemoteAuthenticate, scheme {scheme.Name} is identified for user {userName}");
+
+                if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
                 {
-                    case AuthenticationType.WsFederation:
-                        string wauthValue = (scheme.SchemePropertiesObj as WsFederationSchemeProperties)?.Wauth;
-                        if (!string.IsNullOrWhiteSpace(wauthValue))
-                        {
-                            properties.SetString("wauth", wauthValue);
-                        }
-                        break;
-                }
+                    string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
+                    AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
+                    properties.SetString("username", userName);
+                    switch (scheme.Type)
+                    {
+                        case AuthenticationType.WsFederation:
+                            string wauthValue = (scheme.SchemePropertiesObj as WsFederationSchemeProperties)?.Wauth;
+                            if (!string.IsNullOrWhiteSpace(wauthValue))
+                            {
+                                properties.SetString("wauth", wauthValue);
+                            }
+                            break;
+                    }
 
-                return Challenge(properties, scheme.Name);
+                    Log.Information($"In Account.RemoteAuthenticate, ready to return Challenge response, authentication properties object is{Environment.NewLine}" +
+                        $"{JsonConvert.SerializeObject(properties, Formatting.Indented)}");
+
+                    return Challenge(properties, scheme.Name);
+                }
+                else
+                {
+                    return RedirectToAction(nameof(Login));
+                }
             }
-            else
+            catch(Exception ex)
             {
-                return RedirectToAction(nameof(Login));
+                Log.Warning(ex, $"Error from Account.RemoteAuthenticate");
+                throw;
             }
         }
 

@@ -122,10 +122,16 @@ namespace MillimanAccessPortal
                     options.Wtrealm = schemeProperties.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
+                    Log.Information($"Initializing WsFederation authentication scheme{Environment.NewLine}" +
+                        $"Scheme record is:{Environment.NewLine}{JsonConvert.SerializeObject(scheme, Formatting.Indented)}{Environment.NewLine}" +
+                        $"WsFederationOptions object is:{Environment.NewLine}{JsonConvert.SerializeObject(options, Formatting.Indented)}");
+
                     #region WS-Federation middleware event overrides
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
+                        Log.Information($"OnRedirectToIdentityProvider event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         // maximum age in minutes of the authentication token; 0 requires authentication on every request
                         context.ProtocolMessage.Wfresh = "0";
 
@@ -140,28 +146,43 @@ namespace MillimanAccessPortal
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
                         }
+
+                        Log.Information($"OnRedirectToIdentityProvider event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         return Task.CompletedTask;
                     };
 
                     // Event override to handle all remote failures from WsFederation middleware
                     options.Events.OnRemoteFailure = context =>
                     {
+                        Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         context.Response.Redirect("/");
                         context.HandleResponse();
+
+                        Log.Information($"OnRemoteFailure event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         return Task.CompletedTask;
                     };
 
                     // Event override to handle authentication failures from WsFederation middleware
                     options.Events.OnAuthenticationFailed = context =>
                     {
+                        Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         context.Response.Redirect("/");
                         context.HandleResponse();
+
+                        Log.Information($"OnAuthenticationFailed event completed with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         return Task.CompletedTask;
                     };
 
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
+                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented)}");
+
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
                         ClaimsIdentity identity = context?.Principal?.Identity as ClaimsIdentity;
