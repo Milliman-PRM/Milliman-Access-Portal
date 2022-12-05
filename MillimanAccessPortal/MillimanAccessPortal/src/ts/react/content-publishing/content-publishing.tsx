@@ -1083,6 +1083,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 + 'none will be provided. '
                                 + 'Setting this value to "On" will make available the required resources necessary to '
                                 + 'enable data persistence for this container. '
+                                + 'Once published this setting will no longer be able to be altered.'
                               }
                               small={true}
                             />
