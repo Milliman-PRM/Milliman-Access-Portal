@@ -597,7 +597,7 @@ namespace MillimanAccessPortal
                 app.UseDeveloperExceptionPage();
                 app.UseHttpsRedirection();
                 app.UseHsts();
-                app.UseExceptionHandler("/Home/Error");
+                //app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseStaticFiles(new StaticFileOptions
