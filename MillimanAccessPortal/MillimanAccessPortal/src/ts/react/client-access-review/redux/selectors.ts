@@ -18,11 +18,9 @@ export function clientsTree(state: AccessReviewState) {
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithReviewDate[] });
   const sortItemsParent = sortBy === 'date'
-    ? sortOrder === 'asc'
-      ? ['minReviewDueDate']
-      : ['maxReviewDueDate']
+    ? ['reviewDueDateTime']
     : ['name', 'code'];
-  const sortItemsChild = sortBy === 'date' ? ['reviewDueDateTimeUtc'] : ['name'];
+  const sortItemsChild = sortBy === 'date' ? ['reviewDueDateTime'] : ['name'];
   let sortOrderParent: Array<'asc' | 'desc'>;
   let sortOrderChild: Array<'asc' | 'desc'>;
   if (sortBy === 'date') {
