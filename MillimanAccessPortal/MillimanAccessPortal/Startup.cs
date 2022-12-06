@@ -187,7 +187,7 @@ namespace MillimanAccessPortal
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
                         }
 
-                        Log.Information($"OnRedirectToIdentityProvider event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        Log.Information($"OnRedirectToIdentityProvider event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context.ProtocolMessage, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
