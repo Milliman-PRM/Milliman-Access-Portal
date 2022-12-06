@@ -54,6 +54,7 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
 using ContainerizedAppLib;
+using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 namespace MillimanAccessPortal
 {
@@ -169,7 +170,18 @@ namespace MillimanAccessPortal
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
                     {
-                        Log.Information($"OnRedirectToIdentityProvider event fired");
+                        System.Reflection.PropertyInfo[] propList = context.ProtocolMessage.GetType().GetProperties();
+                        object props = new
+                        {
+                            Properties = propList.Select(p => new KeyValuePair<string, object>(p.Name, p.GetValue(context.ProtocolMessage)))
+                        };
+                        object obj = new
+                        {
+                            context.Options,
+                            context.Properties,
+                            context.ProtocolMessage,
+                            props
+                        };
                         // Log.Information($"OnRedirectToIdentityProvider event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         // maximum age in minutes of the authentication token; 0 requires authentication on every request
@@ -195,8 +207,13 @@ namespace MillimanAccessPortal
                     // Event override to handle all remote failures from WsFederation middleware
                     options.Events.OnRemoteFailure = context =>
                     {
-                        Log.Information($"OnRemoteFailure event fired");
-                        //Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        object obj = new
+                        {
+                            context.Options,
+                            context.Request.GetUri().AbsoluteUri,
+                            context.Properties,
+                        };
+                        Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
@@ -209,8 +226,14 @@ namespace MillimanAccessPortal
                     // Event override to handle authentication failures from WsFederation middleware
                     options.Events.OnAuthenticationFailed = context =>
                     {
-                        Log.Information($"OnAuthenticationFailed event fired");
-                        //Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        object obj = new
+                        {
+                            context.Principal.Identity,
+                            context.Exception,
+                            context.Options,
+                            context.Properties,
+                        };
+                        Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
@@ -223,8 +246,14 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
-                        Log.Information($"OnTicketReceived event fired");
-                        //Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        object obj = new
+                        {
+                            context.Principal.Identity,
+                            context.ReturnUri,
+                            context.Properties,
+                            context.Options
+                        };
+                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
