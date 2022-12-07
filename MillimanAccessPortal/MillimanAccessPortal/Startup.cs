@@ -246,14 +246,15 @@ namespace MillimanAccessPortal
                     // Event override to avoid default application signin of the externally authenticated ClaimsPrinciple
                     options.Events.OnTicketReceived = async context =>
                     {
-                        object obj = new
-                        {
-                            context.Principal.Identity,
-                            context.ReturnUri,
-                            context.Properties,
-                            context.Options
-                        };
-                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        Log.Information($"OnTicketReceived event fired");
+                        //object obj = new
+                        //{
+                        //    context.Principal.Identity,
+                        //    context.ReturnUri,
+                        //    context.Properties,
+                        //    context.Options
+                        //};
+                        //Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
