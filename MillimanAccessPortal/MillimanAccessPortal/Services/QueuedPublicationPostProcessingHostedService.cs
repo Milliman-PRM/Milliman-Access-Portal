@@ -338,7 +338,9 @@ namespace MillimanAccessPortal.Services
                             object obj = new
                             {
                                 newMasterFile,
-                                contentItem,
+                                contentTypeSpecificDetail = contentItem.TypeSpecificDetailObject,
+                                ClientId = contentItem.ClientId.ToString(),
+                                ClientConfigurationOverride = contentItem.Client.ConfigurationOverride
                             };
                             Log.Information($"About to attempt api.ImportPbixAsync with {{{JsonSerializer.Serialize(obj, new JsonSerializerOptions {WriteIndented = true })}}}");
                             PowerBiLibApi api = await new PowerBiLibApi(pbiConfig).InitializeAsync();
