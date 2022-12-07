@@ -304,7 +304,7 @@ function relatedPublication(state: AccessState, itemId: Guid) {
  */
 function activeItems(state: AccessState) {
   const filtered = filteredItems(state).filter((i) => i.clientId === state.selected.client);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**

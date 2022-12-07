@@ -109,7 +109,7 @@ function relatedPublication(state: PublishingState, itemId: Guid) {
  */
 function activeItems(state: PublishingState) {
   const filtered = filteredItems(state).filter((i) => i.clientId === state.selected.client);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**
