@@ -140,6 +140,8 @@ namespace PowerBiLib
         /// <returns></returns>
         public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, Guid? capacityIdOverride)
         {
+            Log.Information($"In PowerBiLibApi.ImportPbixAsync with pbixFullPath({pbixFullPath}, groupName = {groupName}, capacityIdOverride = {capacityIdOverride?.ToString() ?? "<null>"})");
+
             Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
 
             using (var client = new PowerBIClient(_tokenCredentials))
