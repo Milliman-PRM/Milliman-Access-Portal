@@ -358,6 +358,7 @@ export function filesForPublishing(state: PublishingState, rootContentItemId: Gu
       containerInstanceLifetimeScheme:
         pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
       customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
+      dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
     };
 
     if (pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme
@@ -483,6 +484,7 @@ export function contentItemForPublication(state: PublishingState): ContentItemPu
         containerInstanceLifetimeScheme:
           pendingFormData.typeSpecificPublicationProperties.containerInstanceLifetimeScheme,
         customCooldownPeriod: pendingFormData.typeSpecificPublicationProperties.customCooldownPeriod,
+        dataPersistenceEnabled: pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
       };
     }
   }

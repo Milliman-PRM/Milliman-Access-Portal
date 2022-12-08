@@ -723,6 +723,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
   private renderContentItemForm() {
     const { contentTypes, formData, items, pending, timeZones } = this.props;
     const { formErrors, pendingFormData, originalFormData, formState, uploads } = formData;
+    const formStateIsReadOnly: boolean = formState === 'read';
     const editFormButton = (
       <>
         {
@@ -770,7 +771,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         <h3 className="admin-panel-header">Content Item</h3>
         <PanelSectionToolbar>
           <PanelSectionToolbarButtons>
-            {formState === 'read'
+            {formStateIsReadOnly
               && pendingFormData.id
               && selectedItemStatus
               && !isPublicationActive(selectedItemStatus.status.requestStatus)
@@ -781,7 +782,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
         </PanelSectionToolbar>
         <ContentPanelSectionContent>
           <ContentPanelForm
-            readOnly={formState === 'read'}
+            readOnly={formStateIsReadOnly}
           >
             <FormSection title="Content Item Information">
               <FormSectionRow>
@@ -801,7 +802,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     }}
                     type="text"
                     value={pendingFormData.contentName}
-                    readOnly={formState === 'read'}
+                    readOnly={formStateIsReadOnly}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={12} flexTablet={4}>
@@ -819,7 +820,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                     value={pendingFormData.contentTypeId}
                     values={this.props.contentTypesList}
                     readOnly={
-                      formState === 'read'
+                      formStateIsReadOnly
                       || originalFormData.id.length > 0
                       || (pendingFormData.relatedFiles.MasterContent
                         && pendingFormData.relatedFiles.MasterContent.fileOriginalName.length > 0)
@@ -856,7 +857,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         : null
                     }
                     value={pendingFormData.relatedFiles.MasterContent.fileOriginalName}
-                    readOnly={formState === 'read' || pendingFormData.contentTypeId.length === 0}
+                    readOnly={formStateIsReadOnly || pendingFormData.contentTypeId.length === 0}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
@@ -880,7 +881,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       inputName: 'doesReduce',
                       value: status,
                     })}
-                    readOnly={formState === 'read' || originalFormData.id.length > 0}
+                    readOnly={formStateIsReadOnly || originalFormData.id.length > 0}
                     hoverText="This can only be changed on the initial publication of this content item"
                   />
                 }
@@ -895,7 +896,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         inputName: 'editableEnabled',
                         value: status,
                       })}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                       description={' - this will give Content Access Admins the option to allow users to edit ' +
                                    ' the document in MAP, and upon save will update the content for all users'}
                     />
@@ -906,7 +907,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         inputName: 'navigationPaneEnabled',
                         value: status,
                       })}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                       description={' - this will allow users to navigate between the pages of the Power BI document'}
                     />
                     <Checkbox
@@ -916,7 +917,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         inputName: 'filterPaneEnabled',
                         value: status,
                       })}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                       description={' - this will allow users to configure which filters to include and' +
                                    ' update existing filters'}
                     />
@@ -927,7 +928,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         inputName: 'bookmarksPaneEnabled',
                         value: status,
                       })}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                       description={' - this will allow users to capture the current view of a report page' +
                                    ' including filters and the state of visuals'}
                     />
@@ -939,13 +940,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         inputName: 'doesReduce',
                         value: status,
                       })}
-                      readOnly={formState === 'read' || originalFormData.id.length > 0}
+                      readOnly={formStateIsReadOnly || originalFormData.id.length > 0}
                       description={' - this can be used to restrict data access for any given user.  The ability ' +
                                    'to restrict access will be accessible in the Content Access Admin tab'}
                     />
                     {
                       (pendingFormData.doesReduce || originalFormData.doesReduce) && (
-                        formState === 'read' ?
+                        formStateIsReadOnly ?
                           <TextAreaInput
                             name="roleList"
                             label="Power BI Role Values"
@@ -1026,7 +1027,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                             pendingFormData.typeSpecificPublicationProperties.containerCpuCores :
                             ContainerCpuCoresEnum.Two}
                           values={cpuCoresDropdownValues}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                         />
                       </FormFlexContainer>
                       <FormFlexContainer flexPhone={12} flexDesktop={6}>
@@ -1045,7 +1046,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           value={pendingFormData.typeSpecificPublicationProperties ?
                             pendingFormData.typeSpecificPublicationProperties.containerRamGb : ContainerRamGbEnum.Eight}
                           values={containerRamGbDropdownValues}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                         />
                       </FormFlexContainer>
                     </FormSectionRow>
@@ -1067,9 +1068,83 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           type="text"
                           value={pendingFormData.typeSpecificPublicationProperties ?
                             pendingFormData.typeSpecificPublicationProperties.containerInternalPort : ''}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                         />
                       </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      <FormFlexContainer flexPhone={12} flexDesktop={12}>
+                        <div>
+                          <h4>
+                            Data Persistence
+                            <ActionIcon
+                              icon="information"
+                              label={'Data persistence provides the container with a location to read and write data. '
+                                + '"Off" indicates that the container does not require data persistence, in which case '
+                                + 'none will be provided. '
+                                + 'Setting this value to "On" will make available the required resources necessary to '
+                                + 'enable data persistence for this container. '
+                                + 'Once published this setting will no longer be able to be altered.'
+                              }
+                              small={true}
+                            />
+                          </h4>
+                          <Toggle
+                            label="Data Persistence"
+                            checked={pendingFormData.typeSpecificPublicationProperties &&
+                              pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled}
+                            onClick={() => this.props.setPublishingFormBooleanInputValue({
+                                  inputName: 'dataPersistenceEnabled',
+                                  value: !pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled,
+                                })}
+                            readOnly={formStateIsReadOnly}
+                          />
+                        </div>
+                      </FormFlexContainer>
+                    </FormSectionRow>
+                    <FormSectionRow>
+                      {
+                        pendingFormData.typeSpecificPublicationProperties &&
+                        pendingFormData.typeSpecificPublicationProperties.dataPersistenceEnabled &&
+                        <>
+                          <FormFlexContainer flex={true} contentItemFlex={1}>
+                            <FileUploadInput
+                              fileExtensions={['zip']}
+                              label="Zip File"
+                              name="containerDataPersistenceData"
+                              placeholderText="Zipped Data Persistence Directory"
+                              beginUpload={(uploadId, fileName) =>
+                                this.props.beginFileUpload({ uploadId, fileName })}
+                              cancelFileUpload={(uploadId) =>
+                                this.props.cancelFileUpload({ uploadId })}
+                              removeExistingFile={(uploadId) =>
+                                this.props.removeExistingFile({ uploadId })}
+                              finalizeUpload={(uploadId, fileName, guid) =>
+                                this.props.finalizeUpload({ uploadId, fileName, guid })}
+                              setUploadError={(uploadId, errorMsg) =>
+                                this.props.setUploadError({ uploadId, errorMsg })}
+                              updateChecksumProgress={(uploadId, progress) =>
+                                this.props.updateChecksumProgress({ uploadId, progress })}
+                              updateUploadProgress={(uploadId, progress) =>
+                                this.props.updateUploadProgress({ uploadId, progress })}
+                              upload={uploads[pendingFormData.relatedFiles.ContainerPersistedData.uniqueUploadId]}
+                              uploadId={pendingFormData.relatedFiles.ContainerPersistedData.uniqueUploadId}
+                              fileUploadId={
+                                (pendingFormData.relatedFiles.ContainerPersistedData.fileUploadId !== undefined)
+                                  ? pendingFormData.relatedFiles.ContainerPersistedData.fileUploadId
+                                  : null
+                              }
+                              value={pendingFormData.relatedFiles.ContainerPersistedData.fileOriginalName}
+                              readOnly={formStateIsReadOnly}
+                            />
+                          </FormFlexContainer>
+                          <FormFlexContainer flex={false}>
+                            <div style={{paddingTop: '1rem'}}>
+                              <ActionIcon label="Download live data" icon="download" />
+                            </div>
+                          </FormFlexContainer>
+                        </>
+                      }
                     </FormSectionRow>
                     <FormSectionRow>
                       <h4>
@@ -1099,7 +1174,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: val,
                             });
                           }}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                           labelText="30 Minutes"
                         />
                         <RadioButton
@@ -1115,7 +1190,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: val,
                             });
                           }}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                           labelText="1 Hour (default)"
                         />
                         <RadioButton
@@ -1131,7 +1206,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: val,
                             });
                           }}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                           labelText="90 Minutes"
                         />
                         <RadioButton
@@ -1147,7 +1222,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               value: val,
                             });
                           }}
-                          readOnly={formState === 'read'}
+                          readOnly={formStateIsReadOnly}
                           labelText="2 Hours"
                         />
                       </FormFlexContainer>
@@ -1182,7 +1257,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 ContainerInstanceLifetimeSchemeEnum.Custom.toString() :
                                 ContainerInstanceLifetimeSchemeEnum.AlwaysCold.toString(),
                             })}
-                            readOnly={formState === 'read'}
+                            readOnly={formStateIsReadOnly}
                           />
                         </div>
                       </FormFlexContainer>
@@ -1211,7 +1286,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                 inputName: 'allDaysChecked',
                                 value: val,
                               })}
-                              readOnly={formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions}
+                              readOnly={formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions}
                               description={''}
                             />
                             <div className="checkbox-indent-section">
@@ -1226,7 +1301,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1241,7 +1316,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1256,7 +1331,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1271,7 +1346,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1286,7 +1361,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1301,7 +1376,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1316,7 +1391,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value: val,
                                 })}
                                 readOnly={pendingFormData.typeSpecificPublicationProperties.allDaysChecked ||
-                                  formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                  formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                 }
                                 description={''}
                               />
@@ -1354,7 +1429,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value={pendingFormData.typeSpecificPublicationProperties.timeZoneId}
                                   values={timeZones}
                                   readOnly={
-                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                    formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                   }
                                 />
                               </FormFlexContainer>
@@ -1376,7 +1451,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value={pendingFormData.typeSpecificPublicationProperties.startTime}
                                   values={onlyHoursBefore(pendingFormData.typeSpecificPublicationProperties.endTime)}
                                   readOnly={
-                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                    formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                   }
                                 />
                               </FormFlexContainer>
@@ -1396,7 +1471,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                                   value={pendingFormData.typeSpecificPublicationProperties.endTime}
                                   values={onlyHoursAfter(pendingFormData.typeSpecificPublicationProperties.startTime)}
                                   readOnly={
-                                    formState === 'read' || !this.props.canModifyCustomContainerLifecycleOptions
+                                    formStateIsReadOnly || !this.props.canModifyCustomContainerLifecycleOptions
                                   }
                                 />
                               </FormFlexContainer>
@@ -1441,7 +1516,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         : null
                     }
                     value={pendingFormData.relatedFiles.Thumbnail.fileOriginalName}
-                    readOnly={formState === 'read'}
+                    readOnly={formStateIsReadOnly}
                   />
                 </FormFlexContainer>
                 <FormFlexContainer flexPhone={8}>
@@ -1472,7 +1547,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         : null
                     }
                     value={pendingFormData.relatedFiles.UserGuide.fileOriginalName}
-                    readOnly={formState === 'read'}
+                    readOnly={formStateIsReadOnly}
                   />
                   <FileUploadInput
                     fileExtensions={['pdf']}
@@ -1501,13 +1576,13 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                         : null
                     }
                     value={pendingFormData.relatedFiles.ReleaseNotes.fileOriginalName}
-                    readOnly={formState === 'read'}
+                    readOnly={formStateIsReadOnly}
                   />
                 </FormFlexContainer>
               </FormSectionRow>
             </FormSection>
             {
-              (formData.formState !== 'read'
+              (!formStateIsReadOnly
                 || (
                   pendingFormData.contentDescription &&
                   pendingFormData.contentDescription.length > 0
@@ -1529,14 +1604,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       }}
                       placeholderText="Content Description..."
                       value={pendingFormData.contentDescription}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                     />
                   </FormFlexContainer>
                 </FormSectionRow>
               </FormSection>
             }
             {
-              (formData.formState !== 'read'
+              (!formStateIsReadOnly
                 || (
                   pendingFormData.contentDisclaimer &&
                   pendingFormData.contentDisclaimer.length > 0
@@ -1552,14 +1627,14 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                           inputName: 'contentDisclaimerAlwaysShown',
                           value: !pendingFormData.contentDisclaimerAlwaysShown,
                       })}
-                      readOnly={!(formData.formState === 'write')}
+                      readOnly={formStateIsReadOnly}
                     />
                   </FormFlexContainer>
                 </FormSectionRow>
                 <FormSectionRow>
                   <FormFlexContainer flexPhone={12}>
                     {
-                      formData.formState === 'write' &&
+                      !formStateIsReadOnly &&
                       <TabRow
                         tabs={[{ id: 'edit', label: 'Edit' }, { id: 'preview', label: 'Preview' }]}
                         selectedTab={formData.disclaimerInputState}
@@ -1568,10 +1643,10 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       />
                     }
                     {
-                      formData.disclaimerInputState === 'preview' || formData.formState === 'read'
+                      formData.disclaimerInputState === 'preview' || formStateIsReadOnly
                         ? (
                           <div
-                            className={`disclaimer-preview${formData.formState === 'read' ? ' disabled' : ''}`}
+                            className={`disclaimer-preview${formStateIsReadOnly ? ' disabled' : ''}`}
                             dangerouslySetInnerHTML={{
                               __html: convertMarkdownToHTML(pendingFormData.contentDisclaimer),
                             }}
@@ -1591,7 +1666,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                               }}
                               placeholderText="Custom Disclaimer Text..."
                               value={pendingFormData.contentDisclaimer}
-                              readOnly={formState === 'read'}
+                              readOnly={formStateIsReadOnly}
                             />
                             <div className="disclaimer-instructions">
                               **<strong>bold</strong>**, _<i>italics</i>_, ### <strong>Section Header</strong>
@@ -1604,7 +1679,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
               </FormSection>
             }
             {
-              (formData.formState !== 'read'
+              (!formStateIsReadOnly
                 || (
                   pendingFormData.contentNotes &&
                   pendingFormData.contentNotes.length > 0
@@ -1626,7 +1701,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
                       }}
                       placeholderText="Notes..."
                       value={pendingFormData.contentNotes}
-                      readOnly={formState === 'read'}
+                      readOnly={formStateIsReadOnly}
                     />
                   </FormFlexContainer>
                 </FormSectionRow>
@@ -1635,7 +1710,7 @@ class ContentPublishing extends React.Component<ContentPublishingProps & typeof 
           </ContentPanelForm>
         </ContentPanelSectionContent>
         {
-          formState === 'write' && (this.props.formChangesPending || this.props.uploadChangesPending) &&
+          !formStateIsReadOnly && (this.props.formChangesPending || this.props.uploadChangesPending) &&
           <div className="button-container">
             <button
               className="link-button"

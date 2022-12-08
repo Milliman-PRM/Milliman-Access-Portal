@@ -101,6 +101,7 @@ export interface RelatedFiles {
   Thumbnail: RelatedFileUpload;
   UserGuide: RelatedFileUpload;
   ReleaseNotes: RelatedFileUpload;
+  ContainerPersistedData: RelatedFileUpload;
   [key: string]: RelatedFileUpload;
 }
 
@@ -174,6 +175,7 @@ export interface TypeSpecificPublicationProperties {
   startTime?: string;
   endTime?: string;
   timeZoneId?: string;
+  dataPersistenceEnabled?: boolean;
 }
 
 export interface GoLiveViewModel {
@@ -198,6 +200,7 @@ export interface ContentItemFormErrors {
     Thumbnail?: string;
     UserGuide?: string;
     ReleaseNotes?: string;
+    ContainerPersistedData?: string;
   };
   associatedFiles?: {
     [uniqueId: string]: string;
@@ -231,6 +234,7 @@ export interface ContentItemFormErrors {
     startTime?: string;
     endTime?: string;
     timeZoneId?: string;
+    dataPersistenceEnabled?: string;
   };
 }
 
