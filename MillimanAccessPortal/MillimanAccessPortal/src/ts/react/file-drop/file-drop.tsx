@@ -1669,6 +1669,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
     const { fileDrop } = this.props.selected;
     const { userHasPermissions } = this.props;
     const { fileDropSettings } = this.props.data;
+    const { currentUserPermissions } = this.props.data.fileDrops[fileDrop];
     const uploadNotification = fileDropSettings && fileDropSettings.notifications
       ? fileDropSettings.notifications.filter((x) =>
         x.notificationType === FileDropNotificationTypeEnum.FileWritten,
@@ -1714,7 +1715,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </table>
                 </FormSection>
                 {
-                  userHasPermissions &&
+                  currentUserPermissions &&
                   <FormSection title="SFTP Credentials">
                     {
                       !fileDropSettings.userHasPassword &&
@@ -1763,7 +1764,7 @@ class FileDrop extends React.Component<FileDropProps & typeof FileDropActionCrea
                   </ FormSection>
                 }
                 {
-                  userHasPermissions &&
+                  currentUserPermissions &&
                   uploadNotification &&
                   uploadNotification.canModify &&
                   <FormSection title="Notification Settings">
