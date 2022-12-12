@@ -207,18 +207,18 @@ namespace MillimanAccessPortal
                     // Event override to handle all remote failures from WsFederation middleware
                     options.Events.OnRemoteFailure = context =>
                     {
-                        object obj = new
-                        {
-                            context.Options,
-                            context.Request.GetUri().AbsoluteUri,
-                            context.Properties,
-                        };
-                        Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        //object obj = new
+                        //{
+                        //    context.Options,
+                        //    context.Request.GetUri().AbsoluteUri,
+                        //    context.Properties,
+                        //};
+                        //Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
-                        Log.Information($"OnRemoteFailure event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        // Log.Information($"OnRemoteFailure event completing with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
@@ -247,14 +247,14 @@ namespace MillimanAccessPortal
                     options.Events.OnTicketReceived = async context =>
                     {
                         Log.Information($"OnTicketReceived event fired");
-                        //object obj = new
-                        //{
-                        //    context.Principal.Identity,
-                        //    context.ReturnUri,
-                        //    context.Properties,
-                        //    context.Options
-                        //};
-                        //Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        object obj = new
+                        {
+                            context.Principal?.Identity?.Name,
+                            context.ReturnUri,
+                            context.Properties,
+                            context.Options
+                        };
+                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
