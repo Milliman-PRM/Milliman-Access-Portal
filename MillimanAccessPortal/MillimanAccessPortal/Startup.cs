@@ -215,6 +215,15 @@ namespace MillimanAccessPortal
                         //};
                         //Log.Information($"OnRemoteFailure event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
+                        if (context.Failure is not null)
+                        {
+                            Log.Information(context.Failure, $"From OnRemoteFailure event handler, context.failure contains an exception of type {context.Failure.GetType().FullName}");
+                        }
+                        else
+                        {
+                            Log.Information("From OnRemoteFailure event handler, context.failure is null");
+                        }
+
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
