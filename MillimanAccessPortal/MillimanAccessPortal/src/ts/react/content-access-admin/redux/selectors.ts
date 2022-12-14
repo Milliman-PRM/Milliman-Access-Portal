@@ -453,7 +453,7 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
     field: f,
     values: _.sortBy(
       activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
-      ['value'],
+      (item) => item.value.toLowerCase(),
     ),
   }));
   return _.sortBy(activeFields, ['displayName']);
