@@ -353,7 +353,7 @@ function relatedReduction(state: AccessState, groupId: Guid) {
  */
 export function activeGroups(state: AccessState) {
   const filtered = filteredGroups(state).filter((i) => i.rootContentItemId === state.selected.item);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**
