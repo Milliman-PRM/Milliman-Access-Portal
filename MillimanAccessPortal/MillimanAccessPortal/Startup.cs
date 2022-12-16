@@ -237,7 +237,7 @@ namespace MillimanAccessPortal
                     {
                         object obj = new
                         {
-                            context.Principal.Identity,
+                            context.Principal?.Identity,
                             context.Exception,
                             context.Options,
                             context.Properties,
@@ -247,7 +247,7 @@ namespace MillimanAccessPortal
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
-                        Log.Information($"OnAuthenticationFailed event completed with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        //Log.Information($"OnAuthenticationFailed event completed with context object:{Environment.NewLine}{JsonConvert.SerializeObject(context, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         return Task.CompletedTask;
                     };
