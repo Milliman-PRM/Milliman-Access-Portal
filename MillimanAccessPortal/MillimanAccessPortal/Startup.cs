@@ -235,15 +235,27 @@ namespace MillimanAccessPortal
                     // Event override to handle authentication failures from WsFederation middleware
                     options.Events.OnAuthenticationFailed = context =>
                     {
-                        object obj = new
-                        {
-                            context.Principal?.Identity,
-                            context.Exception,
-                            context.Options,
-                            context.Properties,
-                        };
-                        Log.Information($"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        //object obj = new
+                        //{
+                        //    context.Principal?.Identity,
+                        //    context.Exception,
+                        //    context.Options,
+                        //    context.Properties,
+                        //};
+                        //Log.Information(context.Exception, $"OnAuthenticationFailed event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
+                        if (context.Exception is not null)
+                        {
+                            Log.Information(context.Exception, $"OnAuthenticationFailed event fired");
+                        }
+                        else
+                        {
+                            Log.Information("From OnAuthenticationFailed event handler, context.failure is null");
+                        }
+
+                        Log.Information($"OnAuthenticationFailed event fired, context.ProtocolMessage is:" +
+                            $"{Environment.NewLine}{JsonConvert.SerializeObject(context.ProtocolMessage, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        
                         context.Response.Redirect("/");
                         context.HandleResponse();
 
