@@ -39,10 +39,9 @@ export function clientsTree(state: PublishingState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithStats[] });
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+  const clientTree = _.sortBy(parentGroups.null, (client) => client.name.toLowerCase()).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+    children: _.sortBy(parentGroups[c.id] || [], (client) => client.name.toLowerCase()),
   }));
   return clientTree;
 }
@@ -109,7 +108,7 @@ function relatedPublication(state: PublishingState, itemId: Guid) {
  */
 function activeItems(state: PublishingState) {
   const filtered = filteredItems(state).filter((i) => i.clientId === state.selected.client);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**
