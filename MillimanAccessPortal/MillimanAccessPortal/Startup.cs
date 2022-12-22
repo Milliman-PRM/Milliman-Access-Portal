@@ -268,14 +268,14 @@ namespace MillimanAccessPortal
                     options.Events.OnTicketReceived = async context =>
                     {
                         Log.Information($"OnTicketReceived event fired");
-                        object obj = new
-                        {
-                            context.Principal?.Identity?.Name,
-                            context.ReturnUri,
-                            context.Properties,
-                            context.Options
-                        };
-                        Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
+                        //object obj = new
+                        //{
+                        //    context.Principal?.Identity?.Name,
+                        //    context.ReturnUri,
+                        //    context.Properties,
+                        //    context.Options
+                        //};
+                        //Log.Information($"OnTicketReceived event fired with context object:{Environment.NewLine}{JsonConvert.SerializeObject(obj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore })}");
 
                         context.HandleResponse();  // Signals to caller (RemoteAuthenticationHandler.HandleRequestAsync) to forego subsequent processing
 
