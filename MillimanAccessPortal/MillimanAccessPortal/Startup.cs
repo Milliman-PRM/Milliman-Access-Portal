@@ -149,11 +149,11 @@ namespace MillimanAccessPortal
                     {
                         if (context.Failure is not null)
                         {
-                            Log.Information(context.Failure, $"Ws-federation OnRemoteFailure event fired with exception of type {context.Failure.GetType().FullName}");
+                            Log.Warning(context.Failure, $"Ws-federation OnRemoteFailure event fired with exception of type {context.Failure.GetType().FullName}");
                         }
                         else
                         {
-                            Log.Information("From OnRemoteFailure event handler, context.failure is null");
+                            Log.Warning("From OnRemoteFailure event handler, context.failure is null");
                         }
 
                         context.Response.Redirect("/");
@@ -166,11 +166,11 @@ namespace MillimanAccessPortal
                     {
                         if (context.Exception is not null)
                         {
-                            Log.Information(context.Exception, $"Ws-federation OnAuthenticationFailed event fired with exception of type {context.Exception.GetType().FullName}");
+                            Log.Warning(context.Exception, $"Ws-federation OnAuthenticationFailed event fired with exception of type {context.Exception.GetType().FullName}");
                         }
                         else
                         {
-                            Log.Information("Ws-federation OnAuthenticationFailed event fired, context.Exception is null");
+                            Log.Warning("Ws-federation OnAuthenticationFailed event fired, context.Exception is null");
                         }
 
                         context.Response.Redirect("/");
