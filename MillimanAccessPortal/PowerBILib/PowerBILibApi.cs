@@ -140,8 +140,6 @@ namespace PowerBiLib
         /// <returns></returns>
         public async Task<PowerBiEmbedModel> ImportPbixAsync(string pbixFullPath, string groupName, Guid? capacityIdOverride)
         {
-            Log.Information($"In PowerBiLibApi.ImportPbixAsync with pbixFullPath({pbixFullPath}, groupName = {groupName}, capacityIdOverride = {capacityIdOverride?.ToString() ?? "<null>"})");
-
             Guid capacityId = capacityIdOverride ?? Guid.Parse(_config.PbiCapacityId);
 
             using (var client = new PowerBIClient(_tokenCredentials))
@@ -180,8 +178,6 @@ namespace PowerBiLib
                     }, 
                     3, 200, true);
 
-                Log.Information($"After PBIX import, the Import object is {JsonConvert.SerializeObject(import, Formatting.Indented)}");
-
                 PowerBiEmbedModel embedProperties = (import.ImportState == "Succeeded" && import.Reports.Count == 1)
                     ? new PowerBiEmbedModel
                     {
@@ -190,8 +186,6 @@ namespace PowerBiLib
                         EmbedUrl = import.Reports.ElementAt(0).EmbedUrl
                     }
                     : null;
-
-                Log.Information($"After PBIX import, embedProperties object is {JsonConvert.SerializeObject(embedProperties ?? new object(), Formatting.Indented)}");
 
                 return embedProperties;
             }

@@ -181,14 +181,10 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName, string returnUrl)
         {
-            try
-            {
                 MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
 
                 if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
                 {
-                    Log.Information($"In Account.RemoteAuthenticate, scheme {scheme.Name} is identified for user {userName}");
-
                     string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
                     AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
                     properties.SetString("username", userName);
@@ -203,21 +199,12 @@ namespace MillimanAccessPortal.Controllers
                             break;
                     }
 
-                    Log.Information($"In Account.RemoteAuthenticate, ready to return Challenge response, authentication properties object is{Environment.NewLine}" +
-                        $"{JsonConvert.SerializeObject(properties, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore, MaxDepth = 4 })}");
-
                     return Challenge(properties, scheme.Name);
                 }
                 else
                 {
                     return RedirectToAction(nameof(Login));
                 }
-            }
-            catch(Exception ex)
-            {
-                Log.Warning(ex, $"Error from Account.RemoteAuthenticate");
-                throw;
-            }
         }
 
         //

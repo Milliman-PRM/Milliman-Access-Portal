@@ -335,14 +335,6 @@ namespace MillimanAccessPortal.Services
 
                         if (newMasterFile != null)
                         {
-                            object obj = new
-                            {
-                                newMasterFile,
-                                contentTypeSpecificDetail = contentItem.TypeSpecificDetailObject,
-                                ClientId = contentItem.ClientId.ToString(),
-                                ClientConfigurationOverride = contentItem.Client.ConfigurationOverride
-                            };
-                            Log.Information($"About to attempt api.ImportPbixAsync with {{{JsonSerializer.Serialize(obj, new JsonSerializerOptions {WriteIndented = true })}}}");
                             PowerBiLibApi api = await new PowerBiLibApi(pbiConfig).InitializeAsync();
                             PowerBiEmbedModel embedProperties = default;
                             try
