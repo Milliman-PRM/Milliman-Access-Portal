@@ -54,7 +54,6 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
 using ContainerizedAppLib;
-using Microsoft.ApplicationInsights.AspNetCore.Extensions;
 
 namespace MillimanAccessPortal
 {
@@ -202,7 +201,6 @@ namespace MillimanAccessPortal
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
-
                         return Task.CompletedTask;
                     };
 
@@ -220,7 +218,6 @@ namespace MillimanAccessPortal
 
                         context.Response.Redirect("/");
                         context.HandleResponse();
-
                         return Task.CompletedTask;
                     };
 
