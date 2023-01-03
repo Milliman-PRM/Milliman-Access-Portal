@@ -181,30 +181,30 @@ namespace MillimanAccessPortal.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RemoteAuthenticate(string userName, string returnUrl)
         {
-                MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
+            MapDbContextLib.Context.AuthenticationScheme scheme = await GetExternalAuthenticationScheme(userName);
 
-                if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
+            if (scheme != null && scheme.Name != (await _authentService.Schemes.GetDefaultAuthenticateSchemeAsync()).Name)
+            {
+                string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
+                AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
+                properties.SetString("username", userName);
+                switch (scheme.Type)
                 {
-                    string redirectUrl = Url.Action(nameof(ExternalLoginCallback), new { returnUrl = returnUrl });
-                    AuthenticationProperties properties = _signInManager.ConfigureExternalAuthenticationProperties(scheme.Name, redirectUrl);
-                    properties.SetString("username", userName);
-                    switch (scheme.Type)
-                    {
-                        case AuthenticationType.WsFederation:
-                            string wauthValue = (scheme.SchemePropertiesObj as WsFederationSchemeProperties)?.Wauth;
-                            if (!string.IsNullOrWhiteSpace(wauthValue))
-                            {
-                                properties.SetString("wauth", wauthValue);
-                            }
-                            break;
-                    }
+                    case AuthenticationType.WsFederation:
+                        string wauthValue = (scheme.SchemePropertiesObj as WsFederationSchemeProperties)?.Wauth;
+                        if (!string.IsNullOrWhiteSpace(wauthValue))
+                        {
+                            properties.SetString("wauth", wauthValue);
+                        }
+                        break;
+                }
 
-                    return Challenge(properties, scheme.Name);
-                }
-                else
-                {
-                    return RedirectToAction(nameof(Login));
-                }
+                return Challenge(properties, scheme.Name);
+            }
+            else
+            {
+                return RedirectToAction(nameof(Login));
+            }
         }
 
         //
