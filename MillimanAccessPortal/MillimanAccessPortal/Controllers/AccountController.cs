@@ -38,7 +38,6 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Options;
 using ContainerizedAppLib;
-using Newtonsoft.Json;
 
 namespace MillimanAccessPortal.Controllers
 {
