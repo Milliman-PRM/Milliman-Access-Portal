@@ -122,49 +122,6 @@ namespace MillimanAccessPortal
                     options.Wtrealm = schemeProperties.Wtrealm;
                     options.CallbackPath = $"{options.CallbackPath}-{scheme.Name}";
 
-                    object optionsObj = new
-                    {
-                        options.AccessDeniedPath,
-                        options.AllowUnsolicitedLogins,
-                        options.Backchannel,
-                        options.BackchannelHttpHandler,
-                        options.BackchannelTimeout,
-                        options.CallbackPath,
-                        options.ClaimsIssuer,
-                        options.Configuration,
-                        options.ConfigurationManager,
-                        options.CorrelationCookie,
-                        options.DataProtectionProvider,
-                        // options.Events,    // Out of memory exception when serializing this
-                        // options.EventsType,
-                        options.ForwardAuthenticate,
-                        options.ForwardChallenge,
-                        options.ForwardDefault,
-                        options.ForwardDefaultSelector,
-                        options.ForwardForbid,
-                        options.ForwardSignIn,
-                        options.ForwardSignOut,
-                        options.MetadataAddress,
-                        options.RefreshOnIssuerKeyNotFound,
-                        options.RemoteAuthenticationTimeout,
-                        options.RemoteSignOutPath,
-                        options.RequireHttpsMetadata,
-                        options.ReturnUrlParameter,
-                        options.SecurityTokenHandlers,
-                        options.SignInScheme,
-                        options.SignOutScheme,
-                        options.SignOutWreply,
-                        options.SkipUnrecognizedRequests,
-                        options.StateDataFormat,
-                        options.TokenValidationParameters,
-                        options.UseTokenLifetime,
-                        options.Wreply,
-                        options.Wtrealm
-                    };
-                    Log.Information($"Initializing WsFederation authentication scheme{Environment.NewLine}" +
-                        $"Scheme record is:{Environment.NewLine}{JsonConvert.SerializeObject(scheme, Formatting.Indented, new JsonSerializerSettings {ReferenceLoopHandling=ReferenceLoopHandling.Ignore})}{Environment.NewLine}" +
-                        $"WsFederationOptions object is:{Environment.NewLine}{JsonConvert.SerializeObject(optionsObj, Formatting.Indented, new JsonSerializerSettings { ReferenceLoopHandling=ReferenceLoopHandling.Ignore, MaxDepth = 2 })}");
-
                     #region WS-Federation middleware event overrides
                     // Event override to add username query parameter to adfs request
                     options.Events.OnRedirectToIdentityProvider = context =>
