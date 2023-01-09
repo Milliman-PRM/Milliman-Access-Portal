@@ -2,6 +2,10 @@
 
 ## Release Notes
 
+### v1.17.7
+
+- Fixed a bug which prevented users from viewing the bottom section in the Authorized Content view
+
 ### v1.17.6
 
 - Fixed a bug preventing some users from accessing container apps due to cookie size
