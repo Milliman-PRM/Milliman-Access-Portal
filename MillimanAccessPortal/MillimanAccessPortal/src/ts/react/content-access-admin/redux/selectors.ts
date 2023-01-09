@@ -185,10 +185,9 @@ export function clientsTree(state: AccessState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithStats[] });
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+  const clientTree = _.sortBy(parentGroups.null, (client) => client.name.toLowerCase()).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+    children: _.sortBy(parentGroups[c.id] || [], (client) => client.name.toLowerCase()),
   }));
   return clientTree;
 }
@@ -304,7 +303,7 @@ function relatedPublication(state: AccessState, itemId: Guid) {
  */
 function activeItems(state: AccessState) {
   const filtered = filteredItems(state).filter((i) => i.clientId === state.selected.client);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**
@@ -353,7 +352,7 @@ function relatedReduction(state: AccessState, groupId: Guid) {
  */
 export function activeGroups(state: AccessState) {
   const filtered = filteredGroups(state).filter((i) => i.rootContentItemId === state.selected.item);
-  return _.sortBy(filtered, ['name']);
+  return _.sortBy(filtered, (item) => item.name.toLowerCase());
 }
 
 /**
@@ -453,7 +452,7 @@ export function activeReductionFieldsets(state: AccessState): ReductionFieldset[
     field: f,
     values: _.sortBy(
       activeReductionValues(state).filter((v) => v.reductionFieldId === f.id),
-      ['value'],
+      (item) => item.value.toLowerCase(),
     ),
   }));
   return _.sortBy(activeFields, ['displayName']);
