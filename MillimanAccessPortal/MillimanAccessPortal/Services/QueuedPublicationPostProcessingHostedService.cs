@@ -95,6 +95,10 @@ namespace MillimanAccessPortal.Services
                             var newOutcome = thisPubRequest.OutcomeMetadataObj;
                             newOutcome.ElapsedTime = DateTime.UtcNow - newOutcome.StartDateTime;
                             newOutcome.UserMessage = thisPubRequest.RequestStatus.GetDisplayDescriptionString();
+                            if (kvpWithException.Value.Exception.InnerException.Message == "Failed to push container image to ACR")
+                            {
+                                newOutcome.UserMessage += ". The container image may be busted, please check that the format and layers are all correct.";
+                            }
                             newOutcome.SupportMessage = kvpWithException.Value.Exception.Message;
                             thisPubRequest.OutcomeMetadataObj = newOutcome;
 
@@ -391,7 +395,7 @@ namespace MillimanAccessPortal.Services
                             {
                                 Log.Error(ex, $"Failed to push container image to ACR");
                                 File.Delete(newMasterFile.FullPath);
-                                throw;
+                                throw new Exception("Failed to push container image to ACR");
                             }
                             #endregion
 
