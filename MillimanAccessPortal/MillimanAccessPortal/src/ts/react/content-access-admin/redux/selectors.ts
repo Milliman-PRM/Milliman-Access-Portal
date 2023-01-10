@@ -185,9 +185,9 @@ export function clientsTree(state: AccessState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithStats[] });
-  const clientTree = _.sortBy(parentGroups.null, (client) => client.name.toLowerCase()).map((c) => ({
+  const clientTree = _.sortBy(parentGroups.null, (client) => client.name && client.name.toLowerCase()).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], (client) => client.name.toLowerCase()),
+    children: _.sortBy(parentGroups[c.id] || [], (client) => client.name && client.name.toLowerCase()),
   }));
   return clientTree;
 }
