@@ -5,6 +5,8 @@
 ### v1.17.7
 
 - Fixed a bug which prevented users from viewing the bottom section in the Authorized Content view
+- Fixed a bug which prevented users from generating File Drop SFTP credentials immediately after File Drop creation
+- Fixed a bug which caused improper sorting of the clients column on the Client Access Review page
 
 ### v1.17.6
 
