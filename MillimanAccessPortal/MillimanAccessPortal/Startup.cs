@@ -140,12 +140,22 @@ namespace MillimanAccessPortal
                         {
                             context.ProtocolMessage.SetParameter("username", context.Properties.Items["username"]);
                         }
+
                         return Task.CompletedTask;
                     };
 
                     // Event override to handle all remote failures from WsFederation middleware
                     options.Events.OnRemoteFailure = context =>
                     {
+                        if (context.Failure is not null)
+                        {
+                            Log.Warning(context.Failure, $"Ws-federation OnRemoteFailure event fired with exception of type {context.Failure.GetType().FullName}");
+                        }
+                        else
+                        {
+                            Log.Warning("From OnRemoteFailure event handler, context.failure is null");
+                        }
+
                         context.Response.Redirect("/");
                         context.HandleResponse();
                         return Task.CompletedTask;
@@ -154,6 +164,15 @@ namespace MillimanAccessPortal
                     // Event override to handle authentication failures from WsFederation middleware
                     options.Events.OnAuthenticationFailed = context =>
                     {
+                        if (context.Exception is not null)
+                        {
+                            Log.Warning(context.Exception, $"Ws-federation OnAuthenticationFailed event fired with exception of type {context.Exception.GetType().FullName}");
+                        }
+                        else
+                        {
+                            Log.Warning("Ws-federation OnAuthenticationFailed event fired, context.Exception is null");
+                        }
+
                         context.Response.Redirect("/");
                         context.HandleResponse();
                         return Task.CompletedTask;
@@ -536,7 +555,7 @@ namespace MillimanAccessPortal
             {
                 app.UseHttpsRedirection();
                 app.UseHsts();
-                app.UseExceptionHandler("/Home/Error");
+                //app.UseExceptionHandler("/Home/Error");
             }
 
             app.UseStaticFiles(new StaticFileOptions
