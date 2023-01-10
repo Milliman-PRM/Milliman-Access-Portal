@@ -5,7 +5,6 @@ using Serilog.Events;
 using System;
 using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Linq;
 using System.Security.Cryptography;
 using System.IO;
@@ -208,6 +207,14 @@ namespace MapCommonLib
                 : requestedTimeZone.StandardName;
 
             return dateTime.ToString($"ddd, dd MMM yyyy hh':'mm tt', {timeZoneString}'");
+        }
+
+        public static string UtcToSortableDateString(DateTime dateTime, string timeZoneId)
+        {
+            TimeZoneInfo requestedTimeZone = TimeZoneInfo.FindSystemTimeZoneById(timeZoneId);
+            dateTime = TimeZoneInfo.ConvertTimeFromUtc(dateTime, requestedTimeZone);
+
+            return dateTime.ToString("s");
         }
 
         /// <summary>
