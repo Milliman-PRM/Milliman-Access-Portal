@@ -30,11 +30,15 @@ namespace MillimanAccessPortal.Models.EntityModels.ClientModels
     {
         public string ReviewDueDateTime { get; set; }
 
+        public string SortableDueDateTime { get; set; }
+
         public ClientReviewDeadlineStatus DeadlineStatus { get; set; } = ClientReviewDeadlineStatus.Unspecified;
 
         public ClientReviewModel(Client c, int reviewPeriodDays, int earlyWarningPeriodDays, int ClientReviewNotificationHourOfDayUtc, string userTimeZone) : base(c)
         {
-            ReviewDueDateTime = GlobalFunctions.UtcToLocalString(c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays), userTimeZone);
+            DateTime nextReviewDateTimeUtc = c.LastAccessReview.LastReviewDateTimeUtc + TimeSpan.FromDays(reviewPeriodDays);
+            ReviewDueDateTime = GlobalFunctions.UtcToLocalString(nextReviewDateTimeUtc, userTimeZone);
+            SortableDueDateTime = GlobalFunctions.UtcToSortableDateString(nextReviewDateTimeUtc, userTimeZone);
             DeadlineStatus = c.LastAccessReview.LastReviewDateTimeUtc switch
             {
                 DateTime dt when dt < DateTime.UtcNow - TimeSpan.FromDays(reviewPeriodDays) => ClientReviewDeadlineStatus.Expired,
