@@ -22,11 +22,13 @@ export function clientsTree(state: AccessReviewState) {
   sortOrderParent = [sortOrder];
   sortOrderChild = [sortOrder];
   const clientTree = _.orderBy(parentGroups.null, sortBy === 'date' ?
-    ['reviewDueDateTime'] : (client) => client.name.toLowerCase(), sortOrderParent).map((c) => ({
-    parent: c,
+    (client) => new Date(client.sortableDueDateTime) :
+    (client) => client.name && client.name.toLowerCase(), sortOrderParent).map((c) => ({
+      parent: c,
       children: _.orderBy(parentGroups[c.id] || [], sortBy === 'date' ?
-        ['reviewDueDateTime'] : (client) => client.name.toLowerCase(), sortOrderChild),
-  }));
+        (client) => new Date(client.sortableDueDateTime) :
+        (client) => client.name && client.name.toLowerCase(), sortOrderChild),
+    }));
   return clientTree;
 }
 
