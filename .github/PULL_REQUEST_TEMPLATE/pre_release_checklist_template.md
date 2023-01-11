@@ -10,7 +10,7 @@
 
 ## URL of UAT Environment
 
-- https://map-uat-app.trafficmanager.net/
+- https://map-uat.milliman.com/
 
 ## Tasks and Assertions
 
