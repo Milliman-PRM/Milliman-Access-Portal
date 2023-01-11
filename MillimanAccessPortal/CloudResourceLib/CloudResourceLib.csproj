@@ -11,6 +11,7 @@
     <PackageReference Include="Azure.ResourceManager.ContainerRegistry" Version="1.0.2" />
     <PackageReference Include="Azure.ResourceManager.Storage" Version="1.1.0" />
     <PackageReference Include="Azure.Storage.Files.Shares" Version="12.12.1" />
+    <PackageReference Include="Serilog" Version="2.10.0" />
   </ItemGroup>
 
 </Project>

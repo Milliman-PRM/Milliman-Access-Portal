@@ -4,6 +4,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ContainerRegistry.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -81,8 +82,9 @@ namespace CloudResourceLib
             var badScopes = allProvidedScopes.Where(s => allProvidedScopes.Count(v => v == s) > 1).Distinct();
             if (badScopes.Any())
             {
-                // TODO Log this with Serilog and throw
-                Console.WriteLine($"Scope(s) <{string.Join(",", badScopes)}> cannot be requested for multiple cloud credentials");
+                string msg = $"Scope(s) <{string.Join(",", badScopes)}> cannot be requested for multiple cloud credentials";
+                Log.Warning(msg);
+                throw new ApplicationException(msg);
             }
             #endregion
 
