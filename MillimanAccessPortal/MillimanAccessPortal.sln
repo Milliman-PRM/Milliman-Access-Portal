@@ -1,9 +1,12 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29920.165
+# Visual Studio Version 17
+VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MillimanAccessPortal", "MillimanAccessPortal\MillimanAccessPortal.csproj", "{87FBC963-6A16-4399-9B50-BEDDD17AD69B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{85F646D7-B905-47DB-895E-959FB007F1E2} = {85F646D7-B905-47DB-895E-959FB007F1E2}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MapDbContextLib", "MapDbContextLib\MapDbContextLib.csproj", "{163FEB0A-5083-4D7A-B7B3-A1B2171B4515}"
 EndProject
@@ -25,6 +28,8 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileDropLib", "FileDropLib\FileDropLib.csproj", "{50C60B35-7804-4208-9339-96D412F12144}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ContainerizedAppLib", "ContainerizedAppLib\ContainerizedAppLib.csproj", "{23D12FA6-BE33-4B89-913F-D5C617A236DD}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CloudResourceLib", "CloudResourceLib\CloudResourceLib.csproj", "{85F646D7-B905-47DB-895E-959FB007F1E2}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -72,6 +77,10 @@ Global
 		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{23D12FA6-BE33-4B89-913F-D5C617A236DD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85F646D7-B905-47DB-895E-959FB007F1E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85F646D7-B905-47DB-895E-959FB007F1E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85F646D7-B905-47DB-895E-959FB007F1E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85F646D7-B905-47DB-895E-959FB007F1E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
