@@ -123,7 +123,7 @@ namespace MillimanAccessPortal
                         Configuration.GetValue<string>("ContainerRegistryClientId"),
                         Configuration.GetValue<string>("ContainerRegistryClientSecret"));
 
-                    CloudResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
+                    AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
                     #endregion
                     #endregion
 
