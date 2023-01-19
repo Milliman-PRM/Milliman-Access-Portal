@@ -124,6 +124,8 @@ namespace MillimanAccessPortal
                         Configuration.GetValue<string>("ContainerRegistryClientSecret"));
 
                     AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
+
+                    await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), Guid.NewGuid());
                     #endregion
                     #endregion
 

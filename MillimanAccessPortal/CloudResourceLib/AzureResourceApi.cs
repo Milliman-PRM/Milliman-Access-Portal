@@ -118,32 +118,38 @@ namespace CloudResourceLib
         }
 
         #region Storage operations
-        public static async Task CreateNewStorage(Guid ContentItemId)
+        public static async Task CreateNewStorage(Guid ClientId, Guid ContentItemId)
         {
-            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource containerTestingResourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
+            //SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+            SubscriptionResource subscription = _storageClient.GetSubscriptions().Single(s => s.HasData && s.Data.DisplayName == "");
+
+            ResourceGroupCollection allResourceGroups = subscription.GetResourceGroups();
+
+            ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed, $"map-client-{ClientId}", new ResourceGroupData(AzureLocation.EastUS) {Tags = {{ "ClientId", ClientId.ToString() } } });
+            ResourceGroupResource newResourceGroup = createResourceGroupOperation.WaitForCompletion();
 
             StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
-            StorageKind kind = StorageKind.Storage;
-            AzureLocation location = AzureLocation.EastUS;
-            StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, kind, location);
-            StorageAccountCollection accountCollection = containerTestingResourceGroup.GetStorageAccounts();
+
+            StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, StorageKind.StorageV2, newResourceGroup.Data.Location);
+            StorageAccountCollection accountCollection = newResourceGroup.GetStorageAccounts();
             string newStorageAccountName = "TomTesting";
             ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, newStorageAccountName, creationParams);
             StorageAccountResource storageAccount = accountCreateOperation.Value;
 
+            accountCollection = newResourceGroup.GetStorageAccounts();
 
-            accountCollection = containerTestingResourceGroup.GetStorageAccounts();
+            // TODO Figure out if this deletes contained resources too
+            newResourceGroup.Delete(WaitUntil.Completed);
 
             //var containerGroups = containerTestingResourceGroup.GetContainerGroups();
 
-//ContainerGroupData grData = new ContainerGroupData(AzureLocation.EastUS, newContainers, ContainerInstanceOperatingSystemType.Windows)
-//{
+            //ContainerGroupData grData = new ContainerGroupData(AzureLocation.EastUS, newContainers, ContainerInstanceOperatingSystemType.Windows)
+            //{
 
-//    // I'd like to add more properties here
-//};
+            //    // I'd like to add more properties here
+            //};
 
-//var op = containerGroups.CreateOrUpdate(WaitUntil.Completed, "TomTestContainerGroup", grData);
+            //var op = containerGroups.CreateOrUpdate(WaitUntil.Completed, "TomTestContainerGroup", grData);
 
 #if false  // Evan's sample
 using System;
@@ -160,7 +166,7 @@ using Azure.Storage.Files.Shares;
 using Microsoft.Extensions.Azure;
 
 
-#region Credentials and user data
+            #region Credentials and user data
 
 // Secrets
 string azureTenantId = "ecd586dd-352e-4830-8c8f-b6ca8be7ca04";
@@ -172,9 +178,9 @@ string resourceGroupName = "ContainerTestingResourceGroup";
 string fileName = "file.txt";
 string filePath = @"C:\path\to\file\here\file.txt";
 
-#endregion
+            #endregion
 
-#region Azure.ResourceManager.Storage territory
+            #region Azure.ResourceManager.Storage territory
 
 // Create ARMClient, fetch subscription resource and resource group
 var credential = new ClientSecretCredential(azureTenantId, azureClientId, azureClientSecret);
@@ -206,9 +212,9 @@ FileShareData fileShareData = new FileShareData();
 ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, newFileShareName, fileShareData);
 FileShareResource fileShare = await fileShareCreateOperation.WaitForCompletionAsync();
 
-#endregion
+            #endregion
 
-#region Azure.Storage.Files.Shares API territory
+            #region Azure.Storage.Files.Shares API territory
 
 // Create a File Share
 string connectionString = $"DefaultEndpointsProtocol=https;AccountName={newStorageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net"; // Construct storage account connection string manually, as there doesn't appear to be a way to get it directly from either API
@@ -226,7 +232,7 @@ using (FileStream stream = File.OpenRead(filePath))
     fileClient.UploadRange(new HttpRange(0, stream.Length), stream);
 }
 
-#endregion
+            #endregion
 
 // Things to learn:
 // - Permissions on accounts/shares/directories
@@ -238,6 +244,6 @@ using (FileStream stream = File.OpenRead(filePath))
 #endif
         }
 
-#endregion
+        #endregion
     }
 }
