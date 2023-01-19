@@ -121,7 +121,7 @@ namespace MapDbContextLib.Models
         public TimeSpan? EndTime { get; set; }
         public string? TimeZoneId { get; set; }
 
-        public bool? DataPersistenceEnabled { get; set; }
+        public bool DataPersistenceEnabled { get; set; } = false;
     }
 
     internal class TimeSpanJsonConverter : JsonConverter<TimeSpan>

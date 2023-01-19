@@ -45,6 +45,10 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
+        /// <summary>
+        /// The dict key is the mount name, the dict value is the context string (future use)
+        /// </summary>
+        public Dictionary<string, string> LiveContainerStorageShares { get; set; } = new Dictionary<string, string>();
 
         [JsonConverter(typeof(LifetimeSchemeConverter))]
         public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
@@ -54,6 +58,10 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
+        /// <summary>
+        /// The dict key is the mount name, the dict value is the context string (future use)
+        /// </summary>
+        public Dictionary<string, string> PreviewContainerStorageShares { get; set; } = new Dictionary<string, string>();
 
         #region Lifetime management
         public abstract class LifetimeSchemeBase
@@ -97,6 +105,7 @@ namespace MapDbContextLib.Models
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
             returnValue |= LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
+            returnValue |= !LiveContainerStorageShares.Any() && requestProps.DataPersistenceEnabled;
 
             if (LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && !returnValue)
             {
