@@ -648,7 +648,7 @@ namespace ContainerizedAppLib
                                                       int cpuCoreCount, 
                                                       double memorySizeInGB, 
                                                       ContainerGroupResourceTags resourceTags,
-                                                      IEnumerable<string> shareNames = null,
+                                                      IEnumerable<string> shareNames,
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
@@ -688,7 +688,15 @@ namespace ContainerizedAppLib
                                             SecureValue = ipType.Equals("Private", StringComparison.InvariantCultureIgnoreCase)
                                                 ? ev.Value
                                                 : null,
-                                        }).ToList(),
+                                        })
+                                        .Append(new ContainerProperties.EnvironmentVariable
+                                                {
+                                                    Name = "MAP_DATA_CHECK",
+                                                    Value = shareNames?.Any() ?? false
+                                                        ? "1"
+                                                        : "0"
+                                                })
+                                        .ToList(),
                                     }
 ,
                                     Image = containerImageName,
@@ -732,7 +740,7 @@ namespace ContainerizedAppLib
                     Tags = resourceTags
                 };
 
-                if (!(shareNames is null) && shareNames.Any())
+                if (shareNames?.Any() ?? false)
                 {
                     requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(n => new Volume 
                     {
@@ -753,6 +761,13 @@ namespace ContainerizedAppLib
                         Name = n, 
                         ReadOnly = false 
                     })));
+
+                    List<string> mountPaths = shareNames.Select(n => $"/mnt/map-{n}").ToList();
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(new ContainerProperties.EnvironmentVariable
+                    {
+                        Name = "MAP_DATA_MOUNT",
+                        Value = string.Join(";", mountPaths)
+                    }));
                 }
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
