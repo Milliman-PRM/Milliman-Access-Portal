@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
 using System.Threading;
@@ -376,7 +377,6 @@ namespace MillimanAccessPortal.Services
                         ContainerizedAppLibApiConfig containerAppApiConfig = scope.ServiceProvider.GetRequiredService<IOptions<ContainerizedAppLibApiConfig>>().Value;
                         string repositoryName = contentItem.AcrRepositoryName;
 
-
                         if (newMasterFile is not null)
                         {
                             #region Send image to Azure registry
@@ -407,6 +407,30 @@ namespace MillimanAccessPortal.Services
                         containerContentItemProperties.PreviewContainerCpuCores = containerizedAppPubProperties.ContainerCpuCores;
                         containerContentItemProperties.PreviewContainerInternalPort = containerizedAppPubProperties.ContainerInternalPort;
                         containerContentItemProperties.PreviewContainerRamGb = containerizedAppPubProperties.ContainerRamGb;
+
+                        #region Establish container storage resources as needed (should this be encapsulated in another method?)
+                        if (containerizedAppPubProperties.DataPersistenceEnabled /* || liveContentHasPersistenceEnabled */)
+                        {
+                            // TODO var newOrExistingResourceGroup = AzureResourceApi.EstablishResourceGroupForClient(thisPubRequest.RootContentItem.ClientId);
+
+                            // TODO Do we need a separate, dedicated storage account for preview shares?  i.e. if share names must be unique in a storage account 
+                            // TODO var newOrExistingStorageAccount = AzureResourceApi.EstablishStorageAccount(newOrExistingResourceGroup);
+
+                            // When we eventually support multiple shares we will have a collection of provided names
+                            string[] shareNames = new[] { "main" };
+
+                            // TODO Does this share name strategy work?  $"preview-{name}" for preview, $"{name}" for live
+
+                            containerContentItemProperties.PreviewContainerStorageShareNames = new List<string>(shareNames.Select(n => $"preview-{n}"));
+                            foreach (string shareName in containerContentItemProperties.PreviewContainerStorageShareNames)
+                            {
+                                // Terminology: Here we establish *share*(s). Later when we spin up a container group a *share* becomes available to the container as a *volume*
+                                // TODO var newOrExistingShareInfo = AzureResourceApi.EstablishShare(shareName, otherStuff?)
+
+                                // TODO Populate the share data using zip file provided with the publish request or copied from live content (or ...)
+                            }
+                        }
+                        #endregion
 
                         string contentToken = GlobalFunctions.HexMd5String(publicationRequestId);
 
@@ -446,6 +470,7 @@ namespace MillimanAccessPortal.Services
                                                                          vnetId,
                                                                          vnetName,
                                                                          true,
+                                                                         containerContentItemProperties.PreviewContainerStorageShareNames,
                                                                          new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 

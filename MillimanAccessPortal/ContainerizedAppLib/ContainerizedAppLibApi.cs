@@ -509,6 +509,7 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
+                                               IEnumerable<string> shareNames = null,
                                                Dictionary<string, string> EnvironmentVariables = null,
                                                params ushort[] containerPorts)
         {
@@ -523,7 +524,8 @@ namespace ContainerizedAppLib
                                                                ipType, 
                                                                cpuCoreCount, 
                                                                memorySizeInGB, 
-                                                               resourceTags, 
+                                                               resourceTags,
+                                                               shareNames, 
                                                                vnetId, 
                                                                vnetName, 
                                                                EnvironmentVariables,
@@ -645,7 +647,8 @@ namespace ContainerizedAppLib
                                                       string ipType, 
                                                       int cpuCoreCount, 
                                                       double memorySizeInGB, 
-                                                      ContainerGroupResourceTags resourceTags, 
+                                                      ContainerGroupResourceTags resourceTags,
+                                                      IEnumerable<string> shareNames = null,
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
@@ -698,7 +701,7 @@ namespace ContainerizedAppLib
                                             MemoryInGB = memorySizeInGB,
                                         }
                                     }
-                                }
+                                },
                             }
                         },
                         ImageRegistryCredentials = new List<ImageRegistryCredential>()
@@ -728,6 +731,29 @@ namespace ContainerizedAppLib
                     },
                     Tags = resourceTags
                 };
+
+                if (!(shareNames is null) && shareNames.Any())
+                {
+                    requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(n => new Volume 
+                    {
+                        Name = n, 
+                        AzureFile = new AzureFileVolume 
+                        {
+                            ShareName = n, 
+                            ReadOnly = false,
+                            StorageAccountName = "tbd", // TODO
+                            StorageAccountKey = "tbd", // TODO
+                        } 
+                    }));
+
+                    // Mount each share in the name list to container(s) in the group (currently only one)
+                    requestModel.Properties.Containers.ForEach(c => c.VolumeMounts.AddRange(shareNames.Select(n => new VolumeMount 
+                    { 
+                        MountPath = $"/mnt/map-{n}", 
+                        Name = n, 
+                        ReadOnly = false 
+                    })));
+                }
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });
                 IFlurlResponse response = await createContainerGroupEndpoint

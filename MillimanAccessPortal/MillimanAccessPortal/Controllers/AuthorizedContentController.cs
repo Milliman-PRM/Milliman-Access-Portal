@@ -897,6 +897,7 @@ namespace MillimanAccessPortal.Controllers
                                                                      vnetId,
                                                                      vnetName,
                                                                      false,
+                                                                     null, // TODO this is where share names are provided
                                                                      new Dictionary<string, string> { { "PathBase", contentToken } },
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
