@@ -132,14 +132,14 @@ namespace CloudResourceLib
         /// <param name="clientName"></param>
         /// <param name="contentItemId"></param>
         /// <returns></returns>
-        public static async Task CreateNewStorage(string clientName, Guid contentItemId)
+        public static async Task CreateNewStorage(Guid clientId, string clientName, Guid contentItemId)
         {
             SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
             ResourceGroupResource containerTestingResourceGroup = subscription.GetResourceGroup(clientName);
 
             ResourceGroupCollection allResourceGroups = subscription.GetResourceGroups();
 
-            ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed, $"map-client-{ClientId}", new ResourceGroupData(AzureLocation.EastUS) {Tags = {{ "ClientId", ClientId.ToString() } } });
+            ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed, $"map-client-{clientId}", new ResourceGroupData(AzureLocation.EastUS) {Tags = {{ "ClientId", clientId.ToString() } } });
             ResourceGroupResource newResourceGroup = createResourceGroupOperation.WaitForCompletion();
 
             StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
