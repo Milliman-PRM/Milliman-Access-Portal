@@ -146,38 +146,94 @@ namespace CloudResourceLib
             //var containerGroups = containerTestingResourceGroup.GetContainerGroups();
         }
 
-        // TODO determine return values here...
-        public static async Task<FileShareResource> CreateFileShare(string storageAccountName, string fileShareName)
+        /// <summary>
+        /// Creates an Azure File Share.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <param name="fileShareName"></param>
+        /// <returns></returns>
+        public static async Task CreateFileShare(string resourceGroupName, string storageAccountName, string fileShareName)
         {
-            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
-            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
 
             FileServiceResource fileService = await targetedStorageAccount.GetFileService().GetAsync();
             FileShareCollection fileShareCollection = fileService.GetFileShares();
             ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, fileShareName, new FileShareData());
-            FileShareResource fileShare = await fileShareCreateOperation.WaitForCompletionAsync();
-            return fileShare;
+            await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
         }
 
-        public static async Task CreateFileShareDirectory(string storageAccountName, string fileShareName, string directoryName)
+        /// <summary>
+        /// Removes a File Share.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <param name="fileShareName"></param>
+        /// <returns></returns>
+        public static async Task RemoveFileShare(string resourceGroupName, string storageAccountName, string fileShareName)
         {
-            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
-            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
-            var storageAccountKeys = targetedStorageAccount.GetKeys();
+            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
 
+            var storageAccountKeys = targetedStorageAccount.GetKeys();
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
             ShareClient shareClient = new ShareClient(connectionString, fileShareName);
-            ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient(directoryName);
-            directoryClient.Create();
+            await shareClient.DeleteIfExistsAsync(); // May take several minutes.
         }
 
-        public static async Task UploadToFileShare(string storageAccountName, string fileShareName, string directoryName, string fileName, string localFilePath)
+        /// <summary>
+        /// Removes all files and directories within a share, without deleting the share itself.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <param name="fileShareName"></param>
+        /// <param name="directoryName"></param>
+        /// <returns></returns>
+        public static async Task ClearFileShare(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName)
         {
-            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
-            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+
+            var storageAccountKeys = targetedStorageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            var rootDirectoryClient = shareClient.GetRootDirectoryClient();
+            
+            // TODO Figure out strategy.
+            // Strategy #1: Remove directories recursively
+            // Strategy #2: Remove File Share completely, then re-create.
+            // Strategy #3??: Maybe there's a built in package function to do this...
+        }
+
+        /// <summary>
+        /// Creates a directory within a share.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <param name="fileShareName"></param>
+        /// <param name="directoryName"></param>
+        /// <returns></returns>
+        public static async Task CreateFileShareDirectory(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName)
+        {
+            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+            
+            var storageAccountKeys = targetedStorageAccount.GetKeys();
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            await shareClient.CreateDirectoryAsync(directoryName);
+        }
+
+        /// <summary>
+        /// Uploads a file to an internal directory within a File Share.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <param name="fileShareName"></param>
+        /// <param name="directoryName"></param>
+        /// <param name="fileName"></param>
+        /// <param name="localFilePath"></param>
+        /// <returns></returns>
+        public static async Task UploadToFileShare(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName, string fileName, string localFilePath)
+        {
+            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
             var storageAccountKeys = targetedStorageAccount.GetKeys();
 
             string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
@@ -193,6 +249,18 @@ namespace CloudResourceLib
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Redundant logic for fetching a Storage Account using credentials.
+        /// </summary>
+        /// <param name="resourceGroupName"></param>
+        /// <param name="storageAccountName"></param>
+        /// <returns></returns>
+        private static async Task<StorageAccountResource> FetchStorageAccount(string resourceGroupName, string storageAccountName)
+        {
+            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+            ResourceGroupResource resourceGroup = await subscription.GetResourceGroupAsync(resourceGroupName);
+            StorageAccountResource storageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+            return storageAccount;
+        }
     }
 }
