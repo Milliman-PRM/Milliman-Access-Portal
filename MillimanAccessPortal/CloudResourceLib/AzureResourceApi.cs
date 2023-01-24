@@ -145,6 +145,7 @@ namespace CloudResourceLib
 
             //var containerGroups = containerTestingResourceGroup.GetContainerGroups();
         }
+        #endregion
 
         /// <summary>
         /// Creates an Azure File Share.
@@ -155,12 +156,20 @@ namespace CloudResourceLib
         /// <returns></returns>
         public static async Task CreateFileShare(string resourceGroupName, string storageAccountName, string fileShareName)
         {
-            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+            try
+            {
+                StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+                FileServiceResource fileService = await targetedStorageAccount.GetFileService().GetAsync();
+                FileShareCollection fileShareCollection = fileService.GetFileShares();
+                ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, fileShareName, new FileShareData());
 
-            FileServiceResource fileService = await targetedStorageAccount.GetFileService().GetAsync();
-            FileShareCollection fileShareCollection = fileService.GetFileShares();
-            ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, fileShareName, new FileShareData());
-            await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+                await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error creating new Azure File Share.");
+                throw;
+            }
         }
 
         /// <summary>
@@ -172,12 +181,19 @@ namespace CloudResourceLib
         /// <returns></returns>
         public static async Task RemoveFileShare(string resourceGroupName, string storageAccountName, string fileShareName)
         {
-            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
-
-            var storageAccountKeys = targetedStorageAccount.GetKeys();
-            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
-            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
-            await shareClient.DeleteIfExistsAsync(); // May take several minutes.
+            try
+            {
+                StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+                var storageAccountKeys = targetedStorageAccount.GetKeys();
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+                ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+                await shareClient.DeleteIfExistsAsync(); // May take several minutes.
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error removing Azure File Share.");
+                throw;
+            }
         }
 
         /// <summary>
@@ -213,12 +229,19 @@ namespace CloudResourceLib
         /// <returns></returns>
         public static async Task CreateFileShareDirectory(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName)
         {
-            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
-            
-            var storageAccountKeys = targetedStorageAccount.GetKeys();
-            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
-            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
-            await shareClient.CreateDirectoryAsync(directoryName);
+            try
+            {
+                StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+                var storageAccountKeys = targetedStorageAccount.GetKeys();
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+                ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+                await shareClient.CreateDirectoryAsync(directoryName);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error creating directory within Azure File Share.");
+                throw;
+            }
         }
 
         /// <summary>
@@ -233,19 +256,27 @@ namespace CloudResourceLib
         /// <returns></returns>
         public static async Task UploadToFileShare(string resourceGroupName, string storageAccountName, string fileShareName, string directoryName, string fileName, string localFilePath)
         {
-            StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
-            var storageAccountKeys = targetedStorageAccount.GetKeys();
-
-            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
-            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
-            ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient(directoryName);
-            await directoryClient.CreateIfNotExistsAsync();
-
-            ShareFileClient fileClient = directoryClient.GetFileClient(fileName);
-            using (FileStream stream = File.OpenRead(localFilePath))
+            try
             {
-                fileClient.Create(stream.Length);
-                fileClient.UploadRange(new HttpRange(0, stream.Length), stream);
+                StorageAccountResource targetedStorageAccount = await FetchStorageAccount(resourceGroupName, storageAccountName);
+                var storageAccountKeys = targetedStorageAccount.GetKeys();
+
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+                ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+                ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient(directoryName);
+                await directoryClient.CreateIfNotExistsAsync();
+
+                ShareFileClient fileClient = directoryClient.GetFileClient(fileName);
+                using (FileStream stream = File.OpenRead(localFilePath))
+                {
+                    fileClient.Create(stream.Length);
+                    fileClient.UploadRange(new HttpRange(0, stream.Length), stream);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error uploading file to Azure File Share.");
+                throw;
             }
         }
 
@@ -257,10 +288,18 @@ namespace CloudResourceLib
         /// <returns></returns>
         private static async Task<StorageAccountResource> FetchStorageAccount(string resourceGroupName, string storageAccountName)
         {
-            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource resourceGroup = await subscription.GetResourceGroupAsync(resourceGroupName);
-            StorageAccountResource storageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
-            return storageAccount;
+            try
+            {
+                SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+                ResourceGroupResource resourceGroup = await subscription.GetResourceGroupAsync(resourceGroupName);
+                StorageAccountResource storageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+                return storageAccount;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Error fetcing Azure subscription, resource group, or storage account info.");
+                throw;
+            }
         }
     }
 }
