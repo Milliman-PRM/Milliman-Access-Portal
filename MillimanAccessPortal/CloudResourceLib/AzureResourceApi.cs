@@ -120,6 +120,7 @@ namespace CloudResourceLib
         #region Storage operations
         public static async Task CreateNewStorage(Guid ClientId, Guid ContentItemId)
         {
+            #region Get Subscription and Resource Group
             //SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
             SubscriptionResource subscription = _storageClient.GetSubscriptions().Single(s => s.HasData && s.Data.DisplayName == "");
 
@@ -127,14 +128,18 @@ namespace CloudResourceLib
 
             ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed, $"map-client-{ClientId}", new ResourceGroupData(AzureLocation.EastUS) {Tags = {{ "ClientId", ClientId.ToString() } } });
             ResourceGroupResource newResourceGroup = createResourceGroupOperation.WaitForCompletion();
+            #endregion
 
-            StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
-
+            #region Create storage account
+            StorageSku sku = new(StorageSkuName.StandardGrs);
             StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, StorageKind.StorageV2, newResourceGroup.Data.Location);
             StorageAccountCollection accountCollection = newResourceGroup.GetStorageAccounts();
-            string newStorageAccountName = "TomTesting";
+            string newStorageAccountName = $"ClientStorage-{ClientId}";
             ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, newStorageAccountName, creationParams);
             StorageAccountResource storageAccount = accountCreateOperation.Value;
+
+            Pageable<StorageAccountKey> storageAccountKeys = storageAccount.GetKeys();
+            #endregion
 
             accountCollection = newResourceGroup.GetStorageAccounts();
 
@@ -145,8 +150,8 @@ namespace CloudResourceLib
 
             //ContainerGroupData grData = new ContainerGroupData(AzureLocation.EastUS, newContainers, ContainerInstanceOperatingSystemType.Windows)
             //{
-
-            //    // I'd like to add more properties here
+            //    ImageRegistryCredentials = { new ContainerGroupImageRegistryCredential(registry.Data.LoginServer, registryCredentials.Username) { Password = registryCredentials.Passwords[0].Value } },
+            //    IPAddress = ipAddress
             //};
 
             //var op = containerGroups.CreateOrUpdate(WaitUntil.Completed, "TomTestContainerGroup", grData);
