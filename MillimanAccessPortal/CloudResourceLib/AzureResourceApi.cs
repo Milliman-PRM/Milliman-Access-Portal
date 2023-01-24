@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Azure.ResourceManager.Storage.Models;
+using System.IO;
 
 namespace CloudResourceLib
 {
@@ -60,6 +61,13 @@ namespace CloudResourceLib
             };
         }
     }
+
+    // Things to learn:
+    // - Permissions on accounts/shares/directories
+    // - Tagging
+    // - Difference in storage account type
+    // - Difference in SKU
+    // Do we want to allow customers to get direct access to the storage accounts?
 
     public static class AzureResourceApi
     {
@@ -136,108 +144,55 @@ namespace CloudResourceLib
             accountCollection = containerTestingResourceGroup.GetStorageAccounts();
 
             //var containerGroups = containerTestingResourceGroup.GetContainerGroups();
-
-//ContainerGroupData grData = new ContainerGroupData(AzureLocation.EastUS, newContainers, ContainerInstanceOperatingSystemType.Windows)
-//{
-
-//    // I'd like to add more properties here
-//};
-
-//var op = containerGroups.CreateOrUpdate(WaitUntil.Completed, "TomTestContainerGroup", grData);
-
-#if false  // Evan's sample
-using System;
-using System.Threading.Tasks;
-using Azure.Identity;
-using Azure.ResourceManager.Storage.Models;
-using Azure.ResourceManager.Resources;
-using Azure.Core;
-using Azure.ResourceManager;
-using Azure.ResourceManager.Storage;
-using Azure;
-using System.Xml.Linq;
-using Azure.Storage.Files.Shares;
-using Microsoft.Extensions.Azure;
-
-
-#region Credentials and user data
-
-// Secrets
-string azureTenantId = "ecd586dd-352e-4830-8c8f-b6ca8be7ca04";
-string azureClientId = "efd34fda-6721-4f53-a186-b5014ce79ce6";
-string azureClientSecret = "IoD7Q~5FrwghbqL0Q6baLsd.RXV-A6r1eAjaI";
-string resourceGroupName = "ContainerTestingResourceGroup";
-
-// File upload information
-string fileName = "file.txt";
-string filePath = @"C:\path\to\file\here\file.txt";
-
-#endregion
-
-#region Azure.ResourceManager.Storage territory
-
-// Create ARMClient, fetch subscription resource and resource group
-var credential = new ClientSecretCredential(azureTenantId, azureClientId, azureClientSecret);
-ArmClient azureResourceManagementClient = new ArmClient(credential);
-SubscriptionResource subscription = await azureResourceManagementClient.GetDefaultSubscriptionAsync();
-ResourceGroupResource resourceGroup = subscription.GetResourceGroup(resourceGroupName);
-
-
-// Create new storage accountand add it to list of storage accounts for resource group
-StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
-StorageKind kind = StorageKind.Storage;
-AzureLocation location = AzureLocation.EastUS;
-StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, kind, location);
-StorageAccountCollection accountCollection = resourceGroup.GetStorageAccounts();
-string newStorageAccountName = "createdbyapi";
-ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, newStorageAccountName, creationParams);
-StorageAccountResource storageAccount = accountCreateOperation.Value;
-
-// Store Storage Account Keys
-var storageAccountKeys = storageAccount.GetKeys();
-
-// ResourceManager Create File Share
-FileServiceResource fileService = await storageAccount.GetFileService().GetAsync();
-FileShareCollection fileShareCollection = fileService.GetFileShares();
-
-string newFileShareName = "newshare";
-FileShareData fileShareData = new FileShareData();
-
-ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, newFileShareName, fileShareData);
-FileShareResource fileShare = await fileShareCreateOperation.WaitForCompletionAsync();
-
-#endregion
-
-#region Azure.Storage.Files.Shares API territory
-
-// Create a File Share
-string connectionString = $"DefaultEndpointsProtocol=https;AccountName={newStorageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net"; // Construct storage account connection string manually, as there doesn't appear to be a way to get it directly from either API
-ShareClient shareClient = new ShareClient(connectionString, newFileShareName);
-
-// Create a directory and create a client
-ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient("map");
-directoryClient.Create();
-
-// Create file client using directoryClient and upload file to share
-ShareFileClient fileClient = directoryClient.GetFileClient(fileName);
-using (FileStream stream = File.OpenRead(filePath))
-{
-    fileClient.Create(stream.Length);
-    fileClient.UploadRange(new HttpRange(0, stream.Length), stream);
-}
-
-#endregion
-
-// Things to learn:
-// - Permissions on accounts/shares/directories
-// - Tagging
-// - Difference in storage account type
-// - Difference in SKU
-// Do we want to allow customers to get direct access to the storage accounts?
-
-#endif
         }
 
-#endregion
+        // TODO determine return values here...
+        public static async Task<FileShareResource> CreateFileShare(string storageAccountName, string fileShareName)
+        {
+            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
+            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+
+            FileServiceResource fileService = await targetedStorageAccount.GetFileService().GetAsync();
+            FileShareCollection fileShareCollection = fileService.GetFileShares();
+            ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Started, fileShareName, new FileShareData());
+            FileShareResource fileShare = await fileShareCreateOperation.WaitForCompletionAsync();
+            return fileShare;
+        }
+
+        public static async Task CreateFileShareDirectory(string storageAccountName, string fileShareName, string directoryName)
+        {
+            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
+            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+            var storageAccountKeys = targetedStorageAccount.GetKeys();
+
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient(directoryName);
+            directoryClient.Create();
+        }
+
+        public static async Task UploadToFileShare(string storageAccountName, string fileShareName, string directoryName, string fileName, string localFilePath)
+        {
+            SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+            ResourceGroupResource resourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
+            StorageAccountResource targetedStorageAccount = await resourceGroup.GetStorageAccountAsync(storageAccountName);
+            var storageAccountKeys = targetedStorageAccount.GetKeys();
+
+            string connectionString = $"DefaultEndpointsProtocol=https;AccountName={storageAccountName};AccountKey={storageAccountKeys.FirstOrDefault().Value};EndpointSuffix=core.windows.net";
+            ShareClient shareClient = new ShareClient(connectionString, fileShareName);
+            ShareDirectoryClient directoryClient = shareClient.GetDirectoryClient(directoryName);
+            await directoryClient.CreateIfNotExistsAsync();
+
+            ShareFileClient fileClient = directoryClient.GetFileClient(fileName);
+            using (FileStream stream = File.OpenRead(localFilePath))
+            {
+                fileClient.Create(stream.Length);
+                fileClient.UploadRange(new HttpRange(0, stream.Length), stream);
+            }
+        }
+
+        #endregion
     }
 }
