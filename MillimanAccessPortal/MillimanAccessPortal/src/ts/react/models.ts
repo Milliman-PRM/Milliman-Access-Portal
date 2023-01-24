@@ -49,6 +49,7 @@ export interface Client {
 export interface ClientWithReviewDate extends Client {
   canManage?: boolean;
   reviewDueDateTime: string;
+  sortableDueDateTime: string;
   deadlineStatus: ClientReviewDeadlineStatusEnum;
 }
 export interface ClientWithStats extends Client {

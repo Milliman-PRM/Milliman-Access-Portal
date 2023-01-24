@@ -37,10 +37,9 @@ export function clientsTree(state: FileDropState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: FileDropClientWithStats[] });
-  const iteratees = ['name', 'code'];
-  const clientTree = _.sortBy(parentGroups.null, iteratees).map((c) => ({
+  const clientTree = _.sortBy(parentGroups.null, (client) => client.name && client.name.toLowerCase()).map((c) => ({
     parent: c,
-    children: _.sortBy(parentGroups[c.id] || [], iteratees),
+    children: _.sortBy(parentGroups[c.id] || [], (client) => client.name && client.name.toLowerCase()),
   }));
   return clientTree;
 }
@@ -112,7 +111,7 @@ export function fileDropEntities(state: FileDropState) {
       || fileDrop.description.toLowerCase().indexOf(filterTextLower) !== -1
     )
   ));
-  return _.sortBy(filteredFileDrops, ['name']);
+  return _.sortBy(filteredFileDrops, (item) => item.name.toLowerCase());
 }
 
 /** Return the highlighted File Drop if it is visible to the user */
@@ -149,7 +148,7 @@ export function fileDropDirectories(state: FileDropState) {
     return directoryName.toLowerCase().indexOf(filterTextLower) !== -1
       || filterTextLower === '';
   });
-  return _.sortBy(filteredDirectories, ['canonicalPath']);
+  return _.sortBy(filteredDirectories, (dir) => dir.canonicalPath.toLowerCase());
 }
 
 /**  Select all the files selected by the File Drop contents filter. */
@@ -160,7 +159,7 @@ export function fileDropFiles(state: FileDropState) {
     file.fileName.toLowerCase().indexOf(filterTextLower) !== -1
     || filterTextLower === ''
   ));
-  return _.sortBy(filteredFiles, ['fileName']);
+  return _.sortBy(filteredFiles, (file) => file.fileName.toLowerCase());
 }
 
 // ~~~~~~~~~~~~~~~~~~~~~~~~~~

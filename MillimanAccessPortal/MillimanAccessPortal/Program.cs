@@ -7,6 +7,7 @@
 using AuditLogLib;
 using AuditLogLib.Event;
 using AuditLogLib.Models;
+using CloudResourceLib;
 using FileDropLib;
 using System;
 using System.Collections.Generic;
@@ -106,6 +107,25 @@ namespace MillimanAccessPortal
                         AuditLogConnectionString = auditLogConnectionString,
                         ErrorLogRootFolder = Configuration.GetValue<string>("Storage:ApplicationLog"),
                     };
+                    #endregion
+
+                    #region Initialize cloud resources library
+                    AzureClientCredential credential1 = AzureClientCredential.NewInstance(
+                        CredentialScope.ContainerInstance | CredentialScope.Storage,
+                        Configuration.GetValue<string>("AciTenantId"),
+                        Configuration.GetValue<string>("AciClientId"),
+                        Configuration.GetValue<string>("AciClientSecret"));
+
+                    AzureClientCredential containerRegistryCredential = AzureClientCredential.NewInstance(
+                    //    CredentialScope.ContainerRegistry | CredentialScope.Storage,  // to testing error handling
+                        CredentialScope.ContainerRegistry,
+                        Configuration.GetValue<string>("ContainerRegistryTenantId"),
+                        Configuration.GetValue<string>("ContainerRegistryClientId"),
+                        Configuration.GetValue<string>("ContainerRegistryClientSecret"));
+
+                    AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
+
+                    //await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), "TestClient", Guid.NewGuid());
                     #endregion
                     #endregion
 

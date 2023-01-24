@@ -17,25 +17,18 @@ export function clientsTree(state: AccessReviewState) {
       ? { ...groups, [cur.parentId]: [ ...groups[cur.parentId], cur ] }
       : { ...groups, [cur.parentId]: [ cur ] },
     {} as { [id: string]: ClientWithReviewDate[] });
-  const sortItemsParent = sortBy === 'date'
-    ? sortOrder === 'asc'
-      ? ['minReviewDueDate']
-      : ['maxReviewDueDate']
-    : ['name', 'code'];
-  const sortItemsChild = sortBy === 'date' ? ['reviewDueDateTimeUtc'] : ['name'];
   let sortOrderParent: Array<'asc' | 'desc'>;
   let sortOrderChild: Array<'asc' | 'desc'>;
-  if (sortBy === 'date') {
-    sortOrderParent = [sortOrder];
-    sortOrderChild = [sortOrder];
-  } else {
-    sortOrderParent = [sortOrder, sortOrder];
-    sortOrderChild = [sortOrder];
-  }
-  const clientTree = _.orderBy(parentGroups.null, sortItemsParent, sortOrderParent).map((c) => ({
-    parent: c,
-    children: _.orderBy(parentGroups[c.id] || [], sortItemsChild, sortOrderChild),
-  }));
+  sortOrderParent = [sortOrder];
+  sortOrderChild = [sortOrder];
+  const clientTree = _.orderBy(parentGroups.null, sortBy === 'date' ?
+    (client) => new Date(client.sortableDueDateTime) :
+    (client) => client.name && client.name.toLowerCase(), sortOrderParent).map((c) => ({
+      parent: c,
+      children: _.orderBy(parentGroups[c.id] || [], sortBy === 'date' ?
+        (client) => new Date(client.sortableDueDateTime) :
+        (client) => client.name && client.name.toLowerCase(), sortOrderChild),
+    }));
   return clientTree;
 }
 
