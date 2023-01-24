@@ -126,27 +126,22 @@ namespace CloudResourceLib
         }
 
         #region Storage operations
-        public static async Task CreateNewStorage(Guid ContentItemId)
+        public static async Task CreateNewStorage(string clientName, Guid contentItemId)
         {
             SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
-            ResourceGroupResource containerTestingResourceGroup = subscription.GetResourceGroup("ContainerTestingResourceGroup");
+            ResourceGroupResource containerTestingResourceGroup = subscription.GetResourceGroup(clientName);
 
             StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
-            StorageKind kind = StorageKind.Storage;
+            StorageKind kind = StorageKind.StorageV2;
             AzureLocation location = AzureLocation.EastUS;
             StorageAccountCreateOrUpdateContent creationParams = new StorageAccountCreateOrUpdateContent(sku, kind, location);
             StorageAccountCollection accountCollection = containerTestingResourceGroup.GetStorageAccounts();
-            string newStorageAccountName = "TomTesting";
-            ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, newStorageAccountName, creationParams);
+            ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, contentItemId.ToString(), creationParams);
             StorageAccountResource storageAccount = accountCreateOperation.Value;
-
-
-            accountCollection = containerTestingResourceGroup.GetStorageAccounts();
-
-            //var containerGroups = containerTestingResourceGroup.GetContainerGroups();
         }
         #endregion
 
+        #region Share Operations
         /// <summary>
         /// Creates an Azure File Share.
         /// </summary>
@@ -301,5 +296,6 @@ namespace CloudResourceLib
                 throw;
             }
         }
+        #endregion
     }
 }
