@@ -16,7 +16,7 @@
 
   <PropertyGroup>
     <TypeScriptCompileBlocked>True</TypeScriptCompileBlocked>
-    <Version>1.17.6</Version>
+    <Version>1.17.7</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
   </PropertyGroup>
@@ -97,6 +97,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\AuditLogLib\AuditLogLib.csproj" />
+    <ProjectReference Include="..\CloudResourceLib\CloudResourceLib.csproj" />
     <ProjectReference Include="..\ContainerizedAppLib\ContainerizedAppLib.csproj" />
     <ProjectReference Include="..\FileDropLib\FileDropLib.csproj" />
     <ProjectReference Include="..\MapCommonLib\MapCommonLib.csproj" />

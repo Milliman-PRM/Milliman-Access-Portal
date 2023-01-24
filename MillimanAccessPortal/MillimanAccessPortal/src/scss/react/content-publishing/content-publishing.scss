@@ -40,10 +40,10 @@
     .iframe-container {
         position: relative;
         top: -1em;
-        height: auto;
+        height: auto !important;
 
         iframe, object {
-            height: 20em;
+            height: 20em !important;
         }
     }
 
