@@ -137,6 +137,11 @@ namespace CloudResourceLib
             SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
             ResourceGroupResource containerTestingResourceGroup = subscription.GetResourceGroup(clientName);
 
+            ResourceGroupCollection allResourceGroups = subscription.GetResourceGroups();
+
+            ArmOperation<ResourceGroupResource> createResourceGroupOperation = allResourceGroups.CreateOrUpdate(WaitUntil.Completed, $"map-client-{ClientId}", new ResourceGroupData(AzureLocation.EastUS) {Tags = {{ "ClientId", ClientId.ToString() } } });
+            ResourceGroupResource newResourceGroup = createResourceGroupOperation.WaitForCompletion();
+
             StorageSku sku = new StorageSku(StorageSkuName.StandardGrs);
             StorageKind kind = StorageKind.StorageV2;
             AzureLocation location = AzureLocation.EastUS;
