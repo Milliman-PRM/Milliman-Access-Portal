@@ -126,6 +126,12 @@ namespace CloudResourceLib
         }
 
         #region Storage operations
+        /// <summary>
+        /// Create a Storage Account for a given Client.
+        /// </summary>
+        /// <param name="clientName"></param>
+        /// <param name="contentItemId"></param>
+        /// <returns></returns>
         public static async Task CreateNewStorage(string clientName, Guid contentItemId)
         {
             SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
