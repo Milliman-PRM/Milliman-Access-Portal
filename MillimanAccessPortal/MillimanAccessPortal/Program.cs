@@ -125,7 +125,7 @@ namespace MillimanAccessPortal
 
                     AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
 
-                    await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), Guid.NewGuid());
+                    await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), "TestClient", Guid.NewGuid());
                     #endregion
                     #endregion
 
