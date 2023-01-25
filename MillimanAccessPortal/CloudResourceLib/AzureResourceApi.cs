@@ -165,6 +165,29 @@ namespace CloudResourceLib
             ArmOperation<StorageAccountResource> accountCreateOperation = await accountCollection.CreateOrUpdateAsync(WaitUntil.Completed, contentItemId.ToString(), creationParams);
             StorageAccountResource storageAccount = accountCreateOperation.Value;
         }
+
+        public static async Task RemoveStorage(Guid clientId, string clientName)
+        {
+            try
+            {
+                SubscriptionResource subscription = await _storageClient.GetDefaultSubscriptionAsync();
+                ResourceGroupResource containerTestingResourceGroup = await subscription.GetResourceGroupAsync(clientName);
+                StorageAccountCollection storageAccountCollection = containerTestingResourceGroup.GetStorageAccounts();
+                StorageAccountResource accountToRemove = await storageAccountCollection.GetAsync(clientId.ToString());
+                if (accountToRemove is not null)
+                {
+                    await accountToRemove.DeleteAsync(WaitUntil.Completed);
+                }
+                else
+                {
+                    Log.Warning($"In AzureResourceApi:RemoveStorage - Storage Account with name {clientId.ToString()} to remove could not be found.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, $"Error: Attempt to remove Azure Storage Account with name {clientId.ToString()} failed.");   
+            }
+        }
         #endregion
 
         #region Share Operations
