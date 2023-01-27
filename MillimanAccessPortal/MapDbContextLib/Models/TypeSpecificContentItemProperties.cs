@@ -99,7 +99,7 @@ namespace MapDbContextLib.Models
             returnValue |= LiveContainerRamGb != requestProps.ContainerRamGb;
             returnValue |= LiveContainerInternalPort != requestProps.ContainerInternalPort;
             returnValue |= LiveContainerLifetimeScheme.Scheme != requestProps.ContainerInstanceLifetimeScheme;
-            returnValue |= !LiveContainerStorageShares.Any() && requestProps.DataPersistenceEnabled;
+            returnValue |= !LiveContainerStorageShareNames.Any() && requestProps.DataPersistenceEnabled;
 
             if (LiveContainerLifetimeScheme.Scheme == ContainerInstanceLifetimeSchemeEnum.Custom && !returnValue)
             {

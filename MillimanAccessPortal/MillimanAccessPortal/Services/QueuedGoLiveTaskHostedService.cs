@@ -384,14 +384,14 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
-                                LiveContainerStorageShares= containerizedAppTypeSpecificProperties.PreviewContainerStorageShares,
+                                LiveContainerStorageShareNames= containerizedAppTypeSpecificProperties.PreviewContainerStorageShareNames,
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                 PreviewContainerInternalPort = 0,
                                 PreviewContainerRamGb = ContainerRamGbEnum.Unspecified,
                                 PreviewImageName = null,
                                 PreviewImageTag = null,
-                                PreviewContainerStorageShares = default,
+                                PreviewContainerStorageShareNames = default,
                             };
                             break;
                     }

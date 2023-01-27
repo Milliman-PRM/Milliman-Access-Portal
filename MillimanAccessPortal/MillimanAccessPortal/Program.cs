@@ -123,7 +123,10 @@ namespace MillimanAccessPortal
                         Configuration.GetValue<string>("ContainerRegistryClientId"),
                         Configuration.GetValue<string>("ContainerRegistryClientSecret"));
 
-                    AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential });
+                    AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, "EastUs");
+
+                    var api = new AzureResourceApi(new Guid(2,0,0,0,0,0,0,0,0,0,0), CredentialScope.Storage);
+                    await api.CreateFileShare(new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "tom1", true, true);
 
                     //await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), "TestClient", Guid.NewGuid());
                     #endregion
