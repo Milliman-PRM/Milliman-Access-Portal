@@ -34,6 +34,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using MillimanAccessPortal.Models.AccountViewModels;
 using MillimanAccessPortal.Models.SystemAdmin;
 using MillimanAccessPortal.Models.EntityModels.ClientModels;
+using CloudResourceLib;
 
 namespace MillimanAccessPortal.Controllers
 {
@@ -1547,6 +1548,8 @@ namespace MillimanAccessPortal.Controllers
                     // Remove the client
                     await DbContext.Entry(ExistingClient).ReloadAsync();
                     DbContext.Client.Remove(ExistingClient);
+
+                    await AzureResourceApi.RemoveStorage(ExistingClient.Id, ExistingClient.Name); // May need to move this to a routine maintenance thread. Requires further evaluation.
 
                     await DbContext.SaveChangesAsync();
                     await DbTransaction.CommitAsync();
