@@ -15,8 +15,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Azure.ResourceManager.Storage.Models;
 using System.IO;
-using System.Security.Cryptography;
-using System.Runtime.Intrinsics.Arm;
+using System.Text;
 
 namespace CloudResourceLib
 {
@@ -207,25 +206,44 @@ namespace CloudResourceLib
         /// <returns></returns>
         private string GenerateUniqueNewShareName(Guid contentItemId, string name, bool isPreview)
         {
+            const int saltLength = 4;
+            const string validSaltChars = "abcdefghijklmnopqrstuvwxyz1234567890";
             string returnValue = string.Empty;
 
-            _storageAccount = _storageAccount.Get();
-            _fileService = _storageAccount.GetFileService().Get();
-            IEnumerable<string> fileShareNames = _fileService.GetFileShares()
-                                                             .AsEnumerable()  // get from remote
-                                                             .Select(s => s.Data.Name);
+            List<string> fileShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
+            Log.Debug($"Found shares with names:{string.Join("", fileShareNames.Select(n => $"{Environment.NewLine}    {n}"))}");
 
-            for (int i=1; i<=10; i++)
+            do
             {
-                returnValue = $"content-{contentItemId.ToString("N")}-{name}-{i}{(isPreview ? "-preview" : "")}";
-
-                if (!fileShareNames.Contains(returnValue))
+                StringBuilder res = new StringBuilder();
+                Random rnd = new Random();
+                for (int c = 0; c < saltLength; c++)
                 {
-                    break; ;
+                    res.Append(validSaltChars[rnd.Next(validSaltChars.Length)]);
                 }
+                returnValue = $"content-{contentItemId.ToString("N")}-{name}-{res.ToString()}{(isPreview ? "-preview" : "")}";
             }
+            while (fileShareNames.Contains(returnValue));
 
             return returnValue;
+        }
+
+        /// <summary>
+        /// If any share is currently being deleted, the name of that share will not be return by this method
+        /// </summary>
+        /// <param name="contentItemId"></param>
+        /// <param name="name"></param>
+        /// <param name="isPreview"></param>
+        /// <returns></returns>
+        private List<string> GetExistingShareNamesForContent(Guid contentItemId, string name, bool isPreview)
+        {
+            List<string> fileShareNames = _fileService.GetFileShares()
+                                                      .Select(s => s.Data.Name)
+                                                      .Where(n => n.StartsWith($"content-{contentItemId.ToString("N")}-{name}-") &&
+                                                                  n.EndsWith(isPreview ? "-preview" : ""))
+                                                      .ToList();
+
+            return fileShareNames;
         }
 
         public bool FindExistingShareByName(Guid contentItemId, string name, bool isPreview, out FileShareResource existingShareResource)
@@ -259,22 +277,39 @@ namespace CloudResourceLib
         /// <returns></returns>
         public async Task CreateFileShare(Guid contentItemId, string name, bool isPreview, bool replace)
         {
-            _storageAccount = _storageAccount.Get();
-            _fileService = _storageAccount.GetFileService().Get();
+            FileShareCollection fileShareCollection = _fileService.GetFileShares();
+            List<string> existingShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
 
             try
             {
-                FileShareCollection fileShareCollection = _fileService.GetFileShares();
+                string newFileShareName = GenerateUniqueNewShareName(contentItemId, name, isPreview);
 
+                // Generate new name first because after shareClient.DeleteIfExistsAsync an existing name is not found while delete is not completed
                 if (replace)
                 {
-                    await RemoveFileShareIfExists(contentItemId, name, isPreview);
+                    foreach (string existingName in existingShareNames)
+                    {
+                        Log.Debug($"Deleting share {existingName}");
+                        await RemoveFileShareIfExists(existingName);
+                    };
                 }
 
-                string fileShareName = GenerateUniqueNewShareName(contentItemId, name, isPreview);
+                try
+                {
+                    Log.Debug($"Creating share {newFileShareName}");
 
-                ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, fileShareName, new FileShareData());
-                await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+                    // If the name is in use by a share currently being deleted this will throw
+                    ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, newFileShareName, new FileShareData());
+                    await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+                }
+                catch (Exception ex)
+                {
+                    Log.Warning(ex, $"Failed to create share named {newFileShareName}");
+
+                    FileShareResource existingShare = _fileService.GetFileShare(newFileShareName, "stats");
+
+                    int i = 8;
+                }
             }
             catch (Exception ex)
             {
@@ -288,25 +323,20 @@ namespace CloudResourceLib
         /// </summary>
         /// <param name="fileShareName"></param>
         /// <returns></returns>
-        public async Task RemoveFileShareIfExists(Guid contentItemId, string name, bool isPreview)
+        public async Task RemoveFileShareIfExists(string name)
         {
             try
             {
-                var storageAccountKeys = _storageAccount.GetKeys();
-                if (FindExistingShareByName(contentItemId, name, isPreview, out FileShareResource share))
-                {
-                    string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
-                    ShareClient shareClient = new ShareClient(connectionString, share.Data.Name);
-                    Response<bool> response = await shareClient.DeleteIfExistsAsync(); // May take several minutes.
-                }
-                else
-                {
-                    Log.Debug($"No existing share found for: contentItemId=<{contentItemId}>, name=<{name}>, isPreview=<{isPreview}>");
-                }
+                Pageable<StorageAccountKey> storageAccountKeys = _storageAccount.GetKeys();
+                FileShareResource fileShareResource = _fileService.GetFileShare(name);
+
+                string connectionString = $"DefaultEndpointsProtocol=https;AccountName={_storageAccount.Data.Name};AccountKey={storageAccountKeys.First().Value};EndpointSuffix=core.windows.net";
+                ShareClient shareClient = new ShareClient(connectionString, fileShareResource.Data.Name);
+                bool response = await shareClient.DeleteIfExistsAsync(); // May take several minutes after initiated.
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error removing Azure File Share for: contentItemId=<{contentItemId}>, name=<{name}>, isPreview=<{isPreview}>");
+                Log.Error(ex, $"Error removing Azure File Share named: <{name}>");
                 throw;
             }
         }

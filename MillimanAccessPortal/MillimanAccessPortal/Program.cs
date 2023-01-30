@@ -130,6 +130,7 @@ namespace MillimanAccessPortal
 
                     var api = new AzureResourceApi(new Guid(2,0,0,0,0,0,0,0,0,0,0), CredentialScope.Storage);
                     await api.CreateFileShare(new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "tom1", true, true);
+                    await api.CreateFileShare(new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "tom1", true, true);
 
                     //await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), "TestClient", Guid.NewGuid());
                     #endregion
