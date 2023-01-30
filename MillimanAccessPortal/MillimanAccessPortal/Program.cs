@@ -24,6 +24,7 @@ using Npgsql;
 using Prm.EmailQueue;
 using Prm.SerilogCustomization;
 using Serilog;
+using Serilog.Events;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -64,12 +65,14 @@ namespace MillimanAccessPortal
                     FileVersionInfo fileVersionInfo = FileVersionInfo.GetVersionInfo(processAssembly.Location);
                     NpgsqlConnectionStringBuilder cxnStrBuilder = new NpgsqlConnectionStringBuilder(Configuration.GetConnectionString("DefaultConnection"));
                     FileDropOperations.MapDbConnectionString = cxnStrBuilder.ConnectionString;
+                    LogEventLevel minLevel = Enum.GetValues<LogEventLevel>().Where(l => Log.IsEnabled(l)).Min();
 
                     Log.Information($"Process launched:{Environment.NewLine}" +
                                     $"    Product Name <{fileVersionInfo.ProductName}>{Environment.NewLine}" +
                                     $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                                     $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
                                     $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
+                                    $"    Logging level is <{minLevel}{Environment.NewLine}" +
                                     $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
 
                     GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
