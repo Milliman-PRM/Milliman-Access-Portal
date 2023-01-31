@@ -330,6 +330,7 @@ namespace MillimanAccessPortal.Services
                                                              false,
                                                              null, // TODO this is where share names are provided
                                                              new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                             contentItem.ClientId,
                                                              isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
 
                 Log.Information($"Container lifetime service requested non-blocking start of container instance with content token {contentToken}");

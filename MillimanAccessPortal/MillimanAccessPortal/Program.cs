@@ -128,11 +128,9 @@ namespace MillimanAccessPortal
 
                     AzureResourceApi.InitClients(new[] {credential1, containerRegistryCredential }, "EastUs");
 
-                    var api = new AzureResourceApi(new Guid(2,0,0,0,0,0,0,0,0,0,0), CredentialScope.Storage);
-                    await api.CreateFileShare(new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "tom1", true, true);
-                    await api.CreateFileShare(new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "tom1", true, true);
-
-                    //await AzureResourceApi.CreateNewStorage(Guid.NewGuid(), "TestClient", Guid.NewGuid());
+                    var api = new AzureResourceApi(new Guid(2,0,0,0,0,0,0,0,0,0,0), scope: CredentialScope.Storage);
+                    //await api.CreateFileShare(contentItemId: new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),  "tom1", true, true);
+                    //await api.CreateFileShare(contentItemId: new Guid(9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),  "tom1", true, true);
                     #endregion
                     #endregion
 

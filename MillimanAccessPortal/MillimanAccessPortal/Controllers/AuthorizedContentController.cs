@@ -899,6 +899,7 @@ namespace MillimanAccessPortal.Controllers
                                                                      false,
                                                                      null, // TODO this is where share names are provided
                                                                      new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                     contentItem.ClientId,
                                                                      isLiveContent ? typeSpecificInfo.LiveContainerInternalPort : typeSpecificInfo.PreviewContainerInternalPort);
                     }
                     catch (ApplicationException ex)

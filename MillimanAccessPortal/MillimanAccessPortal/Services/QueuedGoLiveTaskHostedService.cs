@@ -21,6 +21,7 @@ using MapDbContextLib.Context;
 using MapDbContextLib.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -449,6 +450,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                             await containerizedAppApi.RetagImage("preview", "live");
 
                                             successActionList.Add(async () => {
+                                                TODO It doesn't look like this is running'
                                                 AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
                                                 foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveContainerStorageShareNames)
                                                 {

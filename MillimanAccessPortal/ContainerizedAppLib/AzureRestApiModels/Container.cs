@@ -12,8 +12,5 @@ namespace ContainerizedAppLib.AzureRestApiModels
 
         [JsonProperty(PropertyName = "properties")]
         public ContainerProperties Properties { get; set; }
-
-        [JsonProperty(PropertyName = "volumeMounts")]
-        public List<VolumeMount> VolumeMounts { get; set; } = null;
     }
 }

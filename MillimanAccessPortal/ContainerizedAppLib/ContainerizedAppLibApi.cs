@@ -1,4 +1,5 @@
-﻿using ContainerizedAppLib.AzureRestApiModels;
+﻿using CloudResourceLib;
+using ContainerizedAppLib.AzureRestApiModels;
 using Flurl.Http;
 using MapCommonLib;
 using MapCommonLib.ContentTypeSpecific;
@@ -511,6 +512,7 @@ namespace ContainerizedAppLib
                                                bool blockUntilStarted,
                                                IDictionary<string,string> shareNames = null,
                                                Dictionary<string, string> EnvironmentVariables = null,
+                                               Guid? clientId = null,
                                                params ushort[] containerPorts)
         {
             try
@@ -529,6 +531,7 @@ namespace ContainerizedAppLib
                                                                vnetId, 
                                                                vnetName, 
                                                                EnvironmentVariables,
+                                                               clientId,
                                                                containerPorts);
 
                 if (!createResult)
@@ -636,6 +639,7 @@ namespace ContainerizedAppLib
         /// <param name="cpuCoreCount">The number of CPU cores for the Container Group.</param>
         /// <param name="memorySizeInGB">The amount of RAM in GB for the Container Group.</param>
         /// <param name="resourceTags">The Container Group resource tags.</param>
+        /// <param name="shareNames">Names of Azure file shares to be mounted for this container.</param>
         /// <param name="vnetId">The ID of the virtual network being used.</param>
         /// <param name="vnetName">The name of the virtual network being used.</param>
         /// <param name="EnvironmentVariables">Key/Value pairs to be passed to the container instance</param>
@@ -652,6 +656,7 @@ namespace ContainerizedAppLib
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
+                                                      Guid? clientId = null,
                                                       params ushort[] containerPorts)
         {
             string createContainerGroupEndpoint = $"https://management.azure.com/subscriptions/{Config.AciSubscriptionId}/resourceGroups/{Config.AciResourceGroupName}/providers/Microsoft.ContainerInstance/containerGroups/{containerGroupName}?api-version={Config.AciApiVersion}";
@@ -708,8 +713,11 @@ namespace ContainerizedAppLib
                                             CpuLimit = cpuCoreCount,
                                             MemoryInGB = memorySizeInGB,
                                         }
-                                    }
-                                },
+                                    },
+                                    VolumeMounts = shareNames?.Any() ?? false
+                                        ? new List<VolumeMount> ()  // Populated below
+                                        : null
+                                }
                             }
                         },
                         ImageRegistryCredentials = new List<ImageRegistryCredential>()
@@ -740,8 +748,11 @@ namespace ContainerizedAppLib
                     Tags = resourceTags
                 };
 
-                if (shareNames?.Any() ?? false)
+                if (shareNames?.Any() ?? false && clientId.HasValue)
                 {
+                    AzureResourceApi azureApi = new AzureResourceApi(clientId.Value, CredentialScope.Storage);
+                    StorageAccountInfo storageAccountInfo = azureApi.GetStorageAccountInfo();
+
                     requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(s => new Volume 
                     {
                         Name = s.Key, 
@@ -749,20 +760,20 @@ namespace ContainerizedAppLib
                         {
                             ShareName = s.Value, 
                             ReadOnly = false,
-                            StorageAccountName = "tbd", // TODO
-                            StorageAccountKey = "tbd", // TODO
+                            StorageAccountName = storageAccountInfo.Name,
+                            StorageAccountKey = storageAccountInfo.Keys[0]
                         } 
                     }));
 
                     // Mount each share in the name list to container(s) in the group (currently only one)
-                    requestModel.Properties.Containers.ForEach(c => c.VolumeMounts.AddRange(shareNames.Select(s => new VolumeMount 
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.VolumeMounts.AddRange(shareNames.Select(s => new VolumeMount 
                     { 
                         MountPath = $"/mnt/map-{s.Key}", 
-                        Name = s.Value, 
+                        Name = s.Key, 
                         ReadOnly = false 
                     })));
 
-                    List<string> mountPaths = shareNames.Select(n => $"/mnt/map-{n}").ToList();
+                    List<string> mountPaths = shareNames.Select(n => $"/mnt/map-{n.Key}").ToList();
                     requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(new ContainerProperties.EnvironmentVariable
                     {
                         Name = "MAP_DATA_MOUNT",

@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Azure.ResourceManager.Storage.Models;
 using System.IO;
 using System.Text;
+using System.Reflection.Metadata.Ecma335;
 
 namespace CloudResourceLib
 {
@@ -150,6 +151,17 @@ namespace CloudResourceLib
                 throw new CredentialUnavailableException($"{scope} credential not initialized");
             }
         };
+
+        public StorageAccountInfo GetStorageAccountInfo()
+        {
+            AssertValid(CredentialScope.Storage);
+
+            StorageAccountInfo info = new StorageAccountInfo(_storageAccount.Data.Name, _storageAccount.GetKeys()
+                                                                                                       .Select(k => k.Value)
+                                                                                                       .ToList() );
+            return info;
+        }
+
 
         /// <summary>
         /// Initializes this api with Azure client credentials

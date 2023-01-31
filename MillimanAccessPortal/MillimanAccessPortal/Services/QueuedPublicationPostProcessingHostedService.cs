@@ -469,6 +469,7 @@ namespace MillimanAccessPortal.Services
                                                                          true,
                                                                          containerContentItemProperties.PreviewContainerStorageShareNames,
                                                                          new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                         contentItem.ClientId,
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
                             Log.Information($"Container instance with content token {contentToken} started with URL: {containerUrl}");
