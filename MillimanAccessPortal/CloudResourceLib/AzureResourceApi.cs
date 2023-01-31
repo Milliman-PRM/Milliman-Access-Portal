@@ -211,7 +211,7 @@ namespace CloudResourceLib
             string returnValue = string.Empty;
 
             List<string> fileShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
-            Log.Debug($"Found shares with names:{string.Join("", fileShareNames.Select(n => $"{Environment.NewLine}    {n}"))}");
+            Log.Debug($"Found shares with names:{string.Join("", fileShareNames.Select(n => $"{Environment.NewLine}    {n}"))}");  // temporary or improve
 
             do
             {
@@ -289,14 +289,14 @@ namespace CloudResourceLib
                 {
                     foreach (string existingName in existingShareNames)
                     {
-                        Log.Debug($"Deleting share {existingName}");
+                        Log.Debug($"Deleting share {existingName}");  // temporary or improve
                         await RemoveFileShareIfExists(existingName);
                     };
                 }
 
                 try
                 {
-                    Log.Debug($"Creating share {newFileShareName}");
+                    Log.Debug($"Creating share {newFileShareName}");  // temporary or improve
 
                     // If the name is in use by a share currently being deleted this will throw
                     ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, newFileShareName, new FileShareData());
@@ -306,16 +306,16 @@ namespace CloudResourceLib
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, $"Failed to create share named {newFileShareName}");
+                    Log.Warning(ex, $"Failed to create share named {newFileShareName}");  // temporary or improve
 
                     FileShareResource existingShare = _fileService.GetFileShare(newFileShareName, "stats");
 
-                    int i = 8;
+                    throw;
                 }
             }
             catch (Exception ex)
             {
-                Log.Warning(ex, $"Error creating Azure file share for: contentItemId=<{contentItemId}>, name=<{name}>, isPreview=<{isPreview}>");
+                Log.Warning(ex, $"Error creating Azure file share for: contentItemId=<{contentItemId}>, name=<{name}>, isPreview=<{isPreview}>");  // temporary or improve
                 throw;
             }
         }
@@ -338,7 +338,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, $"Error removing Azure File Share named: <{name}>");
+                Log.Error(ex, $"Error removing Azure File Share named: <{name}>");  // temporary or improve
                 throw;
             }
         }
@@ -384,7 +384,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error creating directory within Azure File Share.");
+                Log.Error(ex, "Error creating directory within Azure File Share.");  // temporary or improve
                 throw;
             }
         }
@@ -420,7 +420,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error uploading file to Azure File Share.");
+                Log.Error(ex, "Error uploading file to Azure File Share.");  // temporary or improve
                 throw;
             }
         }
@@ -442,7 +442,7 @@ namespace CloudResourceLib
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "Error fetcing Azure subscription, resource group, or storage account info.");
+                Log.Error(ex, "Error fetcing Azure subscription, resource group, or storage account info.");  // temporary or improve
                 throw;
             }
         }
