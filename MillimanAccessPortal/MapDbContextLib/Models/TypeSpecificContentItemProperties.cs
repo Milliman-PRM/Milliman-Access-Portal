@@ -45,7 +45,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum LiveContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum LiveContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort LiveContainerInternalPort { get; set; } = 0;
-        public List<string> LiveContainerStorageShareNames { get; set; } = new List<string>();
+        public Dictionary<string, string> LiveContainerStorageShareNames { get; set; } = null;
 
         [JsonConverter(typeof(LifetimeSchemeConverter))]
         public LifetimeSchemeBase LiveContainerLifetimeScheme { get; set; } = null;
@@ -55,7 +55,7 @@ namespace MapDbContextLib.Models
         public ContainerCpuCoresEnum PreviewContainerCpuCores { get; set; } = ContainerCpuCoresEnum.Unspecified;
         public ContainerRamGbEnum PreviewContainerRamGb { get; set; } = ContainerRamGbEnum.Unspecified;
         public ushort PreviewContainerInternalPort { get; set; } = 0;
-        public List<string> PreviewContainerStorageShareNames { get; set; } = new List<string>();
+        public Dictionary<string,string> PreviewContainerStorageShareNames { get; set; } = null;
 
         #region Lifetime management
         public abstract class LifetimeSchemeBase

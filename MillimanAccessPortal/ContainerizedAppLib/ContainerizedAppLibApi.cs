@@ -509,7 +509,7 @@ namespace ContainerizedAppLib
                                                string vnetId, 
                                                string vnetName,
                                                bool blockUntilStarted,
-                                               IEnumerable<string> shareNames = null,
+                                               IDictionary<string,string> shareNames = null,
                                                Dictionary<string, string> EnvironmentVariables = null,
                                                params ushort[] containerPorts)
         {
@@ -648,7 +648,7 @@ namespace ContainerizedAppLib
                                                       int cpuCoreCount, 
                                                       double memorySizeInGB, 
                                                       ContainerGroupResourceTags resourceTags,
-                                                      IEnumerable<string> shareNames,
+                                                      IDictionary<string,string> shareNames,
                                                       string vnetId = null, 
                                                       string vnetName = null, 
                                                       Dictionary<string, string> EnvironmentVariables = null, 
@@ -742,12 +742,12 @@ namespace ContainerizedAppLib
 
                 if (shareNames?.Any() ?? false)
                 {
-                    requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(n => new Volume 
+                    requestModel.Properties.Volumes = new List<Volume>(shareNames.Select(s => new Volume 
                     {
-                        Name = n, 
+                        Name = s.Key, 
                         AzureFile = new AzureFileVolume 
                         {
-                            ShareName = n, 
+                            ShareName = s.Value, 
                             ReadOnly = false,
                             StorageAccountName = "tbd", // TODO
                             StorageAccountKey = "tbd", // TODO
@@ -755,10 +755,10 @@ namespace ContainerizedAppLib
                     }));
 
                     // Mount each share in the name list to container(s) in the group (currently only one)
-                    requestModel.Properties.Containers.ForEach(c => c.VolumeMounts.AddRange(shareNames.Select(n => new VolumeMount 
+                    requestModel.Properties.Containers.ForEach(c => c.VolumeMounts.AddRange(shareNames.Select(s => new VolumeMount 
                     { 
-                        MountPath = $"/mnt/map-{n}", 
-                        Name = n, 
+                        MountPath = $"/mnt/map-{s.Key}", 
+                        Name = s.Value, 
                         ReadOnly = false 
                     })));
 

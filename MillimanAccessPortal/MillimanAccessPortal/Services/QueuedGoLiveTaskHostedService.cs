@@ -12,6 +12,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
 using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
@@ -34,6 +35,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -384,7 +386,7 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                     ContainerInstanceLifetimeSchemeEnum.Custom => new ContainerizedAppContentItemProperties.CustomScheduleLifetimeScheme(containerizedAppPubProperties),
                                     _ => null,
                                 },
-                                LiveContainerStorageShareNames= containerizedAppTypeSpecificProperties.PreviewContainerStorageShareNames,
+                                LiveContainerStorageShareNames = containerizedAppTypeSpecificProperties.PreviewContainerStorageShareNames,
 
                                 PreviewContainerCpuCores = ContainerCpuCoresEnum.Unspecified,
                                 PreviewContainerInternalPort = 0,
@@ -445,6 +447,18 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                                                                                                                     .ToList();
 
                                             await containerizedAppApi.RetagImage("preview", "live");
+
+                                            successActionList.Add(async () => {
+                                                AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
+                                                foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveContainerStorageShareNames)
+                                                {
+                                                    // if (needed) TODO - what should this logic be?
+                                                    {
+                                                        // TODO Create the share (and populate data) as needed 
+                                                        await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.Key, false, true);
+                                                    }
+                                                }
+                                            });
 
                                             Task[] allDeleteTasks = new Task[0];
                                             containersOfThisLiveContent.ForEach(c => allDeleteTasks.Append(containerizedAppApi.DeleteContainerGroup(c.Name)));

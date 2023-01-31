@@ -275,7 +275,7 @@ namespace CloudResourceLib
         /// </summary>
         /// <param name="fileShareName"></param>
         /// <returns></returns>
-        public async Task CreateFileShare(Guid contentItemId, string name, bool isPreview, bool replace)
+        public async Task<string> CreateFileShare(Guid contentItemId, string name, bool isPreview, bool replace)
         {
             FileShareCollection fileShareCollection = _fileService.GetFileShares();
             List<string> existingShareNames = GetExistingShareNamesForContent(contentItemId, name, isPreview);
@@ -301,6 +301,8 @@ namespace CloudResourceLib
                     // If the name is in use by a share currently being deleted this will throw
                     ArmOperation<FileShareResource> fileShareCreateOperation = await fileShareCollection.CreateOrUpdateAsync(WaitUntil.Completed, newFileShareName, new FileShareData());
                     await fileShareCreateOperation.WaitForCompletionAsync(); // Do assignment and return??
+
+                    return newFileShareName;
                 }
                 catch (Exception ex)
                 {

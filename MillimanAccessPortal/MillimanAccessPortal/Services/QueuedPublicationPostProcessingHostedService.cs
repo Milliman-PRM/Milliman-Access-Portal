@@ -6,6 +6,7 @@
 
 using AuditLogLib.Event;
 using AuditLogLib.Services;
+using CloudResourceLib;
 using ContainerizedAppLib;
 using ContainerizedAppLib.AzureRestApiModels;
 using MapCommonLib;
@@ -411,24 +412,20 @@ namespace MillimanAccessPortal.Services
                         #region Establish container storage resources as needed (should this be encapsulated in another method?)
                         if (containerizedAppPubProperties.DataPersistenceEnabled /* || liveContentHasPersistenceEnabled */)
                         {
-                            // TODO var newOrExistingResourceGroup = AzureResourceApi.EstablishResourceGroupForClient(thisPubRequest.RootContentItem.ClientId);
+                            var cloudApi = new AzureResourceApi(contentItem.ClientId, CredentialScope.Storage);
 
-                            // TODO Do we need a separate, dedicated storage account for preview shares?  i.e. if share names must be unique in a storage account 
-                            // TODO var newOrExistingStorageAccount = AzureResourceApi.EstablishStorageAccount(newOrExistingResourceGroup);
-
-                            // When we eventually support multiple shares we will have a collection of provided names
+                            // When we eventually support multiple shares we probably have a collection of provided names from containerizedAppPubProperties
                             string[] shareNames = new[] { "main" };
 
-                            // TODO Does this share name strategy work?  $"preview-{name}" for preview, $"{name}" for live
-
-                            containerContentItemProperties.PreviewContainerStorageShareNames = new List<string>(shareNames.Select(n => $"preview-{n}"));
-                            foreach (string shareName in containerContentItemProperties.PreviewContainerStorageShareNames)
+                            containerContentItemProperties.PreviewContainerStorageShareNames = new Dictionary<string, string>();
+                            foreach (string name in shareNames )
                             {
                                 // Terminology: Here we establish *share*(s). Later when we spin up a container group a *share* becomes available to the container as a *volume*
-                                // TODO var newOrExistingShareInfo = AzureResourceApi.EstablishShare(shareName, otherStuff?)
-
-                                // TODO Populate the share data using zip file provided with the publish request or copied from live content (or ...)
+                                string azureShareName = await cloudApi.CreateFileShare(contentItem.Id, shareNames[0], true, true);
+                                containerContentItemProperties.PreviewContainerStorageShareNames.Add(shareNames[0], azureShareName);
                             }
+
+                            // TODO Populate the share with data using a zip file provided with the publish request (or as otherwise approprite)
                         }
                         #endregion
 
