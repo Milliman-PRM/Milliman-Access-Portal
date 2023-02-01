@@ -694,13 +694,6 @@ namespace ContainerizedAppLib
                                                 ? ev.Value
                                                 : null,
                                         })
-                                        .Append(new ContainerProperties.EnvironmentVariable
-                                                {
-                                                    Name = "MAP_DATA_CHECK",
-                                                    Value = shareNames?.Any() ?? false
-                                                        ? "1"
-                                                        : "0"
-                                                })
                                         .ToList(),
                                     }
 ,
@@ -774,11 +767,21 @@ namespace ContainerizedAppLib
                     })));
 
                     List<string> mountPaths = shareNames.Select(n => $"/mnt/map-{n.Key}").ToList();
-                    requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(new ContainerProperties.EnvironmentVariable
-                    {
-                        Name = "MAP_DATA_MOUNT",
-                        Value = string.Join(";", mountPaths)
-                    }));
+                    requestModel.Properties.Containers.ForEach(c => c.Properties.EnvironmentVariables.Add(
+                        shareNames.Count switch
+                        {
+                            1 => new ContainerProperties.EnvironmentVariable
+                            {
+                                Name = "MAP_DATA_MOUNT_PATH",
+                                Value = mountPaths[0]
+                            },
+                            _ => // throw new ApplicationException("Multiple share mounts are not supported in this version of map")
+                                 new ContainerProperties.EnvironmentVariable
+                            {
+                                Name = "MAP_DATA_MOUNTS_JSON",
+                                Value = System.Text.Json.JsonSerializer.Serialize(shareNames)
+                            }
+                        }));
                 }
 
                 string serializedRequestModel = JsonConvert.SerializeObject(requestModel, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore });

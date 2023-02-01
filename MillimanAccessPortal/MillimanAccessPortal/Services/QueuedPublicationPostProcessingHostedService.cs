@@ -468,7 +468,9 @@ namespace MillimanAccessPortal.Services
                                                                          vnetName,
                                                                          true,
                                                                          containerContentItemProperties.PreviewContainerStorageShareNames,
-                                                                         new Dictionary<string, string> { { "PathBase", contentToken } },
+                                                                         new Dictionary<string, string> { { "PathBase", contentToken },
+                                                                                                          { "MAP_URL_PATH_BASE", contentToken },
+                                                                                                          { "MAP_CHECK", "1" } },
                                                                          contentItem.ClientId,
                                                                          containerContentItemProperties.PreviewContainerInternalPort);
 
