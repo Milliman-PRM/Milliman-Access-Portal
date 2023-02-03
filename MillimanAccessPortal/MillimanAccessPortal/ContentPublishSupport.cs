@@ -203,7 +203,7 @@ namespace MillimanAccessPortal
                     await Db.SaveChangesAsync();
                     postProcessingTaskQueue.QueuePublicationPostProcess(publicationRequest.Id);
                 }
-                catch (DbUpdateConcurrencyException ex)
+                catch (DbUpdateConcurrencyException)
                 {
                     // PublicationRequest was likely set to canceled, no extra cleanup needed
                     return;

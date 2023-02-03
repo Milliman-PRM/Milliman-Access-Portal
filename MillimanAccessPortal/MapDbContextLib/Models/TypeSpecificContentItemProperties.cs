@@ -262,7 +262,7 @@ namespace MapDbContextLib.Models
 
                         case JsonTokenType.String:
                             {
-                                string? text = reader.GetString();
+                                string text = reader.GetString();
                                 allProperties[currentPropertyName] = text;
                                 break;
                             }
@@ -329,8 +329,6 @@ namespace MapDbContextLib.Models
                 }
                 return null;
             }
-
-            LifetimeSchemeBase startValue = default(LifetimeSchemeBase);
 
         }
         #endregion
