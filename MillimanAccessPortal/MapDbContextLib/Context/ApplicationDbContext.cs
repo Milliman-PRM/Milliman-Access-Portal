@@ -10,13 +10,13 @@ using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Newtonsoft.Json;
 using Npgsql;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Context
 {
@@ -126,7 +126,7 @@ namespace MapDbContextLib.Context
             builder.Entity<SelectionGroup>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.Property(x => x.TypeSpecificDetail).HasDefaultValue(JsonConvert.SerializeObject(new object())).ValueGeneratedOnAdd();
+                b.Property(x => x.TypeSpecificDetail).HasDefaultValue(JsonSerializer.Serialize(new object())).ValueGeneratedOnAdd();
             });
             builder.Entity<RootContentItem>(b =>
             {
