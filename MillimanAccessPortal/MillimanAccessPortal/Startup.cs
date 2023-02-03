@@ -54,6 +54,8 @@ using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
 using MillimanAccessPortal.Models.SharedModels;
 using ContainerizedAppLib;
+using Npgsql;
+using Microsoft.Extensions.Logging;
 
 namespace MillimanAccessPortal
 {
@@ -69,10 +71,15 @@ namespace MillimanAccessPortal
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             // Add framework services.
+
+            string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
+            NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(appConnectionString);
+            ApplicationDbContext.MapEnums(dataSourceBuilder);
+            using var dataSource = dataSourceBuilder.Build();
+
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseNpgsql(appConnectionString, b => b.MigrationsAssembly("MillimanAccessPortal")));
+                options.UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")));
 
             int passwordHistoryDays = Configuration.GetValue<int?>("PasswordHistoryValidatorDays") ?? GlobalFunctions.fallbackPasswordHistoryDays;
             List<string> commonWords = Configuration.GetSection("PasswordBannedWords").GetChildren().Select(c => c.Value).ToList<string>();

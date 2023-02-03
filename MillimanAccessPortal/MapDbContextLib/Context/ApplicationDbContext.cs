@@ -52,13 +52,13 @@ namespace MapDbContextLib.Context
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
 
-        static ApplicationDbContext()
+        public static void MapEnums(NpgsqlDataSourceBuilder dataSourceBuilder)
         {
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
-            NpgsqlConnection.GlobalTypeMapper.MapEnum<FileDropNotificationType>();
+            dataSourceBuilder.MapEnum<AuthenticationType>()
+                             .MapEnum<PublicationStatus>()
+                             .MapEnum<ReductionStatusEnum>()
+                             .MapEnum<ContentTypeEnum>()
+                             .MapEnum<FileDropNotificationType>();
         }
             
 
@@ -160,12 +160,12 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
-                b.UseXminAsConcurrencyToken();
+                b.Property(x => x.Version).IsRowVersion();
             });
             builder.Entity<ContentPublicationRequest>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.UseXminAsConcurrencyToken();
+                b.Property(x => x.Version).IsRowVersion();
             });
             builder.Entity<FileUpload>(b =>
             {
