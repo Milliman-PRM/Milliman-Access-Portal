@@ -109,7 +109,11 @@ namespace MillimanAccessPortal
             List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
 
             // get all configured schemes from database (no injected db service is available here)
-            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(appConnectionString).Options;
+            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
+            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder2 = optionsBuilder.UseNpgsql(dataSource);
+            var options = optionsBuilder2.Options;
+
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
             ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
             allSchemes = applicationDb.AuthenticationScheme.ToList();
 

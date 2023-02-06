@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -213,8 +214,8 @@ namespace MapDbContextLib.Context
         {
             if (optionsBuilder.IsConfigured)
             {
-                RelationalOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
-                string connectionString = extension.ConnectionString;
+                NpgsqlOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().First();
+                string connectionString = extension.DataSource.ConnectionString;
 
                 optionsBuilder.UseNpgsql(connectionString);
             }
