@@ -36,7 +36,7 @@ namespace MillimanAccessPortal.DataQueries.EntityQueries
                 .OrderByDescending(r => r.CreateDateTimeUtc)
                 .FirstOrDefaultAsync())
                 ?.CreateDateTimeUtc
-                ?? DateTime.MinValue;
+                ?? new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc);
 
             var publicationRequest = await _dbContext.ContentPublicationRequest
                 .Include(r => r.ApplicationUser)

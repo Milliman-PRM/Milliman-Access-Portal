@@ -817,7 +817,7 @@ namespace MillimanAccessPortal.Controllers
                                                                       .OrderByDescending(r => r.CreateDateTimeUtc)
                                                                       .FirstOrDefaultAsync())
                                                         ?.CreateDateTimeUtc 
-                                                        ?? DateTime.MinValue;
+                                                        ?? new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc);
 
             var contentPublicationRequest = await _dbContext.ContentPublicationRequest
                                                             .Where(r => r.RootContentItemId == rootContentItem.Id)
