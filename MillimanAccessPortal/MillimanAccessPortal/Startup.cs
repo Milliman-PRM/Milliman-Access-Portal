@@ -76,7 +76,8 @@ namespace MillimanAccessPortal
             string appConnectionString = Configuration.GetConnectionString("DefaultConnection");
             NpgsqlDataSourceBuilder dataSourceBuilder = new NpgsqlDataSourceBuilder(appConnectionString);
             ApplicationDbContext.MapEnums(dataSourceBuilder);
-            using var dataSource = dataSourceBuilder.Build();
+            
+            NpgsqlDataSource dataSource = dataSourceBuilder.Build();
 
             services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")));
@@ -106,17 +107,10 @@ namespace MillimanAccessPortal
                 ;
 
             #region Configure authentication services
-            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = new List<MapDbContextLib.Context.AuthenticationScheme>();
-
-            // get all configured schemes from database (no injected db service is available here)
-            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
-            DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder2 = optionsBuilder.UseNpgsql(dataSource);
-            var options = optionsBuilder2.Options;
-
-            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource).Options;
+            DbContextOptions<ApplicationDbContext> ctxOptions = new DbContextOptionsBuilder<ApplicationDbContext>().UseNpgsql(dataSource, b => b.MigrationsAssembly("MillimanAccessPortal")).Options;
             ApplicationDbContext applicationDb = new ApplicationDbContext(ctxOptions);
-            allSchemes = applicationDb.AuthenticationScheme.ToList();
 
+            List<MapDbContextLib.Context.AuthenticationScheme> allSchemes = applicationDb.AuthenticationScheme.ToList();
             if (allSchemes.Select(s => s.Name).Distinct().Count() != allSchemes.Count())
             {
                 Log.Error("Multiple configured authentication schemes have the same name");

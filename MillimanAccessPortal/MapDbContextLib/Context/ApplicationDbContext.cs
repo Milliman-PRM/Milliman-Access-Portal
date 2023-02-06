@@ -55,13 +55,22 @@ namespace MapDbContextLib.Context
 
         public static void MapEnums(NpgsqlDataSourceBuilder dataSourceBuilder)
         {
+#if false  
+            // This new technique fails using npgsql v7.0.1 due to a bug in that package, fixed in v7.0.2, expected very soon
             dataSourceBuilder.MapEnum<AuthenticationType>()
                              .MapEnum<PublicationStatus>()
                              .MapEnum<ReductionStatusEnum>()
                              .MapEnum<ContentTypeEnum>()
                              .MapEnum<FileDropNotificationType>();
+#else
+            // working but soon to be deprecated technique
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
+            NpgsqlConnection.GlobalTypeMapper.MapEnum<FileDropNotificationType>();
+#endif
         }
-            
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -212,21 +221,22 @@ namespace MapDbContextLib.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (optionsBuilder.IsConfigured)
-            {
-                NpgsqlOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().First();
-                string connectionString = extension.DataSource.ConnectionString;
+        //    DbContextOptionsBuilder builder = optionsBuilder;
+        //    if (optionsBuilder.IsConfigured)
+        //    {
+        //        NpgsqlOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().First();
+        //        string connectionString = extension.DataSource.ConnectionString;
 
-                optionsBuilder.UseNpgsql(connectionString);
-            }
+        //        optionsBuilder.UseNpgsql(connectionString);
+        //    }
         }
 
         public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
         {
             await Identity.ApplicationRole.SeedRolesAsync(serviceProvider);
-            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemesAsync(serviceProvider);
             await Context.NameValueConfiguration.InitializeNameValueConfigurationAsync(serviceProvider);
+            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
         }
     }
 
