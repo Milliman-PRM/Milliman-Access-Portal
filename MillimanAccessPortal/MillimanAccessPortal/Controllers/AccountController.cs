@@ -1339,7 +1339,7 @@ namespace MillimanAccessPortal.Controllers
                                                         .Select(urc => urc.ClientId)
                                                         .Distinct()
                                                         .ToListAsync();
-                DateTime countableLastReviewTime = DateTime.Today
+                DateTime countableLastReviewTime = DateTime.UtcNow.Date 
                                                     + TimeSpan.FromHours(_configuration.GetValue("ClientReviewNotificationTimeOfDayHourUtc", 9))
                                                     - TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewRenewalPeriodDays"))
                                                     + TimeSpan.FromDays(_configuration.GetValue<int>("ClientReviewEarlyWarningDays"));
