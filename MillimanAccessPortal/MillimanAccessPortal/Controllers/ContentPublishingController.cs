@@ -915,7 +915,6 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        [PreventAuthRefresh]
         public async Task<IActionResult> Status(Guid clientId)
         {
             ApplicationUser user = await _userManager.GetUserAsync(User);

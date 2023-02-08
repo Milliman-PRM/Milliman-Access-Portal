@@ -341,6 +341,13 @@ namespace MillimanAccessPortal
                     options.ExpireTimeSpan = sessionTimeout;
                     options.SlidingExpiration = true;
                     options.ReturnUrlParameter = "returnUrl";
+                    options.Events.OnCheckSlidingExpiration = context =>
+                    {
+                        context.ShouldRenew = !context.HttpContext.Items.ContainsKey("PreventAuthRefresh") &&
+                                              context.RemainingTime / context.Options.ExpireTimeSpan < 25f/30f;
+
+                        return Task.CompletedTask;
+                    };
                 });
             });
 
@@ -595,23 +602,23 @@ namespace MillimanAccessPortal
                 .AddCustomHeader("X-Frame-Options", "SAMEORIGIN"); // Prevents clickjacking
             app.UseSecurityHeaders(policyCollection);
 
-            // Conditionally omit authentication cookie, intended for status calls that should not extend the user session
+            // Set signal to suppress session timer update for appropriate request paths
+            List<string> pathsForNoSessionTimerUpdate = new List<string>
+                {
+                    $"/{nameof(AccountController).Replace("Controller","")}/{nameof(AccountController.SessionStatus)}",
+                    $"/{nameof(ContentPublishingController).Replace("Controller","")}/{nameof(ContentPublishingController.Status)}",
+                    $"/{nameof(ContentAccessAdminController).Replace("Controller","")}/{nameof(ContentAccessAdminController.Status)}",
+                };
             app.Use(async (context,next) =>
             {
-                context.Response.OnStarting(state =>
+                if (pathsForNoSessionTimerUpdate.Contains(context.Request.Path.Value))
                 {
-                    if (context.Items.ContainsKey("PreventAuthRefresh"))  // if the action was invoked with [PreventAuthRefreshAttribute]
+                    if (!context.Items.TryAdd("PreventAuthRefresh", true))
                     {
-                        var response = (HttpResponse) state;
-
-                        // Omit Set-Cookie header with the offending cookie name
-                        var cookieHeader = response.Headers[HeaderNames.SetCookie]
-                            .Where(s => !s.Contains(".AspNetCore.Identity.Application"))
-                            .Aggregate(new StringValues(), (current, s) => StringValues.Concat(current, s));
-                        response.Headers[HeaderNames.SetCookie] = cookieHeader;
+                        Log.Error($"Failed to set HttpContext item with key PreventAuthRefresh for path <{context.Request.Path.Value}>");
                     }
-                    return Task.CompletedTask;
-                }, context.Response);
+                }
+
                 await next();
             });
 

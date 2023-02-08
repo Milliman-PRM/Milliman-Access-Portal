@@ -1688,7 +1688,6 @@ namespace MillimanAccessPortal.Controllers
         }
 
         [HttpGet]
-        [PreventAuthRefresh]
         public IActionResult SessionStatus()
         {
             return Json(new { });

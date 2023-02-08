@@ -205,7 +205,6 @@ namespace MillimanAccessPortal.Controllers
         /// <param name="clientId">Client to whom publications should belong</param>
         /// <param name="contentItemId">Content item to whom reductions should belong</param>
         [HttpGet]
-        [PreventAuthRefresh]
         public async Task<IActionResult> Status([EmitBeforeAfterLog] Guid clientId, [EmitBeforeAfterLog] Guid contentItemId)
         {
             var currentUser = await UserManager.GetUserAsync(User);
