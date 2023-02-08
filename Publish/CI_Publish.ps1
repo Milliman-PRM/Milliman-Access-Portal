@@ -102,10 +102,8 @@ log_statement "$BranchName trimmed to $TrimmedBranch"
 $jUnitOutputJest = "../../_test_results/jest-test-results.xml"
 
 $core2="C:\Program Files\dotnet\sdk\2.2.105\Sdks"
-$core3="C:\Program Files\dotnet\sdk\3.1.409\Sdks"
-$net5="C:\Program Files\dotnet\sdk\5.0.401\Sdks"
-$net6="C:\Program Files\dotnet\sdk\6.0.200\Sdks"
-$env:MSBuildSDKsPath=$net5
+$net7="C:\Program Files\dotnet\sdk\7.0.102\Sdks"
+$env:MSBuildSDKsPath=$net7
 $env:APP_DATABASE_NAME=$appDbName
 $env:AUDIT_LOG_DATABASE_NAME=$logDbName
 $env:ASPNETCORE_ENVIRONMENT=$testEnvironment
@@ -258,7 +256,7 @@ if ($LASTEXITCODE -ne 0)
     exit $LASTEXITCODE
 }
 
-$env:MSBuildSDKsPath=$net5
+$env:MSBuildSDKsPath=$net7
 Set-Location "$rootPath\SftpServer"
 
 log_statement "Building SFTP Server"
@@ -278,7 +276,7 @@ if ($LASTEXITCODE -ne 0)
 $sFTPVersion = get-childitem "$rootpath\SftpServer\out\SftpServer.dll" -Recurse | Select-Object -expandproperty VersionInfo -First 1 | Select-Object -expandproperty ProductVersion
 $sFTPVersion = "$sFTPVersion-$TrimmedBranch"
 
-$env:MSBuildSDKsPath=$net6
+$env:MSBuildSDKsPath=$net7
 
 if($runTests) {
     log_statement "Performing MAP unit tests"
