@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net7.0</TargetFramework>
-    <Version>1.17.7</Version>
+    <Version>1.17.8</Version>
     <Company>Milliman Inc.</Company>
     <Authors>Milliman PRM Analytics Team</Authors>
     <UserSecretsId>2db24ae0-7a7b-4156-992e-35f4f46a4a5b</UserSecretsId>
