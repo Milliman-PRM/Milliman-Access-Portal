@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <UserSecretsId>dotnet-ContentPublishingService-D0ED2994-81A3-4B83-9B61-1FD6DE3C321D</UserSecretsId>
     <Version>1.17.7</Version>
     <Company>Milliman Inc.</Company>
