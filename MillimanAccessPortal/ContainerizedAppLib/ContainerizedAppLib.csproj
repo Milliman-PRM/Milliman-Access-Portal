@@ -4,7 +4,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
-    <Version>1.17.7</Version>
+    <Version>1.18.0-dev</Version>
   </PropertyGroup>
 
   <ItemGroup>

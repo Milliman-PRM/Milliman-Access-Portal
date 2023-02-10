@@ -450,14 +450,15 @@ public class QueuedGoLiveTaskHostedService : BackgroundService
                                             await containerizedAppApi.RetagImage("preview", "live");
 
                                             successActionList.Add(async () => {
-                                                TODO It doesn't look like this is running'
                                                 AzureResourceApi api = new AzureResourceApi(publicationRequest.RootContentItem.ClientId, CredentialScope.Storage);
                                                 foreach (var shareInfo in containerizedAppTypeSpecificProperties.LiveContainerStorageShareNames)
                                                 {
                                                     // if (needed) TODO - what should this logic be?
                                                     {
                                                         // TODO Create the share (and populate data) as needed 
-                                                        await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.Key, false, true);
+                                                        string newShareName = await api.CreateFileShare(publicationRequest.RootContentItemId, shareInfo.Key, false, true);
+                                                        ContainerizedAppContentItemProperties typeSpecificProperties = publicationRequest.RootContentItem.TypeSpecificDetailObject as ContainerizedAppContentItemProperties; ;
+                                                        //typeSpecificProperties.LiveContainerStorageShareNames = 
                                                     }
                                                 }
                                             });
