@@ -103,7 +103,7 @@ namespace MillimanAccessPortal.Services
                                                                        .Distinct(new IdPropertyComparer<Client>())
                                                                        .ToList();
 
-                    List<Client> relevantClients = clientsToVerify.Where(c => DateTime.UtcNow.Date > c.LastAccessReview.LastReviewDateTimeUtc.Date + clientReviewRenewalPeriodDays - clientReviewEarlyWarningDays)
+                    List<Client> relevantClients = clientsToVerify.Where(c => DateTime.UtcNow.Date + _clientReviewNotificationTimeOfDayUtc > c.LastAccessReview.LastReviewDateTimeUtc + clientReviewRenewalPeriodDays - clientReviewEarlyWarningDays)
                                                                   .ToList();
 
                     if (relevantClients.Any())

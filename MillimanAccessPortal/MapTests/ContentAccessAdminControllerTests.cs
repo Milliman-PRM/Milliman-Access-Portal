@@ -920,7 +920,7 @@ namespace MapTests
                     ApplicationUserId = TestUtil.MakeTestGuid(1),
                     SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
                     MasterFilePath = "",
-                    CreateDateTimeUtc = DateTime.MinValue,
+                    CreateDateTimeUtc = new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc),
                 });
                 TestResources.DbContext.SaveChanges();
                 #endregion
@@ -961,7 +961,7 @@ namespace MapTests
                         ApplicationUserId = TestUtil.MakeTestGuid(UserId),
                         SelectionCriteriaObj = new ContentReductionHierarchy<ReductionFieldValueSelection>(),
                         MasterFilePath = "",
-                        CreateDateTimeUtc = DateTime.MinValue,
+                        CreateDateTimeUtc = new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc),
                     });
                 }
                 TestResources.DbContext.SaveChanges();

@@ -73,7 +73,7 @@ namespace MapCommonLib
         public static (string checksum, long length) GetFileChecksum(string FilePath)
         {
             using (Stream concatStream = File.OpenRead(FilePath))
-            using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+            using (HashAlgorithm hashAlgorithm = SHA1.Create())
             {
                 byte[] checksumBytes = hashAlgorithm.ComputeHash(concatStream);
                 return (BitConverter.ToString(checksumBytes).Replace("-", ""), concatStream.Length);
@@ -82,7 +82,7 @@ namespace MapCommonLib
 
         public static string GetStringChecksum(string Arg)
         {
-            using (HashAlgorithm hashAlgorithm = new SHA1Managed())
+            using (HashAlgorithm hashAlgorithm = SHA1.Create())
             {
                 byte[] checksumBytes = hashAlgorithm.ComputeHash(Encoding.ASCII.GetBytes(Arg));
                 return BitConverter.ToString(checksumBytes).Replace("-", "");

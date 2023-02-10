@@ -10,13 +10,14 @@ using MapDbContextLib.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Newtonsoft.Json;
 using Npgsql;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Infrastructure.Internal;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace MapDbContextLib.Context
 {
@@ -52,15 +53,24 @@ namespace MapDbContextLib.Context
         // Had to implement this parameterless constructor for Mocking in unit tests, I hope this doesn't cause any problem in EF
         public ApplicationDbContext() { }
 
-        static ApplicationDbContext()
+        public static void MapEnums(NpgsqlDataSourceBuilder dataSourceBuilder)
         {
+#if false  
+            // This new technique fails using npgsql v7.0.1 due to a bug in that package, fixed in v7.0.2, expected very soon
+            dataSourceBuilder.MapEnum<AuthenticationType>()
+                             .MapEnum<PublicationStatus>()
+                             .MapEnum<ReductionStatusEnum>()
+                             .MapEnum<ContentTypeEnum>()
+                             .MapEnum<FileDropNotificationType>();
+#else
+            // working but soon to be deprecated technique
             NpgsqlConnection.GlobalTypeMapper.MapEnum<AuthenticationType>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<PublicationStatus>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ReductionStatusEnum>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<ContentTypeEnum>();
             NpgsqlConnection.GlobalTypeMapper.MapEnum<FileDropNotificationType>();
+#endif
         }
-            
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -126,7 +136,7 @@ namespace MapDbContextLib.Context
             builder.Entity<SelectionGroup>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.Property(x => x.TypeSpecificDetail).HasDefaultValue(JsonConvert.SerializeObject(new object())).ValueGeneratedOnAdd();
+                b.Property(x => x.TypeSpecificDetail).HasDefaultValue(JsonSerializer.Serialize(new object())).ValueGeneratedOnAdd();
             });
             builder.Entity<RootContentItem>(b =>
             {
@@ -160,12 +170,12 @@ namespace MapDbContextLib.Context
                 b.Property(x => x.ReductionStatus).HasDefaultValue(ReductionStatusEnum.Unspecified);
                 b.HasOne(x => x.ContentPublicationRequest).WithMany().OnDelete(DeleteBehavior.Cascade);
                 b.HasOne(x => x.SelectionGroup).WithMany().OnDelete(DeleteBehavior.Cascade);
-                b.UseXminAsConcurrencyToken();
+                b.Property(x => x.Version).IsRowVersion();
             });
             builder.Entity<ContentPublicationRequest>(b =>
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
-                b.UseXminAsConcurrencyToken();
+                b.Property(x => x.Version).IsRowVersion();
             });
             builder.Entity<FileUpload>(b =>
             {
@@ -191,7 +201,7 @@ namespace MapDbContextLib.Context
             {
                 b.Property(x => x.Id).HasDefaultValueSql("uuid_generate_v4()").ValueGeneratedOnAdd();
                 b.HasOne(x => x.ApplicationUser).WithMany(u => u.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
-                b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(DateTime.MinValue).ValueGeneratedOnAdd();
+                b.Property(x => x.PasswordResetDateTimeUtc).HasDefaultValue(new DateTime(DateTime.MinValue.Ticks, DateTimeKind.Utc)).ValueGeneratedOnAdd();
                 b.HasOne(x => x.FileDrop).WithMany(fd => fd.SftpAccounts).OnDelete(DeleteBehavior.Cascade);  // not the default when a nullable FK
                 b.HasOne(x => x.FileDropUserPermissionGroup).WithMany(g => g.SftpAccounts).OnDelete(DeleteBehavior.SetNull);  // Keep account to sustain credentials
             });
@@ -211,21 +221,22 @@ namespace MapDbContextLib.Context
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            if (optionsBuilder.IsConfigured)
-            {
-                RelationalOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<RelationalOptionsExtension>().First();
-                string connectionString = extension.ConnectionString;
+        //    DbContextOptionsBuilder builder = optionsBuilder;
+        //    if (optionsBuilder.IsConfigured)
+        //    {
+        //        NpgsqlOptionsExtension extension = optionsBuilder.Options.Extensions.OfType<NpgsqlOptionsExtension>().First();
+        //        string connectionString = extension.DataSource.ConnectionString;
 
-                optionsBuilder.UseNpgsql(connectionString);
-            }
+        //        optionsBuilder.UseNpgsql(connectionString);
+        //    }
         }
 
         public static async Task InitializeAllAsync(IServiceProvider serviceProvider)
         {
             await Identity.ApplicationRole.SeedRolesAsync(serviceProvider);
-            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
             await Context.AuthenticationScheme.SeedSchemesAsync(serviceProvider);
             await Context.NameValueConfiguration.InitializeNameValueConfigurationAsync(serviceProvider);
+            await Context.ContentType.InitializeContentTypesAsync(serviceProvider);
         }
     }
 

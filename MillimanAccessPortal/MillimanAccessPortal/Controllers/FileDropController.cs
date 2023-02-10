@@ -214,8 +214,7 @@ namespace MillimanAccessPortal.Controllers
                     }
                     loopCounter++;
 
-                    byte[] randomBytes = new byte[24 / 8];
-                    new RNGCryptoServiceProvider().GetBytes(randomBytes);
+                    byte[] randomBytes = RandomNumberGenerator.GetBytes(3);
                     propsedShortHash = Convert.ToBase64String(randomBytes);
                 }
                 while (_dbContext.FileDrop.Any(d => d.ShortHash == propsedShortHash)); // Hash must be unique in the db
@@ -750,8 +749,7 @@ namespace MillimanAccessPortal.Controllers
             #endregion
 
             // 144 bits yields same base64 encoded length (24) as 128 bits (no padding characters) with 16 more random bits
-            byte[] randomBytes = new byte[144 / 8];
-            new RNGCryptoServiceProvider().GetBytes(randomBytes);
+            byte[] randomBytes = RandomNumberGenerator.GetBytes(144 / 8);
             string newPassword = Convert.ToBase64String(randomBytes);
 
             SftpAccountCredentialModel returnModel = new SftpAccountCredentialModel
