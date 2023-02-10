@@ -72,8 +72,8 @@ namespace MillimanAccessPortal
                                     $"    Assembly version <{fileVersionInfo.ProductVersion}>{Environment.NewLine}" +
                                     $"    Assembly location <{processAssembly.Location}>{Environment.NewLine}" +
                                     $"    Host environment is <{host.Services.GetService<IHostEnvironment>().EnvironmentName}>{Environment.NewLine}" +
-                                    $"    Logging level is <{minLevel}{Environment.NewLine}" +
-                                    $"    Using MAP database {cxnStrBuilder.Database} on host {cxnStrBuilder.Host}");
+                                    $"    Logging level is <{minLevel}>{Environment.NewLine}" +
+                                    $"    Using MAP database <{cxnStrBuilder.Database}> on host <{cxnStrBuilder.Host}>");
 
                     GlobalFunctions.DomainValRegex = Configuration.GetValue("Global:DomainValidationRegex", GlobalFunctions.DomainValRegex);
                     GlobalFunctions.EmailValRegex = Configuration.GetValue("Global:EmailValidationRegex", GlobalFunctions.EmailValRegex);
